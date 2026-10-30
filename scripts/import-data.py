@@ -1,6 +1,7 @@
 """Build the original research release and approved supplemental additions without converting unknowns into terms."""
 import argparse
 import collections, copy, datetime, json, re
+from revision_import import validate_history
 from urllib.parse import urlsplit
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
@@ -44,6 +45,9 @@ for addition in supplemental_manifest.get('programAdditions',[]):
         if source['url'] not in urls:
             target['sources'].append(source)
             urls.add(source['url'])
+validate_history(ROOT, records)
+previous_path=ROOT/'dist/data/funders.json'
+previous_funds={f['id']:f for f in json.loads(previous_path.read_text())['funds']} if previous_path.exists() else {}
 pilot_ids={r['sourceRecordId'] for r in pilot}
 warnings=[w for r in records for w in r.get('sourceWarnings',[])]
 counts=collections.Counter()
@@ -118,7 +122,9 @@ for fund in snapshot['funds']:
             expired=(datetime.datetime.fromisoformat(application['deadlineInstant'].replace('Z','+00:00'))<as_of if application['deadlineInstant'] else bool(application['closesOn'] and application['closesOn']<as_of.date().isoformat()))
             if route in ('open','restricted','inquiry','rolling') and expired: route='closed'
             return access_order.get(route,8)
-        p=min(r['programs'],key=route_rank)
+        previous=previous_funds.get(fund['id'], {})
+        retained=previous.get('displayProgramId') if previous.get('enrichment')==r else None
+        p=next((p for p in r['programs'] if p['id']==retained),None) or min(r['programs'],key=route_rank)
         fund['displayProgramId']=p['id']
         fund.update(program=p['name'],access=p['application']['route'],accessDetail=p['application']['note'],amount=award_note(p),timing=p['application']['note'],deadlineDate=p['application']['closesOn'],deadlineInstant=p['application']['deadlineInstant'])
     elif reviewed:
