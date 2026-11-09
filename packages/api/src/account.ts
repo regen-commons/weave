@@ -1,60 +1,20 @@
-import { parseDocument, record, uuid } from "./account-contract.ts";
-import { AccountError, createSupabaseAccountProvider, type AccountProvider } from "./account-provider.ts";
+import { boundedJson, sessionCookies } from "./account-http.ts";
+import { accountRuntime } from "./account-runtime.ts";
+import { parseDocument, uuid } from "./account-contract.ts";
+import { AccountError, type AccountProvider } from "./account-provider.ts";
 interface Options {
   provider: AccountProvider | null;
   secureCookies?: boolean;
-  cookieName?: string;
-  otpDigits?: number;
   fixture?: boolean;
-}
-async function boundedJson(request: Request): Promise<Record<string, unknown>> {
-  if (Number(request.headers.get("content-length") ?? 0) > 65536)
-    throw new AccountError(413, "request_too_large");
-  const reader = request.body?.getReader();
-  if (!reader) throw new AccountError(400, "invalid_data");
-  const chunks: Uint8Array[] = [];
-  let bytes = 0,
-    timedOut = false;
-  const timer = setTimeout(() => {
-    timedOut = true;
-    void reader.cancel();
-  }, 10000);
-  try {
-    while (true) {
-      const result = await reader.read();
-      if (timedOut) throw new AccountError(408, "request_timeout");
-      if (result.done) break;
-      bytes += result.value.byteLength;
-      if (bytes > 65536) {
-        void reader.cancel();
-        throw new AccountError(413, "request_too_large");
-      }
-      chunks.push(result.value);
-    }
-    const joined = new Uint8Array(bytes);
-    let offset = 0;
-    for (const chunk of chunks) {
-      joined.set(chunk, offset);
-      offset += chunk.byteLength;
-    }
-    return record(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(joined)));
-  } catch (error) {
-    if (error instanceof AccountError) throw error;
-    throw new AccountError(400, "invalid_data");
-  } finally {
-    clearTimeout(timer);
-    reader.releaseLock();
-  }
+  emailHintAvailable?: boolean;
 }
 export function createAccountHandlers({
   provider,
   secureCookies = true,
-  cookieName = "__Host-weave_account",
-  otpDigits = 8,
   fixture = false,
+  emailHintAvailable = false,
 }: Options) {
-  const cookie = (token = "", seconds = 0) =>
-    `${cookieName}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${secureCookies ? "; Secure" : ""}`;
+  const cookies = sessionCookies(secureCookies), cookie = cookies.session;
   const response = (status: number, body: unknown, setCookie?: string) =>
     new Response(JSON.stringify(body), {
       status,
@@ -65,17 +25,7 @@ export function createAccountHandlers({
         ...(setCookie ? { "Set-Cookie": setCookie } : {}),
       },
     });
-  const token = (request: Request) => {
-    const values = (request.headers.get("cookie") ?? "")
-      .split(";")
-      .map((value) => value.trim())
-      .filter((value) => value.startsWith(`${cookieName}=`));
-    if (values.length !== 1) return null;
-    const value = values[0]!.slice(cookieName.length + 1);
-    return value.length <= 3800 && /^[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/u.test(value)
-      ? value
-      : null;
-  };
+  const token = cookies.token;
   const failure = (error: unknown) => {
     const known = error instanceof AccountError ? error : new AccountError(503, "account_unavailable");
     return response(known.status, { error: known.code }, known.status === 401 ? cookie() : undefined);
@@ -85,7 +35,8 @@ export function createAccountHandlers({
       if (!provider) return response(200, { available: false });
       try {
         const access = token(request);
-        if (!access) return response(200, { available: true, otpDigits, fixture, user: null, items: [] });
+        if (!access) return response(200, { available: true, signIn: "certified", fixture, user: null, items: [],
+          ...(emailHintAvailable ? { emailHintAvailable } : {}) });
         const user = await provider.authorize(access);
         const params = new URL(request.url).searchParams,
           id = params.get("id");
@@ -98,7 +49,7 @@ export function createAccountHandlers({
           throw new AccountError(400, "invalid_data");
         return response(200, {
           available: true,
-          otpDigits,
+          signIn: "certified",
           fixture,
           user,
           items: await provider.list(access, offset),
@@ -115,36 +66,13 @@ export function createAccountHandlers({
           throw new AccountError(415, "json_required");
         if (!provider) throw new AccountError(503, "accounts_not_configured");
         const body = await boundedJson(request);
-        if (body.action === "request_code" || body.action === "verify_code") {
-          if (
-            typeof body.email !== "string" ||
-            body.email.length > 254 ||
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(body.email.trim())
-          )
-            throw new AccountError(400, "invalid_email");
-          const email = body.email.trim().toLowerCase();
-          if (body.action === "request_code") {
-            await provider.requestCode(email);
-            return response(200, { sent: true });
-          }
-          const code = typeof body.code === "string" ? body.code.replace(/\s+/gu, "") : "";
-          if (!new RegExp(`^\\d{${otpDigits}}$`, "u").test(code)) throw new AccountError(400, "invalid_code");
-          const session = await provider.verifyCode(email, code);
-          let user;
-          try {
-            user = await provider.authorize(session.token);
-          } catch (error) {
-            try {
-              await provider.signOut(session.token);
-            } catch {}
-            throw error;
-          }
-          return response(200, { user }, cookie(session.token, session.expiresIn));
-        }
+        if (!["sign_out", "save"].includes(String(body.action))) throw new AccountError(400, "invalid_action");
         const access = token(request);
         if (body.action === "sign_out") {
           if (access) await provider.signOut(access);
-          return response(200, { signedOut: true }, cookie());
+          const result = response(200, { signedOut: true }, cookie());
+          result.headers.append("Set-Cookie", cookies.pending());
+          return result;
         }
         if (!access) throw new AccountError(401, "sign_in_required");
         const user = await provider.authorize(access);
@@ -187,21 +115,9 @@ export function createAccountHandlers({
   };
 }
 function configuredHandlers() {
-  const enabled = process.env.WEAVE_ACCOUNTS_ENABLED === "true",
-    url = process.env.WEAVE_SUPABASE_URL,
-    key = process.env.WEAVE_SUPABASE_PUBLISHABLE_KEY;
-  const digits = Number(process.env.WEAVE_OTP_DIGITS ?? 8);
-  const valid =
-    enabled &&
-    url === "https://ztygpuzldujfsqrubxic.supabase.co" &&
-    key?.startsWith("sb_publishable_") &&
-    Number.isInteger(digits) &&
-    digits >= 6 &&
-    digits <= 10;
-  return createAccountHandlers({
-    provider: valid && url && key ? createSupabaseAccountProvider(url, key) : null,
-    otpDigits: digits,
-  });
+  const runtime = accountRuntime();
+  return createAccountHandlers({ provider: runtime?.provider ?? null, secureCookies: runtime?.secureCookies ?? true,
+    emailHintAvailable: !!runtime?.emailHints });
 }
 export const GET = (request: Request) => configuredHandlers().GET(request);
 export const POST = (request: Request) => configuredHandlers().POST(request);

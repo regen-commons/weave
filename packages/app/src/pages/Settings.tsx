@@ -63,17 +63,17 @@ export function Settings() {
           Change your card
         </ButtonLink>
       </SettingsSection>
-      <SettingsSection title="Email">
+      <SettingsSection title="Sign-in and contact">
         <p>
           {import.meta.env.DEV && example
-            ? (example.state.email ?? "No example email verified.")
-            : (account.state?.user?.email ?? "Sign in when you want a private saved copy.")}
+            ? (example.state.signedIn ? "Signed in to the Certified example." : "Not signed in to the example.")
+            : (account.state?.user ? "Signed in with Certified." : "Sign in with Certified when you want a private saved copy.")}
         </p>
         <p className="rc-meta">
-          Sign-in codes only. Funding reminders, introductions and weekly updates need separate services and
-          choices.
+          Certified handles sign-in. Weave does not keep an email address from sign-in. Reminders and introductions
+          will need separate contact details and permission.
         </p>
-        {import.meta.env.DEV && example?.state.email && (
+        {import.meta.env.DEV && example?.state.signedIn && (
           <fieldset className="rc-choice-group">
             <legend>Example email choices</legend>
             {(
@@ -202,7 +202,7 @@ export function Settings() {
         {import.meta.env.DEV && example ? (
           <>
             <p>This example changes no real account.</p>
-            {example.state.email ? (
+            {example.state.signedIn ? (
               <button
                 className="rc-button"
                 data-variant="secondary"
@@ -247,7 +247,7 @@ export function Settings() {
             className="rc-button"
             data-variant="danger"
             type="button"
-            disabled={busy || !example.state.email}
+            disabled={busy || !example.state.signedIn}
             onClick={() =>
               void perform(async () => {
                 await example.service.deleteAccount();

@@ -152,6 +152,7 @@ export function AskEditor({
         </>
       ) : (
         <>
+          {text("timeframe", "When it is available", 200)}
           {text("capacity", "How much, how often", 200)}
           {text("audience", "Who it is for", 200)}
         </>

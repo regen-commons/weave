@@ -3,7 +3,8 @@ export function askTerms(value: AskFields, kind: AskKind): string {
   const amount = amountText(value.amount);
   return [
     amount,
-    kind === "needs" ? value.timeframe || (value.urgency ? URGENCY[value.urgency] : "") : value.capacity,
+    value.timeframe || (kind === "needs" && value.urgency ? URGENCY[value.urgency] : ""),
+    kind === "offers" ? value.capacity : "",
     SCOPES[value.placeScope],
     value.exchangeTerms.map((term) => TERMS[term]).join(" or "),
     value.status === "open" ? "" : STATUS[value.status],

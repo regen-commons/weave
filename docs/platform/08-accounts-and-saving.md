@@ -1,254 +1,164 @@
 # Saving initiatives and accounts
 
-Status: proposed full flow; private account connection live · Updated: 5 November 2026
-Companion documents: [PRD](04-prd.md) · [technical spec](05-technical-spec.md) · [DESIGN.md](../../DESIGN.md) · [example pages](../../packages/design-system/patterns/pages/finish.html)
+Status: matching flows revised 8 November 2026. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
+Companions: [PRD](04-prd.md) · [technical spec](05-technical-spec.md#5-identity-and-access) · [decision register](open-decisions.md#certified-only-sign-in-and-private-saving) · [design spec](research/certified-hypercerts-2026-11-06/design-spec.md#one-sign-in-including-first-use).
 
-This Step 0 revision places [prototype decisions 17 to 20 and 24](prototype/review-decisions.md#saving-sharing-and-partners), with the small-task presentation from decision 23. Two ways to be on Weave, partners for shared initiatives and one email door remain council proposals in [D26 to D28](open-decisions.md#for-the-council), recorded as proposed in [DL-019 to DL-021](../../packages/design-system/decision-log.md#dl-019-partners-are-for-shared-initiatives). The technical specification and example pages still describe parts of the earlier flow; their follow-up changes are tracked in the review decisions. Step 0 changed no schema, sign-in service or email.
-
-People should give an email because it does something for them, not because a wall stops them. So saving is separate from sharing, and an email is only requested at the moment it helps. The rest of this document says how.
-
-## Private account connection
-
-The November 5 implementation connects a narrow private-saving flow to the existing
-Regen Commons Website Supabase project (`ztygpuzldujfsqrubxic`). It is live at
-[Weave](https://weave.regencommons.com) after authorized release. The rest of this document remains
-the proposed full flow. This slice brings account saving forward from interface
-Step 7; it does not require finishing the remaining fixture screens first.
-
-- **Entry and choice.** Account in the header and Save or load your card on Finish
-  open Settings. Email verification reveals the account's saved cards before a person
-  chooses Save or Load. Signing in alone never sends the device card. Step 7 adds an explicitly opened contextual dialog and keeps Finish's
-  email/code flow inline.
-- **Stored copy.** Save sends the checked initiative, kept needs and offers and kept
-  funding details only. Conversations, file bytes, open edits, assistant records and
-  inferred confidence stay on the device. All server records are private and owner
-  readable. Editors, public sharing, first-save mail, reminders and the membership
-  handoff are outside this connection.
-- **Sessions.** `/api/account` calls Supabase Auth and the `weave` RPCs using native
-  fetch, a publishable key and the person's access token. The token stays in a Secure,
-  HttpOnly, SameSite=Strict, host-only cookie for at most one hour. No refresh token
-  is retained. Reauthentication preserves the device draft. Browser storage holds
-  no Auth tokens; no Supabase SDK dependency or CSP widening is needed.
-- **Recovery.** A persisted request UUID and expected server revision make retries
-  idempotent and stale saves explicit. A lost response can be retried. Loading first
-  archives the complete current device draft and files in the same IndexedDB
-  transaction that replaces it. Settings can restore those backups. A quota or
-  conflicting tab stops replacement, preserving the visible words. Signing out
-  leaves device drafts and backups, as the UI explains for shared devices.
-- **Identity and mail.** The shared Auth pool creates accounts without creating
-  membership rows. Keep eight-digit codes and the current one-hour expiry. The
-  website PR proposes generic sign-in template wording that works for both apps;
-  it does not install the planned email hook or send a first-save email.
-
-Server-only variables configured for the **Weave Vercel project**, production only:
-
-| Variable | Value |
-|---|---|
-| `WEAVE_ACCOUNTS_ENABLED` | `true` only after the migration, Data API and mail checks |
-| `WEAVE_SUPABASE_URL` | `https://ztygpuzldujfsqrubxic.supabase.co` |
-| `WEAVE_SUPABASE_PUBLISHABLE_KEY` | The project's publishable key, held in server settings |
-| `WEAVE_OTP_DIGITS` | `8`, matching the existing shared Auth setting |
-
-The website repository owns `20261105082413_weave_private_accounts.sql`. The exact
-migration is applied and recorded in hosted migration history. Its
-[PR #12](https://github.com/regen-commons/website/pull/12) still needs approval from
-someone other than its last pusher before GitHub will allow a merge. The independent
-technical Auth/RLS review found no release blockers; it does not replace that
-repository approval. Do not reapply or rename the migration. `weave` is exposed
-through the Data API; `private` remains unexposed. No service-role key is used.
-Disabling the
-app flag stops its account route; removing `weave` from exposed schemas also stops
-direct Data API access. Preserve stored rows during rollback.
-
-[Production proof](prototype/proof/accounts/README.md#production-verification)
-covers live code sign-in, private save, second-browser load and reload, backup
-recovery, session-scoped sign-out and cross-account denial. Resend's reserved test
-recipients simulated delivery; no personal inbox or existing steward account was
-accessed. Both shared Auth templates now use the reviewed generic code wording.
-The existing SMTP credentials, eight-digit codes and one-hour expiry were preserved.
-Personal inbox delivery and the steward's own sign-in remain unverified. Local HTTP
-and disposable PostgreSQL 17 proof cover the remaining failure boundaries.
+Certified is the only sign-in flow. Weave automatically creates or retrieves an
+internal account record for the proven identity and uses it to own saved
+initiatives. People do not register separately with Weave. A public Certified
+project, Ma Earth listing and Regen Commons membership are not required.
 
 ## The decision
 
-1. **Separate saving from sharing.** Saving keeps a private copy on the server. Sharing is a later, separate choice. The old flow tied both together at "publish".
-2. **Show value first.** The whole conversation, first funding and the partner-match count work with no email. Partner cards depend on sharing, not saving.
-3. **Ask for an email and nothing else.** No name, no password, no organisation, no boxes to tick.
-4. **One email door.** Save, share, remind and introduce all save the current initiative to the verified email and resume the requested action. Never say "create an account". Say "Keep this initiative" and "Email me a code". Once signed in, the action happens without asking for the email again, with sharing and introduction confirmations preserved.
-5. **Keep saving where the reason is.** On Finish and Partners before sharing, the share card explains what saving or sharing opens and holds the email field and code step. Unprompted saving stays inline, once per seam; Not now stays declined. Small tasks the person opens use a dialog on wide screens and a bottom sheet on phones. Never interrupt with an unsolicited dialog or wall. See [DL-027](../../packages/design-system/decision-log.md#dl-027-tooltips-pop-ups-for-small-tasks-and-settings-in-place).
-6. **Give true reasons.** Work saved only in a browser can vanish. Say so where it is true, and do not invent any other pressure.
+1. Show value before sign-in. Browse public initiatives and funding, and prepare an initiative draft on this device.
+2. Offer “Sign in with Certified” when the person wants an account copy or chooses to add a need or offer to an initiative they manage. Certified handles the code, account setup and consent. The hosted test offers email entry in Weave for that attempt.
+3. Keep authentication, saving and sharing separate. Return to the same task after sign-in; only explicit Save uploads the checked document.
+4. Reuse one person session for several initiatives. There is no account-linking screen, migration flow, alternate Weave code or fallback identity provider.
+5. Preserve device work through every exit. Cancel, failure or Not now never discards a draft or claims it is saved.
 
-The books have no data on when to ask for sign-up. Krug's chapters on goodwill and mobile point this way, but this remains a hypothesis to test with people. See the [testing plan](../../packages/design-system/principles/usability-testing.md).
+## Where work lives
 
-## Lifecycle
-
-Draft is local storage state; Private and Shared are the two visibility choices. Withdrawn and Hidden describe record status or moderation, not additional visibility choices. People read the words in the second column. Removing the signed-in-only visibility level is proposed in D26.
-
-| State | Label | Where it lives | Who can see it |
-|---|---|---|---|
-| Draft | Saved on this device only | The browser (IndexedDB) | Only that browser |
-| Private | Private, for finding funding | `weave.initiatives`, `visibility = 'private'` | The owner and editors they add |
-| Shared | Shared with the community | `visibility = 'public'` | Everyone through a public page and directory entry; onward sharing needs separate consent |
-| Withdrawn | Withdrawn | `status = 'withdrawn'` | The owner, who can restore or delete it |
-| Hidden | Hidden by a steward | `steward_hidden = true` | The owner and stewards, with a stated reason |
-
-Rules:
-
-- **Only the owner changes visibility.** A steward can hide a shared record, but never make a record more visible.
-- **Moving to Private, or withdrawing,** stops future sharing and sends a retraction to connected networks.
-- **Private initiatives get funding and partner counts.** The Partners share card shows how many partners match and how to share. There are no partner names, individual cards, reasons or veiled previews until sharing (give to get). Team slots also show counts only. Private initiatives never appear in anyone else's matches, lists, place pages or counts per initiative. The public directory remains browsable; this is the product's matching rule, not a promise to conceal public records.
-- **Stewards cannot read private initiatives.** Nothing there has been shared, so there is nothing to tidy. Aggregate counts are fine.
-- **An introduction shares with one person.** Introductions open with partner names, once your initiative is shared on the list. Asking for one then shows your full card to that recipient only, after you confirm, without changing what anyone else can see.
-- **Returning to private stops future discovery and introductions.** Whether an already open introduction remains available is [D31](open-decisions.md#for-the-builders). The prototype keeps it open; that is a labelled fixture default until the policy is confirmed, not a live privacy promise.
-- **One email can hold several initiatives.** An initiative can add editors later.
-
-Examples:
-
-- Ana finishes all three steps on her phone and closes the tab. She comes back the next day in the same browser, and the draft is there. No email was involved.
-- Ana saves with her email, then signs in on a laptop. She sees her private initiative, funding matches and the share card with partner counts. Signing in does not open partner names.
-- Ana chooses Shared with the community and confirms. Her public page and directory entry appear, and Partners and team slots can show candidates. Onward network sharing stays off until separately chosen.
-- Ana taps Remind me for one fund. If signed out, she verifies her email, saves the initiative privately and enables that reminder; if signed in, it is enabled immediately. Neither path enables a weekly update.
-- Ana started a second draft on the laptop before signing in. After the code she sees both, and chooses to keep them as two initiatives or replace the saved one. Nothing is silently overwritten.
-- Ana types the wrong email. Nothing is created until a code is confirmed. She taps Wrong email?, fixes it, and her draft is untouched.
-- A steward opens the desk. Ana's private initiative does not appear, and a direct query is refused by row-level security.
-- A person with a private initiative tries to appear in a place page. They cannot, and the page tells them to choose who can see it.
-
-## Never needs an email
-
-- Browsing funders, programs, public initiatives, places and partnerships.
-- Search and filters.
-- The full three-step conversation, by typing, speaking or attaching a file.
-- Local AI, and consenting to cloud AI for one step.
-- Seeing funding matches and their reasons for a draft, plus the partner-match count and how to share. Individual partner reasons arrive with cards after sharing.
-- Copying or downloading your own draft.
-- Help, privacy pages, and the "still accurate" and unsubscribe links in email.
-
-## What an email gets you
-
-| A person wants to | So we ask when they tap | They get |
+| State | Storage and access | Meaning |
 |---|---|---|
-| Not lose their work | Save, in the status line or the panel | A private copy on any device |
-| Hear before a fund closes | Remind me before it closes | One email about that fund, and nothing else unless they choose |
-| Reach a partner | Ask for an introduction | A relayed message, because the other side needs a way to reply |
-| Join a partnership | Ask to join | A place in it, with updates about it |
-| Be found | Who can see it | A shareable page and a place in other people's matches |
-| Claim an imported record | This is us | Control of a record someone else entered |
-| Hear about their region | Send me a weekly update | A short weekly email, with a preview first |
+| Device draft | This browser's local storage, subject to device/browser access | Includes working text, files and unfinished edits; no account required. |
+| Saved privately | Owner-authorized Weave database record | Checked initiative, kept needs/offers and funding answers only; available to the same Certified identity on another device. |
+| Shared for matching | Selected current entries and an approved initiative summary | An owner previews and explicitly shares what signed-in Weave users can see. Private Save alone does not share. |
 
-Gated actions say so before the tap: "They need a way to reply, so this asks for your email." Every action needing an email uses the same door: code confirmation saves the current initiative to that email, privately unless the person separately confirms sharing. A known email follows the same flow; it is never disclosed before code confirmation.
+Saving the checked document does not back up conversation transcripts, files,
+unfinished alternatives or AI history. Show this limit where the person saves.
+Loading a saved initiative first backs up the complete current device draft and
+files. If backup fails, leave the active draft unchanged. Database administrators
+can technically access stored data; owner-only product access is not end-to-end
+encryption.
 
-## When we ask
+Private initiatives can see named suggestions and evidence from permitted public
+sources without sharing their own work, following [R16](04-prd.md). Compute private
+queries locally against a bounded public snapshot and show its coverage. Inferred
+experience, potential uses of an offer, public statements and confirmed entries
+remain distinct. Private records and saved leads never enter
+the public corpus. Seeing a public project does not reveal associated private
+Weave records or give permission to contact its team.
 
-An unprompted offer appears once per seam, inline. An explicit action opens in place over the current page when it does not already sit in a share card.
+## First visit and first save
 
-1. **After the first confirmed card.** The status line reads "Saved on this device only" and links to saving. Nothing else moves.
-2. **When first funding appears.** Finish shows first funding, the share card and the person's card. Partners before sharing uses the same share card. The email and code stay inside it, next to the reason to save or share. The existing finish example needs updating with its pattern.
-3. **At the action that needs it.** Remind me, Ask for an introduction, Ask to join, Who can see it.
+1. Describe and check an initiative. Art, software, research and place-based work follow the same path. A device draft can be prepared before signing in.
+2. Open the saving task. Explain: “Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave.”
+3. Persist device work, then redirect to Certified. If the person entered an email in Weave, forward it for that attempt. If local persistence fails, offer recovery before departure.
+4. Complete the code and any first-use setup on Certified. A first-time user may also choose a handle. Signing up provisions the identity Weave will use for private saving.
+5. Return to the original Weave task. Show “Signed in with Certified,” the device draft and saved initiatives. Authentication alone performs no Save or Load.
+6. Choose Save. Send only the checked document using the existing revision and request-ID contract. Say “Saved privately in Weave” only after the server confirms success.
 
-Never at arrival, mid-recording or mid-edit, and never again after Not now, except when the person taps an action that needs it. Sign in, save, share and delete opened by the person use a dialog on wide screens and a bottom sheet on phones. The unprompted Finish prompt remains inline.
+First use may include Certified account terms, handle selection or consent. “One
+sign-in flow” does not mean one screen or no future prompts. Weave never asks for
+a second code to finish saving and sends no automatic welcome or saved-card email.
 
-## The flow
+## Returning, loading and switching
 
-The [code panel](../../packages/design-system/COMPONENTS.md#organisms) does this everywhere.
+On the same device, resume the local draft without signing in. For saved work,
+use the active session or choose Sign in with Certified. The same stable identity
+must reach the same account UUID and saved initiatives, including from another
+browser. A changed handle does not create a new account.
 
-1. **Email.** One field. It requests a code and subscribes to nothing.
-2. **Code.** One field with `autocomplete="one-time-code"` and `inputmode="numeric"`. It accepts a pasted code, with or without spaces. The page says where the code went, with Wrong email? and Send a new code after 60 seconds.
-3. **Save, then resume.** After the code, save the current draft to the verified email, then complete the requested action in place. Save stores a private copy; Remind me enables the chosen reminder; Share and Ask for an introduction retain their explicit confirmation before publishing or sending. Do not send the person to a home page. Signing in still uses R40's merge without overwriting existing work.
-4. **Confirm.** "Saved. Only you can see it." If the person then confirms sharing, show the shared state instead. The header shows Saved and an account button leading to Settings.
-5. **First email.** A link back to the initiative, the card and the first matches. It should be worth opening. It is the only email they get until they choose more.
-6. **Then choose.** Offer "Private, for finding funding" and "Shared with the community", with Private selected. Sharing onward is a separate, default-off choice. Ask about the weekly update separately, later, with a preview and nothing pre-selected.
+Choose Load explicitly from Your saved initiatives. Preserve the current device
+work before replacement, and show conflicts or errors without losing either
+version. Switching initiatives uses the same session. Signing out ends the Weave
+session; it does not erase device drafts/backups or claim to sign out of every
+Certified application. Device-data clearing remains a separate explicit action.
 
-### When things go wrong
+## Matching on a first or returning visit
 
-| What happens | What the person sees | What must hold |
-|---|---|---|
-| The email is slow | It can take a minute to arrive. Check your spam folder if it does not. | The draft stays safe. The page survives a round trip to the mail app. |
-| Wrong code | That code does not match. Check it, or send a new one. | What they typed stays. |
-| Expired code | That code has expired. We can send a new one. | One tap to resend. |
-| Rate limited | We have sent a few codes already. Try again in 10 minutes. | State the limit, never fail silently. |
-| Offline | You are offline. Your work is saved on this device. We will try when you reconnect. | The draft is untouched. |
-| Browser storage blocked or evicted | The draft on this device was lost. Anything you saved is still linked to your email. | Distinguish a local draft from saved initiatives; offer sign-in to recover saved work, and saving earlier on browsers known to evict. Never imply an unsaved draft can be recovered from the server. |
-| Email already known | The same flow, which signs them in. | Never reveal whether an email exists before the code is confirmed. |
-| Email never arrives | Show another way to get help. | A contact route for people stuck at this step. |
+Certified signs the person in. Weave owns the initiative record and checks who
+can manage it. A person joins network matching by sharing one or more open
+needs or offers from an initiative they own. Browsing public initiatives and
+funding stays open. Partners includes both other owners' shared entries and
+permitted public project evidence, with distinct labels. The other project need
+not use Weave or have stated needs/offers. A private local preview may still use
+public evidence without joining the shared-entry network.
 
-## Honest nudges
+| Person | Flow |
+|---|---|
+| First visit, has a Certified project | Browse or prepare a draft. Sign in with Certified, create or select the owned Weave initiative, and optionally reference the public project. Add a need or offer, save privately, then review and share selected entries. See compatible shared entries and external project evidence in Partners. A public project link does not itself prove representative authority. |
+| First visit, has no Certified project | Browse or prepare a draft. Sign in or create a Certified identity in the same flow. Create the Weave initiative directly; no upstream project creation is required. Add and save a need or offer, review and share selected entries, then get the same two types of suggestions. |
+| Returning, has a Certified project | Use the existing session or sign back in with the same identity and explicitly load the saved initiative. Recover entries, sharing state and saved leads. Review changed needs/offers, share their new revision when ready, or close/withdraw them. Refresh matches against current shared entries and public evidence. |
+| Returning, has no Certified project | Use the same session or identity to load the saved Weave initiative and its entries, sharing state and leads. Edit, close, withdraw or share through the same flow. The lack of a Certified project does not reduce matching access or rank. |
 
-Things that make saving attractive without tricks:
+For a need, show current offers and relevant external capabilities. For an offer,
+show current needs, public requests and projects whose activities could use it.
+Name which entry is being matched and why. An inferred capability has unknown
+availability; a possible use is not a need stated by the other project. Viewing
+or saving either result sends no invitation and does not confirm a partnership.
 
-- **The status line tells the truth.** "Saved on this device only" stays visible. iOS Safari can purge a site's storage after seven days without a visit, so on browsers that do this, say so.
-- **The card grows.** As a person talks, their card fills in and capital tiles turn from pencil to ink. Keeping it feels natural. This is where the fun lives, along with the voice.
-- **The first email has value.** It carries the card and the first matches.
-- **Reminders are specific.** A one-tap reminder about one fund, tied to the funding pulse.
-- **Real counts explain sharing.** The share card says how many partners match and what sharing opens. Use real numbers only, with a truthful zero state; never invent demand or show veiled partner cards.
+The public project link provides context. Import, verified project representation
+and external publishing are separate capabilities. A person can create and
+manage more than one Weave initiative with the same Certified identity. See the
+[matching contract](05-technical-spec.md#72-cross-initiative-matching-r12-r16) and
+[implementation plan](05-technical-spec.md#76-build-plan-and-ui-handoff).
 
-Things we will not do: blurred previews, sign-up walls, partial results held back until an email arrives, fake urgency, streaks, pre-checked marketing boxes, repeated prompts after Not now, or a membership pitch straight after saving.
+## Failures and recovery
 
-## Accounts are not membership
+| Situation | Required behavior |
+|---|---|
+| Not now, cancelled setup or declined consent | Keep the device draft and return to the task with Retry and Keep working. |
+| Expired or invalid callback | Reject the exchange and offer a fresh Certified sign-in; never accept replay or an unbound callback. |
+| Certified succeeded but Weave failed | Explain that Weave sign-in did not finish. Keep local work and retry the same sign-in flow. |
+| Provider outage or offline | Continue local work and cached funding. Save only while a valid session/service permits it; otherwise retry later. |
+| Wrong Certified identity | Sign out and use the correct Certified identity. Never merge by email, handle, project link or a caller-supplied account ID. |
+| Unexpected identity conflict | Fail without account merging or moving saved rows. Keep the draft and offer a non-disclosing support route. |
+| Lost save response | Retry the same command with the same request ID; reconcile the saved revision without duplication. |
+| Stale revision or changed draft in another tab | Preserve both versions and require comparison before replacement. |
+| Session expires | Keep the draft; reauthenticate through Certified and explicitly retry Save/Load. |
+| Shared entry changes, closes, expires or is withdrawn | Remove affected matches on the next read. Keep private edits and saved lead history; a changed entry needs review before it becomes discoverable again. |
+| External index or local model is unavailable | Keep baseline matching where available and distinguish partial coverage, stale evidence and service failure from no useful matches. Never send a private query elsewhere as an undisclosed fallback. |
+| Certified access is lost | Use Certified's recovery process to regain the same identity. Do not promise that a new identity or matching email can recover the saved rows. |
 
-An account is an email that can sign in. Membership is a separate decision, made through the existing application on regencommons.com. Keep the two apart in language and in data.
+Recovery of the same Certified identity is an operational validation gate. It is
+not an account migration or alternate Weave authentication flow. No data-transfer
+or account-merging mechanism is included in this build.
 
-- Saving never creates a `members` row and never implies membership.
-- Membership lives in the footer, apart from saving and Settings' Leave actions. The separate application can pre-fill from the initiative through the planned membership handoff; saving never initiates it.
-- This replaces the idea in earlier drafts that every account is a prospective member, and the target that 30 percent of accounts start an application. Track how many choose to apply, without a target that invites pressure.
+## Contact details and membership
 
-## Privacy changes
+Contact email is optional, separate from identity and irrelevant to private Save.
+Future reminders or introductions need their own purpose, contact verification,
+consent and working service. Do not copy contact details into authentication claims,
+use them to locate or merge accounts, or assume every account can receive email.
+Only display contact settings when the corresponding service exists.
 
-The earlier promise, that drafts never leave the device until publishing, has to change. The new promise is:
+An internal Weave account is not Regen Commons membership. Applying for membership,
+team invitations and public project authority remain separate actions and policies.
+No membership pitch follows private saving.
 
-> Your draft stays in your browser until you choose to save it. A saved initiative is private to you until you choose to share it.
+## Implementation boundary and proof
 
-The privacy page must say all of this plainly:
+The [first-build contract](05-technical-spec.md#51-first-build-certified-sign-in-and-private-saving)
+identifies owning paths, the code baseline, session/security rules and completion
+evidence. Private commands use the person's token and database authorization. The
+Weave access predicate must require the trusted Certified identity, not merely a
+confirmed email; shared website/steward sign-in settings remain untouched.
 
-- Saving stores a copy on Regen Commons servers. Embeddings computed in the browser are stored with it, so matches can continue.
-- People who administer the database can technically read stored records. They are bound by the published data policy. So the label "Only you" describes the product, and the privacy page explains the limit. If that is not acceptable for some groups, they can stay on a device-only draft.
-- The matching job reads private embeddings through a restricted role, to produce funding matches and partner counts, without offering private initiatives as candidates to others.
-- How to export everything and how to delete everything. Deleting an account deletes its private initiatives and retracts anything shared.
+The [email-free local proof](research/certified-hypercerts-2026-11-06/email-free-saving-proof.md)
+passed real Certified signup, private save/load, full-page refresh and independent
+cross-account denial. Its database predicate also retained an email-only branch
+for earlier experiments. The isolated first build removes that branch in its
+candidate Weave access predicate. Local Supabase tests confirm that email-only
+sessions cannot use private commands, while an email-free Certified identity can
+save and reload its own initiative. The hosted application of this predicate and
+the subsequent tests are recorded in the [current build evidence](05-technical-spec.md#51-first-build-certified-sign-in-and-private-saving).
 
-### What we store and what the assistant did
+The isolated build also passed real Certified sign-in on 7 November in the ChatGPT
+in-app browser with local Supabase. Signing in left the device draft unchanged and
+saved nothing. Explicit Save, full-page reload and explicit Load used the same
+session, with a device backup created before Load. The database held one email-free
+Auth user and one private initiative owned by that user; the synthetic device-only
+note was absent from saved data. This validates that local flow using an existing
+Certified identity. On 8 November the hosted test also preserved a saved initiative
+after bridge redeploy and sign-in. Fresh hosted signup and the complete matching
+lifecycle still require the final-build acceptance in section 7.6 of the technical spec.
 
-What we store opens over the current page as five short answers, about 55 words in total, with a link to the full data policy. Cover the local draft, the server copy linked to an email, private versus shared visibility, local processing and chosen cloud use, and export or deletion. The short answers do not replace the full policy's administrator-access limit or consent details.
+The authentication proofs cover private Save/Load, not every product flow here.
+The [UI handoff checklist](05-technical-spec.md#76-build-plan-and-ui-handoff)
+requires both matching sources, saved leads, lifecycle invalidation and measured
+quality/performance. A documentation change or fixture does not complete those gates.
 
-What the assistant did is also a pop-up: one summary line, then one row per step showing where it ran and how many words went to the cloud, never the text. Keep this visible record on the device and allow export and consent withdrawal. It does not replace the server's consent and call audit required by R10; the technical specification owner must align both records before cloud services are connected. Per-field consent is still [D35](open-decisions.md#for-the-builders).
+## Private account connection
 
-Settings can download a snapshot of this browser's draft and backups, including unfinished words and the original bytes of attached files. It can also download the assistant's metadata separately. Neither download fetches other account cards. Sign-out keeps the device copies. The private account release has no self-service server export or deletion; the delete dialog is a recoverable development example. The data policy explains how to contact Regen Commons about account copies.
-
-## Technical changes
-
-- **Schema proposal.** After council confirmation of D26, align the technical specification and migrations to `visibility in ('private','public')`, default `private`. A draft is not a database state. The spec still has the earlier three-value constraint; do not treat this document as an applied migration. `display_name` remains nullable, since no name is asked for. `digest_frequency` defaults to `off`.
-- **Row-level security proposal.** The owner and editors read private rows; shared rows can be read publicly and by stewards. Policy tests must reject a steward reading a private initiative and reject private initiatives as candidates in others' matches. Align policies with the confirmed visibility choice before implementation.
-- **Auth email.** Generic code wording is proposed for the private connection. The app-specific Send Email hook remains later work; template and delivery review are required before enabling this connection.
-- **Code length.** The project uses eight digits today. Six is easier on phones and safe with attempt limits. It is a project-wide setting, so the steward desk changes too. See the [open decisions](open-decisions.md).
-- **Creating users.** The Weave server requests Auth OTP with `create_user: true`. The steward desk stays as it is.
-- **Shared limits.** Email rate limits and any captcha are project-wide, so public traffic can affect steward sign-in. Set limits with that in mind, and test them.
-- **Sending volume.** Every save sends a code and a first email. Resend's free tier allows 100 emails a day, so move to the paid tier (USD 20) when daily sends approach 100, or before a large public invitation.
-- **Draft merge.** On sign-in, compare local drafts with saved initiatives. Never overwrite. Use the local draft ID as an idempotency key, so a retry cannot create a duplicate.
-- **Session.** The private connection uses the HttpOnly cookie described above. The earlier browser `localStorage` session proposal is superseded.
-- **Mail-app round trip.** Keep the pending email and the action to resume in local storage, so returning from the mail app lands on the code step.
-
-## What we measure
-
-First-party, anonymous step counts only, with no third-party analytics. Watching people use it matters more than these numbers.
-
-- Time from tapping save to saved, on a phone.
-- Share of finished conversations that save.
-- Share of people who return after choosing Not now.
-- Share of saved initiatives that choose to be seen, and how long that takes.
-- Codes requested against codes confirmed, and where people drop off.
-
-Do not use accounts created as a measure of success.
-
-## Considered and rejected
-
-- **Anonymous Supabase sign-ins** before the email. They add a server copy nobody asked for, a merge problem and an abuse surface. The local draft already covers this need.
-- **Holding matches back until an email arrives.** Funding matches and the partner teaser never wait for an email. Only partner names wait, and they wait for sharing, not for saving (R16): giving to the commons is the price, not an email.
-- **Magic links only.** They break in mobile mail apps that open links in an internal browser. Code first, with a link as a secondary option.
-- **Passwords and third-party sign-in.** More to manage, more to explain, and no benefit at this scale. R25 already excludes them.
-- **Requiring an email at the start of the conversation.** It asks for trust before giving anything back.
-
-## Build order
-
-- **Phase 0:** local draft, status line, code panel and share card, private save, two visibility choices subject to D26, the auth email hook, partner counts with names opening on share, single-fund reminders through the email door, row-level security with tests. This removes the earlier instruction that reminders can wait; D28 asks the council to confirm that scope. The interface uses typed fixture adapters and keeps service entry points out of production until the separate sign-in and email track supplies them.
-- **Phase 1:** the weekly update opt-in, draft merge across devices, export and delete, real-count sharing nudges.
-- **Phase 2:** editors, per-recipient sharing for introductions, the claiming flow for imported records beyond the seed rows.
-
-The interface handover includes introduction and data-control screens before their live services exist. Render only working fixture controls in development; do not imply an introduction was sent, an account deleted or an export completed against a real service until that adapter exists. The later phase dates above describe services, not permission to expose inert production controls.
+The [5 November production proof](prototype/proof/accounts/README.md#production-verification) records the earlier email-code implementation. The [Certified-only decision](open-decisions.md#certified-only-sign-in-and-private-saving) supersedes its sign-in flow for the current Weave Preview.

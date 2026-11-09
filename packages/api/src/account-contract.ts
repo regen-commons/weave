@@ -26,7 +26,7 @@ export interface InitiativeSummary {
 }
 export interface AccountUser {
   id: string;
-  email: string;
+  email: string | null;
 }
 export const uuid = (value: unknown): value is string =>
   typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(value);
@@ -110,7 +110,7 @@ function initiative(value: unknown): JsonObject {
     languages,
   };
 }
-function ask(value: unknown): SavedAsk {
+export function parseSavedAsk(value: unknown): SavedAsk {
   const row = exact(value, ["id", "value"]);
   if (!uuid(row.id)) throw Error("invalid_data");
   const o = exact(row.value, [
@@ -167,8 +167,8 @@ function ask(value: unknown): SavedAsk {
 }
 function asks(value: unknown): SavedAsk[] {
   if (!Array.isArray(value) || value.length > 5) throw Error("invalid_data");
-  const rows = value.map(ask);
-  if (new Set(rows.map((row) => row.id)).size !== rows.length) throw Error("invalid_data");
+  const rows = value.map(parseSavedAsk);
+  if (new Set(rows.map((row) => row.id.toLowerCase())).size !== rows.length) throw Error("invalid_data");
   return rows;
 }
 function funding(value: unknown): JsonObject {
@@ -256,7 +256,8 @@ export function parseSaved(value: unknown): SavedInitiative {
 export function parseUser(value: unknown): AccountUser {
   const o = record(value);
   if (!uuid(o.id)) throw Error("invalid_data");
-  return { id: o.id, email: text(o.email, 254, true) };
+  // GoTrue can serialize an absent optional email as an empty string.
+  return { id: o.id, email: o.email === null || o.email === undefined || o.email === "" ? null : text(o.email, 254, true) };
 }
 export function parseSummaries(value: unknown): InitiativeSummary[] {
   if (!Array.isArray(value) || value.length > 20) throw Error("invalid_data");

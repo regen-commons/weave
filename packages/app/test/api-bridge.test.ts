@@ -3,7 +3,7 @@
 // Set-Cookie, and bodies streamed as they are written.
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { createServer } from "node:http";
+import { createServer, get } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -88,4 +88,66 @@ test("a streamed body arrives as it is written", async () => {
   assert.equal(new TextDecoder().decode((await reader.read()).value), "first");
   release();
   assert.equal(new TextDecoder().decode((await reader.read()).value), "second");
+});
+
+test("disconnecting before a handler finishes cancels its response without a dev error", async () => {
+  const entered = Promise.withResolvers<void>();
+  const disconnected = Promise.withResolvers<void>();
+  const finished = Promise.withResolvers<void>();
+  let cancelled = false;
+  const local = createServer((request, response) => {
+    response.once("close", () => disconnected.resolve());
+    void answerApiRequest(request, response, apiDir, async () => ({ GET: async () => {
+      entered.resolve();
+      await disconnected.promise;
+      return new Response(new ReadableStream({ cancel() { cancelled = true; } }));
+    } })).then(finished.resolve, finished.reject);
+  });
+  await new Promise<void>((resolve) => local.listen(0, "127.0.0.1", resolve));
+  try {
+    const request = get(`http://127.0.0.1:${(local.address() as AddressInfo).port}/api/echo`);
+    request.on("error", () => undefined);
+    await entered.promise;
+    request.destroy();
+    await finished.promise;
+    assert.equal(cancelled, true);
+  } finally { local.closeAllConnections(); local.close(); }
+});
+
+test("disconnecting during a stream cancels the source without a dev error", async () => {
+  const finished = Promise.withResolvers<void>();
+  let cancelled = false;
+  const local = createServer((request, response) => {
+    void answerApiRequest(request, response, apiDir, async () => ({ GET: () =>
+      new Response(new ReadableStream({
+        start(controller) { controller.enqueue(new TextEncoder().encode("ready")); },
+        cancel() { cancelled = true; },
+      })),
+    })).then(finished.resolve, finished.reject);
+  });
+  await new Promise<void>((resolve) => local.listen(0, "127.0.0.1", resolve));
+  try {
+    const abort = new AbortController();
+    const response = await fetch(`http://127.0.0.1:${(local.address() as AddressInfo).port}/api/echo`, { signal: abort.signal });
+    await response.body!.getReader().read();
+    abort.abort();
+    await finished.promise;
+    assert.equal(cancelled, true);
+  } finally { local.closeAllConnections(); local.close(); }
+});
+
+test("a failing response source still reaches the dev error handler", async () => {
+  const failure = new Error("source_failed");
+  const observed = Promise.withResolvers<unknown>();
+  const local = createServer((request, response) => {
+    void answerApiRequest(request, response, apiDir, async () => ({ GET: () =>
+      new Response(new ReadableStream({ start(controller) { controller.error(failure); } })),
+    })).then(() => observed.resolve(null), observed.resolve);
+  });
+  await new Promise<void>((resolve) => local.listen(0, "127.0.0.1", resolve));
+  try {
+    const request = get(`http://127.0.0.1:${(local.address() as AddressInfo).port}/api/echo`);
+    request.on("error", () => undefined);
+    assert.equal(await observed.promise, failure);
+  } finally { local.closeAllConnections(); local.close(); }
 });

@@ -18,8 +18,8 @@ export class AccountError extends Error {
   }
 }
 export interface AccountProvider {
-  requestCode(email: string): Promise<void>;
-  verifyCode(email: string, code: string): Promise<{ token: string; expiresIn: number }>;
+  signInUrl(challenge: string, callback: string, loginHint?: string): string;
+  exchangeCode(code: string, verifier: string): Promise<{ token: string; expiresIn: number }>;
   authorize(token: string): Promise<AccountUser>;
   signOut(token: string): Promise<void>;
   list(token: string, offset: number): Promise<InitiativeSummary[]>;
@@ -29,12 +29,7 @@ export interface AccountProvider {
     command: { id: string; expectedRevision: number; requestId: string; document: AccountDocument },
   ): Promise<SavedInitiative>;
 }
-/** Auth and PostgREST receive only the publishable key and the person's own token. */
-export function createSupabaseAccountProvider(
-  url: string,
-  key: string,
-  request: typeof fetch = fetch,
-): AccountProvider {
+function supabaseRequests(url: string, key: string, request: typeof fetch) {
   const call = async (path: string, method: string, body: unknown, token?: string, schema = false) => {
     let response: Response;
     try {
@@ -87,33 +82,37 @@ export function createSupabaseAccountProvider(
     }
     return data;
   };
+  return { call, rpc };
+}
+
+/** An exposed Weave RPC receives the publishable key and the caller's own token. */
+export const createSupabaseWeaveRpc = (url: string, key: string, request: typeof fetch = fetch) =>
+  supabaseRequests(url, key, request).rpc;
+
+/** Auth and PostgREST receive only the publishable key and the person's own token. */
+export function createSupabaseAccountProvider(
+  url: string,
+  key: string,
+  request: typeof fetch = fetch,
+): AccountProvider {
+  const { call, rpc } = supabaseRequests(url, key, request);
   return {
-    async requestCode(email) {
-      const { response, data } = await call("/auth/v1/otp", "POST", { email, create_user: true });
-      if (!response.ok) {
-        let code = "";
-        try {
-          code = String(record(data).code);
-        } catch {}
-        if (["user_not_found", "signup_disabled", "otp_disabled"].includes(code)) return;
-        throw new AccountError(
-          response.status === 429 ? 429 : 503,
-          response.status === 429 ? "rate_limited" : "code_unavailable",
-        );
+    signInUrl(challenge, callback, loginHint) {
+      const target = new URL(`${url}/auth/v1/authorize`);
+      target.search = new URLSearchParams({ provider: "custom:certified", redirect_to: callback,
+        code_challenge: challenge, code_challenge_method: "s256" }).toString();
+      if (loginHint) {
+        target.searchParams.set("login_hint", loginHint);
+        target.searchParams.set("prompt", "login");
       }
+      return target.href;
     },
-    async verifyCode(email, code) {
-      const { response, data } = await call("/auth/v1/verify", "POST", { email, token: code, type: "email" });
-      if (!response.ok)
-        throw new AccountError(
-          response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
-          response.status === 429
-            ? "rate_limited"
-            : response.status >= 500
-              ? "account_unavailable"
-              : "invalid_code",
-        );
-      const o = record(data);
+    async exchangeCode(code, verifier) {
+      const { response, data } = await call("/auth/v1/token?grant_type=pkce", "POST", { auth_code: code, code_verifier: verifier });
+      if (!response.ok) throw new AccountError(response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
+        response.status === 429 ? "rate_limited" : response.status >= 500 ? "account_unavailable" : "sign_in_failed");
+      let o: Record<string, unknown>;
+      try { o = record(data); } catch { throw new AccountError(503, "account_unavailable"); }
       if (
         typeof o.access_token !== "string" ||
         !/^[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/u.test(o.access_token) ||

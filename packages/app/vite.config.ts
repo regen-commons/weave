@@ -35,8 +35,17 @@ function apiRoutes(): Plugin {
       server.middlewares.use(
         "/api",
         serve(join(server.config.root, "api"), async (name) => {
-          if (name === "account" && process.env.WEAVE_ACCOUNT_FIXTURE === "1")
-            return (await server.ssrLoadModule("/dev/account-fixture.ts")).accountFixture;
+          if (name === "matching" && process.env.WEAVE_ACCOUNT_FIXTURE === "1") {
+            const fixture = await server.ssrLoadModule("/dev/matching-fixture.ts");
+            return { POST: fixture.matchingFixture };
+          }
+          if (["account", "sign-in"].includes(name) && process.env.WEAVE_ACCOUNT_FIXTURE === "1") {
+            const fixture = await server.ssrLoadModule("/dev/account-fixture.ts");
+            return name === "account" ? fixture.accountFixture : {
+              GET: (request: Request) => fixture.signInFixture(new URL(request.url).origin).GET(request),
+              POST: (request: Request) => fixture.signInFixture(new URL(request.url).origin).POST(request),
+            };
+          }
           return server.ssrLoadModule(`/api/${name}.ts`);
         }),
       );

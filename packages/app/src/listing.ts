@@ -40,7 +40,7 @@ export interface PublicAsk {
   readonly terms: string;
 }
 
-/** R16: account access alone never grants personalized partner names or reasons. */
+/** Sharing gate for the fixture community service. Public-source discovery uses its own evidence. */
 export function partnerAccess(scenario?: "visitor" | "draft" | "private" | "shared") {
   return scenario === "shared";
 }

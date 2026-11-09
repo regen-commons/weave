@@ -1,6 +1,7 @@
 import { useSocialFixture } from "../social/context.tsx";
 import { SocialAction } from "../social/Action.tsx";
-import { AccountSection } from "../account/AccountSection.tsx";
+import { PartnerDiscovery } from "../partners/PartnerDiscovery.tsx";
+import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { useState } from "react";
 import type { FixtureContext } from "../fixtures.ts";
 import { EMPTY_FILTERS, selectRecords, partnerAccess, type CapitalKey } from "../listing.ts";
@@ -52,6 +53,14 @@ export function ListPage({
       };
   const selected = selectRecords(records, visibleFilters, subject);
   const partners = kind === "partners";
+  if (!fixture && kind !== "funding") {
+    return (
+      <ListLayout>
+        <Heading level={1} size="page">{title}</Heading>
+        {partners ? <PartnerExperience mode="matches" /> : <PartnerDiscovery mode="browse" />}
+      </ListLayout>
+    );
+  }
   function retry() {
     const url = new URL(window.location.href);
     url.searchParams.set("state", "ready");
@@ -94,8 +103,6 @@ export function ListPage({
           </p>
           {import.meta.env.DEV && fixture && personalized ? (
             <SocialAction intent={{ kind: "share" }} inline />
-          ) : !fixture && hasDraft(device.draft) ? (
-            <AccountSection compact />
           ) : null}
           <div className="rc-action-bar">
             {!hasDraft(device.draft) && !personalized && (

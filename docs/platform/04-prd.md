@@ -1,9 +1,18 @@
 # Product requirements: Regen Commons Weave (working name)
 
 Status: draft for council review · Author: Afolabi Aiyeloja with Claude · Date: 2026-10-31
+
+Authentication revision, 6 November 2026: Certified is the only Weave sign-in flow, as [decided by the user](open-decisions.md#certified-only-sign-in-and-private-saving). There is no account-migration or alternate email-code path in the build scope. This updates the product contract; it does not claim deployment.
+
+Matching revision, 8 November 2026: owners share needs and offers from their own
+initiatives; Partners also suggests external projects from relevant public
+evidence, including projects that have stated no needs or offers. The
+[build plan and UI handoff](05-technical-spec.md#76-build-plan-and-ui-handoff)
+define completion before interface polish. Inferred fit never asserts availability.
+
 Companion documents: [proposal brief](01-proposal-brief.md) · [business model canvas](02-business-model-canvas.md) · [logical architecture](03-logical-architecture.md) · [technical spec](05-technical-spec.md) · [research digest](06-research-digest.md) · [agent scaffolding](07-agent-scaffolding.md) · [saving and accounts](08-accounts-and-saving.md) · [open decisions](open-decisions.md) · [design system](../../DESIGN.md)
 
-Interface revision, 4 November 2026: places the [prototype review decisions](prototype/review-decisions.md) for Step 0 of the [implementation handover](handover/03-interface-implementation.md#step-0-place-the-decisions). The two visibility choices, partners for shared initiatives and one email door remain council proposals ([D26 to D28](open-decisions.md#for-the-council)). The technical specification and pattern guidance still need the follow-up changes tracked in the review decisions; this revision does not change a database or approve a service.
+The [4 November prototype review](prototype/review-decisions.md) records earlier interface decisions. The Certified and matching decisions in this PRD and [Saving and accounts](08-accounts-and-saving.md) guide the current preview and design handoff.
 
 ## 1. Summary
 
@@ -65,7 +74,7 @@ Personas are deliberately framed by lens rather than by organisation type, becau
 - Recipe: a partnership forming around an opportunity or a shared problem. It names the base (the opportunity or problem), the ingredients needed (lenses and forms of capital), who has joined, status (forming, drafting, submitted, funded, not this time) and a working doc. This is the Partnerships tab of the hub doc, made live.
 - Place: a bioregion, subrealm, realm, watershed basin, country or a custom named place. Initiatives relate to places as based in, works in, or global.
 - Pulse: the weekly email digest, personal to each initiative and region.
-- Account: an email that can sign in. An account holds saved initiatives. It is not membership.
+- Account: the internal Weave record that owns saved initiatives, reached through a proven Certified identity. It is created or retrieved automatically after Certified sign-in, with no separate registration or credentials. It is not membership.
 - Member: a Regen Commons member profile (existing data model). A person becomes a member only by choosing to apply.
 - Steward: a council member with the existing steward role; stewards tidy, they do not filter.
 
@@ -89,15 +98,13 @@ Step 2, Your needs. Prompt: "What would unlock the next chapter?" Guidance text 
 
 Step 3, Your offers. Prompt: "What do you have in surplus?" Guidance by form of capital: a track record with a funder (social), a methodology (intellectual), land or a venue (living, material), a workshop you run (experiential), a story or art practice (cultural), a ceremony or practice of care (spiritual), a tool or dataset (intellectual, material). Offer cards appear beside the same conversation with Keep, Change and Remove, a counter, and the same five-card limit and overflow notice as needs. Each offer card: title, description, every applicable form of capital shown alike, capacity (how much, how often), place scope, terms (gift, exchange, paid, commitment), who it is for. No kind is treated as primary. See [DL-023](../../packages/design-system/decision-log.md#dl-023-needs-and-offers-carry-every-applicable-kind-five-of-each-at-most).
 
-Finish. First funding, the share card and "your card" appear together. The share card explains the partner-match count and what sharing opens, and holds the email field and code step where the reason is. Saving keeps a private copy; sharing is a separate confirmation. The two choices are "Private, for finding funding" (the default) and "Shared with the community" (a public page and directory entry). Sharing onward to open networks such as Murmurations and the knowledge commons remains separate and off by default. A draft never requires an email and lives in the browser until saved. See [saving and accounts](08-accounts-and-saving.md) and the council proposals D26 to D28.
+Finish. Show the checked initiative and funding results. Before adding account-owned needs or offers, sign in with Certified and create or select the initiative you manage. **Save** keeps checked entries private. **Share for matching** previews the selected entries and initiative summary that signed-in Weave users will see. Public directory publication and sharing onward are separate choices. Device drafts can be carried into the owned initiative after review. See [saving and accounts](08-accounts-and-saving.md).
 
 Each step must be completable by voice only, by typing only, and by upload only. Each step must work with no AI at all (plain fields with sensible defaults) so the product never blocks on a model download.
 
 ### 6.3 What the user sees after finishing
 
-- Partners: a separate page. Before sharing, a share card shows the partner-match count and how to share, with no partner names, individual cards or veiled previews. After sharing, partner cards show why (a need you have that they offer, an offer you have that they need, shared place, shared theme, complementary lens) and a strength band. Names, cards and introductions depend on sharing, not saving or signing in. A private initiative never becomes a candidate in someone else's matches. Anyone can still browse public initiatives. See [DL-019](../../packages/design-system/decision-log.md#dl-019-partners-are-for-shared-initiatives).
-- Funding: a separate page using the existing catalog and solo rubric, with fit, readiness and reasons. Opportunity detail has team slots: each fund's partner requirement shows candidates to pick; a team fit explains what the picks cover; one action requests introductions to the selected partners, with the R43 confirmation. A funding card says how many asks the list could cover. Private initiatives see counts only in team slots, never candidate names. Structured fund asks and scoring beyond the current two-partner limit need the technical follow-up in [D29](open-decisions.md#for-the-builders); use labelled fixtures for asks until then. Visitor Funding uses the whole catalog, unranked, with a prompt to describe an initiative as the labelled prototype default, pending D34.
-- Initiatives: a public directory with search, filters and sort, plus a public initiative page with media, need and offer cards and link previews. The Support filter searches offers, needs or both. Partners also offers "Offers what you need" and "Needs what you offer" once a person has an initiative. Navigation wording remains a usability question in T9.
+- Matches: Partners uses the owner's needs and offers to search both shared Weave entries and permitted public project evidence. Sign in, open your initiative and share an open need or offer to participate in matching with other owners. The counterpart need not use Weave: a need may find relevant experience, and an offer may find a project that could use it. Results identify confirmed entries, public statements and inferred possibilities, with sources and unknowns. One-way fit is useful. Private local public-source suggestions remain available under R16. Funding keeps its solo fit and readiness; future partnership results need separately verified evidence for each program requirement.
 - Recipes: open a recipe from an opportunity or a problem; name the ingredients needed; others join with what they bring; a working doc link; status. Recipes are visible to members by default and optionally public.
 - Places: a bioregion or watershed page lists initiatives, open needs, offers, opportunities with regional scope, and recipes forming. Later it carries a synthesised "needs of this place" summary built from consented records.
 - The live Funding Commons catalog stays working while the app's Funding page is built; its matching panel will use the person's initiative instead of a local project profile.
@@ -134,11 +141,11 @@ AI assistance
 
 Matching
 
-- R12 Partner matching that scores complementarity (my needs against their offers), reciprocity (their needs against my offers), place affinity, theme overlap and lens complementarity, with a plain-language reason for each suggestion.
+- R12 Match an owner's needs and offers against both current shared Weave entries and permitted external project evidence. One open shared entry is enough for network participation; the counterpart does not need a Weave account or stated asks. Compare needs with offers/capabilities and offers with needs/evidenced potential uses. Label inferred capability and potential benefit separately from confirmed entries and public statements; explain the particular entry and supporting passage. [Build contract](05-technical-spec.md#72-cross-initiative-matching-r12-r16).
 - R13 Opportunity matching that reuses the existing thematic-fit, readiness and research-priority engine for the solo score.
 - R14 Partnership scoring through team slots: for each strong-but-gated opportunity, show its partner requirements, candidates per requirement, a team fit and reasons, and one action requesting introductions to the selected partners after confirmation. Support several partners where the fund has several asks, replacing the fixed one-or-two-partner presentation. Funding cards summarise how many asks the list could cover. Private initiatives see counts, never candidate names. The source of structured asks and the scoring contract remain D29; fit is never eligibility.
 - R15 Feedback loop: save, dismiss with reason, and introduction outcomes are recorded and used to tune weights; exposure caps keep any one initiative or funder from dominating pulses.
-- R16 Opportunity matching runs for drafts in the browser before an email is requested. Partners shows a share card with a real partner-match count and how to share; it replaces the teaser and veiled cards. Partner names, cards, individual reasons and introductions open only for shared initiatives (give to get). Drafts and private initiatives see counts only, including in team slots, and never appear in anyone else's matches. Saving alone does not open partner cards.
+- R16 Anyone can browse public initiatives and funding. Opportunity matching can run for device drafts. Named public-source suggestions can be computed locally for private drafts against a bounded public snapshot, without sharing. Matching against other owners' shared entries requires a Certified session and an owned initiative with selected shared entries. Both evidence sources belong in Partners; their authorization and processing paths remain distinct. No private Weave records enter another person's results or the public index. A private query or embedding is never silently sent to a server or cloud model.
 
 Places and curation
 
@@ -155,14 +162,14 @@ Recipes and introductions
 Pulse and notifications
 
 - R23 Opt-in weekly pulse per saved initiative, off by default, with new partners, closing opportunities, regional needs, recipes needing an ingredient, and the "still accurate" confirmation; unsubscribe and frequency controls; regional pulses for stewards and funders who opt in.
-- R24 Transactional emails: sign-in code, a first saved-card email, explicitly requested single-fund reminders, introduction requests and acceptances, recipe updates, steward notices. Remind me enables only the chosen reminder through the same email door as saving; a signed-in person is not asked for their email again. Weekly updates remain a separate, default-off opt-in under R23.
+- R24 Future transactional emails: introduction requests and acceptances, recipe updates and steward notices, using separately consented contact details. Certified owns sign-in messages; Weave does not send a saving code or welcome email.
 
 Accounts, membership and access
 
-- R25 Email plus one-time code sign-in using the shared Regen Commons Supabase Auth project; no passwords; no third-party sign-in; asks for an email and nothing else.
+- R25 Certified is the only Weave sign-in flow for new and returning users. A verified Certified identity establishes the internal Weave account/session through Supabase. No separate Weave registration, password, email-code flow, account linking, migration or fallback identity path. Weave requests no email access for private saving; a public Certified project is not required.
 - R26 A platform profile per account, linked to a Regen Commons member profile only when one exists; a separate "apply for membership" path that pre-fills the six-step application from the initiative, offered in context and never straight after saving.
-- R27 Two visibility choices, subject to council confirmation in D26: "Private, for finding funding" (`private`, the default) and "Shared with the community" (`public`, a public page and directory entry). No signed-in-only middle level. Sharing onward to open directory networks and the knowledge commons is separate and off by default. Moving back to private or withdrawing sharing stops future distribution and emits a retraction event to connected networks. Stewards cannot read private initiatives. The treatment of open introductions when returning to private remains D31.
-- R28 Access tiers configurable by stewards: open (anyone can browse, save and share), members-first (saving open, matches and pulse for members and people who have applied), members-only (whole platform behind membership). Phase 0 and 1 run open; the council can tighten later without a code change.
+- R27 Visibility levels: private, network and public, chosen by the owner, with private as the default; and sharing scopes: open directory networks, knowledge commons, off by default. Changing scope stops future sharing and emits a retraction event to connected networks. Stewards cannot read private initiatives.
+- R28 Access tiers configurable by stewards: open (anyone can browse, Certified users can save and share from an owned initiative), members-first (saving open, matches and pulse for members and people who have applied), members-only (whole platform behind membership). Phase 0 and 1 run open; the council can tighten later without a code change.
 
 Interoperability and knowledge
 
@@ -179,11 +186,11 @@ Stewardship and operations
 
 Saving and accounts
 
-- R36 Saving is separate from sharing: an email and a code store a private copy, with no name, password or other field requested. Save, share, remind and introduce use one email door; confirming the code saves the current initiative to that email before resuming the action. Sharing or sending an introduction still needs its own confirmation.
-- R37 Browsing, search, the full conversation, local AI, opportunity matches and the partner-match count for a draft, copying your own draft, help and privacy information never require an email. Partner cards depend on sharing under R16, not on an email alone.
-- R38 Unprompted saving is inline, offered once per seam and tied to its benefit; Not now stays declined. Finish and Partners before sharing put the email field and code step in the share card. Small tasks explicitly opened by the person (sign in, save, share or delete) and data information open over the current page as a dialog on wide screens or a bottom sheet on phones. Never interrupt arrival, recording or editing with an unsolicited dialog; no wall or pre-checked box. This refines DL-018 through DL-021 and DL-027.
-- R39 The code step accepts paste, keeps what was typed on error, allows fixing a wrong email and resending after 60 seconds, survives a round trip to the mail app, and then resumes the action that asked for it.
-- R40 Signing in merges local drafts without overwriting or duplicating. One email can hold several initiatives.
+- R36 Saving is separate from signing in and sharing. After Certified sign-in, an explicit Save stores the checked initiative privately. The callback restores the task but never uploads, loads or publishes the draft.
+- R37 Browsing public initiatives, searching funding, preparing a device draft, using local AI, copying draft text, and reading help or privacy pages are available signed out.
+- R38 Offer “Sign in with Certified” when the person chooses to save privately or add a need or offer to an owned initiative. Explain the benefit before redirecting. Not now keeps the device draft. Sharing always requires a separate choice.
+- R39 Certified owns its code and consent screens. Weave persists device work before redirecting, resumes the safe return task, and preserves the draft through cancellation, expired state, provider error and a mail-app round trip. A failed handoff offers retry through Certified, not another sign-in method.
+- R40 One Certified identity reaches the same internal account and saved initiatives on return. Signing in never merges or replaces drafts. Save and Load are explicit; Load backs up the complete device draft before replacement. Switching initiatives reuses the active session.
 - R41 A status line always says where the work lives: on this device, or saved.
 - R42 People can export everything and delete their account, which deletes private initiatives and retracts anything shared.
 - R43 Introductions open once the initiative is shared (give to get); an introduction then shows the full card to one recipient after confirmation, without changing its visibility.
@@ -199,7 +206,8 @@ Design quality
 
 - Privacy: drafts stay in the browser until the person saves; saved initiatives are private until the person shares them; embeddings of saved text may be stored server-side; audio and files never leave the device without explicit consent; cloud AI calls store hashes and derived fields, not raw prompts; the user can view and export their consent and AI-call ledger; retraction propagates to connected networks.
 - Performance: first meaningful paint under 2 s on a mid-range Android over 4G; the directory and matching work before any model download; local extraction returns a draft within 20 s on a desktop WebGPU tier and within 60 s on the mobile tier, with the keyword fallback instant.
-- Reliability: no data loss on tab close or network drop; idempotent writes; email delivery failures never lose the underlying record.
+- Matching quality and latency: evaluate needs and offers separately across art, software, research and place-based work. Measure candidate recall and top-five relevance against a lexical baseline; require supported reasons, correct no-match results and no invented confirmation. Target useful indexed results within 2 s at p95 on the documented setup; local refinement is optional and bounded. The [test corpus, budgets and handoff gates](05-technical-spec.md#76-build-plan-and-ui-handoff) are proposed acceptance targets, not measured performance claims.
+- Reliability: no data loss on tab close or network drop; idempotent writes; authentication or notification failures never lose the underlying record.
 - Security: row-level security on every table; stewards authorised by the existing active-steward predicate; no service-role key in the browser; origin checks on write endpoints; rate limits on sign-in and intake; content security policy on the app shell.
 - Accessibility: WCAG 2.2 AA for the intake, matches, recipes and places pages; reduced-motion honoured by all animation including canvases; text survives 200 percent zoom and the largest browser text size.
 - Design system: tests fail on stale tokens, contrast below AA in either theme, raw values in CSS, undocumented patterns and copy that breaks the voice rules.
@@ -210,9 +218,13 @@ Design quality
 
 Phase names follow the Regen Commons stages of growth. Dates assume a full-time lead builder in November (afo, working with coding agents), then half to one full-time equivalent, plus steward time from the council; they are targets, not promises.
 
-Phase 0, Seed: the first version (November 2026, live by 30 November): agent scaffolding first ([plan](07-agent-scaffolding.md)); the design system, in React on top of the CSS already defined, so the product carries Regen Commons branding and identity from day one; three-step intake with voice, file and typed input, local AI extraction in the browser and consented cloud fallback; the four public fields with everything else derived; needs and offers with forms of capital; public initiative directory; partner cards with reasons after sharing and a count-only share card before; opportunities with team slots; saving with an email code, private by default; import of the hub doc rows; one usability round; an early demo at the Community Spotlight on 5 November; evidence of working local AI with real users for the Mozilla Human-Scale AI application due 20 November.
+Phase 0, Seed: the first version (November 2026, live by 30 November): agent scaffolding first ([plan](07-agent-scaffolding.md)); the design system, in React on top of the CSS already defined, so the product carries Regen Commons branding and identity from day one; three-step intake with voice, file and typed input, local AI extraction in the browser and consented cloud fallback; the four public fields with everything else derived; needs and offers with forms of capital; public initiative directory; owner-authored needs and offers matched to both shared Weave entries and public project evidence under R12/R16; opportunities with partner suggestions; Certified sign-in and explicit private saving; import of the hub doc rows; one usability round; an early demo at the Community Spotlight on 5 November; evidence of working local AI with real users for the Mozilla Human-Scale AI application due 20 November.
 
-Single-fund reminders use the email door in the Phase 0 proposal, subject to D28. Weekly updates remain Phase 1. The interface handover builds service-dependent screens against typed fixture adapters; sign-in, email, cloud AI, introductions and data-control services need their own owners and approvals before their entry points appear in production. A fixture screen does not establish a working service or change the later service phases.
+The [design handoff](handover/03-weave-preview-simplification.md) can begin from
+the current preview. The [functional release checklist](05-technical-spec.md#76-build-plan-and-ui-handoff)
+still records the external evidence, performance and release checks to revisit.
+Opening and publishing Certified initiatives are topics for design exploration
+and require separate integration work.
 
 Phase 1, Sprout (December 2026 to February 2027): partnership scoring refinements; weekly pulse; steward desk sections; place assignment (bioregion, watershed) and place pages; Murmurations publishing; open data export; Portuguese and Spanish UI.
 

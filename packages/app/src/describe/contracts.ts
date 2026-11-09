@@ -146,6 +146,7 @@ export const DeviceDraftSchema = z.strictObject({
   needs: AskStepSchema.default(emptyAskStep),
   offers: AskStepSchema.default(emptyAskStep),
   funding: FundingDetailsSchema.default(emptyFundingDetails),
+  partnerLeads: z.array(z.string().regex(/^[a-z0-9-]+:[a-z0-9-]+$/u).max(100)).max(200).default([]),
   account: AccountSyncSchema.default(() => ({ saved: null, pending: null })),
 });
 export type DeviceDraft = z.infer<typeof DeviceDraftSchema>;
@@ -190,6 +191,7 @@ export function newDraft(): DeviceDraft {
     needs: emptyAskStep(),
     offers: emptyAskStep(),
     funding: emptyFundingDetails(),
+    partnerLeads: [],
     account: { saved: null, pending: null },
   };
 }

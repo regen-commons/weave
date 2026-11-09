@@ -4,10 +4,14 @@ const AccountContext = createContext<{
   state: AccountState | null;
   refresh: () => Promise<AccountState>;
   clear: () => void;
+  returnResult: string | null;
+  acknowledgeReturn: () => void;
 } | null>(null);
-const unavailable: AccountState = { available: false, otpDigits: 8, fixture: false, user: null, items: [] };
+const unavailable: AccountState = { available: false, fixture: false, user: null, items: [] };
 export function AccountProvider({ children, fixture = false }: { children: ReactNode; fixture?: boolean }) {
   const [state, setState] = useState<AccountState | null>(null);
+  // Capture before the address bar is cleaned; the draft may finish loading later.
+  const [returnResult, setReturnResult] = useState(() => new URLSearchParams(window.location.search).get("account"));
   async function refresh() {
     if (fixture) {
       setState(unavailable);
@@ -32,6 +36,8 @@ export function AccountProvider({ children, fixture = false }: { children: React
         state: fixture ? unavailable : state,
         refresh,
         clear: () => setState((current) => (current ? { ...current, user: null, items: [] } : null)),
+        returnResult,
+        acknowledgeReturn: () => setReturnResult(null),
       }}
     >
       {children}

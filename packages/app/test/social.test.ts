@@ -2,14 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createSocialFixture } from "../src/social/fixture.ts";
 
-test("the example email door verifies identity without silently saving or sharing", async () => {
+test("the example Certified door establishes identity without silently saving or sharing", async () => {
   const service = createSocialFixture("draft");
   await assert.rejects(service.save());
   await assert.rejects(service.share("public", true));
-  await service.requestCode("example@weave.test");
-  await assert.rejects(service.verifyCode("example@weave.test", "00000000"));
-  assert.equal(service.snapshot().email, null);
-  await service.verifyCode("example@weave.test", "12345678");
+  assert.equal(service.snapshot().signedIn, false);
+  await service.signIn();
   assert.equal(service.snapshot().saved, false);
   assert.equal(service.snapshot().visibility, "private");
   await service.save();
@@ -47,7 +45,7 @@ test("example email choices stay off by default and deletion resets only the tem
   assert.equal(service.snapshot().notifications.partners, false);
   await service.remind("one-fund");
   await service.deleteAccount();
-  assert.equal(service.snapshot().email, null);
+  assert.equal(service.snapshot().signedIn, false);
   assert.equal(service.snapshot().saved, false);
   assert.deepEqual(service.snapshot().reminders, []);
   assert.deepEqual(service.snapshot().introductions, []);

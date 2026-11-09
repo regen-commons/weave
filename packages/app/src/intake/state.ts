@@ -159,7 +159,7 @@ export function parseAskForm(form: AskForm, kind: AskKind): AskFields {
           currency: form.currency.trim().toUpperCase(),
         }
       : null,
-    timeframe: kind === "needs" ? form.timeframe.trim() || null : null,
+    timeframe: form.timeframe.trim() || null,
     urgency: kind === "needs" ? form.urgency || null : null,
     placeScope: form.placeScope,
     exchangeTerms: form.exchangeTerms,

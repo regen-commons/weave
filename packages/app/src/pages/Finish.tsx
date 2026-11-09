@@ -1,6 +1,7 @@
 import { useSocialFixture } from "../social/context.tsx";
 import { SocialAction } from "../social/Action.tsx";
 import { AccountSection } from "../account/AccountSection.tsx";
+import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { useState } from "react";
 import type { FixtureContext } from "../fixtures.ts";
 import { useDraft } from "../describe/use-draft.ts";
@@ -205,8 +206,11 @@ export function Finish({ fixture }: { fixture?: FixtureContext }) {
               </>
             )}
           </Section>
+          {!examples && <AccountSection compact />}
           <Section id="finish-partners" title="Partners">
-            {shared ? (
+            {!examples ? (
+              <PartnerExperience mode="preview" />
+            ) : shared ? (
               <>
                 <p className="rc-meta">
                   Shared example. Partner previews below are fictional; no initiative has been published.
@@ -225,7 +229,7 @@ export function Finish({ fixture }: { fixture?: FixtureContext }) {
                   Your card stays private. You can save a checked copy through your account. Partner sharing
                   is not available yet.
                 </p>
-                {examples ? <SocialAction intent={{ kind: "share" }} inline /> : <AccountSection compact />}
+                <SocialAction intent={{ kind: "share" }} inline />
                 <div className="rc-action-bar">
                   <ButtonLink href={pathTo("partners")} variant="secondary">
                     Explore Partners

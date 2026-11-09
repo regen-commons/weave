@@ -7,13 +7,10 @@ export type SocialIntent =
   | { kind: "share" }
   | { kind: "remind"; id: string; name: string }
   | { kind: "intro"; ids: readonly string[]; names: readonly string[] };
-/** A single example email door for private save, sharing, reminders and introductions. */
+/** A single example Certified door for private save, sharing, reminders and introductions. */
 export function SocialAction({ intent, inline = false }: { intent: SocialIntent; inline?: boolean }) {
   const fixture = useSocialFixture();
   const [open, setOpen] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [visibility, setVisibility] = useState<Visibility>(fixture?.state.visibility ?? "private");
   const [onward, setOnward] = useState(false);
   const [note, setNote] = useState("");
@@ -55,78 +52,14 @@ export function SocialAction({ intent, inline = false }: { intent: SocialIntent;
   const body = (
     <>
       <p className="rc-notice" data-tone="info">
-        Example email door. No email, publication or request is sent. Use example@weave.test and 12345678.
+        Example Certified sign-in. No real account, publication or request is created.
       </p>
-      {completed ? <p role="status">{intent.kind === "remind" ? "Example reminder on. No email is scheduled." : "Example introduction requested. Nothing was sent."}</p> : !state.email ? (
-        <form
-          className="rc-stack"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void run(async () => {
-              if (sent) {
-                await service.verifyCode(email, code);
-                setSent(false);
-                setCode("");
-              } else {
-                await service.requestCode(email);
-                setSent(true);
-              }
-            });
-          }}
-        >
-          <p>Your email keeps the example card privately. Sharing and sending still ask you first.</p>
-          <div className="rc-field">
-            <label htmlFor={`${id}-email`}>Email address</label>
-            <input
-              className="rc-input"
-              id={`${id}-email`}
-              autoFocus={!inline}
-                data-task-focus
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              disabled={sent || busy}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-          {sent && (
-            <div className="rc-field">
-              <label htmlFor={`${id}-code`}>Sign-in code</label>
-              <input
-                className="rc-input"
-                data-kind="code"
-                id={`${id}-code`}
-                autoFocus
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                required
-                minLength={8}
-                maxLength={16}
-                value={code}
-                onChange={(event) => setCode(event.target.value.replace(/\s/gu, ""))}
-              />
-            </div>
-          )}
-          <div className="rc-action-bar">
-            <button className="rc-button" data-variant="primary" type="submit" disabled={busy}>
-              {sent ? "Sign in to the example" : "Email me a code"}
-            </button>
-            {sent && (
-              <button
-                className="rc-button"
-                data-variant="quiet"
-                type="button"
-                onClick={() => {
-                  setSent(false);
-                  setCode("");
-                }}
-              >
-                Wrong email?
-              </button>
-            )}
-          </div>
-        </form>
+      {completed ? <p role="status">{intent.kind === "remind" ? "Example reminder on. No email is scheduled." : "Example introduction requested. Nothing was sent."}</p> : !state.signedIn ? (
+        <div className="rc-stack">
+          <p>Continue with Certified. Saving and sharing remain separate choices.</p>
+          <button className="rc-button" data-variant="primary" type="button" data-task-focus disabled={busy}
+            onClick={() => void run(() => service.signIn())}>Sign in with Certified</button>
+        </div>
       ) : !state.saved ? (
         <div className="rc-stack">
           <p>Signed in to the example. Saving is separate from sharing.</p>

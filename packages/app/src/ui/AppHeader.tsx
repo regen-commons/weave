@@ -56,7 +56,7 @@ export function AppHeader({
                     ? "Draft changed in another tab"
                     : "Nothing saved yet"}
         </Status>
-        {state?.user || (import.meta.env.DEV && social?.state.email) ? (
+        {state?.user || (import.meta.env.DEV && social?.state.signedIn) ? (
           <Link
             className="rc-button"
             data-variant="quiet"

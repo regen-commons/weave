@@ -1,7 +1,7 @@
 /** Development-only adapter. It sends nothing, stores nothing and grants no real access. */
 export type Visibility = "private" | "public";
 export interface SocialState {
-  email: string | null;
+  signedIn: boolean;
   saved: boolean;
   visibility: Visibility;
   onward: boolean;
@@ -11,8 +11,7 @@ export interface SocialState {
 }
 export interface SocialService {
   snapshot(): SocialState;
-  requestCode(email: string): Promise<void>;
-  verifyCode(email: string, code: string): Promise<void>;
+  signIn(): Promise<void>;
   save(): Promise<void>;
   share(visibility: Visibility, onward: boolean): Promise<void>;
   remind(id: string): Promise<void>;
@@ -21,9 +20,8 @@ export interface SocialService {
   deleteAccount(): Promise<void>;
 }
 export function createSocialFixture(scenario: "visitor" | "draft" | "private" | "shared"): SocialService {
-  let pending = "";
   let state: SocialState = {
-    email: scenario === "private" || scenario === "shared" ? "example@weave.test" : null,
+    signedIn: scenario === "private" || scenario === "shared",
     saved: scenario === "private" || scenario === "shared",
     visibility: scenario === "shared" ? "public" : "private",
     onward: false,
@@ -32,21 +30,11 @@ export function createSocialFixture(scenario: "visitor" | "draft" | "private" | 
     notifications: { funding: false, partners: false, introductions: false },
   };
   function verified() {
-    if (!state.email) throw new Error("Verify the example code first.");
+    if (!state.signedIn) throw new Error("Sign in to the example first.");
   }
   return {
     snapshot: () => ({ ...state, reminders: [...state.reminders], introductions: [...state.introductions] }),
-    async requestCode(email) {
-      if (email !== "example@weave.test")
-        throw new Error("Use example@weave.test in this fictional example.");
-      pending = email;
-    },
-    async verifyCode(email, code) {
-      if (!pending || email !== pending || code !== "12345678")
-        throw new Error("That example code does not match. Try 12345678.");
-      state = { ...state, email };
-      pending = "";
-    },
+    async signIn() { state = { ...state, signedIn: true }; },
     async save() {
       verified();
       state = { ...state, saved: true };
@@ -86,7 +74,7 @@ export function createSocialFixture(scenario: "visitor" | "draft" | "private" | 
     async deleteAccount() {
       verified();
       state = {
-        email: null,
+        signedIn: false,
         saved: false,
         visibility: "private",
         onward: false,
