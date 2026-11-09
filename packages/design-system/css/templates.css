@@ -6,6 +6,19 @@
   min-block-size: 100dvh;
 }
 
+.rc-page:has(> .rc-site-banner) {
+  grid-template-rows: auto auto 1fr auto auto;
+}
+
+.rc-site-banner {
+  padding: var(--space-2) var(--gutter);
+  border-block-end: var(--border-thin) solid var(--control-line);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+  font: var(--type-label-md);
+  text-align: center;
+}
+
 .rc-main {
   display: grid;
   align-content: start;
@@ -65,7 +78,16 @@
   max-inline-size: var(--form-width);
 }
 
-/* Home: says what this is and where to start on one phone screen. */
+/* Home: measure the backdrop against the full page while keeping content inset. */
+.rc-main:has(.rc-home-hero) {
+  max-inline-size: none;
+  padding-inline: 0;
+}
+.rc-main:has(.rc-home-hero) > * {
+  inline-size: calc(min(100%, var(--page-width)) - 2 * var(--gutter));
+  margin-inline: auto;
+}
+
 .rc-home-hero {
   position: relative;
   isolation: isolate;
@@ -84,8 +106,10 @@
 .rc-woven-backdrop {
   position: absolute;
   z-index: -1;
-  inset: 0;
-  inline-size: 100%;
+  inset-block: 0;
+  left: 50%;
+  translate: -50%;
+  inline-size: 100cqi;
   block-size: 100%;
   overflow: hidden;
   pointer-events: none;

@@ -24,6 +24,7 @@ export function Page({
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
+        <p className="rc-site-banner">Still in development will be live soon</p>
         <AppHeader pathname={pathname} sections={!form} status={status} />
         <main key={pathname} className="rc-main" id="main" tabIndex={-1}>
           {children}
