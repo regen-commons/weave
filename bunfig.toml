@@ -1,0 +1,8 @@
+# Bun settings shared by every workspace package.
+
+# Do not load .env files implicitly. A command that needs one names it.
+env = false
+
+[install]
+# Resolve only versions published at least three days ago.
+minimumReleaseAge = 259200

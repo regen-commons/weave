@@ -1,0 +1,10 @@
+/* Regen Commons design system. Import this one file. Layer order follows the atomic levels, so a larger pattern can specialize a smaller one without specificity tricks. */
+@layer tokens, base, atoms, molecules, organisms, templates;
+
+@import url("../fonts/fonts.css");
+@import url("../tokens/tokens.generated.css") layer(tokens);
+@import url("./base.css") layer(base);
+@import url("./atoms.css") layer(atoms);
+@import url("./molecules.css") layer(molecules);
+@import url("./organisms.css") layer(organisms);
+@import url("./templates.css") layer(templates);

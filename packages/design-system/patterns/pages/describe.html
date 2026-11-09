@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark">
+    <script>
+      // Applies a saved or requested theme before first paint. Without it the page follows the system.
+      (function () {
+        var theme = null;
+        try {
+          theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme");
+        } catch (e) {}
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.dataset.theme = theme;
+          document.querySelector('meta[name="color-scheme"]').content = theme;
+        }
+      })();
+    </script>
+    <title>Describe example</title>
+    <link rel="icon" href="../../brand/logo/favicon.svg" />
+    <link
+      rel="preload"
+      href="../../fonts/space-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="../../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="../../fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="../../css/index.css" />
+    <script type="module" src="../library.js"></script>
+  </head>
+  <body>
+    <div class="rc-page">
+      <a class="rc-skip-link" href="#main">Skip to content</a>
+      <header class="rc-app-header">
+        <a class="rc-logo" href="home.html"
+          ><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark" /></svg
+          >Weave</a
+        >
+        <p class="rc-save-status" data-state="device">Example saved on this device</p>
+      </header>
+      <main class="rc-main" id="main">
+        <ol class="rc-stepper" aria-label="Steps">
+          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">1</span>Initiative</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Offers</li>
+        </ol>
+        <h1 class="rc-heading" data-size="page">Tell us about your initiative</h1>
+        <p class="rc-meta">Fictional pattern example. Inputs stay in this page.</p>
+        <div class="rc-step-layout">
+          <div class="rc-step-main">
+            <section class="rc-guide rc-conversation-panel" aria-label="Describe your initiative">
+              <p class="rc-guide-status">Assistant on this device. Guided questions.</p>
+              <ol class="rc-conversation" data-example-conversation>
+                <li class="rc-conversation-turn" data-from="assistant">
+                  <p class="rc-conversation-label">Assistant</p>
+                  <p class="rc-message" data-from="assistant">
+                    What is your initiative called, and what do you do?
+                  </p>
+                </li>
+                <li class="rc-conversation-turn" data-from="person">
+                  <p class="rc-conversation-label">You</p>
+                  <p class="rc-message" data-from="person" id="example-answer">
+                    We are Orchard learning circle, a group of families restoring an orchard.
+                  </p>
+                  <div class="rc-field" hidden data-example-edit-field>
+                    <label for="example-edit">Your words</label
+                    ><textarea class="rc-input" id="example-edit">
+We are Orchard learning circle, a group of families restoring an orchard.</textarea
+                    >
+                  </div>
+                  <button class="rc-button" data-variant="quiet" type="button" data-example-edit>
+                    Edit your words
+                  </button>
+                </li>
+                <li class="rc-conversation-turn" data-from="assistant">
+                  <p class="rc-conversation-label">Assistant</p>
+                  <p class="rc-message" data-from="assistant">Where does most of your work happen?</p>
+                </li>
+              </ol>
+              <div class="rc-voice-input">
+                <p class="rc-meta">Local speech is not available in this static example. Type below.</p>
+                <p class="rc-voice-transcript" aria-live="polite">Your words stay editable.</p>
+              </div>
+              <form class="rc-composer" data-example-answer>
+                <label for="example-words">Type your answer</label
+                ><textarea class="rc-input" id="example-words" rows="4" maxlength="20000" required></textarea>
+                <div class="rc-action-bar">
+                  <button class="rc-button" data-variant="secondary" type="submit">Add your answer</button>
+                </div>
+              </form>
+              <div class="rc-field">
+                <label for="example-file">Add a file</label>
+                <p class="rc-hint">Local reference only in this example.</p>
+                <input class="rc-input" type="file" id="example-file" data-example-file />
+              </div>
+              <ul class="rc-attachment-list" data-example-attachments>
+                <li class="rc-attachment">
+                  <div>
+                    <strong>field-notes.txt</strong>
+                    <p class="rc-meta">Fictional text file read on this device</p>
+                  </div>
+                </li>
+              </ul>
+              <div class="rc-action-bar">
+                <a class="rc-button" data-variant="primary" href="check-card.html">Open review example</a
+                ><button
+                  class="rc-button"
+                  data-variant="quiet"
+                  type="button"
+                  data-open-dialog="example-cloud"
+                >
+                  Cloud consent example
+                </button>
+              </div>
+            </section>
+          </div>
+          <aside class="rc-step-aside">
+            <article class="rc-card rc-draft-preview">
+              <h2 class="rc-card-title" data-example-preview>Orchard learning circle</h2>
+              <p class="rc-card-meta">Upper valley, Brazil</p>
+              <p class="rc-card-summary">
+                Families restore an orchard and share what they learn about water and soil.
+              </p>
+              <p class="rc-draft-status">Draft on this device. Nobody else can see it.</p>
+            </article>
+          </aside>
+        </div>
+      </main>
+      <footer class="rc-footer" data-slim="true">
+        <ul class="rc-footer-row">
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-data">
+              What we store
+            </button>
+          </li>
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-assistant">
+              What the assistant did
+            </button>
+          </li>
+          <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
+          <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+          <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-policy">
+              Data policy
+            </button>
+          </li>
+        </ul>
+      </footer>
+      <dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+          <p>
+            This is fictional example content. Form choices stay in this page. Only an Appearance choice is
+            stored in this browser.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+          <p>The assistant has not run in this example.</p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+          <p>
+            The full Weave data policy must be published before saving or sharing opens. This example sends no
+            initiative data.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-cloud" aria-labelledby="example-cloud-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-cloud-title">Send this step to a cloud assistant?</h2>
+          <p>Fictional example. Nothing is sent.</p>
+          <dl class="rc-facts">
+            <div>
+              <dt>Who runs it</dt>
+              <dd>Example provider and model</dd>
+            </div>
+            <div>
+              <dt>Where</dt>
+              <dd>Example region</dd>
+            </div>
+            <div>
+              <dt>What is sent</dt>
+              <dd>Nothing in this simulation</dd>
+            </div>
+            <div>
+              <dt>Never sent</dt>
+              <dd>Audio and files</dd>
+            </div>
+            <div>
+              <dt>How long it is kept</dt>
+              <dd>Nothing leaves this page</dd>
+            </div>
+          </dl>
+          <button class="rc-button" data-variant="secondary" type="submit">Keep it on this device</button>
+        </form>
+      </dialog>
+    </div>
+  </body>
+</html>

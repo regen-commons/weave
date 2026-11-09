@@ -2,13 +2,23 @@
   "name": "funding-commons",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "bun serve.mjs",
     "test": "node --test tests/*.test.mjs",
     "build": "node scripts/build-ai.mjs && node scripts/check.mjs",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test:harness": "node --test scripts/harness/*.test.mjs scripts/quality/*.test.mjs",
+    "ci": "bun run build && bun run test && bun run --filter '*' build && bun run --filter '*' test && bun run design:check && bun run guidance:check && bun run test:harness",
     "prepare:ai": "node scripts/build-ai.mjs",
     "research:collect": "python3 scripts/collect-sources.py",
-    "research:import": "python3 scripts/import-data.py"
+    "research:import": "python3 scripts/import-data.py",
+    "design:tokens": "bun run --filter @regen-commons/design-system tokens",
+    "design:check": "bun run --filter @regen-commons/design-system check",
+    "design:serve": "SERVE_ROOT=packages/design-system PORT=4173 bun serve.mjs",
+    "guidance:check": "node scripts/quality/check-guidance.mjs"
   },
   "packageManager": "bun@1.4.2",
   "dependencies": {

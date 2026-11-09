@@ -1,0 +1,63 @@
+import type { PartnerEvidence } from "./evidence.ts";
+
+// Starter catalog of factual, attributed summaries of public material. No copied project records or media.
+export const PUBLIC_PARTNER_EVIDENCE: readonly PartnerEvidence[] = [
+  {
+    id: "coop:capture",
+    projectId: "coop",
+    project: "Coop",
+    kind: "inferred_capability",
+    summary: "Coop builds browser tools for capturing voice notes, files and links and reviewing them locally before sharing.",
+    topics: "local-first software browser extension audio voice capture transcription review",
+    capitals: ["intellectual"],
+    source: { url: "https://github.com/greenpill-dev-guild/coop#readme", publisher: "Coop", checkedOn: "2026-11-08" },
+  },
+  {
+    id: "osm:mapping",
+    projectId: "osm",
+    project: "OpenStreetMap",
+    kind: "inferred_capability",
+    summary: "OpenStreetMap contributors maintain a world map through local surveys, aerial imagery and GPS data.",
+    topics: "map mapping maps cartography geospatial gis survey gps",
+    capitals: ["intellectual", "experiential"],
+    source: { url: "https://www.openstreetmap.org/about", publisher: "OpenStreetMap contributors", checkedOn: "2026-11-08" },
+  },
+  {
+    id: "osm:contribute",
+    projectId: "osm",
+    project: "OpenStreetMap",
+    kind: "published_need",
+    summary: "OpenStreetMap invites organizations to contribute openly licensed imagery, GPS traces and geographic data.",
+    topics: "map mapping maps geographic geospatial gis imagery gps",
+    capitals: ["intellectual", "experiential"],
+    scope: "anywhere",
+    terms: ["gift"],
+    source: { url: "https://welcome.openstreetmap.org/how-to-give-back/", publisher: "OpenStreetMap Foundation", checkedOn: "2026-11-08" },
+  },
+  {
+    id: "public-lab:research",
+    projectId: "public-lab",
+    project: "Public Lab",
+    kind: "inferred_capability",
+    summary: "Public Lab maintains open-source infrastructure for collaborative environmental research, tool design and documentation.",
+    topics: "environmental monitoring citizen science research pollution documentation",
+    capitals: ["intellectual", "experiential"],
+    source: { url: "https://github.com/publiclab/plots2#readme", publisher: "Public Lab", checkedOn: "2026-11-08" },
+  },
+  {
+    id: "art-feminism:training",
+    projectId: "art-feminism",
+    project: "Art+Feminism",
+    kind: "published_offer",
+    summary: "Art+Feminism publishes online guides, slides and videos for organizing and training Wikipedia editors.",
+    topics: "art culture feminism wikipedia wikidata editathon editing training slides organizer tutorials",
+    capitals: ["cultural", "intellectual", "experiential"],
+    scope: "anywhere",
+    terms: ["gift"],
+    source: {
+      url: "https://meta.wikimedia.org/wiki/Art%2BFeminism_User_Group/Resources",
+      publisher: "Art+Feminism User Group",
+      checkedOn: "2026-11-08",
+    },
+  },
+];

@@ -1,5 +1,5 @@
 import { resolve, extname, sep } from "node:path";
-const root = resolve(import.meta.dir, "dist");
+const root = resolve(import.meta.dir, process.env.SERVE_ROOT || "dist");
 const port = Number(process.env.PORT || 4176);
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -9,6 +9,7 @@ const types = {
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
   ".wasm": "application/wasm",
+  ".woff2": "font/woff2",
 };
 Bun.serve({
   hostname: "127.0.0.1",
@@ -34,4 +35,4 @@ Bun.serve({
     });
   },
 });
-console.log(`Funding Commons: http://127.0.0.1:${port}`);
+console.log(`Serving ${root}: http://127.0.0.1:${port}`);

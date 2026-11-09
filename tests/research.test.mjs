@@ -14,8 +14,8 @@ const data = JSON.parse(
   fs.readFileSync(new URL("dist/data/funders.json", root), "utf8"),
 );
 const pilot = data.funds.filter((f) => f.isPilot);
-test("all 593 original identities plus 37 funders, original30 pilot identities and field evidence validate", () => {
-  assert.equal(validateSnapshot(root).funds.length, 694);
+test("all 593 original identities plus 106 supplemental funders, original30 pilot identities and field evidence validate", () => {
+  assert.equal(validateSnapshot(root).funds.length, 699);
   assert.equal(new Set(pilot.map((f) => f.enrichment.sourceRecordId)).size, 30);
   assert.ok(new Set(pilot.flatMap((f) => f.enrichment.regions)).size >= 6);
   for (const f of pilot) assert.equal(f.descriptionBasis, "primary");
@@ -64,8 +64,8 @@ test("evidence preserves geographic exceptions and known source conflicts", () =
 });
 
 test("full research coverage distinguishes program terms, source overviews and failed checks", () => {
-  assert.equal(data.enrichedCount, 694);
-  assert.equal(data.funds.filter((f) => f.enrichment).length, 694);
+  assert.equal(data.enrichedCount, 699);
+  assert.equal(data.funds.filter((f) => f.enrichment).length, 699);
   const counts = {};
   for (const f of data.funds) {
     const r = f.enrichment;
@@ -80,7 +80,7 @@ test("full research coverage distinguishes program terms, source overviews and f
   const coverage = JSON.parse(
     fs.readFileSync(new URL("dist/data/research-coverage.json", root)),
   );
-  assert.equal(coverage.records.length, 694);
+  assert.equal(coverage.records.length, 699);
   assert.deepEqual(coverage.researchCounts, counts);
 });
 test("failed source checks cannot masquerade as reviewed program terms", () => {

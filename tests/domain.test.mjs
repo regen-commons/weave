@@ -43,15 +43,15 @@ const state = {
   includeIncomplete: true,
 };
 
-test("snapshot retains all 593 original records plus 101 funders, research dispositions and original30 pilot funds", () => {
-  assert.equal(funds.length, 694);
-  assert.equal(new Set(funds.map((f) => f.id)).size, 694);
+test("snapshot retains all 593 original records plus 106 funders, research dispositions and original30 pilot funds", () => {
+  assert.equal(funds.length, 699);
+  assert.equal(new Set(funds.map((f) => f.id)).size, 699);
   assert.equal(funds.filter((f) => f.verifiedOn).length, data.reviewedCount);
-  assert.equal(funds.filter((f) => f.enrichment).length, 694);
+  assert.equal(funds.filter((f) => f.enrichment).length, 699);
   assert.equal(funds.filter((f) => f.isPilot).length, 30);
   assert.equal(
     Object.values(data.researchCounts).reduce((a, b) => a + b, 0),
-    694,
+    699,
   );
   for (const f of funds) {
     assert.ok(ACCESS[f.access], f.name);
@@ -60,7 +60,7 @@ test("snapshot retains all 593 original records plus 101 funders, research dispo
   }
 });
 test("every source record can be reached without a profile or filter", () => {
-  assert.equal(filterFunds(funds, state, [], now).length, 694);
+  assert.equal(filterFunds(funds, state, [], now).length, 699);
   assert.equal(sortFunds(funds, "name")[0].displayName, "75inQ");
 });
 test("search is accent insensitive and can find relevant project locations", () => {
@@ -111,11 +111,11 @@ test("project selection organizes shortlists without excluding any source record
   });
   assert.equal(
     filterFunds(funds, { ...state, profile: project.id }, [], now).length,
-    694,
+    699,
   );
   assert.equal(
     filterFunds(funds, { ...state, profile: "green-goods" }, [], now).length,
-    694,
+    699,
   );
 });
 test("dated calls expire without inventing future cycles", () => {
@@ -152,7 +152,7 @@ test("existing country-restriction evidence remains visible without a hardcoded 
   assert.match(JSON.stringify(f.enrichment.programs), /Nigeria/);
   assert.equal(
     filterFunds(funds, { ...state, profile: "any-project" }, [], now).length,
-    694,
+    699,
   );
 });
 
@@ -340,9 +340,9 @@ test("backup merge restores arbitrary projects, legacy lists and unknown fund ID
   assert.throws(() => readSaved(JSON.stringify(bad)));
 });
 
-test("research depth filters preserve an unfiltered 694-record catalog while ignoring the retired pilot filter", () => {
-  assert.equal(filterFunds(funds, {}).length, 694);
-  assert.equal(filterFunds(funds, { pilot: true }).length, 694);
+test("research depth filters preserve an unfiltered 699-record catalog while ignoring the retired pilot filter", () => {
+  assert.equal(filterFunds(funds, {}).length, 699);
+  assert.equal(filterFunds(funds, { pilot: true }).length, 699);
   const terms = filterFunds(funds, { depth: "program_reviewed" });
   assert.ok(terms.length > 30);
   assert.ok(

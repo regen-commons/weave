@@ -423,6 +423,7 @@ export function validateSnapshot(root) {
       .map((name) => read("research/" + name));
     const rows = validateFollowup(baseline, audits, researchById);
     const report = read("dist/data/research-followup.json");
+    const completed = read("research/deepening-result.json");
     const expectedRows = rows.map((r) => ({
       checkedOn: baseline.checkedOn,
       ...r,
@@ -431,7 +432,7 @@ export function validateSnapshot(root) {
     for (const row of expectedRows) latestById.set(row.sourceRecordId, row);
     if (
       !isDeepStrictEqual(report.records, expectedRows) ||
-      !isDeepStrictEqual(report.fieldCoverage, data.fieldCoverage) ||
+      !isDeepStrictEqual(report, completed) ||
       !isDeepStrictEqual(coverage.followUpSummary, expectedSummary) ||
       !isDeepStrictEqual(data.followUpSummary, expectedSummary) ||
       Object.entries(expectedSummary).some(

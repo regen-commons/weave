@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // Applies a saved or requested theme before first paint. Without it the page follows the system.
+    (function () {
+      var theme = null;
+      try { theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme"); } catch (e) {}
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="color-scheme"]').content = theme;
+      }
+    })();
+  </script>
+  <title>Conversation step example</title>
+  <link rel="icon" href="../../brand/logo/favicon.svg">
+  <link rel="preload" href="../../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../css/index.css">
+<script type="module" src="../library.js"></script></head>
+<body>
+<div class="rc-page">
+  <a class="rc-skip-link" href="#main">Skip to content</a>
+  <header class="rc-app-header">
+    <a class="rc-logo" href="home.html"><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark"/></svg>Weave</a>
+    <a class="rc-save-status" data-state="device" href="finish.html#keep"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg>Saved on this device only</a>
+  </header>
+  <main class="rc-main" id="main">
+    <div class="rc-step-layout">
+      <div class="rc-step-main">
+        <ol class="rc-stepper" aria-label="Steps">
+          <li data-state="done"><a href="#"><span class="rc-stepper-mark"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#check"/></svg></span><span class="rc-visually-hidden">Done: </span>Initiative</a></li>
+          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Offers</li>
+        </ol>
+        <h1 class="rc-heading" data-size="page">What does your initiative need?</h1>
+        <section class="rc-guide" aria-label="Conversation with the assistant">
+          <p class="rc-guide-status"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg>Assistant, running on your device</p>
+          <div class="rc-guide-log">
+            <p class="rc-message" data-from="person">We protect the springs above our town. We need seedlings for four hectares, someone who can map the water, and fencing we cannot pay for yet.</p>
+            <p class="rc-message" data-from="assistant">I found three needs. Keep what is right and change what is not.</p>
+          </div>
+          <section class="rc-review" aria-label="Needs to confirm">
+            <ul class="rc-review-list">
+              <li class="rc-proposal" data-state="confirmed">
+                <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#check"/></svg>Kept</p>
+                <p class="rc-proposal-value">Native seedlings for four hectares</p>
+                <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="step-needs-tag-living-1" interestfor="step-needs-tag-living-1"><span class="rc-tag" data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span>Living</span></button><span class="rc-tooltip" id="step-needs-tag-living-1" popover="hint">Land and living things. Land, water, seeds, soil and living systems.</span></span></li></ul>
+                <div class="rc-action-bar"><button class="rc-button" data-variant="quiet" data-size="sm" type="button">Edit</button></div>
+              </li>
+              <li class="rc-proposal">
+                <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#pencil-note"/></svg>Suggested from what you wrote</p>
+                <p class="rc-proposal-value">A hydrologist to map the springs</p>
+                <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="step-needs-tag-intellectual-2" interestfor="step-needs-tag-intellectual-2"><span class="rc-tag" data-capital="intellectual"><span class="rc-tile" data-state="suggested" aria-hidden="true">In</span>Intellectual</span></button><span class="rc-tooltip" id="step-needs-tag-intellectual-2" popover="hint">Knowledge. Research, data and methods.</span></span></li></ul>
+                <div class="rc-action-bar">
+                  <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Keep</button>
+                  <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Edit</button>
+                  <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Remove</button>
+                </div>
+              </li>
+              <li class="rc-proposal">
+                <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#pencil-note"/></svg>Suggested from what you wrote</p>
+                <p class="rc-proposal-value">R$ 60,000 for fencing</p>
+                <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="step-needs-tag-financial-3" interestfor="step-needs-tag-financial-3"><span class="rc-tag" data-capital="financial"><span class="rc-tile" data-state="suggested" aria-hidden="true">Fi</span>Financial</span></button><span class="rc-tooltip" id="step-needs-tag-financial-3" popover="hint">Money. Grants, loans, donations and payment.</span></span></li></ul>
+                <div class="rc-action-bar">
+                  <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Keep</button>
+                  <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Edit</button>
+                  <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Remove</button>
+                </div>
+              </li>
+            </ul>
+          </section>
+          <form class="rc-composer" action="#">
+            <label for="another">Add another need in your own words</label>
+            <textarea class="rc-input" id="another" name="need" rows="2"></textarea>
+            <div class="rc-composer-actions"><button class="rc-button" data-variant="secondary" type="submit">Add need</button></div>
+          </form>
+        </section>
+        <div class="rc-action-bar">
+          <a class="rc-button" data-variant="primary" href="finish.html">Next: what you can offer</a>
+          <a class="rc-button" data-variant="quiet" href="#">Back</a>
+        </div>
+        <p class="rc-meta">Preview from the <a href="../index.html">pattern library</a>. Every organisation on this page is fictional.</p>
+      </div>
+      <aside class="rc-step-aside" aria-label="Your initiative so far">
+        <article class="rc-card" data-stage="sprout">
+          <header class="rc-card-header">
+            <h2 class="rc-card-title">Associação Comunitária das Guardiãs das Nascentes do Alto Rio das Almas</h2>
+            <p class="rc-card-meta"><span><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#place"/></svg>Rio das Almas basin, Brazil</span><span class="rc-stage" data-stage="sprout"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#sprout"/></svg>Getting going</span></p>
+          </header>
+          <dl class="rc-record">
+            <div>
+              <dt>Needs</dt>
+              <dd>
+                <ul class="rc-tile-list" aria-label="Needs by kind of support">
+                  <li data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span><span class="rc-visually-hidden">Land and living things: kept</span></li>
+                  <li data-capital="material"><span class="rc-tile" data-state="empty" aria-hidden="true">Ma</span><span class="rc-visually-hidden">Tools and equipment: none</span></li>
+                  <li data-capital="intellectual"><span class="rc-tile" data-state="suggested" aria-hidden="true">In</span><span class="rc-visually-hidden">Knowledge: suggested</span></li>
+                  <li data-capital="experiential"><span class="rc-tile" data-state="empty" aria-hidden="true">Ex</span><span class="rc-visually-hidden">Skills and know-how: none</span></li>
+                  <li data-capital="social"><span class="rc-tile" data-state="empty" aria-hidden="true">So</span><span class="rc-visually-hidden">Relationships: none</span></li>
+                  <li data-capital="financial"><span class="rc-tile" data-state="suggested" aria-hidden="true">Fi</span><span class="rc-visually-hidden">Money: suggested</span></li>
+                  <li data-capital="cultural"><span class="rc-tile" data-state="empty" aria-hidden="true">Cu</span><span class="rc-visually-hidden">Culture and story: none</span></li>
+                  <li data-capital="spiritual"><span class="rc-tile" data-state="empty" aria-hidden="true">Sp</span><span class="rc-visually-hidden">Care and spirit: none</span></li>
+                </ul>
+              </dd>
+            </div>
+            <div>
+              <dt>Offers</dt>
+              <dd data-empty>Comes next</dd>
+            </div>
+          </dl>
+        </article>
+      </aside>
+    </div>
+  </main><footer class="rc-footer" data-slim="true"><ul class="rc-footer-row"><li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What we store</button></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the assistant did</button></li><li><a class="rc-footer-link" href="settings.html">Settings</a></li><li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li><li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data policy</button></li></ul></footer><dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-data-title">What we store</h2><p>This is fictional example content. Form choices stay in this page. Only an Appearance choice is stored in this browser.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog><dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2><p>The assistant has not run in this example.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog><dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2><p>The full Weave data policy must be published before saving or sharing opens. This example sends no initiative data.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog>
+</div>
+</body>
+</html>

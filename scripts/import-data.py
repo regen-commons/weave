@@ -1,9 +1,17 @@
 """Build the original research release and approved supplemental additions without converting unknowns into terms."""
+import argparse
 import collections, copy, datetime, json, re
 from urllib.parse import urlsplit
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 read = lambda p: json.loads((ROOT/p).read_text())
+def utc_instant(value):
+    instant=datetime.datetime.fromisoformat(value.replace('Z','+00:00'))
+    if instant.tzinfo is None: raise argparse.ArgumentTypeError(f'{value!r} needs a UTC offset, e.g. 2026-10-30T05:14:23Z')
+    return instant.astimezone(datetime.timezone.utc)
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--as-of',type=utc_instant,help="Judge deadlines as of this ISO 8601 instant instead of now. A catalog's compiledAt reproduces that catalog.")
+args=parser.parse_args()
 snapshot=read('research/source-funders.json')
 directory_themes={t for f in snapshot['funds'] for t in f['sectors']}
 expected=read('research/source-record-ids.json')
@@ -40,7 +48,7 @@ pilot_ids={r['sourceRecordId'] for r in pilot}
 warnings=[w for r in records for w in r.get('sourceWarnings',[])]
 counts=collections.Counter()
 coverage=[]
-as_of=datetime.datetime.now(datetime.timezone.utc)
+as_of=args.as_of or datetime.datetime.now(datetime.timezone.utc)
 baseline_path=ROOT/'research/deepening-targets.json'
 baseline=read('research/deepening-targets.json') if baseline_path.exists() else None
 followups=[]
@@ -152,7 +160,11 @@ if baseline:
         'outcomes':dict(collections.Counter(row['outcome'] for row in followups)),
     }
     snapshot['followUpSummary']=followup_summary
-    followup_report={**followup_summary,'fieldCoverage':field_counts,'records':[{'checkedOn':baseline['checkedOn'],**row} for row in followups],
+    # The pre-supplemental published audit report is frozen evidence, not a live metric.
+    completed=read('research/deepening-result.json')
+    if any(completed.get(k)!=v for k,v in followup_summary.items()):
+        raise ValueError('Completed follow-up result belongs to another audit.')
+    followup_report={**followup_summary,'fieldCoverage':completed['fieldCoverage'],'records':[{'checkedOn':baseline['checkedOn'],**row} for row in followups],
         'notes':'Each target received a policy follow-up. A reviewed policy may be invitation-only, closed or historical. No current date or amount is inferred from an older award, and remaining gaps are not eligibility rejections.'}
     (ROOT/'dist/data/research-followup.json').write_text(json.dumps(followup_report,ensure_ascii=False,indent=2)+'\n')
 (ROOT/'dist/data/funders.json').write_text(json.dumps(snapshot,ensure_ascii=False,separators=(',',':')))

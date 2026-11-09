@@ -1,0 +1,592 @@
+/* Molecules: small groups of atoms with one job. */
+
+/* Field: label, hint, control, error, in that order. */
+.rc-form {
+  display: grid;
+  gap: var(--space-5);
+  max-inline-size: var(--form-width);
+}
+.rc-field {
+  display: grid;
+  gap: var(--space-2);
+  max-inline-size: var(--form-width);
+}
+.rc-field > label { font: var(--type-label-md); }
+.rc-hint {
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+.rc-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font: var(--type-label-md);
+  color: var(--text-danger);
+}
+
+/* Composer: the box a person writes in. Speak and Attach appear only once they work. */
+.rc-composer {
+  display: grid;
+  gap: var(--space-2);
+}
+.rc-composer > label { font: var(--type-label-md); }
+.rc-composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* Proposal: pencil until a person confirms it, then ink. */
+.rc-proposal {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-thin) dashed var(--control-line);
+  border-radius: var(--radius-sm);
+}
+.rc-proposal-source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+.rc-proposal-value { font: var(--type-title-sm); }
+.rc-proposal[data-state="confirmed"] {
+  border: var(--border-thin) solid transparent;
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rc-proposal[data-state="confirmed"] .rc-proposal-source { color: var(--text-secondary); }
+.rc-proposal[data-state="confirmed"] .rc-icon { color: var(--state-success); }
+@media (forced-colors: active) {
+  .rc-proposal[data-state="confirmed"] { border-color: CanvasText; }
+}
+
+/* Choice group: selectable cards for short vocabularies. */
+.rc-choice-group {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.rc-choice-group > legend {
+  padding: 0;
+  margin-block-end: var(--space-2);
+  font: var(--type-label-md);
+}
+.rc-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-block-size: var(--control-height);
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--control-line);
+  border-radius: var(--control-radius);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  cursor: pointer;
+}
+.rc-choice:has(:checked) {
+  border-color: var(--action);
+  background: var(--selected);
+  color: var(--on-selected);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--action);
+}
+.rc-choice:has(:focus-visible) {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+.rc-choice-text {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.rc-choice-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--type-title-sm);
+}
+.rc-choice-note {
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+.rc-choice:has(:checked) .rc-choice-note { color: inherit; }
+
+/* Stepper: where you are in a short sequence. Number, weight and edge all mark the current step. */
+.rc-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Equal widths when they fit. Long labels or large text wrap to new rows. */
+.rc-stepper > li {
+  flex: 1 1 0;
+  min-inline-size: max-content;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-sm-height);
+  border-block-end: var(--border-edge) solid var(--line);
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+.rc-stepper > li > a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-sm-height);
+  color: inherit;
+}
+.rc-stepper-mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--tile-size);
+  block-size: var(--tile-size);
+  border: var(--border-thin) solid var(--line);
+  border-radius: var(--tile-radius);
+  font: var(--type-label-md);
+}
+.rc-stepper > li[data-state="done"] {
+  border-block-end-color: var(--control-line);
+  color: var(--text-secondary);
+}
+.rc-stepper > li[aria-current="step"] {
+  border-block-end-color: var(--action);
+  color: var(--on-surface);
+  font: var(--type-label-md);
+}
+.rc-stepper > li[aria-current="step"] .rc-stepper-mark {
+  border-color: var(--action);
+  background: var(--action);
+  color: var(--on-action);
+}
+
+/* Reason: why this appears for you, in one plain line. */
+.rc-reasons {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rc-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font: var(--type-reading-md);
+}
+.rc-reason .rc-icon {
+  margin-block-start: var(--space-1);
+  color: var(--text-muted);
+}
+
+/* Card: one bold title. Initiative, need, offer, opportunity and partner differ only in which parts they fill. */
+.rc-card {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border-radius: var(--card-radius);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+/* An edge replaces part of the padding, so text lines up across cards. */
+.rc-card[data-stage] {
+  padding-inline-start: calc(var(--card-padding) - var(--border-edge));
+  border-inline-start: var(--border-edge) solid var(--stage-tone);
+}
+.rc-card[data-kind="need"] {
+  padding-inline-start: calc(var(--card-padding) - var(--border-edge));
+  border-inline-start: var(--border-edge) solid var(--on-surface-raised);
+}
+.rc-card[data-kind="offer"] {
+  padding-inline-end: calc(var(--card-padding) - var(--border-edge));
+  border-inline-end: var(--border-edge) solid var(--on-surface-raised);
+}
+.rc-card[data-pencil] {
+  border: var(--border-thin) dashed var(--control-line);
+  background: transparent;
+  box-shadow: none;
+}
+.rc-card-header {
+  display: grid;
+  gap: var(--space-1);
+}
+.rc-card-title { font: var(--type-headline-sm); }
+.rc-card-title > a {
+  color: inherit;
+  text-decoration: none;
+}
+.rc-card-title > a:visited { color: var(--link-visited); }
+.rc-card-title > a:hover { text-decoration: underline; }
+.rc-card-title > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.rc-card-title > a:focus-visible { outline: none; }
+.rc-card:has(.rc-card-title > a:focus-visible) {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+.rc-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+.rc-card-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.rc-card-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  font: var(--type-reading-md);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+.rc-card .rc-action-bar,
+.rc-card .rc-stamp { position: relative; }
+@media (forced-colors: active) {
+  .rc-card { border: var(--border-thin) solid CanvasText; }
+}
+
+/* Lists of labels and tiles */
+.rc-tag-list,
+.rc-tile-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Record: what we know so far, with room for what is still missing. */
+.rc-record {
+  display: grid;
+  gap: var(--space-3);
+}
+.rc-record > div {
+  display: grid;
+  gap: var(--space-1);
+}
+.rc-record dt {
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+.rc-record dd[data-empty] {
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+
+/* Stamp: last confirmed, and a one-tap way to confirm again. */
+.rc-stamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+/* Notice: tinted panel, accent edge, icon and words. */
+[data-tone="success"] { --tone-line: var(--state-success); }
+[data-tone="warning"] { --tone-line: var(--state-warning); }
+[data-tone="danger"] { --tone-line: var(--state-danger); }
+[data-tone="info"] { --tone-line: var(--state-info); }
+.rc-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: var(--border-edge) solid var(--tone-line, var(--control-line));
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+.rc-notice > .rc-icon { color: var(--tone-line, var(--control-line)); }
+.rc-notice-body {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.rc-notice-title { font: var(--type-title-sm); }
+
+/* Message: alignment and surface step tell speakers apart, not hue. */
+.rc-message {
+  max-inline-size: min(100%, var(--prose-width));
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font: var(--type-reading-lg);
+}
+.rc-message[data-from="assistant"] {
+  justify-self: start;
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+.rc-message[data-from="person"] {
+  justify-self: end;
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+@media (forced-colors: active) {
+  .rc-message { border: var(--border-thin) solid CanvasText; }
+}
+
+/* Tabs: the active tab joins its content. */
+.rc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  border-block-end: var(--border-thin) solid var(--control-line);
+}
+.rc-tabs > a {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-height);
+  margin-block-end: calc(var(--border-thin) * -1);
+  padding-inline: var(--space-4);
+  border: var(--border-thin) solid transparent;
+  border-block-start-width: var(--border-edge);
+  color: var(--text-secondary);
+  font: var(--type-body-md);
+  text-decoration: none;
+}
+.rc-tabs > a:hover { color: var(--on-surface); }
+.rc-tabs > a[aria-current="page"] {
+  border-color: var(--control-line);
+  border-block-start-color: var(--action);
+  border-block-end-color: var(--surface);
+  background: var(--surface);
+  color: var(--on-surface);
+  font: var(--type-title-sm);
+}
+
+/* Action bar: the things you can do with a record. */
+.rc-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* Progress: what is happening, how far along, and how to stop it. */
+.rc-progress {
+  display: grid;
+  gap: var(--space-2);
+}
+.rc-progress > progress {
+  inline-size: 100%;
+  block-size: var(--space-2);
+  accent-color: var(--action);
+}
+
+/* Save status: always says where the work lives. */
+.rc-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+button.rc-save-status { min-block-size: var(--control-sm-height); border: 0; padding: 0; background: none; text-decoration: underline; text-align: start; cursor: pointer; }
+a.rc-save-status {
+  min-block-size: var(--control-sm-height);
+  color: var(--text-secondary);
+}
+a.rc-save-status:hover { color: var(--on-surface); }
+.rc-save-status[data-state="account"] .rc-icon { color: var(--state-success); }
+
+/* Search: a box, a button and the word Search. */
+.rc-search {
+  display: flex;
+  gap: var(--space-2);
+  max-inline-size: var(--list-width);
+}
+.rc-search > .rc-input {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* Breadcrumbs: a place inside its larger places. */
+.rc-breadcrumbs > ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  padding: 0;
+  font: var(--type-body-sm);
+  list-style: none;
+}
+.rc-breadcrumbs li + li::before {
+  content: "/" / "";
+  margin-inline-end: var(--space-2);
+  color: var(--text-muted);
+}
+.rc-breadcrumbs [aria-current="page"] { font: var(--type-label-md); }
+
+/* Facts: plain terms for consent and privacy. */
+.rc-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.rc-facts > div {
+  display: grid;
+  gap: var(--space-1);
+}
+.rc-facts dt {
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+
+/* Empty state: a first screen with one thing to do. */
+.rc-empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  max-inline-size: var(--prose-width);
+  padding-block: var(--space-6);
+}
+.rc-empty-title { font: var(--type-headline-md); }
+.rc-empty > p { font: var(--type-reading-lg); }
+
+/* Listing variant reserves title lines and keeps independent controls above the link. */
+.rc-card[data-layout="listing"] { display: flex; flex-direction: column; }
+.rc-card[data-layout="listing"] > [data-slot="comparison"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rc-card[data-layout="listing"] .rc-card-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-block-size: 2lh;
+}
+.rc-card[data-layout="listing"] > .rc-action-bar { margin-block-start: auto; }
+.rc-card .rc-tooltip-wrap { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .rc-card[data-layout="listing"] { transition: translate var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
+  .rc-card[data-layout="listing"]:has(a:hover) { translate: 0 calc(-1 * var(--space-1)); box-shadow: var(--shadow-2); }
+}
+/* Equal-height field and action; stacking preserves both on small screens. */
+.rc-inline-field { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.rc-inline-field > .rc-input { flex: 1; min-inline-size: 0; }
+.rc-inline-field > .rc-input, .rc-inline-field > .rc-button { min-block-size: var(--control-lg-height); }
+/* Tooltip: native interest/hint where supported; behaviour module supplies the fallback. */
+.rc-tooltip-wrap { display: inline-flex; align-items: center; }
+.rc-tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: start;
+  min-block-size: var(--control-sm-height);
+  max-inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: help;
+}
+.rc-tooltip, .rc-menu {
+  --popover-left: var(--gutter);
+  --popover-top: var(--space-9);
+  --popover-max-block: calc(100dvh - var(--space-8));
+  position: fixed;
+  inset: auto;
+  inset-inline-start: var(--popover-left, var(--gutter));
+  inset-block-start: var(--popover-top, var(--space-9));
+  margin: var(--space-2);
+  max-inline-size: min(var(--form-width), calc(100vw - var(--space-6)));
+  max-block-size: var(--popover-max-block, calc(100dvh - var(--space-8)));
+  overflow: auto;
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--control-line);
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+  color: var(--on-surface-overlay);
+  box-shadow: var(--shadow-3);
+  font: var(--type-body-sm);
+  z-index: var(--layer-overlay);
+}
+.rc-tooltip { max-inline-size: min(var(--card-min-width), calc(100vw - var(--space-6))); }
+.rc-tooltip[data-open], .rc-menu[data-open] { display: block; }
+@supports not selector(:popover-open) {
+  .rc-tooltip:not([data-open]), .rc-menu:not([data-open]) { display: none; }
+}
+/* Link preview: supplied content only; no background request to an external site. */
+.rc-link-preview { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-sm); background: var(--surface-tint); color: var(--on-surface-tint); }
+.rc-link-preview-text { display: grid; min-inline-size: 0; gap: var(--space-1); }
+.rc-link-preview-text > a { font: var(--type-title-sm); }
+/* Price and date metadata above a listing title also reserve two lines. */
+.rc-card[data-layout="listing"] > .rc-meta:first-child { min-block-size: 2lh; }
+
+/* Section: a heading, optional browse action and its related content. */
+.rc-section { display: grid; gap: var(--space-4); min-inline-size: 0; }
+.rc-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+
+/* Tile card: a large glyph, its framework title and a plain meaning. */
+.rc-tile-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  inline-size: 100%;
+  block-size: 100%;
+  padding: var(--space-3);
+  border-radius: var(--card-radius);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rc-tile-card > .rc-tile { --tile-size: var(--space-8); grid-row: span 2; font: var(--type-headline-sm); }
+.rc-tile-card-title { font: var(--type-title-sm); }
+.rc-tile-card-meaning { font: var(--type-body-sm); color: var(--text-secondary); }
+/* Conversation: editable turns; attachments stay readable within the flow. */
+.rc-conversation { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.rc-conversation-turn { display: grid; gap: var(--space-2); }
+.rc-conversation-turn[data-from="person"] { padding-inline-start: var(--space-5); }
+.rc-conversation-turn .rc-message { white-space: pre-wrap; overflow-wrap: anywhere; }
+.rc-conversation-label { font: var(--type-label-md); color: var(--text-muted); }
+.rc-attachment-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.rc-attachment { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-3); background: var(--surface-raised); color: var(--on-surface-raised); border-radius: var(--radius-sm); box-shadow: var(--shadow-1); overflow-wrap: anywhere; }
+.rc-attachment > div { min-inline-size: 0; flex: 1; }
+.rc-attachment a { display: inline-flex; align-items: center; min-block-size: var(--control-height); }
+/* Ask card: every applicable kind has equal weight; review is explicit. */
+.rc-ask-card { min-inline-size: 0; overflow-wrap: anywhere; }
+.rc-ask-title { font: var(--type-headline-sm); }
+.rc-ask-terms { font: var(--type-body-sm); color: var(--text-secondary); }
+.rc-ask-foot { display: grid; gap: var(--space-2); margin-block-start: auto; }
+.rc-ask-editor { min-inline-size: 0; padding: var(--space-4); border: var(--border-thin) solid var(--control-line); border-radius: var(--radius-md); background: var(--surface-raised); }
+.rc-ask-editor fieldset { min-inline-size: 0; }
+.rc-ask-summary { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.rc-ask-summary > li { display: grid; gap: var(--space-2); }
+.rc-team-line { font: var(--type-body-sm); color: var(--text-secondary); }
+
+/* Record list: assistant metadata, never source text. */
+.rc-record-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.rc-record-row { display: flex; align-items: start; gap: var(--space-3); }
+.rc-record-text { display: grid; min-inline-size: 0; gap: var(--space-1); overflow-wrap: anywhere; }
+.rc-record-title { font: var(--type-title-sm); }

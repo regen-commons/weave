@@ -1,0 +1,299 @@
+/* Organisms: distinct sections of an interface. */
+
+/* App header: product name top-left returns home on every page. */
+.rc-app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  inline-size: 100%;
+  max-inline-size: var(--page-width);
+  margin-inline: auto;
+  padding-block: var(--space-2);
+  padding-inline: var(--gutter);
+  border-block-end: var(--border-thin) solid var(--line);
+}
+.rc-app-nav {
+  display: none;
+  flex: 1;
+  gap: var(--space-1);
+}
+.rc-app-nav > a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--control-sm-height);
+  padding-inline: var(--space-3);
+  border-block-end: var(--border-edge) solid transparent;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.rc-app-nav > a:hover { color: var(--on-surface); }
+.rc-app-nav > a[aria-current="page"] {
+  border-block-end-color: var(--action);
+  color: var(--on-surface);
+  font: var(--type-title-sm);
+}
+@media (min-width: 56.25rem) {
+  .rc-app-nav { display: flex; }
+}
+
+/* Bottom navigation for phones. Icon and word, always both. */
+.rc-bottom-nav {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: var(--layer-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  padding-block-end: env(safe-area-inset-bottom);
+  border-block-start: var(--border-thin) solid var(--control-line);
+  background: var(--surface);
+}
+/* Equal widths at normal sizes. At large text sizes the labels wrap to a second row instead of colliding. */
+.rc-bottom-nav > a {
+  flex: 1 1 0;
+  min-inline-size: max-content;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-1);
+  min-block-size: var(--space-8);
+  padding-inline: var(--space-1);
+  border-block-start: var(--border-edge) solid transparent;
+  color: var(--text-secondary);
+  font: var(--type-body-sm);
+  text-decoration: none;
+}
+.rc-bottom-nav > a[aria-current="page"] {
+  border-block-start-color: var(--action);
+  color: var(--on-surface);
+  font: var(--type-label-md);
+}
+@media (min-width: 56.25rem) {
+  .rc-bottom-nav { display: none; }
+}
+
+/* Guide panel: the conversation for one step. */
+.rc-guide {
+  display: grid;
+  gap: var(--space-4);
+}
+.rc-guide-log {
+  display: grid;
+  gap: var(--space-3);
+}
+.rc-guide-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+
+/* Review sheet: what the assistant suggested, waiting for you. */
+.rc-review {
+  display: grid;
+  gap: var(--space-3);
+}
+.rc-review-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Code panel: save or sign in with one field per step. Never a modal. */
+.rc-code-panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--sheet-padding);
+  border-radius: var(--card-radius);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rc-code-panel > header {
+  display: grid;
+  gap: var(--space-2);
+}
+.rc-code-panel-title { font: var(--type-headline-sm); }
+.rc-code-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+@media (forced-colors: active) {
+  .rc-code-panel { border: var(--border-thin) solid CanvasText; }
+}
+
+/* Card list: a counted list with an honest empty state. */
+.rc-card-list {
+  display: grid;
+  gap: var(--space-4);
+}
+.rc-card-list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+.rc-card-list-items {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Dialog: native, for consent and confirming steps only. */
+.rc-dialog {
+  inline-size: min(100% - var(--space-5), var(--form-width));
+  max-block-size: calc(100dvh - var(--space-6));
+  padding: var(--sheet-padding);
+  border: 0;
+  border-radius: var(--sheet-radius);
+  background: var(--surface-overlay);
+  color: var(--on-surface-overlay);
+  box-shadow: var(--shadow-4);
+}
+.rc-dialog:modal { overscroll-behavior: contain; }
+.rc-dialog::backdrop { background: var(--backdrop); overflow: hidden; overscroll-behavior: contain; }
+.rc-dialog-body {
+  display: grid;
+  gap: var(--space-4);
+}
+.rc-dialog-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); position: sticky; inset-block-start: calc(-1 * var(--sheet-padding)); z-index: var(--layer-sticky); padding-block: var(--space-2); background: var(--surface-overlay); }
+.rc-dialog-head > h2 { flex: 1; min-inline-size: 0; }
+.rc-dialog-head > form { flex: none; }
+.rc-dialog-title { font: var(--type-headline-sm); }
+@media (forced-colors: active) {
+  .rc-dialog { border: var(--border-thin) solid CanvasText; }
+}
+
+/* Data table: right-aligned numbers, a few rows of space, no zebra lines. */
+.rc-table-scroll {
+  overflow-x: auto;
+  max-inline-size: 100%;
+}
+.rc-table {
+  inline-size: 100%;
+  font: var(--type-body-sm);
+}
+.rc-table th {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-thin) solid var(--control-line);
+  font: var(--type-label-md);
+  text-align: start;
+}
+.rc-table td {
+  padding: var(--space-3);
+  border-block-end: var(--border-thin) solid var(--line-subtle);
+  vertical-align: top;
+}
+.rc-table [data-align="end"] {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-app-header-state { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+/* The same filter bar on every list. Menus hold native checks, not ARIA menu items. */
+.rc-filter-bar { display: grid; min-inline-size: 0; gap: var(--space-3); }
+.rc-filter-controls, .rc-active-filters { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-2); }
+.rc-filter-controls > .rc-field { flex: 1 1 var(--card-min-width); min-inline-size: min(100%, var(--card-min-width)); }
+.rc-filter-controls > .rc-field[data-layout="inline"] {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.rc-filter-controls > .rc-field[data-layout="inline"] > .rc-input {
+  inline-size: auto;
+  min-inline-size: 0;
+}
+.rc-filter-controls > .rc-button[popovertarget]::after {
+  content: "";
+  flex: none;
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-inline-end: var(--border-thin) solid currentColor;
+  border-block-end: var(--border-thin) solid currentColor;
+  rotate: 45deg;
+}
+.rc-filter-controls .rc-button[data-active="true"] { box-shadow: inset 0 0 0 var(--border-thick) var(--action); }
+.rc-menu { min-inline-size: min(var(--card-min-width), calc(100vw - var(--space-6))); }
+.rc-menu-group { display: grid; margin: 0; padding: 0; border: 0; gap: var(--space-1); }
+.rc-menu-group > legend { font: var(--type-title-sm); margin-block-end: var(--space-2); }
+.rc-menu-option { display: flex; align-items: center; min-block-size: var(--control-sm-height); gap: var(--space-2); padding-inline: var(--space-2); cursor: pointer; }
+.rc-menu-option:hover { background: var(--surface-tint); }
+/* Footer aligns with the logo on every page, with a slim focused-flow variant. */
+.rc-footer {
+  display: grid;
+  gap: var(--space-5);
+  inline-size: 100%;
+  max-inline-size: var(--page-width);
+  margin-inline: auto;
+  padding: var(--space-7) var(--gutter) var(--space-6);
+  border-block-start: var(--border-thin) solid var(--line);
+}
+.rc-footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--space-11)), 1fr)); gap: var(--space-5); }
+.rc-footer-title { font: var(--type-title-sm); }
+.rc-footer ul { padding: 0; list-style: none; }
+.rc-footer-row { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); }
+.rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-decoration: underline; cursor: pointer; }
+.rc-footer[data-slim="true"] { padding-block: var(--space-5); }
+@media (max-width: 37.5rem) {
+  .rc-dialog:is([data-presentation="information"], [data-presentation="task"]) {
+    inset: auto 0 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    margin: 0;
+    max-block-size: calc(100dvh - var(--space-5));
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+}
+
+.rc-filter-bar > .rc-field { max-inline-size: var(--list-width); }
+/* Numbered list: a short sequence, with the first linked card as the way in. */
+.rc-numbered-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.rc-numbered-item { position: relative; display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
+.rc-numbered-item:has(a) { box-shadow: inset 0 0 0 var(--border-thick) var(--action), var(--shadow-1); }
+.rc-numbered-number { font: var(--type-headline-md); color: var(--text-accent); }
+.rc-numbered-title { font: var(--type-title-sm); }
+.rc-numbered-title > a { color: inherit; text-decoration: none; }
+.rc-numbered-title > a::after { content: ""; position: absolute; inset: 0; }
+.rc-numbered-title > a:focus-visible { outline: none; }
+.rc-numbered-item:has(a:focus-visible) { outline: var(--border-edge) solid var(--focus); outline-offset: var(--border-thick); }
+
+/* Tile grid: equal-size cards with one tooltip trigger each. */
+.rc-tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-card-min-width)), 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.rc-tile-grid > li { display: flex; min-inline-size: 0; }
+.rc-tile-grid .rc-tooltip-wrap, .rc-tile-grid .rc-tooltip-trigger { display: flex; inline-size: 100%; }
+/* Conversation panel: voice where local speech is available, typing everywhere. */
+.rc-conversation-panel { display: grid; align-content: start; gap: var(--space-5); min-block-size: var(--form-width); }
+.rc-voice-input { display: grid; gap: var(--space-2); }
+.rc-voice-input > .rc-button { justify-content: center; min-block-size: var(--space-9); }
+.rc-voice-transcript { min-block-size: var(--space-7); font: var(--type-reading-lg); white-space: pre-wrap; overflow-wrap: anywhere; }
+.rc-review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.rc-review-grid > .rc-proposal { align-content: start; }
+.rc-review-grid .rc-action-bar { margin-block-start: auto; }
+.rc-draft-preview { display: grid; gap: var(--space-4); overflow-wrap: anywhere; }
+.rc-draft-preview .rc-card-title { font: var(--type-headline-md); }
+.rc-draft-preview .rc-card-summary { display: block; overflow: visible; }
+.rc-draft-status { display: flex; align-items: start; gap: var(--space-2); font: var(--type-body-sm); color: var(--text-muted); }
+/* Ask list and share card use the same card vocabulary on intake and finish. */
+.rc-ask-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.rc-ask-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+.rc-ask-count { font: var(--type-label-md); color: var(--text-secondary); white-space: nowrap; }
+.rc-share-card { display: grid; gap: var(--space-4); overflow-wrap: anywhere; }
+/* Team slots describe requirements; picks never establish eligibility. */
+.rc-team-slots { display: grid; gap: var(--space-4); list-style: none; padding: 0; margin: 0; }
+.rc-team-slot { display: grid; gap: var(--space-2); min-inline-size: 0; padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-raised); overflow-wrap: anywhere; }
+.rc-team-candidates { display: grid; gap: var(--space-2); list-style: none; padding: 0; margin: 0; }
+.rc-team-candidate { display: flex; align-items: start; gap: var(--space-3); min-block-size: var(--control-height); padding: var(--space-2); cursor: pointer; }
+.rc-team-candidate > span { display: grid; gap: var(--space-1); min-inline-size: 0; }
+.rc-team-coverage { display: grid; gap: var(--space-2); padding: var(--space-3); border-inline-start: var(--border-thick) solid var(--control-line); }

@@ -1,0 +1,165 @@
+/* Templates: page layouts. Phone first. Columns are added as space allows. */
+.rc-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto auto;
+  min-block-size: 100dvh;
+}
+
+.rc-page:has(> .rc-site-banner) {
+  grid-template-rows: auto auto 1fr auto auto;
+}
+
+.rc-site-banner {
+  padding: var(--space-2) var(--gutter);
+  border-block-end: var(--border-thin) solid var(--control-line);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+  font: var(--type-label-md);
+  text-align: center;
+}
+
+.rc-main {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  view-transition-name: rc-content;
+  container-type: inline-size;
+  inline-size: 100%;
+  max-inline-size: var(--page-width);
+  margin-inline: auto;
+  padding-block: var(--space-5) var(--space-8);
+  padding-inline: var(--gutter);
+}
+
+.rc-stack {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+.rc-stack[data-gap="wide"] { gap: var(--space-7); }
+
+/* Conversation step and finish: one column, then a sticky record beside it. */
+.rc-step-layout {
+  display: grid;
+  gap: var(--space-6);
+}
+.rc-step-main {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+@container (min-width: 56.25rem) {
+  .rc-step-layout {
+    grid-template-columns: minmax(0, var(--prose-width)) minmax(0, 22rem);
+    justify-content: space-between;
+    align-items: start;
+  }
+  .rc-step-layout > * { grid-column: 1; }
+  .rc-step-layout > .rc-step-aside {
+    position: sticky;
+    inset-block-start: var(--space-5);
+    grid-column: 2;
+    grid-row: 1 / span 6;
+  }
+}
+
+/* List pages use the available page width; prose retains its own measure. */
+.rc-list-layout {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+/* Focused pages: sign-in and confirming steps. */
+.rc-narrow {
+  display: grid;
+  gap: var(--space-5);
+  max-inline-size: var(--form-width);
+}
+
+/* Home: measure the backdrop against the full page while keeping content inset. */
+.rc-main:has(.rc-home-hero) {
+  max-inline-size: none;
+  padding-inline: 0;
+}
+.rc-main:has(.rc-home-hero) > * {
+  inline-size: calc(min(100%, var(--page-width)) - 2 * var(--gutter));
+  margin-inline: auto;
+}
+
+.rc-home-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3) var(--space-6);
+  text-align: center;
+}
+.rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
+.rc-home-hero .rc-heading em { color: var(--text-accent); }
+.rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
+.rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
+.rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
+.rc-home-live { min-block-size: var(--control-sm-height); }
+.rc-woven-backdrop {
+  position: absolute;
+  z-index: -1;
+  inset-block: 0;
+  left: 50%;
+  translate: -50%;
+  inline-size: 100cqi;
+  block-size: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rc-home-actions {
+  display: grid;
+  gap: var(--space-2);
+}
+@container (min-width: 37.5rem) {
+  .rc-home-hero { padding-block: var(--space-8); gap: var(--space-5); }
+  .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
+  .rc-home-actions {
+    grid-auto-flow: column;
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rc-woven-backdrop > use { animation: rc-weave calc(var(--duration-slow) * 40) var(--ease-out) infinite alternate; }
+}
+@keyframes rc-weave { to { transform: translate(var(--space-4), var(--space-2)); } }
+@media (forced-colors: active) { .rc-woven-backdrop { display: none; } }
+
+/* Card grid: resilient single column on phones, equal-height cards across wide rows. */
+.rc-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rc-card-grid > li { display: flex; min-inline-size: 0; }
+.rc-card-grid > li > .rc-card { inline-size: 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  .rc-main { animation: rc-arrive var(--duration-base) var(--ease-out); }
+  .rc-card-grid > li { animation: rc-card-arrive var(--duration-slow) var(--ease-out) both; }
+  .rc-card-grid > li:nth-child(3n + 2) { animation-delay: var(--duration-fast); }
+  .rc-card-grid > li:nth-child(3n) { animation-delay: calc(var(--duration-fast) * 2); }
+}
+@keyframes rc-arrive { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(rc-content) { animation-duration: var(--duration-base); animation-timing-function: var(--ease-out); }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) { animation: none; }
+}
+
+@keyframes rc-card-arrive { from { opacity: 0; transform: translateY(var(--space-3)); } to { opacity: 1; transform: translateY(0); } }
+
+/* Settings groups change in place; leaving has a separate final region. */
+.rc-settings { gap: var(--space-6); }
+.rc-settings-leave { display: grid; gap: var(--space-4); margin-block-start: var(--space-5); padding-block-start: var(--space-5); border-block-start: var(--border-thin) solid var(--control-line); }

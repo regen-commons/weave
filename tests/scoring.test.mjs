@@ -64,7 +64,7 @@ test('answers stay out of embeddings and round-trip with favorites; material edi
 });
 test('scores are bounded integers, account for every point, apply every stated cap and order monotonically',()=>{
  const ranked=rank(funds,project,semantic(funds));
- assert.equal(ranked.length,694);
+ assert.equal(ranked.length,699);
  for(const [i,m] of ranked.entries()){
   assert.ok(Number.isInteger(m.score)&&m.score>=0&&m.score<=100);
   assert.equal(m.rawScore,Object.values(m.breakdown).reduce((a,b)=>a+b,0));

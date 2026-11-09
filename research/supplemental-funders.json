@@ -17659,6 +17659,933 @@
           }
         ]
       }
+    },
+    {
+      "fund": {
+        "id": "local-hacker-initiative",
+        "name": "Hacker Initiative",
+        "displayName": "Hacker Initiative",
+        "program": "",
+        "description": "Grants for technical and educational work serving the worldwide hacker community.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://hackerinitiative.org/",
+        "evidenceUrl": "https://hackerinitiative.org/",
+        "additionalSources": [],
+        "sourceUrl": "https://hackerinitiative.org/",
+        "access": "unconfirmed",
+        "accessDetail": "",
+        "amount": "",
+        "timing": "",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "hacker-initiative",
+          "upstreamRecordId": null,
+          "aliases": "Hacker Initiative; HI"
+        }
+      },
+      "enrichment": {
+        "sourceRecordId": "local-hacker-initiative",
+        "researchedOn": "2026-10-29",
+        "name": "Hacker Initiative",
+        "summary": "Grants for technical and educational work serving the worldwide hacker community.",
+        "themes": [
+          "Open source",
+          "STEM education",
+          "Security and privacy"
+        ],
+        "regions": [],
+        "programs": [
+          {
+            "id": "hacker-initiative-signal-noise-2026",
+            "name": "Signal/Noise — 2026 grant cycle",
+            "instrument": "grant",
+            "focus": [
+              "Open source",
+              "STEM education",
+              "Security and privacy"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [],
+              "applicantCountries": [],
+              "scope": "Worldwide hacker community; jurisdictional compliance and US sanctions restrictions apply. No exhaustive country list established.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Individuals",
+                "Student groups",
+                "Independent researchers",
+                "Small organizations"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Project must advance the hacker community; comply with local law and USD receipt requirements, and obtain adult consent/supervision for minors.",
+                "Submit in written English through the official form; one application per project per cycle.",
+                "Recipients must provide a progress report within two months and final project and spending reports."
+              ],
+              "exclusions": [
+                "Sanctioned recipients; government agencies, schools/PTOs/PTAs, political or religious purposes, private foundations, and activities outside the mission."
+              ]
+            },
+            "award": {
+              "currency": "USD",
+              "min": 5000,
+              "max": 25000,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "Published range; awards may be lower than requested."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://docs.google.com/forms/d/e/1FAIpQLSc_6C9WO9PEXS3r1BN_Qq5LOL9xtoEux0pC6xTmxUlpxlanxg/viewform",
+              "opensOn": null,
+              "closesOn": "2026-11-09",
+              "deadlineInstant": "2026-11-10T07:59:00Z",
+              "note": "Form specifies November 9, 2026, 11:59 pm PST (UTC−8). Theme exceptions are possible under the 2026 form; email proposals are not accepted."
+            },
+            "costs": {
+              "supported": [
+                "Hardware, software and educational projects within the mission"
+              ],
+              "excluded": [
+                "Salaries/staff training, tuition, capital campaigns, deficit funding, and website/media production; consult the full form for other exclusions."
+              ]
+            },
+            "evidence": [
+              {
+                "url": "https://hackerinitiative.org/",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "award"
+                ],
+                "note": "2026 call and USD range.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://docs.google.com/forms/d/e/1FAIpQLSc_6C9WO9PEXS3r1BN_Qq5LOL9xtoEux0pC6xTmxUlpxlanxg/viewform",
+                "fields": [
+                  "application",
+                  "applicants",
+                  "costs"
+                ],
+                "note": "2026 form: deadline, English submission, legal and sanctions conditions, exclusions.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://hackerinitiative.org/grant-guidelines/",
+                "fields": [
+                  "applicants",
+                  "focus"
+                ],
+                "note": "General applicant categories; differences from the dated form remain unresolved.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://hackerinitiative.org/application-faq/",
+                "fields": [
+                  "application",
+                  "applicants"
+                ],
+                "note": "One proposal per project/cycle and recipient reporting.",
+                "checkedOn": "2026-10-29"
+              }
+            ],
+            "unknowns": [
+              "Fiscal sponsorship and country-specific payment feasibility.",
+              "General guidelines exclude committee members outright; the 2026 form describes a Board-approval exception. Confirm before relying on it.",
+              "The call supports software while the exclusions cover website/media production; confirm borderline projects.",
+              "Project duration and detailed cost approval."
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://hackerinitiative.org/",
+            "title": "Hacker Initiative — official terms",
+            "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://docs.google.com/forms/d/e/1FAIpQLSc_6C9WO9PEXS3r1BN_Qq5LOL9xtoEux0pC6xTmxUlpxlanxg/viewform",
+            "title": "Hacker Initiative — official terms",
+            "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://hackerinitiative.org/grant-guidelines/",
+            "title": "Hacker Initiative — official terms",
+            "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://hackerinitiative.org/application-faq/",
+            "title": "Hacker Initiative — official terms",
+            "checkedOn": "2026-10-29"
+          }
+        ],
+        "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+        "reviewStatus": "program_reviewed",
+        "focus": [
+          "Open source",
+          "STEM education",
+          "Security and privacy"
+        ],
+        "evidence": [
+          {
+            "url": "https://hackerinitiative.org/",
+            "fields": [
+              "summary",
+              "focus",
+              "themes"
+            ],
+            "note": "Official program scope.",
+            "checkedOn": "2026-10-29"
+          }
+        ]
+      }
+    },
+    {
+      "fund": {
+        "id": "local-linux-australia",
+        "name": "Linux Australia",
+        "displayName": "Linux Australia",
+        "program": "",
+        "description": "Member grants supporting open technology projects and communities, particularly Australia and New Zealand.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://linux.org.au/grants-program/",
+        "evidenceUrl": "https://linux.org.au/grants-program/",
+        "additionalSources": [],
+        "sourceUrl": "https://linux.org.au/grants-program/",
+        "access": "unconfirmed",
+        "accessDetail": "",
+        "amount": "",
+        "timing": "",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "linux-australia",
+          "upstreamRecordId": null,
+          "aliases": "Linux Australia Inc; linux.org.au"
+        }
+      },
+      "enrichment": {
+        "sourceRecordId": "local-linux-australia",
+        "researchedOn": "2026-10-29",
+        "name": "Linux Australia",
+        "summary": "Member grants supporting open technology projects and communities, particularly Australia and New Zealand.",
+        "themes": [
+          "Open source",
+          "Open hardware",
+          "Open education",
+          "Open technology communities",
+          "Community education"
+        ],
+        "regions": [],
+        "programs": [
+          {
+            "id": "linux-australia-project-2026",
+            "name": "Project Grants — 2026",
+            "instrument": "grant",
+            "focus": [
+              "Open source",
+              "Open hardware",
+              "Open education"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [],
+              "applicantCountries": [],
+              "scope": "Benefits free and open technology communities, particularly Australia and New Zealand. This is a benefit focus, not a verified citizenship restriction.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Linux Australia members",
+                "Individuals",
+                "Groups"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Applicant must be a Linux Australia member and submit through the member login.",
+                "Outputs should use an appropriate open licence; explain community benefit and the requested budget.",
+                "Hardware-development requests are limited to one such grant per individual/group per cycle; a final project report is required."
+              ],
+              "exclusions": []
+            },
+            "award": {
+              "currency": null,
+              "min": null,
+              "max": null,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "No per-grant limit specified. The 2026 $30k pool is shared across grants and sponsorships. Guidelines describe prior awards under AUD 5,000; that is historical, not a current cap or confirmed 2026 denomination."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://linux.org.au/grants-program/",
+              "opensOn": null,
+              "closesOn": "2026-11-15",
+              "deadlineInstant": "2026-11-16T11:59:00Z",
+              "note": "Closes November 15, 23:59 anywhere on Earth (UTC−12). Two-week public consultation precedes Council review. Completion by year-end is a general aim; timelines are negotiable."
+            },
+            "costs": {
+              "supported": [
+                "Project infrastructure, hosting, equipment, events and reasonable delivery costs"
+              ],
+              "excluded": [
+                "General company revenue/overheads, non-open hardware/software and work without wider community benefit are unlikely to be funded."
+              ]
+            },
+            "evidence": [
+              {
+                "url": "https://linux.org.au/grants-program/",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "application",
+                  "costs",
+                  "award"
+                ],
+                "note": "Current 2026 categories, membership, deadline and shared pool.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://linux.org.au/wp-content/uploads/2021/02/linux_australia_grants_guidelines.pdf",
+                "fields": [
+                  "applicants",
+                  "award",
+                  "costs"
+                ],
+                "note": "Linked submission guidelines: budget justification, no individual award bounds, historical AUD examples and hardware conditions.",
+                "checkedOn": "2026-10-29"
+              }
+            ],
+            "unknowns": [
+              "Fiscal sponsorship and specific applicant-country restrictions.",
+              "Explicit currency for the 2026 offer; historical AUD examples are not treated as current award terms.",
+              "Available balance and project-specific timeline."
+            ]
+          },
+          {
+            "id": "linux-australia-community-2026",
+            "name": "Community Grants — 2026",
+            "instrument": "grant",
+            "focus": [
+              "Open technology communities",
+              "Community education"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [],
+              "applicantCountries": [],
+              "scope": "Benefits free and open technology communities, particularly Australia and New Zealand. This is a benefit focus, not a verified citizenship restriction.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Linux Australia members",
+                "Individuals",
+                "Groups"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Applicant must be a Linux Australia member and submit through the member login.",
+                "Outputs should use an appropriate open licence; explain community benefit and the requested budget.",
+                "Hardware-development requests are limited to one such grant per individual/group per cycle; a final project report is required."
+              ],
+              "exclusions": []
+            },
+            "award": {
+              "currency": null,
+              "min": null,
+              "max": null,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "No per-grant limit specified. The 2026 $30k pool is shared across grants and sponsorships. Guidelines describe prior awards under AUD 5,000; that is historical, not a current cap or confirmed 2026 denomination."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://linux.org.au/grants-program/",
+              "opensOn": null,
+              "closesOn": "2026-11-15",
+              "deadlineInstant": "2026-11-16T11:59:00Z",
+              "note": "Closes November 15, 23:59 anywhere on Earth (UTC−12). Two-week public consultation precedes Council review. Completion by year-end is a general aim; timelines are negotiable."
+            },
+            "costs": {
+              "supported": [
+                "Meetings, venue hire, catering, publicity and reasonable labour/services"
+              ],
+              "excluded": [
+                "General company revenue/overheads, non-open hardware/software and work without wider community benefit are unlikely to be funded."
+              ]
+            },
+            "evidence": [
+              {
+                "url": "https://linux.org.au/grants-program/",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "application",
+                  "costs",
+                  "award"
+                ],
+                "note": "Current 2026 categories, membership, deadline and shared pool.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://linux.org.au/wp-content/uploads/2021/02/linux_australia_grants_guidelines.pdf",
+                "fields": [
+                  "applicants",
+                  "award",
+                  "costs"
+                ],
+                "note": "Linked submission guidelines: budget justification, no individual award bounds, historical AUD examples and hardware conditions.",
+                "checkedOn": "2026-10-29"
+              }
+            ],
+            "unknowns": [
+              "Fiscal sponsorship and specific applicant-country restrictions.",
+              "Explicit currency for the 2026 offer; historical AUD examples are not treated as current award terms.",
+              "Available balance and project-specific timeline."
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://linux.org.au/grants-program/",
+            "title": "Linux Australia — official terms",
+            "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://linux.org.au/wp-content/uploads/2021/02/linux_australia_grants_guidelines.pdf",
+            "title": "Linux Australia — official terms",
+            "checkedOn": "2026-10-29"
+          }
+        ],
+        "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+        "reviewStatus": "program_reviewed",
+        "focus": [
+          "Open source",
+          "Open hardware",
+          "Open education",
+          "Open technology communities",
+          "Community education"
+        ],
+        "evidence": [
+          {
+            "url": "https://linux.org.au/grants-program/",
+            "fields": [
+              "summary",
+              "focus",
+              "themes"
+            ],
+            "note": "Official program scope.",
+            "checkedOn": "2026-10-29"
+          }
+        ]
+      }
+    },
+    {
+      "fund": {
+        "id": "local-people-powered",
+        "name": "People Powered",
+        "displayName": "People Powered",
+        "program": "",
+        "description": "Participatory climate policy training with conditional implementation funding.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://www.peoplepowered.org/climate-democracy-accelerator",
+        "evidenceUrl": "https://www.peoplepowered.org/climate-democracy-accelerator",
+        "additionalSources": [],
+        "sourceUrl": "https://www.peoplepowered.org/climate-democracy-accelerator",
+        "access": "unconfirmed",
+        "accessDetail": "",
+        "amount": "",
+        "timing": "",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "people-powered",
+          "upstreamRecordId": null,
+          "aliases": "People Powered; Climate Democracy Accelerator; CDA"
+        }
+      },
+      "enrichment": {
+        "sourceRecordId": "local-people-powered",
+        "researchedOn": "2026-10-29",
+        "name": "People Powered",
+        "summary": "Participatory climate policy training with conditional implementation funding.",
+        "themes": [
+          "Climate participation",
+          "Regenerative agriculture",
+          "Community renewable energy"
+        ],
+        "regions": [],
+        "programs": [
+          {
+            "id": "people-powered-cda-2027",
+            "name": "Climate Democracy Accelerator — March 2027 cohort",
+            "instrument": "grant",
+            "focus": [
+              "Climate participation",
+              "Regenerative agriculture",
+              "Community renewable energy"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [],
+              "applicantCountries": [],
+              "scope": "Worldwide; Brazil, Indonesia, India and Mexico have priority, with additional places elsewhere. India grant recipients require FCRA registration.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Civil society organizations",
+                "Government institutions with a civil society partner"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Government and civil society partnership required; grant recipient must be a registered nonprofit with at least one year of operations/fundraising, paid staff and a board/advisory body.",
+                "Recipient must supply at least 12 months of financial evidence and accept USD international transfers; Indian recipients need FCRA registration.",
+                "Lead participant needs English, French, Portuguese or Spanish proficiency and must complete training and a participatory renewable-energy or regenerative-agriculture action plan.",
+                "Former participants may join a coalition but cannot lead it."
+              ],
+              "exclusions": [
+                "Volunteer groups and newly incorporated organizations cannot receive this grant."
+              ]
+            },
+            "award": {
+              "currency": "USD",
+              "min": 10000,
+              "max": 10000,
+              "durationMonths": 12,
+              "basis": "current_offer",
+              "note": "Implementation grant follows completion of program requirements; six top plans receive an additional USD 15,000 award. Six-month training is followed by 12 months of implementation."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+              "opensOn": "2026-10-07",
+              "closesOn": "2026-11-27",
+              "deadlineInstant": "2026-11-27T23:59:00Z",
+              "note": "Applications October 7–November 27, 2026, 11:59 pm UTC; training March–August 2027. Application form linked from the official page."
+            },
+            "costs": {
+              "supported": [],
+              "excluded": []
+            },
+            "evidence": [
+              {
+                "url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "award",
+                  "application"
+                ],
+                "note": "Reviewed application dates, eligibility and funding due diligence; government bodies cannot receive grants directly.",
+                "checkedOn": "2026-10-29"
+              }
+            ],
+            "unknowns": [
+              "Fiscal sponsorship exceptions and project-specific budget approval.",
+              "Final grant agreement, bonus selection and payment schedule."
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+            "title": "People Powered — official terms",
+            "checkedOn": "2026-10-29"
+          }
+        ],
+        "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+        "reviewStatus": "program_reviewed",
+        "focus": [
+          "Climate participation",
+          "Regenerative agriculture",
+          "Community renewable energy"
+        ],
+        "evidence": [
+          {
+            "url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+            "fields": [
+              "summary",
+              "focus",
+              "themes"
+            ],
+            "note": "Official program scope.",
+            "checkedOn": "2026-10-29"
+          }
+        ]
+      }
+    },
+    {
+      "fund": {
+        "id": "local-cdfw",
+        "name": "California Department of Fish and Wildlife",
+        "displayName": "California Department of Fish and Wildlife",
+        "program": "",
+        "description": "State support for habitat restoration and species recovery in California.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "evidenceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "additionalSources": [],
+        "sourceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "access": "unconfirmed",
+        "accessDetail": "",
+        "amount": "",
+        "timing": "",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "cdfw",
+          "upstreamRecordId": null,
+          "aliases": "CDFW; California Department of Fish and Wildlife; wildlife.ca.gov"
+        }
+      },
+      "enrichment": {
+        "sourceRecordId": "local-cdfw",
+        "researchedOn": "2026-10-29",
+        "name": "California Department of Fish and Wildlife",
+        "summary": "State support for habitat restoration and species recovery in California.",
+        "themes": [
+          "Habitat restoration",
+          "Biodiversity",
+          "Wildlife connectivity"
+        ],
+        "regions": [
+          "North America"
+        ],
+        "programs": [
+          {
+            "id": "cdfw-mojave-tortoise-2026",
+            "name": "Mojave Desert Tortoise Recovery — 2026 call",
+            "instrument": "grant",
+            "focus": [
+              "Habitat restoration",
+              "Biodiversity",
+              "Wildlife connectivity"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [
+                "US"
+              ],
+              "applicantCountries": [],
+              "scope": "Work in Mojave Desert tortoise range/recovery units in California; listed counties are examples, not an exhaustive list. Applicant domicile is not established.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Public agencies",
+                "Special districts",
+                "California Native American Tribes",
+                "Private entities",
+                "Nonprofits",
+                "Land trusts"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Project must operate within the California priority area and demonstrate measurable tortoise recovery outcomes.",
+                "Secure required permits and site access; all work and final invoices are due March 15, 2029.",
+                "Submit complete forms and supporting documents through CDFW WebGrants and comply with grant agreement requirements."
+              ],
+              "exclusions": []
+            },
+            "award": {
+              "currency": null,
+              "min": null,
+              "max": null,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "opensOn": "2026-10-21",
+              "closesOn": "2026-12-03",
+              "deadlineInstant": null,
+              "note": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections."
+            },
+            "costs": {
+              "supported": [
+                "Habitat restoration, connectivity, population recovery, monitoring and coordination"
+              ],
+              "excluded": [
+                "Work before the signed agreement is not reimbursed."
+              ]
+            },
+            "evidence": [
+              {
+                "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                "fields": [
+                  "focus",
+                  "application",
+                  "award"
+                ],
+                "note": "Official owner announcement and application link.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+                "fields": [
+                  "geography",
+                  "applicants",
+                  "application",
+                  "award"
+                ],
+                "note": "State listing: applicant categories and date; displayed time has no timezone.",
+                "checkedOn": "2026-10-29"
+              },
+              {
+                "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+                "fields": [
+                  "geography",
+                  "applicants",
+                  "application",
+                  "costs"
+                ],
+                "note": "October 2026 PDF body reviewed, including sections 3–10; stale PDF metadata title is not the document title.",
+                "checkedOn": "2026-10-29"
+              }
+            ],
+            "unknowns": [
+              "Exact cutoff time and timezone; fiscal sponsorship.",
+              "Per-award bounds and explicit currency.",
+              "Workshop date conflict (November 4/9); awards early 2027 versus spring 2027.",
+              "Project-specific legal, permitting, indirect-cost and advance-payment terms."
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+            "title": "California Department of Fish and Wildlife — official terms",
+            "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+            "title": "California Department of Fish and Wildlife — official terms",
+            "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+            "title": "California Department of Fish and Wildlife — official terms",
+            "checkedOn": "2026-10-29"
+          }
+        ],
+        "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+        "reviewStatus": "program_reviewed",
+        "focus": [
+          "Habitat restoration",
+          "Biodiversity",
+          "Wildlife connectivity"
+        ],
+        "evidence": [
+          {
+            "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+            "fields": [
+              "summary",
+              "focus",
+              "themes"
+            ],
+            "note": "Official program scope.",
+            "checkedOn": "2026-10-29"
+          }
+        ]
+      }
+    },
+    {
+      "fund": {
+        "id": "local-funbio",
+        "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "displayName": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "program": "",
+        "description": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "evidenceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "additionalSources": [],
+        "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "access": "unconfirmed",
+        "accessDetail": "",
+        "amount": "",
+        "timing": "",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "funbio",
+          "upstreamRecordId": null,
+          "aliases": "FUNBIO; Fundo Brasileiro para a Biodiversidade"
+        }
+      },
+      "enrichment": {
+        "sourceRecordId": "local-funbio",
+        "researchedOn": "2026-10-29",
+        "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "summary": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+        "themes": [
+          "Ecological restoration",
+          "Water resources",
+          "Community capacity"
+        ],
+        "regions": [
+          "Latin America & Caribbean"
+        ],
+        "programs": [
+          {
+            "id": "funbio-floresta-viva-sao-francisco-2026",
+            "name": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+            "instrument": "grant",
+            "focus": [
+              "Ecological restoration",
+              "Water resources",
+              "Community capacity"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [
+                "BR"
+              ],
+              "applicantCountries": [],
+              "scope": "Work in the watershed influence areas of Sobradinho and Itaparica reservoirs, Brazil. Full applicant-registration jurisdiction rules require the regulation.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Nonprofit civil associations",
+                "Private foundations",
+                "Cooperatives"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Proponent must have been legally constituted for at least two years.",
+                "Use the nine required proposal objectives and the official electronic submission route."
+              ],
+              "exclusions": []
+            },
+            "award": {
+              "currency": "BRL",
+              "min": null,
+              "max": null,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "opensOn": "2026-10-01",
+              "closesOn": "2026-12-02",
+              "deadlineInstant": "2026-12-02T22:00:00Z",
+              "note": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval."
+            },
+            "costs": {
+              "supported": [],
+              "excluded": []
+            },
+            "evidence": [
+              {
+                "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "award",
+                  "application"
+                ],
+                "note": "Production call overview reviewed; regulation endpoint returned no readable terms.",
+                "checkedOn": "2026-10-29"
+              }
+            ],
+            "unknowns": [
+              "Regulation unavailable: full legal eligibility, fiscal sponsorship, award bounds, cost rules, duration and attachments need review.",
+              "Authenticated application flow not tested."
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+            "title": "Fundo Brasileiro para a Biodiversidade (FUNBIO) — official terms",
+            "checkedOn": "2026-10-29"
+          }
+        ],
+        "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+        "reviewStatus": "program_reviewed",
+        "focus": [
+          "Ecological restoration",
+          "Water resources",
+          "Community capacity"
+        ],
+        "evidence": [
+          {
+            "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+            "fields": [
+              "summary",
+              "focus",
+              "themes"
+            ],
+            "note": "Official program scope.",
+            "checkedOn": "2026-10-29"
+          }
+        ]
+      }
     }
   ],
   "programAdditions": [

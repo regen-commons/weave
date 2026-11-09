@@ -1,0 +1,74 @@
+/* Elements before any class. Sizing includes pseudo-elements and inline wrappers. */
+:where(html) {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  accent-color: var(--action);
+}
+
+:where(*), ::before, ::after {
+  box-sizing: border-box;
+}
+
+:where(body) {
+  margin: 0;
+  min-block-size: 100dvh;
+  font: var(--type-body-md);
+  overflow-wrap: anywhere;
+}
+
+/* A section pinned to a theme paints its own surface. */
+:where(body, [data-theme]:not(:root)) {
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+:where(h1, h2, h3, h4) {
+  margin: 0;
+  text-wrap: balance;
+}
+:where(h1) { font: var(--type-headline-md); }
+:where(h2) { font: var(--type-headline-sm); }
+:where(h3, h4) { font: var(--type-title-sm); }
+
+:where(p, figure, dl, dd, blockquote) { margin: 0; }
+:where(ul, ol) { margin: 0; }
+:where(hr) {
+  border: 0;
+  border-block-start: var(--border-thin) solid var(--line);
+  margin: 0;
+}
+:where(img, video) {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+}
+:where(button, input, select, textarea) {
+  font: inherit;
+  color: inherit;
+}
+:where(table) { border-collapse: collapse; }
+:where(strong, b) { font-weight: 600; }
+
+:where(a) {
+  color: var(--link);
+  text-underline-offset: 0.18em;
+}
+:where(a:visited) { color: var(--link-visited); }
+:where(a:hover) { color: var(--link-hover); }
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+
+::selection { background: var(--line); }
+
+[hidden] { display: none !important; }
+
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme] {
+    --line: var(--control-line);
+    --line-subtle: var(--control-line);
+  }
+}

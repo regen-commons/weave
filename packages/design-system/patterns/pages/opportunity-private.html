@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark">
+    <script>
+      // Applies a saved or requested theme before first paint. Without it the page follows the system.
+      (function () {
+        var theme = null;
+        try {
+          theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme");
+        } catch (e) {}
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.dataset.theme = theme;
+          document.querySelector('meta[name="color-scheme"]').content = theme;
+        }
+      })();
+    </script>
+    <title>Opportunity example</title>
+    <link rel="icon" href="../../brand/logo/favicon.svg" />
+    <link
+      rel="preload"
+      href="../../fonts/space-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="../../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="../../fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="../../css/index.css" />
+    <script type="module" src="../library.js"></script>
+  </head>
+  <body><div class="rc-page"><a class="rc-skip-link" href="#main">Skip to content</a><header class="rc-app-header"><a class="rc-logo" href="home.html">Weave</a><p class="rc-save-status" data-state="device">Example on this device</p></header><main class="rc-main" id="main"><div class="rc-stack"><a class="rc-button" data-variant="quiet" href="funding.html">Back to Funding</a><h1 class="rc-heading" data-size="page">Valley restoration call</h1><p class="rc-notice" data-tone="info">Fictional opportunity and team example. Nothing is sent.</p><div class="rc-step-layout"><div class="rc-step-main"><p>BRL 60,000, closes 30 November 2026</p><section class="rc-stack"><h2 class="rc-heading" data-size="section">Why it fits</h2><p>Shared restoration and water themes in this example.</p><p class="rc-meta">Check applicant requirements. Fit is not eligibility.</p></section><section class="rc-stack"><h2 class="rc-heading" data-size="section">Before you apply</h2><dl class="rc-facts"><div><dt>Who can apply</dt><dd>Registered organisations with two years of accounts, in this fictional example.</dd></div><div><dt>Research priority</dt><dd>Check the published requirements.</dd></div></dl><p class="rc-meta">Example checked 4 November 2026.</p></section></div><aside class="rc-step-aside rc-stack"><h2 class="rc-heading" data-size="section">Stronger with a team</h2><p class="rc-team-line">Two example asks, one covered by the list.</p><ol class="rc-team-slots"><li class="rc-team-slot"><h3 class="rc-card-title">A registered partner</h3><p class="rc-meta">2 on the list could do this. Private initiatives see counts only.</p></li><li class="rc-team-slot"><h3 class="rc-card-title">A co-applicant in another country</h3><p class="rc-meta">Nobody in this example list yet.</p></li></ol><div class="rc-team-coverage"><p data-team-example-status>Names stay private.</p></div></aside></div></div></main>      <footer class="rc-footer" data-slim="true">
+        <ul class="rc-footer-row">
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-data">
+              What we store
+            </button>
+          </li>
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-assistant">
+              What the assistant did
+            </button>
+          </li>
+          <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
+          <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+          <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-policy">
+              Data policy
+            </button>
+          </li>
+        </ul>
+      </footer>
+      <dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+          <p>
+            This is fictional example content. Form choices stay in this page. Only an Appearance choice is
+            stored in this browser.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+          <p>The assistant has not run in this example.</p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+          <p>
+            The full Weave data policy must be published before saving or sharing opens. This example sends no
+            initiative data.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-cloud" aria-labelledby="example-cloud-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-cloud-title">Send this step to a cloud assistant?</h2>
+          <p>Fictional example. Nothing is sent.</p>
+          <dl class="rc-facts">
+            <div>
+              <dt>Who runs it</dt>
+              <dd>Example provider and model</dd>
+            </div>
+            <div>
+              <dt>Where</dt>
+              <dd>Example region</dd>
+            </div>
+            <div>
+              <dt>What is sent</dt>
+              <dd>Nothing in this simulation</dd>
+            </div>
+            <div>
+              <dt>Never sent</dt>
+              <dd>Audio and files</dd>
+            </div>
+            <div>
+              <dt>How long it is kept</dt>
+              <dd>Nothing leaves this page</dd>
+            </div>
+          </dl>
+          <button class="rc-button" data-variant="secondary" type="submit">Keep it on this device</button>
+        </form>
+      </dialog>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // Applies a saved or requested theme before first paint. Without it the page follows the system.
+    (function () {
+      var theme = null;
+      try { theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme"); } catch (e) {}
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="color-scheme"]').content = theme;
+      }
+    })();
+  </script>
+  <title>Finish and save example</title>
+  <link rel="icon" href="../../brand/logo/favicon.svg">
+  <link rel="preload" href="../../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../css/index.css">
+<script type="module" src="../library.js"></script></head>
+<body>
+<div class="rc-page">
+  <a class="rc-skip-link" href="#main">Skip to content</a>
+  <header class="rc-app-header">
+    <a class="rc-logo" href="home.html"><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark"/></svg>Weave</a>
+    <nav class="rc-app-nav" aria-label="Main">
+      <a href="matches.html">Partners</a>
+      <a href="funding.html">Funding</a>
+      <a href="initiatives.html">Initiatives</a>
+    </nav>
+    <a class="rc-save-status" data-state="device" href="#keep"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg>Saved on this device only</a>
+  </header>
+  <main class="rc-main" id="main">
+    <div class="rc-step-layout">
+        <h1 class="rc-heading" data-size="page">Who could work with you</h1>
+        <section class="rc-card-list" aria-labelledby="partners">
+          <header class="rc-card-list-header">
+            <h2 id="partners" class="rc-heading" data-size="section">Partners for you</h2>
+            <a class="rc-button" data-variant="quiet" data-size="sm" href="matches.html">See all 3</a>
+          </header>
+          <ul class="rc-card-list-items rc-card-grid">
+            <li>
+              <article class="rc-card" data-layout="listing" data-stage="flowering">
+                <header class="rc-card-header">
+                  <h3 class="rc-card-title"><a href="#">Serra Azul Agroforestry School</a></h3>
+                  <p class="rc-card-meta"><span><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#place"/></svg>Rio das Almas basin, Brazil</span><span class="rc-stage" data-stage="flowering"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#flowering"/></svg>Up and running</span></p>
+                </header>
+                <ul class="rc-reasons">
+                  <li class="rc-reason"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#watershed"/></svg>Works in the same basin as you.</li>
+                  <li class="rc-reason"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#offer"/></svg>Offers native seedlings, which you need.</li>
+                </ul>
+                <span class="rc-fit" data-level="strong"><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Strong fit</span>
+                <div class="rc-action-bar">
+                  <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Ask for an introduction</button>
+                  <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Not a fit</button>
+                </div>
+              </article>
+            </li>
+          </ul>
+        </section>
+              <aside class="rc-step-aside" aria-label="Keep your initiative">
+        <section class="rc-code-panel" aria-labelledby="keep">
+          <header>
+            <h2 id="keep" class="rc-code-panel-title">Keep this initiative</h2>
+            <p>Email yourself a code to save it and open it on any device. Only you can see it until you choose to share it.</p>
+          </header>
+          <form class="rc-form" action="code.html">
+            <div class="rc-field">
+              <label for="email">Email</label>
+              <p class="rc-hint" id="email-hint">No password. We only use this for your code and anything you turn on later.</p>
+              <input class="rc-input" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" aria-describedby="email-hint" required>
+            </div>
+            <div class="rc-code-panel-actions">
+              <button class="rc-button" data-variant="primary" type="submit">Email me a code</button>
+              <button class="rc-button" data-variant="quiet" type="button">Not now</button>
+            </div>
+          </form>
+          <div class="rc-code-panel-actions"><a class="rc-button" data-variant="quiet" data-size="sm" href="#">What we store and how to delete it</a></div>
+        </section>
+      </aside>
+        <section class="rc-card-list" aria-labelledby="funding">
+          <header class="rc-card-list-header">
+            <h2 id="funding" class="rc-heading" data-size="section">Funding that fits</h2>
+            <a class="rc-button" data-variant="quiet" data-size="sm" href="matches.html">See all 5</a>
+          </header>
+          <ul class="rc-card-list-items rc-card-grid">
+            <li>
+              <article class="rc-card">
+                <header class="rc-card-header">
+                  <h3 class="rc-card-title"><a href="#">US$ 25,000 from the Headwaters Commons Fund</a></h3>
+                  <p class="rc-card-meta"><span><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock"/></svg>Closes 30 November 2026</span></p>
+                </header>
+                <ul class="rc-reasons">
+                  <li class="rc-reason"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#watershed"/></svg>Funds spring and watershed restoration in Brazil.</li>
+                </ul>
+                <span class="rc-fit" data-level="good"><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Good fit</span>
+                <div class="rc-stamp"><time class="rc-time" datetime="2026-10-12">Confirmed 12 October 2026</time><a class="rc-button" data-variant="quiet" data-size="sm" href="#">Check eligibility with the funder</a></div>
+                <div class="rc-action-bar">
+                  <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Remind me before it closes</button>
+                </div>
+              </article>
+            </li>
+          </ul>
+        </section>
+        <p class="rc-meta">Preview from the <a href="../index.html">pattern library</a>. Every organisation on this page is fictional.</p>
+    </div>
+  </main><footer class="rc-footer" data-slim="true"><ul class="rc-footer-row"><li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What we store</button></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the assistant did</button></li><li><a class="rc-footer-link" href="settings.html">Settings</a></li><li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li><li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data policy</button></li></ul></footer><dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-data-title">What we store</h2><p>This is fictional example content. Form choices stay in this page. Only an Appearance choice is stored in this browser.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog><dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2><p>The assistant has not run in this example.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog><dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2><p>The full Weave data policy must be published before saving or sharing opens. This example sends no initiative data.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog>
+  <nav class="rc-bottom-nav" aria-label="Main">
+    <a href="home.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home"/></svg>Home</a>
+    <a href="matches.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people"/></svg>Partners</a>
+    <a href="matches.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding"/></svg>Funding</a>
+    <a href="#"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#place"/></svg>Places</a>
+  </nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+{
+  "name": "@weave/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Weave's server functions. Each handler is deployed through a one-line entry in packages/app/api.",
+  "exports": {
+    "./sign-in": {
+      "types": "./src/sign-in.ts",
+      "source": "./src/sign-in.ts",
+      "default": "./dist/sign-in.js"
+    },
+    "./account": {
+      "types": "./src/account.ts",
+      "source": "./src/account.ts",
+      "default": "./dist/account.js"
+    },
+    "./account-contract": {
+      "types": "./src/account-contract.ts",
+      "source": "./src/account-contract.ts",
+      "default": "./dist/account-contract.js"
+    },
+    "./health": {
+      "types": "./src/health.ts",
+      "source": "./src/health.ts",
+      "default": "./dist/health.js"
+    },
+    "./matching": {
+      "types": "./src/matching.ts",
+      "source": "./src/matching.ts",
+      "default": "./dist/matching.js"
+    },
+    "./matching-contract": {
+      "types": "./src/matching-contract.ts",
+      "source": "./src/matching-contract.ts",
+      "default": "./dist/matching-contract.js"
+    },
+    "./partner-matcher": {
+      "types": "./src/partner-matcher.ts",
+      "source": "./src/partner-matcher.ts",
+      "default": "./dist/partner-matcher.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test src/*.test.ts",
+    "auth:bridge": "node src/certified-server.ts",
+    "auth:check": "node src/certified-check.ts",
+    "auth:keys": "node src/certified-admin.ts",
+    "test:auth-db": "node --test src/certified-postgres.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/oidc-provider": "9.13.1",
+    "typescript": "6.0.3"
+  },
+  "dependencies": {
+    "@atproto/oauth-client-node": "0.5.13",
+    "oidc-provider": "9.13.3",
+    "postgres": "4.0.0"
+  }
+}

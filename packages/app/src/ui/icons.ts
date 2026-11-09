@@ -1,0 +1,25 @@
+/** Symbols from the shared sprite. */
+export const ICON_NAMES = [
+  "mark",
+  "home",
+  "people",
+  "funding",
+  "device",
+  "check",
+  "globe",
+  "search",
+  "place",
+  "done",
+  "close",
+  "info",
+  "seed",
+  "sprout",
+  "flowering",
+  "tree",
+  "research",
+  "culture",
+  "clock",
+  "need",
+  "offer",
+] as const;
+export type IconName = (typeof ICON_NAMES)[number];

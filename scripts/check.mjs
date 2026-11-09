@@ -23,6 +23,13 @@ if (
   new Set(data.funds.map((f) => f.id)).size !== data.recordCount
 )
   throw new Error("Catalog coverage must match its unique record count.");
+const html = fs.readFileSync(root + "dist/index.html", "utf8");
+// Check visible counts, metadata and the downloadable snapshot's filename.
+for (const match of html.matchAll(/\b(\d+) (?:funding )?records\b|<strong>(\d+)<\/strong>(?= records|<span>catalog records)|funding-commons-(\d+)\.json/g)) {
+  const count = Number(match[1] ?? match[2] ?? match[3]);
+  if (count !== data.recordCount)
+    throw new Error(`Static catalog count ${count} differs from ${data.recordCount}: ${match[0]}`);
+}
 for (const f of [
   "index.html",
   "styles.css",

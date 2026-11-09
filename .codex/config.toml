@@ -1,0 +1,16 @@
+# Project settings for Codex in this repository. Codex reads AGENTS.md natively;
+# keep repository policy there, not here.
+#
+# Sandbox network access is left at your own setting. The first catalog build in a
+# fresh worktree downloads the pinned model files, and discovery reads official
+# sources, so do not switch it off here.
+
+[features]
+# Runs .codex/hooks.json, which shares scripts/harness/ with the Claude Code hooks.
+hooks = true
+
+[shell_environment_policy]
+# Your own inherit and exclude settings still apply; Codex merges this table key by key.
+# This turns on Codex's built-in filter, which keeps variables whose names contain KEY,
+# SECRET or TOKEN out of the commands it runs here.
+ignore_default_excludes = false

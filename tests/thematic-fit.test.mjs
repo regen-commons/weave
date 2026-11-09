@@ -64,8 +64,8 @@ test('an unrelated open route stays a low thematic fit; strong semantic synonyms
  const unrelated=rank([f],{...p,description:'Ballet orchestral performances',tags:['dance']},scores([f],.15))[0];assert.equal(unrelated.thematicFit.band,'limited');assert.ok(unrelated.thematicFit.score<40);assert.notEqual(unrelated.group,'lead');
 });
 
-test('all 694 records have bounded independent fit metrics and preserve conflict screening',()=>{
- const ranked=rank(funds);assert.equal(ranked.length,694);assert.equal(new Set(ranked.map(m=>m.fund.id)).size,694);
+test('all 699 records have bounded independent fit metrics and preserve conflict screening',()=>{
+ const ranked=rank(funds);assert.equal(ranked.length,699);assert.equal(new Set(ranked.map(m=>m.fund.id)).size,699);
  for(const [i,m] of ranked.entries()){
   assert.ok(m.thematicFit.score===null||Number.isInteger(m.thematicFit.score)&&m.thematicFit.score>=0&&m.thematicFit.score<=100);
   assert.equal(m.thematicFit.version,THEMATIC_SCORE_VERSION);assert.ok(m.readiness.label);

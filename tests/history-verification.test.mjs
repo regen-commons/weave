@@ -21,7 +21,7 @@ test('verification retains every prior field and program/source revision across 
   for (const fund of data.funds.slice(0,630))
     assert.equal(hash(priorFundingRecord(fund)), baseline.sha256ById[fund.id], fund.id);
   assert.deepEqual(Object.keys(baseline.appendedTo).sort(), ['reccZG8TtBrCwLG7R','local-nlnet','local-acta','local-interledger','local-lido-lego'].sort());
-  assert.equal(data.funds.length, 694);
+  assert.equal(data.funds.length, 699); // Current total; all historical hashes above remain unchanged.
 });
 
 test('all 94 original leads have a disposition and every imported reference resolves uniquely', () => {

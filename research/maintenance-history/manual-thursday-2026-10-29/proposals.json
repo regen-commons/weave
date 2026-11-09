@@ -1,0 +1,535 @@
+{
+  "version": 1,
+  "runId": "manual-thursday-2026-10-29",
+  "baselineCommit": "4688d55232b847b422370441fa1e79d5273a0ec8",
+  "applied": false,
+  "proposals": [
+    {
+      "id": "emergent-2027-reopening",
+      "status": "proposed-not-applied",
+      "fundId": "recgDAwfqtJyo2MEx",
+      "programId": "rapid-response-organizing-grants",
+      "proposedOn": "2026-10-29",
+      "priorFundSha256": "2741f972a7983905226d674036a53f44f61fdca7b4a9028d838627bc49610182",
+      "priorFundRecord": {
+        "id": "recgDAwfqtJyo2MEx",
+        "name": "Emergent Fund",
+        "displayName": "Emergent Fund",
+        "program": "Rapid-response organizing grants",
+        "description": "Emergent Fund supports rapid-response and emergent organizing led by communities directly affected by injustice.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Gender & racial equity",
+          "Governance & civic engagement"
+        ],
+        "regions": [
+          "North America"
+        ],
+        "approaches": [
+          "Movements",
+          "Grassroots organizing",
+          "Participatory",
+          "Power",
+          "Indigenous actors",
+          "Intersectionality",
+          "Collaboration",
+          "Solidarity",
+          "Trust",
+          "Equity"
+        ],
+        "grantBands": [
+          "Small"
+        ],
+        "website": "https://emergentfund.net",
+        "evidenceUrl": "https://www.emergentfund.net/",
+        "additionalSources": [
+          "https://www.emergentfund.net/apply"
+        ],
+        "sourceUrl": "https://www.fito.network/funders-database",
+        "access": "open",
+        "accessDetail": "Dated October 2026 cycle: October 1–22. The same page also says third Thursday monthly, which conflicts with the October date. Confirm the closing date/time in the application portal; no exact instant assumed.",
+        "amount": "No verified per-grant amount is stated in the reviewed source.",
+        "timing": "Dated October 2026 cycle: October 1–22. The same page also says third Thursday monthly, which conflicts with the October date. Confirm the closing date/time in the application portal; no exact instant assumed.",
+        "deadlineDate": "2026-10-22",
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-16",
+        "qualityFlags": [],
+        "fieldsFilled": 10,
+        "aliasNote": "",
+        "enrichment": {
+          "sourceRecordId": "recgDAwfqtJyo2MEx",
+          "researchedOn": "2026-10-16",
+          "name": "Emergent Fund",
+          "summary": "Emergent Fund supports rapid-response and emergent organizing led by communities directly affected by injustice.",
+          "themes": [],
+          "regions": [],
+          "focus": [
+            "Rapid response",
+            "Community organizing",
+            "Movement power"
+          ],
+          "reviewStatus": "program_reviewed",
+          "programs": [
+            {
+              "id": "rapid-response-organizing-grants",
+              "name": "Rapid-response organizing grants",
+              "instrument": "grant",
+              "focus": [
+                "Rapid response",
+                "Emergent organizing"
+              ],
+              "beneficiaries": [
+                "Impacted communities"
+              ],
+              "geography": {
+                "workCountries": [
+                  "US",
+                  "PR",
+                  "GU",
+                  "VI",
+                  "AS",
+                  "MP"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in the United States and its territories; international work is excluded.",
+                "exclusions": [
+                  "International work or work outside the United States and its territories."
+                ]
+              },
+              "applicants": {
+                "types": [
+                  "nonprofit"
+                ],
+                "fiscalSponsorship": "accepted",
+                "requirements": [
+                  "Active US 501(c)(3), 501(c)(4) tax status or a fiscal sponsor."
+                ],
+                "exclusions": [
+                  "Government/state agencies, universities, individuals, religious institutions and affiliated programs, for-profit businesses and social enterprises."
+                ]
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "not_stated",
+                "note": "No verified per-grant amount is stated in the reviewed source."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://www.emergentfund.net/apply",
+                "opensOn": "2026-10-01",
+                "closesOn": "2026-10-22",
+                "deadlineInstant": null,
+                "note": "Dated October 2026 cycle: October 1–22. The same page also says third Thursday monthly, which conflicts with the October date. Confirm the closing date/time in the application portal; no exact instant assumed."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": [
+                  "Routine general operating support or budget shortfalls",
+                  "Direct services/community programming without an organizing foundation",
+                  "Startup costs and capital-raising campaigns"
+                ]
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "programs.0.focus",
+                    "programs.0.beneficiaries",
+                    "programs.0.geography",
+                    "programs.0.applicants",
+                    "programs.0.award",
+                    "programs.0.application",
+                    "programs.0.costs"
+                  ],
+                  "url": "https://www.emergentfund.net/",
+                  "note": "The public source states the specific terms paraphrased in this program; empty fields remain unverified.",
+                  "checkedOn": "2026-10-15"
+                },
+                {
+                  "fields": [
+                    "programs.0.applicants"
+                  ],
+                  "url": "https://www.emergentfund.net/apply",
+                  "note": "Applicant has active US 501(c)(3), 501(c)(4) tax status or a fiscal sponsor.",
+                  "checkedOn": "2026-10-16"
+                },
+                {
+                  "fields": [
+                    "programs.0.applicants"
+                  ],
+                  "url": "https://www.emergentfund.net/apply",
+                  "note": "Request responds to a specific unanticipated crisis or organizing opportunity; direct services without organizing, routine operating shortfalls, startup costs and capital-raising campaigns are excluded.",
+                  "checkedOn": "2026-10-16"
+                },
+                {
+                  "fields": [
+                    "programs.0.application",
+                    "programs.0.geography",
+                    "programs.0.costs"
+                  ],
+                  "url": "https://www.emergentfund.net/apply",
+                  "note": "Official application page lists US/territory scope, exclusions and dated 2026 cycles; generic monthly deadline language conflicts with October 22.",
+                  "checkedOn": "2026-10-16"
+                }
+              ],
+              "unknowns": [
+                "Per-grant range is not published in the reviewed source.",
+                "Confirm October deadline/time because the dated cycle conflicts with generic third-Thursday language."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://www.emergentfund.net/",
+              "title": "Emergent Fund — official source",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "url": "https://www.emergentfund.net/apply",
+              "title": "Official programme eligibility and selection criteria",
+              "checkedOn": "2026-10-16"
+            }
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus"
+              ],
+              "url": "https://www.emergentfund.net/",
+              "note": "Emergent Fund supports rapid-response and emergent organizing led by communities directly affected by injustice.",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "researchNotes": ""
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "rapid-response-organizing-grants"
+      },
+      "before": {
+        "application": {
+          "route": "open",
+          "url": "https://www.emergentfund.net/apply",
+          "opensOn": "2026-10-01",
+          "closesOn": "2026-10-22",
+          "deadlineInstant": null,
+          "note": "Dated October 2026 cycle: October 1–22. The same page also says third Thursday monthly, which conflicts with the October date. Confirm the closing date/time in the application portal; no exact instant assumed."
+        },
+        "unknowns": [
+          "Per-grant range is not published in the reviewed source.",
+          "Confirm October deadline/time because the dated cycle conflicts with generic third-Thursday language."
+        ]
+      },
+      "after": {
+        "application": {
+          "route": "future",
+          "url": "https://www.emergentfund.net/apply",
+          "opensOn": "2027-01-01",
+          "closesOn": null,
+          "deadlineInstant": null,
+          "note": "Application page says all remaining 2026 applications are closed and intake resumes January 1, 2027. Closing date and cutoff time for that intake are not published here. Homepage still describes monthly intake; program application page provides the dated announcement."
+        },
+        "unknowns": [
+          "January 2027 closing date/time and current per-award range are not verified.",
+          "Homepage monthly-intake wording conflicts with the dated application-page closure; retain both evidence versions."
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "sourceId": "source-111",
+          "url": "https://www.emergentfund.net/",
+          "fields": [
+            "application.cadence",
+            "focus"
+          ],
+          "finding": "Emergent homepage advertises monthly open-access rapid-response organizing grants; it conflicts with dated application-page suspension and is not proof of current access.",
+          "checkedOn": "2026-10-29",
+          "attempts": [
+            {
+              "method": "direct-https",
+              "url": "https://www.emergentfund.net/",
+              "checkedOn": "2026-10-30",
+              "status": 200,
+              "finalUrl": "https://www.emergentfund.net/",
+              "contentType": "text/html",
+              "outcome": "retrieved",
+              "sha256": "5f10877873ebfca1fd4b42763028416dc067ab27c73dca2f801c83f2df902189",
+              "characters": 1289,
+              "elapsedSeconds": 0.56,
+              "dateBasis": "UTC date returned by collector"
+            }
+          ]
+        },
+        {
+          "sourceId": "source-112",
+          "url": "https://www.emergentfund.net/apply",
+          "fields": [
+            "application.route",
+            "application.reopening",
+            "applicants.requirements"
+          ],
+          "finding": "Emergent application page now closes all remaining 2026 rapid-response cycles and explicitly resumes January 1, 2027. Active 501(c)(3), 501(c)(4) or fiscal sponsor required. Propose a revision with archived prior October-cycle terms; homepage conflict retained.",
+          "checkedOn": "2026-10-29",
+          "attempts": [
+            {
+              "method": "direct-https",
+              "url": "https://www.emergentfund.net/apply",
+              "checkedOn": "2026-10-30",
+              "status": 200,
+              "finalUrl": "https://www.emergentfund.net/apply",
+              "contentType": "text/html",
+              "outcome": "retrieved",
+              "sha256": "5252cf337b3a8b8277af817711bdf66a07f3b3aa5ead0e2d7ab894bdf0f6dfe2",
+              "characters": 2076,
+              "elapsedSeconds": 0.54,
+              "dateBasis": "UTC date returned by collector"
+            }
+          ]
+        }
+      ],
+      "implementation": "Not imported. The current importer has no append-only revision overlay. Applying this proposal requires a revision-aware import path and preservation tests that recover every prior program/source revision; the existing catalog and all historical hashes remain unchanged."
+    },
+    {
+      "id": "keeling-2027-portal-conflict",
+      "status": "proposed-not-applied",
+      "fundId": "local-climate-curve",
+      "programId": "keeling-curve-prize",
+      "proposedOn": "2026-10-29",
+      "priorFundSha256": "44f8ef95e7f0792b84ed3d8491ef7fc0baafbe5c6e6156278d88907e1c276de5",
+      "priorFundRecord": {
+        "id": "local-climate-curve",
+        "name": "Climate Curve",
+        "displayName": "Climate Curve",
+        "program": "Keeling Curve Prize — between rounds",
+        "description": "Funding and support for Climate mitigation, Decarbonization. See each program for availability, conditions and unresolved terms.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Climate mitigation",
+          "Decarbonization"
+        ],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://www.climatecurve.org/applications-closed",
+        "evidenceUrl": "https://www.climatecurve.org/applications-closed",
+        "additionalSources": [
+          "https://kcp-conduit.org/apply/kcp/"
+        ],
+        "sourceUrl": "https://www.climatecurve.org/applications-closed",
+        "access": "closed",
+        "accessDetail": "Official site and application portal currently closed. Site describes annual November 1 opening; no dated new call inferred from that recurrence.",
+        "amount": "Award size not established",
+        "timing": "Official site and application portal currently closed. Site describes annual November 1 opening; no dated new call inferred from that recurrence.",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "history-verification-2026-10-29",
+          "candidateId": "history-lead-043",
+          "upstreamRecordId": null,
+          "aliases": "Climate Curve"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-climate-curve",
+          "researchedOn": "2026-10-29",
+          "name": "Climate Curve",
+          "summary": "Funding and support for Climate mitigation, Decarbonization. See each program for availability, conditions and unresolved terms.",
+          "themes": [
+            "Climate mitigation",
+            "Decarbonization"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "keeling-curve-prize",
+              "name": "Keeling Curve Prize — between rounds",
+              "instrument": "prize",
+              "focus": [
+                "Climate mitigation",
+                "Decarbonization"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://www.climatecurve.org/applications-closed",
+                "opensOn": null,
+                "closesOn": null,
+                "deadlineInstant": null,
+                "note": "Official site and application portal currently closed. Site describes annual November 1 opening; no dated new call inferred from that recurrence."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application"
+                  ],
+                  "url": "https://www.climatecurve.org/applications-closed",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://kcp-conduit.org/apply/kcp/",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Confirmed next cycle, award terms, eligibility and deadline",
+                "Fiscal sponsorship not established"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://www.climatecurve.org/applications-closed",
+              "title": "Keeling Curve Prize — between rounds",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://kcp-conduit.org/apply/kcp/",
+              "title": "Keeling Curve Prize — between rounds — supplementary official evidence",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Public official-source review of historical leads. This records the named programs only; closed rounds and unresolved terms remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Climate mitigation",
+            "Decarbonization"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://www.climatecurve.org/applications-closed",
+              "note": "Official program scope; detailed terms are attached to each program.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "keeling-curve-prize"
+      },
+      "before": {
+        "application": {
+          "route": "closed",
+          "url": "https://www.climatecurve.org/applications-closed",
+          "opensOn": null,
+          "closesOn": null,
+          "deadlineInstant": null,
+          "note": "Official site and application portal currently closed. Site describes annual November 1 opening; no dated new call inferred from that recurrence."
+        },
+        "unknowns": [
+          "Confirmed next cycle, award terms, eligibility and deadline",
+          "Fiscal sponsorship not established"
+        ]
+      },
+      "after": {
+        "application": {
+          "route": "closed",
+          "url": "https://www.climatecurve.org/applications-closed",
+          "opensOn": null,
+          "closesOn": null,
+          "deadlineInstant": null,
+          "note": "Main website says applications are closed. Portal now names the 2027 prize and January 15, 2027 at 11:59 pm IDLW (UTC−12), subject to a 500-eligible-application cap. These sources conflict on current access; no opening date or open route is inferred from annual November 1 language."
+        },
+        "unknowns": [
+          "Resolve main-site closure versus dated 2027 portal before changing application route or date fields.",
+          "Confirm next-cycle award terms, full eligibility and remaining eligible-application capacity."
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "sourceId": "source-347",
+          "url": "https://www.climatecurve.org/applications-closed",
+          "fields": [
+            "application.route",
+            "application.reopening"
+          ],
+          "finding": "Climate Curve main site says no applications accepted and describes November 1 annually. This is not a dated 2027 opening. Conflict with dated portal at source-361 retained.",
+          "checkedOn": "2026-10-29",
+          "attempts": [
+            {
+              "method": "direct-https",
+              "url": "https://www.climatecurve.org/applications-closed",
+              "checkedOn": "2026-10-30",
+              "status": 200,
+              "finalUrl": "https://www.climatecurve.org/applications-closed",
+              "contentType": "text/html",
+              "outcome": "retrieved",
+              "sha256": "369b5941fee58fc3ef440d87b915db069efd2d56dddd76782bea6cce0b5de9ce",
+              "characters": 1230,
+              "elapsedSeconds": 1.47,
+              "dateBasis": "UTC date returned by collector"
+            }
+          ]
+        },
+        {
+          "sourceId": "source-361",
+          "url": "https://kcp-conduit.org/apply/kcp/",
+          "fields": [
+            "application.closesOn",
+            "application.deadlineInstant",
+            "application.capacityLimit"
+          ],
+          "finding": "Keeling Curve portal explicitly names 2027 prize and January 15, 2027 at 11:59 pm IDLW (UTC−12), subject to 500 eligible submissions. Main site still says closed. Portal access/eligibility and exact opening need reconciliation before changing route; annual November 1 not inferred.",
+          "checkedOn": "2026-10-29",
+          "attempts": [
+            {
+              "method": "direct-https",
+              "url": "https://kcp-conduit.org/apply/kcp/",
+              "checkedOn": "2026-10-30",
+              "status": 200,
+              "finalUrl": "https://kcp-conduit.org/apply/kcp/",
+              "contentType": "text/html",
+              "outcome": "retrieved",
+              "sha256": "e933fada8c58ad1aafffc84f89bb0980ce86d67a733bf1fe6b294cc74fcc6e10",
+              "characters": 4563,
+              "elapsedSeconds": 0.69,
+              "dateBasis": "UTC date returned by collector"
+            }
+          ]
+        }
+      ],
+      "implementation": "Not imported. The current importer has no append-only revision overlay. Applying this proposal requires a revision-aware import path and preservation tests that recover every prior program/source revision; the existing catalog and all historical hashes remain unchanged."
+    }
+  ]
+}

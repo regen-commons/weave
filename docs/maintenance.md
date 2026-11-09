@@ -1,8 +1,8 @@
 # Keeping Funding Commons current
 
-The maintenance workflow proposes changes through draft PRs labeled `automated/codex`. A human reviews and merges each PR. Recurring work does not merge, deploy, submit applications, or contact funders.
+The maintenance workflow proposes changes through draft PRs labeled `automated/codex`. A human reviews and merges each PR. Recurring work does not merge PRs, deploy or promote to production, submit applications, or contact funders. Automatic PR previews and checks follow the existing repository configuration.
 
-Two Codex routines run at 9:00 a.m. Pacific: discovery on Mondays and freshness reviews on Thursdays. Their saved names are **Funding Commons — Monday discovery** and **Funding Commons — Thursday freshness**. These are local Codex schedules, separate from the website; a missed or failed run must not advance verification dates.
+Two standalone Codex routines run at 9:00 a.m. Pacific: discovery on Mondays and freshness reviews on Thursdays. Both use **GPT-6 Astra with extra-high reasoning** (`gpt-6-astra`, `xhigh`). Their saved names are **Funding Commons — Monday discovery** and **Funding Commons — Thursday freshness**. The saved prompts identify `/Users/afo/Code/regen/funding-commons` as the working repository. These are local Codex schedules, separate from the website; the computer and app must be running. A missed or failed run must not advance verification dates.
 
 ## Monday discovery
 

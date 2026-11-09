@@ -1,0 +1,1458 @@
+/* Weave prototype stylesheet. Two parts, both using only tokens from DESIGN.md through tokens.generated.css.
+   1. proto-  Prototype chrome: the control bar, the phone frame and the notes panel. Never product UI, and styled so nobody mistakes it for product UI.
+   2. rcp-    Proposed patterns, each marked "Proposed" with why no existing pattern fits. These are candidates for COMPONENTS.md, not part of the system yet.
+   Nothing here changes a design-system rule. The one exception is the host override block, which restates two base rules the artifact host's own reset would otherwise beat. */
+
+/* ---------- Host override. The artifact host wraps the page in an unlayered reset (14 px system font, light colour scheme). The design system's base layer loses to it, so the body and colour-scheme rules are restated here unlayered. ---------- */
+html { color-scheme: light dark; }
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) { color-scheme: dark; }
+}
+body {
+  margin: 0;
+  min-block-size: 100dvh;
+  font: var(--type-body-md);
+  overflow-wrap: anywhere;
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+/* ---------- 1. Prototype chrome ---------- */
+.proto-root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  min-block-size: 100dvh;
+}
+
+/* The bar inverts the page's surface and uses the monospace token, so it reads as an instrument panel, not as product. */
+.proto-bar {
+  position: sticky;
+  inset-block-start: env(safe-area-inset-top, 0px);
+  z-index: var(--layer-toast);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-2);
+  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0px)) max(var(--space-4), env(safe-area-inset-right, 0px));
+  background: var(--on-surface);
+  color: var(--surface);
+  font: var(--type-body-sm);
+  font-family: var(--font-mono);
+  border-block-end: var(--border-edge) dashed var(--text-accent);
+}
+.proto-bar-title {
+  display: grid;
+  flex: 1 1 100%;
+  min-inline-size: 0;
+  gap: 0;
+  font: var(--type-label-md);
+  font-family: var(--font-mono);
+  letter-spacing: var(--type-label-sm-tracking);
+  text-transform: uppercase;
+}
+.proto-bar-title small {
+  font: var(--type-label-sm);
+  font-family: var(--font-mono);
+  letter-spacing: normal;
+  text-transform: none;
+  opacity: 0.8;
+}
+/* Controls share the row and wrap. The selects are contained, so their longest option never widens a phone. */
+.proto-control {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  max-inline-size: 22rem;
+}
+.proto-control:has(select) {
+  flex-basis: 12rem;
+}
+.proto-control > span,
+.proto-control > label {
+  font: var(--type-label-sm);
+  font-family: var(--font-mono);
+  letter-spacing: var(--type-label-sm-tracking);
+  text-transform: uppercase;
+}
+.proto-bar select,
+.proto-bar button {
+  min-block-size: calc(var(--space-6) + var(--space-1));
+  padding-inline: var(--space-2);
+  border: var(--border-thin) solid var(--surface);
+  border-radius: var(--radius-sm);
+  background: var(--on-surface);
+  color: var(--surface);
+  font: var(--type-body-sm);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.proto-bar select {
+  inline-size: 100%;
+  contain: inline-size;
+}
+/* On a phone the bar scrolls away, the subtitle goes, and the width control is moot because the frame is the screen. */
+@media (max-width: 30rem) {
+  .proto-bar { position: static; }
+  .proto-bar-title small { display: none; }
+  .proto-control:has([data-width-choice]) { display: none; }
+}
+.proto-seg > button,
+.proto-step > button {
+  flex: 1 1 auto;
+}
+.proto-bar button[aria-pressed="true"],
+.proto-bar button[aria-expanded="true"] {
+  background: var(--surface);
+  color: var(--on-surface);
+}
+.proto-bar button:hover,
+.proto-bar select:hover {
+  border-color: var(--text-accent);
+}
+.proto-bar :focus-visible {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+.proto-seg {
+  display: flex;
+  gap: 0;
+}
+.proto-seg > button + button {
+  margin-inline-start: calc(var(--border-thin) * -1);
+}
+.proto-step {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* The stage holds one screen. Phone mode draws a 360 px frame on a tinted ground; desktop mode lets the screen fill the width. */
+.proto-stage {
+  min-inline-size: 0;
+}
+.proto-stage[data-width="phone"] {
+  display: grid;
+  justify-items: center;
+  padding-block: var(--space-5);
+  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0px)) max(var(--space-4), env(safe-area-inset-right, 0px));
+  background: var(--surface-tint);
+}
+.proto-frame {
+  position: relative;
+  min-inline-size: 0;
+  inline-size: 100%;
+  overflow: clip;
+}
+/* The frame contains the page and clips it, so the skip link waits above the frame edge instead of showing in the stage. */
+.proto-frame[data-width="phone"] {
+  inline-size: min(100%, 22.5rem);
+  block-size: min(46.25rem, calc(100dvh - var(--space-10)));
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--border-thin) solid var(--control-line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+}
+.proto-frame-label {
+  justify-self: start;
+  margin-block-end: var(--space-2);
+  font: var(--type-label-sm);
+  font-family: var(--font-mono);
+  letter-spacing: var(--type-label-sm-tracking);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.proto-frame-label[hidden] { display: none; }
+
+/* Phone emulation. Media queries and viewport units see the real window, so inside the frame the few viewport-relative rules are pinned to their 360 px values. */
+.proto-frame[data-width="phone"] { --gutter: var(--space-4); }
+.proto-frame[data-width="phone"] .rc-app-nav { display: none; }
+.proto-frame[data-width="phone"] .rc-bottom-nav { display: flex; }
+.proto-frame[data-width="phone"] .rc-heading[data-size="page"] { font-size: var(--size-headline-md); }
+.proto-frame[data-width="phone"] .rc-heading[data-size="hero"] { font-size: calc(1.5rem + 18px); } /* 1.5rem + 5vw at 360 px */
+.proto-frame[data-width="phone"] .rc-page { min-block-size: 100%; }
+
+/* On a real phone the frame is the screen. */
+@media (max-width: 30rem) {
+  .proto-stage[data-width="phone"] { padding: 0; background: var(--surface); }
+  .proto-frame[data-width="phone"] { inline-size: 100%; block-size: auto; overflow: clip; border: 0; border-radius: 0; box-shadow: none; }
+  .proto-frame-label { display: none; }
+}
+
+/* Notes panel: plain documentation chrome. */
+.proto-notes {
+  max-inline-size: var(--page-width);
+  margin-inline: auto;
+  padding-block: var(--space-5) var(--space-9);
+  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0px)) max(var(--space-4), env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: var(--space-4);
+  border-block-start: var(--border-edge) dashed var(--text-accent);
+  font: var(--type-body-md);
+}
+.proto-notes h2 {
+  font: var(--type-label-md);
+  font-family: var(--font-mono);
+  letter-spacing: var(--type-label-sm-tracking);
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+.proto-notes h3 {
+  font: var(--type-title-sm);
+}
+.proto-notes section {
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 48rem;
+}
+.proto-notes p,
+.proto-notes li {
+  max-inline-size: 48rem;
+}
+.proto-notes ul,
+.proto-notes ol {
+  padding-inline-start: var(--space-5);
+  display: grid;
+  gap: var(--space-1);
+}
+.proto-notes-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.proto-notes-tabs button {
+  min-block-size: calc(var(--space-6) + var(--space-1));
+  padding-inline: var(--space-3);
+  border: var(--border-thin) solid var(--control-line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--on-surface);
+  font: var(--type-body-sm);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+.proto-notes-tabs button[aria-pressed="true"] {
+  background: var(--on-surface);
+  border-color: var(--on-surface);
+  color: var(--surface);
+}
+.proto-notes-tabs button:focus-visible {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+.proto-notes table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font: var(--type-body-sm);
+}
+.proto-notes th,
+.proto-notes td {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-thin) solid var(--line);
+  text-align: start;
+  vertical-align: top;
+}
+.proto-notes th {
+  font: var(--type-label-md);
+}
+.proto-notes .proto-scroll {
+  overflow-x: auto;
+  max-inline-size: 100%;
+}
+.proto-notes code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.proto-notes [data-result="pass"] { color: var(--state-success); font-weight: 600; }
+.proto-notes [data-result="fix"] { color: var(--text-accent); font-weight: 600; }
+.proto-notes [data-result="open"] { color: var(--text-secondary); font-weight: 600; }
+.proto-notes-section[hidden] { display: none; }
+
+/* ---------- 2. Proposed patterns ---------- */
+
+/* Proposed: Recorder (molecule). Voice input for one step: start and stop, elapsed time, and a live dot while listening.
+   Why nothing fits: Composer is a text box with actions; Progress is a long task with a stop. Recording is a person speaking now, which needs its own status and control. */
+.rcp-recorder {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+.rcp-recorder-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+.rcp-recorder-dot {
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--state-danger);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rcp-recorder[data-recording="true"] .rcp-recorder-dot { animation: rcp-pulse calc(var(--duration-slow) * 4) ease-in-out infinite alternate; }
+}
+@keyframes rcp-pulse {
+  to { opacity: 0.35; }
+}
+
+/* Proposed: File field (molecule). A Field whose control takes a file, with the chosen file shown as a removable chip.
+   Why nothing fits: Input covers text, select and text area only. Decks and PDFs need a file control that says the size limit and that nothing is uploaded.
+   The drop area uses a solid line, never dashed: dashed means pencil in this system. */
+.rcp-file-drop {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--control-line);
+  border-radius: var(--control-radius);
+  background: var(--field);
+  color: var(--on-field);
+  box-shadow: var(--shadow-inset);
+}
+.rcp-file-input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.rcp-file-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.rcp-file:has(.rcp-file-input:focus-visible) .rcp-file-drop {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+
+/* Proposed: Pairing (molecule). One partner that strengthens an application: who, the gap they close, and the pair's fit.
+   Why nothing fits: Reason says why one record appears for you. Card is a whole record. This is a relation between two records inside an opportunity, and it must stay small. */
+.rcp-pairing {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+.rcp-pairing-partner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font: var(--type-title-sm);
+}
+
+/* Proposed: Chip row (layout helper for Chip). Chips wrap with the gap for 44 px targets. Tag list uses a 4 px gap meant for tags you read. */
+.rcp-chip-row {
+  gap: var(--space-2);
+}
+
+/* Proposed: Card form (Form variant). The full need or offer card as fields, shown in place of a proposal while it is being changed. */
+.rcp-card-form {
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+
+/* Proposed: Holdings (Record variant). Needs and offers tile rows side by side on a directory card. */
+.rcp-holdings {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+/* The dialog is the design system's. Inside the prototype it needs an explicit position because the host pins the root's padding. */
+.rc-dialog[open] {
+  margin: auto;
+}
+
+/* ---------- 3. Changes from the review of 3 November 2026 ---------- */
+
+/* Proposed template change: one left edge. Every page lines up with the left edge of the page container, the same line as the logo, so desktop pages stop switching between centred and left-aligned. Narrow pages keep their width but no longer centre; list pages use the full width for their grids, and running text keeps its reading width. */
+.rc-narrow { margin-inline: 0; }
+.rc-list-layout { max-inline-size: none; }
+.rc-list-layout > :is(p, .rc-prose, .rc-notice, .rc-facts, .rc-table-scroll, .rc-empty) { max-inline-size: var(--list-width); }
+
+/* Proposed template change: on wide screens the step's main column takes the free width, so needs and offers sit two to a row beside the live preview. */
+@container (min-width: 56.25rem) {
+  .rc-step-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    column-gap: var(--space-7);
+  }
+}
+
+/* Proposed: Card grid (layout for Card list). Cards fill the width in columns of at least 18rem, one column on a phone. Cards in a row share its height and keep their actions at the bottom. */
+.rcp-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-card-grid > li {
+  display: grid;
+  min-inline-size: 0;
+}
+.rcp-card-grid > li > .rc-card {
+  display: flex;
+  flex-direction: column;
+}
+.rcp-card-foot {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: auto;
+}
+
+/* Proposed: Work tag (Tag variant). Type of work with its own icon, outlined, so it reads apart from themes (filled tags) and from the eight kinds of support (tags with a tile). */
+.rc-tag.rcp-work-tag {
+  border: var(--border-thin) solid var(--line);
+  background: transparent;
+  color: var(--on-surface);
+}
+.rc-tag.rcp-work-tag .rc-icon { color: var(--text-accent); }
+
+/* Proposed: Media (atom). An image at the top of a card or a page, with the small radius images use. The prototype draws invented scenes instead of photographs, so nothing is fetched and no real place is shown. */
+.rcp-media {
+  display: block;
+  aspect-ratio: 16 / 9;
+  inline-size: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+}
+.rcp-media[data-size="wide"] {
+  aspect-ratio: 21 / 9;
+  max-block-size: 18rem;
+}
+.rcp-media[data-size="thumb"] {
+  flex: none;
+  inline-size: var(--space-9);
+  aspect-ratio: 1;
+}
+.rcp-media > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.rcp-scene .s-sky { fill: var(--signal-100); }
+.rcp-scene .s-sun { fill: var(--gold-300); }
+.rcp-scene .s-far { fill: var(--forest-300); }
+.rcp-scene .s-mid { fill: var(--forest-400); }
+.rcp-scene .s-near { fill: var(--moss-700); }
+.rcp-scene .s-tree { fill: var(--forest-700); }
+.rcp-scene .s-water { fill: var(--signal-300); }
+.rcp-scene .s-earth { fill: var(--copper-300); }
+.rcp-scene .s-gold { fill: var(--gold-400); }
+.rcp-scene .s-teal { fill: var(--teal-400); }
+.rcp-scene .s-copper { fill: var(--copper-400); }
+.rcp-scene .s-line {
+  fill: none;
+  stroke: var(--signal-100);
+  stroke-width: var(--border-thick);
+  stroke-linecap: round;
+}
+.rcp-scene .s-contour {
+  fill: none;
+  stroke: var(--forest-700);
+  stroke-width: var(--border-thin);
+}
+.rcp-scene .s-root {
+  fill: none;
+  stroke: var(--forest-700);
+  stroke-width: var(--border-thick);
+  stroke-linecap: round;
+}
+:root[data-theme="dark"] .rcp-media > svg { opacity: 0.86; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .rcp-media > svg { opacity: 0.86; }
+}
+
+/* Proposed: Link preview (molecule). A link shown with the site's own preview: picture, title, one line and the address. In the app the server fetches it; nothing goes from the browser to the site. */
+.rcp-link-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rcp-link-preview-text {
+  display: grid;
+  min-inline-size: 0;
+}
+.rcp-link-preview-title { font: var(--type-label-md); }
+.rcp-link-preview-title > a {
+  color: inherit;
+  text-decoration: none;
+}
+.rcp-link-preview-title > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.rcp-link-preview-title > a:focus-visible { outline: none; }
+.rcp-link-preview:has(a:focus-visible) {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+.rcp-link-preview-line {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+.rcp-link-preview-host {
+  font: var(--type-label-sm);
+  color: var(--text-muted);
+}
+.rcp-link-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Proposed: Backdrop and hero band (Home template). The woven-thread canvas, a variant of the website's mycelium canvas, sits behind the whole home page and stays in view while it scrolls; it never covers inputs, since cards and fields are opaque, and it stops under reduced motion. The hero is full width and centred like the website, with no label above the heading. */
+.rcp-home {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+}
+.rcp-backdrop {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: -1;
+  block-size: 0;
+  pointer-events: none;
+}
+.rcp-backdrop-canvas {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: var(--backdrop-h, 100svh);
+}
+.rcp-hero {
+  position: relative;
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  padding-block: var(--space-7) var(--space-6);
+  padding-inline: var(--gutter);
+  text-align: center;
+}
+/* On wide screens the hero takes most of the first view; on a phone it stays short, so the three steps show below the buttons. */
+@media (min-width: 56.25rem) {
+  .rcp-hero {
+    min-block-size: min(34rem, 80svh);
+    padding-block: var(--space-9) var(--space-8);
+  }
+}
+.proto-frame[data-width="phone"] .rcp-hero {
+  min-block-size: 0;
+  padding-block: var(--space-7) var(--space-6);
+}
+.rcp-hero-inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  max-inline-size: 46rem;
+}
+.rcp-hero .rc-heading[data-size="hero"] em {
+  font-style: italic;
+  color: var(--text-accent);
+}
+.rcp-hero-lead {
+  max-inline-size: var(--prose-width);
+  font: var(--type-reading-lg);
+  color: var(--text-secondary);
+}
+.rcp-hero .rc-home-actions { justify-content: center; }
+@container (max-width: 37.4rem) {
+  .rcp-hero .rc-home-actions { inline-size: 100%; }
+}
+.rcp-hero-live {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-2);
+}
+.rcp-section {
+  display: grid;
+  gap: var(--space-4);
+}
+.rcp-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+}
+
+/* Proposed: Steps (organism for Home). The three steps as numbered cards that lead the page. The first one is the way in. */
+.rcp-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-step {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding: var(--card-padding);
+  border-radius: var(--card-radius);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rcp-step-number {
+  font: var(--type-headline-md);
+  color: var(--text-accent);
+}
+.rcp-step-title { font: var(--type-title-sm); }
+.rcp-step-title > a {
+  color: inherit;
+  text-decoration: none;
+}
+.rcp-step-title > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.rcp-step-title > a:focus-visible { outline: none; }
+.rcp-step:has(a:focus-visible) {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+.rcp-step[data-first] { box-shadow: inset 0 0 0 var(--border-thick) var(--action), var(--shadow-1); }
+
+/* Proposed: Kinds of support (organism for Home). The eight tiles at full size with their plain names and a few examples: a section of its own instead of a row of small tags. */
+.rcp-kinds {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-kind {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rcp-kind .rc-tile {
+  --tile-size: var(--space-8);
+  grid-row: span 2;
+  font: var(--type-headline-sm);
+}
+.rcp-kind-label { font: var(--type-title-sm); }
+.rcp-kind-example {
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+/* Proposed: Ask card (Card variant). One need or one offer per card, led by its kind of support at full size, so needs and offers read one by one instead of in one block. Pencil until kept, ink after, as everywhere. */
+.rcp-ask-kind {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-label-md);
+}
+.rcp-ask-kind .rc-tile { --tile-size: var(--space-7); }
+.rcp-ask-title { font: var(--type-title-sm); }
+.rcp-add-card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border: var(--border-thin) solid var(--control-line);
+  border-radius: var(--card-radius);
+}
+.rcp-counter {
+  font: var(--type-label-md);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Proposed: Preview card (Card variant for the live preview beside a form). Fills in as the person types; everything guessed stays in pencil. */
+.rcp-preview-label {
+  font: var(--type-label-md);
+  color: var(--text-secondary);
+}
+.rcp-mini-asks {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-mini-ask {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  font: var(--type-body-sm);
+}
+.rcp-mini-ask .rc-tile { --tile-size: var(--space-5); font: var(--type-label-sm); }
+.rcp-mini-ask[data-pencil] { color: var(--text-secondary); }
+
+/* Proposed: Sheet (Dialog variant). Sign-in, save, sharing and deleting open over the page the person is on, so they keep their place: a dialog on wide screens, a sheet from the bottom on phones. The code panel inside keeps one field per step. */
+.rc-dialog { overscroll-behavior: contain; }
+.rc-dialog[data-presentation="sheet"] {
+  position: fixed;
+  inset-block: auto var(--sheet-bottom, 0px);
+  inset-inline: var(--sheet-left, 0px) auto;
+  inline-size: var(--sheet-width, 100%);
+  max-inline-size: none;
+  max-block-size: var(--sheet-max, 88dvh);
+  margin: 0;
+  padding-block-end: max(var(--sheet-padding), env(safe-area-inset-bottom, 0px));
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  box-shadow: var(--shadow-3);
+}
+.rc-dialog[data-presentation="sheet"]::backdrop {
+  clip-path: var(--sheet-clip, none);
+}
+.rcp-sheet-grabber {
+  justify-self: center;
+  inline-size: var(--space-7);
+  block-size: var(--space-1);
+  margin-block: calc(var(--space-2) * -1) var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--control-line);
+  touch-action: none;
+}
+.rc-dialog:not([data-presentation="sheet"]) .rcp-sheet-grabber { display: none; }
+.rcp-sheet-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.rcp-sheet-head .rc-dialog-title { padding-block-start: var(--space-2); }
+.rcp-sheet-steps {
+  display: grid;
+  gap: var(--space-4);
+  min-block-size: 17rem;
+  align-content: start;
+}
+html:has(.rc-dialog[open]) { overflow: hidden; }
+
+/* Proposed: Inline field (Form layout). A field and its button on one line at one height, so the email step and the code step line up and keep the same height. On a phone they stack, still at one height. */
+.rcp-inline-field {
+  display: grid;
+  gap: var(--space-2);
+  align-items: end;
+}
+.rcp-inline-field .rc-input,
+.rcp-inline-field .rc-button { min-block-size: var(--control-lg-height); }
+.rcp-inline-field input.rc-input {
+  block-size: var(--control-lg-height);
+  padding-block: 0;
+}
+@container (min-width: 26rem) {
+  .rcp-inline-field { grid-template-columns: minmax(0, 1fr) auto; }
+}
+.rcp-signin { container-type: inline-size; }
+
+/* Proposed: Toast (molecule). A short confirmation after an action, at the bottom, gone after a few seconds. Exact words, never the only record: the change also shows on the page. */
+.proto-device { position: relative; min-inline-size: 0; }
+.proto-stage[data-width="phone"] .proto-device { inline-size: min(100%, 22.5rem); }
+.rcp-toast-layer {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: max(var(--space-9), calc(env(safe-area-inset-bottom, 0px) + var(--space-9)));
+  z-index: var(--layer-toast);
+  display: grid;
+  justify-items: center;
+  padding-inline: var(--space-4);
+  pointer-events: none;
+}
+.proto-stage[data-width="phone"] .rcp-toast-layer { position: absolute; }
+.rcp-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: min(100%, 26rem);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--on-surface);
+  color: var(--surface);
+  font: var(--type-label-md);
+  box-shadow: var(--shadow-3);
+  pointer-events: auto;
+}
+.rcp-toast .rc-icon { color: var(--surface); }
+@media (max-width: 30rem) {
+  .proto-stage[data-width="phone"] .proto-device { inline-size: 100%; }
+  .proto-stage[data-width="phone"] .rcp-toast-layer { position: fixed; }
+}
+
+/* Proposed: Account button (header part). Once signed in, the header shows who you are and leads to settings. */
+.rcp-account {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.rcp-avatar {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+  font: var(--type-label-md);
+}
+
+/* Proposed: Two-column detail (template for a record page). Main content, then the actions and links beside it on wide screens. */
+.rcp-detail {
+  display: grid;
+  gap: var(--space-6);
+}
+@container (min-width: 56.25rem) {
+  .rcp-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    column-gap: var(--space-7);
+    align-items: start;
+  }
+  .rcp-detail > aside {
+    position: sticky;
+    inset-block-start: var(--space-5);
+  }
+}
+.rcp-detail-main,
+.rcp-detail > aside {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+/* Proposed: Motion. Small movements that say what changed: screens cross-fade, cards rise in, linked cards lift on hover, a kept suggestion inks in, sheets slide up. Durations and easing are the tokens. All of it is off under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  #proto-frame { view-transition-name: weave-screen; }
+  ::view-transition-old(weave-screen) { animation: rcp-fade-out var(--duration-base) var(--ease-out) both; }
+  ::view-transition-new(weave-screen) { animation: rcp-fade-in var(--duration-slow) var(--ease-out) both; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+
+  .rcp-card-grid > li,
+  .rcp-steps > li,
+  .rcp-kinds > li {
+    animation: rcp-rise var(--duration-slow) var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+  .rc-card:has(.rc-card-title > a),
+  .rcp-step,
+  .rcp-link-preview {
+    transition: box-shadow var(--duration-base) var(--ease-out), translate var(--duration-base) var(--ease-out);
+  }
+  .rc-card:has(.rc-card-title > a):hover,
+  .rcp-step:has(a):hover,
+  .rcp-link-preview:hover {
+    translate: 0 calc(var(--border-thick) * -1);
+    box-shadow: var(--shadow-2);
+  }
+  .rc-button { transition: scale var(--duration-fast) var(--ease-out), background-color var(--duration-base) var(--ease-out); }
+  .rc-button:active:not(:disabled) { scale: 0.98; }
+  [data-just-kept] { animation: rcp-ink var(--duration-slow) var(--ease-out); }
+
+  .rc-dialog {
+    transition: opacity var(--duration-base) var(--ease-out), translate var(--duration-slow) var(--ease-out), scale var(--duration-base) var(--ease-out), display var(--duration-slow) allow-discrete, overlay var(--duration-slow) allow-discrete;
+  }
+  .rc-dialog[open]:not([data-closing]) {
+    @starting-style {
+      opacity: 0;
+      scale: 0.97;
+    }
+  }
+  .rc-dialog[data-presentation="sheet"][open]:not([data-closing]) {
+    @starting-style {
+      opacity: 1;
+      scale: 1;
+      translate: 0 100%;
+    }
+  }
+  .rc-dialog[data-closing] { opacity: 0; scale: 0.97; }
+  .rc-dialog[data-presentation="sheet"][data-closing] { opacity: 1; scale: 1; translate: 0 100%; }
+  .rc-dialog::backdrop { transition: opacity var(--duration-slow) var(--ease-out), display var(--duration-slow) allow-discrete, overlay var(--duration-slow) allow-discrete; }
+  .rc-dialog[open]::backdrop {
+    @starting-style { opacity: 0; }
+  }
+  .rc-dialog[data-closing]::backdrop { opacity: 0; }
+
+  .rcp-toast { animation: rcp-rise var(--duration-slow) var(--ease-out) both; }
+  .rcp-toast[data-leaving] { animation: rcp-fade-out var(--duration-base) var(--ease-out) both; }
+}
+@keyframes rcp-rise {
+  from { opacity: 0; translate: 0 var(--space-3); }
+}
+@keyframes rcp-fade-in {
+  from { opacity: 0; translate: 0 var(--space-2); }
+}
+@keyframes rcp-fade-out {
+  to { opacity: 0; }
+}
+@keyframes rcp-ink {
+  from { background-color: var(--surface-tint); }
+}
+
+/* Header end: the save status and, once signed in, the account button. The status stays visible on every page. */
+.rcp-header-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+button.rc-save-status {
+  min-block-size: var(--control-sm-height);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+}
+button.rc-save-status:hover { color: var(--on-surface); }
+button.rc-save-status:focus-visible {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+
+/* Suggested details sit two to a row on wide screens. */
+.rcp-review-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+
+/* A sheet drawn inside the 360 px frame keeps the frame's rounded bottom corners. */
+.rc-dialog[data-presentation="sheet"] {
+  border-end-start-radius: var(--sheet-end-radius, 0);
+  border-end-end-radius: var(--sheet-end-radius, 0);
+}
+.rcp-account {
+  justify-content: center;
+  min-inline-size: var(--control-sm-height);
+}
+
+/* ---------- 4. Changes from the second review (4 November 2026) ---------- */
+
+/* Photographs in Media, once published; drawn scenes until then. */
+.rcp-media > img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+:root[data-theme="dark"] .rcp-media > img { opacity: 0.9; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .rcp-media > img { opacity: 0.9; }
+}
+
+/* Proposed: Tooltip (molecule). A native hint popover opened by interest on its trigger: hover, focus or a long press. Short, plain words; never the only place a fact lives. */
+.rcp-tip-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--control-sm-height);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: help;
+}
+.rcp-tip-trigger:focus-visible {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thin);
+}
+.rcp-tooltip {
+  inset: auto;
+  margin: 0;
+  max-inline-size: 18rem;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--on-surface);
+  color: var(--surface);
+  font: var(--type-body-sm);
+  box-shadow: var(--shadow-3);
+}
+.rc-tag-list.rcp-tip-list { gap: 0 var(--space-2); }
+.rcp-kinds > li { display: grid; }
+.rcp-kind-trigger {
+  display: grid;
+  inline-size: 100%;
+}
+/* The base box-sizing list leaves out span, so a padded span sized to its container sets it here. */
+.rcp-kind-trigger > .rcp-kind {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* Proposed: Filter bar (organism, replaces the List toolbar). Search, then filter buttons that open small menus, then sort. Chosen filters show as chips that can be removed one by one. The same on Partners, Funding and Initiatives. */
+.rcp-filterbar {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.rcp-filter-search { max-inline-size: 40rem; }
+.rcp-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.rcp-filter-button[data-active] { box-shadow: inset 0 0 0 var(--border-thick) var(--action); }
+.rcp-chevron { display: inline-flex; }
+.rcp-chevron .rc-icon { rotate: -90deg; }
+.rcp-count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: var(--space-5);
+  block-size: var(--space-5);
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--action);
+  color: var(--on-action);
+  font: var(--type-label-sm);
+}
+.rcp-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.rcp-menu {
+  inset: auto;
+  margin: 0;
+  min-inline-size: 15rem;
+  max-inline-size: 22rem;
+  max-block-size: min(70vh, 30rem);
+  overflow: auto;
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  color: var(--on-surface-overlay);
+  box-shadow: var(--shadow-3);
+}
+.rcp-menu-group {
+  display: grid;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  border: 0;
+}
+.rcp-menu-group > legend {
+  padding-block-end: var(--space-1);
+  font: var(--type-label-md);
+}
+.rcp-menu-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-sm-height);
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.rcp-menu-option:hover { background: var(--surface-tint); }
+.rcp-menu .rc-field { margin-block-end: var(--space-3); }
+
+/* Cards: the title always takes two lines, so the fit line below it sits at the same height on every card in a row. */
+.rcp-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  min-block-size: 2lh;
+}
+.rcp-amount { font: var(--type-title-sm); }
+.rcp-fit-row {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--control-sm-height);
+}
+.rcp-team-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+.rcp-holdings-rows {
+  display: grid;
+  gap: 0;
+}
+.rcp-holding {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.rcp-holding > .rc-meta { min-inline-size: var(--space-9); }
+.rcp-mini-tiles {
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-1);
+}
+
+/* Proposed: Share card (Card variant). Partners are for initiatives on the list, so the match count, what sharing does and the email field sit in one card, and the code step follows in the same place. */
+.rcp-share-card { max-inline-size: 36rem; }
+.rcp-centered {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  max-inline-size: 36rem;
+  margin-inline: auto;
+}
+.rcp-centered > h1 { text-align: center; }
+.rcp-centered > .rcp-share-card,
+.rcp-centered > .rc-notice,
+.rcp-centered > .rc-empty { inline-size: 100%; }
+
+/* Proposed: Conversation (organism). The assistant asks one short thing at a time; the person answers by voice first, by typing, or with a file or link, and can change their words after. */
+.rcp-convo-log {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-turn {
+  display: grid;
+  gap: var(--space-1);
+}
+.rcp-turn[data-from="person"] { justify-items: end; }
+.rcp-turn > .rc-message { max-inline-size: min(100%, 32rem); }
+.rcp-turn-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+.rcp-turn-files {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: min(100%, 32rem);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+  list-style: none;
+}
+.rcp-turn-file {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font: var(--type-body-sm);
+}
+.rcp-turn-edit {
+  display: grid;
+  gap: var(--space-2);
+  inline-size: min(100%, 32rem);
+}
+.rcp-caret {
+  display: inline-block;
+  inline-size: var(--border-thick);
+  block-size: 1em;
+  margin-inline-start: var(--border-thick);
+  background: currentColor;
+  vertical-align: text-bottom;
+}
+.rcp-dots {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+.rcp-dots > i {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: currentColor;
+  opacity: 0.45;
+}
+.rcp-composer {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-2);
+}
+.rcp-voice {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+.rcp-speak {
+  inline-size: 100%;
+  max-inline-size: 22rem;
+}
+.rcp-voice-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+.rcp-level {
+  display: inline-flex;
+  align-items: end;
+  gap: var(--border-thick);
+  block-size: var(--space-4);
+}
+.rcp-level > i {
+  inline-size: var(--space-1);
+  block-size: 40%;
+  border-radius: var(--radius-sm);
+  background: var(--state-danger);
+}
+.rcp-typebar {
+  display: grid;
+  gap: var(--space-1);
+}
+.rcp-typebar > label { font: var(--type-label-md); }
+.rcp-typebar textarea.rc-input {
+  min-block-size: var(--control-lg-height);
+  max-block-size: 10rem;
+  resize: none;
+  field-sizing: content;
+}
+.rcp-attachbar { display: flex; }
+
+/* Steps 2 and 3: the cards sit beside the conversation and scroll on their own on wide screens. */
+.rcp-ask-aside {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+.rcp-ask-stack {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-ask-stack > li { display: grid; }
+@container (min-width: 56.25rem) {
+  .rc-step-layout > .rcp-ask-aside {
+    max-block-size: calc(100dvh - var(--space-6));
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Proposed: Team slots (organism). What a fund asks from partners, one slot per ask, with candidates to pick and the team's fit. */
+.rcp-slots {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-slot {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  box-shadow: var(--shadow-1);
+}
+.rcp-slot-ask {
+  display: flex;
+  gap: var(--space-2);
+  font: var(--type-title-sm);
+}
+.rcp-slot-n {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+  font: var(--type-label-sm);
+}
+.rcp-slot-candidates {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-candidate {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-sm-height);
+  cursor: pointer;
+}
+.rcp-candidate-text { display: grid; }
+.rcp-candidate-name { font: var(--type-label-md); }
+.rcp-team-fit { display: flex; }
+
+/* Proposed: Record list (molecule). The assistant's record as one row per step, with where it ran; never the text. */
+.rcp-ledger {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-ledger-row {
+  display: flex;
+  align-items: start;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-block-end: var(--border-thin) solid var(--line);
+}
+.rcp-ledger-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+.rcp-ledger-text { display: grid; }
+.rcp-ledger-what { font: var(--type-label-md); }
+.rcp-facts-short dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Settings: sections with a rule between them, and leaving at the bottom, set apart. */
+.rcp-settings-section + .rcp-settings-section {
+  padding-block-start: var(--space-5);
+  border-block-start: var(--border-thin) solid var(--line);
+}
+.rcp-settings-leave {
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-5);
+  border-block-start: var(--border-thin) solid var(--line);
+}
+.rc-button.rcp-danger-text { color: var(--text-danger); }
+
+/* Proposed: Footer (organism). The same links on every page, a slim row on the focused steps, and the line that says the content is invented. */
+.rcp-footer {
+  display: grid;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: var(--page-width);
+  margin-inline: auto;
+  padding-block: var(--space-7) var(--space-6);
+  padding-inline: var(--gutter);
+  border-block-start: var(--border-thin) solid var(--line);
+}
+.rcp-footer[data-slim] { padding-block: var(--space-5); }
+.rcp-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-5);
+}
+.rcp-footer-title {
+  margin-block-end: var(--space-1);
+  font: var(--type-label-md);
+  color: var(--text-secondary);
+}
+.rcp-footer ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rcp-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+.rcp-footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--control-sm-height);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: var(--type-body-md);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+}
+.rcp-footer-link:hover { color: var(--link-hover); }
+.rcp-footer-link:focus-visible {
+  outline: var(--border-edge) solid var(--focus);
+  outline-offset: var(--border-thick);
+}
+
+/* Motion for the new parts, all off under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .rcp-caret { animation: rcp-blink 1s steps(2) infinite; }
+  .rcp-dots > i { animation: rcp-bob 900ms var(--ease-out) infinite; }
+  .rcp-dots > i:nth-child(2) { animation-delay: 150ms; }
+  .rcp-dots > i:nth-child(3) { animation-delay: 300ms; }
+  .rcp-level > i { animation: rcp-level 700ms ease-in-out infinite alternate; }
+  .rcp-level > i:nth-child(2) { animation-delay: 120ms; }
+  .rcp-level > i:nth-child(3) { animation-delay: 240ms; }
+  .rcp-level > i:nth-child(4) { animation-delay: 80ms; }
+  .rcp-level > i:nth-child(5) { animation-delay: 200ms; }
+  .rcp-turn { animation: rcp-rise var(--duration-slow) var(--ease-out) both; }
+  .rcp-tooltip:popover-open {
+    @starting-style { opacity: 0; translate: 0 var(--space-1); }
+  }
+  .rcp-tooltip { transition: opacity var(--duration-fast) var(--ease-out), translate var(--duration-fast) var(--ease-out), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete; }
+  .rcp-menu:popover-open {
+    @starting-style { opacity: 0; translate: 0 calc(var(--space-1) * -1); }
+  }
+  .rcp-menu { transition: opacity var(--duration-base) var(--ease-out), translate var(--duration-base) var(--ease-out), display var(--duration-base) allow-discrete, overlay var(--duration-base) allow-discrete; }
+}
+@keyframes rcp-blink { 50% { opacity: 0; } }
+@keyframes rcp-bob { 50% { opacity: 1; translate: 0 calc(var(--space-1) * -1); } }
+@keyframes rcp-level { to { block-size: 100%; } }

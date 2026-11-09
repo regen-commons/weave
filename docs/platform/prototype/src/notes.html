@@ -1,0 +1,336 @@
+<h2>Prototype notes</h2>
+<p>What this prototype was built from, what changed after each review, what it proposes and what it asks the plan to decide. The same text is in the hand-over document. Nothing here is a decision until it is placed in the repository.</p>
+<div class="proto-notes-tabs" role="group" aria-label="Notes sections">
+  <button type="button" data-notes-tab="notes-review4" aria-pressed="true">Review of 4 November</button>
+  <button type="button" data-notes-tab="notes-review3" aria-pressed="false">Review of 3 November</button>
+  <button type="button" data-notes-tab="notes-download" aria-pressed="false">Smaller download</button>
+  <button type="button" data-notes-tab="notes-rules" aria-pressed="false">Design rules draft</button>
+  <button type="button" data-notes-tab="notes-sources" aria-pressed="false">Sources and build</button>
+  <button type="button" data-notes-tab="notes-screens" aria-pressed="false">Screens and patterns</button>
+  <button type="button" data-notes-tab="notes-proposals" aria-pressed="false">Proposed patterns</button>
+  <button type="button" data-notes-tab="notes-review" aria-pressed="false">Review results</button>
+  <button type="button" data-notes-tab="notes-decisions" aria-pressed="false">Decision log proposals</button>
+  <button type="button" data-notes-tab="notes-questions" aria-pressed="false">Open questions</button>
+  <button type="button" data-notes-tab="notes-plan" aria-pressed="false">Where the plan is wrong</button>
+  <button type="button" data-notes-tab="notes-usability" aria-pressed="false">Usability script</button>
+</div>
+
+<section class="proto-notes-section" id="notes-review4">
+  <h3>What the second review asked for, and what changed</h3>
+  <p>From the desktop walkthrough of version 3 on 4 November 2026, and the answers to four questions that followed. Version 4 answers every point. Three points the reviewer said were already clear and missed in version 3 are marked.</p>
+  <div class="proto-scroll"><table>
+    <thead><tr><th>Asked</th><th>What changed</th><th>Where to see it</th></tr></thead>
+    <tbody>
+      <tr><td>Remove the small label above the home heading</td><td>Gone, and so is every decorative small-capitals label: the preview labels, "Opens when you save", the amount and "Steward pick" eyebrows. Labels that remain are plain sentence case.</td><td>Home, Finish, cards</td></tr>
+      <tr><td>The thread animation behind the whole screen</td><td>The canvas now sits behind the whole home page and stays in view as it scrolls, not only the hero. Cards and fields are opaque, so threads never cross an input.</td><td>Home</td></tr>
+      <tr><td>A fourth home section: funds with open deadlines</td><td>"Funding closing soon": the three funds closing first, each with days left, and a link to all funding.</td><td>Home</td></tr>
+      <tr><td>Accurate names for the eight kinds</td><td>Titles are the framework's own names (Living, Material, Intellectual, Experiential, Social, Financial, Cultural, Spiritual); the plain meaning sits below, and a tooltip says more.</td><td>Home, every kind tag</td></tr>
+      <tr><td>Partners and Funding as their own pages, no tabs (missed in version 3)</td><td>Tabs removed. Partners and Funding are separate pages in the navigation.</td><td>Partners, Funding</td></tr>
+      <tr><td>The fit line in the same place on every card</td><td>Every funding and partner card gives its title two lines, so the fit line below sits at the same height across a row.</td><td>Funding, Finish, Partners</td></tr>
+      <tr><td>A footer on every page</td><td>Weave links, Your data (What we store, What the assistant did, Settings) and Regen Commons (website, membership, data policy); a slim row on the focused steps. The fictional-content line moved into it.</td><td>Every screen</td></tr>
+      <tr><td>Filters: styling and a consistent model (discussed)</td><td>One filter bar on Partners, Funding and Initiatives: search, filter buttons that open small menus, then sort; chosen filters show as removable chips with the count. The confusing "Needs or offers" select became a Support menu with "look in what they offer, what they need, or both". On Partners it adds "Offers what you need" and "Needs what you offer". The crowded select arrow is gone with the selects.</td><td>Initiatives, Partners after sharing, Funding</td></tr>
+      <tr><td>Native tooltips on desktop</td><td>Kind tags, the rows of eight tiles, types of work and fit lines open a tooltip on hover or focus, using the browser's own interestfor and hint popovers, with a small fallback where a browser lacks them.</td><td>Initiatives cards, ask cards, Home kinds</td></tr>
+      <tr><td>Several partners for one fund (discussed)</td><td>Team slots: each fund lists what it asks from partners; each ask shows candidates to pick, a team fit sums up the picks, and one button asks them all for introductions. Funding cards say how many asks the list could cover.</td><td>Opportunity detail</td></tr>
+      <tr><td>Partners for you, before you share: one stray card</td><td>A centred page with one card that says what matches, what sharing does, and asks for the email in the same card.</td><td>Partners, before sharing</td></tr>
+      <tr><td>The adding flow (discussed)</td><td>A conversation led by voice: the assistant asks one short thing at a time; a large Speak button comes first, typing below it for when speaking is not possible, and files or links can be added at any point. People can change their words after. When enough is in, Build my card reads everything on the device and works out the details and themes. The card fills in beside the conversation as it goes.</td><td>Step 1</td></tr>
+      <tr><td>Needs and offers added on the left, cards on the right (missed in version 3)</td><td>The same conversation on the left; each need or offer appears as a card on the right as it is said, up to five, with Keep, Change and Remove.</td><td>Steps 2 and 3</td></tr>
+      <tr><td>Save and the email field in one place</td><td>The partner match card holds the email field and the code step, so saving happens where the reason to save is.</td><td>Finish, Partners before sharing</td></tr>
+      <tr><td>One email flow</td><td>Anything that needs an email (save, share, remind, introduce) saves the initiative to that email. Once signed in, Remind me just turns the reminder on.</td><td>Remind me, Ask for an introduction</td></tr>
+      <tr><td>Realistic images (discussed)</td><td>Ten free Unsplash photos were chosen and credited, and the page is ready to show them. Downloading them was blocked by this session's permission check, so the drawn scenes stay until they are added; see the hand-over for the one-line command.</td><td>Cards, initiative page</td></tr>
+      <tr><td>A private initiative sees funding only (missed in version 3)</td><td>Partners show only when the initiative is shared with the community. A private initiative sees funding, the count of partner matches and how to share; the team slots on a fund show counts, not names.</td><td>Partners, Finish, Opportunity detail</td></tr>
+      <tr><td>Several kinds of support per need or offer</td><td>Each need or offer shows every kind it carries, alike; the form asks for every kind that applies.</td><td>Steps 2 and 3, your card</td></tr>
+      <tr><td>The record of assistant use, unchanged</td><td>Now a pop-up: one line of summary, then one row per step with where it ran and the words sent. Never the text.</td><td>Footer, Settings</td></tr>
+      <tr><td>What we store as a pop-up, much shorter</td><td>A pop-up of five short answers, 55 words in all, down from a page of about 290.</td><td>Footer, Settings</td></tr>
+      <tr><td>Settings, better structured</td><td>Who can see it is set right there; email has its own section with what we email you about; Assistant, Appearance and Your data follow; signing out and deleting sit at the bottom under Leave, set apart. Membership moved to the footer.</td><td>Settings</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="proto-notes-section" id="notes-review3" hidden>
+  <h3>What the review asked for, and what changed</h3>
+  <p>From the solo walkthrough on 3 November 2026 (desktop, then phone). Version 3 of this prototype answers every action item. Where the recording was unclear, the reading taken is stated, so it can be corrected.</p>
+  <div class="proto-scroll"><table>
+    <thead><tr><th>Asked</th><th>What changed</th><th>Where to see it</th></tr></thead>
+    <tbody>
+      <tr><td>Use the full width on desktop</td><td>Every page lines up on one left edge inside the page container, and lists fill it as card grids. Steps 2 and 3 give the main column the free width beside the live preview.</td><td>Any screen at Desktop width</td></tr>
+      <tr><td>Partners, funding and initiatives as grids</td><td>One card grid pattern (columns of at least 18 rem) for all three, cards of a row at one height with actions at the bottom.</td><td>Partners after saving, Funding tab, Public directory, Home</td></tr>
+      <tr><td>Filtering and sorting</td><td>One list toolbar everywhere: search, then filters (type of work with icons, kind of support, or closing date), then a count and a sort select above the results. Filters keep the person's place and say "3 of 7".</td><td>Same screens; state "Filtered to research"</td></tr>
+      <tr><td>Bigger, clearer category tags</td><td>The eight kinds of support on Home are a real section: big tiles, the plain name and a few examples each ("Land, water, seeds, soil"). Type-of-work tags get an icon each and an outlined style, so they read apart from themes and kinds of support.</td><td>Home, Public directory, Initiative card</td></tr>
+      <tr><td>Three steps lead after the hero</td><td>Home now runs hero, three numbered steps (the first one is the way in), the eight kinds, then recently shared initiatives.</td><td>Home</td></tr>
+      <tr><td>Website-style visual interest</td><td>The hero is full width and centred like regencommons.com, with a variant of the website's mycelium canvas: threads that run along the warp and the weft in the eight colours of support, follow the pointer, turn at right angles and fade. It starts on its own when the pointer rests or on touch screens, keeps clear of the words, pauses off screen, and draws one still weave under reduced motion.</td><td>Home</td></tr>
+      <tr><td>Less text; images; social previews</td><td>Copy cut across every screen: one heading and one line, no chat bubbles in the intake. Initiatives get images (invented scenes drawn in the page, never photographs), funding does not. External links show as link previews.</td><td>Directory, Initiative page, Step 1 attaching</td></tr>
+      <tr><td>Form left, live card right</td><td>Step 1 is a form with a live preview beside it that fills in as you type (name, place, kinds of support, all in pencil). Steps 2 and 3 and the card check keep the card beside the form.</td><td>Step 1, typing; type into the box</td></tr>
+      <tr><td>A smaller model download</td><td>The prompt now sells what the download buys ("Keep your words on this device"), states the size for this device, resumes after a dropped connection and never blocks. Proposed sizes: 255 MB on a phone instead of 570 MB (570 MB becomes an upgrade), 41 MB for speech, and nothing on a computer whose browser has its own model. The tiers and sources are in the Smaller download tab.</td><td>Step 1, on-device assistant prompt</td></tr>
+      <tr><td>Needs and offers one by one, at most five</td><td>Each need or offer is its own card, led by its kind of support as a big tile. A counter says "3 of 5"; at five, the add card says it is the limit. More than five found shows the first five and says so.</td><td>Steps 2 and 3; state "Very long content"</td></tr>
+      <tr><td>Delete and "Saved on this device only" open over the page</td><td>Sign in, save, the private-or-shared choice and delete open as a dialog on wide screens and a sheet from the bottom on phones, over the page the person is on. Inside the 360 px frame the sheet sits in the frame and dims only the phone. A grabber drags it away.</td><td>Sign-in sheet screens, Settings, header status</td></tr>
+      <tr><td>Equal heights in sign-in</td><td>Reading taken: the field and its button share one height, and the email and code steps keep the same height. Both are 56 px; the sheet is the same height on both steps, so nothing jumps.</td><td>Sign-in sheet: email, then code</td></tr>
+      <tr><td>Consistent alignment</td><td>"Narrow" pages no longer centre. Every page shares the logo's left edge; only the Home hero is centred.</td><td>Settings, What we store, Two versions</td></tr>
+      <tr><td>Fix the jump at the bottom on phones</td><td>Found: on a phone (and at desktop width) the page scrolls, not the frame, so a new screen opened at the old scroll position, usually the bottom. New screens now start at the top with the heading focused. Also: the hero is shorter on phones so the steps show below the buttons.</td><td>Scroll to the bottom of step 2 and tap Next</td></tr>
+      <tr><td>Rework the mobile sign-in</td><td>Reading taken: sign-in should be a sheet on a phone instead of a new page (the summary read the recording the other way; the transcript asks for a dialog on desktop and a bottom sheet). Once signed in, the header shows Saved and an account button that leads to Settings.</td><td>Any screen after saving</td></tr>
+      <tr><td>Correct the sharing description: two modes</td><td>Two choices replace three: "Private, for finding funding" (only you see it; funding and partner matches still work) and "Shared with the community" (a public page and a place in the directory; anyone can see it and get in touch). "People signed in" is gone.</td><td>Saved: choose private or shared; Share sheet</td></tr>
+      <tr><td>Partners only after saving</td><td>Before saving, partners show as a count and kinds of reason, never as cards: "3 initiatives match what you need and offer". Saving opens them by name. The veiled card is withdrawn.</td><td>Finish, Partners before saving</td></tr>
+      <tr><td>More life in interactions</td><td>Screens cross-fade; cards rise in a few at a time; linked cards lift on hover; a kept suggestion inks in; sheets slide up and down; confirmations arrive as a toast. Durations and easing are the tokens; all of it is off under reduced motion.</td><td>Anywhere</td></tr>
+      <tr><td>Capture the principles for future agents</td><td>Drafted as rules with where each belongs in the repository. Not placed: this session leaves the repository untouched.</td><td>Design rules draft tab</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="proto-notes-section" id="notes-download" hidden>
+  <h3>A smaller download: what to ship, and when</h3>
+  <p>The review rejected 570 MB on a phone. Research on 4 November 2026 (file sizes from the model listings on Hugging Face, quality figures as the model makers report them) points to a default about half that size, with the larger model as an upgrade. The prototype's prompt now uses these sizes. They need the technical spec owner's check against the spec's golden fixtures before they are a decision.</p>
+  <div class="proto-scroll"><table>
+    <thead><tr><th>Device</th><th>What runs</th><th>Download</th><th>What it handles</th></tr></thead>
+    <tbody>
+      <tr><td>Every device</td><td>Keyword rules and the embeddings the spec already ships</td><td>Nothing extra</td><td>The keyword draft: place, stage, kinds of support</td></tr>
+      <tr><td>Phone, speech</td><td>Whisper tiny, multilingual (Moonshine tiny is 28 MB but English only; Whisper base is 77 MB if tiny proves too weak)</td><td>41 MB</td><td>Dictation in Portuguese, Spanish and English</td></tr>
+      <tr><td>Phone, assistant, asked first</td><td>LFM2.5-350M at 4 bits, or Gemma 3 270M (273 MB plus a 20 MB tokenizer)</td><td>255 MB</td><td>Short structured extraction: name, place, stage, needs, offers</td></tr>
+      <tr><td>Phone, optional upgrade</td><td>Qwen3-0.6B at 4 bits (today's plan)</td><td>570 MB</td><td>Fuller extraction, for people who want it</td></tr>
+      <tr><td>Computer</td><td>The browser's own model where it exists (Chrome desktop 148 and later; Edge in preview), otherwise the same models on WebGPU. Speech: Chrome desktop's on-device recognition (139 and later), otherwise Whisper base</td><td>Nothing for Weave, otherwise 255 or 570 MB; speech nothing or 77 MB</td><td>As above</td></tr>
+    </tbody>
+  </table></div>
+  <h3>How it gets smaller</h3>
+  <ul>
+    <li>Start with what costs nothing. The keyword draft works before anything downloads, so nobody waits.</li>
+    <li>Ask after the first draft, with the exact size for this device, framed as what it buys: "Keep your words on this device". Never download without a tap.</li>
+    <li>Default to the 255 MB model on phones. Offer 570 MB as an upgrade in Settings.</li>
+    <li>On a computer, use the browser's own model and speech first, so Weave downloads nothing.</li>
+    <li>Fine-tune one 270 to 350M model to Weave's own schema, and ship it only if it passes the spec's 95 percent schema test. The listings stop at 4 bits; there are no 2 or 3 bit builds to go lower.</li>
+    <li>Resume after a dropped connection, keep the file once, and let people remove it in Settings.</li>
+  </ul>
+  <h3>Caveats</h3>
+  <ul>
+    <li>Quality: no independent extraction benchmark was found. LFM2.5-350M reports 77 on instruction following (IFEval) against 51 for Gemma 3 270M; both are the makers' figures. Test on the golden fixtures.</li>
+    <li>Licence: the LFM models use Liquid's own licence (lfm1.0). Read it before choosing.</li>
+    <li>Chrome's built-in model is desktop only and needs 22 GB free disk, a capable graphics card or 16 GB of memory, and an unmetered first download. Safari has no built-in model, and WebKit opposes the API, so phones get none today.</li>
+    <li>The technical spec calls <code>SpeechRecognition.available()</code> without the <code>langs</code> option, which is required.</li>
+    <li>Not verified: Cache API and OPFS limits, <code>navigator.storage.persist</code>, Background Fetch, resumable range requests, detecting Wi-Fi or Save-Data, and whether a cached model can be shared across sites.</li>
+  </ul>
+  <h3>Sources</h3>
+  <ul>
+    <li>Model file listings: <a href="https://huggingface.co/onnx-community" rel="noopener">huggingface.co/onnx-community</a> (each model's <code>onnx</code> folder)</li>
+    <li><a href="https://huggingface.co/LiquidAI/LFM2.5-350M" rel="noopener">LFM2.5-350M</a>, <a href="https://huggingface.co/LiquidAI/LFM2-350M-Extract" rel="noopener">LFM2-350M-Extract</a>, <a href="https://huggingface.co/google/gemma-3-270m-it" rel="noopener">Gemma 3 270M</a>, <a href="https://developers.googleblog.com/en/introducing-gemma-3-270m/" rel="noopener">Introducing Gemma 3 270M</a></li>
+    <li><a href="https://developer.chrome.com/docs/ai/prompt-api" rel="noopener">Chrome Prompt API</a>, <a href="https://web-platform-dx.github.io/web-features-explorer/features/languagemodel/" rel="noopener">LanguageModel browser support</a>, <a href="https://learn.microsoft.com/en-us/microsoft-edge/web-platform/prompt-api" rel="noopener">Edge Prompt API</a>, <a href="https://github.com/WebKit/standards-positions/issues/495" rel="noopener">WebKit position</a></li>
+    <li><a href="https://developer.mozilla.org/docs/Web/API/SpeechRecognition/available_static" rel="noopener">SpeechRecognition.available() on MDN</a></li>
+  </ul>
+</section>
+
+<section class="proto-notes-section" id="notes-rules" hidden>
+  <h3>Design rules from both reviews, for people and agents</h3>
+  <p>Written to drop into the repository once placed; each names where it belongs. They extend DESIGN.md and the design skill and change three existing rules, marked.</p>
+  <ol>
+    <li><strong>Use the width.</strong> Lists of partners, funding and initiatives are card grids on wide screens. DESIGN.md (Layout), COMPONENTS.md (Card grid), the design skill.</li>
+    <li><strong>One left edge.</strong> Every page lines up with the logo; the home hero and empty-state pages are the centred exceptions. DESIGN.md, templates.css.</li>
+    <li><strong>Separate pages, not tabs, for Partners and Funding.</strong> COMPONENTS.md, the PRD's Matches section.</li>
+    <li><strong>One filter bar everywhere.</strong> Search, filter menus, sort; chosen filters as removable chips with a count. COMPONENTS.md (Filter bar, replacing Directory filters).</li>
+    <li><strong>No decorative labels above headings.</strong> No small-capitals kickers or eyebrows for decoration; a heading and one line. <em>Changes</em> the Eyebrow pattern's use. DESIGN.md, VOICE.md.</li>
+    <li><strong>Say less, show more.</strong> One line under a heading; details behind a link or in a pop-up. Initiatives carry photographs; links show previews. COMPONENTS.md (Media, Link preview).</li>
+    <li><strong>The kinds of support by their own names.</strong> Living, Material, Intellectual, Experiential, Social, Financial, Cultural, Spiritual as titles, the plain meaning below. <em>Changes</em> VOICE.md's plain-name table for these eight. VOICE.md, DL-014.</li>
+    <li><strong>Explain compact signs with tooltips.</strong> Tiles, kind tags, types of work and fit lines open a native tooltip; the same words stay available to screen readers. COMPONENTS.md (Tooltip).</li>
+    <li><strong>Align what people compare.</strong> On cards in a row, the line people scan (fit) sits at the same height. COMPONENTS.md (Card).</li>
+    <li><strong>Describing is a conversation led by voice.</strong> One short question at a time; Speak first, typing for when speaking is not possible, files and links at any point; words can be changed after; the on-device model builds the card from everything at the end. Needs and offers the same, with their cards beside. PRD 6.1, COMPONENTS.md (Conversation).</li>
+    <li><strong>At most five needs and five offers, each with every kind it carries.</strong> COMPONENTS.md (Ask card), PRD.</li>
+    <li><strong>Partners are for initiatives on the list.</strong> Private initiatives see funding only; partner names, cards and introductions open when the initiative is shared with the community. PRD (R16), 08.</li>
+    <li><strong>Two ways to be on Weave.</strong> Private, for finding funding, or shared with the community. 08.</li>
+    <li><strong>One email door.</strong> Anything that needs an email saves the initiative to it; signed in, actions just happen. 08.</li>
+    <li><strong>Save where the reason is.</strong> The email field sits in the card that shows what saving or sharing opens. 08, DL-018.</li>
+    <li><strong>Small tasks and information open over the page.</strong> Sign in, save, sharing, delete, What we store and the assistant record are pop-ups: a dialog on wide screens, a sheet on phones. <em>Changes</em> the Code panel's "never a modal" and the Dialog's "never for saving". COMPONENTS.md.</li>
+    <li><strong>Settings are set in place.</strong> Choices change where they are shown; leaving (sign out, delete) sits at the bottom, set apart. COMPONENTS.md (Settings template).</li>
+    <li><strong>A footer on every page.</strong> The same links and the content line. COMPONENTS.md (Footer).</li>
+    <li><strong>Equal heights.</strong> A field and its button share one height; steps of one flow keep one height. COMPONENTS.md, review checklist.</li>
+    <li><strong>Motion says what changed;</strong> the backdrop canvas is the one decoration, behind Home only, and stops under reduced motion. DESIGN.md (Motion, Elevation).</li>
+    <li><strong>Downloads are optional and sold as privacy.</strong> Size for this device, nothing without a tap, resumable, removable. Technical spec.</li>
+    <li><strong>Phone first, without jumps.</strong> New screens start at the top; the hero stays short on phones. Review checklist.</li>
+  </ol>
+  <p>Checklist additions: any list in one narrow column at 1280 px; any tab where a page would do; any list without search, a filter and a sort; any decorative label above a heading; any fit or price line at different heights across a row; any compact sign without a tooltip; any small task or information page that leaves the page; any partner name shown to a private initiative.</p>
+</section>
+
+<section class="proto-notes-section" id="notes-sources" hidden>
+  <h3>Commit and sources</h3>
+  <ul>
+    <li>Versions 3 and 4 were checked against <code>regen-commons/funding-commons</code> <code>main</code> at <code>64b10f70b9c1fe6ba3bd160e4c239101c5828368</code> (design system in <code>packages/design-system/</code>, byte-identical CSS, fonts and icons to version 2; the published tokens are the copy from <code>main</code>). Read through a <code>git archive</code> snapshot; the repository was not edited.</li>
+    <li>Version 2 was built from <code>origin/docs/tend-platform-plan</code> at <code>65a398f</code>. The website hero was read from <code>regen-commons-site</code> <code>origin/main</code>.</li>
+    <li>Photographs: ten free Unsplash photos chosen for the scenes, credited in the data file (<code>photos</code>) and in the hand-over. Not yet downloaded; the page shows them automatically once <code>img/</code> is published beside it.</li>
+    <li>The living plan doc could still not be opened from these sessions.</li>
+  </ul>
+  <h3>How it is built</h3>
+  <ul>
+    <li>The design system's <code>css/</code>, <code>tokens/</code> and <code>fonts/</code> are published unchanged; only <code>css/index.css</code> is linked. The icon sprite is inlined unchanged; two proposed icons sit in a separate sprite.</li>
+    <li><code>prototype.css</code> holds the chrome (<code>proto-</code>) and the proposed patterns (<code>rcp-</code>), using tokens. Three scripts hold the fictional content, the screens and the behaviour. Nothing is sent or stored.</li>
+    <li>The 360 px frame pins viewport rules to their phone values; sheets, menus and tooltips are placed over the frame so it behaves like a phone.</li>
+  </ul>
+  <h3>Using the controls</h3>
+  <ul>
+    <li>Screen picks one of 22 screens; State lists that screen's states. Sheet and pop-up screens draw the page underneath and open the sheet in the chosen state; closing it returns to the page.</li>
+    <li>Theme follows the system or pins light or dark. Width draws the 360 px frame or fills the window. Reset walkthrough forgets the session.</li>
+  </ul>
+</section>
+
+<section class="proto-notes-section" id="notes-screens" hidden>
+  <h3>Screens, patterns and states</h3>
+  <p>Pattern names are from <code>COMPONENTS.md</code>; names in italics are proposals. Every screen has the page shell, the footer and the content line.</p>
+  <div class="proto-scroll"><table>
+    <thead><tr><th>Screen</th><th>Patterns</th><th>Extra states</th></tr></thead>
+    <tbody>
+      <tr><td>Home</td><td><em>Backdrop</em>, <em>Hero band</em>, <em>Steps</em>, <em>Kinds of support</em> with <em>Tooltip</em>, <em>Card grid</em>, Card, <em>Media</em>, <em>Work tag</em>, funding cards</td><td>Long is Portuguese.</td></tr>
+      <tr><td>Step 1: tell us</td><td>Stepper, <em>Conversation</em>, Message, <em>Composer</em> (Speak, typing, a file or link), Progress, <em>Preview card</em>, Notice (assistant)</td><td>Start, talking, listening, files and links added, building the card, offline, microphone silent, long, four fields, device too weak, first time speaking on a phone.</td></tr>
+      <tr><td>Step 1: assistant prompt</td><td>Notice, Progress</td><td>Prompt (a computer uses the browser's own assistant), computer without one, downloading, too weak, offline, stopped, long.</td></tr>
+      <tr><td>Step 1: cloud consent</td><td>Dialog or <em>Sheet</em>, Facts</td><td>Session option, offline, failed, long.</td></tr>
+      <tr><td>Check your card</td><td>Review sheet, Proposal, Stage, <em>Work tag</em>, Card form fields, <em>Preview card</em></td><td>Correcting, all kept.</td></tr>
+      <tr><td>Steps 2 and 3</td><td><em>Conversation</em>, <em>Composer</em>, <em>Ask card</em> (several kinds) in the side column, <em>Card form</em></td><td>Changing a card, more than five heard.</td></tr>
+      <tr><td>Finish</td><td><em>Card grid</em>, funding cards, <em>Share card</em> or partner cards, <em>Preview card</em></td><td>Saved and private, saved and shared.</td></tr>
+      <tr><td>Partners, before sharing</td><td><em>Share card</em>, centred</td><td>Draft not saved, saved and private, no initiative, code step.</td></tr>
+      <tr><td>Partners, shared</td><td><em>Filter bar</em>, <em>Card grid</em>, partner cards, Dialog (introduction)</td><td>Introduction, not a fit, filtered.</td></tr>
+      <tr><td>Funding</td><td><em>Filter bar</em>, <em>Card grid</em>, funding cards</td><td>Visitor, filtered.</td></tr>
+      <tr><td>Opportunity detail</td><td><em>Two-column detail</em>, Reason, Fit, <em>Team slots</em>, Dialog (team introductions)</td><td>Private (names hidden), nobody closes a gap, apply on your own.</td></tr>
+      <tr><td>Sign-in sheet: email, code; Saved; Share sheet</td><td><em>Sheet</em>, Code panel, <em>Inline field</em>, Choice group (two modes)</td><td>Every row of 08; shared chosen.</td></tr>
+      <tr><td>Two versions</td><td>Card grid, Choice group</td><td>Welcome back.</td></tr>
+      <tr><td>Initiatives (directory)</td><td><em>Filter bar</em> (Support looks in offers, needs or both), <em>Card grid</em>, <em>Holdings</em> with <em>Tooltip</em></td><td>Filtered.</td></tr>
+      <tr><td>Public initiative page</td><td><em>Media</em>, <em>Two-column detail</em>, <em>Ask card</em>, <em>Link preview</em></td><td>Viewer's initiative private.</td></tr>
+      <tr><td>Settings</td><td>Choice group (who can see it), Switch (emails), chips (theme), <em>Leave section</em>, Dialog (delete)</td><td>Saved on this device only, deleting.</td></tr>
+      <tr><td>Pop-ups: what we store, what the assistant did</td><td><em>Sheet</em>, Facts, <em>Record list</em></td><td>Consent withdrawn.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="proto-notes-section" id="notes-proposals" hidden>
+  <h3>Proposed patterns</h3>
+  <p>All in <code>prototype.css</code> under a "Proposed" comment, using tokens and named by structure.</p>
+  <div class="proto-scroll"><table>
+    <thead><tr><th>Pattern</th><th>Level</th><th>Job, and why nothing existing fits</th></tr></thead>
+    <tbody>
+      <tr><td>Conversation <code>rcp-convo-log</code>, Composer <code>rcp-composer</code></td><td>Organism</td><td>The intake as short questions and answers, voice first, with typing and files beside it and words that can be changed. Guide panel and Composer were text-first and had no voice or attachments in one place.</td></tr>
+      <tr><td>Share card <code>rcp-share-card</code></td><td>Card variant</td><td>What matches, what sharing opens, and the email field and code step in one card.</td></tr>
+      <tr><td>Filter bar <code>rcp-filterbar</code>, Menu <code>rcp-menu</code></td><td>Organism</td><td>Search, filter menus (popovers), sort and removable chips, the same on every list. Replaces the List toolbar.</td></tr>
+      <tr><td>Tooltip <code>rcp-tooltip</code></td><td>Molecule</td><td>A native hint popover by interest on its trigger, with a fallback.</td></tr>
+      <tr><td>Team slots <code>rcp-slots</code></td><td>Organism</td><td>What a fund asks from partners, candidates per ask, the team's fit and one request for all.</td></tr>
+      <tr><td>Record list <code>rcp-ledger</code></td><td>Molecule</td><td>The assistant record as rows with where each step ran; replaces the table.</td></tr>
+      <tr><td>Footer <code>rcp-footer</code></td><td>Organism</td><td>The same links on every page, slim on focused steps.</td></tr>
+      <tr><td>Backdrop <code>rcp-backdrop</code></td><td>Template part</td><td>The woven-thread canvas behind the whole home page.</td></tr>
+      <tr><td>Card grid, Media, Link preview, Hero band, Steps, Kinds of support, Ask card, Preview card, Sheet, Inline field, Toast, Account button, Two-column detail, Work tag</td><td></td><td>From version 3, kept.</td></tr>
+      <tr><td>Recorder, File field, Pairing, Card form, Chip row, Holdings</td><td></td><td>From version 2. Recorder and Pairing are now inside the Composer and Team slots.</td></tr>
+      <tr><td>Withdrawn</td><td></td><td>List toolbar (into Filter bar), Veiled card, Directory filters.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Observations on existing patterns</h3>
+  <ul>
+    <li>The base box-sizing rule lists elements by name and leaves out <code>span</code> and <code>p</code>, so a padded span sized to its container overflows. Found on the kinds tiles; worth adding <code>span</code> or using <code>*</code> in <code>base.css</code>.</li>
+    <li>The code input is taller than a default button; the Inline field fixes the pair at the large control height.</li>
+    <li>The Eyebrow pattern reads as decoration in most uses; the reviewer asked for none. Keep it only where it carries a fact no heading can.</li>
+  </ul>
+</section>
+
+<section class="proto-notes-section" id="notes-review" hidden>
+  <h3>Automated checks, version 4</h3>
+  <p>Every screen in every state (22 screens, 164 renders) six times: desktop width at 1280 px, the 360 px frame at 1280 px, and a 375 px phone viewport, each in light and dark. Checks: sideways scrolling, text under 12 px, targets under 44 px, unlabelled fields, duplicate ids, one h1, nameless controls, runtime errors, text contrast.</p>
+  <ul>
+    <li><span data-result="pass">Pass</span> in all six after one fix, with no runtime error.</li>
+    <li><span data-result="fix">Fixed</span>: the kinds tiles overflowed the 360 px frame by 7 px (a padded span outside the base box-sizing rule).</li>
+    <li><span data-result="pass">Pass</span>: a walkthrough on product controls at 375 px: speak (speech readied, recording stops by itself, the assistant replies), type, add a link, build the card, needs by voice and typing with cards on the right, finish, save and share from the match card with the code in place, funding filter and reminder, team slots and a two-partner introduction, directory Support filter and chip removal, tooltips, settings changed in place, both pop-ups, and the private view of partners.</li>
+    <li><span data-result="pass">Pass</span>: fit lines sit at the same height on every funding card in a row.</li>
+  </ul>
+  <h3>Five-minute review</h3>
+  <p>On every changed screen at 360 px and 1280 px. The first tap on each screen is the one primary; the conversation leads with Speak; the share card says what saving does before the field; settings read top to bottom with leaving last.</p>
+  <h3>Not verified here</h3>
+  <ul>
+    <li>200 percent zoom, forced colours, reduced motion by eye, and the live Artifact page.</li>
+    <li>Native tooltips were checked through markup and the fallback; the hint popover itself needs a recent Chrome or Firefox to see.</li>
+    <li>Photographs: the files could not be downloaded in this session.</li>
+  </ul>
+</section>
+
+<section class="proto-notes-section" id="notes-decisions" hidden>
+  <h3>Proposed entries for decision-log.md</h3>
+  <p>Numbered after DL-018; renumber when placed. All "proposed" until confirmed. Version 4 supersedes version 3 where they differ.</p>
+  <ol>
+    <li><strong>Partners are for initiatives on the list.</strong> Private initiatives see funding only; partner names, cards and introductions open when the initiative is shared. Supersedes "partners after saving" and the veiled card.</li>
+    <li><strong>Two ways to be on Weave:</strong> private, for finding funding, or shared with the community. Replaces 08's three labels.</li>
+    <li><strong>One email door:</strong> anything that needs an email saves the initiative to it.</li>
+    <li><strong>Describing is a voice-led conversation;</strong> the on-device model builds the card from everything said, typed and added. Supersedes "a form with a live preview".</li>
+    <li><strong>Needs and offers carry every kind of support that applies,</strong> five of each at most.</li>
+    <li><strong>One filter bar on every list;</strong> Partners and Funding are separate pages.</li>
+    <li><strong>Team slots</strong> show what a fund asks from partners and let people ask several at once.</li>
+    <li><strong>The eight kinds use their own names</strong> with plain meanings below. Revisits DL-014.</li>
+    <li><strong>Tooltips explain compact signs;</strong> information pages and small tasks open as pop-ups; Settings are set in place.</li>
+    <li><strong>No decorative labels above headings;</strong> a footer on every page.</li>
+    <li>From version 3, still standing: one left edge, card grids, equal heights in a row and a flow, images on initiatives and link previews, motion under tokens, the optional sized download.</li>
+  </ol>
+</section>
+
+<section class="proto-notes-section" id="notes-questions" hidden>
+  <h3>Questions for open-decisions.md</h3>
+  <ol>
+    <li><strong>Where do a fund's asks come from?</strong> Team slots need each fund's partner requirements as data. Extracted from the funder's page by the assistant and checked by a steward, or entered by stewards?</li>
+    <li><strong>The kinds' names.</strong> Framework names as titles reverse VOICE.md's plain-name rule for these eight. Test both with people (T1).</li>
+    <li><strong>The conversation's questions.</strong> A fixed short script, or chosen by the on-device model from what is missing? The prototype uses a fixed script.</li>
+    <li><strong>Image source in the app.</strong> An upload, the site's preview image, or both, and who checks them.</li>
+    <li><strong>Can a shared initiative go back to private</strong> while introductions are open? The prototype allows it; open introductions stay.</li>
+    <li><strong>Download tiers.</strong> Confirm sizes and models with the technical spec owner (Smaller download tab).</li>
+    <li>Still open from earlier: the directory's nav label; per-field cloud consent; typed locations against derived places; the visitor's Funding page; Keep all and pencil (T5); D14 six or eight digits.</li>
+  </ol>
+</section>
+
+<section class="proto-notes-section" id="notes-plan" hidden>
+  <h3>What the design shows to be wrong or missing in the plan</h3>
+  <ul>
+    <li><strong>08's lifecycle and labels.</strong> Two modes, partners only when shared, and one email door replace the three labels and the separate resumptions.</li>
+    <li><strong>PRD Matches and R16.</strong> Partners are a page of their own and only for shared initiatives; the teaser becomes the share card.</li>
+    <li><strong>COMPONENTS.md.</strong> Code panel "never a modal" and Dialog "never for saving" conflict with the reviews; no patterns yet for filter bars, tooltips, team slots, footers, images or link previews.</li>
+    <li><strong>VOICE.md.</strong> The plain-name table for the eight kinds no longer matches what people see first.</li>
+    <li><strong>PRD 6.1.</strong> The conversation stays, but voice first, with typing and files beside it and the card built at the end.</li>
+    <li><strong>Data.</strong> Funds need structured partner requirements for team slots; the catalog has free-text eligibility today.</li>
+    <li><strong>Technical spec.</strong> Download sizes and the <code>SpeechRecognition.available()</code> call (Smaller download tab).</li>
+    <li><strong>base.css.</strong> The box-sizing list misses <code>span</code> and <code>p</code>.</li>
+    <li>From version 2, still true: Places in the example navigation; the storage-evicted row; the library's 40 MB notice; scale dropped from derived details; reminders' phase.</li>
+  </ul>
+</section>
+
+<section class="proto-notes-section" id="notes-usability" hidden>
+  <h3>Usability round before 30 November</h3>
+  <p>Half a day, three participants, same-day debrief, following <code>packages/design-system/principles/usability-testing.md</code>. Run on this prototype, on the participant's own phone where possible.</p>
+  <h3>Participants</h3>
+  <ul>
+    <li>P1: runs a place-based group, phone only, weak connection welcome; Portuguese or Spanish speaker welcome.</li>
+    <li>P2: a researcher or tool builder who looks for co-applicants, on a laptop.</li>
+    <li>P3: new to Regen Commons, on a phone.</li>
+  </ul>
+  <h3>Before the session</h3>
+  <ul>
+    <li>Open the link, press Reset walkthrough, set Width to Phone 360 on a laptop, leave Theme on System, hide the Notes.</li>
+    <li>Say once: the screens use an invented example, and the assistant does not hear or read their words yet; it plays the example back.</li>
+  </ul>
+  <h3>Script</h3>
+  <ol>
+    <li>You are helping us check an app before it exists. You are not being assessed, and no move is a mistake.</li>
+    <li>Say what you notice, expect and wonder. I stay quiet and answer at the end. If stuck, carry on as you would alone.</li>
+    <li>You can stop at any time. With permission I record screen and voice for the team only, and delete it after review.</li>
+    <li>Warm up: a project you care about, and how you look for partners or funding today.</li>
+    <li>Task cards one at a time. If they go quiet, ask what is going through their mind.</li>
+    <li>At the end: what confused you, what did you expect, what would you tell a friend this is?</li>
+  </ol>
+  <h3>Task cards</h3>
+  <div class="proto-scroll"><table>
+    <thead><tr><th>Task</th><th>Card wording</th><th>Who</th><th>Watch for</th></tr></thead>
+    <tbody>
+      <tr><td>2 Home tour</td><td>Without tapping anything, tell me what this is and what you could do here.</td><td>All</td><td>Partners and funding; the eight kinds by name, and whether the plain meanings help; funding closing soon noticed; the moving threads (T1, T7).</td></tr>
+      <tr><td>1 Name test</td><td>Which tap would find people to work with? Which would find money closing soon? Which would show everyone listed?</td><td>P3</td><td>Partners, Funding, Initiatives; then the eight kind names and the five types of work in their own words (T1).</td></tr>
+      <tr><td>3 Describe your project</td><td>Tell the app about your project the way you would to a friend. Then check what it made of it, and fix anything wrong.</td><td>All</td><td>Do they speak first or type? Do they add a file or link? Do they change their words? Do they understand Build my card, and is the card what they meant? Pencil against ink (T3, T5).</td></tr>
+      <tr><td>9 See who they are</td><td>You have finished. The app says three groups match your project. Find out who they are, and do what you would do.</td><td>All</td><td>Do they understand that sharing opens the names, and that private means funding only? Do they share, save privately or stop? Do they expect a wall or payment? Afterwards: would you share your real project, and why? (T8)</td></tr>
+      <tr><td>4 Keep your work</td><td>You have to stop now and continue tomorrow on another device. Do what you would do.</td><td>P1, P3</td><td>The status line or the share card; the sheet; time to Saved; the code step (T6).</td></tr>
+      <tr><td>5 Act</td><td>Pick a fund you would apply to, and who you would apply with.</td><td>P2</td><td>Do they use the team slots, pick several partners, and read the team fit? Do they use the filter bar?</td></tr>
+    </tbody>
+  </table></div>
+  <p>Order: P1 tasks 2, 3, 9, 4. P2 tasks 2, 3, 5, 9. P3 tasks 2, 1, 3, 9. About 45 minutes each.</p>
+  <h3>Measures</h3>
+  <ul>
+    <li>Speak or type first, and words changed after.</li>
+    <li>Who shares in task 9, who saves privately, and their words for why.</li>
+    <li>Time from tapping save to Saved on a phone; whether anyone uses a filter, a sort or a tooltip.</li>
+  </ul>
+  <h3>Debrief, same day</h3>
+  <ol>
+    <li>Each observer lists the three worst problems per session, observed only.</li>
+    <li>Pool, tally, rank the top ten.</li>
+    <li>Assign fixes until capacity is full; keep a list of one-hour fixes; prefer removing to adding.</li>
+    <li>Decide T8 from the evidence and record it in open-decisions.md.</li>
+  </ol>
+</section>

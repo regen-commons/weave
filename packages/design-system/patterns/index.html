@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // Applies a saved or requested theme before first paint. Without it the page follows the system.
+    (function () {
+      var theme = null;
+      try { theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme"); } catch (e) {}
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="color-scheme"]').content = theme;
+      }
+    })();
+  </script>
+  <title>Pattern library</title>
+  <link rel="icon" href="../brand/logo/favicon.svg">
+  <link rel="preload" href="../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/index.css">
+  <link rel="stylesheet" href="library.css">
+  <script type="module" src="library.js"></script>
+</head>
+<body>
+<a class="rc-skip-link" href="#main">Skip to content</a>
+<main class="lib-page" id="main">
+  <header class="lib-intro">
+    <h1 class="rc-heading" data-size="page">Regen Commons pattern library</h1>
+    <p class="lib-note">The running reference for the design system. It uses the same CSS products use. <code>COMPONENTS.md</code> lists each pattern's status, parts and limits, and <code>DESIGN.md</code> holds the tokens and reasons. All names and organisations here are fictional.</p>
+    <div class="lib-toolbar">
+      <div class="rc-field">
+        <label for="theme">Theme</label>
+        <select class="rc-input" id="theme" name="theme">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+    </div>
+    <ul class="lib-toc">
+      <li><a href="#foundations">Foundations</a></li>
+      <li><a href="#atoms">Atoms</a></li>
+      <li><a href="#molecules">Molecules</a></li>
+      <li><a href="#organisms">Organisms</a></li>
+      <li><a href="#pages">Pages</a></li><li><a href="pages/initiatives.html">Frame and initiative list</a></li><li><a href="pages/funding.html">Funding list</a></li>
+    </ul>
+  </header>
+
+  <section class="lib-level" id="foundations" aria-labelledby="foundations-title">
+    <h2 id="foundations-title" class="rc-heading" data-size="page">Foundations</h2>
+
+    <article class="lib-pattern" id="themes">
+      <h3>Both themes, side by side</h3><footer class="rc-footer" data-slim="true"><ul class="rc-footer-row"><li><a class="rc-footer-link" href="pages/settings.html">Settings</a></li><li><a class="rc-footer-link" href="https://regencommons.com">Regen Commons</a></li></ul></footer>
+      <p class="lib-note">Any section can pin a theme with <code>data-theme</code>. The page follows the system unless it is pinned.</p>
+      <div class="lib-compare" data-theme-compare>
+        <template>
+          <p class="rc-eyebrow">Need</p>
+          <h4 class="rc-heading" data-size="section">Native seedlings for four hectares</h4>
+          <p class="rc-prose">Reading text sits in Source Serif on the page surface.</p>
+          <p class="rc-meta">Muted text for hints and meta.</p>
+          <p><a href="#themes">A link in a sentence</a></p>
+          <div class="lib-row">
+            <button class="rc-button" data-variant="primary" type="button">Primary</button>
+            <button class="rc-button" data-variant="secondary" type="button">Secondary</button>
+            <button class="rc-button" data-variant="quiet" type="button">Quiet</button>
+          </div>
+          <ul class="rc-tag-list">
+            <li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-living-1" interestfor="index-tag-living-1"><span class="rc-tag" data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span>Living</span></button><span class="rc-tooltip" id="index-tag-living-1" popover="hint">Land and living things. Land, water, seeds, soil and living systems.</span></span></li>
+            <li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-social-2" interestfor="index-tag-social-2"><span class="rc-tag" data-capital="social"><span class="rc-tile" aria-hidden="true">So</span>Social</span></button><span class="rc-tooltip" id="index-tag-social-2" popover="hint">Relationships. Trust, introductions and partners.</span></span></li>
+            <li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-cultural-3" interestfor="index-tag-cultural-3"><span class="rc-tag" data-capital="cultural"><span class="rc-tile" aria-hidden="true">Cu</span>Cultural</span></button><span class="rc-tooltip" id="index-tag-cultural-3" popover="hint">Culture and story. Art, language and shared practices.</span></span></li>
+          </ul>
+          <div class="rc-surface" data-level="raised">A card sits lighter than the page.</div>
+          <div class="rc-surface" data-level="tint">A tinted panel for notes and quiet groups.</div>
+        </template>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="colour-roles">
+      <h3>Colour roles</h3>
+      <p class="lib-note">Components use roles. Ramp steps and their values are in <code>DESIGN.md</code>.</p>
+      <ul class="lib-swatches">
+        <li class="lib-swatch" style="background: var(--surface); color: var(--on-surface)">--surface</li>
+        <li class="lib-swatch" style="background: var(--surface-raised); color: var(--on-surface-raised)">--surface-raised</li>
+        <li class="lib-swatch" style="background: var(--surface-overlay); color: var(--on-surface-overlay)">--surface-overlay</li>
+        <li class="lib-swatch" style="background: var(--surface-tint); color: var(--on-surface-tint)">--surface-tint</li>
+        <li class="lib-swatch" style="background: var(--field); color: var(--on-field)">--field</li>
+        <li class="lib-swatch" style="background: var(--action); color: var(--on-action)">--action</li>
+        <li class="lib-swatch" style="background: var(--action-hover); color: var(--on-action-hover)">--action-hover</li>
+        <li class="lib-swatch" style="background: var(--danger); color: var(--on-danger)">--danger</li>
+        <li class="lib-swatch" style="background: var(--selected); color: var(--on-selected)">--selected</li>
+        <li class="lib-swatch" style="border: var(--border-edge) solid var(--control-line)">--control-line</li>
+        <li class="lib-swatch" style="border: var(--border-edge) solid var(--focus)">--focus</li>
+        <li class="lib-swatch" style="border: var(--border-edge) solid var(--state-success)">--state-success</li>
+        <li class="lib-swatch" style="border: var(--border-edge) solid var(--state-warning)">--state-warning</li>
+        <li class="lib-swatch" style="border: var(--border-edge) solid var(--state-danger)">--state-danger</li>
+        <li class="lib-swatch" style="border: var(--border-edge) solid var(--state-info)">--state-info</li>
+        <li class="lib-swatch" style="color: var(--text-secondary)">--text-secondary</li>
+        <li class="lib-swatch" style="color: var(--text-muted)">--text-muted</li>
+        <li class="lib-swatch" style="color: var(--text-accent)">--text-accent</li>
+        <li class="lib-swatch" style="color: var(--text-danger)">--text-danger</li>
+        <li class="lib-swatch" style="color: var(--link)">--link</li>
+        <li class="lib-swatch" style="color: var(--link-visited)">--link-visited</li>
+      </ul>
+    </article>
+
+    <article class="lib-pattern" id="type">
+      <h3>Type</h3>
+      <p class="lib-note">Fraunces for titles, Source Serif for reading, Space Grotesk for tasks and data. 12 px is the floor.</p>
+      <div class="lib-stage lib-type">
+        <p style="font: var(--type-headline-hero); letter-spacing: var(--type-headline-hero-tracking)">Weave the commons<small>headline-hero, 64</small></p>
+        <p style="font: var(--type-headline-display); letter-spacing: var(--type-headline-display-tracking)">Weave the commons<small>headline-display, 48</small></p>
+        <p style="font: var(--type-headline-lg); letter-spacing: var(--type-headline-lg-tracking)">No partners here yet<small>headline-lg, 36</small></p>
+        <p style="font: var(--type-headline-md)">Who could work with you<small>headline-md, 28</small></p>
+        <p style="font: var(--type-headline-sm)">Serra Azul Agroforestry School<small>headline-sm, 22</small></p>
+        <p style="font: var(--type-reading-lg)">We protect the springs above our town and share what we learn.<small>reading-lg, 18</small></p>
+        <p style="font: var(--type-reading-md)">Works in the same basin as you.<small>reading-md, 16</small></p>
+        <p style="font: var(--type-title-sm)">A row title<small>title-sm, 16</small></p>
+        <p style="font: var(--type-body-md)">Interface text and inputs.<small>body-md, 16</small></p>
+        <p style="font: var(--type-label-md)">Field label<small>label-md, 14</small></p>
+        <p style="font: var(--type-body-sm)">Hints, meta and table cells.<small>body-sm, 14</small></p>
+        <p class="rc-eyebrow">Record kind<small>label-sm, 12, factual label</small></p>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="space">
+      <h3>Space</h3>
+      <div class="lib-stage lib-space">
+        <div><i style="inline-size: var(--space-1 4)"></i>--space-1 4,  px</div>
+        <div><i style="inline-size: var(--space-2 8)"></i>--space-2 8,  px</div>
+        <div><i style="inline-size: var(--space-3 12)"></i>--space-3 12,  px</div>
+        <div><i style="inline-size: var(--space-4 16)"></i>--space-4 16,  px</div>
+        <div><i style="inline-size: var(--space-5 24)"></i>--space-5 24,  px</div>
+        <div><i style="inline-size: var(--space-6 32)"></i>--space-6 32,  px</div>
+        <div><i style="inline-size: var(--space-7 40)"></i>--space-7 40,  px</div>
+        <div><i style="inline-size: var(--space-8 56)"></i>--space-8 56,  px</div>
+        <div><i style="inline-size: var(--space-9 80)"></i>--space-9 80,  px</div>
+        <div><i style="inline-size: var(--space-10 112)"></i>--space-10 112,  px</div>
+        <div><i style="inline-size: var(--space-11 160)"></i>--space-11 160,  px</div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="depth">
+      <h3>Depth</h3>
+      <p class="lib-note">Five levels, tied to distance from the page. Level 0 has no shadow.</p>
+      <div class="lib-stage lib-depth">
+        <div>Level 0</div>
+        <div style="box-shadow: var(--shadow-1)">Level 1</div>
+        <div style="box-shadow: var(--shadow-2)">Level 2</div>
+        <div style="box-shadow: var(--shadow-3)">Level 3</div>
+        <div style="box-shadow: var(--shadow-4)">Level 4</div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="icons">
+      <h3>Icons</h3>
+      <p class="lib-note">24 by 24, stroke 1.5, round caps, shown at 16, 20 or 24. Stage icons come from the website. Icons never stand alone on a control without a name.</p>
+      <ul class="lib-stage lib-icons">
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#seed"/></svg>seed</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#sprout"/></svg>sprout</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#flowering"/></svg>flowering</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#tree"/></svg>tree</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#home"/></svg>home</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#people"/></svg>people</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#funding"/></svg>funding</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#place"/></svg>place</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#watershed"/></svg>watershed</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#clock"/></svg>clock</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#search"/></svg>search</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#check"/></svg>check</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#close"/></svg>close</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#plus"/></svg>plus</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#back"/></svg>back</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>alert</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#info"/></svg>info</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg>done</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#lock"/></svg>lock</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#globe"/></svg>globe</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#device"/></svg>device</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#mail"/></svg>mail</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#mic"/></svg>mic</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#attach"/></svg>attach</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#edit"/></svg>edit</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#pencil-note"/></svg>pencil-note</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#need"/></svg>need</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#offer"/></svg>offer</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="lib-level" id="atoms" aria-labelledby="atoms-title">
+    <h2 id="atoms-title" class="rc-heading" data-size="page">Atoms</h2>
+
+    <article class="lib-pattern" id="text">
+      <h3>Text</h3>
+      <p class="lib-note">Tag names follow structure, and sizes follow hierarchy. Use the eyebrow only for the kind of record, never above every heading.</p>
+      <div class="lib-stage" data-example>
+        <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#need"/></svg>Need</p>
+        <p class="rc-heading" data-size="hero">A hero title</p>
+        <p class="rc-heading" data-size="page">A page title</p>
+        <p class="rc-heading" data-size="section">A section title</p>
+        <p class="rc-heading">A title without a set size</p>
+        <div class="rc-prose"><p>Reading text keeps a comfortable measure.</p><p>Paragraphs stay short.</p></div>
+        <p class="rc-meta">Meta and hints.</p>
+        <a class="rc-logo" href="#text"><svg class="rc-logo-mark" aria-hidden="true"><use href="../brand/icons.svg#mark"/></svg>Weave</a>
+        <span class="rc-visually-hidden">Only read by assistive technology.</span>
+        <a class="rc-skip-link" href="#main">Skip to content</a>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="button">
+      <h3>Button</h3>
+      <p class="lib-note">One solid primary per region. Danger only on the confirming step. Disabled is rare, because forms stay submittable and explain errors.</p>
+      <div class="lib-stage" data-example>
+        <div class="lib-row">
+          <button class="rc-button" data-variant="primary" type="button">Save my initiative</button>
+          <button class="rc-button" data-variant="secondary" type="button">Add need</button>
+          <button class="rc-button" data-variant="quiet" type="button">Not now</button>
+          <button class="rc-button" data-variant="danger" type="button">Yes, withdraw it</button>
+        </div>
+        <div class="lib-row">
+          <button class="rc-button" data-variant="primary" data-size="lg" type="button">One action on a focused screen</button>
+          <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Dense</button>
+          <button class="rc-button" data-variant="primary" aria-busy="true" type="button"><span class="rc-spinner" aria-hidden="true"></span>Sending</button>
+          <button class="rc-button" data-variant="primary" disabled type="button">Unavailable</button>
+        </div>
+        <button class="rc-button" data-variant="secondary" data-width="full" type="button">Full width on phones</button>
+        <div class="lib-row">
+          <button class="rc-icon-button" aria-label="Close" type="button"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#close"/></svg></button>
+          <button class="rc-icon-button" aria-label="Remove need" type="button"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#close"/></svg></button>
+        </div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="inputs">
+      <h3>Inputs</h3>
+      <p class="lib-note">48 px high with 16 px text, which also stops phones zooming in. Boundaries meet 3:1. Validity styles appear only after a person has interacted.</p>
+      <div class="lib-stage lib-columns" data-example>
+        <input class="rc-input" type="text" aria-label="Example text input" value="Rio das Almas basin">
+        <input class="rc-input" type="text" aria-label="Example invalid input" aria-invalid="true" value="not an email">
+        <input class="rc-input" type="text" aria-label="Example disabled input" disabled value="Disabled">
+        <select class="rc-input" aria-label="Example select"><option>Portuguese</option><option>English</option></select>
+        <textarea class="rc-input" aria-label="Example text area" rows="2">A longer answer grows with its content.</textarea>
+        <input class="rc-input" data-kind="code" type="text" aria-label="Example code input" inputmode="numeric" autocomplete="one-time-code" value="48213907">
+        <label class="lib-row"><input class="rc-check" type="checkbox" name="check-example">A checkbox</label>
+        <label class="lib-row"><input class="rc-check" type="radio" name="radio-example">A radio</label>
+        <label class="lib-row"><input class="rc-switch" type="checkbox" role="switch" name="switch-off">Weekly update, off</label>
+        <label class="lib-row"><input class="rc-switch" type="checkbox" role="switch" name="switch-on" checked>Weekly update, on</label>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="chips">
+      <h3>Chip and tag</h3>
+      <p class="lib-note">A chip is a choice you tap, and it is 44 px high. A tag is a label you read.</p>
+      <div class="lib-stage" data-example>
+        <div class="lib-row">
+          <label class="rc-chip"><input class="rc-check" type="checkbox" name="chip-a">Research</label>
+          <label class="rc-chip"><input class="rc-check" type="checkbox" name="chip-b" checked>Place-based</label>
+          <span class="rc-chip">Portuguese<button class="rc-chip-remove" aria-label="Remove Portuguese" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#close"/></svg></button></span>
+        </div>
+        <div class="lib-row">
+          <span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#lock"/></svg>Only you</span>
+          <span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#people"/></svg>People signed in</span>
+          <span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#globe"/></svg>Anyone</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="capitals">
+      <h3>Forms of capital</h3>
+      <p class="lib-note">Pale tint, same-hue word, glyph tile. Colour only groups, and the word and glyph identify. A filled tile is confirmed, a dashed tile is suggested, a hollow tile is not held.</p>
+      <div class="lib-stage" data-example>
+        <ul class="rc-tag-list">
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-living-4" interestfor="index-tag-living-4"><span class="rc-tag" data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span>Living</span></button><span class="rc-tooltip" id="index-tag-living-4" popover="hint">Land and living things. Land, water, seeds, soil and living systems.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-material-5" interestfor="index-tag-material-5"><span class="rc-tag" data-capital="material"><span class="rc-tile" aria-hidden="true">Ma</span>Material</span></button><span class="rc-tooltip" id="index-tag-material-5" popover="hint">Tools and equipment. Materials, buildings and vehicles.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-intellectual-6" interestfor="index-tag-intellectual-6"><span class="rc-tag" data-capital="intellectual"><span class="rc-tile" aria-hidden="true">In</span>Intellectual</span></button><span class="rc-tooltip" id="index-tag-intellectual-6" popover="hint">Knowledge. Research, data and methods.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-experiential-7" interestfor="index-tag-experiential-7"><span class="rc-tag" data-capital="experiential"><span class="rc-tile" aria-hidden="true">Ex</span>Experiential</span></button><span class="rc-tooltip" id="index-tag-experiential-7" popover="hint">Skills and know-how learned by doing.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-social-8" interestfor="index-tag-social-8"><span class="rc-tag" data-capital="social"><span class="rc-tile" aria-hidden="true">So</span>Social</span></button><span class="rc-tooltip" id="index-tag-social-8" popover="hint">Relationships. Trust, introductions and partners.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-financial-9" interestfor="index-tag-financial-9"><span class="rc-tag" data-capital="financial"><span class="rc-tile" aria-hidden="true">Fi</span>Financial</span></button><span class="rc-tooltip" id="index-tag-financial-9" popover="hint">Money. Grants, loans, donations and payment.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-cultural-10" interestfor="index-tag-cultural-10"><span class="rc-tag" data-capital="cultural"><span class="rc-tile" aria-hidden="true">Cu</span>Cultural</span></button><span class="rc-tooltip" id="index-tag-cultural-10" popover="hint">Culture and story. Art, language and shared practices.</span></span></li>
+<li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-spiritual-11" interestfor="index-tag-spiritual-11"><span class="rc-tag" data-capital="spiritual"><span class="rc-tile" aria-hidden="true">Sp</span>Spiritual</span></button><span class="rc-tooltip" id="index-tag-spiritual-11" popover="hint">Care and spirit. Meaning, ritual and connection to place.</span></span></li>
+        </ul>
+        <ul class="rc-tile-list" aria-label="Tile states">
+          <li data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span><span class="rc-visually-hidden">Land and living things: confirmed</span></li>
+          <li data-capital="intellectual"><span class="rc-tile" data-state="suggested" aria-hidden="true">In</span><span class="rc-visually-hidden">Knowledge: suggested</span></li>
+          <li data-capital="material"><span class="rc-tile" data-state="empty" aria-hidden="true">Ma</span><span class="rc-visually-hidden">Tools and equipment: not held</span></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="stages">
+      <h3>Stage of growth</h3>
+      <p class="lib-note">Plain words first. Seed, Sprout, Flowering and Tree stay in the data and on the website.</p>
+      <div class="lib-stage lib-row" data-example>
+        <span class="rc-stage" data-stage="seed"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#seed"/></svg>Just starting</span>
+        <span class="rc-stage" data-stage="sprout"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#sprout"/></svg>Getting going</span>
+        <span class="rc-stage" data-stage="flowering"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#flowering"/></svg>Up and running</span>
+        <span class="rc-stage" data-stage="tree"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#tree"/></svg>Long established</span>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="signals">
+      <h3>Fit, timestamp and waiting</h3>
+      <p class="lib-note">Fit is a word plus bar length, never a number. A stale record says so. Waiting states stop moving under reduced motion.</p>
+      <div class="lib-stage lib-row" data-example>
+        <span class="rc-fit" data-level="strong"><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Strong fit</span>
+        <span class="rc-fit" data-level="good"><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Good fit</span>
+        <span class="rc-fit" data-level="possible"><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Possible fit</span>
+        <time class="rc-time" datetime="2026-10-12">Confirmed 12 October 2026</time>
+        <span class="rc-time" data-stale><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>May be out of date</span>
+        <span class="rc-spinner" aria-hidden="true"></span>
+        <span class="rc-skeleton" style="inline-size: var(--space-10)"></span>
+      </div>
+    </article>
+  </section>
+
+  <section class="lib-level" id="molecules" aria-labelledby="molecules-title">
+    <h2 id="molecules-title" class="rc-heading" data-size="page">Molecules</h2>
+
+    <article class="lib-pattern" id="field">
+      <h3>Field</h3>
+      <p class="lib-note">Label above, hint next, then control, then error. A hint sits above the control, so autofill menus never cover it.</p>
+      <div class="lib-stage" data-example>
+        <form class="rc-form" action="#field">
+          <div class="rc-field">
+            <label for="field-name">Name of your initiative</label>
+            <p class="rc-hint" id="field-name-hint">The name people know it by.</p>
+            <input class="rc-input" id="field-name" name="name" aria-describedby="field-name-hint">
+          </div>
+          <div class="rc-field">
+            <label for="field-email">Email</label>
+            <input class="rc-input" id="field-email" name="email" type="email" autocomplete="email" aria-invalid="true" aria-describedby="field-email-error" value="ana@example">
+            <p class="rc-error" id="field-email-error"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>That email looks incomplete. Check the part after the @.</p>
+          </div>
+        </form>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="composer">
+      <h3>Composer</h3>
+      <p class="lib-note">The box a person writes in. Speak and Attach use words as well as icons, and appear only once they work.</p>
+      <div class="lib-stage" data-example>
+        <form class="rc-composer" action="#composer">
+          <label for="composer-text">Add another need in your own words</label>
+          <textarea class="rc-input" id="composer-text" name="need" rows="2"></textarea>
+          <div class="rc-composer-actions">
+            <button class="rc-button" data-variant="secondary" type="submit">Add need</button>
+            <button class="rc-button" data-variant="quiet" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#mic"/></svg>Speak</button>
+            <button class="rc-button" data-variant="quiet" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#attach"/></svg>Attach a file</button>
+          </div>
+        </form>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="proposal">
+      <h3>Proposal</h3>
+      <p class="lib-note">Pencil until a person confirms it, then ink. Nothing the assistant derives is applied silently.</p>
+      <div class="lib-stage lib-columns" data-example>
+        <div class="rc-proposal">
+          <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#pencil-note"/></svg>Suggested from what you wrote</p>
+          <p class="rc-proposal-value">A hydrologist to map the springs</p>
+          <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-intellectual-12" interestfor="index-tag-intellectual-12"><span class="rc-tag" data-capital="intellectual"><span class="rc-tile" data-state="suggested" aria-hidden="true">In</span>Intellectual</span></button><span class="rc-tooltip" id="index-tag-intellectual-12" popover="hint">Knowledge. Research, data and methods.</span></span></li></ul>
+          <div class="rc-action-bar">
+            <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Keep</button>
+            <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Edit</button>
+            <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Remove</button>
+          </div>
+        </div>
+        <div class="rc-proposal" data-state="confirmed">
+          <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#check"/></svg>Kept</p>
+          <p class="rc-proposal-value">Native seedlings for four hectares</p>
+          <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-living-13" interestfor="index-tag-living-13"><span class="rc-tag" data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span>Living</span></button><span class="rc-tooltip" id="index-tag-living-13" popover="hint">Land and living things. Land, water, seeds, soil and living systems.</span></span></li></ul>
+          <div class="rc-action-bar"><button class="rc-button" data-variant="quiet" data-size="sm" type="button">Edit</button></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="choice-group">
+      <h3>Choice group</h3>
+      <p class="lib-note">Selectable cards for short vocabularies. The native control stays visible. Use radios up to five options, and a select from six.</p>
+      <div class="lib-stage" data-example>
+        <fieldset class="rc-choice-group">
+          <legend>Who can see your initiative?</legend>
+          <label class="rc-choice"><input class="rc-check" type="radio" name="visibility-example" checked><span class="rc-choice-text"><span class="rc-choice-title"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#lock"/></svg>Only you</span><span class="rc-choice-note">You still see your matches. Nobody can find you.</span></span></label>
+          <label class="rc-choice"><input class="rc-check" type="radio" name="visibility-example"><span class="rc-choice-text"><span class="rc-choice-title"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#people"/></svg>People signed in</span><span class="rc-choice-note">Other initiatives can see it and ask for an introduction.</span></span></label>
+          <label class="rc-choice"><input class="rc-check" type="radio" name="visibility-example"><span class="rc-choice-text"><span class="rc-choice-title"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#globe"/></svg>Anyone</span><span class="rc-choice-note">It gets a public page you can link to.</span></span></label>
+        </fieldset>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="stepper">
+      <h3>Stepper</h3>
+      <p class="lib-note">A number or check, weight and a thick edge all mark where you are.</p>
+      <div class="lib-stage" data-example>
+        <ol class="rc-stepper" aria-label="Steps">
+          <li data-state="done"><a href="#stepper"><span class="rc-stepper-mark"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#check"/></svg></span><span class="rc-visually-hidden">Done: </span>Initiative</a></li>
+          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Offers</li>
+        </ol>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="card">
+      <h3>Card</h3>
+      <p class="lib-note">One bold title. Initiative, need, offer, opportunity and partner differ only in which parts they fill. Each opens with its reason or purpose. Summaries stop at three lines. A pencil card is an imported record nobody has confirmed yet.</p>
+      <div class="lib-stage lib-columns" data-example>
+        <article class="rc-card" data-stage="flowering">
+          <header class="rc-card-header">
+            <h4 class="rc-card-title"><a href="#card">Serra Azul Agroforestry School</a></h4>
+            <p class="rc-card-meta"><span><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#place"/></svg>Rio das Almas basin, Brazil</span><span class="rc-stage" data-stage="flowering"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#flowering"/></svg>Up and running</span></p>
+          </header>
+          <ul class="rc-reasons">
+            <li class="rc-reason"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#watershed"/></svg>Works in the same basin as you.</li>
+            <li class="rc-reason"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#offer"/></svg>Offers native seedlings, which you need.</li>
+          </ul>
+          <span class="rc-fit" data-level="strong"><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Strong fit</span>
+          <div class="rc-action-bar">
+            <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Ask for an introduction</button>
+            <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Not a fit</button>
+          </div>
+        </article>
+        <article class="rc-card" data-kind="need">
+          <header class="rc-card-header">
+            <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#need"/></svg>Need</p>
+            <h4 class="rc-card-title">R$ 60,000 for fencing</h4>
+          </header>
+          <p class="rc-card-summary">To keep cattle away from three springs while the seedlings take hold. We can start as soon as the rains end, and the whole community has agreed where the fence should run, including the neighbouring farms along the upper valley.</p>
+          <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-financial-14" interestfor="index-tag-financial-14"><span class="rc-tag" data-capital="financial"><span class="rc-tile" aria-hidden="true">Fi</span>Financial</span></button><span class="rc-tooltip" id="index-tag-financial-14" popover="hint">Money. Grants, loans, donations and payment.</span></span></li></ul>
+        </article>
+        <article class="rc-card" data-kind="offer">
+          <header class="rc-card-header">
+            <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#offer"/></svg>Offer</p>
+            <h4 class="rc-card-title">Spring-mapping training for two groups a year</h4>
+          </header>
+          <ul class="rc-tag-list"><li><span class="rc-tooltip-wrap"><button class="rc-tooltip-trigger" type="button" data-tooltip="index-tag-experiential-15" interestfor="index-tag-experiential-15"><span class="rc-tag" data-capital="experiential"><span class="rc-tile" aria-hidden="true">Ex</span>Experiential</span></button><span class="rc-tooltip" id="index-tag-experiential-15" popover="hint">Skills and know-how learned by doing.</span></span></li></ul>
+        </article>
+        <article class="rc-card" data-pencil>
+          <header class="rc-card-header">
+            <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#pencil-note"/></svg>Imported, not confirmed yet</p>
+            <h4 class="rc-card-title">Associação Comunitária das Guardiãs das Nascentes do Alto Rio das Almas</h4>
+          </header>
+          <div class="rc-stamp">
+            <span class="rc-time" data-stale><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>May be out of date</span>
+            <button class="rc-button" data-variant="quiet" data-size="sm" type="button">This is us</button>
+          </div>
+        </article>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="record">
+      <h3>Record</h3>
+      <p class="lib-note">What we know so far, with room for what is still missing. Screen readers hear each tile's state in words.</p>
+      <div class="lib-stage" data-example>
+        <dl class="rc-record">
+          <div>
+            <dt>Needs</dt>
+            <dd>
+              <ul class="rc-tile-list" aria-label="Needs by kind of support">
+                <li data-capital="living"><span class="rc-tile" aria-hidden="true">Li</span><span class="rc-visually-hidden">Land and living things: kept</span></li>
+                <li data-capital="financial"><span class="rc-tile" data-state="suggested" aria-hidden="true">Fi</span><span class="rc-visually-hidden">Money: suggested</span></li>
+              </ul>
+            </dd>
+          </div>
+          <div>
+            <dt>Offers</dt>
+            <dd data-empty>Comes next</dd>
+          </div>
+        </dl>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="notice">
+      <h3>Notice</h3>
+      <p class="lib-note">An icon and words carry the meaning. Hue only supports them.</p>
+      <div class="lib-stage" data-example>
+        <div class="rc-notice" data-tone="success" role="status"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg><div class="rc-notice-body"><p class="rc-notice-title">Saved. Only you can see it.</p></div></div>
+        <div class="rc-notice" data-tone="info"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#info"/></svg><div class="rc-notice-body"><p class="rc-notice-title">Your browser can run the assistant</p><p>It downloads once, about 40 MB, and your words stay on this device.</p></div></div>
+        <div class="rc-notice" data-tone="warning"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg><div class="rc-notice-body"><p class="rc-notice-title">This funder's page may have changed</p><p>Last confirmed in March. Check with the funder before you apply.</p></div></div>
+        <div class="rc-notice" data-tone="danger" role="alert"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg><div class="rc-notice-body"><p class="rc-notice-title">We could not send your code</p><p>Your work is still here. Try again in a minute.</p></div></div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="message">
+      <h3>Message</h3>
+      <p class="lib-note">Alignment and surface tell speakers apart, not hue.</p>
+      <div class="lib-stage rc-guide-log" data-example>
+        <p class="rc-message" data-from="assistant">Where does most of your work happen?</p>
+        <p class="rc-message" data-from="person">Around the springs above our town.</p>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="tabs">
+      <h3>Tabs</h3>
+      <p class="lib-note">The active tab joins its content, and each tab shows its count.</p>
+      <div class="lib-stage" data-example>
+        <nav class="rc-tabs" aria-label="Kinds of match">
+          <a href="#tabs" aria-current="page">Partners (3)</a>
+          <a href="#tabs">Funding (5)</a>
+        </nav>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="status">
+      <h3>Save status, progress and search</h3>
+      <p class="lib-note">Save status always says where the work lives. Progress says what is happening and how to stop it. Search is a box, a button and the word Search.</p>
+      <div class="lib-stage" data-example>
+        <div class="lib-row">
+          <p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#device"/></svg>Saved on this device only</p>
+          <p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg>Saved</p>
+        </div>
+        <div class="rc-progress">
+          <label for="download">Downloading the assistant: 12 of 40 MB</label>
+          <progress id="download" max="40" value="12">12 of 40 MB</progress>
+          <div class="rc-action-bar"><button class="rc-button" data-variant="quiet" data-size="sm" type="button">Cancel</button></div>
+        </div>
+        <form class="rc-search" role="search" action="#status">
+          <label class="rc-visually-hidden" for="search-funding">Search funding</label>
+          <input class="rc-input" id="search-funding" name="q" type="search">
+          <button class="rc-button" data-variant="secondary" type="submit">Search</button>
+        </form>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="breadcrumbs">
+      <h3>Breadcrumbs, facts and empty state</h3>
+      <p class="lib-note">Breadcrumbs suit the place hierarchy. Facts state consent and privacy terms in plain words. An empty state is a first screen with one thing to do.</p>
+      <div class="lib-stage" data-example>
+        <nav class="rc-breadcrumbs" aria-label="Where you are"><ol><li><a href="#breadcrumbs">Tocantins basin</a></li><li><a href="#breadcrumbs">Rio das Almas</a></li><li aria-current="page">Upper valley</li></ol></nav>
+        <dl class="rc-facts">
+          <div><dt>Who runs it</dt><dd>Example Provider, under a no-retention agreement</dd></div>
+          <div><dt>What is sent</dt><dd>Only the text you just wrote</dd></div>
+          <div><dt>How long it is kept</dt><dd>Not kept after the reply</dd></div>
+        </dl>
+        <section class="rc-empty" aria-labelledby="empty-example">
+          <h4 id="empty-example" class="rc-empty-title">No partners here yet</h4>
+          <p>When one fits what you need, it appears here.</p>
+          <button class="rc-button" data-variant="primary" type="button">Email me when one appears</button>
+        </section>
+      </div>
+    </article>
+  </section>
+
+  <section class="lib-level" id="organisms" aria-labelledby="organisms-title">
+    <h2 id="organisms-title" class="rc-heading" data-size="page">Organisms</h2>
+
+    <article class="lib-pattern" id="app-header">
+      <h3>App header and bottom navigation</h3>
+      <p class="lib-note">The product name sits top-left and returns home. Sections sit in the header on wide screens and at the bottom on phones. Form pages keep only the name and helpful status.</p>
+      <div class="lib-frame" data-example>
+        <header class="rc-app-header">
+          <a class="rc-logo" href="#app-header"><svg class="rc-logo-mark" aria-hidden="true"><use href="../brand/icons.svg#mark"/></svg>Weave</a>
+          <nav class="rc-app-nav" aria-label="Example main navigation">
+            <a href="#app-header" aria-current="page">Partners</a>
+            <a href="#app-header">Funding</a>
+            <a href="#app-header">Places</a>
+          </nav>
+          <a class="rc-button" data-variant="quiet" data-size="sm" href="#app-header">Sign in</a>
+        </header>
+        <nav class="rc-bottom-nav" aria-label="Example phone navigation">
+          <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#home"/></svg>Home</a>
+          <a href="#app-header" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#people"/></svg>Partners</a>
+          <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#funding"/></svg>Funding</a>
+          <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#place"/></svg>Places</a>
+        </nav>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="guide">
+      <h3>Guide panel and review sheet</h3>
+      <p class="lib-note">The conversation for one step, what it suggested and a box to add more. <a href="pages/step-needs.html">See it on a page</a>.</p>
+      <div class="lib-stage" data-example>
+        <section class="rc-guide" aria-label="Example conversation">
+          <p class="rc-guide-status"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#device"/></svg>Assistant, running on your device</p>
+          <div class="rc-guide-log"><p class="rc-message" data-from="assistant">I found one need. Keep it if it is right.</p></div>
+          <section class="rc-review" aria-label="Example review">
+            <ul class="rc-review-list">
+              <li class="rc-proposal">
+                <p class="rc-proposal-source"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#pencil-note"/></svg>Suggested from what you wrote</p>
+                <p class="rc-proposal-value">A hydrologist to map the springs</p>
+              </li>
+            </ul>
+          </section>
+        </section>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="code-panel">
+      <h3>Code panel</h3>
+      <p class="lib-note">Save or sign in with one field per step. Inline, never a modal. Errors keep what was typed. The same panel serves every moment that asks for an email.</p>
+      <div class="lib-stage lib-columns" data-example>
+        <section class="rc-code-panel" aria-label="Email step">
+          <header>
+            <h4 class="rc-code-panel-title">Keep this initiative</h4>
+            <p>Email yourself a code to save it and open it on any device. Only you can see it until you choose to share it.</p>
+          </header>
+          <form class="rc-form" action="#code-panel">
+            <div class="rc-field">
+              <label for="panel-email">Email</label>
+              <input class="rc-input" id="panel-email" name="email" type="email" autocomplete="email">
+            </div>
+            <div class="rc-code-panel-actions">
+              <button class="rc-button" data-variant="primary" type="submit">Email me a code</button>
+              <button class="rc-button" data-variant="quiet" type="button">Not now</button>
+            </div>
+          </form>
+        </section>
+        <section class="rc-code-panel" aria-label="Code step with an error">
+          <p>We sent a code to <strong>ana@example.org</strong>. <a href="#code-panel">Wrong email?</a></p>
+          <form class="rc-form" action="#code-panel">
+            <div class="rc-field">
+              <label for="panel-code">Code from your email</label>
+              <input class="rc-input" data-kind="code" id="panel-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" aria-invalid="true" aria-describedby="panel-code-error" value="482139">
+              <p class="rc-error" id="panel-code-error"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>That code does not match. Check it, or send a new one.</p>
+            </div>
+            <div class="rc-code-panel-actions">
+              <button class="rc-button" data-variant="primary" type="submit">Save my initiative</button>
+              <button class="rc-button" data-variant="quiet" type="button">Send a new code</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="card-list">
+      <h3>Card list</h3>
+      <p class="lib-note">A counted list. <a href="pages/matches.html">See it on a page</a>, or <a href="pages/matches-empty.html">with nothing in it</a>.</p>
+      <div class="lib-stage" data-example>
+        <section class="rc-card-list" aria-label="Example list">
+          <header class="rc-card-list-header">
+            <h4 class="rc-heading" data-size="section">Funding that fits</h4>
+            <a class="rc-button" data-variant="quiet" data-size="sm" href="#card-list">See all 5</a>
+          </header>
+          <ul class="rc-card-list-items">
+            <li><article class="rc-card"><header class="rc-card-header"><h5 class="rc-card-title"><a href="#card-list">US$ 25,000 from the Headwaters Commons Fund</a></h5></header></article></li>
+          </ul>
+        </section>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="dialog">
+      <h3>Dialog</h3>
+      <p class="lib-note">Native and modal, for consent and confirming steps only. Saving never uses one.</p>
+      <div class="lib-stage" data-example>
+        <button class="rc-button" data-variant="secondary" type="button" data-open-dialog="consent-example">Show the cloud assistant consent</button>
+        <dialog class="rc-dialog" id="consent-example" aria-labelledby="consent-example-title">
+          <form class="rc-dialog-body" method="dialog">
+            <h4 id="consent-example-title" class="rc-dialog-title">Send this to a cloud assistant?</h4>
+            <p>Your device cannot run the assistant, so this one step needs a server.</p>
+            <dl class="rc-facts">
+              <div><dt>Who runs it</dt><dd>Example Provider, under a no-retention agreement</dd></div>
+              <div><dt>What is sent</dt><dd>Only the text you just wrote</dd></div>
+              <div><dt>How long it is kept</dt><dd>Not kept after the reply</dd></div>
+            </dl>
+            <div class="rc-action-bar">
+              <button class="rc-button" data-variant="primary" value="yes">Send this once</button>
+              <button class="rc-button" data-variant="quiet" value="no">Keep typing instead</button>
+            </div>
+          </form>
+        </dialog>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="table">
+      <h3>Data table</h3>
+      <p class="lib-note">For the steward desk and the record of assistant use. Numbers align right. Related values merge into one cell.</p>
+      <div class="lib-stage" data-example>
+        <div class="rc-table-scroll">
+          <table class="rc-table">
+            <thead><tr><th scope="col">When and what</th><th scope="col">Where it ran</th><th scope="col" data-align="end">Words sent</th></tr></thead>
+            <tbody>
+              <tr><td>12 October, needs step</td><td>On your device</td><td data-align="end">0</td></tr>
+              <tr><td>14 October, offers step</td><td>Cloud assistant, with your consent</td><td data-align="end">118</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="lib-level" id="pages" aria-labelledby="pages-title">
+    <h2 id="pages-title" class="rc-heading" data-size="page">Pages</h2>
+    <p class="lib-note">Layouts with representative content. Each is built only from the patterns above. Anything that could not be assembled went back into the system as a fix.</p>
+    <ul class="lib-toc">
+      <li><a href="pages/describe.html">Describe</a> <a href="pages/check-card.html">Check card</a> <a href="pages/home.html">Home</a></li>
+      <li><a href="pages/needs.html">Needs</a></li>
+      <li><a href="pages/offers.html">Offers</a></li>
+      <li><a href="pages/intake-finish.html">Intake finish</a></li>
+      <li><a href="pages/step-needs.html">Earlier conversation pattern</a></li>
+      <li><a href="pages/finish.html">Finish and save</a></li>
+      <li><a href="pages/code.html">Enter your code</a></li>
+      <li><a href="pages/saved.html">Saved</a></li>
+      <li><a href="pages/matches.html">Matches</a></li>
+      <li><a href="pages/matches-empty.html">Matches, empty</a></li>
+    </ul>
+  </section>
+<p><a href="pages/opportunity.html">Opportunity and team example</a></p><p><a href="pages/opportunity-private.html">Private team counts example</a></p></main>
+</body>
+</html>

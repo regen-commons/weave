@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark">
+    <script>
+      // Applies a saved or requested theme before first paint. Without it the page follows the system.
+      (function () {
+        var theme = null;
+        try {
+          theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme");
+        } catch (e) {}
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.dataset.theme = theme;
+          document.querySelector('meta[name="color-scheme"]').content = theme;
+        }
+      })();
+    </script>
+    <title>Offers example</title>
+    <link rel="icon" href="../../brand/logo/favicon.svg" />
+    <link
+      rel="preload"
+      href="../../fonts/space-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="../../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="../../fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="../../css/index.css" />
+    <script type="module" src="../library.js"></script>
+  </head>
+  <body>
+    <div class="rc-page">
+      <a class="rc-skip-link" href="#main">Skip to content</a>
+      <header class="rc-app-header">
+        <a class="rc-logo" href="home.html"
+          ><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark" /></svg
+          >Weave</a
+        >
+        <p class="rc-save-status" data-state="device">Example saved on this device</p>
+      </header>
+      <main class="rc-main" id="main">
+        <h1 class="rc-heading" data-size="page">What can your initiative offer?</h1>
+        <p class="rc-meta">Fictional pattern example. The supplied cards and your notes stay in this page.</p>
+        <div class="rc-step-layout">
+          <div class="rc-step-main">
+            <section class="rc-guide rc-conversation-panel">
+              <p class="rc-guide-status">Assistant example, on this device</p>
+              <ol class="rc-conversation" data-example-conversation>
+                <li class="rc-conversation-turn">
+                  <p class="rc-conversation-label">Assistant</p>
+                  <p class="rc-message" data-from="assistant">What can you share with others?</p>
+                </li>
+              </ol>
+              <div class="rc-voice-input">
+                <p class="rc-meta">Local speech is not available in this static example. Type below.</p>
+                <p class="rc-voice-transcript">Your words stay editable.</p>
+              </div>
+              <form class="rc-composer" data-example-answer>
+                <label for="example-words">Type your answer</label
+                ><textarea class="rc-input" id="example-words" rows="4" maxlength="20000" required></textarea
+                ><button class="rc-button" data-variant="secondary" type="submit">Add your answer</button>
+              </form>
+              <p class="rc-meta">
+                The app makes cards from your words; this example shows supplied cards for review.
+              </p>
+              <div class="rc-action-bar">
+                <a class="rc-button" data-variant="primary" href="intake-finish.html"
+                  >Finish: see what fits</a
+                >
+              </div>
+            </section>
+          </div>
+          <aside class="rc-step-aside" data-ask-demo>
+            <div class="rc-ask-head">
+              <h2 class="rc-heading" data-size="section">Your offers</h2>
+              <p class="rc-ask-count" data-ask-demo-count>2 of 5</p>
+            </div>
+            <ul class="rc-ask-list">
+              <li data-ask-demo-item>
+                <article class="rc-card rc-ask-card" data-pencil data-ask-demo-card>
+                  <ul class="rc-tag-list" data-ask-demo-tags aria-label="Kinds of support">
+                    <li>
+                      <span class="rc-tooltip-wrap"
+                        ><button
+                          class="rc-tooltip-trigger"
+                          type="button"
+                          data-tooltip="offers-0-experiential"
+                          interestfor="offers-0-experiential"
+                        >
+                          <span class="rc-tag" data-capital="experiential"
+                            ><span class="rc-tile" aria-hidden="true">Ex</span>Experiential</span
+                          ></button
+                        ><span class="rc-tooltip" id="offers-0-experiential" popover="hint"
+                          >Skills and know-how</span
+                        ></span
+                      >
+                    </li>
+                    <li>
+                      <span class="rc-tooltip-wrap"
+                        ><button
+                          class="rc-tooltip-trigger"
+                          type="button"
+                          data-tooltip="offers-0-intellectual"
+                          interestfor="offers-0-intellectual"
+                        >
+                          <span class="rc-tag" data-capital="intellectual"
+                            ><span class="rc-tile" aria-hidden="true">In</span>Intellectual</span
+                          ></button
+                        ><span class="rc-tooltip" id="offers-0-intellectual" popover="hint"
+                          >Knowledge</span
+                        ></span
+                      >
+                    </li>
+                  </ul>
+                  <h3 class="rc-ask-title" data-ask-demo-title>A workshop and a mapping method</h3>
+                  <p class="rc-ask-terms">Our region, Gift or exchange</p>
+                  <div class="rc-ask-foot">
+                    <p class="rc-proposal-source" data-ask-demo-source>
+                      Suggested from your words. Check this.
+                    </p>
+                    <div class="rc-action-bar">
+                      <button class="rc-button" data-variant="secondary" type="button" data-ask-demo-keep>
+                        Keep</button
+                      ><button class="rc-button" data-variant="quiet" type="button" data-ask-demo-change>
+                        Change</button
+                      ><button class="rc-button" data-variant="quiet" type="button" data-ask-demo-remove>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </article>
+                <form class="rc-form rc-ask-editor" data-ask-demo-editor hidden>
+                  <div class="rc-field">
+                    <label for="offers-0-title">What you can offer</label
+                    ><input
+                      class="rc-input"
+                      id="offers-0-title"
+                      name="title"
+                      value="A workshop and a mapping method"
+                      maxlength="140"
+                      required
+                    />
+                  </div>
+                  <fieldset class="rc-menu-group">
+                    <legend>Kinds of support</legend>
+                    <p class="rc-hint">Choose every kind it involves.</p>
+                    <label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="living" /><span
+                        >Living: Land and living things</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="material" /><span
+                        >Material: Tools and equipment</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input
+                        class="rc-check"
+                        type="checkbox"
+                        name="kind"
+                        value="intellectual"
+                      /><span>Intellectual: Knowledge</span></label
+                    ><label class="rc-menu-option"
+                      ><input
+                        class="rc-check"
+                        type="checkbox"
+                        name="kind"
+                        value="experiential"
+                      /><span>Experiential: Skills and know-how</span></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="social" /><span
+                        >Social: Relationships</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="financial" /><span
+                        >Financial: Money</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="cultural" /><span
+                        >Cultural: Culture and story</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="spiritual" /><span
+                        >Spiritual: Care and spirit</span
+                      ></label
+                    >
+                  </fieldset>
+                  <div class="rc-field">
+                    <label for="offers-0-scope">Where</label
+                    ><select class="rc-input" id="offers-0-scope" name="scope">
+                      <option>Here</option>
+                      <option>Our region</option>
+                      <option>Anywhere</option>
+                    </select>
+                  </div>
+                  <p class="rc-error" role="alert" data-ask-demo-error hidden>
+                    Choose at least one kind of support.
+                  </p>
+                  <div class="rc-action-bar">
+                    <button class="rc-button" data-variant="primary" type="submit">Keep changes</button
+                    ><button class="rc-button" data-variant="quiet" type="button" data-ask-demo-cancel>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+                <div class="rc-proposal" data-state="confirmed" data-ask-demo-removed hidden>
+                  <p class="rc-proposal-source">Removed from this example.</p>
+                  <button class="rc-button" data-variant="quiet" type="button" data-ask-demo-undo>
+                    Undo remove
+                  </button>
+                </div>
+              </li>
+              <li data-ask-demo-item>
+                <article class="rc-card rc-ask-card" data-pencil data-ask-demo-card>
+                  <ul class="rc-tag-list" data-ask-demo-tags aria-label="Kinds of support">
+                    <li>
+                      <span class="rc-tooltip-wrap"
+                        ><button
+                          class="rc-tooltip-trigger"
+                          type="button"
+                          data-tooltip="offers-1-cultural"
+                          interestfor="offers-1-cultural"
+                        >
+                          <span class="rc-tag" data-capital="cultural"
+                            ><span class="rc-tile" aria-hidden="true">Cu</span>Cultural</span
+                          ></button
+                        ><span class="rc-tooltip" id="offers-1-cultural" popover="hint"
+                          >Culture and story</span
+                        ></span
+                      >
+                    </li>
+                    <li>
+                      <span class="rc-tooltip-wrap"
+                        ><button
+                          class="rc-tooltip-trigger"
+                          type="button"
+                          data-tooltip="offers-1-spiritual"
+                          interestfor="offers-1-spiritual"
+                        >
+                          <span class="rc-tag" data-capital="spiritual"
+                            ><span class="rc-tile" aria-hidden="true">Sp</span>Spiritual</span
+                          ></button
+                        ><span class="rc-tooltip" id="offers-1-spiritual" popover="hint"
+                          >Care and spirit</span
+                        ></span
+                      >
+                    </li>
+                  </ul>
+                  <h3 class="rc-ask-title" data-ask-demo-title>Stories and a practice of care</h3>
+                  <p class="rc-ask-terms">Our region, Gift or exchange</p>
+                  <div class="rc-ask-foot">
+                    <p class="rc-proposal-source" data-ask-demo-source>
+                      Suggested from your words. Check this.
+                    </p>
+                    <div class="rc-action-bar">
+                      <button class="rc-button" data-variant="secondary" type="button" data-ask-demo-keep>
+                        Keep</button
+                      ><button class="rc-button" data-variant="quiet" type="button" data-ask-demo-change>
+                        Change</button
+                      ><button class="rc-button" data-variant="quiet" type="button" data-ask-demo-remove>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </article>
+                <form class="rc-form rc-ask-editor" data-ask-demo-editor hidden>
+                  <div class="rc-field">
+                    <label for="offers-1-title">What you can offer</label
+                    ><input
+                      class="rc-input"
+                      id="offers-1-title"
+                      name="title"
+                      value="Stories and a practice of care"
+                      maxlength="140"
+                      required
+                    />
+                  </div>
+                  <fieldset class="rc-menu-group">
+                    <legend>Kinds of support</legend>
+                    <p class="rc-hint">Choose every kind it involves.</p>
+                    <label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="living" /><span
+                        >Living: Land and living things</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="material" /><span
+                        >Material: Tools and equipment</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="intellectual" /><span
+                        >Intellectual: Knowledge</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="experiential" /><span
+                        >Experiential: Skills and know-how</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="social" /><span
+                        >Social: Relationships</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="financial" /><span
+                        >Financial: Money</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="cultural" /><span
+                        >Cultural: Culture and story</span
+                      ></label
+                    ><label class="rc-menu-option"
+                      ><input class="rc-check" type="checkbox" name="kind" value="spiritual" /><span
+                        >Spiritual: Care and spirit</span
+                      ></label
+                    >
+                  </fieldset>
+                  <div class="rc-field">
+                    <label for="offers-1-scope">Where</label
+                    ><select class="rc-input" id="offers-1-scope" name="scope">
+                      <option>Here</option>
+                      <option>Our region</option>
+                      <option>Anywhere</option>
+                    </select>
+                  </div>
+                  <p class="rc-error" role="alert" data-ask-demo-error hidden>
+                    Choose at least one kind of support.
+                  </p>
+                  <div class="rc-action-bar">
+                    <button class="rc-button" data-variant="primary" type="submit">Keep changes</button
+                    ><button class="rc-button" data-variant="quiet" type="button" data-ask-demo-cancel>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+                <div class="rc-proposal" data-state="confirmed" data-ask-demo-removed hidden>
+                  <p class="rc-proposal-source">Removed from this example.</p>
+                  <button class="rc-button" data-variant="quiet" type="button" data-ask-demo-undo>
+                    Undo remove
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </main>
+      <footer class="rc-footer" data-slim="true">
+        <ul class="rc-footer-row">
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-data">
+              What we store
+            </button>
+          </li>
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-assistant">
+              What the assistant did
+            </button>
+          </li>
+          <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
+          <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+          <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+          <li>
+            <button class="rc-footer-link" type="button" data-open-dialog="example-policy">
+              Data policy
+            </button>
+          </li>
+        </ul>
+      </footer>
+      <dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+          <p>
+            This is fictional example content. Form choices stay in this page. Only an Appearance choice is
+            stored in this browser.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+          <p>The assistant has not run in this example.</p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+          <p>
+            The full Weave data policy must be published before saving or sharing opens. This example sends no
+            initiative data.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-cloud" aria-labelledby="example-cloud-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-cloud-title">Send this step to a cloud assistant?</h2>
+          <p>Fictional example. Nothing is sent.</p>
+          <dl class="rc-facts">
+            <div>
+              <dt>Who runs it</dt>
+              <dd>Example provider and model</dd>
+            </div>
+            <div>
+              <dt>Where</dt>
+              <dd>Example region</dd>
+            </div>
+            <div>
+              <dt>What is sent</dt>
+              <dd>Nothing in this simulation</dd>
+            </div>
+            <div>
+              <dt>Never sent</dt>
+              <dd>Audio and files</dd>
+            </div>
+            <div>
+              <dt>How long it is kept</dt>
+              <dd>Nothing leaves this page</dd>
+            </div>
+          </dl>
+          <button class="rc-button" data-variant="secondary" type="submit">Keep it on this device</button>
+        </form>
+      </dialog>
+    </div>
+  </body>
+</html>

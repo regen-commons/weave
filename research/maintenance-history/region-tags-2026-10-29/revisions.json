@@ -1,0 +1,706 @@
+{
+  "version": 1,
+  "baseCommit": "1c86877af0db2a7f0465412008ec067103b8dc39",
+  "recordedOn": "2026-10-29",
+  "scope": "Broad region navigation tags only; no change to program geography, applicant eligibility, award terms, dates, sources or verification dates.",
+  "catalogRecordCount": 699,
+  "priorCatalogFundsSha256": "015913aeeea2f1150c8e2c63879ec2056082d30fad2aef3688dcfe71a6ab2730",
+  "priorManifestSha256": "c8178a0b744bd2943518c8487b785063c4092766ff4ba887fddd84b311cc796e",
+  "unchangedFilesSha256": {
+    "research/program-conditions.json": "e102634bea2153982a432d433f7ebadb115ba6f3c14a93ed27ae4507c66b5781",
+    "dist/data/program-conditions.json": "e102634bea2153982a432d433f7ebadb115ba6f3c14a93ed27ae4507c66b5781",
+    "research/maintenance-review-log.json": "2d7dbf920ddc55c48a6713ab6e76407ab316c0e587871eb560370a31b5f4602c",
+    "research/deepening-result.json": "82846451880d8c72c58c13ff9a73a1d33d960b18f76382b76a3a1a11d5e31bd2"
+  },
+  "revisions": [
+    {
+      "fundId": "local-cdfw",
+      "afterRegions": [
+        "North America"
+      ],
+      "evidence": {
+        "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+        "checkedOn": "2026-10-29",
+        "note": "California project locations in the Mojave Desert tortoise range/recovery units support the North America navigation tag. Applicant domicile remains unestablished."
+      },
+      "priorFundSha256": "974cf9809544a098cae327665a8db7658341f64c5b88f08197e6987a655aa8e7",
+      "priorFundRecord": {
+        "id": "local-cdfw",
+        "name": "California Department of Fish and Wildlife",
+        "displayName": "California Department of Fish and Wildlife",
+        "program": "Mojave Desert Tortoise Recovery — 2026 call",
+        "description": "State support for habitat restoration and species recovery in California.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "evidenceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "additionalSources": [
+          "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+          "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline="
+        ],
+        "sourceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "access": "open",
+        "accessDetail": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections.",
+        "amount": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances.",
+        "timing": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections.",
+        "deadlineDate": "2026-12-03",
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "cdfw",
+          "upstreamRecordId": null,
+          "aliases": "CDFW; California Department of Fish and Wildlife; wildlife.ca.gov"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-cdfw",
+          "researchedOn": "2026-10-29",
+          "name": "California Department of Fish and Wildlife",
+          "summary": "State support for habitat restoration and species recovery in California.",
+          "themes": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "cdfw-mojave-tortoise-2026",
+              "name": "Mojave Desert Tortoise Recovery — 2026 call",
+              "instrument": "grant",
+              "focus": [
+                "Habitat restoration",
+                "Biodiversity",
+                "Wildlife connectivity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in Mojave Desert tortoise range/recovery units in California; listed counties are examples, not an exhaustive list. Applicant domicile is not established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Public agencies",
+                  "Special districts",
+                  "California Native American Tribes",
+                  "Private entities",
+                  "Nonprofits",
+                  "Land trusts"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Project must operate within the California priority area and demonstrate measurable tortoise recovery outcomes.",
+                  "Secure required permits and site access; all work and final invoices are due March 15, 2029.",
+                  "Submit complete forms and supporting documents through CDFW WebGrants and comply with grant agreement requirements."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                "opensOn": "2026-10-21",
+                "closesOn": "2026-12-03",
+                "deadlineInstant": null,
+                "note": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections."
+              },
+              "costs": {
+                "supported": [
+                  "Habitat restoration, connectivity, population recovery, monitoring and coordination"
+                ],
+                "excluded": [
+                  "Work before the signed agreement is not reimbursed."
+                ]
+              },
+              "evidence": [
+                {
+                  "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                  "fields": [
+                    "focus",
+                    "application",
+                    "award"
+                  ],
+                  "note": "Official owner announcement and application link.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award"
+                  ],
+                  "note": "State listing: applicant categories and date; displayed time has no timezone.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "costs"
+                  ],
+                  "note": "October 2026 PDF body reviewed, including sections 3–10; stale PDF metadata title is not the document title.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Exact cutoff time and timezone; fiscal sponsorship.",
+                "Per-award bounds and explicit currency.",
+                "Workshop date conflict (November 4/9); awards early 2027 versus spring 2027.",
+                "Project-specific legal, permitting, indirect-cost and advance-payment terms."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "evidence": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "cdfw-mojave-tortoise-2026"
+      },
+      "priorInputEntry": {
+        "fund": {
+          "id": "local-cdfw",
+          "name": "California Department of Fish and Wildlife",
+          "displayName": "California Department of Fish and Wildlife",
+          "program": "",
+          "description": "State support for habitat restoration and species recovery in California.",
+          "descriptionBasis": "primary",
+          "sectors": [],
+          "regions": [],
+          "approaches": [],
+          "grantBands": [],
+          "website": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+          "evidenceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+          "additionalSources": [],
+          "sourceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+          "access": "unconfirmed",
+          "accessDetail": "",
+          "amount": "",
+          "timing": "",
+          "deadlineDate": null,
+          "deadlineInstant": null,
+          "verifiedOn": "2026-10-29",
+          "qualityFlags": [],
+          "fieldsFilled": 0,
+          "aliasNote": "",
+          "origin": {
+            "kind": "supplemental-research",
+            "batchId": "manual-monday-discovery-2026-10-29",
+            "candidateId": "cdfw",
+            "upstreamRecordId": null,
+            "aliases": "CDFW; California Department of Fish and Wildlife; wildlife.ca.gov"
+          }
+        },
+        "enrichment": {
+          "sourceRecordId": "local-cdfw",
+          "researchedOn": "2026-10-29",
+          "name": "California Department of Fish and Wildlife",
+          "summary": "State support for habitat restoration and species recovery in California.",
+          "themes": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "cdfw-mojave-tortoise-2026",
+              "name": "Mojave Desert Tortoise Recovery — 2026 call",
+              "instrument": "grant",
+              "focus": [
+                "Habitat restoration",
+                "Biodiversity",
+                "Wildlife connectivity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in Mojave Desert tortoise range/recovery units in California; listed counties are examples, not an exhaustive list. Applicant domicile is not established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Public agencies",
+                  "Special districts",
+                  "California Native American Tribes",
+                  "Private entities",
+                  "Nonprofits",
+                  "Land trusts"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Project must operate within the California priority area and demonstrate measurable tortoise recovery outcomes.",
+                  "Secure required permits and site access; all work and final invoices are due March 15, 2029.",
+                  "Submit complete forms and supporting documents through CDFW WebGrants and comply with grant agreement requirements."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                "opensOn": "2026-10-21",
+                "closesOn": "2026-12-03",
+                "deadlineInstant": null,
+                "note": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections."
+              },
+              "costs": {
+                "supported": [
+                  "Habitat restoration, connectivity, population recovery, monitoring and coordination"
+                ],
+                "excluded": [
+                  "Work before the signed agreement is not reimbursed."
+                ]
+              },
+              "evidence": [
+                {
+                  "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                  "fields": [
+                    "focus",
+                    "application",
+                    "award"
+                  ],
+                  "note": "Official owner announcement and application link.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award"
+                  ],
+                  "note": "State listing: applicant categories and date; displayed time has no timezone.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "costs"
+                  ],
+                  "note": "October 2026 PDF body reviewed, including sections 3–10; stale PDF metadata title is not the document title.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Exact cutoff time and timezone; fiscal sponsorship.",
+                "Per-award bounds and explicit currency.",
+                "Workshop date conflict (November 4/9); awards early 2027 versus spring 2027.",
+                "Project-specific legal, permitting, indirect-cost and advance-payment terms."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "evidence": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fundId": "local-funbio",
+      "afterRegions": [
+        "Latin America & Caribbean"
+      ],
+      "evidence": {
+        "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "checkedOn": "2026-10-29",
+        "note": "The Sobradinho and Itaparica reservoir watershed project area in Brazil supports the Latin America & Caribbean navigation tag. Applicant-registration jurisdiction still requires the regulation."
+      },
+      "priorFundSha256": "657ecfeafdef833dee927405c11203869489492e3a0a4a04f79a90dc53d74a98",
+      "priorFundRecord": {
+        "id": "local-funbio",
+        "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "displayName": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "program": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+        "description": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "evidenceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "additionalSources": [],
+        "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "access": "open",
+        "accessDetail": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval.",
+        "amount": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified.",
+        "timing": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval.",
+        "deadlineDate": "2026-12-02",
+        "deadlineInstant": "2026-12-02T22:00:00Z",
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "funbio",
+          "upstreamRecordId": null,
+          "aliases": "FUNBIO; Fundo Brasileiro para a Biodiversidade"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-funbio",
+          "researchedOn": "2026-10-29",
+          "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "summary": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+          "themes": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "funbio-floresta-viva-sao-francisco-2026",
+              "name": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+              "instrument": "grant",
+              "focus": [
+                "Ecological restoration",
+                "Water resources",
+                "Community capacity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "BR"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in the watershed influence areas of Sobradinho and Itaparica reservoirs, Brazil. Full applicant-registration jurisdiction rules require the regulation.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Nonprofit civil associations",
+                  "Private foundations",
+                  "Cooperatives"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Proponent must have been legally constituted for at least two years.",
+                  "Use the nine required proposal objectives and the official electronic submission route."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "BRL",
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                "opensOn": "2026-10-01",
+                "closesOn": "2026-12-02",
+                "deadlineInstant": "2026-12-02T22:00:00Z",
+                "note": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                  "fields": [
+                    "focus",
+                    "geography",
+                    "applicants",
+                    "award",
+                    "application"
+                  ],
+                  "note": "Production call overview reviewed; regulation endpoint returned no readable terms.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Regulation unavailable: full legal eligibility, fiscal sponsorship, award bounds, cost rules, duration and attachments need review.",
+                "Authenticated application flow not tested."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "title": "Fundo Brasileiro para a Biodiversidade (FUNBIO) — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "evidence": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "funbio-floresta-viva-sao-francisco-2026"
+      },
+      "priorInputEntry": {
+        "fund": {
+          "id": "local-funbio",
+          "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "displayName": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "program": "",
+          "description": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+          "descriptionBasis": "primary",
+          "sectors": [],
+          "regions": [],
+          "approaches": [],
+          "grantBands": [],
+          "website": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+          "evidenceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+          "additionalSources": [],
+          "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+          "access": "unconfirmed",
+          "accessDetail": "",
+          "amount": "",
+          "timing": "",
+          "deadlineDate": null,
+          "deadlineInstant": null,
+          "verifiedOn": "2026-10-29",
+          "qualityFlags": [],
+          "fieldsFilled": 0,
+          "aliasNote": "",
+          "origin": {
+            "kind": "supplemental-research",
+            "batchId": "manual-monday-discovery-2026-10-29",
+            "candidateId": "funbio",
+            "upstreamRecordId": null,
+            "aliases": "FUNBIO; Fundo Brasileiro para a Biodiversidade"
+          }
+        },
+        "enrichment": {
+          "sourceRecordId": "local-funbio",
+          "researchedOn": "2026-10-29",
+          "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "summary": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+          "themes": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "funbio-floresta-viva-sao-francisco-2026",
+              "name": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+              "instrument": "grant",
+              "focus": [
+                "Ecological restoration",
+                "Water resources",
+                "Community capacity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "BR"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in the watershed influence areas of Sobradinho and Itaparica reservoirs, Brazil. Full applicant-registration jurisdiction rules require the regulation.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Nonprofit civil associations",
+                  "Private foundations",
+                  "Cooperatives"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Proponent must have been legally constituted for at least two years.",
+                  "Use the nine required proposal objectives and the official electronic submission route."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "BRL",
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                "opensOn": "2026-10-01",
+                "closesOn": "2026-12-02",
+                "deadlineInstant": "2026-12-02T22:00:00Z",
+                "note": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                  "fields": [
+                    "focus",
+                    "geography",
+                    "applicants",
+                    "award",
+                    "application"
+                  ],
+                  "note": "Production call overview reviewed; regulation endpoint returned no readable terms.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Regulation unavailable: full legal eligibility, fiscal sponsorship, award bounds, cost rules, duration and attachments need review.",
+                "Authenticated application flow not tested."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "title": "Fundo Brasileiro para a Biodiversidade (FUNBIO) — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "evidence": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

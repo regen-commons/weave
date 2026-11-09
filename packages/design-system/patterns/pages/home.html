@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark">
+    <script>
+      // Applies a saved or requested theme before first paint. Without it the page follows the system.
+      (function () {
+        var theme = null;
+        try {
+          theme = new URLSearchParams(location.search).get("theme") || localStorage.getItem("rc-theme");
+        } catch (e) {}
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.dataset.theme = theme;
+          document.querySelector('meta[name="color-scheme"]').content = theme;
+        }
+      })();
+    </script>
+    <title>Home example</title>
+    <link rel="icon" href="../../brand/logo/favicon.svg" />
+    <link
+      rel="preload"
+      href="../../fonts/space-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="../../fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="../../fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="../../css/index.css" />
+    <script type="module" src="../library.js"></script>
+  </head>
+  <body>
+    <div class="rc-page">
+      <a class="rc-skip-link" href="#main">Skip to content</a>
+      <p class="rc-site-banner">Still in development will be live soon</p>
+      <header class="rc-app-header">
+        <a class="rc-logo" href="home.html"
+          ><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark" /></svg
+          >Weave</a
+        >
+        <nav class="rc-app-nav" aria-label="Main">
+          <a href="home.html" aria-current="page">Home</a>
+          <a href="matches.html">Partners</a>
+          <a href="funding.html">Funding</a>
+          <a href="initiatives.html">Initiatives</a>
+        </nav>
+        <p class="rc-save-status">Nothing saved yet</p>
+      </header>
+      <main class="rc-main" id="main">
+        <p class="rc-meta">Fictional examples. Dates are shown as of 4 November 2026.</p>
+        <div class="rc-stack" data-gap="wide">
+          <section class="rc-home-hero" aria-labelledby="home-title">
+            <svg class="rc-woven-backdrop" aria-hidden="true" focusable="false">
+              <use href="../../brand/weave-threads.svg#threads" />
+            </svg>
+            <h1 class="rc-heading" data-size="hero" id="home-title">
+              Find partners and funding for <em>regenerative work</em>
+            </h1>
+            <p class="rc-prose">Describe your initiative once to find support.</p>
+            <div class="rc-home-actions">
+              <a class="rc-button" data-variant="primary" data-size="lg" href="step-needs.html"
+                >Describe your initiative</a
+              ><a class="rc-button" data-variant="secondary" data-size="lg" href="initiatives.html"
+                >Browse initiatives</a
+              >
+            </div>
+            <form class="rc-field" action="initiatives.html" role="search">
+              <label for="home-search">Search initiatives</label>
+              <div class="rc-search rc-inline-field">
+                <input class="rc-input" type="search" id="home-search" name="q" /><button
+                  class="rc-button"
+                  data-variant="secondary"
+                  type="submit"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
+            <div class="rc-home-live">
+              <a class="rc-button" data-variant="quiet" data-size="sm" href="initiatives.html"
+                >6 example initiatives shared</a
+              >
+            </div>
+          </section>
+          <section class="rc-section" aria-labelledby="how">
+            <div class="rc-section-head">
+              <h2 id="how" class="rc-heading" data-size="section">Three steps</h2>
+            </div>
+            <ol class="rc-numbered-list">
+              <li class="rc-numbered-item">
+                <span class="rc-numbered-number" aria-hidden="true">1</span>
+                <h3 class="rc-numbered-title"><a href="step-needs.html">Tell us about it</a></h3>
+                <p class="rc-meta">Start with the work you do together.</p>
+              </li>
+              <li class="rc-numbered-item">
+                <span class="rc-numbered-number" aria-hidden="true">2</span>
+                <h3 class="rc-numbered-title">Say what you need and offer</h3>
+                <p class="rc-meta">Up to five of each. Money is one of eight kinds.</p>
+              </li>
+              <li class="rc-numbered-item">
+                <span class="rc-numbered-number" aria-hidden="true">3</span>
+                <h3 class="rc-numbered-title">See who fits</h3>
+                <p class="rc-meta">Funding first. Partners once you share.</p>
+              </li>
+            </ol>
+          </section>
+          <section class="rc-section" aria-labelledby="kinds">
+            <div class="rc-section-head">
+              <h2 id="kinds" class="rc-heading" data-size="section">
+                Money is one of eight kinds of support
+              </h2>
+            </div>
+            <ul class="rc-tile-grid">
+              <li data-capital="living">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-living"
+                    interestfor="kind-living"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">Li</span
+                      ><span class="rc-tile-card-title">Living</span
+                      ><span class="rc-tile-card-meaning">Land and living things</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-living" popover="hint"
+                    >Land, water, seeds, soil and living systems.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="material">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-material"
+                    interestfor="kind-material"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">Ma</span
+                      ><span class="rc-tile-card-title">Material</span
+                      ><span class="rc-tile-card-meaning">Tools and equipment</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-material" popover="hint"
+                    >Tools, materials, buildings, equipment and vehicles.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="intellectual">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-intellectual"
+                    interestfor="kind-intellectual"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">In</span
+                      ><span class="rc-tile-card-title">Intellectual</span
+                      ><span class="rc-tile-card-meaning">Knowledge</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-intellectual" popover="hint"
+                    >Research, data, methods and recorded knowledge.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="experiential">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-experiential"
+                    interestfor="kind-experiential"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">Ex</span
+                      ><span class="rc-tile-card-title">Experiential</span
+                      ><span class="rc-tile-card-meaning">Skills and know-how</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-experiential" popover="hint"
+                    >Practical skills learned by doing and shared by teaching.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="social">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-social"
+                    interestfor="kind-social"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">So</span
+                      ><span class="rc-tile-card-title">Social</span
+                      ><span class="rc-tile-card-meaning">Relationships</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-social" popover="hint"
+                    >Trust, introductions, partners and people who can help.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="financial">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-financial"
+                    interestfor="kind-financial"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">Fi</span
+                      ><span class="rc-tile-card-title">Financial</span
+                      ><span class="rc-tile-card-meaning">Money</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-financial" popover="hint"
+                    >Grants, loans, donations and payment for the work.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="cultural">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-cultural"
+                    interestfor="kind-cultural"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">Cu</span
+                      ><span class="rc-tile-card-title">Cultural</span
+                      ><span class="rc-tile-card-meaning">Culture and story</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-cultural" popover="hint"
+                    >Art, stories, music, language and shared cultural practices.</span
+                  ></span
+                >
+              </li>
+              <li data-capital="spiritual">
+                <span class="rc-tooltip-wrap"
+                  ><button
+                    class="rc-tooltip-trigger"
+                    type="button"
+                    data-tooltip="kind-spiritual"
+                    interestfor="kind-spiritual"
+                  >
+                    <span class="rc-tile-card"
+                      ><span class="rc-tile" aria-hidden="true">Sp</span
+                      ><span class="rc-tile-card-title">Spiritual</span
+                      ><span class="rc-tile-card-meaning">Care and spirit</span></span
+                    ></button
+                  ><span class="rc-tooltip" id="kind-spiritual" popover="hint"
+                    >Care, ritual, meaning and connection to place.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </section>
+          <section class="rc-section" aria-labelledby="recent">
+            <div class="rc-section-head">
+              <h2 id="recent" class="rc-heading" data-size="section">Recently shared</h2>
+              <a class="rc-button" data-variant="quiet" data-size="sm" href="initiatives.html"
+                >Browse all initiatives</a
+              >
+            </div>
+            <ul class="rc-card-grid">
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <div class="rc-media" role="img" aria-label="Synthetic image placeholder">
+                    <svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#place" /></svg>
+                  </div>
+                  <h3 class="rc-card-title"><a href="initiatives.html">Orchard learning circle</a></h3>
+                  <p class="rc-card-meta">Upper valley, Brazil</p>
+                  <p class="rc-card-summary">
+                    Families restore an orchard and share what they learn about soil, water and seeds.
+                  </p>
+                  <div class="rc-action-bar">
+                    <a class="rc-button" data-variant="secondary" href="initiatives.html"
+                      >Browse initiatives</a
+                    >
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <div class="rc-media" role="img" aria-label="Synthetic image placeholder">
+                    <svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#place" /></svg>
+                  </div>
+                  <h3 class="rc-card-title"><a href="initiatives.html">Field learning school</a></h3>
+                  <p class="rc-card-meta">Coastal valley, Portugal</p>
+                  <p class="rc-card-summary">
+                    A community learning space shares growing skills and seasonal care practices.
+                  </p>
+                  <div class="rc-action-bar">
+                    <a class="rc-button" data-variant="secondary" href="initiatives.html"
+                      >Browse initiatives</a
+                    >
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <div class="rc-media" role="img" aria-label="Synthetic image placeholder">
+                    <svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#place" /></svg>
+                  </div>
+                  <h3 class="rc-card-title"><a href="initiatives.html">Willow tools cooperative</a></h3>
+                  <p class="rc-card-meta">Hill district, Kenya</p>
+                  <p class="rc-card-summary">
+                    A shared workshop repairs tools and lends equipment to community gardens.
+                  </p>
+                  <div class="rc-action-bar">
+                    <a class="rc-button" data-variant="secondary" href="initiatives.html"
+                      >Browse initiatives</a
+                    >
+                  </div>
+                </article>
+              </li>
+            </ul>
+          </section>
+          <section class="rc-section" aria-labelledby="soon">
+            <div class="rc-section-head">
+              <h2 id="soon" class="rc-heading" data-size="section">Funding closing soon</h2>
+              <a class="rc-button" data-variant="quiet" data-size="sm" href="funding.html">See all funding</a>
+            </div>
+            <p class="rc-meta">Example dates as of 4 November 2026.</p>
+            <ul class="rc-card-grid">
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <p class="rc-meta">US$ 15,000, 26 days left</p>
+                  <h3 class="rc-card-title"><a href="funding.html">Headwater learning grant</a></h3>
+                  <p class="rc-card-meta">Closes 30 November 2026</p>
+                  <p class="rc-card-summary">
+                    Fictional funding for community work. Check eligibility with the funder.
+                  </p>
+                  <div class="rc-action-bar">
+                    <a class="rc-button" data-variant="secondary" href="funding.html">Browse funding</a>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <p class="rc-meta">US$ 20,000, 72 days left</p>
+                  <h3 class="rc-card-title"><a href="funding.html">Shared tools fund</a></h3>
+                  <p class="rc-card-meta">Closes 15 January 2027</p>
+                  <p class="rc-card-summary">
+                    Fictional funding for community work. Check eligibility with the funder.
+                  </p>
+                  <div class="rc-action-bar">
+                    <a class="rc-button" data-variant="secondary" href="funding.html">Browse funding</a>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <p class="rc-meta">€ 10,000, 116 days left</p>
+                  <h3 class="rc-card-title"><a href="funding.html">Culture and care award</a></h3>
+                  <p class="rc-card-meta">Closes 28 February 2027</p>
+                  <p class="rc-card-summary">
+                    Fictional funding for community work. Check eligibility with the funder.
+                  </p>
+                  <div class="rc-action-bar">
+                    <a class="rc-button" data-variant="secondary" href="funding.html">Browse funding</a>
+                  </div>
+                </article>
+              </li>
+            </ul>
+          </section>
+          <p class="rc-meta">
+            Preview from the <a href="../index.html">pattern library</a>. Every organisation on this page is
+            fictional.
+          </p>
+        </div>
+      </main>
+      <footer class="rc-footer">
+        <div class="rc-footer-grid">
+          <section>
+            <h2 class="rc-footer-title">Weave</h2>
+            <ul>
+              <li><a class="rc-footer-link" href="step-needs.html">Describe your initiative</a></li>
+              <li><a class="rc-footer-link" href="matches.html">Partners</a></li>
+              <li><a class="rc-footer-link" href="funding.html">Funding</a></li>
+              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="rc-footer-title">Your data</h2>
+            <ul>
+              <li>
+                <button class="rc-footer-link" type="button" data-open-dialog="example-data">
+                  What we store
+                </button>
+              </li>
+              <li>
+                <button class="rc-footer-link" type="button" data-open-dialog="example-assistant">
+                  What the assistant did
+                </button>
+              </li>
+              <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="rc-footer-title">Regen Commons</h2>
+            <ul>
+              <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+              <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+              <li>
+                <button class="rc-footer-link" type="button" data-open-dialog="example-policy">
+                  Data policy
+                </button>
+              </li>
+            </ul>
+          </section>
+        </div>
+        <p class="rc-meta">Fictional example content. Nothing is sent or saved by this example.</p>
+      </footer>
+      <dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+          <p>
+            This is fictional example content. Form choices stay in this page. Only an Appearance choice is
+            stored in this browser.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+          <p>The assistant has not run in this example.</p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title">
+        <form class="rc-dialog-body" method="dialog">
+          <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+          <p>
+            The full Weave data policy must be published before saving or sharing opens. This example sends no
+            initiative data.
+          </p>
+          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+        </form>
+      </dialog>
+      <nav class="rc-bottom-nav" aria-label="Main">
+        <a href="home.html" aria-current="page"
+          ><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home" /></svg>Home</a
+        >
+        <a href="matches.html"
+          ><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg
+          >Partners</a
+        >
+        <a href="funding.html"
+          ><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg
+          >Funding</a
+        >
+        <a href="initiatives.html"
+          ><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#place" /></svg
+          >Initiatives</a
+        >
+      </nav>
+    </div>
+  </body>
+</html>

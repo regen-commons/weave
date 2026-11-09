@@ -1,0 +1,8 @@
+{
+  "originalCommit": "e0d199f93d3ca6e8f3a67ebdcbc11e3ec6639dbc",
+  "originalPath": "dist/data/research-followup.json",
+  "originalSha256": "82846451880d8c72c58c13ff9a73a1d33d960b18f76382b76a3a1a11d5e31bd2",
+  "priorPublishedCommit": "4688d55232b847b422370441fa1e79d5273a0ec8",
+  "priorPublishedArchive": "research/maintenance-history/manual-monday-2026-10-29/research-followup-before.json",
+  "note": "Freeze the exact pre-supplemental published report recovered from e0d199f. That snapshot may already include later policy updates under its October 15 checkedOn label; recovery does not prove contemporaneous October 15 field counts. The prior published revision is archived unchanged."
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="threads" viewBox="0 0 1280 640" preserveAspectRatio="none">
+    <g fill="none" stroke-width="1.5" opacity=".14" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="var(--on-capital-living)" d="M-80 78H180Q208 78 208 106V320Q208 348 236 348H720Q748 348 748 376V720"/>
+      <path stroke="var(--on-capital-material)" d="M-80 182H348Q376 182 376 210V488Q376 516 404 516H1360"/>
+      <path stroke="var(--on-capital-intellectual)" d="M-80 490H90Q118 490 118 462V270Q118 242 146 242H904Q932 242 932 214V-80"/>
+      <path stroke="var(--on-capital-experiential)" d="M-80 578H520Q548 578 548 550V134Q548 106 576 106H1360"/>
+      <path stroke="var(--on-capital-social)" d="M92-80V24Q92 52 120 52H1040Q1068 52 1068 80V548Q1068 576 1096 576H1360"/>
+      <path stroke="var(--on-capital-financial)" d="M444-80V392Q444 420 472 420H1144Q1172 420 1172 448V720"/>
+      <path stroke="var(--on-capital-cultural)" d="M636-80V136Q636 164 664 164H798Q826 164 826 192V720"/>
+      <path stroke="var(--on-capital-spiritual)" d="M-80 406H288Q316 406 316 434V608Q316 636 344 636H1360"/>
+    </g>
+  </symbol>
+</svg>

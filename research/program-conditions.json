@@ -2719,6 +2719,186 @@
       "sourceUrl": "https://www.verizon.com/about/responsibility/grant-requirements",
       "checkedOn": "2026-10-29",
       "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-hacker-initiative",
+      "programId": "hacker-initiative-signal-noise-2026",
+      "id": "hacker-initiative-signal-noise-2026-requirement-1",
+      "category": "other",
+      "requirement": "Project must advance the hacker community; comply with local law and USD receipt requirements, and obtain adult consent/supervision for minors.",
+      "sourceUrl": "https://docs.google.com/forms/d/e/1FAIpQLSc_6C9WO9PEXS3r1BN_Qq5LOL9xtoEux0pC6xTmxUlpxlanxg/viewform",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-hacker-initiative",
+      "programId": "hacker-initiative-signal-noise-2026",
+      "id": "hacker-initiative-signal-noise-2026-requirement-2",
+      "category": "other",
+      "requirement": "Submit in written English through the official form; one application per project per cycle.",
+      "sourceUrl": "https://hackerinitiative.org/application-faq/",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-hacker-initiative",
+      "programId": "hacker-initiative-signal-noise-2026",
+      "id": "hacker-initiative-signal-noise-2026-requirement-3",
+      "category": "other",
+      "requirement": "Recipients must provide a progress report within two months and final project and spending reports.",
+      "sourceUrl": "https://hackerinitiative.org/application-faq/",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-project-2026",
+      "id": "linux-australia-project-2026-requirement-1",
+      "category": "other",
+      "requirement": "Applicant must be a Linux Australia member and submit through the member login.",
+      "sourceUrl": "https://linux.org.au/grants-program/",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-project-2026",
+      "id": "linux-australia-project-2026-requirement-2",
+      "category": "other",
+      "requirement": "Outputs should use an appropriate open licence; explain community benefit and the requested budget.",
+      "sourceUrl": "https://linux.org.au/grants-program/",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-project-2026",
+      "id": "linux-australia-project-2026-requirement-3",
+      "category": "other",
+      "requirement": "Hardware-development requests are limited to one such grant per individual/group per cycle; a final project report is required.",
+      "sourceUrl": "https://linux.org.au/wp-content/uploads/2021/02/linux_australia_grants_guidelines.pdf",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-community-2026",
+      "id": "linux-australia-community-2026-requirement-1",
+      "category": "other",
+      "requirement": "Applicant must be a Linux Australia member and submit through the member login.",
+      "sourceUrl": "https://linux.org.au/grants-program/",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-community-2026",
+      "id": "linux-australia-community-2026-requirement-2",
+      "category": "other",
+      "requirement": "Outputs should use an appropriate open licence; explain community benefit and the requested budget.",
+      "sourceUrl": "https://linux.org.au/grants-program/",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-community-2026",
+      "id": "linux-australia-community-2026-requirement-3",
+      "category": "other",
+      "requirement": "Hardware-development requests are limited to one such grant per individual/group per cycle; a final project report is required.",
+      "sourceUrl": "https://linux.org.au/wp-content/uploads/2021/02/linux_australia_grants_guidelines.pdf",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-people-powered",
+      "programId": "people-powered-cda-2027",
+      "id": "people-powered-cda-2027-requirement-1",
+      "category": "other",
+      "requirement": "Government and civil society partnership required; grant recipient must be a registered nonprofit with at least one year of operations/fundraising, paid staff and a board/advisory body.",
+      "sourceUrl": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-people-powered",
+      "programId": "people-powered-cda-2027",
+      "id": "people-powered-cda-2027-requirement-2",
+      "category": "other",
+      "requirement": "Recipient must supply at least 12 months of financial evidence and accept USD international transfers; Indian recipients need FCRA registration.",
+      "sourceUrl": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-people-powered",
+      "programId": "people-powered-cda-2027",
+      "id": "people-powered-cda-2027-requirement-3",
+      "category": "other",
+      "requirement": "Lead participant needs English, French, Portuguese or Spanish proficiency and must complete training and a participatory renewable-energy or regenerative-agriculture action plan.",
+      "sourceUrl": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-people-powered",
+      "programId": "people-powered-cda-2027",
+      "id": "people-powered-cda-2027-requirement-4",
+      "category": "other",
+      "requirement": "Former participants may join a coalition but cannot lead it.",
+      "sourceUrl": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-cdfw",
+      "programId": "cdfw-mojave-tortoise-2026",
+      "id": "cdfw-mojave-tortoise-2026-requirement-1",
+      "category": "other",
+      "requirement": "Project must operate within the California priority area and demonstrate measurable tortoise recovery outcomes.",
+      "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-cdfw",
+      "programId": "cdfw-mojave-tortoise-2026",
+      "id": "cdfw-mojave-tortoise-2026-requirement-2",
+      "category": "other",
+      "requirement": "Secure required permits and site access; all work and final invoices are due March 15, 2029.",
+      "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-cdfw",
+      "programId": "cdfw-mojave-tortoise-2026",
+      "id": "cdfw-mojave-tortoise-2026-requirement-3",
+      "category": "other",
+      "requirement": "Submit complete forms and supporting documents through CDFW WebGrants and comply with grant agreement requirements.",
+      "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-funbio",
+      "programId": "funbio-floresta-viva-sao-francisco-2026",
+      "id": "funbio-floresta-viva-sao-francisco-2026-requirement-1",
+      "category": "other",
+      "requirement": "Proponent must have been legally constituted for at least two years.",
+      "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-funbio",
+      "programId": "funbio-floresta-viva-sao-francisco-2026",
+      "id": "funbio-floresta-viva-sao-francisco-2026-requirement-2",
+      "category": "other",
+      "requirement": "Use the nine required proposal objectives and the official electronic submission route.",
+      "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+      "checkedOn": "2026-10-29",
+      "kind": "prerequisite"
     }
   ]
 }

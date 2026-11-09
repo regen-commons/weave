@@ -6,9 +6,13 @@ Site: https://funding-commons.vercel.app
 
 Publication status: public on Vercel since October 16, 2026. The OpenAI Site registered in `.openai/hosting.json` was never deployed.
 
+## Platform plan and design system
+
+[docs/platform](docs/platform/README.md) holds the plan for growing this site into a Regen Commons platform for initiatives, needs, offers and partner matching. [DESIGN.md](DESIGN.md) and [packages/design-system/](packages/design-system/README.md) define the Regen Commons design system and brand in code. Neither changes the live site in `dist/`.
+
 ## Catalog and maintenance
 
-The catalog contains **694 funders** and 762 program/overview search documents. Official-source review of all 94 remaining historical leads supports **87 program entries from 81 leads**, across 64 new funders and five existing funders. Thirteen leads remain outside the catalog with recorded reasons. [The review report](research/history-verification-2026-10-29.md) links every disposition and its official evidence.
+The catalog contains **699 funders** and 768 program/overview search documents. The [Monday discovery test](research/manual-monday-test-2026-10-29.md) adds five funders and six programs while preserving all 694 prior full records. Official-source review of all 94 remaining historical leads supports **87 program entries from 81 leads**, across 64 new funders and five existing funders. Thirteen leads remain outside the catalog with recorded reasons. [The review report](research/history-verification-2026-10-29.md) links every disposition and its official evidence.
 
 All 630 existing identities and their prior fields, programs and sources remain intact. Five funders receive appended programs and sources; only their derived additional-source lists change. `research/history-verification-baseline.json` records hashes for the complete prior revision. Tests also retain the earlier 618-record preservation check.
 
@@ -51,13 +55,15 @@ The preview serves http://127.0.0.1:4176/. Use `PORT` for a different port. `dis
 
 The repository lives at `/Users/afo/Code/regen/funding-commons`. `vercel.json` configures a static deployment from `dist/`: install the frozen Bun lockfile, run the complete build, then run the tests before publication. A fresh build downloads checksum-pinned model files and generates the fund vectors; these outputs remain outside Git. No application secrets are required.
 
+`.github/workflows/validate.yml` runs the build, tests and tracked-output check for every PR, including drafts and stacked PRs. It uses Node 24.20.0, Bun 1.4.2 and read-only repository permissions. These checks run independently of Vercel’s branch preview policy.
+
 Installed dependencies, local caches, `.vercel` metadata and environment files are ignored. The dependency folder is machine-local and is recreated with `bun install --frozen-lockfile` after cloning.
 
 ## Project workspaces
 
 Anyone can create a project with a name, description, total funding goal, currency and tags. Optional eligibility context distinguishes work countries, benefit countries, applicant base, legal registration and the actual applicant type. Benefit countries are never inferred from activity locations or global membership. Existing version 2 profiles receive unknown/empty defaults without changing saved IDs. Programme-condition answers are validated and included in local backups. Renaming preserves them; changing description, tags, goals or eligibility context clears them so an earlier proposal is not silently reused. Answers never enter embeddings or shared URLs. A project owns its saved list. Editing its details keeps its favorites; removing it moves its funds to General. New visitors start without predefined organization profiles.
 
-Selecting a project ranks all 618 records for its description and tags. Keyword ranking works immediately; local AI is optional. Application access, name and deadline sorts remain available. Funding goals inform award explanations but do not impose eligibility or total-goal exclusions.
+Selecting a project ranks all 699 records for its description and tags. Keyword ranking works immediately; local AI is optional. Application access, name and deadline sorts remain available. Funding goals inform award explanations but do not impose eligibility or total-goal exclusions.
 
 The directory retains search, theme/region/access filters, research-depth and primary-research filters, 24-card load-more navigation, native fund dialogs, two-to-four-fund comparison and deep links using `?fund=<source-id>`.
 
@@ -124,7 +130,7 @@ The user-approved runtime is pinned to Transformers.js 4.2.0, ONNX Runtime Web 1
 
 Following the [Artizen reference](https://github.com/Oba-One/artizen-fyi/tree/find-funds-for-upstream) at commit `da744982700eab124c707b300ecc30f9b59c1a48`, public fund vectors are generated before deployment and a browser worker embeds only the visitor’s project. This implementation uses single-threaded WebAssembly to work without GPU support or cross-origin-isolation headers. It explicitly constructs the pinned BERT tokenizer because Transformers.js v4 remote file discovery cannot inspect a local HTTP model directory with remote loading disabled.
 
-The release has 663 program/overview documents across all 618 funders. Each named program gets its own vector; records without researched programs retain an overview vector. Every document uses the same model, quantized weights, mean pooling and 256-dimensional truncation followed by normalization. A release manifest records the exact corpus hash, text hashes, IDs, model contract and binary checksum. Any corpus/model/coverage mismatch prevents semantic matching; partial model results never mix with keyword scores.
+The release has 768 program/overview documents across all 699 funders. Each named program gets its own vector; records without researched programs retain an overview vector. Every document uses the same model, quantized weights, mean pooling and 256-dimensional truncation followed by normalization. A release manifest records the exact corpus hash, text hashes, IDs, model contract and binary checksum. Any corpus/model/coverage mismatch prevents semantic matching; partial model results never mix with keyword scores.
 
 Each program corpus entry uses that program’s focus and beneficiaries, with the funder mission as fallback when program topics are absent. It never combines sibling program topics. Overview records prefer verified mission over directory themes and funding approaches. Directory tags provide the fallback where official thematic evidence is missing. Historical project assessments, applicant exclusions, availability prose and private notes are excluded. Records with no thematic data receive zero relevance and remain visible for manual research. Records identified as other funding resources follow possible grantmakers without being hidden. Project names, goal amounts and applicant identifiers are excluded from the embedding query; descriptions and tags define the subject.
 

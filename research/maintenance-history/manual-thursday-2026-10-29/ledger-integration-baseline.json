@@ -1,0 +1,16 @@
+[
+  {
+    "commit": "591e80a38a83fdc012c90a46bb2090cd965b8787",
+    "runId": "manual-monday-discovery-2026-10-29",
+    "entryCount": 9,
+    "entriesSha256": "29998b61b022fcdbd6ea9482433a071b66f2d260bb88e756eb561c4a729dad16",
+    "runSha256": "fc359b4e76d85bc6017e78cf64473c99139d83ad5252527ca2746aabbebbc7c6"
+  },
+  {
+    "commit": "1cf1751fb6753380097b29d634d5b5406572f29f",
+    "runId": "manual-thursday-2026-10-29",
+    "entryCount": 253,
+    "entriesSha256": "d96273bed82d26e0945a3b6a44293e30bbf20179497b3c319e8ae6f527b5701b",
+    "runSha256": "9b5032b208e50863c7ffe4d29004b6b6921c11037de5a567f08992e5a4c29b92"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "name": "@regen-commons/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Regen Commons tokens, layered CSS, fonts, brand assets and pattern library. DESIGN.md at the repository root is the token source.",
+  "exports": {
+    "./css": "./css/index.css",
+    "./tokens.css": "./tokens/tokens.generated.css",
+    "./tokens.json": "./tokens/tokens.generated.json",
+    "./fonts.css": "./fonts/fonts.css",
+    "./brand/*": "./brand/*",
+    "./overlays": {
+      "types": "./behaviors/overlays.d.ts",
+      "default": "./behaviors/overlays.js"
+    }
+  },
+  "scripts": {
+    "tokens": "node scripts/generate-tokens.mjs",
+    "check": "node scripts/generate-tokens.mjs --check && design.md lint ../../DESIGN.md",
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@google/design.md": "0.4.0",
+    "yaml": "2.9.1"
+  }
+}

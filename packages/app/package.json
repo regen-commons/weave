@@ -1,0 +1,31 @@
+{
+  "name": "@weave/app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Weave, the first version of the Regen Commons platform: a React 19 PWA built with Vite. Root directory of the Weave Vercel project.",
+  "scripts": {
+    "dev": "node scripts/copy-brand.mjs && vite --port 5173 --strictPort",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && node scripts/copy-brand.mjs && vite build",
+    "preview": "vite preview --port 4174 --strictPort",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "test": "node --conditions=source --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@regen-commons/design-system": "workspace:*",
+    "@weave/api": "workspace:*",
+    "pdfjs-dist": "6.5.438",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vite-plugin-pwa": "2.0.0"
+  }
+}

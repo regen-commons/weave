@@ -1,22 +1,22 @@
 {
   "version": 1,
   "checkedOn": "2026-10-29",
-  "recordCount": 694,
+  "recordCount": 699,
   "baselineCount": 593,
   "researchCounts": {
     "not_a_funder": 18,
-    "program_reviewed": 653,
+    "program_reviewed": 658,
     "source_reviewed": 14,
     "unresolved": 9
   },
   "fieldCoverage": {
-    "focus": 682,
-    "eligibility": 595,
-    "numericAward": 184,
-    "currentNumericAward": 83,
-    "datedDeadline": 190,
-    "upcomingDatedDeadline": 38,
-    "applicationRoute": 550
+    "focus": 687,
+    "eligibility": 600,
+    "numericAward": 186,
+    "currentNumericAward": 85,
+    "datedDeadline": 195,
+    "upcomingDatedDeadline": 43,
+    "applicationRoute": 555
   },
   "sourceWarningCount": 5,
   "records": [
@@ -23416,10 +23416,121 @@
         "https://www.sovereign.tech/programs/fund"
       ],
       "retrievals": []
+    },
+    {
+      "sourceRecordId": "local-hacker-initiative",
+      "name": "Hacker Initiative",
+      "reviewStatus": "program_reviewed",
+      "checkedOn": "2026-10-29",
+      "sourceCount": 4,
+      "programCount": 1,
+      "fields": {
+        "focus": true,
+        "eligibility": true,
+        "numericAward": true,
+        "currentNumericAward": true,
+        "datedDeadline": true,
+        "upcomingDatedDeadline": true,
+        "applicationRoute": true
+      },
+      "sources": [
+        "https://hackerinitiative.org/",
+        "https://docs.google.com/forms/d/e/1FAIpQLSc_6C9WO9PEXS3r1BN_Qq5LOL9xtoEux0pC6xTmxUlpxlanxg/viewform",
+        "https://hackerinitiative.org/grant-guidelines/",
+        "https://hackerinitiative.org/application-faq/"
+      ],
+      "retrievals": []
+    },
+    {
+      "sourceRecordId": "local-linux-australia",
+      "name": "Linux Australia",
+      "reviewStatus": "program_reviewed",
+      "checkedOn": "2026-10-29",
+      "sourceCount": 2,
+      "programCount": 2,
+      "fields": {
+        "focus": true,
+        "eligibility": true,
+        "numericAward": false,
+        "currentNumericAward": false,
+        "datedDeadline": true,
+        "upcomingDatedDeadline": true,
+        "applicationRoute": true
+      },
+      "sources": [
+        "https://linux.org.au/grants-program/",
+        "https://linux.org.au/wp-content/uploads/2021/02/linux_australia_grants_guidelines.pdf"
+      ],
+      "retrievals": []
+    },
+    {
+      "sourceRecordId": "local-people-powered",
+      "name": "People Powered",
+      "reviewStatus": "program_reviewed",
+      "checkedOn": "2026-10-29",
+      "sourceCount": 1,
+      "programCount": 1,
+      "fields": {
+        "focus": true,
+        "eligibility": true,
+        "numericAward": true,
+        "currentNumericAward": true,
+        "datedDeadline": true,
+        "upcomingDatedDeadline": true,
+        "applicationRoute": true
+      },
+      "sources": [
+        "https://www.peoplepowered.org/climate-democracy-accelerator"
+      ],
+      "retrievals": []
+    },
+    {
+      "sourceRecordId": "local-cdfw",
+      "name": "California Department of Fish and Wildlife",
+      "reviewStatus": "program_reviewed",
+      "checkedOn": "2026-10-29",
+      "sourceCount": 3,
+      "programCount": 1,
+      "fields": {
+        "focus": true,
+        "eligibility": true,
+        "numericAward": false,
+        "currentNumericAward": false,
+        "datedDeadline": true,
+        "upcomingDatedDeadline": true,
+        "applicationRoute": true
+      },
+      "sources": [
+        "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+        "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline="
+      ],
+      "retrievals": []
+    },
+    {
+      "sourceRecordId": "local-funbio",
+      "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+      "reviewStatus": "program_reviewed",
+      "checkedOn": "2026-10-29",
+      "sourceCount": 1,
+      "programCount": 1,
+      "fields": {
+        "focus": true,
+        "eligibility": true,
+        "numericAward": false,
+        "currentNumericAward": false,
+        "datedDeadline": true,
+        "upcomingDatedDeadline": true,
+        "applicationRoute": true
+      },
+      "sources": [
+        "https://chamadas.funbio.org.br/floresta-viva-sao-francisco"
+      ],
+      "retrievals": []
     }
   ],
   "notes": "All original and supplemental records have a research disposition. Source overviews, program terms and failed/unresolved checks are distinct. Unknown terms remain unknown. Retrieval entries describe collection, not a claim that terms were verified. Original30 pilot reviews were retained from October14; expanded research was checked October15.",
-  "compiledAt": "2026-10-30T02:08:05.976607+00:00",
+  "compiledAt": "2026-10-30T05:14:23.839542+00:00",
   "fieldDefinitions": {
     "currentNumericAward": "A numeric amount in published program terms, even if that intake is closed; not a promise of current availability.",
     "datedDeadline": "At least one source closing date, including historical or closed calls.",
