@@ -8,7 +8,8 @@ import { STATUS } from "../intake/contracts.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { NetworkResults } from "./NetworkResults.tsx";
-import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
+import { CertifiedSuggestions } from "./CertifiedSuggestions.tsx";
+import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { MatchingDate, SharingReview } from "./SharingReview.tsx";
 import { entryKey, entryReference, type MatchingEntry } from "./matching-client.ts";
 import { sharedEntries, useNetworkMatching } from "./use-network-matching.ts";
@@ -38,6 +39,10 @@ export function PartnerExperience({ mode }: { mode: "matches" | "preview" }) {
   const owner = state?.user?.id;
   const saved = draft.account.saved;
   const active = useMemo(() => activeInitiative(saved, owner), [saved, owner]);
+  const queries = useMemo(() => active ? privatePartnerQueries(active.id, active.revision,
+    draft.needs.items.filter(({ decision }) => decision === "kept"),
+    draft.offers.items.filter(({ decision }) => decision === "kept"),
+  ) : [], [active, draft.needs.items, draft.offers.items]);
   const compact = mode === "preview";
   const online = useSyncExternalStore(subscribeOnline, isOnline);
   const onExpired = () => {
@@ -47,9 +52,10 @@ export function PartnerExperience({ mode }: { mode: "matches" | "preview" }) {
 
   return (
     <div className="rc-stack">
-      {!online && <p className="rc-notice" data-tone="info" role="status">You’re offline. Public suggestions on this device are still available.</p>}
+      {active && ready && <CertifiedSuggestions key={`${active.owner}/${active.id}`}
+        workspaceId={active.id} queries={queries} compact={compact} online={online} />}
       {active && ready ? (
-        <OwnedMatching key={`${active.owner}/${active.id}/${active.revision}`}
+        <SavedMatching key={`${active.owner}/${active.id}/${active.revision}`}
           active={active} synced={active.contentKey === accountKey(draft)}
           compact={compact} online={online} onExpired={onExpired} fixture={state?.fixture === true} />
       ) : (
@@ -58,18 +64,12 @@ export function PartnerExperience({ mode }: { mode: "matches" | "preview" }) {
             {expired && !owner ? (
               <p className="rc-notice" data-tone="warning" role="alert">Your session ended. Sign in again to continue matching.</p>
             ) : (
-              <p>To match with other Weave initiatives, save your checked card privately, then choose an open need or offer to share.</p>
+              <p>Link a Certified project to get partner suggestions for your private needs and offers.</p>
             )}
             {!compact && <div className="rc-action-bar"><SaveAction variant="secondary">Save or load a card</SaveAction></div>}
           </div>
         )
       )}
-      {active ? (
-        <details className="rc-stack" open={!online || undefined}>
-          <summary>Public suggestions on this device</summary>
-          <PartnerDiscovery mode={mode} />
-        </details>
-      ) : <PartnerDiscovery mode={mode} />}
       {compact && active && (
         <div className="rc-action-bar"><ButtonLink href={pathTo("partners")} variant="secondary">Explore partners</ButtonLink></div>
       )}
@@ -77,13 +77,15 @@ export function PartnerExperience({ mode }: { mode: "matches" | "preview" }) {
   );
 }
 
-function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: {
+export function SavedMatching({ active, synced, compact, online, onExpired, fixture, readOnly = false, team = false }: {
   active: ActiveInitiative;
   synced: boolean;
   compact: boolean;
   online: boolean;
   onExpired(): void;
   fixture: boolean;
+  readOnly?: boolean;
+  team?: boolean;
 }) {
   const heading = useId();
   const network = useNetworkMatching(active, onExpired);
@@ -99,10 +101,10 @@ function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: 
   const blocked = network.loading || network.busy || !!network.pending || !online;
   const entries = stale ? [] : (state?.entries ?? []).flatMap((entry) => {
     const item = active.document[entry.kind === "need" ? "needs" : "offers"].find(({ id }) => id === entry.entryId);
-    return typeof item?.value.title === "string" ? [{ ...entry, title: item.value.title }] : [];
+    return typeof item?.value.title === "string" ? [{ ...entry, title: item.value.title, classified: Array.isArray(item.value.capitalForms) && item.value.capitalForms.length > 0 }] : [];
   });
   const eligible = entries.filter((entry) =>
-    entry.status === "open" && ["private", "needs_review", "withdrawn"].includes(entry.sharing));
+    !readOnly && entry.classified && entry.status === "open" && ["private", "needs_review", "withdrawn"].includes(entry.sharing));
   const selection = eligible.filter((entry) => selected.includes(selectionKey(entry)));
   const reviewing = synced && !stale && network.preview && (
     !network.pending || network.pending.action === network.preview.action
@@ -115,19 +117,20 @@ function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: 
 
   return (
     <section className="rc-stack" aria-labelledby={heading}>
-      <Title id={heading} className="rc-heading" data-size="section">{String(active.document.initiative.name)}</Title>
+      <Title id={heading} className="rc-heading" data-size="section">{team ? "Shared matching" : String(active.document.initiative.name)}</Title>
       {import.meta.env.DEV && fixture && (
         <p className="rc-notice" data-tone="info">Local matching fixture. Changes last until the development server restarts.</p>
       )}
       <p>Matching uses the entries you share from this saved card. You choose which entries others can see.</p>
-      {!synced && (
+      {!synced && !team && (
         <p className="rc-notice" data-tone="info">You have device edits. Save your checked card before reviewing a change to what you share.</p>
       )}
       {stale && (
-        <p className="rc-notice" data-tone="warning" role="alert">This card changed in your account. Load the latest saved card to continue. Loading keeps a device backup.</p>
+        <p className="rc-notice" data-tone="warning" role="alert">{team ? "This workspace changed. Reload to see the latest entries. Copy any unsaved changes first."
+          : "This card changed in your account. Load the latest saved card to continue. Loading keeps a device backup."}</p>
       )}
       <div className="rc-action-bar">
-        {!compact && <SaveAction variant="secondary">Save or switch cards</SaveAction>}
+        {!compact && !team && <SaveAction variant="secondary">Save or switch cards</SaveAction>}
         <button className="rc-button" data-variant="quiet" type="button" disabled={blocked} onClick={network.refresh}>Refresh matching</button>
       </div>
       {(network.loading || network.busy) && <p role="status">{network.loading ? "Checking sharing and matches" : "Updating matching"}</p>}
@@ -143,14 +146,14 @@ function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: 
         <>
           {entries.length ? (
             <fieldset className="rc-stack">
-              <legend>Choose entries to share</legend>
+              <legend>{readOnly ? "Sharing status" : "Choose entries to share"}</legend>
               <ul className="rc-ask-summary">
                 {entries.map((entry) => {
                   const selectable = eligible.includes(entry);
                   const shared = sharedEntries([entry]).length > 0;
                   const expired = entry.sharing === "expired" || (entry.sharing === "shared" && !shared);
-                  const renewable = entry.status === "open" && (shared || expired);
-                  const withdrawable = shared || expired || entry.sharing === "needs_review";
+                  const renewable = !readOnly && entry.classified && entry.status === "open" && (shared || expired);
+                  const withdrawable = !readOnly && (shared || expired || entry.sharing === "needs_review");
                   return (
                     <li key={entryKey(entry)}>
                       {selectable ? (
@@ -162,6 +165,7 @@ function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: 
                       ) : <strong>{entry.kind === "need" ? "Need" : "Offer"}, {entry.title}</strong>}
                       <p className="rc-meta">
                         {entry.status === "open" ? sharingLabels[expired ? "expired" : entry.sharing] : STATUS[entry.status]}
+                        {!entry.classified && entry.status === "open" && ". Choose a kind of support before sharing."}
                         {shared && entry.expiresAt && <> until <MatchingDate value={entry.expiresAt} /></>}
                       </p>
                       {(renewable || withdrawable) && (
@@ -202,7 +206,7 @@ function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: 
           {!network.loading && !sharedEntries(entries).length && !!entries.length && <p>Share an open need or offer to see network matches.</p>}
         </>
       )}
-      {reviewing && (
+      {!readOnly && reviewing && (
         <SharingReview review={reviewing.review} action={reviewing.action} busy={network.busy || !online}
           retry={!!network.pending} error={online ? network.error : "You’re offline. Reconnect to confirm sharing."} onClose={network.cancelReview}
           onConfirm={() => {
@@ -212,7 +216,7 @@ function OwnedMatching({ active, synced, compact, online, onExpired, fixture }: 
           }} />
       )}
       <NetworkResults search={online ? network.search : null} leads={online ? network.leads : null} entries={entries}
-        compact={compact} blocked={blocked}
+        compact={compact} blocked={blocked} readOnly={readOnly}
         onChange={(entry, candidateId, disposition) => void network.mutate({
           action: "set_lead", input: { entry: entryReference(entry), candidateId, disposition, requestId: crypto.randomUUID() },
         })}

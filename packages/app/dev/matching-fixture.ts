@@ -5,9 +5,12 @@ import {
   type MatchingEntryRef, type MatchingEntryState, type MatchingLead, type MatchingPreview, type MatchingState,
 } from "@weave/api/matching-contract";
 import { rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "@weave/api/partner-matcher";
-import type { AccountDocument, JsonObject, SavedInitiative } from "@weave/api/account-contract";
+import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedInitiative } from "@weave/api/account-contract";
+import { createProjectHandler } from "../../api/src/project-http.ts";
+import { sessionCookies } from "../../api/src/account-http.ts";
 import { AccountError } from "../../api/src/account-provider.ts";
-import { fixtureInitiative } from "./account-fixture.ts";
+import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureInitiative } from "./account-fixture.ts";
+import accountExample from "../../api/src/test-data/account.json" with { type: "json" };
 
 const DAY = 86_400_000;
 const conflict = (): never => { throw new AccountError(409, "matching_conflict"); };
@@ -45,12 +48,12 @@ function reconcile(account: string, saved: SavedInitiative) {
 
 function entryState({ value: _value, summary: _summary, reviewedRevision: _reviewed, ...state }: Row): MatchingEntryState {
   return {
-    ...state, sharing: state.sharing === "shared" && Date.parse(state.expiresAt!) <= Date.now() ? "expired" : state.sharing,
+    ...state, sharing: state.sharing === "shared" && state.expiresAt !== null && Date.parse(state.expiresAt) <= Date.now() ? "expired" : state.sharing,
   };
 }
 
 function projection(initiativeId: string, row: Row): SharedPartnerEntry[] {
-  if (entryState(row).sharing !== "shared" || row.status !== "open" || !row.summary || !row.confirmedAt || !row.expiresAt) return [];
+  if (entryState(row).sharing !== "shared" || row.status !== "open" || !row.summary || !row.confirmedAt) return [];
   const { kind, entryId, revision, value, summary, confirmedAt, expiresAt } = row;
   return [{ initiativeId, kind, entryId, revision, value, summary, confirmedAt, expiresAt }];
 }
@@ -77,6 +80,78 @@ const publicEvidence: ProjectEvidence[] = [{
   extractionVersion: "local-fixture",
   kind: "work",
 }];
+export const FIXTURE_TEAM_ID = "31000000-0000-4000-8000-000000000001";
+export const FIXTURE_TEAM_EDITOR = "31000000-0000-4000-8000-000000000002";
+export const FIXTURE_SECOND_TEAM_ID = "31000000-0000-4000-8000-000000000003";
+export const FIXTURE_SECOND_EDITOR = "31000000-0000-4000-8000-000000000004";
+const teamRoles = new Map([[FIXTURE_ACCOUNT_ID, "viewer"], [FIXTURE_TEAM_EDITOR, "editor"]]);
+const teamSaves = new Map<string, SavedInitiative>();
+const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
+export function fixtureTeam(token: string, id: string) {
+  const account = fixtureActor(token).userId;
+  const accessRole = id === FIXTURE_TEAM_ID ? teamRoles.get(account)
+    : id === FIXTURE_SECOND_TEAM_ID && account === FIXTURE_SECOND_EDITOR ? "editor" : undefined;
+  if (!accessRole) throw new AccountError(404, "not_found");
+  let saved = teamSaves.get(id);
+  if (!saved) {
+    saved = { id, revision: 1, updatedAt: new Date().toISOString(), document: structuredClone(teamDocument) };
+    teamSaves.set(id, saved);
+  }
+  return { account, saved, accessRole };
+}
+const teamDocument = parseTeamDocument({
+  ...accountExample,
+  initiative: { ...accountExample.initiative, name: "Watershed Team (fixture)" },
+  needs: accountExample.needs.map((entry) => ({ ...entry,
+    value: { ...entry.value, title: "GPS watershed mapping", capitalForms: [], amount: null },
+  })),
+  offers: accountExample.offers.map((entry) => ({ ...entry,
+    value: { ...entry.value, title: "Environmental monitoring workshop" },
+  })),
+});
+
+export const projectEvidenceFixture = (origin: string) => createProjectHandler({
+  origin,
+  async resolveActor(request) {
+    return fixtureActor(sessionCookies(false).token(request) ?? "");
+  },
+  async execute(request, actor, command) {
+    if (command.action !== "public_evidence" && command.action !== "team_load" && command.action !== "team_save")
+      throw new AccountError(503, "project_workspace_unavailable");
+    const now = new Date().toISOString();
+    const isTeam = [FIXTURE_TEAM_ID, FIXTURE_SECOND_TEAM_ID].includes(command.workspaceId);
+    const team = isTeam ? fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId) : null;
+    if (command.action === "team_load") {
+      if (!team) throw new AccountError(404, "not_found");
+      return { saved: team.saved, accessRole: team.accessRole, projectTitle: null };
+    }
+    if (command.action === "team_save") {
+      if (!team) throw new AccountError(404, "not_found");
+      if (team.accessRole === "viewer") throw new AccountError(403, "workspace_edit_required");
+      const key = `${actor.userId}/${command.requestId}`;
+      const input = JSON.stringify(command);
+      const previous = saveRequests.get(key);
+      if (previous) {
+        if (previous.input !== input) return conflict();
+        return { saved: previous.saved };
+      }
+      if (team.saved.revision !== command.expectedRevision) throw new AccountError(409, "project_conflict");
+      const saved = { id: command.workspaceId, revision: command.expectedRevision + 1,
+        document: command.document, updatedAt: now };
+      teamSaves.set(saved.id, saved);
+      reconcile(saved.id, saved);
+      saveRequests.set(key, { input, saved });
+      return { saved };
+    }
+    if (!isTeam) fixtureInitiative(sessionCookies(false).token(request) ?? "", command.workspaceId);
+    return {
+      workspaceId: command.workspaceId, corpusVersion: "certified-fixture", status: "bounded",
+      indexedAt: now, availableUntil: new Date(Date.now() + 300_000).toISOString(),
+      truncated: false, evidence: publicEvidence.map((row) => ({ ...row, fetchedAt: now })),
+    };
+  },
+});
+
 const counterpart: SharedPartnerEntry[] = [{
   initiativeId: "30000000-0000-4000-8000-000000000001",
   entryId: "30000000-0000-4000-8000-000000000002",
@@ -96,8 +171,11 @@ export const matchingFixture = createMatchingHandlers({
   provider: {
     async execute(token, command) {
       const { initiativeId, action } = command;
-      const { account, saved } = fixtureInitiative(token, initiativeId);
-      const card = reconcile(account, saved);
+      const team = [FIXTURE_TEAM_ID, FIXTURE_SECOND_TEAM_ID].includes(initiativeId) ? fixtureTeam(token, initiativeId) : null;
+      const { account, saved } = team ?? fixtureInitiative(token, initiativeId);
+      if (team?.accessRole === "viewer" && !["state", "search", "leads"].includes(action))
+        throw new AccountError(403, "workspace_edit_required");
+      const card = reconcile(team ? initiativeId : account, saved);
       const state = () => ({
         initiativeId, initiativeRevision: card.revision, entries: [...card.entries.values()].map(entryState),
       });
@@ -107,7 +185,7 @@ export const matchingFixture = createMatchingHandlers({
         return row;
       });
       const allShared = () => [...counterpart, ...[...cards.entries()].flatMap(([id, candidate]) =>
-        candidate.account === account ? [] : [...candidate.entries.values()].flatMap((row) => projection(id, row)))];
+        candidate.account === (team ? initiativeId : account) ? [] : [...candidate.entries.values()].flatMap((row) => projection(id, row)))];
       const resultLeads = () => ({
         initiativeId,
         leads: [...(privateLeads.get(initiativeId)?.values() ?? [])].map((lead): MatchingLead => ({
@@ -132,13 +210,13 @@ export const matchingFixture = createMatchingHandlers({
       if (action === "preview") {
         if (command.initiativeRevision !== card.revision) return conflict();
         const rows = select(command.entries);
-        if (rows.some((row) => row.status !== "open")) return conflict();
-        const expiry = Math.min(Date.now() + 90 * DAY, command.expiresAt ? Date.parse(command.expiresAt) : Infinity);
-        if (expiry <= Date.now()) return conflict();
+        if (rows.some((row) => row.status !== "open" || !(row.value.capitalForms as unknown[]).length)) return conflict();
+        const expiry = command.expiresAt ? Date.parse(command.expiresAt) : null;
+        if (expiry !== null && expiry <= Date.now()) return conflict();
         const reviewId = crypto.randomUUID();
         const preview = parseMatchingPreview({
           initiativeId, reviewId, initiativeRevision: card.revision, audience: "weave_users",
-          summary: reviewSummary(saved.document), expiresAt: new Date(expiry).toISOString(),
+          summary: reviewSummary(saved.document), expiresAt: expiry === null ? null : new Date(expiry).toISOString(),
           entries: rows.map(({ kind, entryId, revision, shareVersion, value }) => ({ kind, entryId, revision, shareVersion, value })),
         });
         reviews.set(reviewId, { preview, until: Date.now() + 15 * 60_000 });

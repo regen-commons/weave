@@ -21,6 +21,17 @@ export function intakeComplete(draft: DeviceDraft): boolean {
 export function keptAsks(draft: DeviceDraft, kind: AskKind): AskFields[] {
   return draft[kind].items.filter((item) => item.decision === "kept").map((item) => item.value);
 }
+/**
+ * Kept needs and offers that have no kind of support yet. They can stay on this device;
+ * sharing one for matching needs at least one kind.
+ */
+export function asksWithoutKind(draft: DeviceDraft): { kind: AskKind; id: string; title: string }[] {
+  return (["needs", "offers"] as const).flatMap((kind) =>
+    draft[kind].items
+      .filter((item) => item.decision === "kept" && item.value.capitalForms.length === 0)
+      .map((item) => ({ kind, id: item.id, title: item.value.title })),
+  );
+}
 /** A person's checked card, not a backup of their source conversation or file bytes. */
 export function cardText(draft: DeviceDraft): string {
   if (!intakeComplete(draft))

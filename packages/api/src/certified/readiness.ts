@@ -2,7 +2,7 @@ import { createPublicKey, randomBytes } from "node:crypto";
 import { get } from "node:http";
 import { isDeepStrictEqual } from "node:util";
 import { readConfiguration } from "./config.ts";
-import type { BridgeConfig } from "./bridge.ts";
+import type { BridgeConfig } from "./bridge-config.ts";
 import { publicKeys, type SigningKey, type SigningMaterial } from "./keys.ts";
 import { assertBridgeRuntimeRole } from "./runtime-access.ts";
 import { AuthStore } from "./store.ts";

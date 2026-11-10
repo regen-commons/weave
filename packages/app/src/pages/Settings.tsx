@@ -8,8 +8,14 @@ import { deviceExport } from "../data/export.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, readTheme, type Theme } from "../theme.ts";
 import { useSocialFixture } from "../social/context.tsx";
-import { SocialAction } from "../social/Action.tsx";
+import { useAccountDoor } from "../account/door.tsx";
+import { hasDraft } from "../describe/view.ts";
+import { cardName, cardRoute } from "../initiative/status.ts";
+import { useCardStatus } from "../initiative/use-card-status.ts";
+import { Link } from "../router.tsx";
+import { pathTo } from "../routes.ts";
 import { Heading } from "../ui/Heading.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
 import { SettingsSection } from "../ui/SettingsSection.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useInformation } from "../ui/information-context.ts";
@@ -23,6 +29,8 @@ export function Settings() {
   const { draft, controller, ready } = useDraft();
   const account = useAccount();
   const example = useSocialFixture();
+  const status = useCardStatus();
+  const openDoor = useAccountDoor();
   const information = useInformation();
   async function perform(action: () => Promise<void>) {
     if (busy) return;
@@ -48,67 +56,67 @@ export function Settings() {
         Settings
       </Heading>
       <SettingsSection title="Your initiative">
-        <p>{draft.confirmed?.name ?? "Your draft stays on this device until you choose to save."}</p>
-        <p className="rc-meta">
-          {import.meta.env.DEV && example
-            ? "Fictional account choices. Nothing is published."
-            : "Saved account copies are private. Community sharing is not connected yet."}
-        </p>
-        {import.meta.env.DEV && example ? (
-          <SocialAction intent={{ kind: "share" }} inline />
+        {hasDraft(draft) ? (
+          <>
+            <StatusLine
+              state={status.state}
+              actions={
+                <ButtonLink href={pathTo(cardRoute(draft))} variant="secondary" size="sm">
+                  Open
+                </ButtonLink>
+              }
+            >
+              <strong>{cardName(draft)}</strong>. {status.line}
+            </StatusLine>
+            {import.meta.env.DEV && example ? (
+              <p className="rc-meta">Fictional account choices. Nothing is published.</p>
+            ) : (
+              <AccountSection showLeave={false} />
+            )}
+          </>
         ) : (
-          <AccountSection showLeave={false} />
+          <>
+            <p>No initiative on this device yet.</p>
+            <ButtonLink href={pathTo("initiative")} variant="secondary">
+              Describe your initiative
+            </ButtonLink>
+          </>
         )}
-        <ButtonLink href="/start/initiative" variant="quiet">
-          Change your card
-        </ButtonLink>
       </SettingsSection>
-      <SettingsSection title="Sign-in and contact">
-        <p>
-          {import.meta.env.DEV && example
-            ? (example.state.signedIn ? "Signed in to the Certified example." : "Not signed in to the example.")
-            : (account.state?.user ? "Signed in with Certified." : "Sign in with Certified when you want a private saved copy.")}
-        </p>
-        <p className="rc-meta">
-          Certified handles sign-in. Weave does not keep an email address from sign-in. Reminders and introductions
-          will need separate contact details and permission.
-        </p>
-        {import.meta.env.DEV && example?.state.signedIn && (
-          <fieldset className="rc-choice-group">
-            <legend>Example email choices</legend>
-            {(
-              [
-                ["funding", "Funding reminders"],
-                ["partners", "New partners"],
-                ["introductions", "Introductions"],
-              ] as const
-            ).map(([kind, label]) => (
-              <label className="rc-choice" key={kind}>
-                <input
-                  className="rc-switch"
-                  type="checkbox"
-                  role="switch"
-                  checked={example.state.notifications[kind]}
-                  disabled={busy || (kind === "partners" && example.state.visibility !== "public")}
-                  onChange={(event) =>
-                    void perform(async () => {
-                      await example.service.notify(kind, event.target.checked);
-                      example.refresh();
-                      setMessage("Example email choice changed. No email will be sent.");
-                    })
-                  }
-                />
-                <span className="rc-choice-text">
-                  <span className="rc-choice-title">{label}</span>
-                  <span className="rc-choice-note">
-                    {kind === "partners" && example.state.visibility !== "public"
-                      ? "Requires a shared example initiative."
-                      : "Off until you choose. This is an in-memory example."}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
+      <SettingsSection title="Account">
+        {import.meta.env.DEV && example ? (
+          example.state.identity ? (
+            <>
+              <p>Signed in with Certified as {example.state.identity.handle}. No email is stored.</p>
+              <p className="rc-meta">
+                Reminders and updates will ask for a way to reach you when you turn one on.
+              </p>
+            </>
+          ) : (
+            <>
+              <p>Not signed in. Your initiative stays on this device until you save it.</p>
+              <button
+                className="rc-button"
+                data-variant="secondary"
+                type="button"
+                onClick={() => openDoor("sign-in")}
+              >
+                Sign in with Certified
+              </button>
+            </>
+          )
+        ) : (
+          <>
+            <p>
+              {account.state?.user
+                ? "Signed in with Certified."
+                : "Sign in with Certified when you want a private saved copy."}
+            </p>
+            <p className="rc-meta">
+              Certified handles sign-in. Weave does not keep an email address from sign-in. Reminders and
+              introductions will need separate contact details and permission.
+            </p>
+          </>
         )}
       </SettingsSection>
       <SettingsSection title="Assistant">
@@ -202,17 +210,41 @@ export function Settings() {
         {import.meta.env.DEV && example ? (
           <>
             <p>This example changes no real account.</p>
-            {example.state.signedIn ? (
-              <button
-                className="rc-button"
-                data-variant="secondary"
-                type="button"
-                onClick={() => setDeleting(true)}
-              >
-                Delete the example
-              </button>
+            {example.state.identity ? (
+              <div className="rc-action-bar">
+                <button
+                  className="rc-button"
+                  data-variant="secondary"
+                  type="button"
+                  disabled={busy}
+                  onClick={() =>
+                    void perform(async () => {
+                      await example.service.signOut();
+                      example.refresh();
+                      setMessage("You are signed out. The card on this device is still here.");
+                    })
+                  }
+                >
+                  Sign out
+                </button>
+                <button
+                  className="rc-button"
+                  data-variant="quiet"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setDeleting(true)}
+                >
+                  Delete the example
+                </button>
+              </div>
             ) : (
               <p>No example account is signed in. Reloading restores the seeded example.</p>
+            )}
+            {(status.state === "shared" || status.state === "published") && (
+              <p className="rc-meta">
+                Signing out does not stop sharing or withdraw a listing. Do that from{" "}
+                <Link href={pathTo("your-initiative")}>your initiative</Link>.
+              </p>
             )}
           </>
         ) : (
@@ -247,7 +279,7 @@ export function Settings() {
             className="rc-button"
             data-variant="danger"
             type="button"
-            disabled={busy || !example.state.signedIn}
+            disabled={busy || !example.state.identity}
             onClick={() =>
               void perform(async () => {
                 await example.service.deleteAccount();

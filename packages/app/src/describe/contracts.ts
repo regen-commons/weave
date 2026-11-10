@@ -234,19 +234,36 @@ export function applyReview(draft: DeviceDraft, base: Initiative): Initiative {
 export function reviewedProposal(draft: DeviceDraft): Initiative | null {
   return draft.proposal ? applyReview(draft, draft.proposal) : null;
 }
+/** Derived details still in pencil that hold a value, so a decision is owed. Empty details owe nothing. */
+export function pendingDetails(draft: DeviceDraft): DerivedKey[] {
+  const fields = reviewedProposal(draft);
+  if (!fields) return [];
+  return (Object.keys(DERIVED_LABELS) as DerivedKey[]).filter(
+    (key) =>
+      !draft.kept.includes(key) &&
+      !draft.removed.includes(key) &&
+      (key === "stage" ? fields.stage !== null : fields[key].length > 0),
+  );
+}
+/** Keep card: one confirmation turns every pending detail to ink (T5). Removed details stay removed. */
+export function keepPendingDetails(draft: DeviceDraft): DeviceDraft {
+  const fields = reviewedProposal(draft);
+  const pending = pendingDetails(draft);
+  if (!fields || !pending.length) return draft;
+  return revise(draft, {
+    kept: [...new Set([...draft.kept, ...pending])],
+    derivedEdits: { ...draft.derivedEdits, ...Object.fromEntries(pending.map((key) => [key, fields[key]])) },
+    confirmed: null,
+  });
+}
 export function confirmDraft(draft: DeviceDraft): DeviceDraft {
   if (draft.proposalVersion !== draft.inputVersion)
     throw new Error("Your words changed. Build the card again before continuing.");
   if (Object.keys(draft.reviewEdits).length)
     throw new Error("Keep or cancel open detail changes before continuing.");
   const fields = InitiativeSchema.parse(reviewedProposal(draft));
-  const pending = (Object.keys(DERIVED_LABELS) as DerivedKey[]).filter(
-    (key) =>
-      !draft.kept.includes(key) &&
-      !draft.removed.includes(key) &&
-      (key === "stage" ? fields.stage !== null : fields[key].length > 0),
-  );
-  if (pending.length) throw new Error("Keep, change or remove each detail in pencil before continuing.");
+  if (pendingDetails(draft).length)
+    throw new Error("Keep, change or remove each detail in pencil before continuing.");
   return revise(draft, { confirmed: fields });
 }
 export function modelConstraint(contract: z.ZodType = SuggestionSchema): Record<string, unknown> {

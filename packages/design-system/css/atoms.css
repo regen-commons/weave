@@ -307,6 +307,17 @@ textarea.rc-input {
   outline: var(--border-edge) solid var(--focus);
   outline-offset: var(--border-thick);
 }
+/* A chip that is a button wraps long values from its start edge, like the label chips around it. */
+button.rc-chip {
+  padding-block: var(--space-1);
+  text-align: start;
+}
+/* A dashed chip is pencil: the assistant suggested this value and no person has confirmed it. */
+.rc-chip[data-pencil] {
+  border-style: dashed;
+  background: transparent;
+  color: var(--on-surface);
+}
 .rc-chip .rc-check {
   inline-size: var(--icon-size);
   block-size: var(--icon-size);

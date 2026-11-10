@@ -418,3 +418,192 @@ Dependencies approved for this build: `@atproto/oauth-client-node` 0.5.13,
 release-age guard. Sources: [AT OAuth](https://atproto.com/specs/oauth),
 [OIDC provider](https://github.com/panva/node-oidc-provider),
 [Postgres.js](https://github.com/porsager/postgres).
+
+
+## Certified project backend preview
+
+The project backend is opt-in with `WEAVE_PROJECTS_ENABLED=true` on an HTTPS
+app origin. Keep the existing Certified-only account and Save/Load setup.
+Apply the workspace and project OAuth candidates through the database
+migration owner. Use the separate Weave Preview database for staging.
+
+| Configuration | Purpose |
+|---|---|
+| `WEAVE_PROJECT_PILOT_DIDS` | Exactly two comma-separated Certified DIDs. The verified actor must be on this list for project commands, consent, and consent callbacks. |
+| `WEAVE_PROJECT_WORKSPACE_DATABASE_URL` | Dedicated login granted only `weave_workspace_runtime`. |
+| `WEAVE_PROJECT_OAUTH_DATABASE_URL` | Separate login granted only `weave_project_oauth_runtime`. |
+| `WEAVE_PROJECT_OAUTH_ENCRYPTION_KEYS`, `WEAVE_PROJECT_OAUTH_SIGNING_KEYS` | Dedicated state cipher and ES256 private JWK array for the project OAuth client. Provision separately from identity bridge keys. |
+| `WEAVE_CERTIFIED_GROUP_ORIGIN`, `WEAVE_CERTIFIED_GROUP_PDS_ORIGIN` | Certified Group Service origin and the group's actual backing PDS. The PDS host determines the created group handle suffix. |
+| `WEAVE_CERTIFIED_PROJECT_PDS_ORIGINS` | Optional comma-separated allowlist of additional project repository PDS origins. |
+| `WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED` | Defaults to off. Set `true` only after the selected CGS and backing PDS prove scoped group create, read-back and conditional deletion. The adapter blocks both group writes while off. |
+
+The client metadata, public keys and callback are served at
+`/api/certified-project-client`, `/api/certified-project-jwks` and
+`/api/certified-project-callback`. Project access uses granular RPC scopes.
+Group registration and the signed-in person's group membership list go
+through the PDS service proxy. Group-scoped reads and writes use one-use
+service tokens. Prove both paths with the selected Certified environment
+before enabling project writes.
+
+The bridge and project consent currently pin the existing production
+Certified identity issuer. The official Certified staging PDS uses a
+different issuer and accounts. A proof using staging-only Certified
+identities requires a separate stage-bound identity configuration and
+the confirmed backing group PDS. Verify the supported handle resolution
+response and public project read-back on the same environment.
+[Certified service environments](https://docs.hypercerts.org/reference/services#running-services)
+
+The isolated Weave Preview database has the project OAuth and workspace
+migrations. A rollback-only PostgreSQL 17.11 proof used synthetic Certified
+membership evidence to verify setup approval, explicit grants, suspension,
+create checkpoints and private-save preservation. A separate query confirmed
+that the fixture left no workspace or OAuth records. This proof covers the
+database boundary. Real Certified browser consent and upstream writes remain
+a separate staging check.
+
+For staged acceptance, use two disposable Certified identities. The first
+creates a group and a project, then verifies the same URI and workspace on
+retry. The second requests setup on an existing group project or receives
+an explicit grant, and can read the workspace link only after verification.
+Exercise removal, rejected consent, and a lost response. Check that both
+private saves and the workspace's canonical link keep their IDs. Report
+database fixtures separately from a real Certified browser and write proof.
+
+
+### Local team saving and workspace matching
+
+Apply the local `weave-team-content.sql` candidate after the matching and
+project workspace migrations. `POST /api/projects` accepts `team_load` with a
+`workspaceId`, or `team_save` with the same ID, `expectedRevision`,
+`requestId`, and checked `document`. Use revision zero for the first save.
+Load returns `saved` and the current `accessRole` (`viewer`, `editor` or
+`admin`). An empty workspace has `saved: null`. Both commands use the existing
+Certified session and require current group membership and a Weave grant.
+Use the `membership` consent action if the session has not granted it.
+
+The migration closes the old direct matching RPC path. Release it together
+with the workspace-aware matching handler when the pilot can be enabled.
+Keep the hosted candidate disabled until then. The disposable
+`project-workspaces-postgres.test.ts` suite uses a loopback database named
+`weave_workspace_test` and the checked-in account baseline from the website
+repository. It tests workspace and matching permissions with synthetic
+Certified authority.
+
+### Local public evidence for private suggestions
+
+Apply `weave-public-evidence-snapshot.sql` after the project index and team
+content candidates. `POST /api/projects` with action `public_evidence` and a
+`workspaceId` verifies the linked project and workspace access. It returns
+public passages, index coverage and a short expiry. The client ranks private
+needs and offers in a browser worker. Open `/workspaces/<workspaceId>`
+using the ID from a linked group project result. The page loads the team's
+saved document and access role with `team_load`. Editors and admins can
+add or change needs and offers through `team_save`. Each save retains its
+request ID when retried after a lost response. A revision conflict keeps
+the form available for copying.
+
+The page reuses the matching review for selected entries. Saving alone
+keeps new entries private. Editing a shared entry removes its eligibility
+until an editor reviews and shares it again. Withdraw uses the reviewed
+entry identity and current version. Viewers can read documents, suggestions
+and shared results. The API and database reject their save, review, share,
+withdraw and lead changes.
+
+The page uses open entries in the same `CertifiedSuggestions` component.
+It keeps the team document in memory and requests Certified membership
+consent when the session needs it.
+Both commands stay behind the existing project pilot gate.
+
+Use `WEAVE_WORKSPACE_TEST_PROJECT_INDEX=1` with the disposable workspace
+database suite to check the actual index schema. The database needs pgvector.
+The new two-workspace regression covers private saves, selected sharing,
+edit invalidation, a fresh review, withdrawal and viewer write denial.
+Its database rerun is deferred at the user's request after the current
+Codex session could not access the local Docker socket. The local HTTP
+fixture regression and browser editor/viewer checks passed. Keep those results distinct from
+PostgreSQL and live Certified proof.
+
+### Local support publication candidate
+
+Public support publication uses separate `support_review`, `support_publish`,
+`support_withdraw`, `support_reconcile` and `support_state` commands on
+`POST /api/projects`. Private Save and Share for matching remain independent.
+The [draft support Lexicon and lifecycle](lexicons/README.md) describe the public
+record and its validation boundaries. Keep project actions disabled for production;
+the local synthetic proof does not establish live Certified write permission.
+
+The migration owner must apply these candidates in order after the existing
+private-account and Certified private-access baseline: `weave-matching.sql`,
+`weave-project-workspaces.sql`, `weave-team-content.sql`, then
+`weave-support-publication.sql`. Project OAuth uses its separate
+`weave-project-oauth.sql` candidate and login. The new publication candidate has
+not been applied by this change. Release its API and schema together.
+
+Review returns the exact public record, destination DID, audience `public-atproto`,
+saved revision, entry revision and review expiry. Publish requires that review ID,
+a stable request ID, audience `public-atproto` and `confirmPublic: true`. An
+`expiresAt: null` review creates an undated listing by omitting its public expiry;
+the ten-minute review lifetime still applies. `updatedAt` advances on every reviewed
+publication so an identical replacement receives a different CID.
+
+The current workspace editor and Certified authority must both permit the action.
+The separate `publish-support` and `withdraw-support` consent actions request group
+create/delete RPC scopes and personal collection-limited create/delete scopes.
+Personal writes require the repository owner. Certified checks group membership
+and record author permissions during each group write. The runtime defaults
+`WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED` to off. Primary source inspection shows
+that the current CGS delete handler forwards its input, but the selected hosted
+service must prove `swapRecord` before group creation or deletion is enabled.
+
+The SQL transaction queues withdrawal when published fields change or an entry
+closes or is removed. Confirmed parent-project deletion or unlisting also queues
+withdrawal and invalidates old matching reviews. Temporary verification failures
+leave the existing state intact. The old reviewed public record remains attached
+to the request; replacement details stay private until explicitly republished.
+
+Only one durable create claim may send an operation. A retry first reads its stable
+AT URI. It can confirm the expected content and CID, or retain a pending result.
+A definitive authorization rejection releases the claim for a later authorized
+retry. A never-observed uncertain create remains pending and is not resent; absence
+cannot prove that an old request will not arrive later. Conditional delete includes
+the expected CID and is confirmed only after public read-back returns absence.
+Current authority can resolve a queued withdrawal even while its parent is paused.
+
+An external `RecordNotFound` changes only public publication state. It preserves
+the private entry and any eligible Weave share. An externally changed or terminal
+record reports a conflict, since inactive status alone does not prove removal of
+its public details. Previously public copies may persist in independent readers.
+Publication history is paginated in stable `kind`, `entryId` order: `support_state`
+returns at most 100 rows and `nextCursor: string | null`. Pass that cursor with the
+same workspace to load older requests, including deleted-entry withdrawals.
+
+`support-publication.test.ts` uses synthetic personal and group repositories and a
+standalone public reader that discovers one need and one offer through public
+`listRecords` and `getRecord`. It checks consent denial, author restrictions, lost
+responses, a single concurrent create claim, conditional deletion and read-back.
+The separate `support-publication-postgres.test.ts` suite requires a disposable
+loopback database named `weave_support_test`, supplied through
+`WEAVE_SUPPORT_TEST_DATABASE_URL`, plus the private-account baseline path in
+`WEAVE_SUPPORT_TEST_BASELINE`. It covers revisions, grants, transactional withdrawal
+triggers and stale operations. That suite remains unexecuted here because this
+session has neither a local PostgreSQL server nor access to the Docker daemon.
+Hosted personal/group consent, write and independent read-back remain pilot gates.
+
+### Production pilot preparation
+
+Platform records `20261110040828_weave_project_oauth` and
+`20261110040924_weave_project_workspaces`. The website migration folder owns
+copies with those versions. Read-only checks verified separate runtime roles
+and denial of the workspace command to anonymous and authenticated clients.
+
+Vercel built the gated backend as candidate `dpl_8DwTj9pMCEajRuUcW8v7QDRDErva`. The
+stable Weave Preview alias continues to serve `dpl_ykn9ctFtKvsZbopsC4GgausFL511` while
+the UI is in progress. The candidate has project actions disabled and
+has no production alias. No live Certified action was used to verify it.
+
+Keep project actions disabled while the UI is in progress. For the live
+pilot, use the existing production Certified issuer, provision separate
+runtime logins and project OAuth keys, confirm the group's backing PDS, and
+set the two tester DIDs. The UI needs to complete project consent on return
+and retry the intended command in the same Weave session. The pilot uses
+fictional public project details and existing Certified test accounts.

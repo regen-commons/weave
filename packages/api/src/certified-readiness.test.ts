@@ -68,11 +68,21 @@ test("readiness bounds response size and duration and refuses redirects or inval
 });
 
 test("readiness CLI fails closed without printing invalid configuration or secrets", () => {
-  const result = spawnSync(process.execPath, [new URL("./certified-check.ts", import.meta.url).pathname], {
+  // The normal entrypoint must validate configuration without initializing oidc-provider.
+  // A module hook makes the import boundary deterministic even on a warm filesystem.
+  const importGuard = `import { registerHooks } from 'node:module'; registerHooks({
+    resolve(specifier, context, nextResolve) {
+      if (specifier === 'oidc-provider') throw Error('readiness_loaded_oidc_server');
+      return nextResolve(specifier, context);
+    }
+  });`;
+  const result = spawnSync(process.execPath, ["--import", `data:text/javascript,${encodeURIComponent(importGuard)}`,
+    new URL("./certified-check.ts", import.meta.url).pathname], {
     env: { ...process.env, WEAVE_AUTH_ISSUER: "private-secret-not-an-origin", WEAVE_AUTH_CLIENT_ID: "weave",
       WEAVE_AUTH_CLIENT_SECRET: "private-secret", WEAVE_AUTH_REDIRECT_URI: "https://database.example.test/auth/v1/callback" },
     encoding: "utf8", timeout: 10000,
   });
+  assert.equal(result.error, undefined);
   assert.equal(result.status, 1); assert.equal(result.stdout, "");
   assert.equal(result.stderr.trim(), "certified_bridge_not_ready");
 });

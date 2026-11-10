@@ -9,7 +9,7 @@ import {
 
 export function sharedEntries(entries: MatchingEntry[], now = Date.now()): MatchingEntry[] {
   return entries.filter(({ sharing, status, expiresAt }) =>
-    sharing === "shared" && status === "open" && !!expiresAt && Date.parse(expiresAt) > now);
+    sharing === "shared" && status === "open" && (expiresAt === null || Date.parse(expiresAt) > now));
 }
 
 export function useNetworkMatching(active: ActiveInitiative, onExpired: () => void) {
@@ -91,8 +91,8 @@ export function useNetworkMatching(active: ActiveInitiative, onExpired: () => vo
     if (!state || !scope.current || loading || busy || pending) return;
     const now = Date.now();
     const resultExpiries = (search?.results ?? []).flatMap(({ evidence }) =>
-      evidence.type === "shared" && Date.parse(evidence.expiresAt) > now ? [Date.parse(evidence.expiresAt)] : []);
-    const expires = Math.min(...sharedEntries(state.entries, now).map(({ expiresAt }) => Date.parse(expiresAt!)),
+      evidence.type === "shared" && evidence.expiresAt !== null && Date.parse(evidence.expiresAt) > now ? [Date.parse(evidence.expiresAt)] : []);
+    const expires = Math.min(...sharedEntries(state.entries, now).flatMap(({ expiresAt }) => expiresAt === null ? [] : [Date.parse(expiresAt)]),
       ...resultExpiries);
     if (!Number.isFinite(expires)) return;
     const controller = scope.current;

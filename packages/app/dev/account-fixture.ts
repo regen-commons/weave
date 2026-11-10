@@ -13,10 +13,14 @@ const owner = (token: string) => {
   if (!id) throw new AccountError(401, "sign_in_required");
   return id;
 };
-export function fixtureSession(id = "b1000000-0000-4000-8000-000000000001") {
+export const FIXTURE_ACCOUNT_ID = "b1000000-0000-4000-8000-000000000001";
+export function fixtureSession(id = FIXTURE_ACCOUNT_ID) {
   const token = `fixture.${id}.${crypto.randomUUID()}`;
   sessions.set(token, id);
   return token;
+}
+export function fixtureActor(token: string) {
+  return { userId: owner(token), sessionId: "synthetic", did: "did:plc:synthetic" };
 }
 export function fixtureInitiative(token: string, id: string) {
   const account = owner(token);
@@ -30,7 +34,7 @@ const provider: AccountProvider = {
   },
   async exchangeCode(code) {
     if (code !== "synthetic-certified") throw new AccountError(401, "sign_in_failed");
-    return { token: fixtureSession(), expiresIn: 3600 };
+    return { token: fixtureSession(process.env.WEAVE_ACCOUNT_FIXTURE_USER_ID ?? FIXTURE_ACCOUNT_ID), expiresIn: 3600 };
   },
   async authorize(token) {
     const id = owner(token);

@@ -6,7 +6,7 @@ import { newDraft, revise } from "../describe/contracts.ts";
 import { navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import type { DraftBackup } from "../describe/repository.ts";
-import { accountKey, loadedDraft, saveCommand } from "./document.ts";
+import { accountKey, loadedDraft, saveBlocker, saveCommand } from "./document.ts";
 import { accountMessage, accountRequest, parseSaved, assertAccount, AccountFailure } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
@@ -124,7 +124,7 @@ export function AccountSection({
   return (
     <section className="rc-stack" aria-labelledby={`${id}-title`} aria-busy={busy}>
       <Title className="rc-heading" data-size="section" id={`${id}-title`}>
-        {compact ? "Keep this initiative" : "Your account"}
+        {compact ? "Save your initiative" : "Your account"}
       </Title>
       {import.meta.env.DEV && state?.fixture && (
         <p className="rc-notice" data-tone="info">
@@ -153,13 +153,20 @@ export function AccountSection({
       ) : !state.user ? (
         <>
           <p>
-            Sign in to save a private copy of your checked card, needs, offers and kept funding details.
-            Conversations, files, unfinished edits and assistant records stay on this device.
+            Sign in with Certified to save your work and open it on another device. Your saved work stays
+            private in Weave.
           </p>
-          <p className="rc-meta">
-            Continue with your Certified account, or create one there. You will not need another sign-in in Weave.
-            Signing in does not save, load or share your initiative.
-          </p>
+          <details>
+            <summary className="rc-footer-link">What is saved</summary>
+            <p>
+              Saving keeps your checked card, needs, offers and kept funding details. Conversations, files,
+              unfinished edits and assistant records stay on this device.
+            </p>
+            <p>
+              Signing in does not save, load or share anything. New to Certified? You can join there and come
+              straight back.
+            </p>
+          </details>
           <form className="rc-stack" method="post" onSubmit={(event) => {
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();
@@ -167,39 +174,47 @@ export function AccountSection({
               (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
               (target) => window.location.assign(target)));
           }}>
-            {state.emailHintAvailable && (
-              <div className="rc-field">
-                <label htmlFor={`${id}-email`}>Email for Certified (optional)</label>
-                <input className="rc-input" id={`${id}-email`} name="email" type="email" autoComplete="email" maxLength={254}
-                  aria-describedby={`${id}-email-help`} data-task-focus={autoFocus || undefined} disabled={busy || !ready} />
-                <p id={`${id}-email-help`} className="rc-hint">
-                  Your email appears in the link to Certified and may be saved in browser history or request logs.
-                </p>
-              </div>
-            )}
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="primary" type="submit" disabled={busy || !ready}
-                data-task-focus={(autoFocus && !state.emailHintAvailable) || undefined}>
+                data-task-focus={autoFocus || undefined}>
                 Sign in with Certified
               </button>
             </div>
+            {state.emailHintAvailable && (
+              <details>
+                <summary className="rc-footer-link">Add your email (optional)</summary>
+                <div className="rc-field">
+                  <label htmlFor={`${id}-email`}>Email for Certified</label>
+                  <p id={`${id}-email-help`} className="rc-hint">
+                    Your email appears in the link to Certified and may be saved in browser history or request logs.
+                  </p>
+                  <input className="rc-input" id={`${id}-email`} name="email" type="email" autoComplete="email" maxLength={254}
+                    aria-describedby={`${id}-email-help`} disabled={busy || !ready} />
+                </div>
+              </details>
+            )}
           </form>
         </>
       ) : (
         <>
           <p>Signed in with Certified.</p>
           <p>
-            Your checked card, needs, offers and kept funding details are saved only when you choose Save.
-            Use Partners to review and share selected needs or offers separately. Your conversations, files, unfinished edits and assistant
-            records stay on this device.
+            Save keeps a private copy of your checked card, needs, offers and kept funding details. Files and
+            conversations stay on this device.
           </p>
-          <p className="rc-meta">
-            This session lasts up to one hour. Sign in again when it ends. Signing out leaves the device draft
-            and its backups in this browser; clear this site’s browser storage when leaving a shared device.
-          </p>
+          <details>
+            <summary className="rc-footer-link">About this session</summary>
+            <p>
+              This session lasts up to one hour. Sign in again when it ends. Signing out leaves the device
+              draft and its backups in this browser; clear this site’s browser storage when leaving a shared
+              device.
+            </p>
+            <p>Sharing is separate. Use Partners to review and share selected needs or offers.</p>
+          </details>
           {!key && (
             <p>
-              Check your initiative, needs and offers, and keep or cancel open funding changes before saving.
+              {saveBlocker(draft) ??
+                "Check your initiative, needs and offers, and keep or cancel open funding changes before saving."}
             </p>
           )}
           <div className="rc-action-bar">
@@ -210,7 +225,7 @@ export function AccountSection({
               disabled={busy || !ready || !key || storage !== "saved" || currentSaved}
               onClick={() => void run(save)}
             >
-              {currentSaved ? "Checked card saved" : "Save checked card privately"}
+              {currentSaved ? "Saved privately" : "Save privately"}
             </button>
             {showLeave && (
               <SignOutAction

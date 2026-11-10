@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { uuid } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
 import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
@@ -6,10 +7,11 @@ import type { SignInStore } from "./sign-in-store.ts";
 import { signInEmail, type certifiedEmailHints } from "./certified/email-hint.ts";
 
 const nonce = () => randomBytes(32).toString("base64url");
-const tasks = new Set(["/", "/settings", "/start/initiative", "/start/initiative/check", "/start/needs", "/start/offers", "/start/finish", "/partners", "/funding", "/initiatives"]);
+const tasks = new Set(["/", "/settings", "/start/initiative", "/start/initiative/check", "/start/needs", "/start/offers", "/start/finish", "/your-initiative", "/your-initiatives", "/partners", "/funding", "/initiatives"]);
 export function returnTask(path: unknown): string {
+  const workspace = typeof path === "string" && path.startsWith("/workspaces/") && uuid(path.slice("/workspaces/".length));
   if (typeof path !== "string" || path.length > 250 ||
-      (!tasks.has(path) && !/^\/(funding\/[A-Za-z0-9_-]+|initiatives\/[a-z0-9-]+)$/.test(path)))
+      (!workspace && !tasks.has(path) && !/^\/(funding\/[A-Za-z0-9_-]+|initiatives\/[a-z0-9-]+)$/.test(path)))
     throw new AccountError(400, "invalid_return_task");
   return path;
 }

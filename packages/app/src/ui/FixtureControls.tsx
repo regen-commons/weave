@@ -1,14 +1,21 @@
 import { DESCRIBE_VIEWS, INTAKE_VIEWS, type FixtureContext } from "../fixtures.ts";
-import { navigate } from "../router.tsx";
+import { currentRoute, navigate, routePath } from "../router.tsx";
+import { routeWith } from "../routes.ts";
 export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
+  const path = routePath();
   function set(key: string, value: string) {
-    const url = new URL(window.location.href);
-    url.searchParams.set(key, value);
-    if (key === "view")
-      url.pathname = ["review", "correcting", "kept"].includes(value)
-        ? "/start/initiative/check"
-        : "/start/initiative";
-    navigate(`${url.pathname}${url.search}`);
+    navigate(
+      routeWith(
+        currentRoute(),
+        key,
+        value,
+        key !== "view"
+          ? undefined
+          : ["review", "correcting", "kept"].includes(value)
+            ? "/start/initiative/check"
+            : "/start/initiative",
+      ),
+    );
   }
   return (
     <aside className="rc-notice" data-tone="info" aria-label="Example controls">
@@ -28,7 +35,22 @@ export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
               <option value="visitor">Not started</option>
               <option value="draft">Draft on this device</option>
               <option value="private">Saved privately</option>
-              <option value="shared">Shared with the community</option>
+              <option value="workspace">Saved in a team workspace</option>
+              <option value="shared">Shared for matching</option>
+              <option value="published">Published</option>
+              <option value="returning">Signed in, nothing on this device</option>
+            </select>
+          </div>
+          <div className="rc-field">
+            <label htmlFor="example-projects">Certified projects</label>
+            <select
+              className="rc-input"
+              id="example-projects"
+              value={fixture.projects}
+              onChange={(event) => set("projects", event.target.value)}
+            >
+              <option value="some">Has projects</option>
+              <option value="none">Has none</option>
             </select>
           </div>
           <div className="rc-field">
@@ -48,7 +70,21 @@ export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
               <option value="long">Long content</option>
             </select>
           </div>
-          {["/start/needs", "/start/offers", "/start/finish"].includes(window.location.pathname) && (
+          {["/your-initiative", "/your-initiatives", "/partners", "/settings"].includes(path) && (
+            <div className="rc-field">
+              <label htmlFor="certified-example">Certified example</label>
+              <select
+                className="rc-input"
+                id="certified-example"
+                value={fixture.certified}
+                onChange={(event) => set("certified", event.target.value)}
+              >
+                <option value="ok">Confirms</option>
+                <option value="fail">Does not confirm</option>
+              </select>
+            </div>
+          )}
+          {["/start/needs", "/start/offers", "/your-initiative"].includes(path) && (
             <div className="rc-field">
               <label htmlFor="intake-example">Intake example</label>
               <select
@@ -65,7 +101,7 @@ export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
               </select>
             </div>
           )}
-          {window.location.pathname.startsWith("/start/initiative") && (
+          {path.startsWith("/start/initiative") && (
             <div className="rc-field">
               <label htmlFor="describe-example">Describe example</label>
               <select

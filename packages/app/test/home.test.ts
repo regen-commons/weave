@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { daysUntil, homePreviews } from "../src/home.ts";
+import { newDraft, revise } from "../src/describe/contracts.ts";
+import { editsFromForm } from "../src/describe/forms.ts";
+import { continueWithFields } from "../src/describe/screen.ts";
+import { daysUntil, homeDoors, homePreviews, resumeLabel } from "../src/home.ts";
+import { cardRoute } from "../src/initiative/status.ts";
 import type { ListingRecord } from "../src/listing.ts";
 
 const record = (id: string, fields: Partial<ListingRecord> = {}): ListingRecord => ({
@@ -73,4 +77,33 @@ test("days left uses calendar days across daylight saving, leap days and invalid
 
 test("Home has no invented records or activity when no feed is supplied", () => {
   assert.deepEqual(homePreviews([], [], "2026-11-04"), { recent: [], upcoming: [], sharedCount: 0 });
+});
+
+test("Home keeps one solid primary: resume a card, open one kept elsewhere, or start", () => {
+  const newcomer = homeDoors(false, 0);
+  const signedInElsewhere = homeDoors(false, 2);
+  const returning = homeDoors(true, 0);
+  assert.deepEqual(newcomer, { resume: false, start: "primary", open: "secondary" });
+  assert.deepEqual(signedInElsewhere, { resume: false, start: "secondary", open: "primary" });
+  assert.deepEqual(returning, { resume: true, start: "secondary", open: "quiet" });
+  assert.deepEqual(homeDoors(true, 2), returning, "a card on this device comes before ones kept elsewhere");
+  for (const doors of [newcomer, signedInElsewhere, returning])
+    assert.equal(
+      [doors.resume, doors.start === "primary", doors.open === "primary"].filter(Boolean).length,
+      1,
+    );
+});
+
+test("Home's resume link is named for where the card stopped", () => {
+  assert.equal(cardRoute(newDraft()), "initiative");
+  assert.equal(resumeLabel("initiative"), "Continue your initiative");
+  assert.equal(resumeLabel("check-card"), "Continue your initiative");
+
+  // Continue from the four fields confirms the card, so home resumes at needs and offers.
+  const form = { name: "Orchard circle", where: "Upper valley", about: "Families share growing skills.", links: "" };
+  const typed = continueWithFields(revise(newDraft(), { form, publicEdits: editsFromForm(form, {}) }, true));
+  assert.equal(cardRoute(typed), "needs");
+  assert.equal(resumeLabel(cardRoute(typed)), "Continue your initiative");
+
+  assert.equal(resumeLabel("your-initiative"), "Open your initiative");
 });

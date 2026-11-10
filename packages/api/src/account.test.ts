@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { once } from "node:events";
 import { createAccountHandlers, GET } from "./account.ts";
 import { createSupabaseAccountProvider, AccountError, type AccountProvider } from "./account-provider.ts";
-import { parseDocument } from "./account-contract.ts";
+import { parseDocument, parseSaved, parseSavedAsk } from "./account-contract.ts";
 const document = parseDocument(
   JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")),
 );
@@ -233,4 +233,26 @@ test("a cookie changed by another tab cannot save under a different account", as
   assert.equal(result.status, 409);
   assert.deepEqual(await result.json(), { error: "account_changed" });
   assert.equal(writes, 0);
+});
+
+
+test("private save and load round-trip unclassified entries while matching still requires classification", async () => {
+  const draft = structuredClone(document);
+  const need = draft.needs[0];
+  assert.ok(need);
+  need.value.capitalForms = [];
+  need.value.amount = null;
+  const checked = parseDocument(draft);
+  const receipt = { ...saved, document: checked };
+  const calls: string[] = [];
+  const provider = createSupabaseAccountProvider("https://db.example.test", "publishable-fixture", async url => {
+    calls.push(String(url).split("/").pop()!);
+    return Response.json(receipt);
+  });
+  assert.deepEqual(await provider.save("fixture.token", { id, expectedRevision: 0, requestId, document: checked }), receipt);
+  assert.deepEqual(await provider.load("fixture.token", id), receipt);
+  // The browser parses the same receipt after the server's provider boundary.
+  assert.deepEqual(parseSaved(receipt), receipt);
+  assert.deepEqual(calls, ["save_initiative", "load_initiative"]);
+  assert.throws(() => parseSavedAsk(need), /invalid_data/u);
 });

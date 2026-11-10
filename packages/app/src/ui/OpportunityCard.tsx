@@ -4,7 +4,7 @@ import { programFund } from "../../../../dist/matching.mjs";
 import { fitLevel } from "../funding/select.ts";
 import { awardLabel, opportunityHref } from "../funding/catalog.ts";
 import { fullDate } from "../home.ts";
-import { Link } from "../router.tsx";
+import { Link, routeSearch } from "../router.tsx";
 import { Card } from "./Card.tsx";
 import { Fit } from "./Fit.tsx";
 import { ButtonLink } from "./ButtonLink.tsx";
@@ -34,7 +34,7 @@ export function OpportunityCard({
         )}
       </p>
       <Title className="rc-card-title">
-        <Link href={opportunityHref(entry, location.search)}>{entry.program?.name ?? fund.displayName}</Link>
+        <Link href={opportunityHref(entry, routeSearch())}>{entry.program?.name ?? fund.displayName}</Link>
       </Title>
       {result &&
         (result.thematicFit.score === null ? (
@@ -63,7 +63,7 @@ export function OpportunityCard({
         {fund.verifiedOn ? `Sources checked ${fullDate(fund.verifiedOn)}` : "Source date unverified"}
       </p>
       <div className="rc-action-bar">
-        <ButtonLink href={opportunityHref(entry, location.search)} variant="secondary">
+        <ButtonLink href={opportunityHref(entry, routeSearch())} variant="secondary">
           Read opportunity
         </ButtonLink>
       </div>

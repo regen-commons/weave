@@ -6,7 +6,7 @@ export function Logo() {
   return (
     <Link className="rc-logo" href={pathTo("home")}>
       <svg className="rc-logo-mark" aria-hidden="true">
-        <use href="/brand/icons.svg#mark" />
+        <use href={`${import.meta.env.BASE_URL}brand/icons.svg#mark`} />
       </svg>
       Weave
     </Link>

@@ -399,6 +399,26 @@
   accent-color: var(--action);
 }
 
+/* Status line: where the work lives, and the one thing to do about it next. */
+.rc-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+.rc-status-line > .rc-save-status {
+  flex: 1 1 var(--card-min-width);
+  min-inline-size: 0;
+  font: var(--type-body-md);
+  color: inherit;
+}
+.rc-status-line > .rc-action-bar { flex: none; }
+
 /* Save status: always says where the work lives. */
 .rc-save-status {
   display: inline-flex;

@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 /** Voice input molecule: Speak is present only when local speech is usable. */
 export function VoiceInput({
   available,
@@ -7,6 +9,7 @@ export function VoiceInput({
   onLanguage,
   onStart,
   onStop,
+  variant = "primary",
 }: {
   available: boolean;
   listening: boolean;
@@ -15,7 +18,10 @@ export function VoiceInput({
   onLanguage(value: string): void;
   onStart(): void;
   onStop(): void;
+  /** Secondary where the page already has its one primary action. */
+  variant?: "primary" | "secondary";
 }) {
+  const id = useId();
   const languages = [
     ...new Set([
       "en-US",
@@ -34,10 +40,10 @@ export function VoiceInput({
   return (
     <div className="rc-voice-input">
       <div className="rc-field">
-        <label htmlFor="speech-language">Speaking language</label>
+        <label htmlFor={id}>Speaking language</label>
         <select
           className="rc-input"
-          id="speech-language"
+          id={id}
           value={language}
           disabled={listening}
           onChange={(event) => onLanguage(event.target.value)}
@@ -52,7 +58,7 @@ export function VoiceInput({
       {available || listening ? (
         <button
           className="rc-button"
-          data-variant="primary"
+          data-variant={variant}
           data-size="lg"
           type="button"
           aria-pressed={listening}

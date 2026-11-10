@@ -13,6 +13,7 @@ import { FundingProfile } from "../ui/FundingProfile.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { fullDate } from "../home.ts";
+import { replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
 export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
@@ -21,8 +22,8 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const catalog = useCatalog(example);
   const [filters, setFilters] = useState<Filters>(() => ({
     ...emptyFundingFilters,
-    search: new URLSearchParams(location.search).get("q") ?? "",
-    ...Object.fromEntries([...fundingSearch(location.search)].filter(([key]) => key !== "q")),
+    search: new URLSearchParams(routeSearch()).get("q") ?? "",
+    ...Object.fromEntries([...fundingSearch(routeSearch())].filter(([key]) => key !== "q")),
   }));
   const [limit, setLimit] = useState(24),
     [retried, setRetried] = useState(false);
@@ -42,13 +43,14 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const results = new Map(catalog.results?.map((result) => [result.documentId, result]));
   useEffect(() => setLimit(24), [filters]);
   useEffect(() => {
-    const url = new URL(location.href);
+    const params = new URLSearchParams(routeSearch());
     for (const [key, value] of Object.entries(filters)) {
       const name = key === "search" ? "q" : key;
-      if (value) url.searchParams.set(name, value);
-      else url.searchParams.delete(name);
+      if (value) params.set(name, value);
+      else params.delete(name);
     }
-    history.replaceState(null, "", url.pathname + url.search);
+    const query = params.toString();
+    replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
   }, [filters]);
   return (
     <ListLayout>

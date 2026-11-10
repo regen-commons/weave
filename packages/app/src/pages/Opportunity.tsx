@@ -1,5 +1,6 @@
 import { SocialAction } from "../social/Action.tsx";
 import { useSocialFixture } from "../social/context.tsx";
+import { partnerAccessOf } from "../social/fixture.ts";
 import { useEffect, useMemo, useState } from "react";
 import { ACCESS, effectiveAccess } from "../../../../dist/domain.mjs";
 import { fundingSourceUrl } from "../funding/source.ts";
@@ -18,6 +19,7 @@ import { Stack, StepLayout } from "../ui/layouts.tsx";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { Fit } from "../ui/Fit.tsx";
 import { FundingProfile } from "../ui/FundingProfile.tsx";
+import { routeSearch } from "../router.tsx";
 export function Opportunity({ fundId, fixture }: { fundId: string; fixture?: FixtureContext }) {
   const social = useSocialFixture();
   const example = useMemo(
@@ -27,8 +29,8 @@ export function Opportunity({ fundId, fixture }: { fundId: string; fixture?: Fix
   const catalog = useCatalog(example),
     device = useDraft();
   const [retried, setRetried] = useState(false);
-  const programId = new URLSearchParams(location.search).get("program"),
-    team = new URLSearchParams(location.search).get("team");
+  const programId = new URLSearchParams(routeSearch()).get("program"),
+    team = new URLSearchParams(routeSearch()).get("team");
   const entry = catalog.bundle ? findEntry(catalogEntries(catalog.bundle), fundId, programId) : undefined;
   const title = entry?.program?.name ?? entry?.fund.displayName ?? "Opportunity not available";
   useEffect(() => {
@@ -54,7 +56,7 @@ export function Opportunity({ fundId, fixture }: { fundId: string; fixture?: Fix
           {catalog.error ||
             "This fund or exact program is not in this catalog copy. No other call has been substituted."}
         </p>
-        <ButtonLink href={fundingBackHref(location.search)} variant="secondary">
+        <ButtonLink href={fundingBackHref(routeSearch())} variant="secondary">
           Back to Funding
         </ButtonLink>
         <button className="rc-button" data-variant="secondary" onClick={catalog.retry}>
@@ -75,7 +77,7 @@ export function Opportunity({ fundId, fixture }: { fundId: string; fixture?: Fix
   return (
     <Stack>
       <div className="rc-action-bar">
-        <ButtonLink href={fundingBackHref(location.search)} variant="quiet">
+        <ButtonLink href={fundingBackHref(routeSearch())} variant="quiet">
           Back to Funding
         </ButtonLink>
       </div>
@@ -123,9 +125,7 @@ export function Opportunity({ fundId, fixture }: { fundId: string; fixture?: Fix
             <TeamSlots
               asks={asks}
               shared={
-                !!example &&
-                (social ? social.state.visibility === "public" : fixture?.scenario === "shared") &&
-                team !== "private"
+                !!example && !!social && partnerAccessOf(social.state) === "network" && team !== "private"
               }
             />
           )

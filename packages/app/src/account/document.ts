@@ -2,10 +2,16 @@ import { parseDocument, type AccountDocument, type SavedInitiative } from "@weav
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "../describe/contracts.ts";
 import { intakeComplete } from "../intake/finish.ts";
 import { emptyAskStep, type AskStep } from "../intake/contracts.ts";
+/** Why this draft cannot be saved to the account yet, in the words the person reads. Null when it can. */
+export function saveBlocker(draft: DeviceDraft): string | null {
+  if (!intakeComplete(draft)) return "Check your initiative, needs and offers before saving.";
+  if (draft.funding.editor) return "Keep or cancel your funding detail changes before saving.";
+  return null;
+}
 /** Explicit projection: source words, files, AI records and open editors never cross this boundary. */
 export function accountDocument(draft: DeviceDraft): AccountDocument {
-  if (!intakeComplete(draft)) throw new Error("Check your initiative, needs and offers before saving.");
-  if (draft.funding.editor) throw new Error("Keep or cancel your funding detail changes before saving.");
+  const blocker = saveBlocker(draft);
+  if (blocker) throw new Error(blocker);
   const { confidence: _confidence, ...initiative } = draft.confirmed!;
   const asks = (kind: "needs" | "offers") =>
     draft[kind].items.filter((item) => item.decision === "kept").map(({ id, value }) => ({ id, value }));

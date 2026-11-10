@@ -10,7 +10,7 @@ export type PartnerEntry = {
   value: JsonObject;
   summary: JsonObject;
 };
-export type SharedPartnerEntry = PartnerEntry & { confirmedAt: string; expiresAt: string };
+export type SharedPartnerEntry = PartnerEntry & { confirmedAt: string; expiresAt: string | null };
 export type ProjectEvidence = {
   id: string;
   projectUri: string;
@@ -41,7 +41,7 @@ export type PartnerMatch = {
   counterpart: { id: string; name: string };
   evidenceKind: PartnerEvidenceKind;
   evidence:
-    | { type: "shared"; entryId: string; revision: number; title: string; passage: string; confirmedAt: string; expiresAt: string }
+    | { type: "shared"; entryId: string; revision: number; title: string; passage: string; confirmedAt: string; expiresAt: string | null }
     | ({ type: "public" } & ProjectEvidence);
   reasons: { type: "shared_terms"; terms: string[] }[];
   unknowns: Unknown[];
@@ -202,7 +202,7 @@ export function rankPartnerMatches(input: {
 
     const entryKey = `${query.kind}:${query.entryId}`;
     for (const other of input.sharedByEntry?.[entryKey] ?? input.shared ?? []) {
-      if (other.value.status !== "open" || !(Date.parse(other.confirmedAt) <= now && Date.parse(other.expiresAt) > now)) continue;
+      if (other.value.status !== "open" || !(Date.parse(other.confirmedAt) <= now && (other.expiresAt === null || Date.parse(other.expiresAt) > now))) continue;
       if (other.kind === query.kind || other.initiativeId === query.initiativeId) continue;
       const terms = supportedTerms(topics, partnerQueryProjection(other), other.kind === "offer");
       if (!terms.length) continue;

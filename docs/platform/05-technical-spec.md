@@ -639,9 +639,11 @@ they own, adds a need or offer, and chooses which entries to share for matching.
 Partners searches both current entries shared by other owners and permitted
 public project evidence. The counterpart does not have to use Weave or have
 stated a need or offer. Both result types are part of this build, with different
-evidence labels and actions. A public Certified project is optional for the
-querying owner. Certified proves the person's identity; authority to represent an
-external project requires a separate, project-specific check.
+evidence labels and actions. The deployed preview works without a project
+link. The [project integration target](#certified-project-integration-target)
+adds verified representation as a requirement for network participation.
+Certified proves the person's identity. Weave separately checks who may act
+for a particular project.
 
 #### Ownership and storage
 
@@ -672,8 +674,9 @@ external project requires a separate, project-specific check.
   Store the reviewed entry revision, audience and confirmation time. The
   private owner view includes drafts and closed entries.
 - Matching against other owners' shared entries requires a live Certified session
-  and an owned initiative with at least one open entry shared for matching. One open need
-  or one open offer is enough to start. A needs-only initiative can match with
+  and an authorized initiative with at least one open entry shared for matching.
+  The target also requires that workspace to have a verified project link. One
+  open need or offer is enough to start. A needs-only initiative can match with
   an offers-only initiative.
 - Rank pairs in both directions. Match A's needs to B's offers and A's offers
   to B's needs. Require evidence on at least one pair before place, theme or
@@ -688,6 +691,242 @@ external project requires a separate, project-specific check.
   Closing, withdrawing, editing or expiring an entry removes it from new
   results without waiting for a scheduled job. Authenticated results use
   private, non-cacheable responses.
+
+#### Certified project integration target
+
+This extends the current preview. The existing account, private Save/Load and
+matching APIs remain the starting point. The verified link, workspace grants,
+unclassified private entries and AT Protocol writes are implementation work.
+The [decision register](open-decisions.md#project-integration-and-support-listing-validation)
+tracks what still needs evidence or a decision.
+
+| Data or state | Authority and lifecycle | Module or API boundary |
+|---|---|---|
+| Person and session | Certified proves the person's DID. Platform issues the Weave session and retains the same internal account ID across sign-ins. | Keep the identity bridge, `/api/sign-in` and the existing account session flow. Project consent is scoped to the action that needs it and returns to the same Weave session. |
+| Working draft and suggestions | The browser keeps source text, files, pending edits and local AI suggestions. Suggestions remain editable until a person approves the entry for sharing. | Reuse `src/describe` for draft storage and `src/intake` for capital suggestions across extracted and typed entries. React holds the current editor and request state. |
+| Private workspace and entries | Platform holds the initiative UUID, stable need and offer IDs, reviewed revisions, workspace roles and saved leads. A private entry may have zero to eight distinct forms. | Extend `/api/account` for backward-compatible reads and saves. Test old documents and clients before accepting empty arrays on private saves. Keep authenticated records out of public caches. |
+| Certified project and verified link | The upstream repository owns the public project profile. Platform associates its DID-based AT URI with one workspace and records the verification evidence, observed CID and link state. | A proposed project API lists eligible projects and handles verify, link and create. Keep these commands outside the identity bridge. The browser sends the intended project reference, never the actor or their role. |
+| Reviewed network sharing | Platform owns approved entry and summary revisions, audience, expiry and withdrawals. Each shared entry requires one to eight approved forms. | Extend the existing `/api/matching` review, share and search checks to enforce verified links, workspace roles, current revisions and active share state. |
+| Public support listing | Platform owns the editable entry. The AT repository holds the public fields explicitly published under the [draft Lexicon](../../packages/api/lexicons/README.md), with their own AT URI and CID. | The first release includes an explicit publish action after the pilot passes. Keep it separate from private Save and network sharing. Track the requested revision and publication outcome on the server. |
+| Public project evidence | The Platform index holds a rebuildable snapshot of permitted source passages, AT URI, CID and freshness. It never owns the project or confirms an inferred need or offer. | Keep ingestion and reindexing in bounded background jobs. Search a bounded API shortlist for network matching. The browser can refine it or use a bounded public snapshot for local previews. |
+
+**Link and access.** Resolve the project to its canonical AT URI. The person's
+DID identifies the actor, the project repository DID identifies the publisher,
+and the workspace UUID identifies the private Weave record. Verify authority for
+personal and existing group projects. Keep existing personal project links
+solo and preserve their canonical URI. Moving a project to a group
+repository would change that URI and is outside the first release.
+A database uniqueness constraint prevents simultaneous requests
+from creating two workspaces for one project. If a workspace already exists,
+check its grants and offer the access path without exposing private data.
+An eligible private save can become the workspace with its IDs intact. Keep
+other private saves separate. Moving their content into a team workspace
+requires an explicit choice. Sign-in and a public AT URI confer no workspace
+role.
+
+**Existing group projects.** A verified group member can request workspace
+setup for the project's canonical AT URI. Store the request separately from
+the workspace. The requester can keep preparing a private draft. Pending
+requests grant no access, reserve no project link, and expose none of the
+draft. On approval, verify that the actor is a current Certified admin or
+owner for the project's repository group. Establish the single linked
+workspace and the approver's explicit Weave admin grant in one transaction.
+The requester receives workspace access only through an explicit grant.
+If another approved request already established the workspace, use its access
+process. Use Certified's read-only membership result to verify group roles.
+Its record-specific author check is internal to the write handler.
+
+**New projects.** Use the Certified Group Service to register a group with
+the signed-in person as its first owner, then publish the reviewed project
+record in the group's repository. Keep the person's DID, group DID, project
+AT URI and Weave workspace UUID distinct. Give the creator an explicit
+Weave admin grant when linking the verified new project. Group registration
+documents an optional recovery email. Keep email access optional for
+ordinary Weave sign-in and prove the registration consent and requirements
+in staging. [Certified Group Service API](https://github.com/hypercerts-org/certified-group-service/blob/main/docs/api-reference.md#group-lifecycle)
+
+**Public profile changes.** After project creation or linking, teams edit
+the public title and description in Certified or another Certified project
+editor. Refresh Weave's view from the verified record at the same AT URI.
+Record the current CID and refresh time, and index changed public content
+under its new version. Refreshing public fields leaves the private workspace
+fields, entry revisions and approved share summaries intact.
+
+**Workspace access and visibility.** For a workspace linked to a Certified
+group project, an admin can grant access only after Weave verifies the
+recipient's current membership in that group. Enforce both membership and
+an explicit Weave grant for team access. Teammates with read access can
+see saved needs and offers before sharing. Keep personal saves outside
+this scope. Saving to the workspace creates no network share. Matching readers
+receive only the approved projection of explicitly shared revisions. On
+confirmed removal from a Certified group, suspend the person's workspace
+grants and reject their subsequent reads and commands. Keep personal saves
+and other workspace grants intact. Rejoining the group makes the person
+eligible for admin review of their grant. A verification outage is distinct
+from confirmed removal.
+
+**Adding teammates.** Start in Weave. For a current Certified group member,
+a workspace admin reviews the intended Certified identity and the Weave grant.
+For someone outside the group, review the separate Certified membership
+change and its group-wide permissions. Require current Certified authority
+to add the member. Confirm membership before applying the workspace grant.
+If the group addition succeeds and the Weave grant fails, show both outcomes
+and retry the grant without adding the person again.
+
+A pending invite can be shared before a teammate has a Certified account.
+It carries no team access. On return from Certified sign-in, bind the pending
+claim to the authenticated DID. An admin explicitly confirms that identity
+before any group change or workspace grant. Expire pending invites, support
+revocation and reject replay or claims by a second account. Check the current
+workspace grant and Certified authority again when applying the change.
+
+**Workspace recovery.** When a group workspace has no active Weave admin,
+verify the requesting person's current owner role for the linked Certified
+group. Require an explicit recovery action. Check that the workspace still
+has no active admin in the transaction that grants access and records the
+actor, verified group and time. Concurrent recoveries must not create
+duplicate grants. Keep the workspace ID, entries and team work intact.
+Leave the workspace unchanged if owner verification is unavailable or an
+active admin is already present.
+
+**Workspace sharing.** A current workspace edit grant allows a teammate to
+review and share selected entries for matching, including entries another
+teammate drafted. Enforce that grant and current project and entry eligibility
+on the server when confirming the reviewed share. Workspace edit access
+does not grant permission to publish to AT Protocol.
+
+**Share lifetime.** The target uses an optional share end date. When omitted,
+the share remains discoverable while the reviewed revision is current, the
+entry is open and the workspace is eligible. Close or withdraw removes it
+from subsequent results. Show any applicable end date in review and enforce
+it on reads. Keep the share lifetime separate from the short-lived review
+used to confirm the exact revision. The preview currently caps every share
+at 90 days. Update the contract, database checks and client before enabling
+open-ended shares. Preserve dates on existing shares until an editor reviews
+a change.
+
+**Command contract.** Project discovery returns authorized project references
+and the link state for the active initiative. Setup requests accept the
+project URI and return a pending status. Approval accepts the request ID,
+rechecks group authority and returns the linked workspace or an existing
+workspace access result. Link accepts the chosen project URI and expected
+initiative revision. Create accepts the reviewed group
+handle and public project fields, the expected initiative revision and a
+request ID. Both return the existing or newly linked workspace
+and confirmed project reference, or a recoverable result such as access
+required, project verification unavailable or creation pending. Recheck the
+actor, grants and revision on the server before committing. Keep private
+Save/Load and the public index independent of these operations. Record group
+registration and project creation as separate steps of the same operation.
+If a response is lost, reconcile the exact group and verified owner before
+resuming. A handle match alone cannot establish ownership. After a confirmed
+group registration, resume project creation in that group. Verify the project
+at its intended AT URI before creating the link. Preserve private work while
+the operation is pending.
+
+**State changes.** Treat the project link, entry sharing and public publication
+as separate states. A workspace can be unlinked, linked or paused pending
+verification. An entry can remain private, be shared for its current reviewed
+revision, or become ineligible through a change, closure, withdrawal or expiry.
+A stale or revoked project verification pauses new sharing, matching eligibility
+and new publication until verified again. Keep private saves available under their
+Weave grants. A teammate's departure alone leaves existing team shares and
+listings active when other authorized teammates still represent the project.
+They can update or withdraw the team's entries under the relevant permissions.
+If the project link itself is paused for loss of authority, require a fresh
+review before its old shares become eligible again. Confirmed deletion or
+unlisting pauses matching for the linked project and removes its public
+evidence from new results. Queue withdrawal for the project's Weave-published
+listings, and suppress those listings in Weave while withdrawal is pending.
+A temporary source outage does not trigger withdrawal. Keep team work
+accessible to authorized teammates.
+Only restoration and verification of the same project AT URI can recover the
+link in the first release. A replacement project has a different workspace.
+On initiative switch or sign-out, clear private network state and ignore
+responses from the previous workspace or session.
+
+**Project creation and public publishing.** Preview the exact public fields
+and destination before either write. Any workspace editor can publish a
+listing with a verified right to make that write in the Certified repository.
+Check the scoped AT Protocol grant and the current reviewed revision before
+sending. Certified can distinguish creating a listing from updating one
+authored by another teammate. Use a durable operation record with the intended
+repository, record key and expected revision. On retry after an uncertain response, read back the same AT
+URI and check the result before attempting another write. Store the confirmed
+CID and surface a pending or failed outcome without losing the private entry.
+For exported listings, keep a stable record key across edits. When an edit
+changes published fields, record a withdrawal request for the old revision
+with the private save. Closing an entry ends matching immediately and queues
+public withdrawal in the same operation. An editor can also stop sharing for
+matching while leaving the entry open. Suppress withdrawn revisions in Weave
+and show withdrawal as pending until upstream read-back confirms it. Allow
+withdrawal even when the project link is paused, provided the actor has the
+required upstream authority. If authority is unavailable, keep the request
+visible for an authorized editor to resolve. Keep replacement details private
+until explicitly republished. Use the expected public CID and operation
+ordering so a delayed withdrawal cannot remove a replacement.
+
+When another AT Protocol app withdraws a listing, verified read-back changes
+only the public listing state. Keep the private entry and any eligible
+Weave share. Independent readers can retain previously public records.
+
+**Build order.** Prove personal and group authority, scoped consent and read-back
+in test projects first. Then implement links and workspace grants without
+replacing existing saves. Extend private entry validation and editable capital
+suggestions, then enforce project and entry eligibility in network matching.
+Test one-owner group registration, adding an existing group member, a
+new signup through a pending invite, and a group addition followed by a
+failed Weave grant. Prove a member can request setup but only a current
+Certified admin or owner can approve. Test competing approvals, authority
+lost before approval and an existing workspace that accepts only access
+requests. Test duplicate links, revocation, unclassified save and reload. Verify an external public profile update refreshes the displayed
+project and its index without changing private work or approved shares. Test lost responses at both
+group and project creation, an occupied group handle, and a confirmed group
+where project creation is still pending. Validate the
+independent support listing in a disposable repository. The first-release
+publish action requires a successful independent read of both listing kinds,
+authorized personal and group writes, denial without consent or authority, and
+confirmed update and withdrawal. Test closure, confirmed project deletion
+or unlisting, and withdrawal in another AT Protocol app. Prove that a
+provider outage does not trigger withdrawal and that a retry cannot create
+a duplicate record or remove a newer publication. Certified display and partner ingestion are separate
+integration work. Corpus and ranking checks remain in the
+[matching build plan](#76-build-plan-and-ui-handoff).
+
+**First backend slice.** `POST /api/projects` accepts a canonical project AT
+URI for lookup, solo link, setup request, approval, activation and group grant
+commands. Creation uses a saved initiative revision, a reviewed public
+profile and a stable request ID. A normal link or grant verifies current
+Certified membership on the server. Adding a current Weave user to the
+Certified group also requires approval of the wider group permissions.
+**Team saving and matching.** In the local backend, a group workspace can
+save one initiative document under its workspace ID. It starts empty and
+keeps personal drafts separate. Teammates with a current Certified membership
+and an active Weave grant can load it. Editors and admins can save using a
+request ID and expected revision. A private need or offer can be saved before
+its forms of capital are chosen.
+
+Matching checks the same workspace access and verifies the linked Certified
+project. Viewing matching state and results uses read access. Reviewing or
+changing shares and saving leads uses edit access. Unclassified entries
+cannot be shared. The network matcher reads only current reviewed shares
+from linked projects. If the server confirms that a project disappeared or
+became unlisted, it pauses matching and keeps team work accessible to
+authorized teammates. A restored link needs fresh review before old entries
+can reappear in matches. The database cutover removes direct matching RPC
+access for browser sessions.
+
+Pending invites for people without a Weave account and public listing
+publication follow in later slices.
+
+Project actions use a separate Certified OAuth client. Start through
+`POST /api/certified-project-consent` with the needed action
+(`membership`, `workspace-members`, `create-project` or `add-member`).
+After the Certified callback, POST `{ "action": "finish" }` to the same
+consent endpoint from the original Weave session. The grant is bound to that
+session and DID. Only then call the project command. The first sign-in
+continues to request identity only. The [staging setup](../../packages/api/CERTIFIED.md#certified-project-backend-preview)
+lists the isolated configuration and verification cases.
 
 #### Public project evidence in the same experience
 
@@ -711,8 +950,15 @@ Show both sources within Partners, grouped by the owner's need or offer and
 clearly labeled by evidence. A published request is not a capability, historical
 work is not current capacity, and the same theme alone is not a useful match.
 One-way fit is sufficient. Do not fill absent reciprocal asks with invented or
-zero-valued answers. Public-source suggestions remain available to private drafts
-under the separate privacy path in section 7.5.
+zero-valued answers. A linked workspace can see public-source suggestions
+for private entries under the separate privacy path in section 7.5.
+
+In the first release, someone can save a match as a lead and open its
+supporting source. For a shared entry, show only the approved projection
+and the linked project's public profile. For an external suggestion, link
+to the public evidence. On reopen, recheck availability before displaying
+the supporting details. Existing public contact routes are available
+through the source. Saving a lead sends no invitation.
 
 The [build order and acceptance checklist](#76-build-plan-and-ui-handoff) require
 both a two-account shared-entry match and external evidence in both directions.
@@ -731,10 +977,14 @@ confirmed needs or offers. The existing funding engine remains a separate path.
    before returning any data. Apply explicit terms, place, timing and audience
    conflicts to each pair. Unknown geography is not proof of local availability;
    a global or remote offer does not need an arbitrary shared-watershed boost.
-3. Rank within evidence classes by relevance to the particular entry and compatible
-   scope. Use source freshness and genuine reciprocity as explained refinements.
-   Deduplicate by stable project and entry identity so extra documents cannot buy
-   extra rank. Do not merge projects by name or infer private Weave associations.
+3. Rank direct matches and possible fits separately. Show both when they
+   qualify, and distinguish public statements from confirmed entries and
+   inferences. Rank within each kind by relevance to the particular entry and
+   compatible scope. A well-evidenced possible fit can appear when timing,
+   availability or another important detail is unknown. State what to verify.
+   Shared themes alone provide insufficient evidence. Use source freshness
+   and genuine reciprocity as explained refinements. Deduplicate by stable
+   project and entry identity so extra documents cannot buy extra rank.
 4. Return reasons tied to exact passages or entry IDs and revisions, plus unknowns,
    evidence kind, permitted actions, source dates, corpus/model/engine versions and
    coverage status. Local refinement cannot upgrade evidence or access rights.
@@ -796,8 +1046,14 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
 
 #### Shared index and local work
 
-- A resumable job reads permitted Certified project collections from the public
-  Hypercerts API. Validate each record, deduplicate by DID-based AT URI, retain
+- Certified projects are the source of public project suggestions in the first
+  release. Add other source adapters later. A resumable job reads permitted
+  project collections from the public Hypercerts API. Start validation on a
+  sample across art, software, research and
+  place-based work. At launch, target all eligible public projects that the index
+  can enumerate and report measured coverage and lag. The browser continues to
+  use a bounded public snapshot or API shortlist. Validate each record,
+  deduplicate by DID-based AT URI, retain
   CID/version and source provenance, and index bounded passages. This is a
   rebuildable search projection in Platform, not a second project editing
   authority. No private Weave rows or account-to-project associations enter it.
@@ -834,12 +1090,33 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
   not an entire private document. Draft query text is not sent to Certified or
   Hypercerts search as a side effect of this path.
 - Under the [public-source decision](open-decisions.md#public-source-partner-suggestions-while-private),
-  unshared device or account drafts can see names and evidence without sharing.
-  Match locally against bounded public snapshots with visible coverage limits.
-  Do not claim a small snapshot is a search of the whole network. A later broader
-  API search for a private draft needs an explicit disclosure of query data sent
-  to Weave. Embeddings are not anonymization. No silent fallback from local to
-  server or cloud processing is permitted.
+  check the Certified session, workspace access and verified link before
+  offering personalized suggestions. A linked initiative can see names and
+  evidence without sharing. Match private entries locally against bounded public
+  snapshots and show their coverage. A later broader API search for private
+  entries needs explicit disclosure of what query data would leave the device.
+  Keep private queries on the device in the first release.
+- The local implementation downloads public evidence using
+  `POST /api/projects` with `{ "action": "public_evidence", "workspaceId": "…" }`.
+  Solo links require ownership. Group links require current Certified
+  membership and a Weave grant. The read works before any team document or
+  shared entry exists. It returns up to 80 projects and two passages per
+  project, excluding the linked project itself and records with expired
+  permissions, unavailable sources or superseded CIDs. The browser holds the
+  response in memory for up to five minutes and ranks kept entries in a
+  worker. The request contains no entry text, IDs or embeddings. The UI
+  shows source evidence, unknowns and the age and limits of the collection.
+  The `/workspaces/<workspaceId>` view loads the team's saved needs,
+  offers and current access role. Editors and admins can add or change
+  entries, save them to the team, then choose entries for the existing
+  matching review. Viewers see the entries and matching state with read-only
+  controls. The client keeps team documents in memory, apart from the
+  personal device draft. Opening public suggestions requires no sharing action.
+  A save uses its expected revision and a stable request ID. Failed or
+  conflicting saves keep the form available for recovery. A saved edit
+  invalidates its earlier shared revision before a new match can return it.
+  Each match search checks eligibility again, so changes or withdrawals
+  disappear when the other initiative refreshes results.
 - Compute matches on demand. Recheck audience, revision, status and expiry at
   every authenticated read; return non-cacheable responses and clear transient
   network results on sign-out. Public evidence can use versioned caches. Source
@@ -854,12 +1131,84 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
 
 ### 7.6 Build plan and UI handoff
 
-This is the single execution plan for the next build, revised 8 November 2026.
+This is the single execution plan for the next build, revised 10 November 2026.
 The outcome is an authenticated owner adding, saving and sharing needs/offers,
 receiving useful suggestions from both Weave entries and external project
 evidence, and returning to the same work without another identity system.
 Design work can start from the current preview and the [simplification handoff](handover/03-weave-preview-simplification.md).
 The remaining acceptance checks below apply to release readiness.
+
+#### Integration work, 10 November 2026
+
+The next implementation combines the Certified project/workspace entry flow,
+Claude's app snapshot, public index validation, invitations and public support
+listings. The isolated implementation checkout is `codex/weave-support-lexicon`.
+This status does not claim a merge, deployed migration or production pilot.
+
+| Workstream | Implementation and local proof | Release gate |
+|---|---|---|
+| Project discovery and workspace selection | Paginated personal/group projects, verified memberships, accessible workspace links and admin setup requests. Listings use verified public metadata; private documents load only after an authorized Open. Personal projects retain their existing URI and solo workspace. New projects start in a group with one owner. | Final browser integration and two real Certified identities. Preserve initiative/entry IDs through return, switching and redeploy. |
+| Design integration | Snapshot Claude's uncommitted app/design work into the implementation checkout, leaving its source untouched. Wire the revised initiative pages to real services and preserve development-only examples. | Required checks, independent review and rendered proof before consolidation into `develop`. No claim that the shared checkout or remote branch already contains it. |
+| Public Certified evidence | Network cursor enumeration and aggregate audit are implemented. The terminal audit was blocked by the execution proxy. A later read-only Codex browser audit traversed 12 pages and observed 1,128 unique public projects, with no duplicate identities. This is the API's current view, not a consistent snapshot or proof of permitted ingestion. [Source report](../../packages/api/evidence/project-index-validation-2026-11-10.md) records this separately from an empty index. | A permitted real corpus, observed refresh/removal, domain coverage, relevance and host/device latency. Semantic retrieval remains disabled. |
+| Launch behavior | Private saves may omit forms of capital; local keyword suggestions remain editable arrays. Sharing requires at least one reviewed form. An undated share stays active until closed or withdrawn. Pending invitations grant no access until the resulting DID is reviewed and current group membership plus an explicit workspace grant are verified. Public AT Protocol publication has separate reviewed fields, consent, durable requests, read-back and conditional withdrawal. | Group public publication remains disabled until the hosted group service proves safe conditional deletion. External edits produce a conflict rather than an unverified deletion claim. A public record may have no expiry; each review receipt still expires. |
+| Readiness | The auth-check CLI no longer loads the OIDC server to validate configuration, retaining its original process deadline. New disposable PostgreSQL suites cover discovery, invitations and publication; the workspace suite includes open-ended sharing with vector retrieval disabled. | Docker socket access still prevents executing the new database suites here. Fixture success does not replace PostgreSQL, hosted Auth or the two-account production pilot. |
+
+New SQL remains candidate SQL. Apply it only through the migration owner in
+section 3.3, after the already deployed account/matching/index foundations.
+The local dependency order is project OAuth, project workspaces, team content,
+public evidence snapshot, project discovery, workspace invitations and support
+publication. `weave-open-ended-sharing.sql` follows team content and the existing
+matching-vector candidate. Do not reapply migrations already recorded in Platform.
+Restricted runtime roles retain their separate credentials; these candidates do
+not require a service-role browser key.
+
+Local verification on 10 November passed `bun install --frozen-lockfile`,
+`bun run typecheck` and `bun run ci`: 129 site/catalog tests, 150 API tests,
+178 app tests, 20 design tests and 78 harness tests passed. The 37 opt-in
+PostgreSQL/Auth/PostgREST tests skipped and remain unverified. The first CI attempt
+could not download pinned model assets through the execution proxy. Reusing the
+existing caches only after every SHA256 matched `research/model-assets.json`
+allowed the complete normal CI command to pass. Tracked generated files and the
+lockfile remained unchanged.
+
+Rendered proof is **fixture, Codex in-app browser**. The integrated initiative
+screen was inspected at 360 px and 1280 px in light and dark themes with no
+horizontal overflow. Keyboard checks opened and dismissed the sharing review.
+The actual team component showed private public-source suggestions to a viewer
+without any mutation controls. A synthetic editor typed a need, received editable
+forms of capital, changed the choices, saved privately and reloaded it. Sharing
+only that need produced a direct fit while other entries stayed private; editing
+removed the direct fit and withdrawal remained confirmed. An invitation entry also survived a single synthetic sign-in and displayed its
+explicit access-request action without exposing team work. Public publication and
+invitation state boundaries have fixture tests; their hosted browser flows and
+real database guarantees were not proved by this rendering. The five-minute
+review found the responsive structure and audience labels legible; final visual
+polish and usability evaluation remain design work.
+
+The verified integration base is `develop` at
+`740a5d39c54cf02fc71c35d63abc5cbddd5c3335` in `regen-commons/weave`.
+Git network transport was unavailable, so the connected GitHub API supplied the
+commit metadata. Imported objects were accepted only when their exact Git hashes
+matched the remote SHAs. The base tree matches the saved starting point; the
+reviewed implementation was applied without changing the shared docs checkout.
+The original unsigned local implementation commit is `7c6d876` on
+`codex/weave-support-lexicon`. The separate integration worktree uses
+`codex/weave-architecture-integration`, based on current `develop`.
+
+On 10 November the user authorized the unsigned local commit and integration into
+`develop`, while deferring live validation. Signing overrides apply only to the
+authorized local commit commands; the configured signing policy stays unchanged.
+The implementation checkout's `origin` is a local path to the earlier design
+handoff checkout, not GitHub. Publication uses the verified `regen-commons/weave`
+repository and its protected pull-request flow. No migration, environment setting
+or manual deployment is part of this integration. The production pilot stays off.
+
+The production pilot stays off during this integration. No current action adds
+an account login method, automatically merges email identities, publishes private
+entries or automatically turns a pending invite into access. Project creation and
+linking are reviewed actions. Opening another initiative backs up the device draft;
+copying a device card into a team is an explicit team save. A lost create response
+keeps its frozen request for reconciliation instead of creating another group.
 
 #### Starting point
 
@@ -888,9 +1237,9 @@ establish a working service.
 |---|---|---|
 | M1. Preserve owned entries | Extend `packages/api/src/account-contract.ts`, `account-provider.ts` and the existing Save transaction; update `packages/app/src/account/` and `intake/`. Reconcile need/offer child rows by stable ID instead of deleting them all. Keep the version-1 private document contract, revision/idempotency rules and existing five-per-kind limits. Candidate SQL follows section 3.3 through the website migration owner. | Existing initiatives reload unchanged with the same account, initiative and entry IDs. Add, edit, reorder, remove, close and reopen work without changing another entry. Stale saves, retry after a lost response, duplicate IDs and unauthorized writes are tested in local Supabase. |
 | M2. Share and withdraw selected revisions | Add narrow preview/share/withdraw/renew commands in `packages/api/src/` with one-line app API entries; extend database authorization and the owner controls. Review the initiative summary plus exact entries, audience and expiry before sharing. Keep unselected entries private. | Two Certified-authorized accounts can read each other's shared projections, never each other's private documents. Save alone cannot publish. Changed shared content becomes ineligible until reviewed again; reorder/unrelated edits preserve sharing. Concurrent Save/Share, expiry, sign-out and direct Data API bypass attempts fail safely. |
-| M3. Index external project evidence | Add a bounded adapter and resumable job under `packages/api/` plus website-owned schema changes for source/evidence projections, index versions and checkpoints. Reuse public API contracts and the pinned embedding contract. Validate corpus permission, coverage, stable IDs, updates, deletions and model/runtime costs. Keep the auth bridge separate. | A real permitted sample across art, software, research and place-based work can be indexed and queried without a user login to the source. Restart/resume produces no duplicate evidence; a source update invalidates the right version. Source outages produce partial/stale status, not fabricated records. No inferred need or offer is written into owner tables. |
+| M3. Index external project evidence | Add a bounded adapter and resumable job under `packages/api/` plus website-owned schema changes for source/evidence projections, index versions and checkpoints. Reuse public API contracts and the pinned embedding contract. Validate corpus permission, coverage, stable IDs, updates, deletions and model/runtime costs. Keep the auth bridge separate. | A real permitted sample across art, software, research and place-based work can be indexed and queried without a user login to the source. Before launch, prove enumeration, refresh and matching quality at the agreed coverage target. Restart/resume produces no duplicate evidence; a source update invalidates the right version. Source outages produce partial/stale status, not fabricated records. No inferred need or offer is written into owner tables. |
 | M4. Retrieve and explain both directions | Add the authenticated matcher in `packages/api/src/`, a browser-safe matching contract/rules module with no server imports, and update `packages/app/src/partners/`. Use one authoritative rule implementation for compatible server/local paths. Compare lexical and hybrid retrieval, apply eligibility rules, deduplicate, and return source-backed reasons and unknowns. | A shared need finds another owner's offer and a relevant external capability. A shared offer finds another owner's need and an external project's evidenced potential use. Missing reciprocal entries do not exclude a result. Explicit conflicts, negation, past work and identical unmet needs do not become direct matches. Withdrawal disappears on the next read. |
-| M5. Connect the complete app flow | Wire active initiative selection, intake, Finish and Partners to the real commands. Add private save/dismiss handling for leads keyed by initiative, query entry and candidate; persist references/feedback separately from the version-1 checked document. Add local worker/cache integration with baseline results first. Support all four flows in the accounts guide and keep funding behavior unchanged. | First/returning users, with/without a public Certified project, can finish the same task. Only owned entries are editable. Switching cancels stale requests; saved leads survive return and show current evidence status. Empty, partial, stale, expired-session, offline and model-unavailable states are functional. External leads offer a source link, not a nonworking introduction. |
+| M5. Connect the complete app flow | Wire active initiative selection, intake, Finish and Partners to the real commands. Add private save/dismiss handling for leads keyed by initiative, query entry and candidate; persist references/feedback separately from the version-1 checked document. Add local worker/cache integration with baseline results first. Keep funding behavior unchanged. The [project integration target](#certified-project-integration-target) adds link and creation to the four flows in the accounts guide. | Authorized users can edit entries. Switching cancels stale requests; saved leads survive return and show current evidence status. Empty, partial, stale, expired-session, offline and model-unavailable states are functional. External leads offer a source link. |
 | M6. Prove quality, performance and release readiness | Add evaluation fixtures and a reproducible benchmark beside package tests; run the acceptance checklist below. Record migration/application versions, rollback and index-rebuild procedures, restricted job credentials and operational ownership. Update this status table with evidence, then prepare the UI handoff. | Local and authorized hosted proofs pass; a fresh Certified signup, Save/Load and sign-in after redeploy retain initiative/entry IDs and state. Shared website/steward access still works. Evaluation and latency reports name corpus, versions, device/browser and limitations. Required package, guidance and CI checks pass; critical auth/RLS work has a second review before merge. |
 
 M2 depends on M1. M3's read-only source and corpus validation can begin while M1
@@ -1211,10 +1560,12 @@ Earlier database and fixture evidence remains distinct from browser proof.
   evidence labels, working preview, test fixtures and remaining launch blockers.
   Claude can improve layout, copy and interaction while preserving these rules.
 
-Out of this handoff: public upstream project creation/claiming, team permissions,
-introductions and emails, paid membership, scheduled pulses, external publishing,
-partnership eligibility scoring and new funding logic. These keep their later
-phase contracts. They do not need placeholder controls to complete matching.
+The preview handoff covers the behavior already available for design. Upstream
+creation, verified links, workspace grants and first-release public support
+listing publication follow the
+[project integration target](#certified-project-integration-target). Introductions,
+emails, paid membership, scheduled pulses and partnership eligibility scoring
+have separate scope and release checks.
 
 ## 8. Places and geodata (R4, R17, R18)
 

@@ -39,6 +39,31 @@
       "types": "./src/partner-matcher.ts",
       "source": "./src/partner-matcher.ts",
       "default": "./dist/partner-matcher.js"
+    },
+    "./projects": {
+      "types": "./src/projects.ts",
+      "source": "./src/projects.ts",
+      "default": "./dist/projects.js"
+    },
+    "./certified-project-client": {
+      "types": "./src/certified-project-client.ts",
+      "source": "./src/certified-project-client.ts",
+      "default": "./dist/certified-project-client.js"
+    },
+    "./certified-project-jwks": {
+      "types": "./src/certified-project-jwks.ts",
+      "source": "./src/certified-project-jwks.ts",
+      "default": "./dist/certified-project-jwks.js"
+    },
+    "./certified-project-consent": {
+      "types": "./src/certified-project-consent.ts",
+      "source": "./src/certified-project-consent.ts",
+      "default": "./dist/certified-project-consent.js"
+    },
+    "./certified-project-callback": {
+      "types": "./src/certified-project-callback.ts",
+      "source": "./src/certified-project-callback.ts",
+      "default": "./dist/certified-project-callback.js"
     }
   },
   "scripts": {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { EMPTY_FILTERS, selectRecords, partnerAccess, type ListingRecord } from "../src/listing.ts";
+import { EMPTY_FILTERS, selectRecords, type ListingRecord } from "../src/listing.ts";
 const records: readonly ListingRecord[] = [
   {
     id: "a",
@@ -91,9 +91,4 @@ test("sorting is deterministic, puts unscored and undated records last, and leav
   assert.deepEqual(ids(selectRecords(records, { ...EMPTY_FILTERS, sort: "fit" })), ["a", "b", "c"]);
   assert.deepEqual(ids(selectRecords(records, { ...EMPTY_FILTERS, sort: "closing" })), ["c", "a", "b"]);
   assert.deepEqual(ids(records), ["a", "b", "c"]);
-});
-
-test("saving or signing in never opens partner cards before sharing", () => {
-  for (const state of [undefined, "visitor", "draft", "private"] as const) assert.equal(partnerAccess(state), false);
-  assert.equal(partnerAccess("shared"), true);
 });

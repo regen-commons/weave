@@ -100,3 +100,16 @@ test("retrieving a paraphrase does not replace supported overlap in the final ev
   const input = { queries: [query], now, publicEvidenceByEntry: { "need:need": [evidence] } };
   assert.deepEqual(rankPartnerMatches(input), []);
 });
+
+test("open-ended confirmed offers remain matchable until closed and invalid confirmation stays excluded", () => {
+  const openEnded = { ...offer, expiresAt: null };
+  const [match] = rankPartnerMatches({ queries: [need], shared: [openEnded], now });
+  assert.equal(match?.evidenceKind, "confirmed_offer");
+  assert.ok(match?.evidence.type === "shared");
+  assert.equal(match.evidence.expiresAt, null);
+  for (const changed of [
+    { ...openEnded, value: { ...openEnded.value, status: "met" } },
+    { ...openEnded, confirmedAt: "invalid" },
+    { ...openEnded, confirmedAt: new Date(now + 1).toISOString() },
+  ]) assert.deepEqual(rankPartnerMatches({ queries: [need], shared: [changed], now }), []);
+});

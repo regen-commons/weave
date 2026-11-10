@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { cipherFromSecret } from "./crypto.ts";
 import { certifiedEmailHints } from "./email-hint.ts";
-import { validateConfig, type BridgeConfig } from "./bridge.ts";
+import { validateConfig, type BridgeConfig } from "./bridge-config.ts";
 
 export function readConfiguration(env: NodeJS.ProcessEnv) {
   const required = (name: string) => { const value=env[name]; if (!value) throw new Error("missing_bridge_configuration"); return value; };

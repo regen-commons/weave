@@ -9,7 +9,7 @@ const maxResponseBytes = 512 * 1024;
 const did = /^did:(?:plc:[a-z2-7]{24}|web:[A-Za-z0-9][A-Za-z0-9._:%-]{0,252})$/u;
 const cidPattern = /^b[a-z2-7]{40,100}$/u;
 const recordKey = /^[A-Za-z0-9._:~-]{1,128}$/u;
-export const PROJECT_EXTRACTION_VERSION = "hypercerts-collection-v1";
+export const PROJECT_EXTRACTION_VERSION = "hypercerts-collection-v2-leaflet";
 
 export const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
@@ -36,7 +36,7 @@ export function parseProjectPermissions(input: unknown): ProjectManifest {
   const manifest = record(input);
   if (manifest.version !== 1 || typeof manifest.generation !== "number" || !Number.isSafeInteger(manifest.generation)
     || manifest.generation < 1 || manifest.generation > 2147483647
-    || !Array.isArray(manifest.projects) || manifest.projects.length > 1000)
+    || !Array.isArray(manifest.projects) || manifest.projects.length > 10_000)
     throw Error("invalid_permission_manifest");
   const permissions = manifest.projects.map((entry: unknown) => {
     const item = record(entry);
@@ -142,6 +142,34 @@ export function createHypercertsSource(options: {
     return failure;
   }
 
+  async function listProjects(actor: string | undefined, cursor?: string) {
+    if ((actor !== undefined && !did.test(actor)) || (cursor !== undefined && (!cursor || cursor.length > 1024)))
+      throw Error("invalid_source_query");
+    const params = new URLSearchParams({ types: "project", limit: "5", sortDirection: "asc" });
+    if (actor) params.set("authors", actor);
+    if (cursor) params.set("cursor", cursor);
+    const result = await xrpc(`${collection}.listCollections`, params);
+    if (result.status !== "ok") return result;
+    try {
+      const page = record(result.data);
+      if (!Array.isArray(page.collections) || page.collections.length > 5
+        || (page.cursor !== undefined && (typeof page.cursor !== "string" || !page.cursor || page.cursor.length > 1024
+          || page.cursor === cursor))) throw Error("invalid_source_page");
+      const results = page.collections.map((item: unknown) => {
+        try {
+          const { uri, did: publisher } = parseProjectUri(record(item).uri);
+          if (actor !== undefined && publisher !== actor) throw Error("unexpected_publisher");
+          return { uri, ...extractCollection(item, uri, new Date(now()).toISOString()) };
+        } catch {
+          return { uri: null, status: "failed", code: "invalid_source_record" } as const;
+        }
+      });
+      return { status: "ok", results, cursor: page.cursor } as const;
+    } catch {
+      return { status: "failed", code: "invalid_source_record" } as const;
+    }
+  }
+
   return {
     async get(permission: ProjectPermission): Promise<ProjectRead> {
       const { uri } = parseProjectUri(permission.uri);
@@ -155,32 +183,9 @@ export function createHypercertsSource(options: {
         return { status: "failed", code: "invalid_source_record" };
       }
     },
-    async listPublisherProjects(actor: string, cursor?: string) {
-      if (!did.test(actor) || (cursor !== undefined && (!cursor || cursor.length > 1024)))
-        throw Error("invalid_source_query");
-      const params = new URLSearchParams({ authors: actor, types: "project", limit: "5" });
-      if (cursor) params.set("cursor", cursor);
-      const result = await xrpc(`${collection}.listCollections`, params);
-      if (result.status !== "ok") return result;
-      try {
-        const page = record(result.data);
-        if (!Array.isArray(page.collections) || page.collections.length > 5
-          || (page.cursor !== undefined && (typeof page.cursor !== "string" || !page.cursor || page.cursor.length > 1024
-            || page.cursor === cursor))) throw Error("invalid_source_page");
-        const results = page.collections.map((item: unknown) => {
-          try {
-            const { uri, did: publisher } = parseProjectUri(record(item).uri);
-            if (publisher !== actor) throw Error("unexpected_publisher");
-            return extractCollection(item, uri, new Date(now()).toISOString());
-          } catch {
-            return { status: "failed", code: "invalid_source_record" } as const;
-          }
-        });
-        return { status: "ok", results, cursor: page.cursor } as const;
-      } catch {
-        return { status: "failed", code: "invalid_source_record" } as const;
-      }
-    },
+    /** Enumerates the chosen index, not every repository on AT Protocol. */
+    listProjects: (cursor?: string) => listProjects(undefined, cursor),
+    listPublisherProjects: (actor: string, cursor?: string) => listProjects(actor, cursor),
   };
 }
 
@@ -198,6 +203,29 @@ function safePassages(value: string, max: number): string[] {
   return passages;
 }
 
+/** Read only the direct narrative fields. Embedded URLs, facets, code and child lists are never followed. */
+function leafletPassages(description: Record<string, unknown>): [string, string[]][] {
+  if (!Array.isArray(description.blocks)) throw Error("invalid_description");
+  const fields: [string, string[]][] = [];
+  let characters = 20_000, remaining = 5;
+  for (const [index, input] of description.blocks.slice(0, 100).entries()) {
+    if (!characters || !remaining) break;
+    try {
+      const block = record(record(input).block);
+      // This is an explicit disclosure boundary in the released Leaflet schema.
+      if (block.$type === "pub.leaflet.blocks.membersOnlyDelimiter") break;
+      if (block.$type !== "pub.leaflet.blocks.text" && block.$type !== "pub.leaflet.blocks.header") continue;
+      if (typeof block.plaintext !== "string") continue;
+      const value = block.plaintext.slice(0, characters).replace(/[\uD800-\uDBFF]$/u, "");
+      characters -= Math.min(block.plaintext.length, characters);
+      const passages = safePassages(value, remaining);
+      if (passages.length) fields.push([`$.description.blocks[${index}].block.plaintext`, passages]);
+      remaining -= passages.length;
+    } catch { /* A malformed or unknown block cannot hide other permitted plain text. */ }
+  }
+  return fields;
+}
+
 export function extractCollection(input: unknown, expectedUri: string, fetchedAt: string): ProjectRead {
   const publisher = parseProjectUri(expectedUri).did;
   const view = record(input);
@@ -210,7 +238,7 @@ export function extractCollection(input: unknown, expectedUri: string, fetchedAt
     const details = record(organization.record);
     if (organization.did !== publisher || organization.uri !== `at://${publisher}/app.certified.actor.organization/self`
       || details.$type !== "app.certified.actor.organization") throw Error("invalid_organization");
-    if (details.visibility !== undefined && details.visibility !== "public")
+    if ((details.visibility !== undefined && details.visibility !== "public") || details.unlisted === true)
       return { status: "restricted", code: "not_discoverable" };
   }
   const entry = record(view.record);
@@ -234,6 +262,10 @@ export function extractCollection(input: unknown, expectedUri: string, fetchedAt
       if (typeof description.value !== "string" || description.value.length > 250_000)
         throw Error("invalid_description");
       fields.push(["$.description.value", safePassages(description.value.slice(0, 20_000), 5)]);
+    } else if (description.$type === "pub.leaflet.pages.linearDocument"
+      || (description.$type === undefined && Array.isArray(description.blocks))) {
+      // Production API views also contain the legacy typeless blocks envelope.
+      fields.push(...leafletPassages(description));
     }
   }
   const contentHash = sha256(JSON.stringify({ projectName, sourceCreatedAt, fields }));

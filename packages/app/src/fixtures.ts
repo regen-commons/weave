@@ -8,7 +8,21 @@ import { chunksFrom, keywordExtraction } from "./intake/keywords.ts";
 import type { ListingRecord } from "./listing.ts";
 import { parseBundle } from "./funding/catalog.ts";
 import type { TeamAsk } from "./funding/team.ts";
-export type Scenario = "visitor" | "draft" | "private" | "shared";
+/**
+ * Where the example card stands: nothing yet, on this device, saved privately, saved in a
+ * linked project's team workspace, shared for matching, published, or a signed-in return
+ * with nothing on this device.
+ */
+export type Scenario = "visitor" | "draft" | "private" | "workspace" | "shared" | "published" | "returning";
+export const SCENARIOS: readonly Scenario[] = [
+  "visitor",
+  "draft",
+  "private",
+  "workspace",
+  "shared",
+  "published",
+  "returning",
+];
 export type ListState = "ready" | "empty" | "loading" | "offline" | "error" | "long" | "partial";
 export type DescribeView =
   | "fresh"
@@ -57,6 +71,10 @@ export interface FixtureContext {
   intake: IntakeView;
   describe: DescribeView;
   scenario: Scenario;
+  /** How the example Certified page answers a publication. */
+  certified: "ok" | "fail";
+  /** Whether the example person already has projects on Certified. */
+  projects: "some" | "none";
   asOf: string;
   state: ListState;
   initiatives: readonly ListingRecord[];
@@ -237,9 +255,8 @@ const funding: readonly ListingRecord[] = [
 ];
 export function readFixtures(search: string): FixtureContext {
   const params = new URLSearchParams(search);
-  const requested = params.get("fixture");
-  const scenario: Scenario =
-    requested === "draft" || requested === "private" || requested === "shared" ? requested : "visitor";
+  const requested = params.get("fixture") as Scenario;
+  const scenario: Scenario = SCENARIOS.includes(requested) ? requested : "visitor";
   const stateValue = params.get("state");
   const state: ListState =
     stateValue === "empty" ||
@@ -296,6 +313,8 @@ export function readFixtures(search: string): FixtureContext {
   }));
   return {
     scenario,
+    certified: params.get("certified") === "fail" ? "fail" : "ok",
+    projects: params.get("projects") === "none" ? "none" : "some",
     intake: INTAKE_VIEWS.includes(params.get("intake") as IntakeView)
       ? (params.get("intake") as IntakeView)
       : "off",
@@ -409,7 +428,7 @@ export function intakeFixture(view: IntakeView, path: string) {
       );
       const chunks = chunksFrom(step.turns[0]!.text, step.turns[0]!.id);
       step = reconcile(step, keywordExtraction(chunks, kind));
-      const allKept = path === "/start/finish" || ["kept", "saved", "shared"].includes(view);
+      const allKept = !path.startsWith("/start/") || ["kept", "saved", "shared"].includes(view);
       if (allKept) {
         for (const item of step.items) step = decide(step, item.id, "kept");
         step = reviewStep(step);
@@ -522,4 +541,58 @@ export function teamFixture(view: string | null): TeamAsk[] {
     },
     { id: "country", label: "A co-applicant working in another country", candidates: [] },
   ];
+}
+
+/** The example person's own initiative. It is never a partner for itself. */
+const EXAMPLE_OWN = "orchard-circle";
+/** One of the person's shared needs or offers, as the example partner rule reads it. */
+export interface ExampleEntry {
+  readonly kind: "needs" | "offers";
+  readonly title: string;
+  readonly kinds: ListingRecord["needs"];
+}
+/** An invented direct fit: an example initiative's own need or offer, as if it were shared for matching. */
+export interface ExamplePartner {
+  readonly id: string;
+  readonly name: string;
+  /** The person's own need or offer the result is for. */
+  readonly entry: { readonly kind: "need" | "offer"; readonly title: string };
+  readonly kind: "confirmed_offer" | "confirmed_need";
+  readonly title: string;
+  readonly passage: string;
+  readonly confirmedOn: string;
+}
+/**
+ * Invented partners for the example world. Each shared need gets the first example initiative that
+ * offers one of its kinds of support, and each shared offer the first that needs one. An initiative
+ * appears once, so a later entry moves on to the next.
+ */
+export function examplePartners(
+  entries: readonly ExampleEntry[],
+  records: readonly ListingRecord[],
+): ExamplePartner[] {
+  const used = new Set([EXAMPLE_OWN]);
+  const partners: ExamplePartner[] = [];
+  for (const entry of entries) {
+    const need = entry.kind === "needs";
+    for (const record of records) {
+      if (used.has(record.id)) continue;
+      const theirs = record.publicDetails?.[need ? "offers" : "needs"].find((ask) =>
+        ask.capitals.some((capital) => entry.kinds.includes(capital)),
+      );
+      if (!theirs) continue;
+      used.add(record.id);
+      partners.push({
+        id: record.id,
+        name: record.title,
+        entry: { kind: need ? "need" : "offer", title: entry.title },
+        kind: need ? "confirmed_offer" : "confirmed_need",
+        title: theirs.title,
+        passage: theirs.description,
+        confirmedOn: record.confirmed,
+      });
+      break;
+    }
+  }
+  return partners;
 }

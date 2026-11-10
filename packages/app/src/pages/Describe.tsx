@@ -6,33 +6,79 @@ import {
   nextQuestion,
   revise,
   type AiRun,
+  type DeviceDraft,
   type RecordForm,
 } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { availableBrowser, browserExtract } from "../describe/engines.ts";
 import { keywordExtract } from "../describe/keyword-client.ts";
 import { availableSpeech, startSpeech } from "../describe/speech.ts";
-import { editsFromForm, formFrom, parseRecordForm } from "../describe/forms.ts";
+import { editsFromForm } from "../describe/forms.ts";
+import {
+  FieldsProblem,
+  afterFields,
+  builtCard,
+  continueWithFields,
+  describeView,
+  fieldsForm,
+  talkItThrough,
+  type DescribeMode,
+} from "../describe/screen.ts";
 import { draftText, previewFields } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
-import { navigate } from "../router.tsx";
+import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, INTAKE_STEPS, pathTo } from "../routes.ts";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { Conversation } from "../ui/Conversation.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
-import { StepLayout, Stack } from "../ui/layouts.tsx";
+import { NarrowLayout, StepLayout, Stack } from "../ui/layouts.tsx";
 import { RecordFields } from "../ui/RecordFields.tsx";
 import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
 import { VoiceInput } from "../ui/VoiceInput.tsx";
 import { DescribeExamples } from "./DescribeExamples.tsx";
 
+/** The one file input of the step. Its label and hint say what happens to a file in the view it sits in. */
+function FileField({
+  label,
+  hint,
+  onFiles,
+}: {
+  label: string;
+  hint: string;
+  onFiles(input: HTMLInputElement): void;
+}) {
+  return (
+    <div className="rc-field">
+      <label htmlFor="describe-files">{label}</label>
+      <p className="rc-hint" id="describe-files-hint">
+        {hint}
+      </p>
+      <input
+        className="rc-input"
+        type="file"
+        id="describe-files"
+        aria-describedby="describe-files-hint"
+        multiple
+        onChange={(event) => onFiles(event.currentTarget)}
+      />
+    </div>
+  );
+}
+
+/**
+ * The describe step. It opens on the four fields with one Continue. Talking it through is the
+ * other way in, and that path ends at the check card because the app proposes the details.
+ */
 export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const { draft, storage, error: storageError, ready, controller, fixture } = useDraft();
-  const fields = previewFields(draft);
-  const form = draft.form ?? formFrom(fields);
+  // A view picked in this visit holds only for the draft it was picked on.
+  const [choice, setChoice] = useState<{ controller: typeof controller; view: DescribeMode } | null>(null);
+  const shown = describeView(draft, choice?.controller === controller ? choice.view : null);
+  const form = fieldsForm(draft);
+  const [problem, setProblem] = useState("");
   const [language, setLanguage] = useState(navigator.language || "en-US");
   const [speechReady, setSpeechReady] = useState(false);
   const [modelReady, setModelReady] = useState(false);
@@ -74,6 +120,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
           ? "Keyword mode is ready. No model download is needed."
           : "",
     );
+    setProblem("");
     return () => {
       task.current?.abort();
       task.current = null;
@@ -82,7 +129,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     };
   }, [controller, view]);
   useEffect(() => {
-    if (view === "storage-error" && ready && storage === "saved")
+    if (import.meta.env.DEV && view === "storage-error" && ready && storage === "saved")
       controller.change((current) =>
         revise(current, { composer: current.composer || "An example change that could not be saved." }, true),
       );
@@ -91,6 +138,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     if (taskVersion.current !== draft.inputVersion) task.current?.abort();
   }, [draft.inputVersion]);
   function changeForm(value: RecordForm) {
+    setProblem("");
     controller.change((current) =>
       revise(current, { form: value, publicEdits: editsFromForm(value, current.publicEdits) }, true),
     );
@@ -168,9 +216,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       controller.change((current) =>
         revise(current, { attachments: [...current.attachments, ...attachments] }, true),
       );
-      setNotice(
-        "Files added on this device. Plain text and readable PDF text are read when you build; scanned pages and Office files may need you to add details.",
-      );
+      setNotice(attachments.length === 1 ? "File added on this device." : "Files added on this device.");
     } catch {
       setNotice(
         "No files were added. Each file must be 25 MB or smaller and have a name under 256 characters.",
@@ -264,17 +310,12 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       words = result.words;
       valid();
       controller.change((current) =>
-        revise(current, {
-          proposal: { ...result.suggestion, links: [...source.links] },
-          proposalVersion: version,
-          confirmed: null,
-          lastBuild: {
-            engine: "keywords",
-            unreadFiles: result.unreadFiles,
-            sourceCharacters: result.text.length,
-            files: result.files,
-            fallback: source.assistant === "browser" && !modelReady,
-          },
+        builtCard(current, { ...result.suggestion, links: [...source.links] }, version, {
+          engine: "keywords",
+          unreadFiles: result.unreadFiles,
+          sourceCharacters: result.text.length,
+          files: result.files,
+          fallback: source.assistant === "browser" && !modelReady,
         }),
       );
       record("keywords", "complete", "Keyword draft");
@@ -319,7 +360,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
         }
       }
       valid();
-      navigate(fixtureHref(pathTo("check-card"), window.location.search, import.meta.env.DEV));
+      navigate(fixtureHref(pathTo("check-card"), routeSearch(), import.meta.env.DEV));
     } catch (failure) {
       if (abort.signal.aborted || (failure instanceof DOMException && failure.name === "AbortError")) {
         record(
@@ -342,93 +383,45 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       }
     }
   }
-  function manual(event: FormEvent<HTMLFormElement>) {
+  function continueFields(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    let next: DeviceDraft;
     try {
-      const publicFields = parseRecordForm(form);
-      const source = controller.getSnapshot().draft;
-      controller.change((current) =>
-        revise(current, {
-          publicEdits: publicFields,
-          proposal: {
-            ...previewFields(current),
-            ...publicFields,
-            stage: null,
-            lenses: [],
-            themes: [],
-            beneficiaries: [],
-            languages: [],
-            confidence: 1,
-          },
-          proposalVersion: source.inputVersion,
-          confirmed: null,
-          lastBuild: {
-            engine: "manual",
-            unreadFiles: current.attachments.length,
-            sourceCharacters: publicFields.description.length,
-            files: [],
-            fallback: false,
-          },
-        }),
-      );
-      navigate(fixtureHref(pathTo("check-card"), window.location.search, import.meta.env.DEV));
-    } catch {
-      setNotice("Check the four fields. Use up to eight places and six complete http or https links.");
+      next = controller.change(continueWithFields);
+    } catch (error) {
+      setProblem(error instanceof FieldsProblem ? error.message : "Check the four fields and try again.");
+      return;
     }
+    navigate(fixtureHref(pathTo(afterFields(next)), routeSearch(), import.meta.env.DEV));
   }
-  const references = (
-    <>
-      <div className="rc-field">
-        <label htmlFor="describe-files">Add files</label>
-        <p className="rc-hint">
-          Up to 25 MB each. Plain text and PDF text are read here. Scanned pages and Office files are kept
-          without reading their content.
-        </p>
-        <input
-          className="rc-input"
-          type="file"
-          id="describe-files"
-          multiple
-          onChange={(event) => void files(event.currentTarget)}
-        />
-      </div>
-      {draft.mode !== "fields" && (
-        <form className="rc-field" onSubmit={addLink}>
-          <label htmlFor="describe-link">Add a link</label>
-          <p className="rc-hint">Its address stays here. The page is not fetched.</p>
-          <div className="rc-inline-field">
-            <input
-              className="rc-input"
-              type="url"
-              id="describe-link"
-              value={link}
-              maxLength={2048}
-              onChange={(event) =>
-                controller.change((current) => revise(current, { pendingLink: event.target.value }, true))
-              }
-              required
-            />
-            <button className="rc-button" data-variant="secondary" type="submit">
-              Add link
-            </button>
-          </div>
-        </form>
-      )}
-      <AttachmentList
-        files={draft.attachments}
-        links={draft.links}
-        onRemoveFile={(id) =>
-          controller.change((current) =>
-            revise(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true),
-          )
-        }
-        onRemoveLink={(url) =>
-          controller.change((current) =>
-            revise(current, { links: current.links.filter((value) => value !== url) }, true),
-          )
-        }
-      />
-    </>
+  function talk() {
+    setChoice({ controller, view: "conversation" });
+    setProblem("");
+    setNotice("");
+    controller.change(talkItThrough);
+  }
+  function showFields() {
+    task.current?.abort();
+    micTask.current?.abort();
+    mic.current?.dispose();
+    setListening(false);
+    setChoice({ controller, view: "fields" });
+    setNotice("");
+    controller.change((current) => revise(current, { mode: "fields", assistant: "none" }));
+  }
+  const removeFile = (id: string) =>
+    controller.change((current) =>
+      revise(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true),
+    );
+  const removeLink = (url: string) =>
+    controller.change((current) =>
+      revise(current, { links: current.links.filter((value) => value !== url) }, true),
+    );
+  const offline = view === "offline" || !navigator.onLine;
+  const status = notice && (
+    <p className="rc-meta" role="status">
+      {notice}
+    </p>
   );
   return (
     <Stack>
@@ -444,228 +437,263 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       />
       {!ready ? (
         <p role="status">Opening your device draft</p>
+      ) : shown === "fields" ? (
+        <NarrowLayout>
+          {offline && (
+            <p className="rc-notice" data-tone="info">
+              You are offline. Your details stay on this device.
+            </p>
+          )}
+          {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
+          <form className="rc-form" onSubmit={continueFields}>
+            <RecordFields value={form} onChange={changeForm} />
+            {problem && (
+              <p className="rc-error" role="alert">
+                {problem}
+              </p>
+            )}
+            <div className="rc-action-bar">
+              <button className="rc-button" data-variant="primary" type="submit">
+                Continue
+              </button>
+              <button className="rc-button" data-variant="quiet" type="button" onClick={talk}>
+                Talk it through instead
+              </button>
+            </div>
+          </form>
+          <details>
+            <summary className="rc-footer-link">Add files</summary>
+            <FileField
+              label="Files"
+              hint="Up to 25 MB each. They stay on this device and are read only if you talk it through."
+              onFiles={(input) => void files(input)}
+            />
+          </details>
+          <AttachmentList
+            files={draft.attachments}
+            readOnBuild={false}
+            links={[]}
+            onRemoveFile={removeFile}
+            onRemoveLink={removeLink}
+          />
+          {status}
+        </NarrowLayout>
       ) : (
-        <StepLayout aside={<RecordPreview fields={fields} confirmed={!!draft.confirmed} />}>
-          {(view === "offline" || !navigator.onLine) && (
+        <StepLayout aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
+          {offline && (
             <p className="rc-notice" data-tone="info">
               You are offline. This conversation stays on this device.
             </p>
           )}
           {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
-          {draft.mode === "fields" ? (
-            <form className="rc-form" onSubmit={manual}>
-              <RecordFields value={form} onChange={changeForm} />
-              <div className="rc-action-bar">
-                <button className="rc-button" data-variant="primary" type="submit">
-                  Check my card
-                </button>
-                <button
-                  className="rc-button"
-                  data-variant="quiet"
-                  type="button"
-                  onClick={() =>
-                    controller.change((current) =>
-                      revise(current, { mode: "conversation", assistant: "keywords" }),
-                    )
-                  }
-                >
-                  Talk it through instead
-                </button>
-              </div>
-            </form>
-          ) : (
-            <section className="rc-guide rc-conversation-panel" aria-label="Describe your initiative">
-              <p className="rc-guide-status">
-                Assistant on this device. Guided questions,{" "}
-                {draft.assistant === "browser" && modelReady && !fixture
-                  ? "browser model ready"
-                  : "keyword draft"}
-                .
-              </p>
-              <Conversation
-                turns={draft.turns}
-                question={nextQuestion(draft)}
-                edits={draft.answerEdits}
-                onDraftEdit={(id, value) =>
+          <section className="rc-guide rc-conversation-panel" aria-label="Describe your initiative">
+            <p className="rc-guide-status">
+              Assistant on this device. Guided questions,{" "}
+              {draft.assistant === "browser" && modelReady && !fixture
+                ? "browser model ready"
+                : "keyword draft"}
+              .
+            </p>
+            <Conversation
+              turns={draft.turns}
+              question={nextQuestion(draft)}
+              edits={draft.answerEdits}
+              onDraftEdit={(id, value) =>
+                controller.change((current) =>
+                  revise(
+                    current,
+                    { answerEdits: { ...current.answerEdits, [id]: value } },
+                    value !==
+                      (current.answerEdits[id] ?? current.turns.find((turn) => turn.id === id)?.text),
+                  ),
+                )
+              }
+              onCancel={(id) =>
+                controller.change((current) =>
+                  revise(current, {
+                    answerEdits: Object.fromEntries(
+                      Object.entries(current.answerEdits).filter(([key]) => key !== id),
+                    ),
+                  }),
+                )
+              }
+              onEdit={(id, text) => {
+                try {
                   controller.change((current) =>
                     revise(
                       current,
-                      { answerEdits: { ...current.answerEdits, [id]: value } },
-                      value !==
-                        (current.answerEdits[id] ?? current.turns.find((turn) => turn.id === id)?.text),
+                      {
+                        turns: current.turns.map((turn) =>
+                          turn.id === id ? { ...turn, text: text.trim() } : turn,
+                        ),
+                        answerEdits: Object.fromEntries(
+                          Object.entries(current.answerEdits).filter(([key]) => key !== id),
+                        ),
+                      },
+                      true,
                     ),
-                  )
+                  );
+                } catch {
+                  setNotice("Keep a nonempty answer under 20,000 characters.");
                 }
-                onCancel={(id) =>
-                  controller.change((current) =>
-                    revise(current, {
-                      answerEdits: Object.fromEntries(
-                        Object.entries(current.answerEdits).filter(([key]) => key !== id),
-                      ),
-                    }),
-                  )
+              }}
+            />
+            <VoiceInput
+              available={speechReady}
+              listening={listening}
+              transcript={transcript}
+              language={language}
+              onLanguage={setLanguage}
+              onStart={() => void speak()}
+              onStop={stopSpeech}
+            />
+            <form className="rc-composer" onSubmit={add}>
+              <label htmlFor="describe-answer">Type your answer, or edit what you said</label>
+              <textarea
+                className="rc-input"
+                id="describe-answer"
+                rows={4}
+                maxLength={20000}
+                value={draft.composer}
+                disabled={listening}
+                onChange={(event) =>
+                  controller.change((current) => revise(current, { composer: event.target.value }, true))
                 }
-                onEdit={(id, text) => {
-                  try {
-                    controller.change((current) =>
-                      revise(
-                        current,
-                        {
-                          turns: current.turns.map((turn) =>
-                            turn.id === id ? { ...turn, text: text.trim() } : turn,
-                          ),
-                          answerEdits: Object.fromEntries(
-                            Object.entries(current.answerEdits).filter(([key]) => key !== id),
-                          ),
-                        },
-                        true,
-                      ),
-                    );
-                  } catch {
-                    setNotice("Keep a nonempty answer under 20,000 characters.");
-                  }
-                }}
               />
-              <VoiceInput
-                available={speechReady}
-                listening={listening}
-                transcript={transcript}
-                language={language}
-                onLanguage={setLanguage}
-                onStart={() => void speak()}
-                onStop={stopSpeech}
-              />
-              <form className="rc-composer" onSubmit={add}>
-                <label htmlFor="describe-answer">Type your answer, or edit what you said</label>
-                <textarea
-                  className="rc-input"
-                  id="describe-answer"
-                  rows={4}
-                  maxLength={20000}
-                  value={draft.composer}
-                  disabled={listening}
-                  onChange={(event) =>
-                    controller.change((current) => revise(current, { composer: event.target.value }, true))
-                  }
-                />
-                <div className="rc-action-bar">
-                  <button
-                    className="rc-button"
-                    data-variant="secondary"
-                    type="submit"
-                    disabled={!draft.composer.trim() || listening}
-                  >
-                    Add your answer
-                  </button>
-                </div>
-              </form>
-              {modelReady && !draft.assistantPromptDismissed && draft.assistant !== "browser" && (
-                <section className="rc-notice" data-tone="info">
-                  <div className="rc-notice-body">
-                    <h2 className="rc-notice-title">Build your card on this device</h2>
-                    <p>
-                      This browser already has a local model. Your words stay on this device; no model is
-                      downloaded by Weave.
-                    </p>
-                    <div className="rc-action-bar">
-                      <button
-                        className="rc-button"
-                        data-variant="secondary"
-                        type="button"
-                        onClick={() =>
-                          controller.change((current) =>
-                            revise(current, { assistant: "browser", assistantPromptDismissed: true }),
-                          )
-                        }
-                      >
-                        {fixture ? "Try the browser option example" : "Use this browser's assistant"}
-                      </button>
-                      <button
-                        className="rc-button"
-                        data-variant="quiet"
-                        type="button"
-                        onClick={() =>
-                          controller.change((current) => revise(current, { assistantPromptDismissed: true }))
-                        }
-                      >
-                        Not now
-                      </button>
-                    </div>
-                  </div>
-                </section>
-              )}
-              {draft.assistant === "browser" && (
-                <p className="rc-meta">
-                  {fixture
-                    ? "Browser option example selected; the keyword draft powers this simulation."
-                    : modelReady
-                      ? "Browser model selected. It runs only when you build; keyword mode remains available."
-                      : "The browser model is not ready. Build uses the keyword draft."}
-                </p>
-              )}
-              {references}
               <div className="rc-action-bar">
                 <button
                   className="rc-button"
-                  data-variant="primary"
-                  data-size="lg"
-                  type="button"
-                  aria-busy={busy}
-                  disabled={
-                    busy ||
-                    listening ||
-                    !(
-                      draft.turns.length ||
-                      draft.composer.trim() ||
-                      draft.pendingLink.trim() ||
-                      draft.attachments.length ||
-                      draft.links.length
-                    )
-                  }
-                  onClick={() => void build()}
+                  data-variant="secondary"
+                  type="submit"
+                  disabled={!draft.composer.trim() || listening}
                 >
-                  {busy ? "Building your card" : "Build my card"}
+                  Add your answer
                 </button>
-                {busy && (
-                  <button
-                    className="rc-button"
-                    data-variant="secondary"
-                    type="button"
-                    onClick={() => {
-                      task.current?.abort();
-                      setBusy(false);
-                      setNotice("Stopped. Your words are still here.");
-                    }}
-                  >
-                    Cancel building
-                  </button>
-                )}
+              </div>
+            </form>
+            {modelReady && !draft.assistantPromptDismissed && draft.assistant !== "browser" && (
+              <section className="rc-notice" data-tone="info">
+                <div className="rc-notice-body">
+                  <h2 className="rc-notice-title">Build your card on this device</h2>
+                  <p>
+                    This browser already has a local model. Your words stay on this device; no model is
+                    downloaded by Weave.
+                  </p>
+                  <div className="rc-action-bar">
+                    <button
+                      className="rc-button"
+                      data-variant="secondary"
+                      type="button"
+                      onClick={() =>
+                        controller.change((current) =>
+                          revise(current, { assistant: "browser", assistantPromptDismissed: true }),
+                        )
+                      }
+                    >
+                      {fixture ? "Try the browser option example" : "Use this browser's assistant"}
+                    </button>
+                    <button
+                      className="rc-button"
+                      data-variant="quiet"
+                      type="button"
+                      onClick={() =>
+                        controller.change((current) => revise(current, { assistantPromptDismissed: true }))
+                      }
+                    >
+                      Not now
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
+            {draft.assistant === "browser" && (
+              <p className="rc-meta">
+                {fixture
+                  ? "Browser option example selected; the keyword draft powers this simulation."
+                  : modelReady
+                    ? "Browser model selected. It runs only when you build; keyword mode remains available."
+                    : "The browser model is not ready. Build uses the keyword draft."}
+              </p>
+            )}
+            <FileField
+              label="Add files"
+              hint="Up to 25 MB each. Plain text and PDF text are read on this device when you build."
+              onFiles={(input) => void files(input)}
+            />
+            <form className="rc-field" onSubmit={addLink}>
+              <label htmlFor="describe-link">Add a link</label>
+              <p className="rc-hint" id="describe-link-hint">
+                Its address stays here. The page is not fetched.
+              </p>
+              <div className="rc-inline-field">
+                <input
+                  className="rc-input"
+                  type="url"
+                  id="describe-link"
+                  aria-describedby="describe-link-hint"
+                  value={link}
+                  maxLength={2048}
+                  onChange={(event) =>
+                    controller.change((current) => revise(current, { pendingLink: event.target.value }, true))
+                  }
+                  required
+                />
+                <button className="rc-button" data-variant="secondary" type="submit">
+                  Add link
+                </button>
+              </div>
+            </form>
+            <AttachmentList
+              files={draft.attachments}
+              links={draft.links}
+              onRemoveFile={removeFile}
+              onRemoveLink={removeLink}
+            />
+            <div className="rc-action-bar">
+              <button
+                className="rc-button"
+                data-variant="primary"
+                data-size="lg"
+                type="button"
+                aria-busy={busy}
+                disabled={
+                  busy ||
+                  listening ||
+                  !(
+                    draft.turns.length ||
+                    draft.composer.trim() ||
+                    draft.pendingLink.trim() ||
+                    draft.attachments.length ||
+                    draft.links.length
+                  )
+                }
+                onClick={() => void build()}
+              >
+                {busy ? "Building your card" : "Build my card"}
+              </button>
+              {busy && (
                 <button
                   className="rc-button"
-                  data-variant="quiet"
+                  data-variant="secondary"
                   type="button"
                   onClick={() => {
                     task.current?.abort();
-                    micTask.current?.abort();
-                    mic.current?.dispose();
-                    setListening(false);
-                    controller.change((current) => revise(current, { mode: "fields", assistant: "none" }));
+                    setBusy(false);
+                    setNotice("Stopped. Your words are still here.");
                   }}
                 >
-                  Use the four fields
+                  Cancel building
                 </button>
-              </div>
-            </section>
-          )}
-          {draft.mode === "fields" && references}
-          {notice && (
-            <p className="rc-meta" role="status">
-              {notice}
-            </p>
-          )}
-          {draft.proposal && (
+              )}
+              <button className="rc-button" data-variant="quiet" type="button" onClick={showFields}>
+                Use the four fields
+              </button>
+            </div>
+          </section>
+          {status}
+          {draft.proposal && draft.proposalVersion === draft.inputVersion && (
             <ButtonLink variant="quiet" href={pathTo("check-card")}>
-              Check the current card
+              Check your card
             </ButtonLink>
           )}
         </StepLayout>

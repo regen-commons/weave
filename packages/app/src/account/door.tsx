@@ -1,14 +1,23 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { TaskDialog } from "../ui/TaskDialog.tsx";
-import { SocialAction } from "../social/Action.tsx";
+import { navigate, routeSearch } from "../router.tsx";
+import { fixtureHref, pathTo, matchRoute } from "../routes.ts";
+import { ExampleDoor, type DoorIntent } from "../social/Door.tsx";
 import { useSocialFixture } from "../social/context.tsx";
+import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { AccountSection } from "./AccountSection.tsx";
-const DoorContext = createContext<(() => void) | null>(null);
+const DoorContext = createContext<((intent?: DoorIntent) => void) | null>(null);
+const RETURNS = ["signed-in", "failed", "cancelled"];
+/** The one account door. Sign-in returns to the task; saving stays a separate choice. */
 export function AccountDoorProvider({ children }: { children: ReactNode }) {
   const social = useSocialFixture();
-  const [open, setOpen] = useState(() =>
-    ["signed-in", "failed", "cancelled"].includes(new URLSearchParams(window.location.search).get("account") ?? "") &&
-    !["/settings", "/start/finish"].includes(window.location.pathname));
+  // Coming back from Certified reopens the door where the person left it, unless the page shows the account itself.
+  const [intent, setIntent] = useState<DoorIntent | null>(() =>
+    RETURNS.includes(new URLSearchParams(window.location.search).get("account") ?? "") &&
+    ![pathTo("settings"), pathTo("your-initiatives")].includes(window.location.pathname) &&
+    matchRoute(window.location.pathname)?.name !== "team-workspace"
+      ? "keep"
+      : null,
+  );
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.has("account")) {
@@ -17,13 +26,26 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
     }
   }, []);
   return (
-    <DoorContext.Provider value={() => setOpen(true)}>
+    <DoorContext.Provider value={(next = "keep") => setIntent(next)}>
       {children}
-      <TaskDialog title="Save or load your card" open={open} onClose={() => setOpen(false)}>
+      <TaskDialog
+        title={intent === "sign-in" || intent === "certified" ? "Sign in" : "Save your initiative"}
+        open={intent !== null}
+        onClose={() => setIntent(null)}
+      >
         {import.meta.env.DEV && social ? (
-          <SocialAction intent={{ kind: "save" }} inline />
+          <ExampleDoor
+            save={intent === "keep"}
+            direct={intent === "certified"}
+            onDone={(result) => {
+              const wanted = intent;
+              setIntent(null);
+              if (result === "signed-in" && wanted !== "keep")
+                navigate(fixtureHref(pathTo("your-initiatives"), routeSearch(), true));
+            }}
+          />
         ) : (
-          <AccountSection autoFocus onBeginCard={() => setOpen(false)} />
+          <AccountSection autoFocus onBeginCard={() => setIntent(null)} />
         )}
       </TaskDialog>
     </DoorContext.Provider>
@@ -37,13 +59,15 @@ export function useAccountDoor() {
 export function SaveAction({
   children,
   variant = "primary",
+  size,
 }: {
   children: ReactNode;
   variant?: "primary" | "secondary" | "quiet";
+  size?: "sm";
 }) {
   const open = useAccountDoor();
   return (
-    <button className="rc-button" data-variant={variant} type="button" onClick={open}>
+    <button className="rc-button" data-variant={variant} data-size={size} type="button" onClick={() => open("keep")}>
       {children}
     </button>
   );

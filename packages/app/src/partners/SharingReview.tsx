@@ -23,7 +23,7 @@ export function SharingReview({ review, action, busy, retry, error, onConfirm, o
   return (
     <TaskDialog title={action === "renew" ? "Review renewed sharing" : "Review what you’ll share"} open onClose={onClose}>
       <div className="rc-stack" aria-busy={busy}>
-        <p>Signed-in Weave users can see this initiative summary and the selected entries in their matches. Sharing ends on <MatchingDate value={review.expiresAt} />.</p>
+        <p>Signed-in Weave users can see this initiative summary and the selected entries in their matches. {review.expiresAt ? <>Sharing ends on <MatchingDate value={review.expiresAt} />.</> : "Sharing stays active until closed or withdrawn."}</p>
         <section className="rc-stack" aria-label="Initiative summary">
           <h3 className="rc-heading" data-size="section">{summary.name}</h3>
           <p>{summary.description}</p>

@@ -1,0 +1,11 @@
+{
+  "proofClass": "synthetic",
+  "observedNetworkRecords": 1128,
+  "common1128Bytes": 152321,
+  "maxAddress1128Bytes": 532457,
+  "maxAddress10000Bytes": 4720041,
+  "manifestFileLimitBytes": 8388608,
+  "permissionCountLimit": 10000,
+  "outboundResponseLimitBytes": 524288,
+  "refreshBatchLimit": 25
+}

@@ -1,9 +1,14 @@
 import { useState, type FormEvent } from "react";
+import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
+import { useDraft } from "../describe/use-draft.ts";
 import type { FixtureContext } from "../fixtures.ts";
-import { fullDate, homePreviews } from "../home.ts";
-import { navigate } from "../router.tsx";
-import { fixtureHref, pathTo } from "../routes.ts";
+import { fullDate, homeDoors, homePreviews, resumeLabel } from "../home.ts";
+import { cardName, cardRoute } from "../initiative/status.ts";
+import { useCardStatus } from "../initiative/use-card-status.ts";
+import { currentRoute, navigate, routeSearch } from "../router.tsx";
+import { fixtureHref, pathTo, routeWith } from "../routes.ts";
+import { useSocialFixture } from "../social/context.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
@@ -12,10 +17,20 @@ import { HomeHero, Stack } from "../ui/layouts.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
 import { NumberedList } from "../ui/NumberedList.tsx";
 import { Section } from "../ui/Section.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
 import { TileGrid } from "../ui/TileGrid.tsx";
 
+/**
+ * Home says what Weave is and where to start. It has two doors: start an initiative, or open one
+ * the person already has. A person with a card to come back to resumes it from the status line
+ * instead, and the doors step back so the page keeps one solid primary.
+ */
 export function Home({ fixture }: { fixture?: FixtureContext }) {
   const [search, setSearch] = useState("");
+  const { draft } = useDraft();
+  const status = useCardStatus();
+  const account = useAccount();
+  const social = useSocialFixture();
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
   const { recent, upcoming, sharedCount } = homePreviews(
     fixture?.initiatives ?? [],
@@ -25,15 +40,23 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const loading = fixture?.state === "loading";
   const failed = fixture?.state === "error";
   const long = fixture?.state === "long";
+  const example = import.meta.env.DEV && social ? social.state : null;
+  const signedIn = example ? !!example.identity : !!account.state?.user;
+  // Initiatives a signed-in person keeps somewhere other than this device.
+  const elsewhere = !signedIn
+    ? 0
+    : example
+      ? example.cards.length + example.records.length
+      : (account.state?.items.length ?? 0);
+  const route = cardRoute(draft);
+  const doors = homeDoors(status.state !== "none", elsewhere);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = new URLSearchParams({ q: search.trim() });
-    navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, window.location.search, import.meta.env.DEV));
+    navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, routeSearch(), import.meta.env.DEV));
   }
   function retry() {
-    const url = new URL(window.location.href);
-    url.searchParams.set("state", "ready");
-    navigate(`${url.pathname}${url.search}`);
+    navigate(routeWith(currentRoute(), "state", "ready"));
   }
   const skeleton = (
     <div className="rc-stack" aria-busy="true">
@@ -44,14 +67,27 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   );
   return (
     <Stack wide>
+      {doors.resume && (
+        <StatusLine
+          state={status.state}
+          actions={
+            <ButtonLink href={pathTo(route)} variant="primary" size="sm">
+              {resumeLabel(route)}
+            </ButtonLink>
+          }
+        >
+          <strong>{cardName(draft)}</strong>. {status.line}
+        </StatusLine>
+      )}
       <HomeHero
         actions={
           <>
-            <ButtonLink href={pathTo("initiative")} variant="primary" size="lg">
-              Describe your initiative
+            <ButtonLink href={pathTo("initiative")} variant={doors.start} size="lg">
+              Start an initiative
             </ButtonLink>
-            <ButtonLink href={pathTo("initiatives")} variant="secondary" size="lg">
-              Browse initiatives
+            {/* Choosing a Certified project exists only in the example world, so only its door names Certified. */}
+            <ButtonLink href={pathTo("your-initiatives")} variant={doors.open} size="lg">
+              {import.meta.env.DEV && social ? "Open one from Certified" : "Open your saved initiative"}
             </ButtonLink>
           </>
         }
@@ -74,18 +110,14 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </form>
         }
         live={
-          !loading && !failed && sharedCount > 0 ? (
-            <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-              {sharedCount} example {sharedCount === 1 ? "initiative" : "initiatives"} shared
-            </ButtonLink>
+          loading || failed ? (
+            <p className="rc-meta">{loading ? "Loading what is new" : "Latest examples unavailable"}</p>
           ) : (
-            <p className="rc-meta">
-              {loading
-                ? "Loading what is new"
-                : failed
-                  ? "Latest examples unavailable"
-                  : "A place for shared regenerative work"}
-            </p>
+            sharedCount > 0 && (
+              <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
+                {sharedCount} example {sharedCount === 1 ? "initiative" : "initiatives"} shared
+              </ButtonLink>
+            )
           )
         }
       >
@@ -104,14 +136,13 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </HomeHero>
       {fixture?.state === "offline" && (
         <p className="rc-notice" data-tone="info">
-          You are viewing offline examples. The rest of this page still works on this device.
+          You are viewing offline examples.
         </p>
       )}
       {failed && (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
             <h2 className="rc-notice-title">The latest examples did not load</h2>
-            <p>You can still explore the steps and kinds of support.</p>
             <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>
               Try again
             </button>
@@ -122,15 +153,19 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
         <NumberedList
           items={[
             {
-              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Tell us about it",
-              note: "Start with the work you do together.",
+              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe your initiative",
+              note: "Four short fields.",
               href: pathTo("initiative"),
             },
+            { title: "Add what you need and can offer", note: "Up to five of each." },
             {
-              title: "Say what you need and offer",
-              note: "Up to five of each. Money is one of eight kinds.",
+              title: "See funding that fits",
+              // Linking a project is not built outside the example world, so only there does the note name it.
+              note:
+                import.meta.env.DEV && social
+                  ? "No sign-in needed. Partner suggestions start with a Certified project."
+                  : "No sign-in needed.",
             },
-            { title: "See who fits", note: "Funding first. Partners once you share." },
           ]}
         />
       </Section>
@@ -160,14 +195,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <EmptyState
             title={failed ? "Shared examples unavailable" : "No shared initiatives here yet"}
             action={
-              <ButtonLink href={pathTo("initiative")} variant="primary">
-                Describe your initiative
+              <ButtonLink href={pathTo("initiative")} variant="secondary">
+                Start an initiative
               </ButtonLink>
             }
           >
-            {failed
-              ? "Try loading the examples again above."
-              : "Shared initiatives will appear here."}
+            {failed ? "Try loading the examples again above." : "Shared initiatives will appear here."}
           </EmptyState>
         )}
       </Section>
@@ -197,7 +230,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <EmptyState
             title={failed ? "Funding examples unavailable" : "No upcoming deadlines here yet"}
             action={
-              <ButtonLink href={pathTo("funding")} variant="secondary">
+              <ButtonLink href={pathTo("funding")} variant="quiet">
                 Browse funding
               </ButtonLink>
             }

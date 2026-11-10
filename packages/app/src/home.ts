@@ -1,4 +1,5 @@
 import type { ListingRecord } from "./listing.ts";
+import type { RouteName } from "./routes.ts";
 
 const DAY = 86_400_000;
 function calendarDay(value: string | undefined): number | undefined {
@@ -46,4 +47,26 @@ export function fullDate(iso: string, dateStyle: "medium" | "long" = "long"): st
   return new Intl.DateTimeFormat("en-GB", { dateStyle, timeZone: "UTC" }).format(
     new Date(`${iso}T00:00:00Z`),
   );
+}
+
+type Emphasis = "primary" | "secondary" | "quiet";
+
+/**
+ * How home weights its actions, so the page keeps one solid primary. A card to come back to is
+ * resumed from the status line and both doors step back. With no card, a signed-in person who
+ * keeps initiatives elsewhere leads with opening one. Anyone else leads with starting.
+ */
+export function homeDoors(
+  card: boolean,
+  elsewhere: number,
+): { readonly resume: boolean; readonly start: Emphasis; readonly open: Emphasis } {
+  if (card) return { resume: true, start: "secondary", open: "quiet" };
+  return elsewhere > 0
+    ? { resume: false, start: "secondary", open: "primary" }
+    : { resume: false, start: "primary", open: "secondary" };
+}
+
+/** The resume link is named for where it goes: the initiative's own page once nothing is left to add. */
+export function resumeLabel(route: RouteName): string {
+  return route === "your-initiative" ? "Open your initiative" : "Continue your initiative";
 }

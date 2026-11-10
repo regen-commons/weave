@@ -40,10 +40,6 @@ export interface PublicAsk {
   readonly terms: string;
 }
 
-/** Sharing gate for the fixture community service. Public-source discovery uses its own evidence. */
-export function partnerAccess(scenario?: "visitor" | "draft" | "private" | "shared") {
-  return scenario === "shared";
-}
 export interface ListFilters {
   readonly search: string;
   readonly work: readonly string[];

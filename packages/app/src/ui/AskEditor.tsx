@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type FormEvent } from "react";
+import { suggestKinds } from "../intake/keywords.ts";
 import { CAPITALS } from "../capitals.ts";
 import { SCOPES, STATUS, TERMS, URGENCY, type AskForm, type AskKind } from "../intake/contracts.ts";
 
@@ -10,6 +11,8 @@ export function AskEditor({
   onChange,
   onSave,
   onCancel,
+  disabled = false,
+  saveLabel,
 }: {
   kind: AskKind;
   value: AskForm;
@@ -17,13 +20,22 @@ export function AskEditor({
   onChange(value: AskForm): void;
   onSave(): void;
   onCancel(): void;
+  disabled?: boolean;
+  saveLabel?: string;
 }) {
   const id = useId();
+  const manualKinds = useRef(value.capitalForms.length > 0);
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
     form.current?.querySelector<HTMLInputElement>("input")?.focus();
   }, []);
-  const set = <K extends keyof AskForm>(key: K, next: AskForm[K]) => onChange({ ...value, [key]: next });
+  const set = <K extends keyof AskForm>(key: K, next: AskForm[K]) => {
+    if (key === "capitalForms") manualKinds.current = true;
+    const updated = { ...value, [key]: next };
+    if (!manualKinds.current && (key === "title" || key === "description"))
+      updated.capitalForms = suggestKinds(`${updated.title} ${updated.description}`);
+    onChange(updated);
+  };
   function text(
     key:
       | "title"
@@ -46,6 +58,7 @@ export function AskEditor({
       value: value[key],
       maxLength: max,
       required: key === "title",
+      disabled,
       "aria-describedby": hint ? `${id}-${key}-hint` : undefined,
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         set(key, event.target.value),
@@ -97,12 +110,12 @@ export function AskEditor({
       {text("title", kind === "needs" ? "What you need" : "What you can offer", 140)}
       {text("description", "In a line", 600, undefined, true)}
       <fieldset
+        disabled={disabled}
         className="rc-menu-group"
-        aria-invalid={(!!error && !value.capitalForms.length) || undefined}
         aria-describedby={error ? `${id}-error` : undefined}
       >
         <legend>Kinds of support</legend>
-        <p className="rc-hint">Choose every kind it involves.</p>
+        <p className="rc-hint">Suggested from your words. Add or remove any kind.</p>
         {CAPITALS.map((capital) => (
           <label className="rc-menu-option" key={capital.key}>
             <input
@@ -136,6 +149,7 @@ export function AskEditor({
             <label htmlFor={`${id}-urgency`}>Timeframe</label>
             <select
               className="rc-input"
+              disabled={disabled}
               id={`${id}-urgency`}
               value={value.urgency}
               onChange={(event) => set("urgency", event.target.value as AskForm["urgency"])}
@@ -161,6 +175,7 @@ export function AskEditor({
         <label htmlFor={`${id}-scope`}>Where</label>
         <select
           className="rc-input"
+          disabled={disabled}
           id={`${id}-scope`}
           value={value.placeScope}
           onChange={(event) => set("placeScope", event.target.value as AskForm["placeScope"])}
@@ -172,7 +187,7 @@ export function AskEditor({
           ))}
         </select>
       </div>
-      <fieldset className="rc-menu-group">
+      <fieldset className="rc-menu-group" disabled={disabled}>
         <legend>Terms you would accept</legend>
         {Object.entries(TERMS).map(([key, label]) => (
           <label className="rc-menu-option" key={key}>
@@ -190,6 +205,7 @@ export function AskEditor({
         <label htmlFor={`${id}-status`}>Status</label>
         <select
           className="rc-input"
+          disabled={disabled}
           id={`${id}-status`}
           value={value.status}
           onChange={(event) => set("status", event.target.value as AskForm["status"])}
@@ -207,10 +223,10 @@ export function AskEditor({
         </p>
       )}
       <div className="rc-action-bar">
-        <button className="rc-button" data-variant="primary" type="submit">
-          {kind === "needs" ? "Keep this need" : "Keep this offer"}
+        <button className="rc-button" data-variant="primary" type="submit" disabled={disabled}>
+          {saveLabel ?? (kind === "needs" ? "Keep this need" : "Keep this offer")}
         </button>
-        <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>
+        <button className="rc-button" data-variant="quiet" type="button" disabled={disabled} onClick={onCancel}>
           Cancel
         </button>
       </div>
