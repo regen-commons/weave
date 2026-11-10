@@ -7,15 +7,21 @@ import { MemoryDraftRepository } from "./repository.ts";
 import { IndexedDraftRepository } from "./indexed-repository.ts";
 const device = new DraftController(new IndexedDraftRepository());
 import { DraftContext } from "./draft-context.ts";
+import { routePath } from "../router.tsx";
 export function DraftProvider({ fixture, children }: { fixture?: FixtureContext; children: ReactNode }) {
   const controller = useMemo(() => {
     if (import.meta.env.DEV && fixture) {
+      const path = routePath();
       const memory = new MemoryDraftRepository(
-        fixture.intake === "off"
-          ? window.location.pathname.startsWith("/funding") && fixture.scenario !== "visitor"
-            ? confirmDraft(describeFixture("kept"))
-            : describeFixture(fixture.describe)
-          : intakeFixture(fixture.intake, window.location.pathname),
+        fixture.intake !== "off"
+          ? intakeFixture(fixture.intake, path)
+          : path.startsWith("/start/")
+            ? describeFixture(fixture.describe)
+            : path.startsWith("/funding") && fixture.scenario !== "visitor"
+              ? confirmDraft(describeFixture("kept"))
+              : fixture.scenario === "visitor" || fixture.scenario === "returning"
+                ? describeFixture("fresh")
+                : intakeFixture("kept", path),
       );
       return new DraftController(
         fixture.describe === "storage-error" || fixture.intake === "storage-error"

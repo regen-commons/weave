@@ -32,6 +32,10 @@ publishing is a prerequisite for saving privately or using Weave.
 - Discuss which actions belong together and which explanations can be shorter
   or available on demand. Keep private saving and explicit sharing understandable
   when the person makes either decision.
+- Show how a person can write a need or offer in their own words, then keep or
+  adjust the [suggested kinds of support](../open-decisions.md#capital-suggestions-stay-editable).
+  People should be able to add or remove several forms without classifying every
+  entry from scratch.
 - Compare the two starting paths and a returning visit. Use the current code to
   distinguish what works today from changes that need product or integration work.
 

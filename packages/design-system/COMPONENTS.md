@@ -30,7 +30,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Input | `rc-input` | stable | Text, select and text area | `data-kind`: code. `aria-invalid`, `disabled` | Always inside a Field | check-card, code, describe, finish, funding, home, initiatives, intake-finish, needs, offers, settings, step-needs |
 | Check | `rc-check` | stable | Native checkbox and radio |  |  | funding, initiatives, needs, offers, opportunity, saved, settings |
 | Switch | `rc-switch` | stable | A setting that applies at once | `role="switch"` | Never pre-checked for email |  |
-| Chip | `rc-chip` | stable | A choice you tap. Part: `rc-chip-remove` | Selectable, removable | 44 px high |  |
+| Chip | `rc-chip` | stable | A choice you tap. Part: `rc-chip-remove` | Selectable, removable, `data-pencil` for a suggested value that opens change or remove | 44 px high |  |
 | Tag | `rc-tag` | stable | A label you read | Plain, with an icon, `data-capital` | Three words | funding, initiatives, needs, offers, step-needs |
 | Tile | `rc-tile` | stable | Glyph for a form of capital | `data-state`: suggested, empty | Two letters | home, needs, offers, step-needs |
 | Stage | `rc-stage` | stable | Stage of growth, with icon and plain word | `data-stage`: seed, sprout, flowering, tree |  | finish, matches, step-needs |
@@ -67,6 +67,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Action bar | `rc-action-bar` | stable | The things you can do with a record |  | One primary | check-card, describe, finish, funding, home, initiatives, matches, needs, offers, saved, step-needs |
 | Progress | `rc-progress` | candidate | A long task, with a way to stop |  |  |  |
 | Save status | `rc-save-status` | stable | Says where the work lives | `data-state`: device, account | Visible through the intake | check-card, code, describe, finish, funding, home, initiatives, intake-finish, matches, needs, offers, opportunity, opportunity-private, saved, settings, step-needs |
+| Status line | `rc-status-line` | candidate | Where the work lives and the one thing to do about it next. Composes Save status and Action bar | On this device, saved, shared, on Certified | One sentence; one primary at most | library only |
 | Search | `rc-search` | candidate | A box, a button and the word Search |  | No scope menu before results | home |
 | Breadcrumbs | `rc-breadcrumbs` | candidate | A place inside its larger places |  |  |  |
 | Facts | `rc-facts` | stable | Plain terms for consent and privacy |  |  | describe, intake-finish, needs, offers, opportunity, opportunity-private, settings |
@@ -222,7 +223,7 @@ Ask list shows the active count out of five, with a notice when more were heard.
 
 Needs carry timeframe, urgency and purpose; offers carry capacity and audience. Both carry status. These are local draft cards, not published commitments. Continuing requires every pencil card to be kept, changed or removed and no unfinished editor or source input. An empty step can continue. Manual mode keeps notes and files without reading them.
 
-Finish shows first funding, the Share card and the checked initiative with its kept needs and offers. Copy as text contains checked card data, with a selectable fallback, not source file bytes. A private initiative sees no individual partner names. Unknown live counts stay unknown. Funding feeds, partner matching and the email/share adapter follow in Steps 5 to 7; development examples are labelled and excluded from production.
+Finish became Your initiative, the page a person comes back to (see the contracts below): the checked initiative with its kept needs and offers under one status line, then first funding and partners. Copy as text contains checked card data, with a selectable fallback, not source file bytes. A private initiative sees no individual partner names. Unknown live counts stay unknown. Funding feeds, partner matching and the live sharing adapter follow in later steps; development examples are labelled and excluded from production.
 
 ## Funding and team slots contracts
 
@@ -245,6 +246,42 @@ The development-only email-door adapter demonstrates two visibility choices,
 separate default-off onward sharing, a specific fund reminder and confirmed
 introductions. Its actions use the same code door without sending mail or changing
 production permissions. No live sharing or delivery is implied.
+
+## Your initiative, Keep card and Certified contracts
+
+The card is the object people come back to, and its state reads in one line: on this
+device, saved (only you), shared with people signed in, or on Certified (anyone). The
+Status line molecule carries that sentence and the one thing to do about it next: Keep
+it, Who can see it, Add to Certified or Update on Certified. It appears on Your
+initiative, as a strip above the Home hero for anyone with a card, and in Settings.
+Partners open only after sharing.
+
+Check your card is one form: the four public fields in ink, then the derived details as
+chips. A dashed chip is pencil. Tapping a chip opens one Proposal editor with Keep
+changes, Remove and Cancel, and a detail without a value is an Add chip. One Keep card
+confirms every pencil detail that holds a value (T5); removed details stay removed and
+keep Undo on their chip.
+
+Keep it opens the one account door. In development the door is the Certified example in
+`src/social`: an offer, one trip to an example of Certified's sign-in page, straight
+back, and the card saves on return because the person asked to keep it. Signing in
+alone saves nothing, and no email is asked for. Production keeps the email code door
+until its replacement is confirmed (DL-031).
+
+Who can see it is one ladder: Only you, People signed in (chosen needs and offers in
+their partner matches, for 90 days, with the end date shown) and Anyone. Anyone opens
+the Add to Certified sheet in the same task dialog: the four fields exactly as the card
+has them with one Change, needs and offers as opt-in checkboxes with none chosen, a line
+on what stays in Weave, Continue on Certified, Not now, and the sentence "You confirm on
+Certified. Nothing is published until you do." The example Certified page confirms or
+refuses; a refusal reads "Certified did not confirm the record. Nothing was published."
+and changes nothing. Lowering the audience from Anyone removes the record and says so
+first; Remove from Certified also sits in Settings under Leave.
+
+Your initiatives lists what a signed-in person can open: the card on this device, saved
+Weave cards and Certified records. Opening a record brings its four fields in ink under
+a source line, with the derived details still to add, and the card reads "On Certified"
+from then on. Opening another initiative backs up the device card first.
 
 ## Public initiatives and partner contracts
 

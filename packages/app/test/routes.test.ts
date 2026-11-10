@@ -7,7 +7,10 @@ import {
   matchRoute,
   pathTo,
   recordPath,
+  routeFromFragment,
+  routeWith,
   ROUTES,
+  splitRoute,
 } from "../src/routes.ts";
 
 test("each page has a unique path, name and title", () => {
@@ -15,15 +18,17 @@ test("each page has a unique path, name and title", () => {
     assert.equal(new Set(ROUTES.map((route) => route[key])).size, ROUTES.length, key);
   assert.deepEqual(
     INTAKE_STEPS.map((step) => step.route),
-    ["initiative", "needs", "offers"],
+    ["initiative", "needs", "your-initiative"],
   );
 });
-test("the frame has four browsing sections, detail pages, finish and Settings; saving is no longer a page", () => {
-  for (const path of ["/", "/partners", "/funding", "/initiatives", "/settings", "/start/finish"])
+test("the frame has four browsing sections, detail pages, the person's initiative pages and Settings; saving is no longer a page", () => {
+  for (const path of ["/", "/partners", "/funding", "/initiatives", "/settings", "/your-initiative", "/your-initiatives"])
     assert.ok(matchRoute(path), path);
   assert.equal(matchRoute("/save"), undefined);
-  assert.equal(matchRoute("/start/finish")?.title, "Your first matches");
-  assert.equal(matchRoute("/start/finish")?.section, "partners");
+  assert.equal(matchRoute("/your-initiative")?.title, "Your initiative");
+  assert.equal(matchRoute("/your-initiative")?.section, undefined);
+  assert.equal(matchRoute("/start/finish")?.name, "your-initiative");
+  assert.equal(matchRoute("/your-initiatives")?.title, "Your initiatives");
   assert.equal(matchRoute("/start/initiative/check")?.name, "check-card");
   assert.deepEqual(
     ROUTES.filter((route) => route.form).map((route) => route.name),
@@ -62,7 +67,43 @@ test("fixture navigation preserves only example controls on internal development
     fixtureHref("/start/initiative/check", "?fixture=draft&view=correcting", true),
     "/start/initiative/check?fixture=draft&view=correcting",
   );
+  assert.equal(
+    fixtureHref("/your-initiative", "?fixture=published&certified=fail", true),
+    "/your-initiative?fixture=published&certified=fail",
+  );
+  assert.equal(
+    fixtureHref("/your-initiatives", "?fixture=returning&projects=none", true),
+    "/your-initiatives?fixture=returning&projects=none",
+  );
   for (const href of ["https://example.org", "//example.org", "#main"])
     assert.equal(fixtureHref(href, "?fixture=shared", true), href);
   assert.equal(fixtureHref("/settings", "?fixture=shared", false), "/settings");
+});
+test("the prototype build reads its route from the fragment and never leaves the app", () => {
+  assert.equal(routeFromFragment("#/your-initiative?fixture=draft"), "/your-initiative?fixture=draft");
+  assert.equal(routeFromFragment("/partners"), "/partners");
+  for (const fragment of ["", "#", "#keep-card", "#//example.org/path", "#https://example.org"])
+    assert.equal(routeFromFragment(fragment), "/", fragment);
+  assert.deepEqual(splitRoute("/funding?q=water&fixture=draft"), { pathname: "/funding", search: "?q=water&fixture=draft" });
+  assert.deepEqual(splitRoute("/"), { pathname: "/", search: "" });
+  assert.equal(routeWith("/partners?fixture=private&state=error", "state", "ready"), "/partners?fixture=private&state=ready");
+  assert.equal(
+    routeWith("/start/initiative?fixture=draft", "view", "review", "/start/initiative/check"),
+    "/start/initiative/check?fixture=draft&view=review",
+  );
+});
+
+test("a team workspace opens only from a canonical workspace identifier", async () => {
+  const { teamWorkspacePath } = await import("../src/routes.ts");
+  const { returnTask } = await import("../../api/src/sign-in.ts");
+  const id = "31000000-0000-4000-8000-000000000001";
+  const path = teamWorkspacePath(id);
+  assert.equal(matchRoute(path)?.name, "team-workspace");
+  assert.equal(matchRoute(path)?.id, id);
+  assert.equal(documentTitle(matchRoute(path)), "Team workspace | Weave");
+  assert.equal(returnTask(path), path);
+  for (const value of ["/workspaces/unknown", `${path}/other`, `${path}?return=//example.org`]) {
+    assert.equal(matchRoute(value), undefined);
+    assert.throws(() => returnTask(value), { code: "invalid_return_task" });
+  }
 });

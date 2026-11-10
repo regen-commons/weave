@@ -4,8 +4,8 @@ import type { ListingRecord } from "../listing.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { STAGE_LABELS } from "../listing.ts";
 import { fullDate } from "../home.ts";
-import { Link, navigate } from "../router.tsx";
-import { pathTo } from "../routes.ts";
+import { currentRoute, Link, navigate } from "../router.tsx";
+import { pathTo, routeWith } from "../routes.ts";
 import { Heading } from "../ui/Heading.tsx";
 import { ListLayout, StepLayout, Stack } from "../ui/layouts.tsx";
 import { LinkPreview } from "../ui/LinkPreview.tsx";
@@ -22,9 +22,7 @@ export function RecordDetail({ record, fixture }: { record?: ListingRecord; fixt
     document.title = `${shown?.title ?? "Initiative not available"} | Weave`;
   }, [shown?.title]);
   function retry() {
-    const url = new URL(window.location.href);
-    url.searchParams.set("state", "ready");
-    navigate(`${url.pathname}${url.search}`);
+    navigate(routeWith(currentRoute(), "state", "ready"));
   }
   return (
     <ListLayout>
@@ -64,13 +62,10 @@ export function RecordDetail({ record, fixture }: { record?: ListingRecord; fixt
                 <h2 className="rc-heading" data-size="section">
                   Get in touch
                 </h2>
-                <p>Introductions are between initiatives shared with the community.</p>
+                <p>Weave makes no introductions yet. Their links may say how to reach them.</p>
                 {import.meta.env.DEV && fixture && (
-                  <SocialAction intent={{ kind: "intro", ids: [shown.id], names: [shown.title] }} />
+                  <SocialAction intent={{ kind: "lead", id: shown.id, name: shown.title }} />
                 )}
-                <p className="rc-meta">
-                  Live introductions are not connected yet. No contact details are shown.
-                </p>
                 <h2 className="rc-heading" data-size="section">
                   Links
                 </h2>

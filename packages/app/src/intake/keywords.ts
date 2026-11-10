@@ -21,6 +21,10 @@ const BANKS = {
   cultural: /\b(cultural|story|stories|art|artists?|culture|music|language|histórias|cultura)\b/iu,
   spiritual: /\b(ceremony|ritual|care|spirit\w*|listening|cerimônia|cuidado)\b/iu,
 } as const;
+/** Kinds of support the words point at: a keyword suggestion for a person to check, never a classification. */
+export function suggestKinds(text: string): (keyof typeof BANKS)[] {
+  return (Object.keys(BANKS) as (keyof typeof BANKS)[]).filter((key) => BANKS[key].test(text));
+}
 export function chunksFrom(text: string, sourceId: string): AskChunk[] {
   return text
     .split(
@@ -36,7 +40,7 @@ export function chunksFrom(text: string, sourceId: string): AskChunk[] {
     .map((text, index) => ({ key: `${sourceId}:${index}`, text }));
 }
 export function candidateChunks(chunks: AskChunk[], step: AskStep): AskChunk[] {
-  const fixed = step.items.filter((item) => item.decision !== "pencil");
+  const fixed = step.items.filter((item) => item.decision !== "pencil" || item.sourceKey === null);
   const keys = new Set(fixed.map((item) => item.sourceKey));
   const prints = new Set(fixed.map((item) => item.fingerprint));
   return chunks.filter((chunk) => {
@@ -55,9 +59,7 @@ export function keywordExtraction(chunks: AskChunk[], kind: AskKind): AskExtract
   );
   const items = matching.slice(0, ASK_LIMIT).map((chunk) => {
     const text = chunk.text;
-    const capitalForms = (Object.keys(BANKS) as (keyof typeof BANKS)[]).filter((key) =>
-      BANKS[key].test(text),
-    );
+    const capitalForms = suggestKinds(text);
     return {
       sourceKey: chunk.key,
       value: {

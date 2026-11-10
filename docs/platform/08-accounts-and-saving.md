@@ -5,8 +5,9 @@ Companions: [PRD](04-prd.md) · [technical spec](05-technical-spec.md#5-identity
 
 Certified is the only sign-in flow. Weave automatically creates or retrieves an
 internal account record for the proven identity and uses it to own saved
-initiatives. People do not register separately with Weave. A public Certified
-project, Ma Earth listing and Regen Commons membership are not required.
+initiatives. People do not register separately with Weave. Private saving requires neither a public Certified project nor Ma Earth
+participation or Regen Commons membership. Network matching has its own project
+requirements.
 
 ## The decision
 
@@ -22,7 +23,8 @@ project, Ma Earth listing and Regen Commons membership are not required.
 |---|---|---|
 | Device draft | This browser's local storage, subject to device/browser access | Includes working text, files and unfinished edits; no account required. |
 | Saved privately | Owner-authorized Weave database record | Checked initiative, kept needs/offers and funding answers only; available to the same Certified identity on another device. |
-| Shared for matching | Selected current entries and an approved initiative summary | An owner previews and explicitly shares what signed-in Weave users can see. Private Save alone does not share. |
+| Saved to a team workspace (target) | Weave database, accessible to teammates with workspace read access | Saved needs and offers are visible to the team before sharing. Personal saves outside the workspace stay personal. |
+| Shared for matching | Selected current entries and an approved initiative summary | Any workspace editor can preview and explicitly share what signed-in Weave users can see. Saving alone does not share. |
 
 Saving the checked document does not back up conversation transcripts, files,
 unfinished alternatives or AI history. Show this limit where the person saves.
@@ -31,9 +33,10 @@ files. If backup fails, leave the active draft unchanged. Database administrator
 can technically access stored data; owner-only product access is not end-to-end
 encryption.
 
-Private initiatives can see named suggestions and evidence from permitted public
-sources without sharing their own work, following [R16](04-prd.md). Compute private
-queries locally against a bounded public snapshot and show its coverage. Inferred
+A linked Certified project can see named suggestions and evidence without
+sharing its own entries, following [R16](04-prd.md). Before linking, people can
+browse public projects and match for funding locally. Compute private queries
+locally against a bounded public snapshot and show its coverage. Inferred
 experience, potential uses of an offer, public statements and confirmed entries
 remain distinct. Private records and saved leads never enter
 the public corpus. Seeing a public project does not reveal associated private
@@ -67,32 +70,50 @@ Certified application. Device-data clearing remains a separate explicit action.
 
 ## Matching on a first or returning visit
 
-Certified signs the person in. Weave owns the initiative record and checks who
-can manage it. A person joins network matching by sharing one or more open
-needs or offers from an initiative they own. Browsing public initiatives and
-funding stays open. Partners includes both other owners' shared entries and
-permitted public project evidence, with distinct labels. The other project need
-not use Weave or have stated needs/offers. A private local preview may still use
-public evidence without joining the shared-entry network.
+The target flows below add a verified Certified project link for network
+matching. The current preview supports sharing and matching without that link.
+A representative signs in once, opens the linked Weave workspace, and shares
+one or more open needs or offers. Weave suggests kinds of support and the person
+can add or remove them. They can save privately before choosing any. Each entry
+needs at least one kind of support when shared. A share without an end date stays
+discoverable while the reviewed entry is open and eligible. Browsing public
+initiatives and funding stays open, and local funding matching works before
+sign-in.
 
 | Person | Flow |
 |---|---|
-| First visit, has a Certified project | Browse or prepare a draft. Sign in with Certified, create or select the owned Weave initiative, and optionally reference the public project. Add a need or offer, save privately, then review and share selected entries. See compatible shared entries and external project evidence in Partners. A public project link does not itself prove representative authority. |
-| First visit, has no Certified project | Browse or prepare a draft. Sign in or create a Certified identity in the same flow. Create the Weave initiative directly; no upstream project creation is required. Add and save a need or offer, review and share selected entries, then get the same two types of suggestions. |
-| Returning, has a Certified project | Use the existing session or sign back in with the same identity and explicitly load the saved initiative. Recover entries, sharing state and saved leads. Review changed needs/offers, share their new revision when ready, or close/withdraw them. Refresh matches against current shared entries and public evidence. |
-| Returning, has no Certified project | Use the same session or identity to load the saved Weave initiative and its entries, sharing state and leads. Edit, close, withdraw or share through the same flow. The lack of a Certified project does not reduce matching access or rank. |
+| First visit, has a Certified project | Start with the existing personal or group project. Sign in with Certified and choose the project. Weave opens an existing workspace according to its grants. If a group project has no workspace yet, a member can request setup and continue with a private draft while a verified group admin or owner approves. A group workspace requires current Certified group membership and a Weave grant. An existing personal project remains solo at the same address. Add needs and offers, then choose which to share for matching. |
+| First visit, has no Certified project | Describe the initiative and see funding matches locally. Sign in with Certified to save privately. When ready for network matching, review and create a Certified project from the draft. The project starts in a group with the creator as its only member and owner, so teammates can join later. Add or share the needs and offers from the linked workspace. |
+| Returning, has a Certified project | Use the existing session or sign back in with the same identity. Open the workspace where saved entries, sharing state and leads are kept. If the project has never been linked, link it first. Review changed entries before sharing them again. |
+| Returning, has no Certified project | Resume the device draft or sign in to load the private save. Keep editing and matching for funding. Create or link a project when ready for network matching. Linking an eligible private save preserves the initiative and entry IDs. |
+
+Workspace admins start teammate access in Weave. Someone without a Certified
+account can sign up from a pending invite. The admin confirms the teammate's
+identity before granting access. If the teammate also needs to join the
+Certified group, Weave shows those broader permissions and asks an authorized
+admin to approve the group change.
+
+After linking, edit the public title and description in Certified or another
+Certified project editor. Weave shows the latest verified profile and keeps
+workspace details, needs and offers separate.
 
 For a need, show current offers and relevant external capabilities. For an offer,
 show current needs, public requests and projects whose activities could use it.
 Name which entry is being matched and why. An inferred capability has unknown
-availability; a possible use is not a need stated by the other project. Viewing
-or saving either result sends no invitation and does not confirm a partnership.
+availability; a possible use is not a need stated by the other project. People
+can save the match and open its supporting source, where the project may already
+list a public contact route. Saving a match sends no invitation.
 
-The public project link provides context. Import, verified project representation
-and external publishing are separate capabilities. A person can create and
-manage more than one Weave initiative with the same Certified identity. See the
-[matching contract](05-technical-spec.md#72-cross-initiative-matching-r12-r16) and
-[implementation plan](05-technical-spec.md#76-build-plan-and-ui-handoff).
+A Certified project can appear through public evidence without using Weave
+or stating a need or offer. A linked initiative can use permitted public
+evidence locally without sharing its entries for network matching. The first
+release includes a separate Publish action for AT Protocol. The person reviews the exact public fields and
+destination. Any workspace editor with Certified publishing authority can
+confirm. Weave reports publication after it reads back the record. Editing
+published details requests withdrawal of the old listing. The new details
+stay private until republished. Sharing for matching does not publish.
+A person can manage several workspaces with the same Certified identity. See the
+[project integration contract](05-technical-spec.md#certified-project-integration-target).
 
 ## Failures and recovery
 
@@ -107,6 +128,11 @@ manage more than one Weave initiative with the same Certified identity. See the
 | Lost save response | Retry the same command with the same request ID; reconcile the saved revision without duplication. |
 | Stale revision or changed draft in another tab | Preserve both versions and require comparison before replacement. |
 | Session expires | Keep the draft; reauthenticate through Certified and explicitly retry Save/Load. |
+| A Certified group workspace has no active Weave admin | The verified current Certified group owner can explicitly recover admin access. Weave records the grant and preserves the team's work. |
+| Certified confirms a teammate's removal from a group | Suspend their team workspace access. Preserve their personal saves. Existing team shares and listings stay active when other authorized teammates remain. If the person rejoins, a workspace admin can review access. |
+| A linked Certified project is deleted or made unlisted | Pause matching, request withdrawal of Weave-published listings and keep team work available to authorized teammates. Resume after the original project is restored and reviewed. A replacement project starts its own workspace. |
+| A team marks a need met or an offer ended | Remove it from Weave matching and request withdrawal of its public listing. Show when the public withdrawal is confirmed. |
+| A public listing is withdrawn in another AT Protocol app | After verification, update the public listing state. Keep the saved entry and its eligible Weave-only share. |
 | Shared entry changes, closes, expires or is withdrawn | Remove affected matches on the next read. Keep private edits and saved lead history; a changed entry needs review before it becomes discoverable again. |
 | External index or local model is unavailable | Keep baseline matching where available and distinguish partial coverage, stale evidence and service failure from no useful matches. Never send a private query elsewhere as an undisclosed fallback. |
 | Certified access is lost | Use Certified's recovery process to regain the same identity. Do not promise that a new identity or matching email can recover the saved rows. |

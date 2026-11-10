@@ -5,6 +5,9 @@ import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { assertAccount, AccountFailure } from "../src/account/client.ts";
 import { accountDocument, accountKey, loadedDraft, saveCommand } from "../src/account/document.ts";
 import { newDraft, revise, DeviceDraftSchema } from "../src/describe/contracts.ts";
+import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
+import { intakeComplete } from "../src/intake/finish.ts";
+import { reviewStep } from "../src/intake/state.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository, DraftConflict } from "../src/describe/repository.ts";
 const document = parseDocument(
@@ -31,6 +34,17 @@ test("checked card roundtrips without source text, files, confidence or local ed
     () => accountDocument(revise(draft, { funding: { ...draft.funding, editor: draft.funding.form } })),
     /funding/,
   );
+});
+test("a private save accepts an entry without a kind of support", () => {
+  const draft = loadedDraft(saved, owner);
+  const needs = reviewStep(keepPending(addEntry(draft.needs, "Something unusual we cannot classify")));
+  const bare = revise(draft, { needs });
+  assert.equal(intakeComplete(bare), true);
+  assert.deepEqual(accountDocument(bare).needs.at(-1)?.value.capitalForms, []);
+  assert.ok(accountKey(bare));
+  const id = needs.items.at(-1)!.id;
+  const fixed = revise(bare, { needs: reviewStep(toggleKind(needs, id, "social")) });
+  assert.deepEqual(accountDocument(fixed).needs.at(-1)?.value?.capitalForms, ["social"]);
 });
 test("save retries reuse the same request only for the same owner and checked payload", () => {
   const draft = loadedDraft(saved, owner),

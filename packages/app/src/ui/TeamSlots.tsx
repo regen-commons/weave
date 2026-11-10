@@ -1,4 +1,4 @@
-import { SocialAction } from "../social/Action.tsx";
+import { ShareAction } from "../social/Share.tsx";
 import { useEffect, useId, useState } from "react";
 import type { TeamAsk } from "../funding/team.ts";
 import { teamCoverage } from "../funding/team.ts";
@@ -23,9 +23,6 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
       </section>
     );
   const coverage = teamCoverage(asks, shared ? selected : []);
-  const candidates = [
-    ...new Map(asks.flatMap((ask) => ask.candidates).map((candidate) => [candidate.id, candidate])).values(),
-  ].filter((candidate) => coverage.chosen.includes(candidate.id));
   return (
     <section className="rc-stack" aria-labelledby={`${id}-heading`}>
       <h2 className="rc-heading" data-size="section" id={`${id}-heading`}>
@@ -94,24 +91,15 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
                 {coverage.chosen.length === 1 ? "initiative" : "initiatives"}.
               </p>
               <p className="rc-meta">
-                One initiative can cover several asks and is requested once. This does not establish
-                eligibility.
+                One initiative can cover several asks. This does not establish eligibility, and Weave makes no
+                introductions yet.
               </p>
-              {coverage.chosen.length > 0 && (
-                <SocialAction
-                  intent={{
-                    kind: "intro",
-                    ids: coverage.chosen,
-                    names: candidates.map((candidate) => candidate.name),
-                  }}
-                />
-              )}
             </div>
           ) : (
             <div className="rc-stack">
-              <SocialAction intent={{ kind: "share" }} />
+              <ShareAction />
               <p className="rc-meta">
-                Partners are for shared initiatives. This example keeps names hidden until you share.
+                This example keeps other teams' names hidden until you share a need or an offer for matching.
               </p>
             </div>
           )}

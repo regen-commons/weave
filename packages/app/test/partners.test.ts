@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "../src/describe/contracts.ts";
 import { formFromAsk, keepEditor, decide } from "../src/intake/state.ts";
+import { examplePartners, readFixtures } from "../src/fixtures.ts";
 import type { AskKind } from "../src/intake/contracts.ts";
 import { PUBLIC_PARTNER_EVIDENCE } from "../src/partners/catalog.ts";
 import type { PartnerEvidence } from "../src/partners/evidence.ts";
+import { entryLine, fitGroupOf, fitLines, groupFits, PREVIEW_FITS, type FitEvidence } from "../src/partners/groups.ts";
 import { matchPartners } from "../src/partners/match.ts";
 
 function keep(draft: DeviceDraft, kind: AskKind, fields: Partial<ReturnType<typeof formFromAsk>>) {
@@ -72,4 +74,112 @@ test("a pre-matching draft opens with an empty lead list and saved lead IDs roun
   const { partnerLeads: _olderDraft, ...legacy } = newDraft();
   assert.deepEqual(DeviceDraftSchema.parse(legacy).partnerLeads, []);
   assert.deepEqual(DeviceDraftSchema.parse({ ...legacy, partnerLeads: ["osm:mapping"] }).partnerLeads, ["osm:mapping"]);
+});
+
+test("ranked results split into direct fits and possible fits, each in the order the ranking gave", () => {
+  let draft = keep(newDraft(), "needs", { title: "Mapping our watershed" });
+  draft = keep(draft, "needs", { title: "Pollution monitoring research" });
+  draft = keep(draft, "needs", { title: "Wikipedia editathon training" });
+  draft = keep(draft, "offers", { title: "GPS traces and imagery" });
+  const ranked = matchPartners(draft, PUBLIC_PARTNER_EVIDENCE, now);
+  // Device ranking puts a public request last, after experience that is only inferred.
+  assert.deepEqual(ranked.map(({ evidence }) => [evidence.id, evidence.kind]), [
+    ["art-feminism:training", "published_offer"],
+    ["public-lab:research", "inferred_capability"],
+    ["osm:mapping", "inferred_capability"],
+    ["osm:contribute", "published_need"],
+  ]);
+  const [direct, possible] = groupFits(ranked, ({ evidence }) => evidence.kind);
+  assert.deepEqual([direct!.key, direct!.heading, direct!.explanation],
+    ["direct", "Direct fits", "They have said they offer or need this."]);
+  assert.deepEqual(direct!.results.map(({ evidence }) => evidence.id), ["art-feminism:training", "osm:contribute"]);
+  assert.deepEqual([possible!.key, possible!.heading, possible!.explanation],
+    ["possible", "Possible fits", "Their public work suggests a fit. They have not offered or asked."]);
+  assert.deepEqual(possible!.results.map(({ evidence }) => evidence.id), ["public-lab:research", "osm:mapping"]);
+  assert.equal(direct!.results[1], ranked[3]);
+});
+
+test("every kind of evidence from the device and the network falls in one group", () => {
+  const kinds: FitEvidence[] = [
+    "potential_use", "confirmed_need", "inferred_capability", "published_request", "confirmed_offer",
+    "published_need", "potential_use", "published_offer",
+  ];
+  const groups = groupFits(kinds.map((kind, rank) => ({ kind, rank })), ({ kind }) => kind);
+  assert.deepEqual(groups.map(({ key, results }) => [key, results.map(({ kind, rank }) => `${rank} ${kind}`)]), [
+    ["direct", ["1 confirmed_need", "3 published_request", "4 confirmed_offer", "5 published_need", "7 published_offer"]],
+    ["possible", ["0 potential_use", "2 inferred_capability", "6 potential_use"]],
+  ]);
+  assert.deepEqual(kinds.map(fitGroupOf), [
+    "possible", "direct", "possible", "direct", "direct", "direct", "possible", "direct",
+  ]);
+});
+
+test("no results leave both groups empty, and a preview keeps the first results of each group", () => {
+  assert.deepEqual(groupFits([], (kind: FitEvidence) => kind).map(({ key, heading, results }) => [key, heading, results]), [
+    ["direct", "Direct fits", []],
+    ["possible", "Possible fits", []],
+  ]);
+  const kinds: FitEvidence[] = [
+    "inferred_capability", "published_offer", "potential_use", "confirmed_offer", "inferred_capability", "published_need",
+  ];
+  const ranked = kinds.map((kind, rank) => ({ kind, rank }));
+  assert.equal(PREVIEW_FITS, 2);
+  assert.deepEqual(groupFits(ranked, ({ kind }) => kind, PREVIEW_FITS).map(({ results }) => results.map(({ rank }) => rank)), [
+    [1, 3],
+    [0, 2],
+  ]);
+  assert.deepEqual(groupFits(ranked, ({ kind }) => kind).map(({ results }) => results.length), [3, 3]);
+});
+
+test("each result says what supports it and what to check, without claiming more than the evidence", () => {
+  assert.deepEqual(fitLines("inferred_capability"), {
+    supports: "Their public work shows related experience.",
+    check: "They have not offered this. Availability is unknown.",
+  });
+  assert.deepEqual(fitLines("potential_use"), {
+    supports: "Their public work could use what you offer.",
+    check: "They have not asked for this.",
+  });
+  // The device says "published need" and the network "published request" for the same evidence.
+  assert.deepEqual(fitLines("published_need"), fitLines("published_request"));
+  const direct: FitEvidence[] = ["confirmed_offer", "confirmed_need", "published_offer", "published_need", "published_request"];
+  for (const kind of direct) {
+    const { supports, check } = fitLines(kind);
+    assert.match(supports, /^(They confirmed|Their public source) /, kind);
+    assert.match(check, /^Check /, kind);
+    assert.doesNotMatch(`${supports} ${check}`, /unknown|have not/, kind);
+  }
+  assert.equal(new Set(direct.map((kind) => fitLines(kind).supports)).size, 4);
+});
+
+test("a result names the person's own need or offer it is for", () => {
+  assert.equal(entryLine("need", "Mapping our watershed"), "For your need: Mapping our watershed");
+  assert.equal(entryLine("offer", "GPS traces and imagery"), "For your offer: GPS traces and imagery");
+});
+
+test("example partners pair each shared entry with one invented initiative, never the person's own", () => {
+  const { initiatives } = readFixtures("?fixture=shared");
+  const partners = examplePartners([
+    { kind: "needs", title: "Native seedlings", kinds: ["living"] },
+    { kind: "needs", title: "Planting tools", kinds: ["living", "material"] },
+    { kind: "needs", title: "More tools", kinds: ["material"] },
+    { kind: "offers", title: "A workshop on water mapping", kinds: ["living", "intellectual"] },
+  ], initiatives);
+
+  // The example's own initiative offers living support and is passed over. Willow tools is the only
+  // other initiative offering material support, so the second request for it finds no one.
+  assert.deepEqual(partners.map(({ id, name, entry, kind }) => ({ id, name, entry, kind })), [
+    { id: "field-school", name: "Field learning school", entry: { kind: "need", title: "Native seedlings" }, kind: "confirmed_offer" },
+    { id: "willow-tools", name: "Willow tools cooperative", entry: { kind: "need", title: "Planting tools" }, kind: "confirmed_offer" },
+    { id: "river-maps", name: "River maps collective", entry: { kind: "offer", title: "A workshop on water mapping" }, kind: "confirmed_need" },
+  ]);
+  const school = initiatives.find(({ id }) => id === "field-school");
+  const offer = school?.publicDetails?.offers.find(({ capitals }) => capitals.includes("living"));
+  assert.ok(school && offer);
+  assert.deepEqual(
+    { title: partners[0]?.title, passage: partners[0]?.passage, confirmedOn: partners[0]?.confirmedOn },
+    { title: offer.title, passage: offer.description, confirmedOn: school.confirmed },
+  );
+  assert.deepEqual(examplePartners([], initiatives), []);
+  assert.deepEqual(examplePartners([{ kind: "needs", title: "Native seedlings", kinds: ["living"] }], []), []);
 });

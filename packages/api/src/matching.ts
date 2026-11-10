@@ -2,6 +2,7 @@ import { boundedJson, sessionCookies } from "./account-http.ts";
 import { AccountError, createSupabaseWeaveRpc } from "./account-provider.ts";
 import { accountConfiguration } from "./account-runtime.ts";
 import { parseMatchingCommand } from "./matching-contract.ts";
+import { projectRuntime } from "./project-runtime.ts";
 import { createMatchingProvider, type MatchingProvider } from "./matching-provider.ts";
 
 export function createMatchingHandlers({ provider, secureCookies = true, origin }: {
@@ -51,4 +52,11 @@ function configuredHandlers() {
   } catch { /* Invalid configuration stays unavailable and discloses no details. */ }
   return createMatchingHandlers({ provider: null });
 }
-export const POST = (request: Request) => configuredHandlers().POST(request);
+export const POST = async (request: Request) => {
+  if (process.env.WEAVE_PROJECTS_ENABLED !== "true") return configuredHandlers().POST(request);
+  const runtime = await projectRuntime();
+  return createMatchingHandlers({
+    origin: runtime?.origin,
+    provider: runtime ? { execute: (_token, command) => runtime.matching(request, command) } : null,
+  }).POST(request);
+};

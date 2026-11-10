@@ -19,7 +19,7 @@ export function AppHeader({
   const openAccount = useAccountDoor();
   const { state } = useAccount();
   const social = useSocialFixture();
-  const Status = status === "account" ? "p" : "button";
+  const signedIn = !!state?.user || (import.meta.env.DEV && !!social?.state.identity);
   const current = matchRoute(pathname)?.section;
   return (
     <header className="rc-app-header">
@@ -38,11 +38,7 @@ export function AppHeader({
         </nav>
       )}
       <div className="rc-app-header-state">
-        <Status
-          className="rc-save-status"
-          data-state={status}
-          {...(status === "account" ? {} : { type: "button" as const, onClick: openAccount })}
-        >
+        <p className="rc-save-status" data-state={status}>
           <Icon name={status === "account" ? "done" : "device"} size="sm" />
           {status === "account"
             ? "Saved"
@@ -55,25 +51,19 @@ export function AppHeader({
                   : status === "conflict"
                     ? "Draft changed in another tab"
                     : "Nothing saved yet"}
-        </Status>
-        {state?.user || (import.meta.env.DEV && social?.state.signedIn) ? (
+        </p>
+        {signedIn ? (
           <Link
             className="rc-button"
             data-variant="quiet"
-            href={pathTo("settings")}
-            aria-label="Your account and settings"
+            href={pathTo("your-initiatives")}
+            aria-label="Your initiatives and account"
           >
             Account
           </Link>
         ) : (
-          <button
-            className="rc-button"
-            data-variant="quiet"
-            type="button"
-            onClick={openAccount}
-            aria-label="Your account and settings"
-          >
-            Account
+          <button className="rc-button" data-variant="quiet" type="button" onClick={() => openAccount("sign-in")}>
+            Sign in
           </button>
         )}
       </div>

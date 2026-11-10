@@ -1,19 +1,20 @@
 import { useId, type ReactNode } from "react";
-/** Share card organism. A missing match count stays unknown; service actions are supplied only when usable. */
-export function ShareCard({ count, children }: { count: number | null; children?: ReactNode }) {
+
+/**
+ * Share card organism, used as the gate before partner suggestions: they start once the initiative is
+ * linked to a Certified project, and funding that fits does not wait for one. The caller supplies the
+ * actions that say what to do next.
+ */
+export function ShareCard({ level, children }: { level: 2 | 3; children: ReactNode }) {
   const id = useId();
+  const Title = `h${level}` as const;
   return (
     <article className="rc-card rc-share-card" aria-labelledby={id}>
-      <h2 className="rc-card-title" id={id}>
-        {count === null
-          ? "Partner suggestions"
-          : `${count} ${count === 1 ? "initiative matches" : "initiatives match"} what you need and offer`}
-      </h2>
-      <p>{count === null ? "Partner suggestions from public sources are not connected yet." : "These are example partner matches."}</p>
-      <p className="rc-meta">
-        Viewing public-source suggestions will not require sharing your initiative. Saving and sharing are separate choices.
-      </p>
-      {children}
+      <Title className="rc-card-title" id={id}>
+        Partner suggestions start with a Certified project
+      </Title>
+      <p>You can see funding that fits without a project.</p>
+      <div className="rc-action-bar">{children}</div>
     </article>
   );
 }

@@ -29,10 +29,24 @@ import {
   reconcile,
   reviewStep,
 } from "../src/intake/state.ts";
-import { candidateChunks, chunksFrom, keywordExtraction } from "../src/intake/keywords.ts";
-import { cardText, intakeComplete } from "../src/intake/finish.ts";
+import { candidateChunks, chunksFrom, keywordExtraction, suggestKinds } from "../src/intake/keywords.ts";
+import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
+import { asksWithoutKind, cardText, intakeComplete } from "../src/intake/finish.ts";
 import { draftText } from "../src/describe/view.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
+import {
+  ASK_KINDS,
+  cardsNote,
+  changeKind,
+  continueBoth,
+  continueStep,
+  entryId,
+  kindFocus,
+  pencilHint,
+  sectionCount,
+  suggestedEntry,
+} from "../src/intake/ask-page.ts";
+import { askExtras } from "../src/intake/presentation.ts";
 const build = (step: AskStep) =>
   reconcile(
     step,
@@ -309,4 +323,208 @@ test("model extraction rejects invented or repeated sources and excessive counts
   );
   assert.throws(() => parseExtraction({ ...result, heard: 99 }, chunks), /limit/);
   assert.throws(() => parseExtraction({ items: [], heard: 1 }, chunks), /limit/);
+});
+test("quick add keeps the person's words, suggests kinds in pencil and guards the list", () => {
+  let step = addEntry(emptyAskStep(), "  Native seedlings and   fencing tools ");
+  const entry = step.items[0]!;
+  assert.equal(entry.value.title, "Native seedlings and fencing tools");
+  assert.equal(entry.value.description, null);
+  assert.equal(entry.decision, "pencil");
+  assert.equal(entry.sourceKey, null);
+  assert.deepEqual(entry.value.capitalForms, ["living", "material"]);
+  assert.deepEqual(suggestKinds("Something unusual we cannot classify"), []);
+  assert.equal(step.inputVersion, 0);
+  assert.throws(() => addEntry(step, "   "), /few words/);
+  assert.throws(() => addEntry(step, "native seedlings AND fencing tools"), /already/);
+  const long = "Help ".repeat(60).trim();
+  step = addEntry(step, long);
+  assert.equal(step.items[1]!.value.title.length, 139);
+  assert.ok(step.items[1]!.value.title.endsWith("Help"));
+  assert.equal(step.items[1]!.value.description, long);
+  assert.equal(addEntry(emptyAskStep(), "x".repeat(200)).items[0]!.value.title.length, 140);
+  for (const words of ["A truck", "A map", "A workshop"]) step = addEntry(step, words);
+  assert.throws(() => addEntry(step, "One more"), /Five/);
+  step = decide(step, entry.id, "removed");
+  assert.equal(activeItems(addEntry(step, "One more")).length, 5);
+});
+test("kinds are added and removed one at a time, in a stable order, and money leaves with Financial", () => {
+  let step = addEntry(emptyAskStep(), "Something unusual we cannot classify");
+  const { id } = step.items[0]!;
+  assert.deepEqual(step.items[0]!.value.capitalForms, []);
+  step = toggleKind(step, id, "social");
+  step = toggleKind(step, id, "living");
+  step = toggleKind(step, id, "financial");
+  assert.deepEqual(step.items[0]!.value.capitalForms, ["living", "social", "financial"]);
+  assert.equal(step.items[0]!.decision, "pencil");
+  step = changeStep(step, {
+    items: step.items.map((item) => ({
+      ...item,
+      value: { ...item.value, amount: { min: 10, max: 20, currency: "USD" } },
+    })),
+  });
+  step = toggleKind(step, id, "financial");
+  assert.deepEqual(step.items[0]!.value.capitalForms, ["living", "social"]);
+  assert.equal(step.items[0]!.value.amount, null);
+  step = decide(step, id, "removed");
+  assert.throws(() => toggleKind(step, id, "living"), /no longer/);
+  assert.throws(() => toggleKind(step, crypto.randomUUID(), "living"), /no longer/);
+});
+test("Continue keeps every entry in pencil, and an entry with no kind can stay on the device", () => {
+  let step = addEntry(addEntry(emptyAskStep(), "Seedlings"), "Something unusual we cannot classify");
+  assert.throws(() => reviewStep(step), /pencil/);
+  const kept = keepPending(step);
+  assert.ok(kept.items.every((item) => item.decision === "kept"));
+  assert.deepEqual(kept.items[1]!.value.capitalForms, []);
+  assert.equal(reviewStep(kept).reviewedVersion, kept.inputVersion);
+  assert.equal(AskSchema.safeParse(kept.items[1]!.value).success, false);
+  assert.equal(keepPending(kept), kept);
+  step = decide(kept, kept.items[1]!.id, "removed");
+  step = decide(step, kept.items[1]!.id, "pencil");
+  assert.equal(step.items[1]!.decision, "kept");
+  let draft = confirmDraft(
+    revise(newDraft(), { proposal: { ...EMPTY_INITIATIVE, name: "Synthetic initiative" }, proposalVersion: 0 }),
+  );
+  draft = revise(draft, { needs: reviewStep(kept), offers: reviewStep(emptyAskStep()) });
+  assert.equal(intakeComplete(draft), true);
+  assert.deepEqual(
+    asksWithoutKind(draft).map((entry) => [entry.kind, entry.title]),
+    [["needs", "Something unusual we cannot classify"]],
+  );
+});
+test("making cards from a conversation never drops or repeats an entry added by hand", () => {
+  let step = addEntry(answerStep(emptyAskStep(), "needs", "Seeds; Tools; A meeting room"), "A meeting room");
+  step = build(step);
+  assert.deepEqual(
+    activeItems(step).map((item) => item.value.title),
+    ["A meeting room", "Seeds", "Tools"],
+  );
+  assert.equal(step.items[0]!.sourceKey, null);
+  assert.equal(step.items[0]!.decision, "pencil");
+  for (const words of ["One", "Two"]) step = addEntry(step, words);
+  assert.throws(() => addEntry(step, "Three"), /Five/);
+  step = build(changeStep(step, { items: step.items.filter((item) => item.sourceKey === null) }));
+  assert.equal(activeItems(step).length, 5);
+  assert.equal(activeItems(step).filter((item) => item.sourceKey === null).length, 3);
+});
+
+test("the needs and offers page counts its lists and says what dashed means", () => {
+  const empty = emptyAskStep();
+  assert.equal(sectionCount(empty), "0 of 5");
+  assert.equal(pencilHint(empty), "");
+  assert.equal(pencilHint(addEntry(empty, "Something unusual we cannot classify")), "");
+  const quick = addEntry(empty, "Seedlings");
+  assert.equal(sectionCount(quick), "1 of 5");
+  assert.equal(suggestedEntry(quick.items[0]!), false);
+  assert.equal(pencilHint(quick), "Dashed kinds are suggestions. Remove any that are wrong.");
+  assert.equal(pencilHint(keepPending(quick)), "");
+  const made = seed();
+  assert.equal(suggestedEntry(made.items[0]!), true);
+  assert.equal(pencilHint(made), "Dashed cards and kinds are suggestions. Remove any that are wrong.");
+  assert.equal(sectionCount(decide(made, made.items[0]!.id, "removed")), `${made.items.length - 1} of 5`);
+  assert.equal(entryId("x", "details"), "ask-x-details");
+});
+
+test("the page says when words still wait for cards", () => {
+  assert.equal(
+    cardsNote(answerStep(emptyAskStep(), "needs", "Native seedlings")),
+    "Make cards from your words, then continue.",
+  );
+  const made = seed();
+  assert.equal(cardsNote(made), "");
+  const stale = commitPending(changeStep(made, { composer: "New words" }, true), "needs");
+  assert.equal(cardsNote(stale), "Your words changed. Make cards again, then continue.");
+  assert.equal(cardsNote(changeStep(stale, { mode: "manual" })), "");
+});
+
+test("continue keeps every pencil entry in both lists, or changes neither", () => {
+  const needs = addEntry(seed(), "A fence for the tree nursery");
+  const offers = addEntry(emptyAskStep(), "A workshop on mapping water");
+  const done = continueBoth({ needs, offers });
+  if (!done.ok) throw new Error("Both lists should continue");
+  for (const kind of ASK_KINDS) {
+    assert.ok(done.steps[kind].items.every((item) => item.decision === "kept"));
+    assert.equal(done.steps[kind].reviewedVersion, done.steps[kind].inputVersion);
+  }
+  assert.equal(continueBoth({ needs: emptyAskStep(), offers: emptyAskStep() }).ok, true);
+  assert.deepEqual(continueBoth({ needs, offers }, { needs: "", offers: "Tools" }), {
+    ok: false,
+    blocked: { offers: { where: "add", message: "Add what you typed or clear it, then continue." } },
+  });
+  const blocker = (step: AskStep) => {
+    const result = continueStep(step);
+    if (result.ok) throw new Error("This list should be blocked");
+    return result.blocker;
+  };
+  assert.deepEqual(blocker(changeStep(needs, { editor: { id: null, form: formFromAsk() } })), {
+    where: "editor",
+    message: "Keep or cancel the details you have open, then continue.",
+  });
+  assert.deepEqual(blocker(changeStep(needs, { composer: "More words" }, true)), {
+    where: "talk",
+    message: "Make cards from your answer or clear it, then continue.",
+  });
+  assert.deepEqual(blocker(changeStep(changeStep(needs, { mode: "manual" }), { composer: "Notes" }, true)), {
+    where: "talk",
+    message: "Keep your notes or clear them, then continue.",
+  });
+  assert.deepEqual(blocker(changeStep(needs, { pendingLink: "https://example.org" }, true)), {
+    where: "talk",
+    message: "Add the link or clear it, then continue.",
+  });
+  assert.deepEqual(blocker(commitPending(changeStep(needs, { composer: "New words" }, true), "needs")), {
+    where: "talk",
+    message: "Your words changed. Make cards again, then continue.",
+  });
+});
+
+test("changing a kind keeps a suggested card, so making cards again does not undo it", () => {
+  const made = seed();
+  const card = made.items[0]!;
+  const kind = CapitalFormSchema.options.find((option) => !card.value.capitalForms.includes(option))!;
+  const changed = changeKind(made, card.id, kind);
+  const kept = changed.items.find((item) => item.id === card.id)!;
+  assert.equal(kept.decision, "kept");
+  assert.ok(kept.value.capitalForms.includes(kind));
+  assert.deepEqual(
+    build(changed).items.find((item) => item.id === card.id)?.value.capitalForms,
+    kept.value.capitalForms,
+  );
+  const quick = addEntry(emptyAskStep(), "Seedlings");
+  assert.equal(changeKind(quick, quick.items[0]!.id, "financial").items[0]!.decision, "pencil");
+});
+
+test("focus stays in its row after a kind is added or removed", () => {
+  assert.equal(kindFocus("x", ["living", "social"], "living"), "ask-x-kind-social-remove");
+  assert.equal(kindFocus("x", ["living", "social"], "social"), "ask-x-kind-living-remove");
+  assert.equal(kindFocus("x", ["living"], "living"), "ask-x-kinds");
+  assert.equal(kindFocus("x", ["living"], "material"), "ask-x-kind-intellectual-add");
+  assert.equal(kindFocus("x", ["living"], "spiritual"), "ask-x-kind-cultural-add");
+  assert.equal(
+    kindFocus(
+      "x",
+      CapitalFormSchema.options.filter((option) => option !== "spiritual"),
+      "spiritual",
+    ),
+    "ask-x-kind-spiritual-remove",
+  );
+});
+
+test("a card shows only the details a person added", () => {
+  const value = addEntry(emptyAskStep(), "Seedlings").items[0]!.value;
+  assert.equal(askExtras(value, "needs"), "");
+  assert.equal(
+    askExtras(
+      {
+        ...value,
+        amount: { min: 500, max: 500, currency: "USD" },
+        placeScope: "region",
+        exchangeTerms: ["gift", "paid"],
+        status: "met",
+      },
+      "needs",
+    ),
+    "USD 500, Our region, Gift or Paid, Met",
+  );
+  assert.equal(askExtras({ ...value, urgency: "now", capacity: "Two days a month" }, "needs"), "Now");
+  assert.equal(askExtras({ ...value, urgency: "now", capacity: "Two days a month" }, "offers"), "Two days a month");
 });

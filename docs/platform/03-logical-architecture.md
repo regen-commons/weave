@@ -5,11 +5,114 @@ Companion documents: [PRD](04-prd.md) · [technical spec](05-technical-spec.md) 
 
 This document describes the shape of the system: the parts, what each owns, how data flows, and how the platform stays one node in a wider commons rather than a new centre. Technology choices and schemas are in the technical spec.
 
-Matching revision, 8 November 2026: the next build includes shared Weave entries
-and public project evidence in one matching experience. The
-[implementation plan and UI handoff](05-technical-spec.md#76-build-plan-and-ui-handoff)
-own its order, current status and proof. The diagrams also show later services;
-their presence here does not mean they are implemented or required for this handoff.
+## First-release architecture
+
+These diagrams describe the target for Certified projects, private saving,
+sharing and matching. The sections below describe the wider platform, including
+later phases. Use the [technical spec](05-technical-spec.md#certified-project-integration-target)
+for API and data contracts and the
+[build plan](05-technical-spec.md#76-build-plan-and-ui-handoff) for preview
+evidence and release checks.
+
+### System and data ownership
+
+```mermaid
+flowchart TB
+  subgraph Device["Browser"]
+    draft["Device drafts, source files and suggestions"]
+    app["Weave app"]
+    funding["Local funding matching"]
+    app <--> draft
+    draft --> funding
+  end
+  certified["Certified person identity"]
+  bridge["Weave identity bridge"]
+  auth["Platform Auth"]
+  api["Weave API: account, project and matching commands"]
+  platform["Platform: workspaces, grants, needs, offers and share revisions"]
+  groupService["Certified Group Service: group roles and scoped writes"]
+  repo["AT repositories: public project records and support listings"]
+  app -->|"Sign in"| bridge
+  bridge <-->|"Verify person's DID"| certified
+  bridge -->|"Verified identity"| auth
+  auth -->|"Weave session"| app
+  app <-->|"Explicit save and authorized actions"| api
+  api <--> platform
+  api <-->|"Check roles and perform approved group actions"| groupService
+  groupService -->|"Write reviewed records"| repo
+  api <-->|"Verify public records and read back writes"| repo
+```
+
+A person DID identifies the actor. A group DID identifies a publishing account.
+The project AT URI identifies one public project, and its CID identifies the
+observed version. The Weave UUID identifies the workspace and stays stable
+across saves. Working files and private queries remain on the device. Saving
+uploads the selected initiative fields and entries to Platform.
+
+### Project and entry lifecycle
+
+```mermaid
+flowchart TB
+  draft["Start a local draft and match for funding"] --> save["Sign in with Certified and save privately"]
+  save --> select{"Which project?"}
+  select -->|"No project yet"| create["Review and create a group and project"]
+  select -->|"Existing personal project"| solo["Verify and link the solo project"]
+  select -->|"Existing group project"| access{"Workspace already linked?"}
+  access -->|"Yes"| grant["Check existing workspace grant"]
+  access -->|"No"| request["Verified member requests setup"]
+  request --> approve["Certified group admin or owner verifies and approves"]
+  create --> readback["Confirm group and project before linking"]
+  create -.->|"Interrupted response"| retry["Reconcile the operation before retrying"]
+  retry --> readback
+  readback --> workspace["Open the one linked workspace"]
+  solo --> workspace
+  grant --> workspace
+  approve -->|"Activate workspace and apply explicit grants"| workspace
+  workspace --> entry["Save a need or offer to the workspace"]
+  entry --> share["Review and share for Weave matching"]
+  entry --> publish["Review and publish to AT Protocol"]
+  publish --> confirmed["Confirm the public record by read-back"]
+  confirmed -->|"Close, change public fields or lose project visibility"| withdraw["Request withdrawal and report its state"]
+  workspace -.->|"Project deleted or made unlisted"| paused["Pause matching and preserve team work"]
+  paused -->|"Same project restored and reviewed"| workspace
+```
+
+A setup request grants no access and keeps the draft private. Team saves
+are visible to teammates with current access. Sharing and public publishing
+are independent actions. A person removed from the Certified group loses
+workspace access. Eligible team entries can stay live under the remaining
+authorized teammates. Confirmed project deletion or unlisting also requests
+withdrawal of public listings.
+
+### Matching and evidence
+
+```mermaid
+flowchart TB
+  upstream["Eligible public Certified projects"] --> feed["Hypercerts public index"]
+  feed --> jobs["Resumable ingestion and refresh"]
+  jobs --> evidence["Platform evidence index: passages, AT URI, CID and freshness"]
+  linked["Authorized, linked workspace"] --> query{"Which matching path?"}
+  query -->|"Private need or offer"| local["On-device comparison with a bounded public snapshot"]
+  evidence -->|"Public snapshot"| local
+  query -->|"Current shared need or offer"| matcher["Weave API: authorized retrieval and shortlist"]
+  shares["Current approved shares from other teams"] --> matcher
+  evidence --> matcher
+  matcher --> direct["Direct matches ranked by relevance"]
+  matcher --> possible["Possible fits ranked by relevance"]
+  local --> possible
+  direct --> result["Supporting evidence, unknowns and source"]
+  possible --> result
+```
+
+Results distinguish a confirmed shared entry, a public statement and an
+inference. A relevant capability or potential use can appear when an important
+detail is unknown. The result names what to verify. A known conflict rules out
+the pair. The launch target covers all eligible Certified projects the index can
+enumerate. Local snapshots cover a smaller set and show their coverage.
+
+Before release, prove Certified group setup and grants, scoped publishing and
+withdrawal, and permissions, refresh and matching quality at launch volume.
+See the [validation register](open-decisions.md#project-integration-and-support-listing-validation).
 
 ## 1. Five layers
 
@@ -188,7 +291,7 @@ sequenceDiagram
     end
   end
   W-->>G: draft + confidence
-  G-->>U: card with four fields; derived details shown for correction
+  G-->>U: show the four-field card and derived details for correction
   U->>G: reviews and checks the initiative
   G-->>U: funding and permitted public-source discovery
   opt person saves or adds an owned need or offer

@@ -1,0 +1,28 @@
+{
+  "mode": "public_index_audit",
+  "startedAt": "2026-11-10T09:17:13.643Z",
+  "finishedAt": "2026-11-10T09:17:13.985Z",
+  "status": "failed",
+  "code": "source_unavailable",
+  "pages": 0,
+  "records": 0,
+  "uniqueProjects": 0,
+  "duplicateRecords": 0,
+  "counts": {
+    "indexed": 0,
+    "restricted": 0,
+    "failed": 0,
+    "missing": 0
+  },
+  "extractablePassages": 0,
+  "permittedProjects": 0,
+  "permittedPassages": 0,
+  "oldestIndexedAt": null,
+  "newestIndexedAt": null,
+  "indexAgeMs": null,
+  "propagationLagMs": null,
+  "relevance": null,
+  "domainCoverage": null,
+  "networkCoverage": "followed_pds_and_retained_collections_only",
+  "consistentSnapshot": false
+}

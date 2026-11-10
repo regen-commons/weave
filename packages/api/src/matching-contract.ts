@@ -38,7 +38,7 @@ export interface MatchingPreview {
   initiativeId: string;
   initiativeRevision: number;
   audience: "weave_users";
-  expiresAt: string;
+  expiresAt: string | null;
   summary: MatchingSummary;
   entries: (MatchingEntryRef & { value: JsonObject })[];
 }
@@ -198,12 +198,12 @@ export function parseMatchingPreview(value: unknown): MatchingPreview {
   const o = record(value);
   return { reviewId: identifier(o.reviewId), initiativeId: identifier(o.initiativeId),
     initiativeRevision: version(o.initiativeRevision), audience: option(o.audience, ["weave_users"]),
-    expiresAt: date(o.expiresAt), summary: matchingSummary(o.summary), entries: array(o.entries, 10, reviewedEntry) };
+    expiresAt: nullableDate(o.expiresAt), summary: matchingSummary(o.summary), entries: array(o.entries, 10, reviewedEntry) };
 }
 function projection(value: unknown): MatchingProjection {
   const o = record(value);
   return { ...reviewedEntry(o), initiativeId: identifier(o.initiativeId), confirmedAt: date(o.confirmedAt),
-    expiresAt: date(o.expiresAt), summary: matchingSummary(o.summary) };
+    expiresAt: nullableDate(o.expiresAt), summary: matchingSummary(o.summary) };
 }
 export function parseMatchingShortlist(value: unknown): { entry: MatchingProjection; candidates: MatchingProjection[]; publicEvidence: unknown; publicModelVersion: unknown }[] {
   return array(value, 10, item => {
@@ -236,6 +236,22 @@ export function parseProjectEvidence(value: unknown): ProjectEvidence {
     extractionVersion: text(o.extractionVersion, 120), kind: option(o.kind, ["work", "published_offer", "published_request"]),
   };
 }
+export function parsePublicEvidenceSnapshot(value: unknown) {
+  const o = record(value);
+  if (typeof o.truncated !== "boolean") return invalid();
+  return {
+    workspaceId: identifier(o.workspaceId),
+    corpusVersion: text(o.corpusVersion, 200),
+    status: option(o.status, ["bounded", "partial", "stale"]),
+    indexedAt: nullableDate(o.indexedAt),
+    availableUntil: date(o.availableUntil),
+    truncated: o.truncated,
+    evidence: array(o.evidence, 160, parseProjectEvidence),
+  };
+}
+
+export type PublicEvidenceSnapshot = ReturnType<typeof parsePublicEvidenceSnapshot>;
+
 export function parseMatchingSearch(value: unknown): MatchingSearch {
   const o = record(value), c = record(o.coverage);
   return { initiativeId: identifier(o.initiativeId), results: array(o.results, 300, item => {
@@ -255,7 +271,7 @@ export function parseMatchingSearch(value: unknown): MatchingSearch {
       evidenceKind, action, reciprocal: r.reciprocal,
       evidence: type === "shared" ? { type, entryId: identifier(evidence.entryId), revision: version(evidence.revision),
         title: text(evidence.title, 140), passage: text(evidence.passage, 8000),
-        confirmedAt: date(evidence.confirmedAt), expiresAt: date(evidence.expiresAt) }
+        confirmedAt: date(evidence.confirmedAt), expiresAt: nullableDate(evidence.expiresAt) }
         : { type, ...parseProjectEvidence(evidence) },
       reasons: array(r.reasons, 15, value => {
         const reason = record(value);

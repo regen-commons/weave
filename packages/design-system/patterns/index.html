@@ -253,12 +253,17 @@
 
     <article class="lib-pattern" id="chips">
       <h3>Chip and tag</h3>
-      <p class="lib-note">A chip is a choice you tap, and it is 44 px high. A tag is a label you read.</p>
+      <p class="lib-note">A chip is a choice you tap, and it is 44 px high. A dashed chip is pencil: a value the assistant suggested that no person has confirmed; tapping it opens change or remove. A tag is a label you read.</p>
       <div class="lib-stage" data-example>
         <div class="lib-row">
           <label class="rc-chip"><input class="rc-check" type="checkbox" name="chip-a">Research</label>
           <label class="rc-chip"><input class="rc-check" type="checkbox" name="chip-b" checked>Place-based</label>
           <span class="rc-chip">Portuguese<button class="rc-chip-remove" aria-label="Remove Portuguese" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#close"/></svg></button></span>
+        </div>
+        <div class="lib-row">
+          <button class="rc-chip" data-pencil type="button">Stage: Getting going</button>
+          <button class="rc-chip" type="button">Type of work: Place-based community</button>
+          <button class="rc-chip" type="button">Add themes</button>
         </div>
         <div class="lib-row">
           <span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#lock"/></svg>Only you</span>
@@ -503,12 +508,24 @@
     </article>
 
     <article class="lib-pattern" id="status">
-      <h3>Save status, progress and search</h3>
-      <p class="lib-note">Save status always says where the work lives. Progress says what is happening and how to stop it. Search is a box, a button and the word Search.</p>
+      <h3>Save status, status line, progress and search</h3>
+      <p class="lib-note">Save status always says where the work lives. The status line puts that sentence beside the one thing to do about it next, with one primary at most. Progress says what is happening and how to stop it. Search is a box, a button and the word Search.</p>
       <div class="lib-stage" data-example>
         <div class="lib-row">
           <p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#device"/></svg>Saved on this device only</p>
           <p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg>Saved</p>
+        </div>
+        <div class="rc-status-line">
+          <p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#device"/></svg>On this device only.</p>
+          <div class="rc-action-bar"><button class="rc-button" data-variant="primary" data-size="sm" type="button">Keep it</button></div>
+        </div>
+        <div class="rc-status-line">
+          <p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg>Saved. Only you can see it.</p>
+          <div class="rc-action-bar"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Who can see it</button><button class="rc-button" data-variant="quiet" data-size="sm" type="button">Add to Certified</button></div>
+        </div>
+        <div class="rc-status-line">
+          <p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#globe"/></svg>On Certified. Anyone can read it. Changed since it went there.</p>
+          <div class="rc-action-bar"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Update on Certified</button><button class="rc-button" data-variant="quiet" data-size="sm" type="button">Who can see it</button></div>
         </div>
         <div class="rc-progress">
           <label for="download">Downloading the assistant: 12 of 40 MB</label>

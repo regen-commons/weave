@@ -1,5 +1,5 @@
 import { open } from "node:fs/promises";
-import { connectProjectIndex } from "../src/project-index-postgres.ts";
+import { auditProjectNetwork } from "../src/project-index-audit.ts";
 import { createHypercertsSource, parseProjectPermissions } from "../src/project-index-source.ts";
 import { refreshProjectIndex } from "../src/project-index.ts";
 
@@ -8,7 +8,7 @@ async function manifestFile(path: string) {
   const handle = await open(path, "r");
   try {
     const stat = await handle.stat();
-    if (!stat.isFile() || stat.size > 512 * 1024) throw Error("invalid_manifest_size");
+    if (!stat.isFile() || stat.size > 8 * 1024 * 1024) throw Error("invalid_manifest_size");
     const buffer = Buffer.alloc(stat.size + 1);
     const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
     if (bytesRead !== stat.size) throw Error("invalid_manifest_size");
@@ -24,6 +24,13 @@ async function main() {
   if (embeddings) args.pop();
   const [mode, value, batch, ...rest] = args;
   const source = createHypercertsSource();
+  if (mode === "--probe-network" && !rest.length && !embeddings) {
+    const manifest = batch ? await manifestFile(batch) : undefined;
+    const report = await auditProjectNetwork({ source, maxPages: value === undefined ? 100 : Number(value), manifest });
+    console.log(JSON.stringify(report));
+    if (report.status === "failed") process.exitCode = 1;
+    return;
+  }
   if (mode === "--probe-publisher" && value && !batch && !embeddings) {
     const counts = { indexed: 0, restricted: 0, failed: 0, missing: 0 };
     let cursor: string | undefined;
@@ -50,6 +57,7 @@ async function main() {
   const url = process.env.WEAVE_INDEX_DATABASE_URL;
   if (!url) throw Error("index_database_url_required");
   const start = performance.now();
+  const { connectProjectIndex } = await import("../src/project-index-postgres.ts");
   const connection = await connectProjectIndex(url);
   try {
     const embedder = embeddings ? await import("./project-embedding.mjs")
@@ -70,7 +78,7 @@ const codes = new Set([
   "index_arguments_required", "invalid_manifest_path", "invalid_manifest_size", "invalid_permission_manifest",
   "duplicate_permission", "invalid_project_uri", "invalid_source_date", "invalid_batch_size",
   "index_database_url_required", "invalid_index_database_url", "index_database_role_required",
-  "obsolete_or_conflicting_manifest", "invalid_source_query",
+  "obsolete_or_conflicting_manifest", "invalid_source_query", "invalid_page_budget",
 ]);
 main().catch((error: unknown) => {
   console.error(JSON.stringify({

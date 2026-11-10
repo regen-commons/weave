@@ -34,7 +34,7 @@ export function HomeHero({
   return (
     <section className="rc-home-hero" aria-labelledby="home-title">
       <svg className="rc-woven-backdrop" aria-hidden="true" focusable="false">
-        <use href="/brand/weave-threads.svg#threads" />
+        <use href={`${import.meta.env.BASE_URL}brand/weave-threads.svg#threads`} />
       </svg>
       {children}
       <div className="rc-home-actions">{actions}</div>

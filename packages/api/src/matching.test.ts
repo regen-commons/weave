@@ -136,3 +136,20 @@ test("removes a saved lead by its entry key and still requires a current referen
   assert.equal((await POST(request({ ...body, entry: ref, disposition: "removed" }))).status, 200);
   assert.equal(calls, 2);
 });
+
+test("matching provider preserves explicit null expiry across preview, shortlist and returned evidence", async () => {
+  const provider = createMatchingProvider(async action => {
+    if (action === "matching_preview") return { reviewId: "50000000-0000-4000-8000-000000000003",
+      initiativeId: owner, initiativeRevision: 1, audience: "weave_users", expiresAt: null, summary,
+      entries: [need] };
+    return { groups: [{ entry: { ...need, expiresAt: null }, candidates: [{ ...offer, expiresAt: null }],
+      publicEvidence: [], publicModelVersion: null }] };
+  });
+  const preview = await provider.execute(token, { action: "preview", initiativeId: owner, initiativeRevision: 1, entries: [ref] });
+  assert.ok("expiresAt" in preview);
+  assert.equal(preview.expiresAt, null);
+  const result = parseMatchingSearch(await provider.execute(token, { action: "search", initiativeId: owner }));
+  const match = result.results[0];
+  assert.ok(match?.evidence.type === "shared");
+  assert.equal(match.evidence.expiresAt, null);
+});

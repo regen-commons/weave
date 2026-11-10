@@ -1,14 +1,31 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { MAX_FILE_BYTES, type Turn } from "../describe/source-contracts.ts";
+import { flushSync } from "react-dom";
+import { typedCard } from "../describe/check.ts";
 import { revise } from "../describe/contracts.ts";
+import { MAX_FILE_BYTES, type Turn } from "../describe/source-contracts.ts";
+import { availableSpeech, startSpeech } from "../describe/speech.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText } from "../describe/view.ts";
-import { availableSpeech, startSpeech } from "../describe/speech.ts";
+import type { FixtureContext } from "../fixtures.ts";
+import {
+  ASK_KINDS,
+  cardsNote,
+  changeKind,
+  continueBoth,
+  entryId,
+  kindFocus,
+  pencilHint,
+  sectionCount,
+  talkWaiting,
+  type Blocker,
+} from "../intake/ask-page.ts";
 import { ASK_LIMIT, type AskItem, type AskKind, type AskStep as Step } from "../intake/contracts.ts";
+import { addEntry } from "../intake/entries.ts";
+import { extractAsks } from "../intake/extract-client.ts";
 import {
   activeItems,
-  answerStep,
   addStepFiles,
+  answerStep,
   changeStep,
   commitPending,
   decide,
@@ -17,12 +34,9 @@ import {
   keepLink,
   question,
   reconcile,
-  reviewStep,
 } from "../intake/state.ts";
-import { extractAsks } from "../intake/extract-client.ts";
-import { navigate } from "../router.tsx";
+import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, INTAKE_STEPS, pathTo } from "../routes.ts";
-import type { FixtureContext } from "../fixtures.ts";
 import { AskCard } from "../ui/AskCard.tsx";
 import { AskEditor } from "../ui/AskEditor.tsx";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
@@ -30,17 +44,151 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { Conversation } from "../ui/Conversation.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
-import { Stack, StepLayout } from "../ui/layouts.tsx";
+import { Stack } from "../ui/layouts.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
 import { VoiceInput } from "../ui/VoiceInput.tsx";
 
+type Blocked = Partial<Record<AskKind, Blocker>>;
+
+/** Clears one list's blocker once the person has changed that list. */
+function unblock(kind: AskKind) {
+  return (current: Blocked): Blocked => {
+    if (!current[kind]) return current;
+    const rest = { ...current };
+    delete rest[kind];
+    return rest;
+  };
+}
+
+/**
+ * Needs and offers on one page: two lists, each with a quick add, and one Continue that keeps
+ * every suggestion still showing. Both routes open this page; the offers route starts at the
+ * offers list.
+ */
 export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: FixtureContext }) {
-  const { draft, controller, ready, storage, error: storageError, fixture } = useDraft();
+  const { draft, controller, ready, storage, error: storageError } = useDraft();
+  const [words, setWords] = useState<Record<AskKind, string>>({ needs: "", offers: "" });
+  const [blocked, setBlocked] = useState<Blocked>({});
+  const [working, setWorking] = useState<Record<AskKind, boolean>>({ needs: false, offers: false });
+  const waiting = working.needs || working.offers;
+  useEffect(() => setBlocked(unblock("needs")), [draft.needs, words.needs]);
+  useEffect(() => setBlocked(unblock("offers")), [draft.offers, words.offers]);
+  useEffect(() => {
+    if (!ready || kind !== "offers") return;
+    // The app focuses the page heading after this effect, so the offers list waits one frame.
+    const frame = requestAnimationFrame(() => {
+      const title = document.getElementById("ask-offers-title");
+      title?.scrollIntoView({ block: "center" });
+      title?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [ready, kind]);
+  function next() {
+    const current = controller.getSnapshot().draft;
+    // A full list shows no quick add, so words left in it cannot hold the page.
+    const typed = (entry: AskKind) => (activeItems(current[entry]).length >= ASK_LIMIT ? "" : words[entry]);
+    const result = continueBoth(
+      { needs: current.needs, offers: current.offers },
+      { needs: typed("needs"), offers: typed("offers") },
+    );
+    if (result.ok) {
+      controller.change((latest) => revise(latest, result.steps));
+      navigate(fixtureHref(pathTo("your-initiative"), routeSearch(), import.meta.env.DEV));
+      return;
+    }
+    // Rendered now, so the first list that stopped the page can take the focus.
+    flushSync(() => setBlocked(result.blocked));
+    const first = ASK_KINDS.find((entry) => result.blocked[entry]);
+    if (first) document.getElementById(`ask-${first}-blocker`)?.focus();
+  }
+  return (
+    <Stack>
+      <Stepper steps={INTAKE_STEPS.map((step) => step.label)} current={1} />
+      <Heading level={1} size="page">
+        Needs and offers
+      </Heading>
+      <p>Add what would help and what you can share. A few words each is enough.</p>
+      <DraftNotice
+        error={storageError}
+        text={draftText(draft)}
+        conflict={storage === "conflict"}
+        onRetry={() => controller.retry()}
+      />
+      {!ready ? (
+        <p role="status">Opening your device draft</p>
+      ) : (
+        <>
+          {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
+            <p className="rc-notice" data-tone="info">
+              You are offline. Your words and cards stay on this device.
+            </p>
+          )}
+          <div className="rc-card-grid">
+            {ASK_KINDS.map((entry) => (
+              <AskSection
+                key={entry}
+                kind={entry}
+                example={entry === kind ? example : undefined}
+                words={words[entry]}
+                onWords={(value) => setWords((current) => ({ ...current, [entry]: value }))}
+                blocker={blocked[entry]}
+                onWorking={(value) =>
+                  setWorking((current) => (current[entry] === value ? current : { ...current, [entry]: value }))
+                }
+              />
+            ))}
+          </div>
+          <div className="rc-action-bar">
+            <button
+              className="rc-button"
+              data-variant="primary"
+              type="button"
+              disabled={waiting}
+              aria-busy={waiting || undefined}
+              onClick={next}
+            >
+              Continue
+            </button>
+            <ButtonLink href={pathTo(typedCard(draft) ? "initiative" : "check-card")} variant="quiet">
+              Back
+            </ButtonLink>
+          </div>
+        </>
+      )}
+    </Stack>
+  );
+}
+
+/** One of the page's two lists, with everything that adds to it or changes it. */
+function AskSection({
+  kind,
+  example,
+  words,
+  onWords,
+  blocker,
+  onWorking,
+}: {
+  kind: AskKind;
+  /** The example view states, given only to the list the route opened on. */
+  example?: FixtureContext;
+  /** What is typed in the quick add. The page holds it so Continue can ask about it. */
+  words: string;
+  onWords(value: string): void;
+  /** Why Continue stopped at this list. */
+  blocker?: Blocker;
+  /** True while this list is making cards or listening, so the page holds Continue. */
+  onWorking(value: boolean): void;
+}) {
+  const { draft, controller, ready, storage, fixture } = useDraft();
   const step = draft[kind];
   const need = kind === "needs";
+  const one = need ? "Need" : "Offer";
+  const part = (name: string) => `ask-${kind}-${name}`;
   const [notice, setNotice] = useState("");
+  const [addError, setAddError] = useState("");
   const [editorError, setEditorError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [talk, setTalk] = useState(false);
   const [language, setLanguage] = useState(navigator.language || "en-US");
   const [speechReady, setSpeechReady] = useState(false);
   const [listening, setListening] = useState(false);
@@ -52,16 +200,21 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   const focusIntent = useRef<string | null>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
+  const full = activeItems(step).length >= ASK_LIMIT;
+  const hint = pencilHint(step);
+  const stale = cardsNote(step);
+  const held = busy || listening;
+  const unfinished = ready && (held || talkWaiting(step));
   useEffect(() => {
     setBusy(example?.intake === "loading");
     setNotice(
-      example?.intake === "error"
+      import.meta.env.DEV && example?.intake === "error"
         ? "Example model error. These are keyword cards; make cards again or change them by hand."
         : "",
     );
   }, [example?.intake]);
   useEffect(() => {
-    if (example?.intake === "storage-error" && ready && storage === "saved")
+    if (import.meta.env.DEV && example?.intake === "storage-error" && ready && storage === "saved")
       update((current) =>
         changeStep(
           current,
@@ -108,21 +261,31 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       focusIntent.current = null;
     }
   }, [step.editor, step.items]);
-  function perform(action: () => void) {
+  useEffect(() => {
+    onWorking(held);
+  }, [held]);
+  // Words waiting in the conversation, or a stop there, open it. Closing it stays the person's call.
+  useEffect(() => {
+    if (unfinished || blocker?.where === "talk") setTalk(true);
+  }, [unfinished, blocker]);
+  function perform(action: () => void): boolean {
     try {
       action();
       setEditorError("");
+      return true;
     } catch (error) {
+      focusIntent.current = null;
       setNotice(
         error instanceof Error && !error.message.startsWith("[")
           ? error.message
-          : "Choose at least one kind of support, then check this card.",
+          : "That did not work. Check this list and try again.",
       );
+      return false;
     }
   }
   async function makeCards(via: Turn["via"] = "typed") {
     if (controller.getSnapshot().draft[kind].editor) {
-      setNotice("Keep or cancel your open card before making new cards.");
+      setNotice("Keep or cancel the details you have open before making cards.");
       return;
     }
     micTask.current?.abort();
@@ -179,7 +342,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       if (task.current === abort)
         setNotice(
           result.extraction.heard
-            ? "Cards are ready in pencil. Keep what is right, change or remove the rest."
+            ? "Cards are ready. Dashed ones are suggestions; remove any that are wrong."
             : "No new cards were found. Kept cards and removals are unchanged; you can add one by hand.",
         );
     } catch (error) {
@@ -290,7 +453,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       });
       update((current) => addStepFiles(current, attachments));
       if (step.mode === "conversation") void makeCards();
-      else setNotice("Files kept on this device. Manual mode does not read their content.");
+      else setNotice("Files kept on this device. Nothing reads their content here.");
     } catch {
       setNotice(
         "No files were added. Each file must be 25 MB or smaller and have a name under 256 characters.",
@@ -299,32 +462,52 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       input.value = "";
     }
   }
-  function openEditor(item?: AskItem) {
+  function openEditor(item: AskItem) {
     setEditorError("");
-    update((current) =>
-      changeStep(current, { editor: { id: item?.id ?? null, form: formFromAsk(item?.value) } }),
-    );
+    update((current) => changeStep(current, { editor: { id: item.id, form: formFromAsk(item.value) } }));
   }
   function saveEditor() {
+    const open = step.editor?.id;
     try {
       const next = update((current) => keepEditor(current, kind));
-      const id = next.items.find((item) => item.id === step.editor?.id)?.id ?? next.items.at(-1)!.id;
-      focusIntent.current = `ask-${id}-change`;
+      const kept = next.items.find((item) => item.id === open) ?? next.items.at(-1);
+      focusIntent.current = kept ? entryId(kept.id, "more") : part("add");
       setEditorError("");
-      setNotice(need ? "Need kept. You can still change it." : "Offer kept. You can still change it.");
+      setNotice(`${one} details kept.`);
     } catch (error) {
       setEditorError(
         error instanceof Error && !error.message.startsWith("[")
           ? error.message
-          : "Add a title and at least one kind. Check amounts, currency and terms; your unfinished values are still here.",
+          : "Add a title. Check amounts, currency and terms; your unfinished values are still here.",
       );
     }
   }
-  function next() {
-    perform(() => {
-      update(reviewStep);
-      navigate(fixtureHref(pathTo(need ? "offers" : "finish"), window.location.search, import.meta.env.DEV));
+  function quickAdd(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    let target = part("add");
+    // Rendered now: a fifth entry replaces the field, and the line that says so takes the focus.
+    flushSync(() => {
+      try {
+        const before = new Set(step.items.map((item) => item.id));
+        const next = update((current) => addEntry(current, words));
+        const added = next.items.find((item) => !before.has(item.id));
+        onWords("");
+        setAddError("");
+        setNotice(
+          added?.value.capitalForms.length
+            ? `${one} added. Check its kinds of support.`
+            : `${one} added. Add a kind of support when one fits.`,
+        );
+        if (activeItems(next).length >= ASK_LIMIT) target = part("status");
+      } catch (error) {
+        setAddError(
+          error instanceof Error && !error.message.startsWith("[")
+            ? error.message
+            : "That did not work. Try again.",
+        );
+      }
     });
+    document.getElementById(target)?.focus();
   }
   const editor = step.editor && (
     <AskEditor
@@ -335,13 +518,12 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       onChange={(form) => update((current) => changeStep(current, { editor: { ...current.editor!, form } }))}
       onSave={saveEditor}
       onCancel={() => {
-        focusIntent.current = step.editor?.id ? `ask-${step.editor.id}-change` : "add-ask-card";
+        focusIntent.current = step.editor?.id ? entryId(step.editor.id, "more") : part("add");
         update((current) => changeStep(current, { editor: null }));
         setEditorError("");
       }}
     />
   );
-  const title = need ? "What does your initiative need?" : "What can your initiative offer?";
   const conversation = (
     <Conversation
       turns={step.turns}
@@ -384,20 +566,136 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       }
     />
   );
-  const aside = (
-    <section className="rc-stack" aria-labelledby="ask-list-title">
+  const extras = (
+    <>
+      <div className="rc-field">
+        <label htmlFor={part("files")}>Add files</label>
+        <p className="rc-hint">
+          Up to 25 MB each. Readable text and PDF text are read when you talk it through; scanned pages and
+          Office files remain unread.
+        </p>
+        <input
+          className="rc-input"
+          type="file"
+          id={part("files")}
+          multiple
+          disabled={listening || !!step.editor}
+          onChange={(event) => files(event.currentTarget)}
+        />
+      </div>
+      <form
+        className="rc-field"
+        onSubmit={(event) => {
+          event.preventDefault();
+          perform(() => {
+            update(keepLink);
+            setNotice("Link kept on this device. Its page has not been fetched.");
+          });
+        }}
+      >
+        <label htmlFor={part("link")}>Add a link</label>
+        <p className="rc-hint">Its address stays here. The page is not fetched.</p>
+        <div className="rc-inline-field">
+          <input
+            className="rc-input"
+            type="url"
+            id={part("link")}
+            required
+            maxLength={2048}
+            value={step.pendingLink}
+            onChange={(event) => update((current) => changeStep(current, { pendingLink: event.target.value }, true))}
+          />
+          <button className="rc-button" data-variant="secondary" type="submit">
+            Add link
+          </button>
+        </div>
+      </form>
+      <AttachmentList
+        readOnBuild={step.mode === "conversation"}
+        files={step.attachments}
+        links={step.links}
+        onRemoveFile={(id) =>
+          update((current) =>
+            changeStep(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true),
+          )
+        }
+        onRemoveLink={(url) =>
+          update((current) => changeStep(current, { links: current.links.filter((link) => link !== url) }, true))
+        }
+      />
+    </>
+  );
+  return (
+    <section className="rc-stack" aria-labelledby={part("title")}>
       <div className="rc-ask-head">
-        <Heading level={2} size="section" id="ask-list-title">
-          {need ? "Your needs" : "Your offers"}
-        </Heading>
+        <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
+          {need ? "What you need" : "What you can offer"}
+        </h2>
         <p className="rc-ask-count" aria-live="polite">
-          {activeItems(step).length} of {ASK_LIMIT}
+          {sectionCount(step)}
         </p>
       </div>
+      {blocker && (
+        <p className="rc-notice" data-tone="warning" role="alert" id={part("blocker")} tabIndex={-1}>
+          {blocker.message}
+        </p>
+      )}
+      {full ? (
+        <p className="rc-meta">Five is the limit. Remove one to add another.</p>
+      ) : (
+        <form className="rc-field" onSubmit={quickAdd}>
+          <label htmlFor={part("add")}>{need ? "Add a need" : "Add an offer"}</label>
+          <p className="rc-hint" id={part("add-hint")}>
+            {need
+              ? "A few words, such as seedlings or a meeting room."
+              : "A few words, such as a workshop or tools to lend."}
+          </p>
+          <div className="rc-inline-field">
+            <input
+              className="rc-input"
+              type="text"
+              id={part("add")}
+              maxLength={600}
+              value={words}
+              disabled={held}
+              aria-describedby={addError ? `${part("add-hint")} ${part("add-error")}` : part("add-hint")}
+              aria-invalid={!!addError || undefined}
+              onChange={(event) => {
+                onWords(event.target.value);
+                setAddError("");
+              }}
+            />
+            <button className="rc-button" data-variant="secondary" type="submit" disabled={held}>
+              Add
+            </button>
+          </div>
+          {addError && (
+            <p className="rc-error" role="alert" id={part("add-error")}>
+              {addError}
+            </p>
+          )}
+        </form>
+      )}
       {step.omitted > 0 && (
         <p className="rc-notice" data-tone="info">
           We heard {step.heard}. These are the first five, including cards you kept. Remove one and make cards
           again to bring in another. Your full words are kept.
+        </p>
+      )}
+      {step.lastBuild?.fallback && (
+        <p className="rc-notice" data-tone="warning">
+          The browser model could not finish. These are keyword cards, ready for you to check.
+        </p>
+      )}
+      {!!step.lastBuild?.unreadFiles && (
+        <p className="rc-meta">
+          {step.lastBuild.unreadFiles} files were kept without reading their content. Add any missing details
+          by hand.
+        </p>
+      )}
+      {step.lastBuild?.files.some((file) => file.status === "partial") && (
+        <p className="rc-meta">
+          Some PDF pages had no readable text. Their original bytes are kept on this device.
         </p>
       )}
       {busy && (
@@ -405,102 +703,66 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
           Making cards on this device
         </p>
       )}
-      {!step.items.length && !step.editor && (
-        <p className="rc-meta">
-          Cards appear here as you add words or files. Up to five; you can also add one by hand.
+      {step.items.length > 0 && (
+        <ul className="rc-ask-list" aria-label={need ? "Your needs" : "Your offers"}>
+          {step.items.map((item) => (
+            <li key={item.id}>
+              {step.editor?.id === item.id ? (
+                editor
+              ) : (
+                <AskCard
+                  item={item}
+                  kind={kind}
+                  disabled={held || !!step.editor}
+                  noteId={hint ? part("hint") : undefined}
+                  onKind={(key) =>
+                    perform(() => {
+                      focusIntent.current = kindFocus(item.id, item.value.capitalForms, key);
+                      update((current) => changeKind(current, item.id, key));
+                    })
+                  }
+                  onMore={() => openEditor(item)}
+                  onRemove={() =>
+                    perform(() => {
+                      focusIntent.current = entryId(item.id, "undo");
+                      update((current) => decide(current, item.id, "removed"));
+                      setNotice("Removed. Undo is available.");
+                    })
+                  }
+                  onUndo={() =>
+                    perform(() => {
+                      focusIntent.current = entryId(item.id, "more");
+                      update((current) => decide(current, item.id, "pencil"));
+                      setNotice("");
+                    })
+                  }
+                />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {step.editor && !step.editor.id && editor}
+      {hint && (
+        <p className="rc-meta" id={part("hint")}>
+          {hint}
         </p>
       )}
-      <ul className="rc-ask-list" aria-label={need ? "Your needs" : "Your offers"}>
-        {step.items.map((item) => (
-          <li key={item.id}>
-            {step.editor?.id === item.id ? (
-              editor
-            ) : (
-              <AskCard
-                item={item}
-                kind={kind}
-                disabled={busy || !!step.editor}
-                onKeep={() =>
-                  perform(() => {
-                    focusIntent.current = `ask-${item.id}-change`;
-                    update((current) => decide(current, item.id, "kept"));
-                    setNotice("Card kept.");
-                  })
-                }
-                onChange={() => openEditor(item)}
-                onRemove={() =>
-                  perform(() => {
-                    focusIntent.current = `ask-${item.id}-undo`;
-                    update((current) => decide(current, item.id, "removed"));
-                    setNotice("Card removed. Undo is available.");
-                  })
-                }
-                onUndo={() =>
-                  perform(() => {
-                    focusIntent.current = `ask-${item.id}-change`;
-                    update((current) => decide(current, item.id, "pencil"));
-                  })
-                }
-              />
-            )}
-          </li>
-        ))}
-      </ul>
-      {step.editor && !step.editor.id && editor}
-      {!step.editor && activeItems(step).length < ASK_LIMIT && (
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          type="button"
-          id="add-ask-card"
-          disabled={busy}
-          onClick={() => openEditor()}
-        >
-          {need ? "Add a need by hand" : "Add an offer by hand"}
-        </button>
+      {notice && (
+        <p className="rc-meta" role="status" id={part("status")} tabIndex={-1}>
+          {notice}
+        </p>
       )}
-      {activeItems(step).length >= ASK_LIMIT && (
-        <p className="rc-meta">Five is the limit. Remove one to add another.</p>
+      {stale && (
+        <p className="rc-notice" data-tone="warning">
+          {stale}
+        </p>
       )}
-    </section>
-  );
-  return (
-    <Stack>
-      <Stepper steps={INTAKE_STEPS.map((step) => step.label)} current={need ? 1 : 2} />
-      <Heading level={1} size="page">
-        {title}
-      </Heading>
-      <DraftNotice
-        error={storageError}
-        text={draftText(draft)}
-        conflict={storage === "conflict"}
-        onRetry={() => controller.retry()}
-      />
-      {!ready ? (
-        <p role="status">Opening your device draft</p>
-      ) : (
-        <StepLayout aside={aside}>
-          {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
-            <p className="rc-notice" data-tone="info">
-              You are offline. Your words and cards stay on this device.
-            </p>
-          )}
-          {step.lastBuild?.fallback && (
-            <p className="rc-notice" data-tone="warning">
-              The browser model could not finish. These are keyword cards, ready for you to check.
-            </p>
-          )}
-          {!!step.lastBuild?.unreadFiles && (
-            <p className="rc-meta">
-              {step.lastBuild.unreadFiles} files were kept without reading their content. Add any missing
-              details by hand.
-            </p>
-          )}
-          {step.lastBuild?.files.some((file) => file.status === "partial") && (
-            <p className="rc-meta">
-              Some PDF pages had no readable text. Their original bytes are kept on this device.
-            </p>
-          )}
+      <details open={talk} onToggle={(event) => setTalk(event.currentTarget.open)}>
+        <summary className="rc-footer-link">
+          {step.mode === "conversation" ? "Talk it through instead" : "Notes, files and links"}
+        </summary>
+        <div className="rc-stack">
           {step.mode === "conversation" ? (
             <section
               className="rc-guide rc-conversation-panel"
@@ -515,6 +777,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
               </p>
               {conversation}
               <VoiceInput
+                variant="secondary"
                 available={speechReady}
                 listening={listening}
                 transcript={transcript}
@@ -524,10 +787,10 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                 onStop={stopSpeech}
               />
               <form className="rc-composer" onSubmit={add}>
-                <label htmlFor="ask-answer">Type your answer, or edit what you said</label>
+                <label htmlFor={part("answer")}>Type your answer, or edit what you said</label>
                 <textarea
                   className="rc-input"
-                  id="ask-answer"
+                  id={part("answer")}
                   rows={4}
                   maxLength={20000}
                   value={step.composer}
@@ -541,7 +804,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                     className="rc-button"
                     data-variant="secondary"
                     type="submit"
-                    disabled={busy || listening || !!step.editor || !step.composer.trim()}
+                    disabled={held || !!step.editor || !step.composer.trim()}
                   >
                     Add your answer
                   </button>
@@ -554,8 +817,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                   type="button"
                   aria-busy={busy}
                   disabled={
-                    busy ||
-                    listening ||
+                    held ||
                     !!step.editor ||
                     !(step.turns.length || step.composer.trim() || step.attachments.length)
                   }
@@ -572,7 +834,9 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                       task.current?.abort();
                       if (!task.current) {
                         setBusy(false);
-                        setNotice("Example stopped. Your words and cards are still here.");
+                        setNotice(
+                          import.meta.env.DEV ? "Example stopped. Your words and cards are still here." : "",
+                        );
                       }
                     }}
                   >
@@ -591,13 +855,13 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                     update((current) => changeStep(current, { mode: "manual" }));
                   }}
                 >
-                  Use plain cards
+                  Add by hand only
                 </button>
               </div>
             </section>
           ) : (
             <>
-              <p>Add cards by hand. No assistant reads your words or files in this mode.</p>
+              <p>No assistant reads your words or files here.</p>
               {(step.turns.length > 0 || Object.keys(step.answerEdits).length > 0) && (
                 <details>
                   <summary className="rc-footer-link">Your earlier words</summary>
@@ -614,10 +878,10 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                   });
                 }}
               >
-                <label htmlFor="manual-ask-notes">Notes to keep on this device</label>
+                <label htmlFor={part("notes")}>Notes to keep on this device</label>
                 <textarea
                   className="rc-input"
-                  id="manual-ask-notes"
+                  id={part("notes")}
                   maxLength={20000}
                   rows={3}
                   value={step.composer}
@@ -634,114 +898,28 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                   Keep notes
                 </button>
               </form>
-              <button
-                className="rc-button"
-                data-variant="quiet"
-                type="button"
-                onClick={() => {
-                  controller.change((current) =>
-                    revise(current, {
-                      assistant: "keywords",
-                      [kind]: changeStep(current[kind], { mode: "conversation" }),
-                    }),
-                  );
-                }}
-              >
-                Talk it through instead
-              </button>
+              <div className="rc-action-bar">
+                <button
+                  className="rc-button"
+                  data-variant="quiet"
+                  type="button"
+                  onClick={() => {
+                    controller.change((current) =>
+                      revise(current, {
+                        assistant: "keywords",
+                        [kind]: changeStep(current[kind], { mode: "conversation" }),
+                      }),
+                    );
+                  }}
+                >
+                  Talk it through instead
+                </button>
+              </div>
             </>
           )}
-          <div className="rc-field">
-            <label htmlFor="ask-files">Add files</label>
-            <p className="rc-hint">
-              Up to 25 MB each. Readable text and PDF text are read in conversation mode; scanned pages and
-              Office files remain unread.
-            </p>
-            <input
-              className="rc-input"
-              type="file"
-              id="ask-files"
-              multiple
-              disabled={listening || !!step.editor}
-              onChange={(event) => files(event.currentTarget)}
-            />
-          </div>
-          <form
-            className="rc-field"
-            onSubmit={(event) => {
-              event.preventDefault();
-              perform(() => {
-                update(keepLink);
-                setNotice("Link kept on this device. Its page has not been fetched.");
-              });
-            }}
-          >
-            <label htmlFor="ask-link">Add a link</label>
-            <p className="rc-hint">Its address stays here. The page is not fetched.</p>
-            <div className="rc-inline-field">
-              <input
-                className="rc-input"
-                type="url"
-                id="ask-link"
-                required
-                maxLength={2048}
-                value={step.pendingLink}
-                onChange={(event) =>
-                  update((current) => changeStep(current, { pendingLink: event.target.value }, true))
-                }
-              />
-              <button className="rc-button" data-variant="secondary" type="submit">
-                Add link
-              </button>
-            </div>
-          </form>
-          <AttachmentList
-            readOnBuild={step.mode === "conversation"}
-            files={step.attachments}
-            links={step.links}
-            onRemoveFile={(id) =>
-              update((current) =>
-                changeStep(
-                  current,
-                  { attachments: current.attachments.filter((file) => file.id !== id) },
-                  true,
-                ),
-              )
-            }
-            onRemoveLink={(url) =>
-              update((current) =>
-                changeStep(current, { links: current.links.filter((link) => link !== url) }, true),
-              )
-            }
-          />
-          {notice && (
-            <p className="rc-meta" role="status">
-              {notice}
-            </p>
-          )}
-          {step.builtVersion !== null &&
-            step.builtVersion !== step.inputVersion &&
-            step.mode === "conversation" && (
-              <p className="rc-notice" data-tone="warning">
-                Your words changed. Make cards again before continuing; kept cards stay fixed.
-              </p>
-            )}
-          <div className="rc-action-bar">
-            <button
-              className="rc-button"
-              data-variant="primary"
-              type="button"
-              disabled={busy || listening}
-              onClick={next}
-            >
-              {need ? "Next: what you can offer" : "Finish: see what fits"}
-            </button>
-            <ButtonLink href={pathTo(need ? "check-card" : "needs")} variant="quiet">
-              {need ? "Back to your card" : "Back to your needs"}
-            </ButtonLink>
-          </div>
-        </StepLayout>
-      )}
-    </Stack>
+          {extras}
+        </div>
+      </details>
+    </section>
   );
 }

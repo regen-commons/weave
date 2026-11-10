@@ -115,6 +115,17 @@ The [build contract](05-technical-spec.md#51-first-build-certified-sign-in-and-p
 records the baseline, owning paths and tests. These roles are proposed responsibilities,
 not assignments to people or authorization to provision infrastructure.
 
+### Project integration and support listing validation
+
+These are the remaining decisions and evidence for the
+[project integration target](05-technical-spec.md#certified-project-integration-target).
+
+| Question | Working recommendation | What closes it |
+|---|---|---|
+| What can Weave verify and write through Certified? | Use the current sign-in for Weave identity. Request separate scoped consent when a project write requires it. | Verify project enumeration, current personal and group authority, write scopes and read-back with a real personal and group fixture. Prove one-owner group registration, project creation and adding a teammate using the same Certified identity. Prove the setup request and approval path for an existing group project. Exercise an occupied group handle, lost group or project create response, non-member grant denial, revoked authority and expired consent. |
+| What does public listing interoperability require? | Prove a need and an offer in a disposable repository with an independent reader before asking partners to ingest the Lexicon. | Show discovery, project association, update and withdrawal. Verify consent, personal and group authorization, and hosted read-back before enabling first-release publishing. Prove that an editor can publish only when Certified authorizes the write, and document what downstream readers can retain. Certified display and indexing are separate integration work. |
+| Are capital suggestions helpful enough for most entries? | Start with the existing local keyword path, compare optional local extraction on real examples, and use editable multi-select. | Measure how often people keep suggestions or correct them, including mixed forms and unfamiliar language across art, software, research and place-based work. Prove a private unclassified save reloads and sharing rejects it until classified. |
+
 ### Matching build validation
 
 The product direction below is settled for this scope. These remaining checks
@@ -125,8 +136,8 @@ and completion status. Responsibilities below are proposed roles.
 
 | Question | Working recommendation | Owner | Evidence still required |
 |---|---|---|---|
-| Who sees shared entries, and how long is confirmation current? | First audience: signed-in Weave users. Share only reviewed entries and summary. Proposed confirmation limit: the earlier of stated expiry or 90 days, reviewed before sharing. Private Save and public publication stay separate. | Product owner and API maintainer | Validate audience comprehension, expiry/reconfirmation UX and database enforcement in M2; do not borrow the pulse's separate freshness rule. |
-| Which external projects may the first index cover? | A bounded, attributed corpus of public Certified projects across art, software, research and place-based work; no unrestricted website crawler. | Integration maintainer and source partners | Verify permitted redisplay, enumeration/pagination, rate limits, source updates/deletions, unlisted handling and measured coverage/lag in M3. API visibility is not proof of reuse rights or complete network coverage. |
+| Who sees shared entries? | First audience: signed-in Weave users. Share only the reviewed entries and summary, and apply the network participation rules when matching. | Product owner and API maintainer | Verify audience comprehension and server enforcement. Test shares with and without an end date against the [decided lifecycle](#shared-entries-and-acting-on-matches). |
+| Can the Certified index support the launch coverage target? | Start validation with a varied sample, then enumerate all eligible public Certified projects the chosen index makes available. | Integration maintainer and source partners | Verify reuse and redisplay permission, pagination, rate limits, updates, deletions, unlisted handling, coverage and lag at launch volume. Confirm relevance and latency against the broader corpus. |
 | Which model and search settings meet the quality bar? | Compare the existing pinned embedding model plus full-text search against lexical-only retrieval; keep local refinement optional and no-model results usable. | Matching maintainer and domain reviewers | Held-out need/offer relevance and recall, evidence accuracy and language/domain breakdowns. The 80 percent relevance and 2-second p95 targets in section 7.6 are proposed test budgets, not achieved results. |
 | Where should the indexing job run at pilot scale? | Reuse the existing Platform database and a bounded resumable Node job; select the scheduler/runtime after measuring a batch. No additional host or paid model service is presumed. | API and infrastructure maintainers | Check runtime memory/duration, durable resume, model assets, concurrency and index/transfer cost at 1k/10k/100k passages. Any new spend, dependency or hosted rollout follows repository rules. |
 
@@ -143,8 +154,8 @@ real-user browser acceptance is still open. See the
 [implementation evidence](05-technical-spec.md#local-implementation-and-evidence-8-november)
 and [hosted rollout record](05-technical-spec.md#hosted-preview-rollout-8-november).
 
-Broader server-assisted search for an unshared private draft is deferred. The
-initial private path uses bounded public snapshots locally, with visible coverage.
+Broader server-assisted search for unshared entries is deferred. A linked
+initiative can use bounded public snapshots locally, with visible coverage.
 Adding the broader path requires a clear choice about sending query information
 to Weave; embeddings cannot be described as anonymous. This does not block
 server-assisted matching from entries already shared for that purpose.
@@ -192,15 +203,125 @@ direction for the product, not a council vote or a completed deployment.
 
 The user's 8 November direction is to match real needs and offers across
 initiatives. Certified authenticates the person. Weave checks that the person
-owns the initiative they are acting for and associates each need or offer with
-that initiative. A public Certified project is optional.
+can act for the initiative and associates each need or offer with it. The
+deployed preview allows participation without a verified Certified project link.
 
-The proposed first-build participation rule is to share at least one open
-entry with signed-in Weave users. The owner chooses the entries and sees the
-exact summary before sharing. Public browsing remains open and private Save
-retains its existing meaning. The [implementation contract](05-technical-spec.md#72-cross-initiative-matching-r12-r16)
-requires a real two-account match and the external-evidence path below before the
-UI handoff. The small local source catalog is a prototype, not that complete build.
+The target requires a verified project link and at least one current open entry
+shared with signed-in Weave users. The authorized representative chooses the
+entries and reviews the exact summary before sharing. Private Save and device
+funding matching remain available without a project link. The
+[implementation contract](05-technical-spec.md#72-cross-initiative-matching-r12-r16)
+keeps the two-account match and the external-evidence path as release checks.
+
+### Certified project links and workspace access
+
+Each Certified project has one Weave workspace. The first release targets
+creating new projects in Certified groups, with the creator as the initial
+owner and the ability to add teammates later. The person reviews the group
+and public project fields and uses the same Certified identity. Certified
+documents one-owner group registration and adding members. Weave still
+needs to prove the combined flow. [Certified Group Service API](https://github.com/hypercerts-org/certified-group-service/blob/main/docs/api-reference.md#group-lifecycle)
+
+Weave can link existing personal and group projects when it verifies the
+actor's authority. Existing personal projects remain solo in Weave and keep
+their public address and saved work. Moving an existing personal project
+to a group is deferred.
+
+For an existing group project, a verified member can prepare a private draft
+and request workspace setup. A verified Certified admin or owner for that
+group activates the workspace. The request grants no access. Certified
+exposes group roles, while the check for who can edit a specific record
+happens inside its write handler. The published read API exposes no
+record-specific permission query.
+[Certified API methods](https://github.com/hypercerts-org/certified-group-service/blob/7d6787711903f732902e2cbebf8cee7cc48038af/src/api/index.ts) ·
+[Record edit handler](https://github.com/hypercerts-org/certified-group-service/blob/7d6787711903f732902e2cbebf8cee7cc48038af/src/api/repo/putRecord.ts)
+
+A Certified group workspace is open only to current group members with an
+explicit Weave grant. Admins start teammate access in Weave. If the teammate
+needs Certified group membership, show the broader group permissions and
+require approval from an actor authorized to add them in Certified. A pending
+invite can start before the teammate has a Certified account. After the teammate
+signs in, an admin confirms the resulting identity before granting access.
+
+Needs and offers saved in the team workspace are visible to teammates with
+workspace read access, including before sharing for matching. Personal saves
+outside that workspace stay personal. Any workspace editor can review and
+explicitly share selected entries for matching. Public AT Protocol publishing
+has its own authorization.
+
+Confirmed removal from the Certified group suspends the person's Weave
+workspace access. Their personal saves and access to other projects remain
+available. A workspace admin can review reinstatement if they rejoin. Existing
+team shares and public listings stay live while the project still has authorized
+teammates. The team can review, update or withdraw them.
+
+When a group project workspace has no active Weave admin, the verified current
+Certified group owner can explicitly recover it and take on Weave admin
+access. Record the grant and preserve the existing workspace and team work.
+
+Confirmed deletion or unlisting pauses network matching and requests
+withdrawal of the project's Weave-published listings. Preserve team work
+for authorized teammates and report pending or confirmed withdrawal.
+Resume with the original project at the same AT URI after verification
+and review. A replacement project starts its own workspace in the first release.
+
+The Certified project is the source of its public profile. After creation or
+linking, teams edit the public title and description through Certified or
+another Certified project editor. Weave displays the latest verified public
+record. Platform holds the separate workspace fields, needs, offers and
+sharing decisions. See the
+[project integration contract](05-technical-spec.md#certified-project-integration-target).
+
+### Public support listings in the first release
+
+The first user-facing release includes an explicit AT Protocol publish action
+once the team proves consent, authorization and read-back. A listing refers
+to the project by AT URI and has its own record identity under Weave's namespace.
+Private Save and Share for matching remain separate actions. Test a need and
+an offer in a disposable repository with an independent reader before enabling
+public publishing. Any workspace editor can publish with verified Certified
+authority for the write. An edit to published details requests withdrawal of
+the old listing. Weave shows whether that withdrawal is pending or confirmed.
+The replacement stays private until an editor explicitly republishes it.
+Closing an entry in Weave ends its matching share and requests public
+withdrawal. A confirmed withdrawal initiated through another AT Protocol app
+changes the public listing state only. The team's Weave share stays active
+while eligible. Certified project-page display and partner indexing can follow
+independently.
+
+### Shared entries and acting on matches
+
+A share with no end date stays discoverable until the team closes or withdraws
+it, subject to the existing checks for the reviewed revision and project
+eligibility. When an end date applies, show it at review and enforce it in
+matching. The preview still caps shares at 90 days. Supporting open-ended shares
+requires an implementation change.
+
+In the first release, people can save a match and open its source. They can use
+contact routes the counterpart has already made public. Weave introductions and
+new contact channels are outside that release.
+
+### Capital suggestions stay editable
+
+Weave should suggest forms of capital from the support described in each need
+or offer, including when someone types directly into the editor. The person can
+keep the suggestions, remove any that do not fit, or add one or more forms.
+There is no primary form and no need to confirm each suggestion separately.
+An entry can be saved privately with zero forms. Sharing an entry or publishing
+a separate public AT Protocol listing requires one or more owner-approved forms. The [draft Lexicon](../../packages/api/lexicons/README.md)
+uses the same eight values. The current typed editor still requires manual
+selection. Automatic suggestions there remain implementation work.
+
+### Certified index coverage at launch
+
+First-release public-evidence suggestions use Certified projects. Coverage
+targets all eligible public Certified projects that the chosen index can
+enumerate. Eligibility requires permitted reuse and redisplay. Adapters for
+other public project sources follow after the first release.
+Validate the integration on a varied sample, then verify permissions,
+freshness and match quality across the launch corpus. Browser previews still
+use a bounded public snapshot. Report that coverage separately from the server
+index.
 
 ### Matching both shared entries and external evidence
 
@@ -229,19 +350,23 @@ completed implementation or deployment approval.
 
 ### Public-source partner suggestions while private
 
-Decided by the user on 6 November 2026 for this implementation scope: show named
-partner suggestions and their supporting public evidence to people whose own
-initiative remains a draft or private. Sharing their initiative is not a condition
-of seeing those results. This records the user's direction, not a council vote.
+Personalized partner suggestions require a verified Certified project link.
+Before linking, people can browse public projects and match for funding locally.
+A linked initiative can see project names and supporting public evidence while
+keeping its own entries private. This retains the 6 November decision that
+sharing is optional for public-source suggestions and adds the link requirement.
 
-Apply this rule to permitted public-source evidence. Keep private Weave records,
-needs, offers, saved leads and query text private; a public source does not expose
-private records associated with the same project. Compute the private query locally
-against a bounded public corpus. Respect source reuse and unlisted restrictions.
+Compute private queries locally against a bounded snapshot of permitted public
+Certified project evidence. Keep private entries, saved leads and query text out
+of the public index. Access to other teams' shared entries follows the separate
+network participation rule.
 
-Keep relevant experience, published offers and confirmed offers distinct. Viewing
-or saving a lead does not confirm availability, contact anyone or publish the
-person's initiative. Introductions still require an opted-in recipient, a working
+Rank direct matches and possible fits separately, with relevance comparisons
+within each kind. Show both when they qualify. Keep public statements distinct
+from confirmed entries and inferences. A well-evidenced possible fit can still
+appear when an important detail is unknown. State what needs verification.
+Known conflicts rule out the pair. Viewing or saving a lead sends no
+invitation and leaves availability unconfirmed. Introductions still require an opted-in recipient, a working
 service and explicit disclosure consent. Network matching follows the owner-authored participation rule above.
 
 This replaces the Certified research drafts' earlier application of a sharing

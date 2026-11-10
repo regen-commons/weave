@@ -177,3 +177,160 @@ test("an obsolete worker stops when its compare-and-swap loses the checkpoint", 
   assert.equal(result.status, "contended");
   assert.equal(result.scanned, 0);
 });
+
+test("network discovery follows every page without a publisher filter or redisplay inference", async () => {
+  const { auditProjectNetwork } = await import("./project-index-audit.ts");
+  const second = { ...fixture(), uri: `at://${did}/${nsid}/second-project` };
+  const restricted = { ...fixture(), uri: `at://${did}/${nsid}/hidden-project`,
+    author: { did, organization: { did, uri: `at://${did}/app.certified.actor.organization/self`,
+      record: { $type: "app.certified.actor.organization", visibility: "unlisted" } } } };
+  const cursors: (string | null)[] = [];
+  const source = createHypercertsSource({ now, fetch: async url => {
+    const params = new URL(String(url)).searchParams;
+    assert.equal(params.get("authors"), null);
+    assert.equal(params.get("types"), "project");
+    assert.equal(params.get("sortDirection"), "asc");
+    assert.equal(params.get("limit"), "5");
+    cursors.push(params.get("cursor"));
+    if (!params.has("cursor")) return json({ collections: [fixture()], cursor: "opaque+one" });
+    if (params.get("cursor") === "opaque+one") return json({ collections: [fixture(), second], cursor: "opaque/two" });
+    return json({ collections: [restricted] });
+  } });
+  const result = await auditProjectNetwork({ source, maxPages: 10, now });
+  assert.deepEqual(cursors, [null, "opaque+one", "opaque/two"]);
+  assert.equal(result.status, "complete");
+  assert.equal(result.pages, 3);
+  assert.equal(result.records, 4);
+  assert.equal(result.uniqueProjects, 3);
+  assert.equal(result.duplicateRecords, 1);
+  assert.deepEqual(result.counts, { indexed: 2, restricted: 1, failed: 0, missing: 0 });
+  assert.equal(result.extractablePassages, 4);
+  assert.equal(result.permittedProjects, 0);
+  assert.equal(result.permittedPassages, 0);
+  assert.equal(result.propagationLagMs, null);
+  assert.equal(result.relevance, null);
+  assert.equal(result.domainCoverage, null);
+  assert.equal(result.consistentSnapshot, false);
+  assert.deepEqual(result.indexAgeMs, { min: 1799877, max: 1799877 });
+  assert.doesNotMatch(JSON.stringify(result), /pollinator|bumblebee|at:\/\//u);
+
+  cursors.length = 0;
+  const permitted = await auditProjectNetwork({ source, maxPages: 10, now,
+    manifest: parseProjectPermissions({ version: 1, generation: 1, projects: [permission,
+      { uri: second.uri, redisplayUntil: "2026-11-01T00:00:00Z" },
+      { uri: restricted.uri, redisplayUntil: permission.redisplayUntil }] }) });
+  assert.equal(permitted.permittedProjects, 1);
+  assert.equal(permitted.permittedPassages, 2);
+});
+
+test("network audit distinguishes page budgets, source failures and cursor cycles from coverage", async () => {
+  const { auditProjectNetwork } = await import("./project-index-audit.ts");
+  let calls = 0;
+  const source = createHypercertsSource({ now, fetch: async () => {
+    calls++;
+    return json({ collections: [fixture()], cursor: calls % 2 ? "one" : "two" });
+  } });
+  const partial = await auditProjectNetwork({ source, maxPages: 1, now });
+  assert.equal(partial.status, "partial");
+  assert.equal(partial.pages, 1);
+  assert.equal(calls, 1);
+  calls = 0;
+  const cycle = await auditProjectNetwork({ source, maxPages: 10, now });
+  assert.equal(cycle.status, "failed");
+  assert.equal(cycle.code, "source_cursor_cycle");
+  assert.equal(cycle.pages, 3);
+  assert.equal(calls, 3);
+  const unavailable = createHypercertsSource({ now, wait: async () => undefined,
+    fetch: async () => { throw Error("private-provider-error"); } });
+  const failed = await auditProjectNetwork({ source: unavailable, maxPages: 10, now });
+  assert.equal(failed.status, "failed");
+  assert.equal(failed.code, "source_unavailable");
+  assert.equal(failed.pages, 0);
+  assert.equal(failed.indexAgeMs, null);
+  assert.equal(failed.relevance, null);
+  assert.equal(failed.domainCoverage, null);
+  assert.doesNotMatch(JSON.stringify(failed), /private-provider-error/u);
+  await assert.rejects(() => auditProjectNetwork({ source, maxPages: 0 }), /invalid_page_budget/u);
+});
+
+test("extracts bounded Leaflet narrative with exact provenance and never follows or retains embedded URLs", async () => {
+  const embedded = "https://private.example.test/document?token=fictional-sensitive-capability";
+  for (const typed of [true, false]) {
+    const view = fixture();
+    const description = {
+      ...(typed ? { $type: "pub.leaflet.pages.linearDocument" } : {}),
+      blocks: [
+        { block: { $type: "pub.leaflet.blocks.header", plaintext: "Community atlas field methods" } },
+        { block: { $type: "pub.leaflet.blocks.website", src: embedded, title: "Do not retain this preview", plaintext: "Do not extract forged website plaintext." } },
+        { block: { $type: "pub.leaflet.blocks.text", plaintext: "Our field teams survey bumblebee nesting sites.",
+          facets: [{ uri: embedded }] } },
+        { block: { $type: "pub.leaflet.blocks.code", plaintext: "Do not index source code or its credentials." } },
+        { block: { $type: "pub.leaflet.blocks.unorderedList", children: [{ content: { $type: "pub.leaflet.blocks.text", plaintext: "Nested list content is outside this extraction version." } }] } },
+        { block: { $type: "pub.leaflet.blocks.membersOnlyDelimiter" } },
+        { block: { $type: "pub.leaflet.blocks.text", plaintext: "Content behind a membership boundary must never be indexed." } },
+      ],
+    };
+    let calls = 0;
+    const source = createHypercertsSource({ now, fetch: async url => {
+      calls++;
+      assert.equal(new URL(String(url)).origin, "https://api.hypercerts.dev");
+      return json({ collection: { ...view, record: { ...view.record, description } } });
+    } });
+    const result = await source.get(permission);
+    assert.equal(calls, 1);
+    assert.equal(result.status, "indexed");
+    if (result.status !== "indexed") assert.fail("expected indexed Leaflet description");
+    assert.deepEqual(result.passages.map(({ fieldPath, passage }) => ({ fieldPath, passage })), [
+      { fieldPath: "$.shortDescription", passage: "We map pollinator habitat across urban gardens." },
+      { fieldPath: "$.description.blocks[0].block.plaintext", passage: "Community atlas field methods" },
+      { fieldPath: "$.description.blocks[2].block.plaintext", passage: "Our field teams survey bumblebee nesting sites." },
+    ]);
+    assert.doesNotMatch(JSON.stringify(result), /fictional-sensitive|private\.example|Do not|Nested list|membership boundary/u);
+  }
+});
+
+test("Leaflet extraction bounds blocks, characters and passages while preserving explicit restrictions", () => {
+  const view = fixture();
+  const read = (description: object) => extractCollection({ ...view, record: { ...view.record,
+    shortDescription: undefined, description } }, uri, fetchedAt);
+  const result = read({ $type: "pub.leaflet.pages.linearDocument", blocks: Array.from({ length: 110 }, (_, index) => ({
+    block: { $type: "pub.leaflet.blocks.text", plaintext: `We survey habitat section ${index}.` },
+  })) });
+  if (result.status !== "indexed") assert.fail("expected bounded narrative");
+  assert.equal(result.passages.length, 5);
+  assert.ok(result.passages.every(row => row.extractionVersion === "hypercerts-collection-v2-leaflet"));
+  const blocked = read({ blocks: [
+    { block: { $type: "pub.leaflet.blocks.text", plaintext: "x".repeat(20_000) } },
+    { block: { $type: "pub.leaflet.blocks.text", plaintext: "This sentence is beyond the character budget." } },
+  ] });
+  if (blocked.status !== "indexed") assert.fail("expected bounded narrative");
+  assert.deepEqual(blocked.passages, []);
+  const afterBlockBudget = read({ blocks: [...Array.from({ length: 100 }, () => ({ block: { $type: "pub.leaflet.blocks.horizontalRule" } })),
+    { block: { $type: "pub.leaflet.blocks.text", plaintext: "This sentence is beyond the block budget." } }] });
+  if (afterBlockBudget.status !== "indexed") assert.fail("expected bounded narrative");
+  assert.deepEqual(afterBlockBudget.passages, []);
+  const organization = { did, uri: `at://${did}/app.certified.actor.organization/self`,
+    record: { $type: "app.certified.actor.organization", unlisted: true } };
+  assert.deepEqual(extractCollection({ ...view, author: { did, organization } }, uri, fetchedAt),
+    { status: "restricted", code: "not_discoverable" });
+});
+
+test("permission manifest accepts measured network volume while remaining bounded and explicit", () => {
+  const manifest = (count: number, actor = did, keyLength = 20) => ({ version: 1, generation: 1,
+    projects: Array.from({ length: count }, (_, index) => ({
+      uri: `at://${actor}/${nsid}/${String(index).padStart(keyLength, "a")}`,
+      redisplayUntil: "2026-12-01T00:00:00Z",
+    })) });
+  const measured = manifest(1128);
+  assert.equal(parseProjectPermissions(measured).permissions.length, 1128);
+  assert.ok(Buffer.byteLength(JSON.stringify(measured)) < 512 * 1024);
+  const longDid = "did:web:" + "a".repeat(253);
+  const longAddresses = manifest(1128, longDid, 128);
+  assert.equal(parseProjectPermissions(longAddresses).permissions.length, 1128);
+  assert.ok(Buffer.byteLength(JSON.stringify(longAddresses)) > 512 * 1024);
+  const maximum = manifest(10_000, longDid, 128);
+  assert.equal(parseProjectPermissions(maximum).permissions.length, 10_000);
+  assert.ok(Buffer.byteLength(JSON.stringify(maximum)) < 8 * 1024 * 1024);
+  assert.throws(() => parseProjectPermissions(manifest(10_001)), /invalid_permission_manifest/u);
+  assert.deepEqual(parseProjectPermissions({ version: 1, generation: 1, projects: [] }).permissions, []);
+});

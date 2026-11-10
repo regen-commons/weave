@@ -1,6 +1,6 @@
 import {
-  parseMatchingLeads, parseMatchingPreview, parseMatchingSearch, parseMatchingState,
-  type MatchingLeadUpdate, type MatchingEntryRef, type MatchingEntryState,
+  parseMatchingLeads, parseMatchingPreview, parseMatchingSearch, parseMatchingState, parsePublicEvidenceSnapshot,
+  type PublicEvidenceSnapshot, type MatchingLeadUpdate, type MatchingEntryRef, type MatchingEntryState,
   type MatchingLead, type MatchingSearch as SearchResponse, type MatchingState as AccountMatchingState,
 } from "@weave/api/matching-contract";
 import { accountRequest, AccountFailure } from "../account/client.ts";
@@ -73,6 +73,17 @@ export async function matchingRequest<Action extends keyof Commands>(
     return parsed as ReturnType<(typeof responses)[Action]>;
   } catch {
     throw new AccountFailure("matching_unavailable");
+  }
+}
+
+export async function requestPublicEvidence(workspaceId: string, signal: AbortSignal): Promise<PublicEvidenceSnapshot> {
+  const data = await accountRequest("", { action: "public_evidence", workspaceId }, "/api/projects", signal);
+  try {
+    const snapshot = parsePublicEvidenceSnapshot(data);
+    if (snapshot.workspaceId !== workspaceId || Date.parse(snapshot.availableUntil) <= Date.now()) throw Error();
+    return snapshot;
+  } catch {
+    throw new AccountFailure("public_evidence_unavailable");
   }
 }
 

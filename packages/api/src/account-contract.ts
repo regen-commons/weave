@@ -110,7 +110,8 @@ function initiative(value: unknown): JsonObject {
     languages,
   };
 }
-export function parseSavedAsk(value: unknown): SavedAsk {
+export function parseSavedAsk(value: unknown): SavedAsk { return checkedAsk(value, false); }
+function checkedAsk(value: unknown, allowUnclassified: boolean): SavedAsk {
   const row = exact(value, ["id", "value"]);
   if (!uuid(row.id)) throw Error("invalid_data");
   const o = exact(row.value, [
@@ -129,7 +130,7 @@ export function parseSavedAsk(value: unknown): SavedAsk {
   ]);
   const capitalForms = list(o.capitalForms, 8, 80, CAPITALS),
     terms = list(o.exchangeTerms, 5, 80, TERMS);
-  if (!capitalForms.length || !terms.length || (terms.includes("open") && terms.length !== 1))
+  if ((!allowUnclassified && !capitalForms.length) || !terms.length || (terms.includes("open") && terms.length !== 1))
     throw Error("invalid_data");
   let amount: Json = null;
   if (o.amount !== null) {
@@ -165,9 +166,9 @@ export function parseSavedAsk(value: unknown): SavedAsk {
     },
   };
 }
-function asks(value: unknown): SavedAsk[] {
+function asks(value: unknown, allowUnclassified: boolean): SavedAsk[] {
   if (!Array.isArray(value) || value.length > 5) throw Error("invalid_data");
-  const rows = value.map(parseSavedAsk);
+  const rows = value.map(row => checkedAsk(row, allowUnclassified));
   if (new Set(rows.map((row) => row.id.toLowerCase())).size !== rows.length) throw Error("invalid_data");
   return rows;
 }
@@ -223,20 +224,36 @@ function funding(value: unknown): JsonObject {
   }
   return { form, programAnswers: answers };
 }
-export function parseDocument(value: unknown): AccountDocument {
+export function parseDocument(value: unknown): AccountDocument { return checkedDocument(value, true); }
+export function parseTeamDocument(value: unknown): AccountDocument { return checkedDocument(value, true); }
+function checkedDocument(value: unknown, allowUnclassified: boolean): AccountDocument {
   const o = exact(value, ["version", "initiative", "needs", "offers", "funding"]);
   if (o.version !== 1) throw Error("invalid_data");
   const result: AccountDocument = {
     version: 1,
     initiative: initiative(o.initiative),
-    needs: asks(o.needs),
-    offers: asks(o.offers),
+    needs: asks(o.needs, allowUnclassified),
+    offers: asks(o.offers, allowUnclassified),
     funding: funding(o.funding),
   };
   if (new TextEncoder().encode(JSON.stringify(result)).length > 60000) throw Error("document_too_large");
   return result;
 }
-export function parseSaved(value: unknown): SavedInitiative {
+export function parseSaved(value: unknown): SavedInitiative { return checkedSave(value, true); }
+export function parseTeamSaved(value: unknown): SavedInitiative { return checkedSave(value, true); }
+export type WorkspaceAccessRole = "viewer" | "editor" | "admin";
+export function parseTeamWorkspace(value: unknown) {
+  const row = record(value);
+  return {
+    accessRole: choice(row.accessRole, ["viewer", "editor", "admin"]) as WorkspaceAccessRole,
+    saved: row.saved === null ? null : parseTeamSaved(row.saved),
+    projectTitle: row.projectTitle === undefined ? null : nullable(row.projectTitle, 200),
+    projectUri: row.projectUri === undefined ? null : nullable(row.projectUri, 2048),
+  };
+}
+export type TeamWorkspaceState = ReturnType<typeof parseTeamWorkspace>;
+
+function checkedSave(value: unknown, allowUnclassified: boolean): SavedInitiative {
   const o = record(value);
   if (
     !uuid(o.id) ||
@@ -250,7 +267,7 @@ export function parseSaved(value: unknown): SavedInitiative {
     id: o.id,
     revision: Number(o.revision),
     updatedAt: o.updatedAt,
-    document: parseDocument(o.document),
+    document: checkedDocument(o.document, allowUnclassified),
   };
 }
 export function parseUser(value: unknown): AccountUser {
