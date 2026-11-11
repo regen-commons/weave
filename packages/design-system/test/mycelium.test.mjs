@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { densityFor, growsFromPointer, growsOnItsOwn, seedNetwork, seededRandom, settle, tuftAlpha } from "../behaviors/mycelium.js";
+import { densityFor, growsFromPointer, growsOnItsOwn, logoNetwork, seedNetwork, seededRandom, settle, tuftAlpha } from "../behaviors/mycelium.js";
 
 const grow = (width, height, seed = 7) => {
   const random = seededRandom(seed);
@@ -71,4 +71,18 @@ test("a new tuft starts brighter than the resting network and fades away", () =>
   assert.ok(alphas.every((alpha, i) => i === 0 || alpha <= alphas[i - 1]), "it only fades");
   assert.equal(tuftAlpha(160), 0);
   assert.equal(tuftAlpha(400), 0, "and stays gone");
+});
+
+test("the logo grows threads from its centre in several colours, and rests the same way every time", () => {
+  const rested = (size) => {
+    const { branches, random, density } = logoNetwork(size);
+    return settle(branches, size, size, random, density);
+  };
+  const branches = rested(32);
+  const roots = branches.filter((branch) => branch.generation === 0);
+  assert.ok(roots.length >= 6, "six threads or more");
+  assert.ok(roots.every((branch) => branch.points[0] === 16 && branch.points[1] === 16), "from the centre");
+  assert.ok(new Set(roots.map((branch) => branch.colour)).size >= 3, "in several colours");
+  assert.ok(branches.every((branch) => !branch.growing), "it comes to rest");
+  assert.deepEqual(rested(32).map((branch) => branch.points.length), branches.map((branch) => branch.points.length));
 });

@@ -200,8 +200,8 @@ Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
 Voice capture could not be exercised in either browser. No hosted Certified, database or
 production check was made.
 
-Local checks passed: `bun run ci` ran 129 site and catalog tests, 26 design-system tests, 156
-API tests with the 38 opt-in database checks skipped, 207 app tests and 78 harness tests, and
+Local checks passed: `bun run ci` ran 129 site and catalog tests, 27 design-system tests, 156
+API tests with the 38 opt-in database checks skipped, 208 app tests and 78 harness tests, and
 confirmed current design tokens and guidance. The app typecheck and `git diff --check` passed,
 and the build changed no tracked files. No dependencies or lockfile changed.
 
@@ -209,19 +209,41 @@ and the build changed no tracked files. No dependencies or lockfile changed.
 
 - Claimed invitations return only a DID, so the list reads "Certified account ending …". The
   server should return the verified handle, so an admin knows who asked before approving.
+  [The Codex task](../handover/04-invitation-handles.md) sets out the work; quality checks
+  start once it lands.
 - Shared initiatives exist only in the example world. In production, Home's Recently shared, its
   shared count and the Initiatives list show their empty states until public listings arrive.
 
-### Questions for the maker
+### Decided by the maker
 
-- Should the mycelium also sit behind the top of a page with no inputs or rows, such as an empty
-  Your initiatives? DL-046 records the proposal; it widens DESIGN.md's hero-only rule.
-- The grain lies under the whole hero, and the search field's own fill covers it. Does that meet
-  "never behind inputs", or should the grain stop short of the field?
-- A project that fits both a need and an offer repeats its passage in Partners for you. Should
-  the two fits merge into one entry?
-- After switching accounts on one device, the device card can duplicate a project listed On
-  Certified. Should signing in as someone else set the device card aside?
+- The mycelium goes beyond Home, onto doorways: signing in to Your initiatives and a missing page
+  (DL-053).
+- The header's logo is the website's living ring, grown once and filled under a mouse (DL-054).
+- A project that fits several needs and offers shows once in Partners for you, naming each fit
+  (DL-052).
+- The grain now uses the website's strength, so it no longer shows behind the search field.
+
+### Accessibility checks, 11 November 2026
+
+Proof class: **fixture**, Chrome with DevTools emulation.
+
+- **Forced colours.** The mycelium and grain hide, buttons and cards keep system borders, and
+  keyboard focus shows a clear ring. Every header tab showed a bar, because transparent borders
+  become visible; now only the current tab keeps one, in the system highlight, in App header,
+  Bottom navigation and Tabs.
+- **200 percent zoom** (a 1280 by 800 window): eight pages reflow to the phone layout with no
+  horizontal scrolling. The sticky header and bottom bar leave 70 percent of the window for
+  content.
+- **Voice.** Speech stays on the device. This Chrome reports its English speech pack as
+  downloadable, not installed, so Weave hides Speak and people type. With a simulated local
+  engine, Speak shows "Listening on this device", writes words as they come and puts the
+  finished text in the field. Real speech with a microphone is left for quality checks with a
+  person. Weave could offer to download the speech pack where Chrome reports it as downloadable.
+
+### Question for the maker
+
+- After switching accounts on one device, the card on the device can belong to another account
+  and duplicate a project listed On Certified. The recommendation is in the round's report.
 
 ## Implementation request, 10 November 2026
 

@@ -39,3 +39,11 @@ export function growsFromPointer(pointerType: string, finePointer: boolean, redu
 export function growsOnItsOwn(finePointer: boolean, reducedMotion: boolean): boolean;
 /** How strongly a new tuft shows at an age in frames. */
 export function tuftAlpha(age: number): number;
+/** The logo's resting network for a ring this many CSS pixels wide. */
+export function logoNetwork(size: number): { branches: Branch[]; random: () => number; density: Density };
+/**
+ * The website's logo: a little mycelium inside a ring. It grows once when the page opens and rests;
+ * a mouse over the logo fills the ring, fading when it leaves. Touch never grows it; reduced motion
+ * draws it at rest. Dispose on unmount.
+ */
+export function growLogoMark(canvas: HTMLCanvasElement, options?: { hoverTarget?: Element }): Mycelium;

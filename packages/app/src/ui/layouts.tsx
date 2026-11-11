@@ -43,6 +43,19 @@ export function HomeHero({
   );
 }
 
+/**
+ * Doorway template (`rc-doorway`): a page with nothing to fill in and no list, such as signing in to
+ * Your initiatives or a missing page, opens like Home's hero, with the mycelium behind it (DL-053).
+ */
+export function Doorway({ children }: { children: ReactNode }) {
+  return (
+    <div className="rc-doorway">
+      <Mycelium />
+      {children}
+    </div>
+  );
+}
+
 /** Step layout template: a working column with a record alongside it on wide screens. */
 export function StepLayout({ children, aside }: { children: ReactNode; aside: ReactNode }) {
   return <div className="rc-step-layout"><div className="rc-step-main">{children}</div><aside className="rc-step-aside">{aside}</aside></div>;

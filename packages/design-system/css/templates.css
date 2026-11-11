@@ -93,21 +93,36 @@
   max-inline-size: var(--form-width);
 }
 
-/* Home: measure the backdrop against the full page while keeping content inset. */
-.rc-main:has(.rc-home-hero) {
+/* Home and doorways: measure the backdrop against the full page while keeping content inset. */
+.rc-main:has(.rc-home-hero, .rc-doorway) {
   max-inline-size: none;
   padding-inline: 0;
 }
-.rc-main:has(.rc-home-hero) > * {
+.rc-main:has(.rc-home-hero, .rc-doorway) > * {
   inline-size: calc(min(100%, var(--page-width)) - 2 * var(--gutter));
   margin-inline: auto;
 }
 
-.rc-home-hero {
-  /* The grain and the mycelium fade in and out at the hero's top and bottom edges. */
+.rc-home-hero, .rc-doorway {
+  /* The grain and the mycelium fade in and out at the region's top and bottom edges. */
   --hero-fade: linear-gradient(transparent, black var(--space-6), black calc(100% - var(--space-6)), transparent);
   position: relative;
   isolation: isolate;
+}
+/* Doorway: a page with nothing to fill in and no list, such as signing in to Your initiatives or a
+   missing page, opens like Home's hero, with the mycelium and grain behind it (DL-053). */
+.rc-doorway {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-6) var(--space-8);
+  text-align: center;
+}
+.rc-doorway > :not(.rc-mycelium) { max-inline-size: var(--prose-width); }
+.rc-doorway > .rc-heading[data-size="page"]::after { margin-inline: auto; }
+.rc-doorway > .rc-action-bar { justify-content: center; }
+
+.rc-home-hero {
   display: grid;
   justify-items: center;
   gap: var(--space-3);
@@ -131,12 +146,6 @@
    colours. On phones the words fill the hero, so only its corners show. behaviors/mycelium.js
    draws it in the website's six thread colours, set here, at the website's own strengths. */
 .rc-mycelium {
-  --mycelium-1: var(--forest);
-  --mycelium-2: var(--moss);
-  --mycelium-3: var(--copper);
-  --mycelium-4: var(--teal);
-  --mycelium-5: var(--gold);
-  --mycelium-6: var(--signal);
   position: absolute;
   z-index: -1;
   inset-block: 0;
@@ -152,7 +161,7 @@
   mask-composite: intersect;
 }
 /* The website's paper grain, at its strength, in the same hero only: it never shows against the page. */
-.rc-home-hero::before {
+.rc-home-hero::before, .rc-doorway::before {
   content: "";
   position: absolute;
   z-index: -1;
@@ -181,7 +190,7 @@
     justify-content: center;
   }
 }
-@media (forced-colors: active) { .rc-mycelium, .rc-home-hero::before { display: none; } }
+@media (forced-colors: active) { .rc-mycelium, .rc-home-hero::before, .rc-doorway::before { display: none; } }
 
 /* Card grid: resilient single column on phones, equal-height cards across wide rows. */
 .rc-card-grid {

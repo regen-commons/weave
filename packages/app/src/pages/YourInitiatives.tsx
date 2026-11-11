@@ -21,7 +21,7 @@ import { Card, CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { Section } from "../ui/Section.tsx";
-import { ListLayout } from "../ui/layouts.tsx";
+import { Doorway, ListLayout } from "../ui/layouts.tsx";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 
 /**
@@ -65,11 +65,11 @@ export function YourInitiatives() {
   const onDevice = hasDraft(draft);
   if (!state.identity)
     return (
-      <div className="rc-narrow rc-stack">
+      <Doorway>
         <Heading level={1} size="page">
           Your initiatives
         </Heading>
-        {!live && <p>Sign in with Certified to open your projects and what you saved in Weave.</p>}
+        {!live && <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>}
         {live && <PendingInvite />}
         {live && social.loading && <p role="status">Checking your account</p> }
         <AboutCertified />
@@ -82,7 +82,7 @@ export function YourInitiatives() {
           </ButtonLink>
         </div>
         {note}
-      </div>
+      </Doorway>
     );
   const deviceName = cardName(draft);
   const project = onDevice ? state.project : null;

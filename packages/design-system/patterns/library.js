@@ -69,9 +69,10 @@ for (const button of document.querySelectorAll("[data-open-dialog]")) {
 // Sheets behave as the app's dialog does: each leaves with its arriving motion and follows a drag
 // on a phone. A press outside closes everything but a task.
 import { connectSheet } from "../behaviors/sheet.js";
-import { growMycelium } from "../behaviors/mycelium.js";
+import { growLogoMark, growMycelium } from "../behaviors/mycelium.js";
 // The home hero's mycelium grows once, as the app's does.
 for (const canvas of document.querySelectorAll("canvas.rc-mycelium")) growMycelium(canvas);
+for (const canvas of document.querySelectorAll("canvas.rc-logo-mark")) growLogoMark(canvas);
 for (const dialog of document.querySelectorAll("dialog.rc-dialog[data-presentation]")) {
   connectSheet(dialog, { lightDismiss: dialog.dataset.presentation !== "task" });
 }

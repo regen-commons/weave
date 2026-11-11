@@ -3,9 +3,10 @@ import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
 import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
 import { AccountFailure } from "../account/client.ts";
 import { Card, CardGrid } from "../ui/Card.tsx";
-import { MatchEvidence } from "./NetworkResults.tsx";
+import { entryLine } from "./groups.ts";
+import { MatchDetails, evidenceLabels } from "./NetworkResults.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
-import { rankCertifiedSuggestions } from "./certified-suggestions.ts";
+import { projectSuggestions, rankCertifiedSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
 import { requestPublicEvidence } from "./matching-client.ts";
 
 type SnapshotState = { workspaceId: string } & (
@@ -90,8 +91,9 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
   const matches = snapshot && ranked?.snapshot === snapshot && ranked.queries === queries
     ? ranked.matches : null;
   const Heading = compact ? "h3" : "h2";
-  const Group = compact ? "h4" : "h3";
-  const Title = compact ? "h5" : "h4";
+  const Title = compact ? "h4" : "h3";
+  // A project that fits several needs and offers shows once, naming each (DL-052).
+  const projects = matches ? projectSuggestions(matches, queries, compact ? 2 : undefined) : [];
   return (
     <section className="rc-stack" aria-labelledby={heading}>
       <Heading id={heading} className="rc-heading" data-size="section">Partners for you</Heading>
@@ -112,33 +114,56 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
               {snapshot?.indexedAt && <> Last full check <MatchingDate value={snapshot.indexedAt} />.</>}
             </p>
             {matches.length === 0 && <p>No matches in this collection.</p>}
-            {queries.map((query) => {
-              const candidates = matches.filter(({ query: entry }) => entry.kind === query.kind && entry.entryId === query.entryId);
-              if (!candidates.length) return null;
-              return (
-                <section key={`${query.kind}:${query.entryId}`} className="rc-stack">
-                  <Group className="rc-heading" data-size="section">{String(query.value.title)}</Group>
-                  <CardGrid>
-                    {(compact ? candidates.slice(0, 2) : candidates).map((match) => (
-                      <li key={match.candidateId}>
-                        <Card>
-                          <Title className="rc-card-title">{match.counterpart.name}</Title>
-                          <MatchEvidence match={match} discloseDetails />
-                          {match.evidence.type === "public" && (
-                            <div className="rc-action-bar">
-                              <a className="rc-button" data-variant="secondary" href={match.evidence.sourceUrl}
-                                target="_blank" rel="noopener noreferrer">View source</a>
-                            </div>
-                          )}
-                        </Card>
-                      </li>
-                    ))}
-                  </CardGrid>
-                </section>
-              );
-            })}
+            {projects.length > 0 && (
+              <CardGrid>
+                {projects.map((project) => (
+                  <li key={project.id}>
+                    <ProjectCard project={project} Title={Title} />
+                  </li>
+                ))}
+              </CardGrid>
+            )}
           </>
         )}
     </section>
+  );
+}
+
+/**
+ * One project: each of the person's needs and offers it fits, with what kind of fit it is, then the
+ * project's own words once and why each fits on request.
+ */
+function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" }) {
+  const sources = [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
+  const several = project.fits.length > 1;
+  return (
+    <Card>
+      <Title className="rc-card-title">{project.name}</Title>
+      {project.fits.map(({ query, match }) => (
+        <p className="rc-card-meta" key={`${query.kind}:${query.entryId}`}>
+          {entryLine(query.kind, String(query.value.title))}. {evidenceLabels[match.evidenceKind]}
+          {match.unknowns.includes("availability") ? ", availability unknown." : "."}
+        </p>
+      ))}
+      {project.passages.map(({ text }) => <blockquote className="rc-prose" key={text}>{text}</blockquote>)}
+      <details className="rc-stack">
+        <summary>{several ? "Why these fit" : "Why this fits"}</summary>
+        {project.fits.map(({ query, match }) => (
+          <div className="rc-stack" key={`${query.kind}:${query.entryId}`}>
+            {several && <p><strong>{entryLine(query.kind, String(query.value.title))}</strong></p>}
+            <MatchDetails match={match} />
+          </div>
+        ))}
+      </details>
+      {sources.length > 0 && (
+        <div className="rc-action-bar">
+          {sources.map((url, index) => (
+            <a key={url} className="rc-button" data-variant="secondary" href={url} target="_blank" rel="noopener noreferrer">
+              {sources.length > 1 ? `View source ${index + 1}` : "View source"}
+            </a>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }

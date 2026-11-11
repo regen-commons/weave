@@ -491,3 +491,164 @@ export function growMycelium(canvas, { seed = 7 } = {}) {
     },
   };
 }
+
+/** The logo grows once per page load; a logo drawn after that starts at rest. */
+let logoGrown = false;
+/** Steps of the logo's own growth, so the picture is the same on every visit. */
+const LOGO_SEED = 11;
+/** Six short threads from the centre, two to each of three colours, as the website's logo starts. */
+const LOGO_SOWS = 3;
+/** The logo's resting threads are drawn near full strength: at this size they are the brand mark. */
+const LOGO_ALPHA = 0.9;
+/** Under a mouse, a new tuft every this many frames, up to this many, filling the ring. */
+const LOGO_SPROUT_EVERY = 4;
+const LOGO_TUFTS = 36;
+
+function logoDensity(size) {
+  return { seeds: LOGO_SOWS, reach: size * 0.42, forkRate: 0.08, limit: 30, corners: false };
+}
+
+/** The logo's resting network for a ring this many CSS pixels wide: threads from the centre. */
+export function logoNetwork(size) {
+  const random = seededRandom(LOGO_SEED);
+  const density = logoDensity(size);
+  const branches = [];
+  for (let i = 0; i < LOGO_SOWS; i++) sow(branches, size / 2, size / 2, random, density.reach, (i * 2) % COLOURS);
+  return { branches, random, density };
+}
+
+/**
+ * The website's logo: a little mycelium inside a ring (DL-054). It grows once from the centre when
+ * the page opens and rests. A mouse over the logo grows it to fill the ring, and the new growth fades
+ * when the mouse leaves. Touch never grows it, and under reduced motion it is drawn at rest. It draws
+ * nothing while the page is hidden. Colours come from the canvas's --mycelium-1 to --mycelium-6.
+ */
+export function growLogoMark(canvas, { hoverTarget = canvas.parentElement ?? canvas } = {}) {
+  const context = canvas.getContext("2d");
+  const view = canvas.ownerDocument.defaultView;
+  if (!context || !view) return { dispose() {} };
+  const still = view.matchMedia("(prefers-reduced-motion: reduce)");
+  const finePointer = view.matchMedia("(hover: hover) and (pointer: fine)");
+  const darkScheme = view.matchMedia("(prefers-color-scheme: dark)");
+  const cleanup = [];
+  let size = 0;
+  let colours = [];
+  let network = logoNetwork(1);
+  let tufts = [];
+  let frame = 0;
+  let hovered = false;
+  let sinceSprout = 0;
+  let shown = !canvas.ownerDocument.hidden;
+
+  const listen = (target, type, listener) => {
+    target.addEventListener(type, listener);
+    cleanup.push(() => target.removeEventListener(type, listener));
+  };
+  function readColours() {
+    const style = view.getComputedStyle(canvas);
+    colours = Array.from({ length: COLOURS }, (_, i) => style.getPropertyValue(`--mycelium-${i + 1}`).trim() || style.color);
+  }
+  function resize() {
+    size = Math.max(1, Math.round(canvas.getBoundingClientRect().width));
+    const ratio = Math.min(view.devicePixelRatio || 1, 2);
+    canvas.width = canvas.height = Math.round(size * ratio);
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+  function paint() {
+    context.clearRect(0, 0, size, size);
+    context.save();
+    context.beginPath();
+    context.arc(size / 2, size / 2, size / 2, 0, TAU);
+    context.clip();
+    drawNetwork(context, network.branches, colours, LOGO_ALPHA);
+    for (const tuft of tufts) drawNetwork(context, tuft.branches, colours, tuftAlpha(tuft.age));
+    context.restore();
+  }
+  function stop() {
+    if (frame) view.cancelAnimationFrame(frame);
+    frame = 0;
+  }
+  function growing() {
+    return network.branches.some((branch) => branch.growing);
+  }
+  function schedule() {
+    if (frame || !shown || still.matches) return;
+    if (!growing() && !tufts.length && !hovered) return;
+    frame = view.requestAnimationFrame(tick);
+  }
+  function tick() {
+    frame = 0;
+    if (growing()) advance(network.branches, size, size, network.random, network.density);
+    else logoGrown = true;
+    if (hovered && ++sinceSprout >= LOGO_SPROUT_EVERY) {
+      sinceSprout = 0;
+      const angle = Math.random() * TAU;
+      const distance = Math.random() * size * 0.3;
+      const tuftBranches = [];
+      sow(tuftBranches, size / 2 + Math.cos(angle) * distance, size / 2 + Math.sin(angle) * distance, Math.random, size * 0.3);
+      tufts.push({ branches: tuftBranches, age: 0, density: { ...network.density, reach: size * 0.3, limit: 8 } });
+      if (tufts.length > LOGO_TUFTS) tufts.shift();
+    }
+    tufts = tufts.filter((tuft) => {
+      tuft.age += 1;
+      if (tuftAlpha(tuft.age) <= 0) return false;
+      if (tuft.branches.some((branch) => branch.growing)) advance(tuft.branches, size, size, Math.random, tuft.density);
+      return true;
+    });
+    paint();
+    schedule();
+  }
+  function start() {
+    stop();
+    resize();
+    readColours();
+    network = logoNetwork(size);
+    tufts = [];
+    if (still.matches || logoGrown) {
+      settle(network.branches, size, size, network.random, network.density);
+      logoGrown = true;
+      paint();
+      return;
+    }
+    paint();
+    schedule();
+  }
+  function recolour() {
+    readColours();
+    paint();
+  }
+
+  start();
+  listen(hoverTarget, "pointerenter", (event) => {
+    if (!growsFromPointer(event.pointerType, finePointer.matches, still.matches)) return;
+    hovered = true;
+    schedule();
+  });
+  listen(hoverTarget, "pointerleave", () => {
+    hovered = false;
+  });
+  listen(canvas.ownerDocument, "visibilitychange", () => {
+    shown = !canvas.ownerDocument.hidden;
+    if (shown) schedule();
+    else stop();
+  });
+  listen(still, "change", () => {
+    if (!still.matches) return;
+    stop();
+    hovered = false;
+    tufts = [];
+    settle(network.branches, size, size, network.random, network.density);
+    paint();
+  });
+  listen(darkScheme, "change", recolour);
+  const themeWatch = new view.MutationObserver(recolour);
+  themeWatch.observe(canvas.ownerDocument.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  cleanup.push(() => themeWatch.disconnect());
+
+  return {
+    dispose() {
+      stop();
+      for (const undo of cleanup.splice(0)) undo();
+    },
+  };
+}

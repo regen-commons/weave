@@ -228,3 +228,15 @@ remain proposed.
 ## DL-051: The website's hero ghost, and accents in a few more places
 
 **Status:** maker's call, 11 November 2026, a second pass on DL-050. The home hero's italic word carries the website's faint copper ghost, offset up and to the right as on regencommons.com, like a print slightly out of register (`--print-ghost`, copper at 10 percent; the offset is in em, so it scales with the heading). The section's accent now also tints the current tab's icon in the bottom bar, as native tab bars do, draws a short bar under each page's title, and colours the logo's mark on hover, as the website's logo takes its page accent. A card that opens its record shows a 3 px edge along its top on hover and keyboard focus, beside the gold focus ring: funding gold for a funding card and initiative teal for an initiative card (`data-kind="initiative"`) wherever they appear, otherwise the section's accent. Buttons, links and controls stay green. One derived token is added.
+
+## DL-052: Partners for you shows each project once
+
+**Status:** maker's call, 11 November 2026: merge the fits and make them clear. A public project that fits several of the person's needs and offers was listed under each entry, repeating its own words. Partners for you now shows one card per project, in the order of its best fit. The card names each need and offer it fits with the kind of fit, such as relevant experience or a possible use for an offer, then quotes the project's words once, opens why each fits on request and links each source once. A preview keeps the projects among the first two for any entry. Direct fits shared in Weave stay apart from these public suggestions, as before.
+
+## DL-053: Doorways carry the mycelium beyond Home
+
+**Status:** maker's call, 11 November 2026, adopting DL-046's proposal. A doorway is a page with nothing to fill in and no list, such as signing in to Your initiatives or a page that does not exist. It opens like Home's hero, centred, with the mycelium and paper grain behind it, clear of the words, and the title's accent bar centred under it (`rc-doorway`). A page has one decorated region at most, and decoration never sits behind inputs or rows.
+
+## DL-054: The header's logo is the website's living mark
+
+**Status:** maker's call, 11 November 2026. The logo's mark is the website's ring with a little mycelium inside, drawn in the six thread colours. Unlike the website's, which grows without end, it grows once from the centre when the app opens and rests, so nothing moves beside every page for longer than a moment (WCAG 2.2.2). A mouse over the logo fills the ring with new growth, which fades when the mouse leaves, and the ring takes the section's accent. Touch never grows it, reduced motion draws it at rest, and it draws nothing while the page is hidden. Later pages show it at rest.

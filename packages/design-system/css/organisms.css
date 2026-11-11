@@ -89,6 +89,12 @@
 }
 /* The current tab's icon takes its section's accent, as a native tab bar tints it (DL-051). */
 .rc-bottom-nav > a[aria-current="page"] .rc-icon { color: var(--section-accent, var(--action)); }
+/* In forced colours a transparent bar would show on every tab, so only the current tab keeps one. */
+@media (forced-colors: active) {
+  .rc-app-nav > a, .rc-bottom-nav > a { border-color: Canvas; }
+  .rc-app-nav > a[aria-current="page"] { border-block-end-color: Highlight; }
+  .rc-bottom-nav > a[aria-current="page"] { border-block-start-color: Highlight; }
+}
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
 }

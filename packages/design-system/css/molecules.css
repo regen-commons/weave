@@ -417,6 +417,10 @@
   text-decoration: none;
 }
 .rc-tabs > a:hover { color: var(--on-surface); }
+@media (forced-colors: active) {
+  .rc-tabs > a:not([aria-current="page"]) { border-color: Canvas; }
+  .rc-tabs > a[aria-current="page"] { border-block-start-color: Highlight; }
+}
 .rc-tabs > a[aria-current="page"] {
   border-color: var(--control-line);
   border-block-start-color: var(--section-accent, var(--action));

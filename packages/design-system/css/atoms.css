@@ -98,12 +98,24 @@
 }
 .rc-logo:visited { color: var(--on-surface); }
 .rc-logo:hover { color: var(--link-hover); }
-.rc-logo:hover .rc-logo-mark { color: var(--section-accent, var(--link)); }
+.rc-logo:hover .rc-logo-mark { border-color: var(--section-accent, var(--link)); }
+/* The website's six thread colours, for the hero's mycelium and the logo's ring. */
+.rc-mycelium, .rc-logo-mark {
+  --mycelium-1: var(--forest);
+  --mycelium-2: var(--moss);
+  --mycelium-3: var(--copper);
+  --mycelium-4: var(--teal);
+  --mycelium-5: var(--gold);
+  --mycelium-6: var(--signal);
+}
+/* The website's logo: a little mycelium in a ring, drawn by behaviors/mycelium.js (DL-054). */
 .rc-logo-mark {
   flex: none;
   inline-size: var(--space-6);
   block-size: var(--space-6);
-  color: var(--link);
+  border: var(--border-thin) solid var(--line);
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
 }
 
 /* Button: one solid primary per region, then outlined, then link-style. */
