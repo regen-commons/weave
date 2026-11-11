@@ -140,24 +140,6 @@ export function YourInitiatives() {
       <Heading level={1} size="page">
         Your initiatives
       </Heading>
-      <div className="rc-action-bar">
-        <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          data-size="sm"
-          type="button"
-          disabled={busy}
-          onClick={() =>
-            void run(async () => {
-              await service.signOut();
-              setMessage("You are signed out. The card on this device is still here.");
-            })
-          }
-        >
-          Sign out
-        </button>
-      </div>
       {live && <PendingInvite />}
       {social.loading && <p role="status">Checking your Certified projects</p>}
       {social.problem && <p role="status">{social.problem}</p>}
@@ -286,6 +268,25 @@ export function YourInitiatives() {
           </ButtonLink>
         </div>
       )}
+      {/* The account is not what people come here for, so it closes the page. */}
+      <div className="rc-action-bar">
+        <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
+        <button
+          className="rc-button"
+          data-variant="quiet"
+          data-size="sm"
+          type="button"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              await service.signOut();
+              setMessage("You are signed out. The card on this device is still here.");
+            })
+          }
+        >
+          Sign out
+        </button>
+      </div>
       {busy && <p role="status">Opening</p>}
       {note}
     </ListLayout>

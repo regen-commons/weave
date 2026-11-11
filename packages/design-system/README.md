@@ -106,8 +106,14 @@ The tests check that generated files are current, the linter is clean, website v
 - Add the learning icon for Learning and education, the fifth type of work (DL-040).
   A Notice may ask one question with its own action bar, as the duplicate prompt does
   (DL-042).
+- Replace the Home hero's woven backdrop with the website's mycelium and paper grain
+  (`rc-mycelium` and the `./mycelium` behaviour), at rest under reduced motion and
+  from the hero's corners on phones (DL-046). Adds the `mycelium-opacity` token.
+- Your initiative and the team workspace take the initiative's name as their heading
+  under an Eyebrow, and the Your initiatives example ends with the account line
+  (DL-047).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
-  removed after one build phase. No tokens changed.
+  removed after one build phase.
 
 ### Unreleased, Step 8
 

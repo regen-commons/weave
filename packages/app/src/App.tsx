@@ -218,7 +218,10 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     document.querySelector<HTMLElement>("main h1")?.focus({ preventScroll: true });
   }, [location, route?.name]);
   const status =
-    accountSaved || (import.meta.env.DEV && !!fixture && social?.state.saved)
+    // A team workspace's own status line says where its work is kept; the device's would mislead.
+    pageRoute?.name === "team-workspace"
+      ? "none"
+      : accountSaved || (import.meta.env.DEV && !!fixture && social?.state.saved)
       ? "account"
       : fixture && !["initiative", "check-card", "needs", "offers", "your-initiative"].includes(pageRoute?.name ?? "")
         ? (social ? social.state.saved : ["private", "workspace", "shared", "published"].includes(fixture?.scenario ?? ""))

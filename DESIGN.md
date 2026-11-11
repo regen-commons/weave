@@ -423,7 +423,7 @@ Inputs use `--shadow-inset` to read as recessed. Use space or a surface step bef
 
 ### Motion
 
-Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The home woven-thread backdrop is the only decorative motion and becomes still. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
+Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The home hero's mycelium is the only decorative motion: it grows once and rests, answers a mouse with a little growth that fades, never answers touch, and is drawn at rest under reduced motion. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
 
 ## Shapes
 
@@ -562,6 +562,7 @@ light:
   forest-glow: rgba(30, 58, 16, 0.12)
   grain-blend: multiply
   grain-opacity: 0.35
+  mycelium-opacity: 0.55
 dark:
   shadow-1: 0 0 0 1px rgba(226, 218, 200, .10)
   shadow-2: 0 2px 6px rgba(0, 0, 0, .45)
@@ -572,6 +573,7 @@ dark:
   forest-glow: rgba(122, 170, 106, 0.10)
   grain-blend: screen
   grain-opacity: 0.12
+  mycelium-opacity: 0.9
 derived:
   line: rgba(var(--copper-rgb), 0.25)
   line-subtle: rgba(var(--copper-rgb), 0.12)

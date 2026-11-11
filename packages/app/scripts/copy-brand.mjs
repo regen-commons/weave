@@ -5,7 +5,7 @@ import { copyFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const FILES = ["icons.svg", "weave-threads.svg", "logo/favicon.svg", "logo/mark.svg"];
+const FILES = ["icons.svg", "logo/favicon.svg", "logo/mark.svg"];
 
 for (const file of FILES) {
   const source = fileURLToPath(import.meta.resolve(`@regen-commons/design-system/brand/${file}`));

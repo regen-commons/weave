@@ -1,3 +1,4 @@
+import { Mycelium } from "./Mycelium.tsx";
 import type { ReactNode } from "react";
 
 /** Stack (`rc-stack`): vertical rhythm, with more space between groups when wide. */
@@ -33,9 +34,7 @@ export function HomeHero({
 }) {
   return (
     <section className="rc-home-hero" aria-labelledby="home-title">
-      <svg className="rc-woven-backdrop" aria-hidden="true" focusable="false">
-        <use href={`${import.meta.env.BASE_URL}brand/weave-threads.svg#threads`} />
-      </svg>
+      <Mycelium />
       {children}
       <div className="rc-home-actions">{actions}</div>
       {search}

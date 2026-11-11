@@ -3,7 +3,8 @@
 Updated 11 November 2026. The implementation branch `codex/weave-social-live`
 starts at design commit `2cf6a7a`, which includes `develop` at `0520df8` and the
 review through DL-045. This report records implementation and local evidence. Hosted validation is
-deferred at the maker's request, and the production pilot remains off.
+deferred at the maker's request, and the production pilot remains off. The design polish that
+followed PR #38 is under [Design polish on develop](#design-polish-on-develop-11-november-2026).
 
 ## One interface over real services
 
@@ -145,6 +146,61 @@ guidance check. No dependencies, lockfile or tracked generated output changed.
 4. Confirm permitted corpus ingestion, refresh/removal, match quality and latency.
    Semantic retrieval remains disabled. Confirm the six-lens launch metric with
    the council; the learning lens does not resolve that product metric decision.
+
+## Design polish on develop, 11 November 2026
+
+The design branch `claude/weave-ui-polish` starts at `develop` `810e199`, after PR #38. It
+polishes the API-connected screens instead of adding new ones, and keeps every behaviour
+listed above. The production pilot stays off.
+
+| Journey | What changed |
+|---|---|
+| First visit with a Certified project | Home's hero carries the website's mycelium and paper grain (DL-046). On Your initiatives the In Weave and On Certified lists lead, and the signed-in line closes the page. A workspace this account cannot open now says what to do: ask a workspace admin for an invitation link. |
+| First visit without a project | Your initiative takes the initiative's name as its heading, under a Your initiative eyebrow, and the card no longer repeats it (DL-047). Funding that fits says plainly when nothing in the catalog matches yet. |
+| Returning with a project | The team workspace names the initiative under a Team workspace eyebrow, then says what this person can do there. The header's save status steps aside, so the page's own rows are the one account of saving and sharing. Manage teammates leads with the default: choose what they can do, then create an invitation link. Adding someone by handle sits behind a disclosure, and each pending invitation says what it is, when it expires and what the admin can do. |
+| Returning without a linked project | The same named heading on Your initiative, and the account line at the end of Your initiatives. |
+
+### Proof
+
+Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
+`WEAVE_ACCOUNT_FIXTURE=1`, using the synthetic visitor and admin accounts.
+
+- **Home hero, Chrome with DevTools emulation, 360 px with touch and 1280 px with a mouse, light
+  and dark.** Under reduced motion the mycelium is drawn at once, and its pixels do not change
+  over three seconds or under mouse moves. With motion allowed, a mouse grows a tuft that fades
+  back to the identical resting picture, and touch never changes it. The phone canvas is capped
+  at 1.5 times pixel density, its threads grow from the corners, and a theme change recolours it
+  without a reload. No page overflowed horizontally.
+- **Manage teammates, Chrome, 360 px dark, keyboard only.** Focus starts inside the sheet, Tab
+  follows the new order with a visible focus ring, and Escape returns focus to Manage teammates.
+- **Headings, Chrome and the Claude desktop browser pane.** The workspace heading at 1280 px
+  light and 360 px dark, and Your initiatives at 360 px dark, with no overflow.
+
+Voice capture could not be exercised in either browser. No hosted Certified, database or
+production check was made.
+
+Local checks passed: `bun run ci` ran 129 site and catalog tests, 24 design-system tests, 156
+API tests with the 38 opt-in database checks skipped, 207 app tests and 78 harness tests, and
+confirmed current design tokens and guidance. The app typecheck and `git diff --check` passed,
+and the build changed no tracked files. No dependencies or lockfile changed.
+
+### Still waiting on the backend
+
+- Claimed invitations return only a DID, so the list reads "Certified account ending …". The
+  server should return the verified handle, so an admin knows who asked before approving.
+- Home does not load the live funding catalog in production, so its funding-closing-soon link
+  stays hidden there.
+
+### Questions for the maker
+
+- Should the mycelium also sit behind the top of a page with no inputs or rows, such as an empty
+  Your initiatives? DL-046 records the proposal; it widens DESIGN.md's hero-only rule.
+- The grain lies under the whole hero, and the search field's own fill covers it. Does that meet
+  "never behind inputs", or should the grain stop short of the field?
+- A project that fits both a need and an offer repeats its passage in Partners for you. Should
+  the two fits merge into one entry?
+- After switching accounts on one device, the device card can duplicate a project listed On
+  Certified. Should signing in as someone else set the device card aside?
 
 ## Implementation request, 10 November 2026
 

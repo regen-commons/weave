@@ -97,6 +97,8 @@
 }
 
 .rc-home-hero {
+  /* The grain and the mycelium fade in and out at the hero's top and bottom edges. */
+  --hero-fade: linear-gradient(transparent, black var(--space-6), black calc(100% - var(--space-6)), transparent);
   position: relative;
   isolation: isolate;
   display: grid;
@@ -112,7 +114,15 @@
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
 /* Signs of life under the search: shared initiatives and funding closing soon, side by side. */
 .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
-.rc-woven-backdrop {
+/* Mycelium: the website's branching growth, behind the home hero and nowhere else (DL-046). It
+   takes no pointer, fades out behind the heading, actions and search, and is hidden in forced
+   colours. On phones the words fill the hero, so only its corners show. behaviors/mycelium.js
+   draws it in the four thread colours set here. */
+.rc-mycelium {
+  --mycelium-1: var(--circuit);
+  --mycelium-2: var(--sage);
+  --mycelium-3: var(--stage-sprout);
+  --mycelium-4: var(--text-accent);
   position: absolute;
   z-index: -1;
   inset-block: 0;
@@ -120,7 +130,30 @@
   translate: -50%;
   inline-size: 100cqi;
   block-size: 100%;
-  overflow: hidden;
+  pointer-events: none;
+  /* Thin threads need more strength on dark loam than on paper, as the website's do. */
+  opacity: var(--mycelium-opacity);
+  --mycelium-clear: radial-gradient(ellipse 62% 66% at 50% 50%, transparent 72%, black 100%);
+  -webkit-mask-image: var(--mycelium-clear), var(--hero-fade);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--mycelium-clear), var(--hero-fade);
+  mask-composite: intersect;
+}
+/* The website's paper grain, in the same hero only. */
+.rc-home-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-block: 0;
+  left: 50%;
+  translate: -50%;
+  inline-size: 100cqi;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: calc(var(--space-8) * 4);
+  mix-blend-mode: var(--grain-blend);
+  opacity: var(--grain-opacity);
+  -webkit-mask-image: var(--hero-fade);
+  mask-image: var(--hero-fade);
   pointer-events: none;
 }
 .rc-home-actions {
@@ -129,17 +162,14 @@
 }
 @container (min-width: 37.5rem) {
   .rc-home-hero { padding-block: var(--space-8); gap: var(--space-5); }
+  .rc-mycelium { --mycelium-clear: radial-gradient(ellipse 46% 58% at 50% 46%, transparent 45%, black 100%); }
   .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
   .rc-home-actions {
     grid-auto-flow: column;
     justify-content: center;
   }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .rc-woven-backdrop > use { animation: rc-weave calc(var(--duration-slow) * 40) var(--ease-out) infinite alternate; }
-}
-@keyframes rc-weave { to { transform: translate(var(--space-4), var(--space-2)); } }
-@media (forced-colors: active) { .rc-woven-backdrop { display: none; } }
+@media (forced-colors: active) { .rc-mycelium, .rc-home-hero::before { display: none; } }
 
 /* Card grid: resilient single column on phones, equal-height cards across wide rows. */
 .rc-card-grid {

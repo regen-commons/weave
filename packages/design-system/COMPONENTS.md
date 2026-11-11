@@ -20,7 +20,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Pattern | Class | Status | Job and parts | Variants | Limits | Used in |
 |---|---|---|---|---|---|---|
 | Heading | `rc-heading` | stable | Page and section titles | `data-size`: hero, page, section | Three lines at most on a phone | check-card, code, describe, finish, funding, home, initiatives, intake-finish, matches, matches-empty, needs, offers, opportunity, opportunity-private, saved, settings, step-needs, your-initiatives |
-| Eyebrow | `rc-eyebrow` | stable | Factual label only when no heading can carry the fact, such as the award on a funding card; never decorative | Optional icon | Sentence case, one short fact | funding, home, matches |
+| Eyebrow | `rc-eyebrow` | stable | Factual label only when no heading can carry the fact, such as the award on a funding card, or the kind of page above an initiative's name (DL-047); never decorative | Optional icon | Sentence case, one short fact | funding, home, matches |
 | Prose | `rc-prose` | stable | Reading text at a comfortable measure |  | Paragraphs of four lines or fewer | funding, home, initiatives |
 | Meta | `rc-meta` | stable | Small supporting text |  |  | check-card, code, describe, finish, funding, home, initiatives, intake-finish, matches, matches-empty, needs, offers, opportunity, opportunity-private, saved, settings, step-needs, your-initiatives |
 | Icon | `rc-icon` | stable | Inline icon from `brand/icons.svg` | `data-size`: sm, lg | Never the only name of a control | code, finish, funding, home, initiatives, matches, matches-empty, opportunity, opportunity-private, saved, settings, step-needs, your-initiatives |
@@ -128,7 +128,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Step layout | `rc-step-layout` | stable | One column, then a sticky side panel. Parts: `rc-step-main`, `rc-step-aside` |  |  | check-card, describe, finish, initiatives, intake-finish, needs, offers, opportunity, opportunity-private, step-needs |
 | List layout | `rc-list-layout` | stable | Full-width list with its own prose measure |  | Card grid columns at least 18 rem | funding, initiatives, matches, matches-empty, your-initiatives |
 | Narrow layout | `rc-narrow` | stable | Focused single tasks |  | 28 rem | code, saved, settings |
-| Home hero | `rc-home-hero` | candidate | Centred heading, one primary (start an initiative, or open the one on this device), search and two signs of life: initiatives shared and funding closing soon. Parts: `rc-home-actions`, `rc-home-live`, `rc-woven-backdrop` | Still backdrop under reduced motion | Short phone hero with a full-width woven backdrop | home |
+| Home hero | `rc-home-hero` | candidate | Centred heading, one primary (start an initiative, or open the one on this device), search and two signs of life: initiatives shared and funding closing soon. Parts: `rc-home-actions`, `rc-home-live`, `rc-mycelium` | Mycelium at rest under reduced motion | Short phone hero; the website's mycelium and paper grain sit behind it, from the corners on phones and the sides when wide, clear of the text (DL-046) | home |
 
 | Card grid | `rc-card-grid` | stable | Equal-height record cards with aligned fit lines; a card that has actions keeps them at the bottom | Responsive columns at least `--card-min-width` | Full width with one column on phones | finish, funding, home, initiatives, matches, your-initiatives |
 

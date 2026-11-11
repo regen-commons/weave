@@ -9,7 +9,7 @@ import { teamWorkspacePath } from "../routes.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText, hasDraft } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
-import { cardRoute, openSteps } from "../initiative/status.ts";
+import { cardName, cardRoute, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
@@ -59,8 +59,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const steps = openSteps(status, project?.workspace ?? null);
   return (
     <Stack>
+      {/* Once the card is checked the page names the initiative, echoing the name that led here. */}
+      {ready && checked && <p className="rc-eyebrow">Your initiative</p>}
       <Heading level={1} size="page">
-        Your initiative
+        {ready && checked ? cardName(draft) : "Your initiative"}
       </Heading>
       <DraftNotice
         error={error}
@@ -154,7 +156,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </>
             }
           >
-            <InitiativeRecord fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
+            <InitiativeRecord named={false} fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
           </StepLayout>
           {(view === "offline" || !navigator.onLine) && (
             <p className="rc-notice" data-tone="info">
