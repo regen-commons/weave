@@ -71,7 +71,7 @@ const CAPITALS = [
 ];
 const TERMS = ["gift", "exchange", "paid", "commitment", "open"];
 const STAGES = ["seed", "sprout", "flowering", "tree"];
-const LENSES = ["art_culture", "research", "technology", "place_based", "learning", "funders"];
+export const LENSES = ["art_culture", "research", "technology", "place_based", "learning", "funders"];
 function safeLink(value: string) {
   try {
     const url = new URL(value);

@@ -1,85 +1,152 @@
 # Weave journey coverage
 
-Checked on 10 November 2026, after the design branch was rebased onto `develop` at
-`0520df8` (PR #36, Certified workspaces and matching). It compares two builds that now
-share one codebase:
+Updated 11 November 2026. The implementation branch `codex/weave-social-live`
+starts at design commit `2cf6a7a`, which includes `develop` at `0520df8` and the
+review through DL-045. This report records implementation and local evidence. Hosted validation is
+deferred at the maker's request, and the production pilot remains off.
 
-- **Design**: the example world (`?fixture=`) and the [clickable preview](README.md#the-clickable-preview),
-  which run the agreed screens on the example services in `packages/app/src/social`.
-- **Live**: the screens wired to the API, checked locally with the `app-fixture` server
-  (`WEAVE_ACCOUNT_FIXTURE=1`) and the production pilot off.
+## One interface over real services
 
-Covered means a person can finish the step without help. Partly means it works but
-asks too much of them, or one build lacks it.
+`LiveSocialProvider` supplies the agreed Your initiatives, Your initiative and
+project steps with the account and project APIs. The team route uses the same
+card and status-row patterns. Sharing and public publishing open focused dialogs
+around the existing server-reviewed commands, preserving revision checks,
+consent, uncertain-request recovery and viewer restrictions. The parallel project
+directory layout has been removed. Settings retains account and backup recovery.
 
-## Journeys
+Your initiatives separates device cards, private saves and granted team workspaces
+under **In Weave**, and eligible projects not yet in Weave under **On Certified**.
+Names open the cards. Opening a workspace does not copy the device draft into it.
 
-| Journey and step | Design | Live | Notes |
-|---|---|---|---|
-| **1. First visit with a Certified project:** sign in | Covered | Covered | Certified is the only door in both. |
-| Find or select the project | Covered | Partly | Live lists groups by the end of their identifier, because Certified group names are not returned yet. |
-| Link or open its workspace | Covered | Covered | Live opens `/workspaces/:id`; the design opens the initiative page. |
-| Add needs and offers | Covered | Covered | Two editors for one task: the needs step and the team entries editor. |
-| **2. First visit without a project:** describe the initiative | Covered | Covered | One describe flow, voice first. |
-| Explore funding | Covered | Covered | |
-| Save privately after Certified sign-in | Covered | Covered | |
-| Create a Certified project when ready for partner matching | Covered | Partly | Live asks for a short name for the group's web address before anything else. |
-| **3. Returning with a project:** resume the right workspace | Covered | Partly | Home resumes the card on this device only, so team work starts from Your initiatives. |
-| Find saved work and matches | Covered | Covered | |
-| Manage needs, offers and teammates | Partly | Partly | The design has no teammate screen; live adds teammates by Certified DID. |
-| **4. Returning without a linked project:** resume drafts or private saves | Covered | Covered | Device backups before every switch. |
-| Continue funding discovery | Covered | Covered | |
-| Create or link a project without re-entering work | Covered | Partly | Live has no duplicate prompt (DL-042). |
+## Journeys and proof
 
-## Actions
+“API-connected fixture” means the production-facing components call same-origin
+handlers backed by synthetic data in `app-fixture`. It does not mean hosted
+Certified, PostgreSQL or Supabase Auth was exercised.
 
-| Action | Design | Live | Notes |
-|---|---|---|---|
-| Create, save, reload and switch initiatives, keeping unfinished work | Covered | Covered | |
-| Add, edit and close needs and offers; review suggested kinds and add or remove several | Covered | Covered | Closing is the Status field in the editor. An entry can be saved privately with no kind; sharing needs one. |
-| Save privately, share chosen entries, withdraw, review public publication separately | Covered | Covered | Shares are open-ended: they last until closed or withdrawn. |
-| Explore matches, read their evidence, save or hide them, open sources | Covered | Covered | |
-| Request a workspace, invite teammates, review invitations, manage access by role | Partly | Partly | Requests work in both. Invitations and roles exist only live, and by DID. |
-| Recover from interrupted sign-in, failed saves, conflicting edits, unavailable services and missing permissions | Partly | Covered | The design shows these as example states; live handles each one. |
+| Journey | Implemented behavior | Evidence and remaining boundary |
+|---|---|---|
+| First visit with a Certified project | Read personal and group projects, choose explicitly, open a granted workspace or request setup, then save needs and offers privately. | API-connected fixture: named groups, project selection and member setup request. A request survives reload and grants no access. Real Certified sign-in and activation need hosted validation. |
+| First visit without a project | Describe locally, explore funding, save privately after Certified sign-in, then review creation of a group and project. The group address is proposed; Change the address reveals its field. | API-connected fixture: private save and reload without another sign-in. Creation validation and durable retry have automated tests. The fixture deliberately does not create a Certified group; the real creation round trip remains unverified here. |
+| Returning with a project | Home can resume a currently granted team workspace. Your initiatives opens its canonical workspace, keeping device work. Editors manage entries; admins manage teammates. | API-connected fixture: Home resume, private team edit, selected sharing, direct fit and viewer read-only access. Invitations and handle resolution also have local proof. No hosted two-account proof in this round. |
+| Returning without a linked project | Resume a device draft or private account save, browse funding, then choose a Certified project or create one without re-entering the card. | API-connected fixture and adapter tests: account save/load, backups before switching and explicit duplicate selection. Exact-ID missing-save recovery has automated tests; it was not rendered against a deleted hosted record. |
 
-## Distinctions, where people meet them
+## Actions and boundaries
 
-| Distinction | Where it shows |
-|---|---|
-| Certified is the only sign-in | Every door. The live account section keeps an optional email for Certified in a closed disclosure (DL-032). |
-| Visitors can draft, browse and get funding | Home, Initiatives and Funding need no account. |
-| Linked initiatives get partners from public evidence while their entries stay private | Partners for you, on the initiative and workspace pages. |
-| Other teams' shared entries need a linked workspace and one shared entry | One line under Partners for you and in Sharing for matching. |
-| Four audiences: only you, your team, people signed in, anyone | The status rows on the initiative page and the sharing and publishing reviews. |
-| Confirmed entries versus inferred capabilities and possible fits | Evidence labels: owner-confirmed need or offer, relevant experience, possible use. |
-| Viewers versus editors | The live workspace says under its name what the person can do, and viewers see no editing controls. |
+- **Needs and offers:** editors save privately to the team. An entry can have no kind
+  of support privately; sharing requires at least one reviewed kind. A sharing
+  review includes only the selected entries. Undated shares remain active until
+  closed or withdrawn. Viewers have no mutation controls.
+- **Partners:** public Certified evidence is compared on the device without sharing
+  private entries. It is labelled relevant experience or possible use, with unknown
+  availability. Direct fits from shared entries stay separate. Network matching
+  requires a linked workspace and a shared entry.
+- **Teammates:** invitation links are the default. Pending and claimed invitations
+  appear with Revoke. Direct entry uses a Certified handle resolved on the server
+  with handle-to-DID and DID-to-handle verification. Resolution grants no access.
+  Roles read Can view, Can edit and Manages teammates. Group membership and a
+  separate workspace grant remain required.
+- **Project metadata:** group display names and handles are optional public profile
+  metadata, never authority. Imported projects replace only the fields actually
+  supplied by Certified; missing place and links preserve the device card.
+- **Duplicates:** signed-in checks at Needs and offers and beside Save compare
+  names and links against the person's project list. Linking always requires a
+  choice. The current provider exposes verified name and description, so URL
+  matching needs actual source links before it can improve these results.
+- **Learning and education:** `learning` is accepted in matching summaries,
+  publication validation, the draft Lexicon and team-content candidate SQL. Optional
+  public `lenses` are visible in the review. Changing a published lens projection
+  queues withdrawal and requires a new publication review.
+- **Recovery:** a missing first-page list item is checked by its exact ID. Only a
+  confirmed 404 under the same authenticated account clears the saved binding;
+  changed revisions and unavailable services require reload or retry. Device work
+  stays intact. A 503 shows retry, without claiming there are no Certified projects.
+- **Example only:** reminders, account deletion (R42) and fund suggestions remain
+  outside the live service contract. Synthetic records, example controls and the
+  local account switcher are excluded from production bundles.
 
-## What this round changed
+## Public search before sign-in
 
-- The design branch now sits on `develop`. Where both changed the same file, the live
-  wiring was kept: project directory, team workspace, Certified suggestions, viewer
-  read-only states, open-ended sharing and private saves with no kind of support.
-- The team workspace is named for its initiative and says in one line what the person
-  can do. Its sections use the plain names: What you need, What you can offer, Partners
-  for you, Sharing for matching. An open entry no longer carries an "Open" label.
-- Live Your initiatives: cards open from their names, the project picker no longer
-  shows raw group identifiers, the account section is one line with the rest in a
-  disclosure, and a saved card shows no disabled button. It went from about 80 words
-  and eight actions to about 50 words and five.
-- The group address field has its hint between label and control.
+Certified's API repository defines an unauthenticated
+[`org.hypercerts.collection.searchCollections` query](https://github.com/hypercerts-org/api/blob/dcd83196ac47c94866b55bfdca480cf8b944e6fc/packages/api/src/lexicons/org/hypercerts/collection/searchCollections.defs.ts).
+It accepts a search string and a project-type filter; the documented match is a
+case-insensitive substring of title or short description. The contract was
+verified, but a live response could not be checked from this environment. It is
+not a URL-duplicate query, an exhaustive index guarantee or proof of ownership.
 
-## Documentation conflicts
+This round does not send a visitor's private card to public search. A future
+pre-sign-in check should use a deliberate public search action, explain the words
+being sent, review indexed coverage and limits, and retain explicit linking after
+sign-in.
 
-1. Share length, resolved: `open-decisions.md` called the 90-day cap the preview's
-   rule; `develop` made shares open-ended, so the preview follows and the note says so.
-2. Entries without a kind of support, resolved: the decision allows a private save with
-   none, so the device no longer blocks it.
-3. Two sets of screens, open: the design and live screens show the same journeys in
-   different shapes. The prompt below asks to converge them.
-4. Launch metric, open: the PRD's metric now asks for every lens, six with Learning and
-   education (DL-040). The council should confirm.
+## Rendered verification
 
-## Prompt for the backend agent
+Proof class: **fixture, Codex in-app browser**, using the `app-fixture` environment
+on port 5175. No hosted bridge was needed. At 360 px and 1280 px, light and dark
+views were inspected with keyboard interaction; the checked pages had no
+horizontal overflow. The five-minute review covered the card, status rows,
+audiences, focus visibility, modal dismissal and recovery.
+
+Observed flows include private team editing, an editable support suggestion,
+Escape preserving unfinished words, private save, selected sharing with the
+unselected offer remaining private, a direct fit afterward, Home resuming the
+team, admin pending invitations, handle resolution, member setup request and
+private save surviving reload, viewer read-only suggestions, and the 503 retry
+state preserving the device card. Keyboard checks included opening the edit and
+sharing dialogs, Tab and Shift+Tab traversal and retained focus after saving.
+This is focused browser proof, not a complete accessibility audit.
+
+Run `WEAVE_ACCOUNT_FIXTURE=1 bun run --filter @weave/app dev --port 5175` when that
+port is free. `/__fixture` selects a synthetic viewer, editor, admin, member or
+unavailable-service account. The admin starts with pending invitations. The member
+has a project that needs setup. These controls exist only in the local fixture
+server and do not change the production tester gate.
+
+## Independent review, 11 November 2026
+
+Separate reviewers inspected the API/database boundaries and the app state/access
+flows. The API review found no actionable defects. The app review found three
+regressions, now fixed and re-reviewed: first-page refresh could hide older private
+saves, results-only matching omitted retry feedback, and hiding a sharing or
+publication task discarded uncertain request state.
+
+Account pagination now resets when its first page changes and rejects a stale
+in-flight page. Every matching view retains notices and exact-command retry.
+Sharing and publication tasks retain their instances when hidden, while nested
+reviews follow visibility. A delayed native close event cannot close a different
+task. Regression tests cover pagination and retry command identity. The local
+Codex browser also confirmed that a sharing choice survives closing the task,
+opening publication and reopening sharing, using Escape and Enter at 360 px in
+dark and 1280 px in light. No public write was made in that check.
+
+The user authorized commit and merge into `develop` after review and fixes, while
+explicitly deferring live validation. No deployment, tester-gate change or SQL
+application is part of that integration. Hosted preview proof remains a release
+check rather than evidence claimed by this merge.
+
+## Before release
+
+Local checks passed: `bun run ci` ran 129 site/catalog tests, 156 API tests,
+207 app tests, 20 design-system tests and 78 harness tests successfully. The 38
+opt-in PostgreSQL, Auth and PostgREST checks skipped. `bun run typecheck` and
+`git diff --check` passed. CI also verified guidance, current design tokens and
+the exclusion of synthetic fixtures from the production bundle. The app guide's
+social-module description was updated to match the live adapter and passed the
+guidance check. No dependencies, lockfile or tracked generated output changed.
+
+1. Execute the opt-in PostgreSQL, Auth and PostgREST suites against an isolated
+   database. Candidate SQL has not been applied to Platform in this round.
+2. Validate real Certified group creation, named profiles, handle resolution,
+   invitations, setup approval and access changes with the approved two accounts.
+   Repeat sign-in and private save/load across a redeploy.
+3. Keep group public publication disabled until the hosted group service proves
+   conditional deletion and read-back. Review and withdrawal tests are not proof of
+   successful public publication.
+4. Confirm permitted corpus ingestion, refresh/removal, match quality and latency.
+   Semantic retrieval remains disabled. Confirm the six-lens launch metric with
+   the council; the learning lens does not resolve that product metric decision.
+
+## Implementation request, 10 November 2026
 
 > The Weave design branch is rebased onto `develop` (`0520df8`) in the pull request
 > that adds this file. It keeps your live wiring and adds the second design review,

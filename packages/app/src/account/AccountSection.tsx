@@ -24,7 +24,7 @@ export function AccountSection({
 }) {
   const id = useId();
   const Title = compact ? "h3" : "h2";
-  const { state, refresh, clear, returnResult, acknowledgeReturn } = useAccount();
+  const { state, refresh, clear, returnResult, acknowledgeReturn, missingRecord, savedCheck } = useAccount();
   const { controller, draft, ready, storage } = useDraft();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(() => signInReturnMessage(returnResult));
@@ -38,7 +38,7 @@ export function AccountSection({
   const [more, setMore] = useState(true);
   const key = accountKey(draft),
     saved = draft.account.saved;
-  const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key;
+  const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key && savedCheck === "present";
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -127,6 +127,7 @@ export function AccountSection({
       <Title className="rc-heading" data-size="section" id={`${id}-title`}>
         {compact ? "Save your initiative" : "Your account"}
       </Title>
+      {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here. You can save it again.</p>}
       {!state ? (
         <>
           <p>Account access could not be checked yet.</p>

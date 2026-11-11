@@ -11,13 +11,13 @@ import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { matchingRequest } from "./matching-client.ts";
 
 /** Public publication is independent of the Weave share. Only reviewed fields reach AT Protocol. */
-export function PublicSupport({ workspaceId, saved, readOnly }: {
-  workspaceId: string; saved: SavedInitiative; readOnly: boolean;
+export function PublicSupport({ workspaceId, saved, readOnly, expanded = false, visible = true }: {
+  workspaceId: string; saved: SavedInitiative; readOnly: boolean; expanded?: boolean; visible?: boolean;
 }) {
   const { state } = useAccount();
-  return state?.user ? <AccountPublicSupport key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} saved={saved} readOnly={readOnly} /> : null;
+  return state?.user ? <AccountPublicSupport key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} saved={saved} readOnly={readOnly} expanded={expanded} visible={visible} /> : null;
 }
-function AccountPublicSupport({ workspaceId, saved, readOnly }: { workspaceId: string; saved: SavedInitiative; readOnly: boolean }) {
+function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible }: { workspaceId: string; saved: SavedInitiative; readOnly: boolean; expanded: boolean; visible: boolean }) {
   const [listings, setListings] = useState<PublicListing[]>([]), [review, setReview] = useState<PublicReview | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState("");
@@ -98,7 +98,8 @@ function AccountPublicSupport({ workspaceId, saved, readOnly }: { workspaceId: s
   const entries = (["need", "offer"] as const).flatMap((kind) => saved.document[kind === "need" ? "needs" : "offers"]
     .filter((entry) => entry.value.status === "open" && Array.isArray(entry.value.capitalForms) && entry.value.capitalForms.length > 0)
     .map((entry) => ({ kind, entryId: entry.id, title: String(entry.value.title) })));
-  return <details className="rc-stack" aria-busy={busy}><summary>Public support listings</summary>
+  const Container = expanded ? "div" : "details";
+  return <Container className="rc-stack" aria-busy={busy}>{!expanded && <summary>Public support listings</summary>}
     <p>Public listings can be read outside Weave. Publishing is separate from sharing for matching.</p>
     <ul className="rc-ask-summary">{entries.map((e) => <li key={`${e.kind}/${e.entryId}`}><strong>{e.title}</strong>
       {!readOnly && <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
@@ -124,7 +125,8 @@ function AccountPublicSupport({ workspaceId, saved, readOnly }: { workspaceId: s
     {pending && !readOnly && <button className="rc-button" data-variant="secondary" disabled={busy}
       onClick={() => void run(pending, true)}>Retry the same public request</button>}
     {consent && !readOnly && <ConsentButton action={consent} />}{notice && <p role="status">{notice}</p>}
-    <TaskDialog title="Review public listing" open={review !== null && !readOnly} onClose={() => { if (!busy && !pending) setReview(null); }}>
+    <TaskDialog title="Review public listing" open={visible && review !== null && !readOnly}
+      onClose={() => { if (visible) setReview(null); }}>
       {review && <div className="rc-stack"><p>Anyone can read these fields. Removing the listing cannot erase copies other apps have already made.</p>
         <Facts items={publicReviewFacts(review)} />
         <p className="rc-meta">Repository: {review.destination}</p>
@@ -133,5 +135,5 @@ function AccountPublicSupport({ workspaceId, saved, readOnly }: { workspaceId: s
             requestId: crypto.randomUUID(), audience: "public-atproto", confirmPublic: true }, true)}>Publish these fields publicly</button>
       </div>}
     </TaskDialog>
-  </details>;
+  </Container>;
 }

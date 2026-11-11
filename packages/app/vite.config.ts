@@ -33,6 +33,19 @@ export function apiRoutes(): Plugin {
     name: "weave-api-routes",
     apply: "serve",
     configureServer(server) {
+      if (process.env.WEAVE_ACCOUNT_FIXTURE === "1") server.middlewares.use("/__fixture", async (request, response) => {
+        const body: Buffer[] = [];
+        let size = 0;
+        for await (const chunk of request) { size += chunk.length; if (size > 1024) { response.statusCode = 413; response.end(); return; } body.push(chunk); }
+        const fixture = await server.ssrLoadModule("/dev/fixture-control.ts");
+        const result: Response = await fixture.fixtureControl(new Request(`http://${request.headers.host}/__fixture`, {
+          method: request.method, headers: Object.fromEntries(Object.entries(request.headers).flatMap(([key, value]) => value === undefined ? [] : [[key, Array.isArray(value) ? value.join(", ") : value]])),
+          ...(request.method === "POST" ? { body: Buffer.concat(body) } : {}),
+        }));
+        response.statusCode = result.status;
+        result.headers.forEach((value, key) => response.setHeader(key, value));
+        response.end(await result.text());
+      });
       server.middlewares.use(
         "/api",
         serve(join(server.config.root, "api"), isolateFixtureProjectOAuth(process.env.WEAVE_ACCOUNT_FIXTURE === "1", async (name) => {

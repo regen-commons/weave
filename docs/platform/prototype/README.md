@@ -65,7 +65,7 @@ The script runs `bun run --filter @weave/app prototype`, which builds the app wi
 
 ### Services the preview waits for
 
-The example account in `packages/app/src/social` stands in for services that are not built or not wired yet. `SocialService` in `src/social/fixture.ts` is the seam: each call below needs a real contract before its screen can leave the examples. Without a fixture the app shows only what is live today, which is Certified sign-in and the private save in `src/account`, with no project, sharing or publishing rows.
+The example account in `packages/app/src/social` supplies synthetic records for design review. The agreed initiative and project screens also use a live adapter for same-origin account and project APIs. Sharing and publication use the existing server-reviewed commands in focused dialogs. The [journey coverage](journey-coverage.md) owns current integration status, local proof and remaining hosted checks. The table below maps the example calls to the service behavior; it is not evidence of a deployed flow.
 
 | The interface does this | Example call | The service has to provide |
 |---|---|---|
@@ -80,9 +80,8 @@ The example account in `packages/app/src/social` stands in for services that are
 | Partners from other teams | Example teams in `src/partners` | Search over the entries other teams shared, open only to an initiative that shares an open entry. |
 | Save a match | `saveLead`, `removeLead` | A saved match kept with the account. Saving one sends nothing to the other initiative. |
 
-Four points affect the design and need an answer from the service side:
-
-- The live private save still rejects a need or offer with no kind of support. The first-release flows allow that for a private save, so the interface says it before the tap until the service changes.
-- After a shared or published card changes, the status line says the earlier version is out of matching, or the earlier listing is being withdrawn, and the changes stay private until the person shares or publishes again. The first-release flows ask for this. The example reads the change from the device draft and treats the whole share as changed. The ready-made shared and published examples do not notice a later change, so these lines show only after sharing or publishing during the visit. The service learns of a change at the next save and tracks each need and offer on its own, so the real lines have to follow that.
-- A share that changed since stops opening other teams' shared entries in the example, because searching them needs one open shared entry. The service has to say whether an unchanged entry in the same share keeps that search open.
-- Publishing reads the person's role from the Certified group. A plain member sees why there is no publish action, so the role has to arrive with the project.
+Private saves may omit kinds of support; sharing requires a reviewed choice. The
+server tracks sharing by entry and removes changed entries from matching. An
+unchanged shared entry can keep network search open. Public publishing remains a
+separate review, with authority verified on the server. Reminders, account deletion
+and fund suggestions still need live contracts before leaving the examples.

@@ -34,7 +34,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/describe/` | Validated device draft, IndexedDB writer and local extraction adapters |
 | `src/intake/` | Need/offer contracts, review rules, local extraction and checked-card text |
 | `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, and a card started from a Certified project |
-| `src/social/` | Development-only example account: Certified sign-in, explicit saving, the project link and team workspace, sharing for matching, publishing, reminders and saved leads |
+| `src/social/` | Shared initiative/project screens, the live account and project adapter, sharing/publication dialogs, and development-only example services. Reminders and account deletion remain examples. |
 | `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |

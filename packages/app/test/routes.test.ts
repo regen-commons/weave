@@ -18,9 +18,12 @@ import {
   splitRoute,
 } from "../src/routes.ts";
 
-test("each page has a unique path, name and title", () => {
-  for (const key of ["path", "name", "title"] as const)
+test("each route has a unique path and name; device and team routes use the same initiative page title", () => {
+  for (const key of ["path", "name"] as const)
     assert.equal(new Set(ROUTES.map((route) => route[key])).size, ROUTES.length, key);
+  assert.deepEqual(ROUTES.filter(route => route.title === "Your initiative").map(route => route.name), ["your-initiative", "team-workspace"]);
+  const otherTitles = ROUTES.filter(route => route.title !== "Your initiative").map(route => route.title);
+  assert.equal(new Set(otherTitles).size, otherTitles.length);
   assert.deepEqual(
     INTAKE_STEPS.map((step) => step.route),
     ["initiative", "needs", "your-initiative"],
@@ -199,7 +202,7 @@ test("a team workspace opens only from a canonical workspace identifier", async 
   const path = teamWorkspacePath(id);
   assert.equal(matchRoute(path)?.name, "team-workspace");
   assert.equal(matchRoute(path)?.id, id);
-  assert.equal(documentTitle(matchRoute(path)), "Team workspace | Weave");
+  assert.equal(documentTitle(matchRoute(path)), "Your initiative | Weave");
   assert.equal(returnTask(path), path);
   for (const value of ["/workspaces/unknown", `${path}/other`, `${path}?return=//example.org`]) {
     assert.equal(matchRoute(value), undefined);

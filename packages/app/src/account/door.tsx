@@ -3,6 +3,9 @@ import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo, matchRoute } from "../routes.ts";
 import { ExampleDoor, type DoorIntent } from "../social/Door.tsx";
 import { useSocialFixture } from "../social/context.tsx";
+import { useAccount } from "./context.tsx";
+import { PrivateSaveAction } from "./PrivateSaveAction.tsx";
+import { useCardStatus } from "../initiative/use-card-status.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { AccountSection } from "./AccountSection.tsx";
 const DoorContext = createContext<((intent?: DoorIntent) => void) | null>(null);
@@ -10,6 +13,9 @@ const RETURNS = ["signed-in", "failed", "cancelled"];
 /** The one account door. Sign-in returns to the task; saving stays a separate choice. */
 export function AccountDoorProvider({ children }: { children: ReactNode }) {
   const social = useSocialFixture();
+  const account = useAccount();
+  const status = useCardStatus();
+  const [message, setMessage] = useState("");
   // Coming back from Certified reopens the door where the person left it, unless the page shows the account itself.
   const [intent, setIntent] = useState<DoorIntent | null>(() =>
     RETURNS.includes(new URLSearchParams(window.location.search).get("account") ?? "") &&
@@ -44,6 +50,12 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
                 navigate(fixtureHref(pathTo("your-initiatives"), routeSearch(), true));
             }}
           />
+        ) : account.state?.user && intent === "keep" ? (
+          <div className="rc-stack"><p>{status.line}</p>
+            {status.save && <><p className="rc-meta">{status.save.note}</p>
+              <PrivateSaveAction onFailed={setMessage} onSaved={() => setIntent(null)}>{status.save.label}</PrivateSaveAction></>}
+            {message && <p role="alert">{message}</p>}
+          </div>
         ) : (
           <AccountSection autoFocus onBeginCard={() => setIntent(null)} />
         )}

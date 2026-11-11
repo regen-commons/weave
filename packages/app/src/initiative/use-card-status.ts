@@ -13,10 +13,14 @@ export function useCardStatus(): CardStatus {
   const user = account.state?.user;
   const held: AccountSave = !user
     ? "signed-out"
-    : saved?.owner !== user.id
+    : saved?.owner !== user.id || account.savedCheck !== "present"
       ? "none"
       : saved.contentKey === accountKey(draft)
         ? "current"
         : "changed";
-  return cardStatus(draft, storage, import.meta.env.DEV && social ? social.state : null, held);
+  const result = cardStatus(draft, storage, import.meta.env.DEV && social ? social.state : null, held);
+  if (!social && account.savedCheck === "changed") return { ...result, save: null, line: "Your saved copy changed elsewhere. Open its latest version from Your initiatives. Your device draft is still here." };
+  if (!social && (account.savedCheck === "checking" || account.savedCheck === "unavailable"))
+    return { ...result, save: null, line: account.savedCheck === "checking" ? "Checking your saved copy." : "Your saved copy could not be checked. Your device draft is still here." };
+  return !social && account.missingRecord ? { ...result, line: "This card is no longer saved in your account. Your device copy is still here. Save it again when ready." } : result;
 }

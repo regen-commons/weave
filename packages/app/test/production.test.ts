@@ -24,6 +24,9 @@ test("production bundles exclude the development fixture records and controls", 
     "describe-example",
     "intake-example",
     "Fictional matching example",
+    "Local fixture controls",
+    "Open fixture account",
+    "Synthetic accounts only.",
     "Step 4 examples seed",
     "Fictional funding examples",
     "Confirm example request",
@@ -41,7 +44,6 @@ test("production bundles exclude the development fixture records and controls", 
     "Upper valley growers",
     "Valley seed keepers",
     "Spring water notes",
-    "You have no project on Certified yet",
     "An example change that could not be saved.",
     "Example only. No reminder",
     "Example stopped.",
@@ -54,7 +56,6 @@ test("production bundles exclude the development fixture records and controls", 
     "Continue to Weave as",
     "Weave learns who you are on Certified and nothing else.",
     "Create this project as",
-    "Which project is this initiative?",
     "A group shares from its team workspace.",
     "Turn on the reminder",
     "Saved. No invitation is sent.",
@@ -69,4 +70,7 @@ test("production bundles exclude the development fixture records and controls", 
   ]) {
     assert.ok(!bundle.includes(fixtureOnly), `${fixtureOnly} leaked into the production bundle`);
   }
+  // These agreed screens now use real project discovery in production; only their synthetic data stays excluded.
+  for (const liveCopy of ["You have no project on Certified yet", "Which project is this initiative?"])
+    assert.ok(bundle.includes(liveCopy), `${liveCopy} is missing from the live project screens`);
 });

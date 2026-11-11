@@ -1,6 +1,4 @@
-import { CreateProject, ProjectDirectory } from "../initiative/ProjectDirectory.tsx";
-import { useAccount } from "../account/context.tsx";
-import { AccountSection } from "../account/AccountSection.tsx";
+import { NewProject } from "../initiative/NewProject.tsx";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useDraft } from "../describe/use-draft.ts";
@@ -12,7 +10,9 @@ import { Facts } from "../ui/Facts.tsx";
 import { keepFocusOnPage } from "../ui/focus.ts";
 import { StatusLine } from "../ui/StatusLine.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
-import { useSocialFixture } from "./context.tsx";
+import { useSocial } from "./context.tsx";
+import { useAccountDoor } from "../account/door.tsx";
+import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { ExampleDoor } from "./Door.tsx";
 import { EXAMPLE_HANDLE, type CertifiedRecord, type ProjectLink } from "./fixture.ts";
 import { linkEffect, projectLine, publicFacts, replacesCard, workspaceLine, workspaceOpenLine } from "./words.ts";
@@ -22,11 +22,11 @@ const NEW = "new";
 
 /**
  * Ties the initiative to a Certified project: one the person already has, or a new one made
- * from the checked card. Linking and creating are example steps until Weave can read projects
- * and group membership from Certified.
+ * from the checked card. The live adapter reads projects and membership; development examples
+ * use the same choice with synthetic records.
  */
 export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): void; onCancel(): void }) {
-  const fixture = useSocialFixture();
+  const fixture = useSocial();
   const { draft, controller } = useDraft();
   const name = useId();
   const [choice, setChoice] = useState<string | null>(null);
@@ -38,9 +38,10 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
   useEffect(() => {
     body.current?.querySelector<HTMLElement>("[data-task-focus]:not(:disabled)")?.focus();
   }, [step]);
-  if (!import.meta.env.DEV || !fixture) return null;
+  if (!fixture) return null;
   const { service, state, refresh } = fixture;
-  const records = state.records;
+  const live = fixture.mode === "live";
+  const records = [...state.records, ...(state.workspaces ?? [])];
   const card = publicCard(draft);
   const picked = records.length ? choice : NEW;
   const record = records.find((item) => item.uri === picked);
@@ -73,7 +74,13 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
       return linked;
     });
   }
-  if (step === "certified")
+  if (live && !records.length && (fixture.loading || fixture.problem)) return <div className="rc-stack">
+    <p role="status">{fixture.loading ? "Checking your Certified projects" : fixture.problem}</p>
+    {fixture.consent ? <ConsentButton action="membership" /> : fixture.problem && <button className="rc-button" data-variant="secondary" type="button" onClick={() => void fixture.reload?.()}>Try again</button>}
+    <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Not now</button>
+  </div>;
+  if (live && picked === NEW) return <NewProject onDone={() => { void fixture.reload?.(); onCancel(); }} />;
+  if (import.meta.env.DEV && step === "certified")
     return (
       <div className="rc-stack" aria-busy={busy} ref={body}>
         <p className="rc-eyebrow">Certified</p>
@@ -115,6 +122,9 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
     );
   return (
     <div className="rc-stack" aria-busy={busy} ref={body}>
+      {fixture.loading && <p role="status">Checking your Certified projects</p>}
+      {fixture.problem && <p role="status">{fixture.problem}</p>}
+      {fixture.consent && <ConsentButton action="membership" />}
       {records.length > 0 ? (
         <fieldset className="rc-choice-group">
           <legend>Which project is this initiative?</legend>
@@ -159,17 +169,16 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
             Use {record.name}
           </h3>
           <Facts items={publicFacts(record)} />
-          <p>{linkEffect(record, !!state.saved)}</p>
+          <p>{live ? "Linking keeps your needs and offers private. Saving to a team is a separate reviewed action." : linkEffect(record, !!state.saved)}</p>
           <p>
             {replacesCard(card, record)
-              ? "These four details replace the ones on your card. Your needs and offers stay as they are."
+              ? live ? "The verified name and description replace those on your card. Your needs and offers stay as they are." : "These four details replace the ones on your card. Your needs and offers stay as they are."
               : "Your needs and offers stay as they are."}
           </p>
           <details>
             <summary className="rc-footer-link">Where these details come from</summary>
             <p>
-              After linking, the name, place, description and links come from Certified. Change them there and Weave
-              shows the latest.
+              {live ? "The name and description come from Certified. Other details stay on your card." : "After linking, the name, place, description and links come from Certified. Change them there and Weave shows the latest."}
             </p>
           </details>
           <div className="rc-action-bar">
@@ -261,8 +270,18 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
             {message}
           </p>
         ))}
+      {live && record?.role === "owner" && failed && service.recoverWorkspace && <details>
+        <summary className="rc-footer-link">Recover a workspace without an admin</summary>
+        <p>A verified Certified group owner can recover an existing workspace only when it has no active admin. Saved team work is preserved.</p>
+        <button className="rc-button" data-variant="secondary" type="button" disabled={busy}
+          onClick={() => void run(async () => { await service.recoverWorkspace!(record.uri); return projectLinkForRecovery(record); })}>Recover workspace access</button>
+      </details>}
     </div>
   );
+}
+
+function projectLinkForRecovery(record: CertifiedRecord): ProjectLink {
+  return { ...record, workspace: "open", requestedOn: null, created: false };
 }
 
 /** Opens the project step from a page: sign in first when needed, then link or create. */
@@ -275,16 +294,10 @@ export function ProjectAction({
   size?: "sm";
   children?: ReactNode;
 }) {
-  const fixture = useSocialFixture();
+  const fixture = useSocial();
   const [open, setOpen] = useState(false);
-  const { state: account } = useAccount();
-  // Outside the example world the real project directory and group creation run.
-  if (!(import.meta.env.DEV && fixture)) return <>
-    <button className="rc-button" data-variant={variant} data-size={size} type="button" onClick={() => setOpen(true)}>{children}</button>
-    <TaskDialog title="Your Certified project" open={open} onClose={() => setOpen(false)}>
-      {account?.user ? <><ProjectDirectory /><CreateProject /></> : <AccountSection autoFocus />}
-    </TaskDialog>
-  </>;
+  const openDoor = useAccountDoor();
+  if (!fixture) return null;
   const close = () => setOpen(false);
   return (
     <>
@@ -293,21 +306,21 @@ export function ProjectAction({
         data-variant={variant}
         data-size={size}
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => fixture.mode === "live" && !fixture.state.identity ? openDoor("certified") : setOpen(true)}
       >
         {children}
       </button>
       <TaskDialog title="Your Certified project" open={open} onClose={close}>
         {fixture.state.identity ? (
           <ProjectStep onDone={close} onCancel={close} />
-        ) : (
+        ) : import.meta.env.DEV ? (
           <ExampleDoor
             reason="Sign in with Certified to find your projects."
             onDone={(result) => {
               if (result === "cancelled") close();
             }}
           />
-        )}
+        ) : null}
       </TaskDialog>
     </>
   );
@@ -319,12 +332,12 @@ export function ProjectAction({
  * When the workspace opens while the row is on screen, the row stays to say so.
  */
 export function WorkspaceRow({ primary = false, focus = false }: { primary?: boolean; focus?: boolean }) {
-  const fixture = useSocialFixture();
+  const fixture = useSocial();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   /** The project whose workspace opened here, so a later link to another project does not inherit the line. */
   const [opened, setOpened] = useState<string | null>(null);
-  if (!import.meta.env.DEV || !fixture) return null;
+  if (!fixture) return null;
   const { service, state, refresh } = fixture;
   const project = state.identity ? state.project : null;
   if (!project) return null;
@@ -368,7 +381,7 @@ export function WorkspaceRow({ primary = false, focus = false }: { primary?: boo
                 )
               }
             >
-              {asked ? "Check again" : "Ask for a team workspace"}
+              {asked ? "Check again" : project.role === "member" ? "Ask for a team workspace" : "Set up team workspace"}
             </button>
           ) : undefined
         }

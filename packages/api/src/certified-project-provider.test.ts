@@ -24,6 +24,37 @@ const fullProject = {
   uri, cid, repoDid: groupDid, groupDid,
   title: draft.title, description: draft.description, createdAt: date, visibility: "public",
 };
+
+test("teammate handles require the DID document to confirm the same alias and an approved PDS", async () => {
+  const target = "teammate.certified.one";
+  const good = fixture(url => url.pathname === "/xrpc/com.atproto.identity.resolveHandle"
+    ? Response.json({ did: recipientDid }) : Response.json({ ...identity(recipientDid), alsoKnownAs: [`at://${target}`] }));
+  assert.deepEqual(await good.provider.resolveHandle(`@${target.toUpperCase()}`), { ok: true, value: { did: recipientDid, handle: target } });
+  const mismatched = fixture(url => url.pathname === "/xrpc/com.atproto.identity.resolveHandle"
+    ? Response.json({ did: recipientDid }) : Response.json(identity(recipientDid)));
+  assert.deepEqual(await mismatched.provider.resolveHandle(target), { ok: false, code: "conflict" });
+  const untrusted = fixture(url => url.pathname === "/xrpc/com.atproto.identity.resolveHandle"
+    ? Response.json({ did: recipientDid }) : Response.json({ ...identity(recipientDid), service: [
+      { id: "#atproto_pds", type: "AtprotoPersonalDataServer", serviceEndpoint: "https://untrusted.example.test" },
+    ] }));
+  assert.deepEqual(await untrusted.provider.resolveHandle(target), { ok: false, code: "unsupported" });
+  assert.equal(untrusted.calls.length, 2);
+  assert.deepEqual(await good.provider.resolveHandle("person@example.test"), { ok: false, code: "invalid_input" });
+  const down = fixture(() => badGateway());
+  assert.deepEqual(await down.provider.resolveHandle(target), { ok: false, code: "unavailable" });
+});
+
+test("group discovery enriches names and handles without deriving roles from public profile fields", async () => {
+  const { provider } = fixture(url => {
+    if (url.origin === cgs) return Response.json({ groups: [{ groupDid, role: "member", joinedAt: date }] });
+    if (url.origin === "https://plc.directory") return Response.json(identity(groupDid, cgs));
+    return Response.json({ uri: `at://${groupDid}/app.certified.actor.profile/self`, cid,
+      value: { $type: "app.certified.actor.profile", displayName: "Watershed growers", role: "owner" } });
+  });
+  assert.deepEqual(await provider.listMemberships(actorDid), { ok: true, value: { groups: [
+    { groupDid, role: "member", joinedAt: date, handle: groupHandle, displayName: "Watershed growers" },
+  ] } });
+});
 const missingRecord = () => Response.json({ error: "RecordNotFound" }, { status: 400 });
 const badGateway = () => Response.json({ error: "upstream private details" }, { status: 502 });
 

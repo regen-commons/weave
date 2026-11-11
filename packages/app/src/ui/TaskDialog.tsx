@@ -11,11 +11,18 @@ export function TaskDialog({
   open,
   onClose,
   children,
+  blockClose,
+  onCloseBlocked,
+  retainContents = false,
 }: {
   title: string;
   open: boolean;
   onClose(): void;
   children: ReactNode;
+  blockClose?: boolean;
+  onCloseBlocked?(): void;
+  /** Keep an interrupted request available when its task is hidden and reopened. */
+  retainContents?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const shown = useRef(false);
@@ -37,12 +44,14 @@ export function TaskDialog({
       presentation="task"
       title={title}
       open={open}
+      blockClose={blockClose}
+      onCloseBlocked={onCloseBlocked}
       onClose={() => {
         keepFocusOnPage();
         onClose();
       }}
     >
-      {open && children}
+      {(open || retainContents) && children}
     </Dialog>
   );
 }

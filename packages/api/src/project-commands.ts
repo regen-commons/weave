@@ -51,6 +51,12 @@ export function parseProjectCommand(value: Record<string, unknown>) {
     } as const;
   }
   const { uri } = parseProjectUri(value.projectUri);
+  if (action === "resolve_teammate") {
+    keys(value, ["action", "projectUri", "workspaceId", "handle"]);
+    if (!uuid(value.workspaceId) || typeof value.handle !== "string" || value.handle.length > 254
+      || !/^@?(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z][a-zA-Z0-9-]{0,62}$/u.test(value.handle)) invalid();
+    return { action, projectUri: uri, workspaceId: value.workspaceId, handle: value.handle.replace(/^@/u, "").toLowerCase() } as const;
+  }
   if (action === "lookup" || action === "request_setup" || action === "activate") {
     keys(value, ["action", "projectUri"]);
     return { action, projectUri: uri } as const;
@@ -273,6 +279,13 @@ export function createProjectCommands(provider: CertifiedProjectProvider, store:
       return run(command.action, { workspaceId: command.workspaceId });
     }
 
+    if (command.action === "resolve_teammate") {
+      const access = record(await run("lookup"));
+      if (access.workspaceId !== command.workspaceId || access.accessRole !== "admin")
+        throw new AccountError(403, "workspace_admin_required");
+      const recipient = requireCertifiedProjectResult(await provider.resolveHandle(command.handle));
+      return { recipientDid: recipient.did, handle: recipient.handle };
+    }
     if (!did(command.recipientDid)) return invalid();
     const { workspaceId, recipientDid } = command;
     const ownerSuspension = command.action === "suspend_access" && verification.actorRole === "owner";

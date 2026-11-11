@@ -45,7 +45,7 @@ const ok = <T>(value: T): CertifiedProjectResult<T> => ({ ok: true, value });
 const fail = (code: CertifiedProjectError): Failure => ({ ok: false, code });
 
 export type CertifiedGroupRole = "owner" | "admin" | "member";
-export type CertifiedMembership = { groupDid: string; role: CertifiedGroupRole; joinedAt: string };
+export type CertifiedMembership = { groupDid: string; role: CertifiedGroupRole; joinedAt: string; handle?: string; displayName?: string };
 export type CertifiedGroup = { groupDid: string; handle: string };
 export type CertifiedProject = {
   uri: string;
@@ -352,6 +352,17 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     return decode(await fetchJson(url, signal), value => recordEnvelope(value, `at://${repo}/${nsid}/${rkey}`));
   }
 
+  async function actorProfile(did: string, signal: AbortSignal) {
+    const identity = await readIdentity(did, signal);
+    if (!identity.ok) return identity;
+    const aliases = Array.isArray(identity.value.aliases) ? identity.value.aliases : [];
+    const alias = aliases.find((entry): entry is string => typeof entry === "string" && entry.startsWith("at://") && handle.test(entry.slice(5)));
+    const profile = await readRecord(identity.value.pds, did, "app.certified.actor.profile", "self", signal);
+    const displayName = profile.ok && profile.value.value.$type === "app.certified.actor.profile"
+      && validText(profile.value.value.displayName, 640, 64) ? profile.value.value.displayName : undefined;
+    return ok({ did, ...(alias ? { handle: alias.slice(5) } : {}), ...(displayName ? { displayName } : {}) });
+  }
+
   async function readProject(uri: string, signal: AbortSignal) {
     let repo: string;
     try { repo = parseProjectUri(uri).did; } catch { return fail("invalid_input"); }
@@ -413,12 +424,41 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
   }
 
   return {
+    /** Bidirectional handle proof. Only approved PDS origins receive requests; no handle-derived URL is fetched. */
+    async resolveHandle(input: string, cancellation?: AbortSignal) {
+      const normalized = input.trim().replace(/^@/u, "").toLowerCase();
+      if (normalized.length > 253 || !handle.test(normalized)) return fail("invalid_input");
+      const signal = deadline(cancellation);
+      const url = new URL("/xrpc/com.atproto.identity.resolveHandle", groupPds);
+      url.searchParams.set("handle", normalized);
+      const resolved = decode(await fetchJson(url, signal), value => {
+        const { did } = record(value);
+        if (!isDid(did)) throw Error("invalid_handle_resolution");
+        return did;
+      });
+      if (!resolved.ok) return resolved;
+      const identity = await readIdentity(resolved.value, signal);
+      if (!identity.ok) return identity;
+      if (!Array.isArray(identity.value.aliases) || !identity.value.aliases.includes(`at://${normalized}`)) return fail("conflict");
+      return ok({ did: resolved.value, handle: normalized });
+    },
     async listMemberships(actorDid: string, cursor?: string, cancellation?: AbortSignal) {
       if (!isDid(actorDid) || (cursor !== undefined && !isCursor(cursor))) return fail("invalid_input");
-      const result = await readPage(actorDid, deadline(cancellation), cursor);
+      const signal = deadline(cancellation);
+      const result = await readPage(actorDid, signal, cursor);
       if (!result.ok) return result;
+      // Display metadata is optional and never contributes authority. Read in bounded batches.
+      const groups: CertifiedMembership[] = [];
+      for (let start = 0; start < result.value.entries.length; start += 5) {
+        const batch = await Promise.all(result.value.entries.slice(start, start + 5).map(async ({ did: groupDid, role, joinedAt }) => {
+          const profile = await actorProfile(groupDid, signal);
+          return { groupDid, role, joinedAt, ...(profile.ok && profile.value.handle ? { handle: profile.value.handle } : {}),
+            ...(profile.ok && profile.value.displayName ? { displayName: profile.value.displayName } : {}) };
+        }));
+        groups.push(...batch);
+      }
       return ok({
-        groups: result.value.entries.map(({ did: groupDid, role, joinedAt }): CertifiedMembership => ({ groupDid, role, joinedAt })),
+        groups,
         ...(result.value.cursor === undefined ? {} : { cursor: result.value.cursor }),
       });
     },

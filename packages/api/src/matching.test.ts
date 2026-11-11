@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseDocument } from "./account-contract.ts";
 import { createSupabaseWeaveRpc } from "./account-provider.ts";
-import { parseMatchingCommand, parseMatchingSearch, type MatchingProjection } from "./matching-contract.ts";
+import { parseMatchingCommand, parseMatchingSearch, parseMatchingPreview, type MatchingProjection } from "./matching-contract.ts";
 import { createMatchingProvider } from "./matching-provider.ts";
 import { createMatchingHandlers } from "./matching.ts";
 import { PARTNER_ENGINE_VERSION, type ProjectEvidence } from "./partner-matcher.ts";
@@ -39,6 +39,13 @@ const source: ProjectEvidence = {
   passage: "The team runs watershed mapping workshops.", sourceCreatedAt: at, sourceIndexedAt: null,
   fetchedAt: at, extractionVersion: "fixture", kind: "work",
 };
+
+test("sharing reviews accept the learning lens and reject unknown types of work", () => {
+  const review = { reviewId: "50000000-0000-4000-8000-000000000003", initiativeId: owner,
+    initiativeRevision: 1, audience: "weave_users", expiresAt: null, entries: [], summary: { ...summary, lenses: ["learning"] } };
+  assert.deepEqual(parseMatchingPreview(review).summary.lenses, ["learning"]);
+  assert.throws(() => parseMatchingPreview({ ...review, summary: { ...summary, lenses: ["unconfirmed-lens"] } }));
+});
 
 test("rejects foreign origins, missing sessions, duplicate selection and injected draft text before RPC", async () => {
   const provider = createMatchingProvider(async () => assert.fail("request must not reach the database"));

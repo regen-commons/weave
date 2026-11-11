@@ -106,7 +106,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "team-workspace",
     path: "/workspaces/:id",
-    title: "Team workspace",
+    title: "Your initiative",
     form: false,
     section: "your-initiatives",
     parent: "your-initiatives",

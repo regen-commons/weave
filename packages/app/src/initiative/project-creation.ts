@@ -12,6 +12,12 @@ export interface PendingProjectCreate {
 export const projectCreationKey = (owner: string, draftId: string) => `weave-create-project/${owner}/${draftId}`;
 export const projectGroupPattern = "[a-z][a-z0-9\\-]{1,30}[a-z0-9]";
 export const validProjectGroupLabel = (value: string) => new RegExp(`^(?:${projectGroupPattern})$`,"v").test(value);
+export function proposeProjectGroupLabel(name: string, suffix = crypto.randomUUID().slice(0, 6)) {
+  const base = name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "").replace(/^[^a-z]+/u, "").slice(0, 20).replace(/-+$/u, "") || "initiative";
+  if (!/^[a-z0-9]{6}$/u.test(suffix)) throw Error("invalid_address_suffix");
+  return `${base}-${suffix}`;
+}
 export function publicProjectProfile(title: string, description: string) {
   title = title.trim(); description = description.trim();
   if (!title || [...title].length > 80 || [...description].length > 800)
@@ -36,4 +42,36 @@ export function parsePendingProjectCreate(input: unknown): PendingProjectCreate 
 }
 export function clearRejectedProjectCreate(error: unknown) {
   return error instanceof AccountFailure && ["invalid_project_command","group_handle_in_use","group_registration_rejected"].includes(error.code);
+}
+
+/** One durable intent across both screen adapters. Uncertain outcomes always retry the same reviewed request. */
+export async function submitProjectCreate({ owner, draftId, groupLabel, profile, storage, save, request, signal }: {
+  owner: string; draftId: string; groupLabel: string; profile: { title: string; description: string };
+  storage: Pick<Storage, "getItem" | "setItem" | "removeItem">;
+  save(): Promise<{ initiativeId: string; expectedRevision: number }>;
+  request(command: PendingProjectCreate): Promise<Record<string, unknown>>;
+  signal: AbortSignal;
+}) {
+  const key = projectCreationKey(owner, draftId);
+  const raw = storage.getItem(key);
+  let command: PendingProjectCreate | null = null;
+  try { command = raw === null ? null : parsePendingProjectCreate(JSON.parse(raw)); }
+  catch { throw Error("The earlier creation request could not be read. Check your projects on Certified before starting another."); }
+  if (raw !== null && !command) throw Error("The earlier creation request could not be read. Check your projects on Certified before starting another.");
+  if (!command) {
+    if (!validProjectGroupLabel(groupLabel)) throw Error("Use a valid group name in the address before creating the project.");
+    const publicProfile = publicProjectProfile(profile.title, profile.description);
+    const saved = await save(); signal.throwIfAborted();
+    command = { action: "create", ...saved, requestId: crypto.randomUUID(), groupLabel, publicProfile };
+    storage.setItem(key, JSON.stringify(command));
+  }
+  signal.throwIfAborted();
+  try {
+    const result = await request(command); signal.throwIfAborted();
+    if (result.status === "linked" && uuid(result.workspaceId)) storage.removeItem(key);
+    return { result, command };
+  } catch (error) {
+    if (!signal.aborted && clearRejectedProjectCreate(error)) storage.removeItem(key);
+    throw error;
+  }
 }

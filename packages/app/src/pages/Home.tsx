@@ -8,7 +8,9 @@ import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { currentRoute, navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo, routeWith } from "../routes.ts";
-import { useSocialFixture } from "../social/context.tsx";
+import { useSocial } from "../social/context.tsx";
+import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
+import { teamWorkspacePath } from "../routes.ts";
 import { BUILDER, COMMONS, EIGHT_FORMS_OF_CAPITAL } from "../links.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
@@ -30,7 +32,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const { draft } = useDraft();
   const status = useCardStatus();
   const account = useAccount();
-  const social = useSocialFixture();
+  const social = useSocial();
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
   const { recent, upcoming, sharedCount, closingSoon } = homePreviews(
     fixture?.initiatives ?? [],
@@ -40,16 +42,19 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const loading = fixture?.state === "loading";
   const failed = fixture?.state === "error";
   const long = fixture?.state === "long";
-  const example = import.meta.env.DEV && social ? social.state : null;
+  const example = social?.mode === "fixture" ? social.state : null;
+  let resumeId: string | null = null;
+  try { if (account.state?.user) resumeId = readWorkspaceResume(account.state.user.id, window.localStorage); } catch { /* Optional navigation hint. */ }
+  const resume = social?.mode === "live" ? social.state.workspaces?.find(item => item.workspaceId === resumeId && item.group) : null;
   const signedIn = example ? !!example.identity : !!account.state?.user;
   // Initiatives a signed-in person keeps somewhere other than this device.
   const elsewhere = !signedIn
     ? 0
     : example
       ? example.cards.length + example.records.length
-      : (account.state?.items.length ?? 0);
+      : (account.state?.items.length ?? 0) + (social?.state.workspaces?.length ?? 0);
   const route = cardRoute(draft);
-  const doors = homeDoors(status.state !== "none", elsewhere);
+  const doors = homeDoors(status.state !== "none" || !!resume, elsewhere);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = new URLSearchParams({ q: search.trim() });
@@ -71,8 +76,8 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
         actions={
           <>
             {doors.resume && (
-              <ButtonLink href={pathTo(route)} variant="primary" size="lg">
-                {resumeLabel(route)}
+              <ButtonLink href={resume?.workspaceId ? teamWorkspacePath(resume.workspaceId) : pathTo(route)} variant="primary" size="lg">
+                {resume ? "Continue your initiative" : resumeLabel(route)}
               </ButtonLink>
             )}
             {doors.start && (
@@ -143,7 +148,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
         </Heading>
         {doors.resume ? (
           <p className="rc-prose">
-            <strong>{cardName(draft)}</strong>. {status.line}
+            <strong>{resume?.name ?? cardName(draft)}</strong>. {resume ? "Saved in your team workspace." : status.line}
           </p>
         ) : (
           <p className="rc-prose">Describe your initiative once to find support.</p>

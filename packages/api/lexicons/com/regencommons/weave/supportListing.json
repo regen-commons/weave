@@ -86,6 +86,22 @@
             "type": "string",
             "format": "datetime",
             "description": "The reviewed publication version time. It changes on explicit republication, protecting a newer listing from delayed withdrawal of an earlier version."
+          },
+          "lenses": {
+            "type": "array",
+            "maxLength": 5,
+            "description": "Reviewed types of work for the linked initiative. Optional for compatibility with earlier listings; order has no meaning.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "art_culture",
+                "research",
+                "technology",
+                "place_based",
+                "learning",
+                "funders"
+              ]
+            }
           }
         }
       }

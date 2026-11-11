@@ -1,6 +1,4 @@
-import { LiveYourInitiatives } from "../initiative/ProjectDirectory.tsx";
 import { useState } from "react";
-import { AccountSection } from "../account/AccountSection.tsx";
 import { useAccountDoor } from "../account/door.tsx";
 import { newDraft, revise } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
@@ -12,7 +10,10 @@ import { cardName, cardRoute, publicKey } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo } from "../routes.ts";
-import { useSocialFixture } from "../social/context.tsx";
+import { useSocial } from "../social/context.tsx";
+import { PendingInvite } from "../initiative/WorkspaceAccess.tsx";
+import { ConsentButton } from "../initiative/ProjectConsent.tsx";
+import { teamWorkspacePath } from "../routes.ts";
 import type { CertifiedRecord, SavedCard } from "../social/fixture.ts";
 import { projectLine } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -26,10 +27,10 @@ import { AboutCertified } from "../ui/AboutCertified.tsx";
 /**
  * Everything a signed-in person can open: the card on this device, their private saves and
  * their Certified projects. Each card opens from its name, so no card carries a button.
- * The project list is an example until Weave can read projects.
+ * The live adapter reads projects and granted workspaces; development examples use the same layout.
  */
 export function YourInitiatives() {
-  const social = useSocialFixture();
+  const social = useSocial();
   const { draft, controller } = useDraft();
   const status = useCardStatus();
   const openDoor = useAccountDoor();
@@ -37,8 +38,8 @@ export function YourInitiatives() {
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const [starting, setStarting] = useState(false);
-  // Outside the example world the person's real projects and saves are listed.
-  if (!(import.meta.env.DEV && social)) return <LiveYourInitiatives />;
+  if (!social) return null;
+  const live = social.mode === "live";
   const { state, service, refresh } = social;
   const go = (href: string) => navigate(fixtureHref(href, routeSearch(), true));
   async function run(action: () => Promise<void>) {
@@ -68,7 +69,9 @@ export function YourInitiatives() {
         <Heading level={1} size="page">
           Your initiatives
         </Heading>
-        <p>Sign in with Certified to open your projects and what you saved in Weave.</p>
+        {!live && <p>Sign in with Certified to open your projects and what you saved in Weave.</p>}
+        {live && <PendingInvite />}
+        {live && social.loading && <p role="status">Checking your account</p> }
         <AboutCertified />
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="primary" type="button" onClick={() => openDoor("certified")}>
@@ -83,11 +86,16 @@ export function YourInitiatives() {
     );
   const deviceName = cardName(draft);
   const project = onDevice ? state.project : null;
+  const deviceSavedId = draft.account.saved?.owner === state.identity.id ? draft.account.saved?.id : null;
   // The card on this device already stands for its own private save and its own project.
-  const cards = state.cards.filter((card) => !(onDevice && card.id === state.saved?.card));
-  const records = state.records.filter((record) => record.uri !== project?.uri);
-  const total = (onDevice ? 1 : 0) + cards.length + records.length;
+  const cards = state.cards.filter((card) => !(onDevice && card.id === (state.saved?.card ?? deviceSavedId))
+    && !(state.workspaces ?? []).some(record => record.workspaceId === card.id));
+  const workspaces = state.workspaces ?? state.records.filter(record => record.workspace);
+  const records = state.records.filter((record) => !record.workspace && record.uri !== project?.uri);
+  const total = (onDevice ? 1 : 0) + cards.length + workspaces.length + records.length;
   async function openCard(card: SavedCard) {
+    if (live) { await service.openCard(card.id, null); go(pathTo("your-initiative")); return; }
+    if (import.meta.env.DEV) {
     const seed = intakeFixture("kept", pathTo("your-initiative"));
     const next = revise(seed, {
       proposal: { ...seed.proposal!, name: card.name },
@@ -98,9 +106,15 @@ export function YourInitiatives() {
     await controller.replace(next);
     await service.openCard(card.id, publicKey(next));
     go(pathTo(cardRoute(next)));
+    }
   }
   async function openRecord(record: CertifiedRecord) {
-    if (record.workspace) {
+    if (live && record.workspace) {
+      if (!record.group && record.workspaceId) { await service.openCard(record.workspaceId, null); go(pathTo("your-initiative")); }
+      else await service.openWorkspace(record.uri, null);
+      return;
+    }
+    if (import.meta.env.DEV && record.workspace) {
       // The team workspace already holds this initiative's needs and offers.
       const next = draftWithRecord(intakeFixture("kept", pathTo("your-initiative")), record);
       await controller.replace(next);
@@ -127,7 +141,7 @@ export function YourInitiatives() {
         Your initiatives
       </Heading>
       <div className="rc-action-bar">
-        <p className="rc-meta">Signed in as {state.identity.handle}.</p>
+        <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
         <button
           className="rc-button"
           data-variant="quiet"
@@ -144,7 +158,18 @@ export function YourInitiatives() {
           Sign out
         </button>
       </div>
-      {total === 0 && (
+      {live && <PendingInvite />}
+      {social.loading && <p role="status">Checking your Certified projects</p>}
+      {social.problem && <p role="status">{social.problem}</p>}
+      {social.consent ? <ConsentButton action="membership" /> : social.problem && <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try again</button>}
+      {!!state.setupRequests?.length && <Section id="setup-requests" title="Workspace requests">
+        <ul className="rc-ask-summary">{state.setupRequests.map(request => <li key={request.requestId}><strong>{request.name}</strong>
+          <p className="rc-meta">Approval sets up the team's workspace. The requester still needs an explicit access grant.</p>
+          <button className="rc-button" data-variant="secondary" type="button" disabled={busy}
+            onClick={() => void run(async () => { await service.approveSetup?.(request.projectUri, request.requestId); })}>Approve workspace</button>
+        </li>)}</ul>
+      </Section>}
+      {total === 0 && !social.loading && !social.problem && (
         <EmptyState
           title="Nothing here yet"
           action={
@@ -156,7 +181,7 @@ export function YourInitiatives() {
           Your Certified projects and what you save in Weave appear here.
         </EmptyState>
       )}
-      {(onDevice || cards.length > 0) && (
+      {(onDevice || cards.length > 0 || workspaces.length > 0) && (
         <Section id="initiatives-weave" title="In Weave">
           <CardGrid>
             {onDevice && (
@@ -173,6 +198,12 @@ export function YourInitiatives() {
                 </Card>
               </li>
             )}
+            {workspaces.filter(record => record.group || record.workspaceId !== (onDevice ? state.saved?.card ?? deviceSavedId : undefined)).map(record => (
+              <li key={record.uri}><Card><h3 className="rc-card-title"><button type="button" disabled={busy}
+                onClick={() => void run(() => openRecord(record))}>{record.name}</button></h3>
+                <p className="rc-card-meta">{record.group ? `Team workspace, ${record.accessRole === "viewer" ? "you can view" : record.accessRole === "admin" ? "you manage teammates" : "you can edit"}` : "Personal Certified project"}</p>
+              </Card></li>
+            ))}
             {cards.map((card) => (
               <li key={card.id}>
                 <Card>
@@ -186,6 +217,8 @@ export function YourInitiatives() {
               </li>
             ))}
           </CardGrid>
+          {state.hasMoreCards && service.moreCards && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+            onClick={() => void run(async () => { await service.moreCards?.(); })}>More private saves</button>}
         </Section>
       )}
       {records.length > 0 && (
@@ -206,7 +239,7 @@ export function YourInitiatives() {
           </CardGrid>
         </Section>
       )}
-      {total > 0 && records.length === 0 && !project && (
+      {total > 0 && records.length === 0 && workspaces.length === 0 && !project && !social.loading && !social.problem && (
         <p className="rc-meta">You have no project on Certified yet.</p>
       )}
       {onDevice && (cards.length > 0 || records.length > 0) && (

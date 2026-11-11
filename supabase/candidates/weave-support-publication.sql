@@ -70,6 +70,20 @@ create trigger support_entry_changed after update of value or delete on weave.ne
 create trigger support_entry_changed after update of value or delete on weave.offers
   for each row execute function weave_workspace.support_entry_changed();
 
+-- Types of work are part of the reviewed public projection only when explicitly included.
+-- Changing a published projection requests withdrawal; it never silently republishes the new types.
+create function weave_workspace.support_lenses_changed() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if old.card->'lenses' is distinct from new.card->'lenses' then
+    update weave_workspace.support_listings set status='withdrawal_pending',problem=null,updated_at=clock_timestamp()
+      where workspace_id=old.id and record_value ? 'lenses' and status in ('publish_pending','published');
+  end if;
+  return null;
+end $$;
+create trigger support_lenses_changed after update of card on weave.initiatives
+  for each row execute function weave_workspace.support_lenses_changed();
+
 -- matching_paused is set only for confirmed deletion/unlisting by the current API.
 -- A provider outage never writes this flag. Existing pending requests survive retries.
 create function weave_workspace.support_project_unlisted() returns trigger
@@ -185,6 +199,7 @@ begin
     if expiry is not null then public_record=public_record||jsonb_build_object('expiresAt',
       to_char(expiry at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')); end if;
     if entry.value->'description'<>'null'::jsonb then public_record=public_record||jsonb_build_object('description',entry.value->'description'); end if;
+    if jsonb_array_length(parent.card->'lenses')>0 then public_record=public_record||jsonb_build_object('lenses',parent.card->'lenses'); end if;
     delete from weave_workspace.support_reviews where expires_at<=clock_timestamp();
     if (select count(*) from weave_workspace.support_reviews where actor_id=p_actor)>=100 then
       raise sqlstate 'PT429' using message='rate_limited';
@@ -290,7 +305,7 @@ begin
 end $$;
 
 revoke all on function weave_workspace.support_result(weave_workspace.support_listings),
-  weave_workspace.support_entry_changed(),weave_workspace.support_project_unlisted(),
+  weave_workspace.support_entry_changed(),weave_workspace.support_lenses_changed(),weave_workspace.support_project_unlisted(),
   weave_workspace.support_command(uuid,uuid,text,uuid,text,text,text,jsonb)
   from public,anon,authenticated,service_role,weave_workspace_runtime;
 grant execute on function weave_workspace.support_command(uuid,uuid,text,uuid,text,text,text,jsonb) to weave_workspace_runtime;

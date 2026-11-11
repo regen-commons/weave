@@ -1,3 +1,4 @@
+import { uuid } from "@weave/api/account-contract";
 import { useEffect, useId, useRef, useState } from "react";
 import { invitationDate, invitationStatuses, inviteToken, pendingInviteKey, pendingWorkspaceInvite, workspaceInvitations, type WorkspaceInvitation } from "./workspace-access-state.ts";
 import { useAccount } from "../account/context.tsx";
@@ -6,19 +7,26 @@ import { ConsentButton } from "./ProjectConsent.tsx";
 import { projectRequest } from "./projects-client.ts";
 
 /** Access is reviewed per workspace. A pending link neither adds a group member nor grants access. */
-export function WorkspaceAccess({ workspaceId, projectUri }: { workspaceId: string; projectUri: string }) {
+export function WorkspaceAccess({ workspaceId, projectUri, expanded = false }: { workspaceId: string; projectUri: string; expanded?: boolean }) {
   const { state } = useAccount();
-  return state?.user ? <AccountWorkspaceAccess key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} projectUri={projectUri} /> : null;
+  return state?.user ? <AccountWorkspaceAccess key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} projectUri={projectUri} expanded={expanded} /> : null;
 }
-function AccountWorkspaceAccess({ workspaceId, projectUri }: { workspaceId: string; projectUri: string }) {
+function AccountWorkspaceAccess({ workspaceId, projectUri, expanded }: { workspaceId: string; projectUri: string; expanded: boolean }) {
   const linkId = useId();
   const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]), [cursor, setCursor] = useState<string>();
   const [link, setLink] = useState(""), [expires, setExpires] = useState("");
+  const [handle, setHandle] = useState("");
   const [did, setDid] = useState(""), [role, setRole] = useState<"viewer" | "editor" | "admin">("editor");
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState("");
   const [consent, setConsent] = useState(false), [wider, setWider] = useState(false);
   const task = useRef<AbortController | null>(null);
   useEffect(() => () => task.current?.abort(), []);
+  useEffect(() => {
+    if (!expanded) return;
+    // Let React finish mounting before the read uses the task slot; Strict Mode cancels its first mount.
+    const timer = setTimeout(() => void run("list_invites"), 0);
+    return () => clearTimeout(timer);
+  }, [workspaceId, expanded]);
   async function run(action: string, extra: Record<string, unknown> = {}) {
     if (busy || task.current) return;
     setBusy(true); setNotice(""); setConsent(false);
@@ -26,13 +34,19 @@ function AccountWorkspaceAccess({ workspaceId, projectUri }: { workspaceId: stri
     try {
       const result = await projectRequest({ action, workspaceId, projectUri, ...extra }, controller.signal);
       controller.signal.throwIfAborted();
-      if (action === "list_invites") {
+      if (action === "resolve_teammate") {
+        if (typeof result.recipientDid !== "string" || !/^did:[a-z]+:[^/\s]+$/u.test(result.recipientDid)
+          || result.handle !== handle.replace(/^@/u, "").toLowerCase()) throw Error();
+        setDid(result.recipientDid); setNotice(`Certified identity confirmed for ${String(result.handle)}. Review the access before granting it.`);
+      } else if (action === "list_invites") {
         const page = workspaceInvitations(result, typeof extra.cursor === "string" ? extra.cursor : undefined);
         setInvitations(current => extra.cursor ? [...new Map([...current, ...page.invitations].map(item => [item.inviteId, item])).values()] : page.invitations);
         setCursor(page.cursor);
       } else if (action === "create_invite") {
-        if (!inviteToken(result.token) || typeof result.expiresAt !== "string" || !Number.isFinite(Date.parse(result.expiresAt))) throw Error();
+        if (!uuid(result.inviteId) || !inviteToken(result.token) || typeof result.expiresAt !== "string" || !Number.isFinite(Date.parse(result.expiresAt))) throw Error();
         setLink(`${window.location.origin}/your-initiatives#invite=${result.token}`); setExpires(result.expiresAt);
+        const invitation = { inviteId: result.inviteId, status: "pending", expiresAt: result.expiresAt };
+        setInvitations(current => [invitation, ...current.filter(item => item.inviteId !== invitation.inviteId)]);
       } else {
         setWider(false);
         setNotice(result.status === "already_reviewed" ? "This request has already been reviewed. Check the invitations again for its current status." : "Access updated.");
@@ -52,16 +66,27 @@ function AccountWorkspaceAccess({ workspaceId, projectUri }: { workspaceId: stri
       if (task.current === controller) { task.current = null; if (!controller.signal.aborted) setBusy(false); }
     }
   }
-  return <details className="rc-stack"><summary>Manage teammates</summary>
+  const Container = expanded ? "div" : "details";
+  return <Container className="rc-stack" aria-busy={busy}>{!expanded && <summary>Manage teammates</summary>}
     <p>Teammates need Certified group membership and a separate Weave workspace grant.</p>
-    <label className="rc-field">Teammate's Certified DID<input className="rc-input" value={did} maxLength={261} disabled={busy}
-      onChange={(e) => { setDid(e.target.value.trim()); setWider(false); }} /></label>
+    <div className="rc-action-bar"><button className="rc-button" data-variant="primary" disabled={busy}
+      onClick={() => void run("create_invite")}>Create invitation link</button>
+      <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites")}>Refresh invitations</button></div>
     <label className="rc-field">Workspace access<select className="rc-input" value={role} disabled={busy}
-      onChange={(e) => setRole(e.target.value as typeof role)}><option value="viewer">View</option><option value="editor">Edit</option><option value="admin">Admin</option></select></label>
-    <div className="rc-action-bar"><button className="rc-button" data-variant="secondary" disabled={busy || !did}
-      onClick={() => void run("grant_access", { recipientDid: did, accessRole: role })}>Grant workspace access</button>
-      <button className="rc-button" data-variant="quiet" disabled={busy || !did}
-        onClick={() => void run("revoke_access", { recipientDid: did })}>Remove workspace access</button></div>
+      onChange={(e) => setRole(e.target.value as typeof role)}><option value="viewer">Can view</option><option value="editor">Can edit</option><option value="admin">Manages teammates</option></select></label>
+    <details><summary className="rc-footer-link">Add by Certified handle</summary>
+      <label className="rc-field">Teammate's Certified handle<input className="rc-input" value={handle} maxLength={254} disabled={busy}
+        autoCapitalize="none" spellCheck={false} placeholder="name.certified.one"
+        onChange={e => { setHandle(e.target.value.trim()); setDid(""); setWider(false); }} /></label>
+      <div className="rc-action-bar"><button className="rc-button" data-variant="secondary" disabled={busy || !handle}
+        onClick={() => void run("resolve_teammate", { handle })}>Check Certified handle</button>
+      {did && <><button className="rc-button" data-variant="secondary" disabled={busy}
+        onClick={() => void run("grant_access", { recipientDid: did, accessRole: role })}>Grant workspace access</button>
+      <button className="rc-button" data-variant="quiet" disabled={busy}
+        onClick={() => void run("revoke_access", { recipientDid: did })}>Remove workspace access</button></>}
+      </div>
+      {did && <details><summary className="rc-footer-link">Verified identity</summary><p>{did}</p></details>}
+    </details>
     {wider && <section className="rc-notice" data-tone="warning"><div className="rc-notice-body">
       <p>Adding {did} to the Certified group also lets them create records under the group identity across its projects.</p>
       <p>Only a Certified group admin or owner can approve this wider permission.</p>
@@ -69,22 +94,20 @@ function AccountWorkspaceAccess({ workspaceId, projectUri }: { workspaceId: stri
       <button className="rc-button" data-variant="secondary" disabled={busy || !did}
         onClick={() => void run("add_member_and_grant", { recipientDid: did, accessRole: role, confirmGroupPermissions: true })}>Add to Certified group and grant workspace access</button>
     </div></section>}
-    <div className="rc-action-bar"><button className="rc-button" data-variant="secondary" disabled={busy}
-      onClick={() => void run("create_invite")}>Create a pending invitation</button>
-      <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites")}>Review invitations</button></div>
     {link && <div className="rc-field"><label htmlFor={linkId}>Invitation link</label>
       <input id={linkId} className="rc-input" value={link} readOnly onFocus={(e) => e.target.select()} />
       <p className="rc-hint">Expires {invitationDate(expires)}. Share this link with the person yourself. It grants no access.</p></div>}
-    <ul className="rc-ask-summary">{invitations.map((i) => <li key={i.inviteId}>
+    <h3 className="rc-heading" data-size="section">Pending invitations</h3>
+    <ul className="rc-ask-summary">{invitations.filter(i => ["pending", "claimed"].includes(i.status)).map((i) => <li key={i.inviteId}>
       <p>{i.claimedDid ?? "Waiting for a Certified identity"}</p><p className="rc-meta">{invitationStatuses[i.status]}, expires {invitationDate(i.expiresAt)}</p>
       <div className="rc-action-bar">{i.claimedDid && i.status === "claimed" && <button className="rc-button" data-variant="secondary" disabled={busy}
-        onClick={() => void run("approve_invite", { inviteId: i.inviteId, recipientDid: i.claimedDid, accessRole: role })}>Approve {role} access for this identity</button>}
+        onClick={() => void run("approve_invite", { inviteId: i.inviteId, recipientDid: i.claimedDid, accessRole: role })}>Approve {role === "viewer" ? "viewing access" : role === "editor" ? "editing access" : "teammate management"}</button>}
         {["pending", "claimed"].includes(i.status) && <button className="rc-button" data-variant="quiet" disabled={busy}
           onClick={() => void run("revoke_invite", { inviteId: i.inviteId })}>Revoke invitation</button>}</div>
     </li>)}</ul>
     {cursor && <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites", { cursor })}>More invitations</button>}
     {consent && <ConsentButton action="workspace-members" />}{notice && <p role="status">{notice}</p>}
-  </details>;
+  </Container>;
 }
 
 export function PendingInvite() {

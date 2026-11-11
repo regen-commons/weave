@@ -84,7 +84,26 @@ export const FIXTURE_TEAM_ID = "31000000-0000-4000-8000-000000000001";
 export const FIXTURE_TEAM_EDITOR = "31000000-0000-4000-8000-000000000002";
 export const FIXTURE_SECOND_TEAM_ID = "31000000-0000-4000-8000-000000000003";
 export const FIXTURE_SECOND_EDITOR = "31000000-0000-4000-8000-000000000004";
-const teamRoles = new Map([[FIXTURE_ACCOUNT_ID, "viewer"], [FIXTURE_TEAM_EDITOR, "editor"]]);
+export const FIXTURE_TEAM_ADMIN = "31000000-0000-4000-8000-000000000005";
+export const FIXTURE_GROUP_MEMBER = "31000000-0000-4000-8000-000000000006";
+export const FIXTURE_UNAVAILABLE = "31000000-0000-4000-8000-000000000007";
+const teamRoles = new Map([[FIXTURE_ACCOUNT_ID, "viewer"], [FIXTURE_TEAM_EDITOR, "editor"], [FIXTURE_TEAM_ADMIN, "admin"]]);
+const groupDid = "did:plc:bbbbbbbbbbbbbbbbbbbbbbbb";
+const groupUri = `at://${groupDid}/org.hypercerts.collection/watershed`;
+const personalDid = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa";
+const personalUri = `at://${personalDid}/org.hypercerts.collection/water-notes`;
+const memberGroup = "did:plc:cccccccccccccccccccccccc";
+const memberUri = `at://${memberGroup}/org.hypercerts.collection/seed-library`;
+const project = (uri: string, title: string, group?: string) => ({ uri, cid: "bafyfixture", repoDid: uri.split("/")[2],
+  ...(group ? { groupDid: group } : {}), title, description: "A fictional local project for learning and watershed monitoring.", createdAt: "2026-11-01T00:00:00Z" });
+const fixtureProjects = [project(groupUri, "Watershed Team (fixture)", groupDid),
+  project(memberUri, "Seed library (fixture)", memberGroup), project(personalUri, "Water notes (fixture)")];
+const invitations = new Map<string, { inviteId: string; status: string; expiresAt: string; claimedDid?: string }>([
+  ["41000000-0000-4000-8000-000000000001", { inviteId: "41000000-0000-4000-8000-000000000001", status: "pending", expiresAt: "2027-01-01T00:00:00Z" }],
+  ["41000000-0000-4000-8000-000000000002", { inviteId: "41000000-0000-4000-8000-000000000002", status: "claimed", expiresAt: "2027-01-01T00:00:00Z", claimedDid: "did:plc:dddddddddddddddddddddddd" }],
+]);
+const fixtureInvites = new Map<string, string>();
+const requested = new Set<string>();
 const teamSaves = new Map<string, SavedInitiative>();
 const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
 export function fixtureTeam(token: string, id: string) {
@@ -116,6 +135,52 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     return fixtureActor(sessionCookies(false).token(request) ?? "");
   },
   async execute(request, actor, command) {
+    if (actor.userId === FIXTURE_UNAVAILABLE) throw new AccountError(503, "project_workspace_unavailable");
+    if (command.action === "list_project_groups") return { groups: [
+      { groupDid, role: actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member", handle: "watershed.certified.one", displayName: "Watershed team" },
+      { groupDid: memberGroup, role: "member", handle: "seed-library.certified.one", displayName: "Valley seed keepers" },
+    ] };
+    if (command.action === "list_projects") return { projects: fixtureProjects.filter(p =>
+      command.target.kind === "personal" ? !p.groupDid : p.groupDid === command.target.groupDid),
+      ...(command.target.kind === "group" ? { certifiedRole: command.target.groupDid === groupDid && actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member" } : {}) };
+    if (command.action === "list_workspaces") return { workspaces: teamRoles.has(actor.userId) ? [{ workspaceId: FIXTURE_TEAM_ID,
+      projectUri: groupUri, kind: "group", accessRole: teamRoles.get(actor.userId), project: fixtureProjects[0] }] : [], pendingSetups: [] };
+    if (command.action === "lookup") {
+      if (command.projectUri === groupUri && teamRoles.has(actor.userId)) return { status: "linked", workspaceId: FIXTURE_TEAM_ID,
+        projectUri: groupUri, accessRole: teamRoles.get(actor.userId) };
+      return { status: requested.has(command.projectUri) ? "pending" : "unlinked", projectUri: command.projectUri };
+    }
+    if (command.action === "request_setup") { requested.add(command.projectUri); return { status: "pending" }; }
+    if (command.action === "claim_invite") {
+      const id = fixtureInvites.get(command.token);
+      if (!id) throw new AccountError(404, "not_found");
+      const invite = invitations.get(id)!;
+      if (invite.status !== "pending") throw new AccountError(409, "project_conflict");
+      invitations.set(id, { ...invite, status: "claimed", claimedDid: actor.did }); return { status: "pending_review" };
+    }
+    if (command.action === "list_invites" || command.action === "create_invite" || command.action === "revoke_invite"
+      || command.action === "approve_invite" || command.action === "resolve_teammate" || command.action === "grant_access"
+      || command.action === "revoke_access") {
+      if (actor.userId !== FIXTURE_TEAM_ADMIN || command.workspaceId !== FIXTURE_TEAM_ID || command.projectUri !== groupUri)
+        throw new AccountError(403, "workspace_admin_required");
+      if (command.action === "list_invites") return { invitations: [...invitations.values()] };
+      if (command.action === "create_invite") {
+        const inviteId = crypto.randomUUID(), token = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64url");
+        const invite = { inviteId, status: "pending", expiresAt: new Date(Date.now() + 7 * DAY).toISOString() };
+        invitations.set(inviteId, invite); fixtureInvites.set(token, inviteId); return { ...invite, token };
+      }
+      if (command.action === "resolve_teammate") return { recipientDid: "did:plc:dddddddddddddddddddddddd", handle: command.handle };
+      if (command.action === "revoke_invite" || command.action === "approve_invite") {
+        const invite = invitations.get(command.inviteId); if (!invite) throw new AccountError(404, "not_found");
+        invitations.set(command.inviteId, { ...invite, status: command.action === "revoke_invite" ? "revoked" : "approved" });
+        return { status: command.action === "revoke_invite" ? "revoked" : "granted" };
+      }
+      return { status: "granted" };
+    }
+    if (command.action === "support_state") {
+      fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId);
+      return { workspaceId: command.workspaceId, listings: [], nextCursor: null };
+    }
     if (command.action !== "public_evidence" && command.action !== "team_load" && command.action !== "team_save")
       throw new AccountError(503, "project_workspace_unavailable");
     const now = new Date().toISOString();
@@ -123,7 +188,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     const team = isTeam ? fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId) : null;
     if (command.action === "team_load") {
       if (!team) throw new AccountError(404, "not_found");
-      return { saved: team.saved, accessRole: team.accessRole, projectTitle: null };
+      return { saved: team.saved, accessRole: team.accessRole, projectTitle: null, projectUri: groupUri };
     }
     if (command.action === "team_save") {
       if (!team) throw new AccountError(404, "not_found");

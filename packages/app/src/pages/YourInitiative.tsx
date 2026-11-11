@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { SaveAction } from "../account/door.tsx";
-import { CAPITALS } from "../capitals.ts";
+import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
+import { LiveExposure } from "../social/LiveExposure.tsx";
+import { PrivateSaveAction } from "../account/PrivateSaveAction.tsx";
+import { activeInitiative } from "../account/active-initiative.ts";
+import { useAccount } from "../account/context.tsx";
+import { teamWorkspacePath } from "../routes.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText, hasDraft } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { cardRoute, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
-import { askTerms } from "../intake/presentation.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
 import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { pathTo } from "../routes.ts";
@@ -15,18 +19,16 @@ import { ExampleSave } from "../social/Door.tsx";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { ShareAction } from "../social/Share.tsx";
-import { useSocialFixture } from "../social/context.tsx";
+import { useSocialFixture, useSocial } from "../social/context.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { FirstFunding } from "../ui/FirstFunding.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
-import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { Section } from "../ui/Section.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
 import { Stack, StepLayout } from "../ui/layouts.tsx";
-import { Tag } from "../ui/Tag.tsx";
 
 /**
  * The page a person comes back to. The initiative comes first. Beside it, or under it on a phone,
@@ -35,6 +37,9 @@ import { Tag } from "../ui/Tag.tsx";
  */
 export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const social = useSocialFixture();
+  const liveSocial = useSocial();
+  const account = useAccount();
+  const [matchVersion, setMatchVersion] = useState(0);
   const { draft, ready, storage, error, controller } = useDraft();
   const status = useCardStatus();
   const [saveMessage, setSaveMessage] = useState("");
@@ -47,7 +52,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const failed = view === "error" && !retrying;
   const empty = view === "empty";
   const funds = examples && !empty ? fixture.funding.slice(0, 2) : [];
-  const project = example?.identity ? example.project : null;
+  const project = example?.identity ? example.project : liveSocial?.mode === "live" ? liveSocial.state.project : null;
+  const active = activeInitiative(draft.account.saved, account.state?.user?.id);
   const save = status.save;
   // Only steps that are open get a row, and only the next one gets the filled button.
   const steps = openSteps(status, project?.workspace ?? null);
@@ -88,6 +94,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     actions={
                       !save ? undefined : example && save.needs === "save" ? (
                         <ExampleSave size="sm" onFailed={setSaveMessage} />
+                      ) : !example && account.state?.user ? (
+                        <PrivateSaveAction size="sm" onFailed={setSaveMessage}>{save.label}</PrivateSaveAction>
                       ) : (
                         <SaveAction variant="primary" size="sm">
                           {save.label}
@@ -104,8 +112,12 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     </p>
                   )}
                   {/* Outside the example world the real project directory links or creates the project. */}
-                  {!example && <ProjectAction />}
-                  {example && <WorkspaceRow primary={steps.lead === "workspace"} />}
+                  {!example && !project && <ProjectAction />}
+                  {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open team workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
+                  {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open saved initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
+                  {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
+                    readOnly={status.unsaved} onExpired={account.clear} onChanged={() => setMatchVersion(v => v + 1)} />}
+                  {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
                   {steps.sharing && (
                     <StatusLine
                       actions={
@@ -142,43 +154,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </>
             }
           >
-            <RecordPreview fields={draft.confirmed!} confirmed>
-              {project && (
-                <p className="rc-meta">The name, place, description and links come from your project on Certified.</p>
-              )}
-              {(["needs", "offers"] as const).map((kind) => (
-                <section className="rc-stack" key={kind} aria-labelledby={`summary-${kind}`}>
-                  <h3 className="rc-heading" data-size="section" id={`summary-${kind}`}>
-                    {kind === "needs" ? "Needs" : "Offers"}, {keptAsks(draft, kind).length}
-                  </h3>
-                  {keptAsks(draft, kind).length ? (
-                    <ul className="rc-ask-summary">
-                      {keptAsks(draft, kind).map((ask, index) => (
-                        <li key={index}>
-                          <strong>{ask.title}</strong>
-                          {ask.capitalForms.length ? (
-                            <ul className="rc-tag-list" aria-label="Kinds of support">
-                              {CAPITALS.filter((capital) => ask.capitalForms.includes(capital.key)).map(
-                                (capital) => (
-                                  <li key={capital.key}>
-                                    <Tag capital={capital} />
-                                  </li>
-                                ),
-                              )}
-                            </ul>
-                          ) : (
-                            <p className="rc-meta">No kind of support yet</p>
-                          )}
-                          <p className="rc-meta">{askTerms(ask, kind)}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="rc-meta">None added.</p>
-                  )}
-                </section>
-              ))}
-            </RecordPreview>
+            <InitiativeRecord fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
           </StepLayout>
           {(view === "offline" || !navigator.onLine) && (
             <p className="rc-notice" data-tone="info">
@@ -202,6 +178,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </div>
             </section>
           )}
+          <Section id="finish-partners" title="Partners for you">
+            {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
+          </Section>
           <Section
             id="finish-funding"
             title="Funding that fits"
@@ -255,9 +234,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </>
             )}
           </Section>
-          <Section id="finish-partners" title="Partners">
-            {examples ? <ExamplePartners compact /> : <PartnerExperience mode="preview" />}
-          </Section>
+
         </>
       )}
     </Stack>

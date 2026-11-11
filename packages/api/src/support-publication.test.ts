@@ -20,6 +20,13 @@ function listing(repo = alice, kind: "need" | "offer" = "need"): SupportListing 
     title: kind === "need" ? "A place to meet" : "Oral history transcription", description: "Fictional community support.",
     capitalForms: ["social", "cultural"], status: "open", createdAt: "2026-11-10T18:00:00.000Z", expiresAt: "2027-01-31T00:00:00.000Z" };
 }
+
+test("public listings accept reviewed learning lenses, preserve older records, and reject unknown or duplicate lenses", () => {
+  assert.equal(parseSupportListing(listing()).lenses, undefined);
+  assert.deepEqual(parseSupportListing({ ...listing(), lenses: ["learning", "research"] }).lenses, ["learning", "research"]);
+  for (const lenses of [["learning", "learning"], ["unreviewed-value"], "learning"])
+    assert.throws(() => parseSupportListing({ ...listing(), lenses }));
+});
 type PublicRecord = { uri: string; cid: string; value: SupportListing; author: string };
 async function fixture(groupProject = false, kind: "need" | "offer" = "need", sharedRecords?: Map<string, PublicRecord>) {
   const repo = groupProject ? group : alice;

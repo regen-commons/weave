@@ -1,4 +1,5 @@
-import { record, uuid } from "@weave/api/account-contract";
+import { LENSES, record, uuid } from "@weave/api/account-contract";
+import { LENS_LABELS } from "../describe/contracts.ts";
 import { CAPITALS } from "../capitals.ts";
 import { fullDate } from "../home.ts";
 
@@ -9,7 +10,7 @@ export const publicSupportStatuses: Record<string, string> = {
 export type PublicListing = { kind: "need" | "offer"; entryId: string; status: string; title: string; problem: string | null };
 export type PublicReview = { reviewId: string; destination: string; record: {
   projectUri: string; kind: "need" | "offer"; title: string; description?: string; capitalForms: string[];
-  createdAt: string; updatedAt?: string; expiresAt?: string;
+  createdAt: string; updatedAt?: string; expiresAt?: string; lenses?: string[];
 } };
 const invalid = (): never => { throw Error("invalid_public_support_response"); };
 const date = (value: unknown): value is string => typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/u.test(value)
@@ -34,7 +35,7 @@ export function publicListingPage(input: unknown, workspaceId: string) {
 
 export function publicListingReview(input: unknown, savedRevision: number, entryRevision: number): PublicReview {
   const value = record(input), listing = record(value.record);
-  const allowed = ["$type", "projectUri", "kind", "title", "description", "capitalForms", "status", "createdAt", "updatedAt", "expiresAt"];
+  const allowed = ["$type", "projectUri", "kind", "title", "description", "capitalForms", "lenses", "status", "createdAt", "updatedAt", "expiresAt"];
   if (!uuid(value.reviewId) || value.audience !== "public-atproto" || !text(value.destination, 300)
       || !/^did:[a-z]+:[^/\s]+$/u.test(value.destination)
       || value.expectedRevision !== savedRevision || value.expectedEntryRevision !== entryRevision
@@ -45,12 +46,15 @@ export function publicListingReview(input: unknown, savedRevision: number, entry
       || !Array.isArray(listing.capitalForms) || !listing.capitalForms.length || listing.capitalForms.length > 8
       || listing.capitalForms.some(form => !CAPITALS.some(capital => capital.key === form))
       || new Set(listing.capitalForms).size !== listing.capitalForms.length || listing.status !== "open"
+      || (listing.lenses !== undefined && (!Array.isArray(listing.lenses) || listing.lenses.length > 5
+        || listing.lenses.some(lens => typeof lens !== "string" || !LENSES.includes(lens)) || new Set(listing.lenses).size !== listing.lenses.length))
       || !date(listing.createdAt) || (listing.updatedAt !== undefined && !date(listing.updatedAt))
       || (listing.expiresAt !== undefined && !date(listing.expiresAt))) return invalid();
   return { reviewId: value.reviewId, destination: value.destination, record: {
     projectUri: listing.projectUri, kind: listing.kind, title: listing.title,
     ...(listing.description === undefined ? {} : { description: listing.description as string }),
     capitalForms: [...listing.capitalForms] as string[], createdAt: listing.createdAt,
+    ...(listing.lenses === undefined ? {} : { lenses: [...listing.lenses] as string[] }),
     ...(listing.updatedAt === undefined ? {} : { updatedAt: listing.updatedAt as string }),
     ...(listing.expiresAt === undefined ? {} : { expiresAt: listing.expiresAt as string }),
   } };
@@ -64,6 +68,7 @@ export function publicReviewFacts({ record }: PublicReview) {
     { term: "Title", value: record.title },
     ...(record.description ? [{ term: "Description", value: record.description }] : []),
     { term: "Kind of support", value: CAPITALS.filter(capital => record.capitalForms.includes(capital.key)).map(capital => capital.title).join(", ") },
+    ...(record.lenses?.length ? [{ term: "Type of work", value: record.lenses.map(lens => LENS_LABELS[lens as keyof typeof LENS_LABELS]).join(", ") }] : []),
     { term: "Availability", value: "Open" },
     { term: "First published", value: day(record.createdAt) },
     ...(record.updatedAt ? [{ term: "Last updated", value: day(record.updatedAt) }] : []),

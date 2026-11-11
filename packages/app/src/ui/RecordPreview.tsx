@@ -8,10 +8,12 @@ export function RecordPreview({
   fields,
   confirmed,
   children,
+  team = false,
 }: {
   fields: Initiative;
   confirmed: boolean;
   children?: ReactNode;
+  team?: boolean;
 }) {
   return (
     <article
@@ -35,11 +37,11 @@ export function RecordPreview({
         </ul>
       )}
       {children}
-      <p className="rc-draft-status">
+      {!team && <p className="rc-draft-status">
         {confirmed
           ? "Card checked. Source words and files stay on this device."
           : "Draft in this browser. It has not been shared."}
-      </p>
+      </p>}
     </article>
   );
 }

@@ -85,6 +85,7 @@ test("the actual Vite development middleware blocks project OAuth before ssrLoad
   const fake = {
     config: { root: fileURLToPath(new URL("../", import.meta.url)) },
     middlewares: { use(mount: string, handle: Connect.NextHandleFunction) {
+      if (mount === "/__fixture") return;
       assert.equal(mount, "/api"); middleware = handle;
     } },
     async ssrLoadModule(path: string) { calls.push(path); throw Error("live_loader_must_not_run"); },

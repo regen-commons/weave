@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { record, uuid } from "./account-contract.ts";
+import { LENSES, record, uuid } from "./account-contract.ts";
 import { AccountError } from "./account-provider.ts";
 import type { CertifiedGroupRole, CertifiedProjectProvider, CertifiedProjectResult } from "./certified-project-provider.ts";
 import type { ProjectActor } from "./project-commands.ts";
@@ -15,6 +15,7 @@ export interface SupportListing {
   title: string;
   description?: string;
   capitalForms: string[];
+  lenses?: string[];
   status: "open";
   createdAt: string;
   updatedAt?: string;
@@ -36,6 +37,7 @@ export function parseSupportListing(input: unknown): SupportListing {
   if (v.description !== undefined) keys.push("description");
   if (v.expiresAt !== undefined) keys.push("expiresAt");
   if (v.updatedAt !== undefined) keys.push("updatedAt");
+  if (v.lenses !== undefined) keys.push("lenses");
   if (Object.keys(v).length !== keys.length || keys.some(key => !Object.hasOwn(v, key)) ||
       v.$type !== SUPPORT_COLLECTION || (v.kind !== "need" && v.kind !== "offer") ||
       !text(v.title, 140, 1400) || !v.title.trim() ||
@@ -43,6 +45,8 @@ export function parseSupportListing(input: unknown): SupportListing {
       !Array.isArray(v.capitalForms) || v.capitalForms.length < 1 || v.capitalForms.length > 8 ||
       v.capitalForms.some(x => typeof x !== "string" || !capitals.includes(x)) ||
       new Set(v.capitalForms).size !== v.capitalForms.length || v.status !== "open" ||
+      (v.lenses !== undefined && (!Array.isArray(v.lenses) || v.lenses.length > 5
+        || v.lenses.some(lens => typeof lens !== "string" || !LENSES.includes(lens)) || new Set(v.lenses).size !== v.lenses.length)) ||
       !date(v.createdAt) || (v.expiresAt !== undefined && (!date(v.expiresAt) || Date.parse(v.expiresAt) <= Date.parse(v.createdAt))))
     throw Error("invalid_support_listing");
   if (v.updatedAt !== undefined && (!date(v.updatedAt) || Date.parse(v.updatedAt) < Date.parse(v.createdAt)))
@@ -51,6 +55,7 @@ export function parseSupportListing(input: unknown): SupportListing {
   return { $type: SUPPORT_COLLECTION, projectUri, kind: v.kind, title: v.title,
     ...(v.description === undefined ? {} : { description: v.description as string }),
     capitalForms: [...v.capitalForms] as string[], status: "open", createdAt: v.createdAt,
+    ...(v.lenses === undefined ? {} : { lenses: [...v.lenses] as string[] }),
     ...(v.updatedAt === undefined ? {} : { updatedAt: v.updatedAt as string }),
     ...(v.expiresAt === undefined ? {} : { expiresAt: v.expiresAt as string }) };
 }
