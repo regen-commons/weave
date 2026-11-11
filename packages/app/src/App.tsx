@@ -1,6 +1,8 @@
 import { LiveSocialProvider, SocialFixtureProvider, useSocialFixture } from "./social/context.tsx";
 import { AccountDoorProvider } from "./account/door.tsx";
 import { AccountProvider, useAccount } from "./account/context.tsx";
+import { ForThisAccount } from "./account/SetAside.tsx";
+import { useSetAside } from "./account/set-aside.ts";
 import { accountKey } from "./account/document.ts";
 import { useEffect, useRef, useState } from "react";
 import { readFixtures, EXAMPLE_SUBJECT, type FixtureContext } from "./fixtures.ts";
@@ -50,16 +52,17 @@ function content(route: Route, fixture?: FixtureContext) {
   switch (route.name) {
     case "home":
       return <Home fixture={fixture} />;
+    // The card's own pages open only for the account it belongs to (DL-055).
     case "initiative":
-      return <Describe fixture={fixture} />;
+      return <ForThisAccount><Describe fixture={fixture} /></ForThisAccount>;
     case "check-card":
-      return <CheckCard />;
+      return <ForThisAccount><CheckCard /></ForThisAccount>;
     case "needs":
     case "offers":
-      return <AskStep key={route.name} kind={route.name} fixture={fixture} />;
+      return <ForThisAccount><AskStep key={route.name} kind={route.name} fixture={fixture} /></ForThisAccount>;
     case "partners":
-    case "initiatives":
-      return (
+    case "initiatives": {
+      const list = (
         <ListPage
           key={route.name}
           title={route.title}
@@ -68,6 +71,9 @@ function content(route: Route, fixture?: FixtureContext) {
           subject={import.meta.env.DEV && fixture?.scenario !== "visitor" ? EXAMPLE_SUBJECT : undefined}
         />
       );
+      // Partners are found for the card on this device, so they follow the card's account.
+      return route.name === "partners" ? <ForThisAccount>{list}</ForThisAccount> : list;
+    }
     case "funding":
       return <Funding fixture={fixture} />;
     case "opportunity":
@@ -79,7 +85,7 @@ function content(route: Route, fixture?: FixtureContext) {
     case "settings":
       return <Settings />;
     case "your-initiative":
-      return <YourInitiative fixture={fixture} />;
+      return <ForThisAccount><YourInitiative fixture={fixture} /></ForThisAccount>;
     case "your-initiatives":
       return <YourInitiatives />;
   }
@@ -156,6 +162,7 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
   const social = useSocialFixture();
   const device = useDraft();
   const account = useAccount();
+  const setAside = useSetAside();
   const saved = device.draft.account.saved;
   const accountSaved =
     !!account.state?.user &&
@@ -219,7 +226,8 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
   }, [location, route?.name]);
   const status =
     // A team workspace's own status line says where its work is kept; the device's would mislead.
-    pageRoute?.name === "team-workspace"
+    // Nor does another account's card speak for this one (DL-055).
+    pageRoute?.name === "team-workspace" || setAside
       ? "none"
       : accountSaved || (import.meta.env.DEV && !!fixture && social?.state.saved)
       ? "account"

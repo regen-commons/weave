@@ -201,7 +201,7 @@ Voice capture could not be exercised in either browser. No hosted Certified, dat
 production check was made.
 
 Local checks passed: `bun run ci` ran 129 site and catalog tests, 27 design-system tests, 156
-API tests with the 38 opt-in database checks skipped, 208 app tests and 78 harness tests, and
+API tests with the 38 opt-in database checks skipped, 210 app tests and 78 harness tests, and
 confirmed current design tokens and guidance. The app typecheck and `git diff --check` passed,
 and the build changed no tracked files. No dependencies or lockfile changed.
 
@@ -222,6 +222,10 @@ and the build changed no tracked files. No dependencies or lockfile changed.
 - A project that fits several needs and offers shows once in Partners for you, naming each fit
   (DL-052).
 - The grain now uses the website's strength, so it no longer shows behind the search field.
+- A card on a shared device follows the account it belongs to (DL-055). Checked with the editor
+  and admin fixture accounts in one tab: after the editor opened a project, the admin saw it once,
+  as their own Certified entry, with a quiet line for the set-aside card; Home, the header, the
+  card's pages, partners and funding fit left it out; switching back gave the editor the card again.
 
 ### Accessibility checks, 11 November 2026
 
@@ -240,10 +244,6 @@ Proof class: **fixture**, Chrome with DevTools emulation.
   finished text in the field. Real speech with a microphone is left for quality checks with a
   person. Weave could offer to download the speech pack where Chrome reports it as downloadable.
 
-### Question for the maker
-
-- After switching accounts on one device, the card on the device can belong to another account
-  and duplicate a project listed On Certified. The recommendation is in the round's report.
 
 ## Implementation request, 10 November 2026
 

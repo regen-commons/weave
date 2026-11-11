@@ -127,6 +127,8 @@ The tests check that generated files are current, the linter is clean, website v
   open like Home's hero with the mycelium (DL-053). Logo's mark becomes the website's
   living ring (`./mycelium` `growLogoMark`, DL-054). In forced colours only the current
   tab keeps its bar in App header, Bottom navigation and Tabs.
+- A card on a shared device follows its account: another account's card is set aside
+  behind a Doorway and one quiet line on Your initiatives (DL-055).
 - Your initiative and the team workspace take the initiative's name as their heading
   under an Eyebrow, and the Your initiatives example ends with the account line
   (DL-047).

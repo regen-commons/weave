@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { hasDraft } from "../describe/view.ts";
+import { useSetAside } from "../account/set-aside.ts";
 import { resumeLabel } from "../home.ts";
 import { cardRoute } from "../initiative/status.ts";
 import { pathTo } from "../routes.ts";
@@ -14,8 +15,10 @@ import { ButtonLink } from "./ButtonLink.tsx";
 export function DescribePrompt({ children }: { children: ReactNode }) {
   const { draft } = useDraft();
   const id = useId();
-  const route = cardRoute(draft);
-  const started = hasDraft(draft);
+  const setAside = useSetAside();
+  // Another account's card is not this person's to finish (DL-055).
+  const started = hasDraft(draft) && !setAside;
+  const route = started ? cardRoute(draft) : "initiative";
   return (
     <section className="rc-notice" data-tone="info" aria-labelledby={id}>
       <div className="rc-notice-body">

@@ -6,6 +6,7 @@ import { loadedDraft } from "../account/document.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
+import { projectChoiceKey } from "./project-choice.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
 import type { CertifiedRecord, ProjectLink, SocialService, SocialState } from "./fixture.ts";
 
@@ -39,7 +40,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   let loading = false, problem: string | null = null, consent = false;
   let cardsKey = JSON.stringify(options.account.items), cardsGeneration = 0, nextCardOffset = options.account.items.length;
   let selected: { scope: string; uri: string } | null = null;
-  const key = () => `weave-project-choice/${owner}/${options.controller.getSnapshot().draft.id}`;
+  const key = () => projectChoiceKey(owner ?? "", options.controller.getSnapshot().draft.id);
   const requestKey = (uri: string) => `weave-workspace-request/${owner}/${uri}`;
   function linkOf(record: CertifiedRecord): ProjectLink {
     const link = projectLink(record);

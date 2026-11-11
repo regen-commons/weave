@@ -22,6 +22,7 @@ import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { Section } from "../ui/Section.tsx";
 import { Doorway, ListLayout } from "../ui/layouts.tsx";
+import { useSetAside } from "../account/set-aside.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 
 /**
@@ -62,7 +63,9 @@ export function YourInitiatives() {
       {message}
     </p>
   );
-  const onDevice = hasDraft(draft);
+  // Another account's card stays on the device but out of this account's lists (DL-055).
+  const setAside = useSetAside();
+  const onDevice = hasDraft(draft) && !setAside;
   if (!state.identity)
     return (
       <Doorway>
@@ -267,6 +270,9 @@ export function YourInitiatives() {
             Settings
           </ButtonLink>
         </div>
+      )}
+      {setAside && (
+        <p className="rc-meta">A card from another account is on this device. It opens again when that account signs in.</p>
       )}
       {/* The account is not what people come here for, so it closes the page. */}
       <div className="rc-action-bar">

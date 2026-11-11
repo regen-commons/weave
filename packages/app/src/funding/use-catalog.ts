@@ -4,6 +4,7 @@ import { loadCatalog, loadedCatalog, rankCatalog } from "./client.ts";
 import { projectFrom } from "./profile.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { DeviceDraftSchema, type DeviceDraft } from "../describe/contracts.ts";
+import { useSetAside } from "../account/set-aside.ts";
 export type FundingSubject = Pick<DeviceDraft, "id" | "confirmed" | "funding">;
 
 /**
@@ -62,7 +63,9 @@ function whenIdle(task: () => void): () => void {
 
 export function useCatalog(example?: Bundle, subject?: FundingSubject) {
   const device = useDraft();
-  const draft = subject ?? device.draft;
+  // Another account's card on this device fits nothing for this one (DL-055).
+  const setAside = useSetAside();
+  const draft = subject ?? (setAside ? { ...device.draft, confirmed: null } : device.draft);
   const { bundle, loading, failed, attempt, retry } = useCatalogBundle(example);
   const [results, setResults] = useState<Evaluation[] | null>(null);
   const [rankError, setRankError] = useState("");

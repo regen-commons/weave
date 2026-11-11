@@ -12,6 +12,7 @@ import { currentRoute, navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo, routeWith } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
+import { useSetAside } from "../account/set-aside.ts";
 import { teamWorkspacePath } from "../routes.ts";
 import { BUILDER, COMMONS, EIGHT_FORMS_OF_CAPITAL } from "../links.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -66,7 +67,9 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       ? example.cards.length + example.records.length
       : (account.state?.items.length ?? 0) + (social?.state.workspaces?.length ?? 0);
   const route = cardRoute(draft);
-  const doors = homeDoors(status.state !== "none" || !!resume, elsewhere);
+  // Another account's card on this device is not one to resume here (DL-055).
+  const setAside = useSetAside();
+  const doors = homeDoors((status.state !== "none" && !setAside) || !!resume, elsewhere);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = new URLSearchParams({ q: search.trim() });
