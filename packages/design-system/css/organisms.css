@@ -17,14 +17,19 @@
   border-block-end: var(--border-thin) solid var(--line);
   background: var(--surface);
 }
+/* Every tab is as wide as the widest, so the row reads as one control. The nav keeps to its
+   content and sits beside the name; the state goes to the far end. */
 .rc-app-nav {
   display: none;
-  flex: 1;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: var(--space-1);
+  margin-inline-end: auto;
 }
 .rc-app-nav > a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-block-size: var(--control-sm-height);
   padding-inline: var(--space-3);
   border-block-end: var(--border-edge) solid transparent;
@@ -34,45 +39,48 @@
   white-space: nowrap;
 }
 .rc-app-nav > a:hover { color: var(--on-surface); }
+/* The current tab keeps the same weight, so no tab changes width; its bar and colour mark it. */
 .rc-app-nav > a[aria-current="page"] {
   border-block-end-color: var(--action);
   color: var(--on-surface);
-  font: var(--type-title-sm);
 }
 @media (min-width: 56.25rem) {
-  .rc-app-nav { display: flex; }
+  .rc-app-nav { display: grid; }
 }
 
 /* Bottom navigation for phones. Icon and word, always both. */
+/* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
+   quarter of the narrowest phone; with very large text a label wraps inside its own tab. */
 .rc-bottom-nav {
   position: sticky;
   inset-block-end: 0;
   z-index: var(--layer-sticky);
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   padding-block-end: env(safe-area-inset-bottom);
   border-block-start: var(--border-thin) solid var(--control-line);
   background: var(--surface);
 }
 /* Equal widths at normal sizes. At large text sizes the labels wrap to a second row instead of colliding. */
 .rc-bottom-nav > a {
-  flex: 1 1 0;
-  min-inline-size: max-content;
   display: grid;
   justify-items: center;
   align-content: center;
   gap: var(--space-1);
   min-block-size: var(--space-8);
-  padding-inline: var(--space-1);
+  /* Tabs meet edge to edge, so the label gets the whole quarter. */
+  padding-inline: 0;
   border-block-start: var(--border-edge) solid transparent;
   color: var(--text-secondary);
-  font: var(--type-body-sm);
+  font: var(--type-label-sm);
+  text-align: center;
   text-decoration: none;
+  text-wrap: balance;
 }
 .rc-bottom-nav > a[aria-current="page"] {
   border-block-start-color: var(--action);
   color: var(--on-surface);
-  font: var(--type-label-md);
 }
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
