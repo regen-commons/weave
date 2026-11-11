@@ -40,7 +40,7 @@
 .rc-app-nav > a:hover { color: var(--on-surface); }
 /* The current tab keeps the same weight, so no tab changes width; its bar and colour mark it. */
 .rc-app-nav > a[aria-current="page"] {
-  border-block-end-color: var(--action);
+  border-block-end-color: var(--section-accent, var(--action));
   color: var(--on-surface);
 }
 @media (min-width: 56.25rem) {
@@ -84,7 +84,7 @@
   text-wrap: balance;
 }
 .rc-bottom-nav > a[aria-current="page"] {
-  border-block-start-color: var(--action);
+  border-block-start-color: var(--section-accent, var(--action));
   color: var(--on-surface);
 }
 @media (min-width: 56.25rem) {
@@ -338,7 +338,7 @@
   .rc-numbered-item:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
 }
 .rc-numbered-item { display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
-.rc-numbered-number { font: var(--type-headline-md); color: var(--text-accent); }
+.rc-numbered-number { font: var(--type-headline-md); color: var(--section-accent-text, var(--text-accent)); }
 .rc-numbered-title { font: var(--type-title-sm); }
 
 /* Tile grid: equal-size cards with one tooltip trigger each. */

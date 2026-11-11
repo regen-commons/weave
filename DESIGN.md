@@ -193,6 +193,22 @@ components:
   text-muted-dark: { textColor: "{colors.soil-500}" }
   text-accent: { textColor: "{colors.copper-700}" }
   text-accent-dark: { textColor: "{colors.copper-400}" }
+  accent-home: { backgroundColor: "{colors.forest-700}" }
+  accent-home-dark: { backgroundColor: "{colors.forest-400}" }
+  text-home: { textColor: "{colors.forest-700}" }
+  text-home-dark: { textColor: "{colors.forest-400}" }
+  accent-initiatives: { backgroundColor: "{colors.teal-700}" }
+  accent-initiatives-dark: { backgroundColor: "{colors.teal-400}" }
+  text-initiatives: { textColor: "{colors.teal-800}" }
+  text-initiatives-dark: { textColor: "{colors.teal-400}" }
+  accent-funding: { backgroundColor: "{colors.gold-800}" }
+  accent-funding-dark: { backgroundColor: "{colors.gold-400}" }
+  text-funding: { textColor: "{colors.gold-800}" }
+  text-funding-dark: { textColor: "{colors.gold-400}" }
+  accent-yours: { backgroundColor: "{colors.signal-700}" }
+  accent-yours-dark: { backgroundColor: "{colors.signal-400}" }
+  text-yours: { textColor: "{colors.signal-800}" }
+  text-yours-dark: { textColor: "{colors.signal-400}" }
   text-danger: { textColor: "{colors.madder-800}" }
   text-danger-dark: { textColor: "{colors.madder-300}" }
   link: { textColor: "{colors.forest-700}" }
@@ -345,6 +361,10 @@ Soil and loam are the warm greys. Soil-600 is the only value that replaces a web
 - Light theme gold, amber, circuit, teal and sage fail as small text. Use `--text-accent` or a capital pair instead of a bare hue.
 - Colour never carries meaning alone. Pair it with a word, an icon, a shape or a position.
 - Cards are lighter than the page in both themes, so they read as closer.
+
+### Accents: where you are and what it is
+
+Green is for doing: buttons, links and the controls a person sets keep `--action` and `--link` on every page. Each section has an accent that says where you are, as each page of the website has: Home forest, Initiatives teal, Funding gold and Your initiatives signal blue. Copper is left out because in the light theme it sits too close to Funding's gold. It colours the current tab's bar, a page's eyebrow, the home hero's italic word and step numbers. `rc-page[data-section]` sets `--section-accent` for marks and `--section-accent-text` for words from the `--accent-*` and `--text-*` roles; pages outside a section, such as the steps that start a card, take Home's. A record keeps the colour of what it is wherever it appears: a funding card's eyebrow is funding gold on Home and in Partners as on Funding, and kinds of support and stages keep their own colours. Focus stays gold everywhere, held apart from Funding's bar by the ring's offset. An accent always comes with a word or an icon (DL-050).
 
 ### Forms of capital
 

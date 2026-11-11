@@ -223,6 +223,8 @@
   padding-inline-end: calc(var(--card-padding) - var(--border-edge));
   border-inline-end: var(--border-edge) solid var(--on-surface-raised);
 }
+/* What it is: a funding card keeps funding gold wherever it appears (DL-050). */
+.rc-card[data-kind="funding"] .rc-eyebrow { color: var(--text-funding); }
 .rc-card[data-pencil] {
   border: var(--border-thin) dashed var(--control-line);
   background: transparent;
@@ -408,7 +410,7 @@
 .rc-tabs > a:hover { color: var(--on-surface); }
 .rc-tabs > a[aria-current="page"] {
   border-color: var(--control-line);
-  border-block-start-color: var(--action);
+  border-block-start-color: var(--section-accent, var(--action));
   border-block-end-color: var(--surface);
   background: var(--surface);
   color: var(--on-surface);

@@ -47,7 +47,7 @@
   gap: var(--space-1);
   font: var(--type-label-sm);
   letter-spacing: normal;
-  color: var(--text-accent);
+  color: var(--section-accent-text, var(--text-accent));
 }
 
 .rc-prose {

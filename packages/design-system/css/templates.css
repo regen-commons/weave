@@ -22,6 +22,13 @@
   text-align: center;
 }
 
+/* Where you are: each section's accent marks the current tab, the page's eyebrow, the home hero's
+   italic word and step numbers. Pages outside a section take Home's (DL-050). */
+.rc-page { --section-accent: var(--accent-home); --section-accent-text: var(--text-home); }
+.rc-page[data-section="initiatives"] { --section-accent: var(--accent-initiatives); --section-accent-text: var(--text-initiatives); }
+.rc-page[data-section="funding"] { --section-accent: var(--accent-funding); --section-accent-text: var(--text-funding); }
+.rc-page[data-section="your-initiatives"] { --section-accent: var(--accent-yours); --section-accent-text: var(--text-yours); }
+
 .rc-main {
   display: grid;
   align-content: start;
@@ -108,7 +115,7 @@
   text-align: center;
 }
 .rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
-.rc-home-hero .rc-heading em { color: var(--text-accent); }
+.rc-home-hero .rc-heading em { color: var(--section-accent-text, var(--text-accent)); }
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
 .rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }

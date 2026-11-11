@@ -28,7 +28,7 @@ export function OpportunityCard({
   const access = effectiveAccess(fund);
   const sign = accessSign(access);
   return (
-    <Card>
+    <Card kind="funding">
       <p className="rc-eyebrow">
         <Icon name="funding" size="sm" />
         {fundingEyebrow(entry.program)}

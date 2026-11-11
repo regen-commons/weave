@@ -160,6 +160,10 @@ listed above. The production pilot stays off.
 | Returning with a project | The team workspace names the initiative under a Team workspace eyebrow, then says what this person can do there. The header's save status steps aside, so the page's own rows are the one account of saving and sharing. Manage teammates leads with the default: choose what they can do, then create an invitation link. Adding someone by handle sits behind a disclosure, and each pending invitation says what it is, when it expires and what the admin can do. |
 | Returning without a linked project | The same named heading on Your initiative, and the account line at the end of Your initiatives. |
 
+Every section now has its own accent for where you are (Home forest, Initiatives teal, Funding
+gold, Your initiatives signal blue), while buttons and links stay green and funding cards keep
+funding gold wherever they appear (DL-050).
+
 Home now reads the live funding catalog. Until this round it read funding only from the
 development examples, so production showed no funding-closing-soon link and an empty Funding
 closing soon section. Home shares Funding's request, starts it once the page is idle, shows the

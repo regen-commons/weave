@@ -114,6 +114,11 @@ The tests check that generated files are current, the linter is clean, website v
 - App header: Home leaves the header, because the logo goes home; sections take their
   own widths with equal spacing, and the header no longer cross-fades between pages.
   Bottom navigation keeps four equal tabs (DL-049).
+- Accents say where you are and what a thing is (DL-050). Page shell takes
+  `data-section`, which colours the current tab's bar, Eyebrow, the home hero's italic
+  word and step numbers: Home forest, Initiatives teal, Funding gold, Your initiatives
+  signal blue. Card takes `data-kind="funding"` for a funding-gold eyebrow anywhere.
+  Adds the `--accent-*` and `--text-*` section roles.
 - Your initiative and the team workspace take the initiative's name as their heading
   under an Eyebrow, and the Your initiatives example ends with the account line
   (DL-047).
