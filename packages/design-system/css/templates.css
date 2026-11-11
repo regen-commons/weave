@@ -110,7 +110,8 @@
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
 .rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
-.rc-home-live { min-block-size: var(--control-sm-height); }
+/* Signs of life under the search: shared initiatives and funding closing soon, side by side. */
+.rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
 .rc-woven-backdrop {
   position: absolute;
   z-index: -1;

@@ -24,7 +24,7 @@ export function BottomNav({ pathname }: { pathname: string }) {
           onClick={(event) => tabPress(event, section.route, pathname)}
         >
           <Icon name={section.icon} />
-          {section.label}
+          {section.short ?? section.label}
         </Link>
       ))}
     </nav>

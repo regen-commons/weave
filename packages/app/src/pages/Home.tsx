@@ -3,7 +3,7 @@ import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import type { FixtureContext } from "../fixtures.ts";
-import { homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
+import { CLOSING_SOON_DAYS, homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { currentRoute, navigate, routeSearch } from "../router.tsx";
@@ -32,7 +32,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const account = useAccount();
   const social = useSocialFixture();
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
-  const { recent, upcoming, sharedCount } = homePreviews(
+  const { recent, upcoming, sharedCount, closingSoon } = homePreviews(
     fixture?.initiatives ?? [],
     fixture?.funding ?? [],
     asOf,
@@ -110,11 +110,23 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           loading || failed ? (
             <p className="rc-meta">{loading ? "Loading what is new" : "The latest did not load"}</p>
           ) : (
-            sharedCount > 0 && (
-              <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-                {sharedCount} {sharedCount === 1 ? "initiative" : "initiatives"} shared
-              </ButtonLink>
-            )
+            <>
+              {sharedCount > 0 && (
+                <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
+                  {sharedCount} {sharedCount === 1 ? "initiative" : "initiatives"} shared
+                </ButtonLink>
+              )}
+              {/* Opens Funding on the same deadlines it counts, soonest first. */}
+              {closingSoon > 0 && (
+                <ButtonLink
+                  href={`${pathTo("funding")}?closing=${CLOSING_SOON_DAYS}&sort=closing`}
+                  variant="quiet"
+                  size="sm"
+                >
+                  {closingSoon} {closingSoon === 1 ? "fund" : "funds"} closing soon
+                </ButtonLink>
+              )}
+            </>
           )
         }
       >

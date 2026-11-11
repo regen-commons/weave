@@ -18,6 +18,9 @@ export function daysUntil(deadline: string | undefined, asOf: string): number | 
   return end === undefined ? undefined : end - start;
 }
 
+/** Funding counts as closing soon within this many days, the Funding page's first closing filter. */
+export const CLOSING_SOON_DAYS = 30;
+
 /** Public preview selection uses sharing dates and upcoming deadlines, never match scores. */
 export function homePreviews(
   initiatives: readonly ListingRecord[],
@@ -33,14 +36,16 @@ export function homePreviews(
   const recent = [...shared]
     .sort((a, b) => b.sharedOn!.localeCompare(a.sharedOn!) || a.title.localeCompare(b.title))
     .slice(0, 3);
-  const upcoming = funding
-    .flatMap((record) => {
-      const days = daysUntil(record.closes, asOf);
-      return record.kind === "funding" && days !== undefined && days >= 0 ? [{ record, days }] : [];
-    })
+  const open = funding.flatMap((record) => {
+    const days = daysUntil(record.closes, asOf);
+    return record.kind === "funding" && days !== undefined && days >= 0 ? [{ record, days }] : [];
+  });
+  const upcoming = [...open]
     .sort((a, b) => a.days - b.days || a.record.title.localeCompare(b.record.title))
     .slice(0, 3);
-  return { recent, upcoming, sharedCount: shared.length };
+  // The hero counts what the Funding page lists under its first closing filter.
+  const closingSoon = open.filter(({ days }) => days <= CLOSING_SOON_DAYS).length;
+  return { recent, upcoming, sharedCount: shared.length, closingSoon };
 }
 
 export function fullDate(iso: string, dateStyle: "medium" | "long" = "long"): string {

@@ -198,3 +198,7 @@ remain proposed.
 ## DL-044: A short last row sits in the middle
 
 **Status:** maker's call, 10 November 2026. When the three steps run two across, the third sits centred on the second row; when the eight kinds of support run three across, the last two sit centred on the third row. Numbered list and Tile grid set their columns by their section's width, at the same widths their minimum card sizes gave before, and centre any short last row. Full rows still fill the width, so the page keeps its left edge. No tokens changed.
+
+## DL-045: The phone tab reads You, and Home links to funding closing soon
+
+**Status:** maker's call, 10 November 2026. "Your initiatives" is 86 px wide at the tab bar's 12 px label size, so it touched the edges of a 90 px tab and wrapped at 320 px. Smaller text was weighed and left out: 10 px still left only 9 px each side and is hard to read. On phones the fourth tab reads You, as personal hubs do in Google Maps and YouTube, with the person icon; the header on wide screens keeps Your initiatives, and the page heading stays Your initiatives. Under Home's search, a second link beside the initiatives shared counts the funds that close within 30 days and opens Funding filtered and sorted that way, so the number matches the list. No tokens changed.
