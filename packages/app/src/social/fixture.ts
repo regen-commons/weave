@@ -23,6 +23,10 @@ export interface CertifiedRecord {
   readonly role: ProjectRole;
   /** A Weave workspace exists and this person already has access to it. */
   readonly workspace: boolean;
+  readonly workspaceId?: string;
+  readonly accessRole?: "viewer" | "editor" | "admin";
+  /** Fields this provider actually supplied. Missing fields never erase local work. */
+  readonly verifiedFields?: readonly (keyof PublicCard)[];
 }
 /** The Certified project this device's card belongs to. */
 export interface ProjectLink {
@@ -36,6 +40,8 @@ export interface ProjectLink {
   readonly requestedOn: string | null;
   /** Created from Weave in this example, rather than chosen from existing projects. */
   readonly created: boolean;
+  readonly workspaceId?: string;
+  readonly accessRole?: "viewer" | "editor" | "admin";
 }
 export interface SavedCard {
   readonly id: string;
@@ -43,7 +49,7 @@ export interface SavedCard {
   readonly savedOn: string;
 }
 export interface SocialState {
-  readonly identity: { readonly handle: string } | null;
+  readonly identity: { readonly handle: string; readonly id?: string } | null;
   /** Where Weave holds a copy of this device's card: for this person only, or for the project's team. */
   /**
    * The saved copy. `key` is what was saved, so the page can say when this device has
@@ -70,6 +76,9 @@ export interface SocialState {
   readonly records: readonly CertifiedRecord[];
   /** Private saves that belong to no team workspace. */
   readonly cards: readonly SavedCard[];
+  readonly workspaces?: readonly CertifiedRecord[];
+  readonly setupRequests?: readonly { requestId: string; projectUri: string; name: string }[];
+  readonly hasMoreCards?: boolean;
   readonly reminders: readonly string[];
   /** Matches saved to come back to. Saving one sends nothing to the other initiative. */
   readonly leads: readonly string[];
@@ -94,7 +103,7 @@ export interface SocialService {
   /** Loads a private save onto this device. Loading saves nothing new and links nothing. */
   openCard(id: string, key: string | null): Promise<void>;
   /** Creates a project on Certified from the card, in a new group with this person as its one owner. */
-  createProject(card: PublicCard): Promise<ProjectLink>;
+  createProject(card: PublicCard, groupLabel?: string): Promise<ProjectLink>;
   /** A member asks the group's admin or owner to set up the team workspace. */
   requestWorkspace(): Promise<void>;
   /** Reads the latest state from Certified. In this example a pending request or withdrawal is then confirmed. */
@@ -109,6 +118,9 @@ export interface SocialService {
   removeLead(id: string): Promise<void>;
   notify(kind: "funding" | "partners", enabled: boolean): Promise<void>;
   deleteAccount(): Promise<void>;
+  approveSetup?(projectUri: string, requestId: string): Promise<void>;
+  recoverWorkspace?(projectUri: string): Promise<void>;
+  moreCards?(): Promise<void>;
 }
 
 export const EXAMPLE_HANDLE = "orchard.certified.one";

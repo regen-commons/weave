@@ -155,13 +155,14 @@ function LeadButton({ label, name, variant = "quiet", onClick, disabled }: {
   );
 }
 
-export function NetworkResults({ search, leads, entries, compact, blocked, onChange, onRemove, readOnly = false }: {
+export function NetworkResults({ search, leads, entries, compact, blocked, onChange, onRemove, readOnly = false, includePublic = true }: {
   search: MatchingSearch | null;
   leads: NetworkLead[] | null;
   entries: NamedEntry[];
   compact: boolean;
   blocked: boolean;
   readOnly?: boolean;
+  includePublic?: boolean;
   onChange: ChangeLead;
   onRemove(entry: MatchingEntryKey, candidateId: string): void;
 }) {
@@ -177,7 +178,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
   const disabled = blocked || leads === null;
   // Results for each entry as it stands now, in the order the search ranked them.
   const current = entries.flatMap((entry) => matches
-    .filter(({ query }) => entryKey(query) === entryKey(entry) && query.revision === entry.revision)
+    .filter(({ query, evidence }) => (includePublic || evidence.type === "shared") && entryKey(query) === entryKey(entry) && query.revision === entry.revision)
     .map((match) => ({ entry, match, lead: leadIndex.get(leadKey(entry, match.candidateId)) })));
   // A preview has no room for a hidden result, so the next one takes its place.
   const fits = compact ? current.filter(({ lead }) => lead?.disposition !== "dismissed") : current;
@@ -199,8 +200,8 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 <p className="rc-card-meta">{entryLine(entry.kind, entry.title)}</p>
                 <p className="rc-meta">You hid this result.</p>
                 <div className="rc-action-bar">
-                  <LeadButton label="Undo hide" name={name} disabled={disabled || readOnly}
-                    onClick={() => onRemove(entry, match.candidateId)} />
+                  {!readOnly && <LeadButton label="Undo hide" name={name} disabled={disabled}
+                    onClick={() => onRemove(entry, match.candidateId)} />}
                 </div>
               </Card>
             );
@@ -222,7 +223,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
               )}
               actions={(evidence.type === "public" || !compact) && (
                 <>
-                  {!compact && (
+                  {!compact && !readOnly && (
                     <LeadButton label={lead ? "Remove from saved" : "Save"} name={name}
                       variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
                       onClick={() => lead
@@ -230,7 +231,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                         : onChange(entry, match.candidateId, "saved")} />
                   )}
                   {evidence.type === "public" && <SourceLink href={evidence.sourceUrl} name={name} />}
-                  {!compact && (
+                  {!compact && !readOnly && (
                     <LeadButton label="Hide" name={name} disabled={disabled || readOnly}
                       onClick={() => onChange(entry, match.candidateId, "dismissed")} />
                   )}
@@ -271,8 +272,8 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                     </p>
                   )}
                   <div className="rc-action-bar">
-                    <LeadButton label="Remove from saved" name={name} disabled={disabled || readOnly}
-                      onClick={() => onRemove(lead, lead.candidateId)} />
+                    {!readOnly && <LeadButton label="Remove from saved" name={name} disabled={disabled}
+                      onClick={() => onRemove(lead, lead.candidateId)} />}
                     {match?.evidence.type === "public" && <SourceLink href={match.evidence.sourceUrl} name={name} />}
                   </div>
                 </li>

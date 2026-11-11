@@ -42,6 +42,13 @@ test("public state supports historical pages independently of ten current entrie
   assert.equal(publicListingPage({ ...input, nextCursor: null }, workspace).nextCursor, null);
 });
 
+test("a public review names learning before publishing and rejects unknown or duplicated types of work", () => {
+  const parsed = publicListingReview({ ...review, record: { ...listing, lenses: ["learning"] } }, 3, 2);
+  assert.equal(publicReviewFacts(parsed).find(fact => fact.term === "Type of work")?.value, "Learning and education");
+  for (const lenses of [["learning", "learning"], ["not-a-lens"]])
+    assert.throws(() => publicListingReview({ ...review, record: { ...listing, lenses } }, 3, 2));
+});
+
 test("invitation summaries keep capabilities and internal fields out of review and validate dates, IDs and pages", () => {
   const input = { invitations: [{ inviteId: entry, status: "claimed", expiresAt: "2026-11-17T00:00:00Z",
     claimedDid: destination, token: "private-capability", tokenHash: "server-only", privateDocument: "private" }] };

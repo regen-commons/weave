@@ -2,7 +2,7 @@ import type { DeviceDraft } from "../describe/contracts.ts";
 import type { DeviceStorage } from "../describe/controller.ts";
 import { hasDraft, previewFields } from "../describe/view.ts";
 import { fullDate } from "../home.ts";
-import { asksWithoutKind, intakeComplete } from "../intake/finish.ts";
+import { intakeComplete } from "../intake/finish.ts";
 import type { RouteName } from "../routes.ts";
 import type { Entries, PublicCard, SocialState, WorkspaceState } from "../social/fixture.ts";
 
@@ -249,7 +249,7 @@ export function cardStatus(
     !!saved && (example ? saved.key !== null && saved.key !== publicKey(draft) : account === "changed");
   // Where a save goes now: the linked project's open workspace, otherwise the person's private saves.
   const team = signed && example?.project?.workspace === "open" ? example.project.group : null;
-  const rows = { unsaved, save: saveStep(draft, signed, saved, unsaved, team, !example), sharing, publishing };
+  const rows = { unsaved, save: saveStep(draft, signed, saved, unsaved, team), sharing, publishing };
   if (saved) {
     const group = saved.place === "workspace" ? example?.project?.group : null;
     return {
@@ -281,21 +281,16 @@ function saveStep(
   saved: { readonly place: "private" | "workspace" } | null,
   unsaved: boolean,
   team: string | null,
-  live: boolean,
 ): SaveStep | null {
   if (!intakeComplete(draft)) return null;
   if (!signed) return { needs: "sign-in", label: "Sign in to save", note: "" };
   // A personal save does not follow the person into a team workspace on its own.
   const moves = !!saved && !!team && saved.place !== "workspace";
   if (saved && !unsaved && !moves) return null;
-  // The live account still rejects an entry with no kind of support, so say it before the tap.
-  const missing = live ? asksWithoutKind(draft)[0] : undefined;
   return {
     needs: "save",
     label: unsaved && !moves ? "Save changes" : team ? "Save to team workspace" : "Save privately",
-    note: missing
-      ? `Add a kind of support to "${missing.title}" first. Saving needs one on every need and offer.`
-      : team
+    note: team
         ? `Teammates with access to the ${team} workspace can see it. ${SAVING_LIMIT}`
         : `Only you can see it. ${SAVING_LIMIT}`,
   };

@@ -38,7 +38,7 @@ const value = { title: "A fictional place to meet", description: "Public details
   timeframe: null, urgency: null, placeScope: "here", exchangeTerms: ["open"], purpose: "Private purpose",
   capacity: null, audience: null, status: "open" };
 const document = (entry: string) => ({ version: 1, initiative: { name: "Fictional project", description: "Private workspace summary",
-  locations: [], isGlobal: false, links: [], stage: null, lenses: [], themes: [], beneficiaries: [], languages: [] },
+  locations: [], isGlobal: false, links: [], stage: null, lenses: [] as string[], themes: [], beneficiaries: [], languages: [] },
   needs: [{ id: entry, value }], offers: [], funding: { form: { workCountries: "", benefitCountries: "", applicantBaseCountry: "",
     registrationCountry: "", applicantType: "unknown", fundingInstruments: [], goalMin: "", goalMax: "", currency: "",
     usWorkStates: "", usBenefitStates: "" }, programAnswers: {} } });
@@ -170,6 +170,21 @@ integration("PostgreSQL external withdrawal preserves an independent matching sh
   await checkpoint(f, state.operationId, "external_withdrawn");
   const [after] = await sql`select value,matching_audience,matching_withdrawn,matching_revision from weave.needs where initiative_id=${f.id}`;
   assert.deepEqual(after, before);
+});
+
+integration("PostgreSQL learning types are reviewed publicly and changing them queues withdrawal", async () => {
+  const f = await fixture(true);
+  const learning = { ...f.doc, initiative: { ...f.doc.initiative, lenses: ["learning"] } };
+  await save(f, 1, learning);
+  const reviewed = await review(f);
+  assert.deepEqual(reviewed.record.lenses, ["learning"]);
+  const { state } = await publish(f, reviewed);
+  await checkpoint(f, state.operationId, "sending");
+  await checkpoint(f, state.operationId, "published", { cid });
+  await save(f, 2, { ...learning, initiative: { ...learning.initiative, lenses: ["research"] } });
+  const pending = await current(f);
+  assert.equal(pending.status, "withdrawal_pending");
+  assert.deepEqual(pending.record.lenses, ["learning"], "an edit never silently republishes a new type of work");
 });
 
 integration("PostgreSQL publication history returns bounded keyset pages including removed-entry requests", async () => {

@@ -3,9 +3,11 @@ import type { Bundle, Evaluation } from "./contracts.ts";
 import { loadCatalog, rankCatalog } from "./client.ts";
 import { projectFrom } from "./profile.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { DeviceDraftSchema } from "../describe/contracts.ts";
-export function useCatalog(example?: Bundle) {
-  const { draft } = useDraft();
+import { DeviceDraftSchema, type DeviceDraft } from "../describe/contracts.ts";
+export type FundingSubject = Pick<DeviceDraft, "id" | "confirmed" | "funding">;
+export function useCatalog(example?: Bundle, subject?: FundingSubject) {
+  const device = useDraft();
+  const draft = subject ?? device.draft;
   const [bundle, setBundle] = useState<Bundle | undefined>(example);
   const [results, setResults] = useState<Evaluation[] | null>(null);
   const [error, setError] = useState("");

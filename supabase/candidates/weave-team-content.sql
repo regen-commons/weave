@@ -33,7 +33,7 @@ begin
       if jsonb_typeof(v)<>'string' or length(k)=0 or k=any(seen) then return false; end if;seen=array_append(seen,k);
       if length(k)>(case field when 'locations' then 120 when 'links' then 2048 when 'themes' then 60 when 'beneficiaries' then 80 else 80 end) then return false; end if;
       if field='links' and (k !~* '^https?://' or k ~ '://[^/]*@') then return false; end if;
-      if field='lenses' and k not in ('art_culture','research','technology','place_based','funders') then return false; end if;
+      if field='lenses' and k not in ('art_culture','research','technology','place_based','learning','funders') then return false; end if;
       if field='languages' and k !~ '^[a-z]{2}$' then return false; end if;
     end loop;
   end loop;

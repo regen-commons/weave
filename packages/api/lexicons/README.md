@@ -14,6 +14,11 @@ checks uniqueness and, when `expiresAt` is present, that expiry follows creation
 Omit `expiresAt` for an undated listing. It stays open until someone closes or
 withdraws it, subject to the project's eligibility.
 
+`lenses` optionally carries the reviewed initiative types of work, including
+`learning`. Older listings may omit it. The public review names these fields
+before confirmation. Changing included types queues withdrawal of the previous
+listing and requires a fresh review before republication.
+
 `createdAt` identifies the first publication at the entry's stable record key.
 Weave includes a later `updatedAt` in each new reviewed publication. The timestamp
 advances even when someone republishes the same details, giving the replacement

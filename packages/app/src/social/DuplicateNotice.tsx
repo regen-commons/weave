@@ -3,7 +3,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import { likelyDuplicate } from "../initiative/duplicates.ts";
 import { draftWithRecord } from "../initiative/import.ts";
 import { publicCard } from "../initiative/status.ts";
-import { useSocialFixture } from "./context.tsx";
+import { useSocial } from "./context.tsx";
 
 /** Projects the person said are a different initiative, for this visit. */
 const different = new Set<string>();
@@ -15,21 +15,21 @@ const different = new Set<string>();
  * own. Example world only, until Weave can read a person's projects.
  */
 export function DuplicateNotice() {
-  const social = useSocialFixture();
+  const social = useSocial();
   const { draft, controller } = useDraft();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const [, setAnswered] = useState(0);
-  if (!import.meta.env.DEV || !social?.state.identity) return null;
+  if (!social?.state.identity) return null;
   const note = message ? (
     <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
       {message}
     </p>
   ) : null;
   if (social.state.project) return note;
-  const match = likelyDuplicate(publicCard(draft), social.state.records);
-  if (!match || different.has(match.uri)) return note;
+  const match = likelyDuplicate(publicCard(draft), [...social.state.records, ...(social.state.workspaces ?? [])]);
+  if (!match || different.has(`${social.state.identity.id ?? social.state.identity.handle}/${draft.id}/${match.uri}`)) return note;
   async function use() {
     if (busy || !match || !social) return;
     setBusy(true);
@@ -66,7 +66,7 @@ export function DuplicateNotice() {
               type="button"
               disabled={busy}
               onClick={() => {
-                different.add(match.uri);
+                different.add(`${social.state.identity!.id ?? social.state.identity!.handle}/${draft.id}/${match.uri}`);
                 setAnswered((count) => count + 1);
               }}
             >

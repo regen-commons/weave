@@ -1131,14 +1131,47 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
 
 ### 7.6 Build plan and UI handoff
 
-This is the single execution plan for the next build, revised 10 November 2026.
+This is the single execution plan for the next build, revised 11 November 2026.
 The outcome is an authenticated owner adding, saving and sharing needs/offers,
 receiving useful suggestions from both Weave entries and external project
 evidence, and returning to the same work without another identity system.
 Design work can start from the current preview and the [simplification handoff](handover/03-weave-preview-simplification.md).
 The remaining acceptance checks below apply to release readiness.
 
-#### Integration work, 10 November 2026
+#### Design and API integration, 11 November 2026
+
+The implementation branch `codex/weave-social-live` starts from the design review
+at `2cf6a7a`, including `develop` at `0520df8`. It connects the agreed social screens
+to same-origin services through `LiveSocialProvider` and `createLiveSocialService`.
+Team pages share the initiative card and status patterns; focused sharing and
+publication dialogs retain server-reviewed commands. The old project-directory
+layout is retired. Settings retains account and backup recovery.
+
+Project selection is explicit and scoped to the signed-in identity and device
+draft. Cached selection and acknowledged setup dates are display hints, never
+access grants. Only the server's current workspace list and command authorization
+permit team access. Home resumes only a currently granted workspace. A private
+save missing from the first page is checked by exact ID; confirmed absence under
+the same identity permits saving again without discarding device work.
+
+Invitation links are the default. A workspace admin can alternatively submit a
+Certified handle for server-side bidirectional identity resolution before a
+separate grant. Optional group profile names and handles label project choices
+without contributing authority. Project creation proposes an address and stores
+one frozen request before the public write, retaining it across uncertain retries.
+
+The `learning` lens is validated in matching summaries, the draft publication
+Lexicon and candidate SQL. Public listings may include reviewed `lenses`; editing
+that projection requests withdrawal before explicit republication. These SQL
+changes remain candidates and have not been applied to Platform in this round.
+
+The [journey coverage and local evidence](prototype/journey-coverage.md) records
+each user flow, fixture proof at both viewport widths and themes, the public
+search contract and the remaining hosted/database checks. Reminders, account
+deletion and fund suggestions remain example-only. This implementation does not
+enable the production pilot, deploy, or establish hosted end-to-end proof.
+
+#### Earlier integration work, 10 November 2026
 
 The next implementation combines the Certified project/workspace entry flow,
 Claude's app snapshot, public index validation, invitations and public support

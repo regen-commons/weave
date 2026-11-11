@@ -1,4 +1,4 @@
-import { parseSavedAsk, record, uuid, type JsonObject } from "./account-contract.ts";
+import { LENSES, parseSavedAsk, record, uuid, type JsonObject } from "./account-contract.ts";
 import type { PartnerMatch, ProjectEvidence, SharedPartnerEntry } from "./partner-matcher.ts";
 
 export type MatchingKind = "need" | "offer";
@@ -178,7 +178,7 @@ function matchingSummary(value: unknown): MatchingSummary {
   if (typeof o.isGlobal !== "boolean") return invalid();
   return { name: text(o.name, 200), description: text(o.description, 800), isGlobal: o.isGlobal,
     locations: array(o.locations, 8, item => text(item, 120)),
-    lenses: array(o.lenses, 5, item => text(item, 80)), themes: array(o.themes, 10, item => text(item, 60)) };
+    lenses: array(o.lenses, 5, item => option(item, LENSES)), themes: array(o.themes, 10, item => text(item, 60)) };
 }
 export function parseMatchingState(value: unknown): MatchingState {
   const o = record(value);

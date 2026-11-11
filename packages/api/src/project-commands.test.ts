@@ -28,6 +28,24 @@ function setup(provider: Partial<CertifiedProjectProvider>, store: ProjectStore)
   } as CertifiedProjectProvider, store, "https://dev.certified.app");
 }
 
+test("only a verified workspace admin can resolve a teammate handle; resolving never grants access", async () => {
+  let resolutions = 0;
+  const writes: string[] = [];
+  let accessRole = "viewer";
+  const execute = setup({ getMembership: async () => ok("member"), resolveHandle: async handle => {
+    resolutions++; assert.equal(handle, "teammate.certified.one"); return ok({ did: recipientDid, handle });
+  } }, { async execute(_, action) { writes.push(action); return { workspaceId, accessRole }; } });
+  const command = parseProjectCommand({ action: "resolve_teammate", projectUri: uri, workspaceId, handle: "@TEAMMATE.certified.one" });
+  await assert.rejects(execute(actor, command), { code: "workspace_admin_required" });
+  assert.equal(resolutions, 0);
+  accessRole = "admin";
+  assert.deepEqual(await execute(actor, command), { recipientDid, handle: "teammate.certified.one" });
+  assert.equal(resolutions, 1);
+  assert.deepEqual(writes, ["lookup", "lookup"]);
+  for (const handle of ["person@example.test", "https://example.test", "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa"])
+    assert.throws(() => parseProjectCommand({ action: "resolve_teammate", projectUri: uri, workspaceId, handle }));
+});
+
 test("the HTTP boundary rejects forged role claims and cross-origin writes", async () => {
   let ran = false;
   const origin = "https://weave.example";

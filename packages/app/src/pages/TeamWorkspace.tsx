@@ -4,7 +4,6 @@ import { AccountFailure, accountRequest } from "../account/client.ts";
 import { useAccount } from "../account/context.tsx";
 import { continueToCertified } from "../account/sign-in.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { PublicSupport } from "../partners/PublicSupport.tsx";
 import { SaveDeviceToTeam } from "../partners/SaveDeviceToTeam.tsx";
 import { WorkspaceAccess } from "../initiative/WorkspaceAccess.tsx";
 import { TeamEntries } from "../partners/TeamEntries.tsx";
@@ -13,6 +12,17 @@ import { CertifiedSuggestions } from "../partners/CertifiedSuggestions.tsx";
 import { requestTeamWorkspace, startTeamAccess, teamPartnerQueries } from "../partners/team-workspace.ts";
 import { teamWorkspacePath } from "../routes.ts";
 import { Heading } from "../ui/Heading.tsx";
+import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
+import { SuggestionSchema } from "../describe/contracts.ts";
+import { AskSuggestionSchema } from "../intake/contracts.ts";
+import { Section } from "../ui/Section.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
+import { StepLayout } from "../ui/layouts.tsx";
+import { TaskDialog } from "../ui/TaskDialog.tsx";
+import { FirstFunding } from "../ui/FirstFunding.tsx";
+import { loadedDraft } from "../account/document.ts";
+import { LiveExposure } from "../social/LiveExposure.tsx";
+import { rememberWorkspace } from "../initiative/workspace-resume.ts";
 
 const subscribeOnline = (notify: () => void) => {
   window.addEventListener("online", notify);
@@ -43,12 +53,11 @@ const ROLE_LINE: Record<TeamWorkspaceState["accessRole"], string> = {
   admin: "You can change the team's needs and offers and manage teammates.",
 };
 
-/** The workspace is named for its initiative once it opens; until then it says what it is. */
+/** The page title is stable; the checked card carries the initiative's name. */
 function WorkspaceHeading({ name, role }: { name?: string; role?: TeamWorkspaceState["accessRole"] }) {
   return (
     <div className="rc-stack">
-      {name && <p className="rc-eyebrow">Team workspace</p>}
-      <Heading level={1} size="page">{name ?? "Team workspace"}</Heading>
+      <Heading level={1} size="page">{name ? "Your initiative" : "Team workspace"}</Heading>
       {role && <p>{ROLE_LINE[role]}</p>}
     </div>
   );
@@ -88,6 +97,9 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   const [failure, setFailure] = useState<string | null>(null);
   const [access, setAccess] = useState(() => new URLSearchParams(window.location.search).get("access"));
   const [attempt, setAttempt] = useState(0);
+  const [panel, setPanel] = useState<"entries" | "teammates" | null>(null);
+  const [matchVersion, setMatchVersion] = useState(0);
+  const [closeNotice, setCloseNotice] = useState("");
   const loseAccess = useCallback((code: string) => {
     setLoaded(undefined);
     setFailure(code);
@@ -97,7 +109,10 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
     const controller = new AbortController();
     setFailure(null);
     void requestTeamWorkspace(workspaceId, controller.signal).then((saved) => {
-      if (!controller.signal.aborted) setLoaded(saved);
+      if (!controller.signal.aborted) {
+        setLoaded(saved);
+        try { rememberWorkspace(state!.user!.id, workspaceId, window.localStorage); } catch { /* Optional navigation hint. */ }
+      }
     }).catch((error: unknown) => {
       if (!controller.signal.aborted) loseAccess(errorCode(error));
     });
@@ -145,24 +160,48 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   );
   if (loaded === undefined) return <><WorkspaceHeading /><p role="status">Opening the team workspace</p></>;
   const saved = loaded.saved;
+  const readOnly = loaded.accessRole === "viewer";
+  const owner = state!.user!.id;
+  const fields = saved ? SuggestionSchema.parse({ ...saved.document.initiative, confidence: 1 }) : null;
   return (
     <>
       {!online && <p role="status">You’re offline. Reconnect to save or change sharing.</p>}
       <WorkspaceHeading name={String(saved?.document.initiative.name ?? loaded.projectTitle ?? "Team initiative")}
         role={loaded.accessRole} />
-      {!saved && loaded.accessRole !== "viewer" && online && <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} />}
-      {loaded.accessRole === "admin" && loaded.projectUri && <WorkspaceAccess workspaceId={workspaceId} projectUri={loaded.projectUri} />}
-      <TeamEntries workspaceId={workspaceId} workspace={loaded} online={online} onSaved={saveResult}
-        onEditing={setEditing} onAccessLost={loseAccess} />
+      <StepLayout aside={<>
+        <Section id="saving-sharing" title="Saving and sharing">
+          <StatusLine>{saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}</StatusLine>
+          {!saved && !readOnly && online && <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} />}
+          {saved && <LiveExposure saved={saved} owner={owner} team readOnly={readOnly || editing} online={online}
+            onExpired={() => loseAccess("sign_in_required")} onChanged={() => setMatchVersion(v => v + 1)} />}
+        </Section>
+        {!readOnly && <Section id="change-team" title="Change it"><div className="rc-action-bar" data-layout="rows">
+          <button className="rc-button" data-variant={saved ? "quiet" : "primary"} type="button" disabled={!online}
+            onClick={() => setPanel("entries")}>Change needs and offers</button>
+          {loaded.accessRole === "admin" && loaded.projectUri && <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
+            onClick={() => setPanel("teammates")}>Manage teammates</button>}
+        </div></Section>}
+      </>}>
+        {saved && fields ? <InitiativeRecord fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
+          offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
+          : <p>No needs or offers saved yet. {readOnly ? "An editor can add them." : "Add them here or review a copy of this device's card."}</p>}
+      </StepLayout>
+      <TaskDialog title={panel === "teammates" ? "Manage teammates" : "Needs and offers"} open={panel !== null} onClose={() => setPanel(null)}
+        blockClose={editing} onCloseBlocked={() => setCloseNotice("Save or cancel your entry before closing. Your changes are still here.")}>
+        {closeNotice && <p role="status">{closeNotice}</p>}
+        {panel === "entries" && <TeamEntries workspaceId={workspaceId} workspace={loaded} online={online} onSaved={saveResult}
+          onEditing={value => { setEditing(value); setCloseNotice(""); }} onAccessLost={loseAccess} />}
+        {panel === "teammates" && loaded.accessRole === "admin" && loaded.projectUri && <WorkspaceAccess workspaceId={workspaceId} projectUri={loaded.projectUri} expanded />}
+      </TaskDialog>
       {saved && (
         <>
           <CertifiedSuggestions workspaceId={workspaceId} queries={queries} compact={false} online={online}
             onAccessLost={loseAccess} />
-          <PublicSupport key={`public/${saved.revision}`} workspaceId={workspaceId} saved={saved} readOnly={loaded.accessRole === "viewer" || editing} />
-          <SavedMatching key={saved.revision} active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
+          <SavedMatching key={saved.revision} refreshVersion={matchVersion} active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
             document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
             compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
-            fixture={state?.fixture === true} team readOnly={loaded.accessRole === "viewer" || editing} />
+            fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
+          <Section id="team-funding" title="Funding that fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
         </>
       )}
     </>

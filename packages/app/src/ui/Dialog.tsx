@@ -14,6 +14,8 @@ export function Dialog({
   leaves = false,
   onClose,
   children,
+  blockClose = false,
+  onCloseBlocked,
 }: {
   ref?: RefObject<HTMLDialogElement | null>;
   presentation: "information" | "task" | "detail";
@@ -24,6 +26,8 @@ export function Dialog({
   /** The dialog has closed, by hand or because `open` turned false. */
   onClose(): void;
   children: ReactNode;
+  blockClose?: boolean;
+  onCloseBlocked?(): void;
 }) {
   const own = useRef<HTMLDialogElement>(null);
   const dialog = ref ?? own;
@@ -51,9 +55,13 @@ export function Dialog({
   }, [dialog, open, leaves]);
   return (
     <dialog className="rc-dialog" data-presentation={presentation} ref={dialog} aria-labelledby={id}
+      onCancel={event => { if (blockClose) { event.preventDefault(); onCloseBlocked?.(); } }}
       // React passes a dialog's close up through its tree; one opened inside this one is not this one closing.
       onClose={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) {
+          if (blockClose && open) { event.currentTarget.showModal(); onCloseBlocked?.(); }
+          else onClose();
+        }
       }}
     >
       <div className="rc-dialog-grip" data-sheet-handle aria-hidden="true" />
@@ -62,7 +70,7 @@ export function Dialog({
           <h2 className="rc-dialog-title" id={id}>
             {title}
           </h2>
-          <form method="dialog">
+          <form method="dialog" onSubmit={event => { if (blockClose) { event.preventDefault(); onCloseBlocked?.(); } }}>
             <button className="rc-button" data-variant="secondary" type="submit">
               Close
             </button>

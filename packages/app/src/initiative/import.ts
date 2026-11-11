@@ -2,11 +2,11 @@ import { confirmDraft, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft } fr
 import { formFrom } from "../describe/forms.ts";
 import type { PublicCard } from "../social/fixture.ts";
 
-const publicEdits = (record: PublicCard) => ({
+const publicEdits = (record: PublicCard & { readonly isGlobal?: boolean }) => ({
   name: record.name,
   description: record.description,
   locations: [...record.locations],
-  isGlobal: false,
+  isGlobal: record.isGlobal ?? false,
   links: [...record.links],
 });
 
@@ -47,8 +47,16 @@ export function draftFromRecord(record: PublicCard): DeviceDraft {
  * A card that was not checked yet is checked here when the project's details are complete,
  * because they are the project's own published words and not a suggestion.
  */
-export function draftWithRecord(draft: DeviceDraft, record: PublicCard): DeviceDraft {
-  const edits = publicEdits(record);
+export function draftWithRecord(draft: DeviceDraft, record: PublicCard & { readonly verifiedFields?: readonly (keyof PublicCard)[] }): DeviceDraft {
+  const current = draft.confirmed ?? draft.proposal ?? EMPTY_INITIATIVE;
+  const source = record.verifiedFields ? {
+    name: record.verifiedFields.includes("name") ? record.name : current.name,
+    description: record.verifiedFields.includes("description") ? record.description : current.description,
+    locations: record.verifiedFields.includes("locations") ? record.locations : current.locations,
+    links: record.verifiedFields.includes("links") ? record.links : current.links,
+    isGlobal: record.verifiedFields.includes("locations") ? false : current.isGlobal,
+  } : record;
+  const edits = publicEdits(source);
   if (draft.confirmed)
     return revise(draft, {
       proposal: draft.proposal ? { ...draft.proposal, ...edits } : draft.proposal,
@@ -57,7 +65,7 @@ export function draftWithRecord(draft: DeviceDraft, record: PublicCard): DeviceD
       form: draft.form ? formFrom({ ...EMPTY_INITIATIVE, ...edits }) : draft.form,
       confirmed: { ...draft.confirmed, ...edits },
     });
-  const next = described(draft, record);
+  const next = described(draft, source);
   try {
     return confirmDraft(next);
   } catch {

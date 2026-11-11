@@ -1,4 +1,4 @@
-import { SocialFixtureProvider, useSocialFixture } from "./social/context.tsx";
+import { LiveSocialProvider, SocialFixtureProvider, useSocialFixture } from "./social/context.tsx";
 import { AccountDoorProvider } from "./account/door.tsx";
 import { AccountProvider, useAccount } from "./account/context.tsx";
 import { accountKey } from "./account/document.ts";
@@ -144,9 +144,9 @@ export function App() {
             </AccountDoorProvider>
           </SocialFixtureProvider>
         ) : (
-          <AccountDoorProvider>
+          <LiveSocialProvider><AccountDoorProvider>
             <AppFrame key="frame" location={location} fixture={fixture} />
-          </AccountDoorProvider>
+          </AccountDoorProvider></LiveSocialProvider>
         )}
       </AccountProvider>
     </DraftProvider>
@@ -159,6 +159,7 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
   const saved = device.draft.account.saved;
   const accountSaved =
     !!account.state?.user &&
+    account.savedCheck === "present" &&
     saved?.owner === account.state.user.id &&
     saved.contentKey === accountKey(device.draft);
   const { pathname, search } = splitRoute(location);

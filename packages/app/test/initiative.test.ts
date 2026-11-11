@@ -77,13 +77,13 @@ test("with the live account, the line says where the card is kept and the one sa
   );
 });
 
-test("a need with no kind of support stays on the card, and the live account says what saving needs first", async () => {
+test("a need with no kind of support can be saved privately while sharing still needs classification", async () => {
   const needs = reviewStep(keepPending(addEntry(complete.needs, "Something unusual we cannot classify")));
   const bare = revise(complete, { needs });
   assert.equal(intakeComplete(bare), true, "a kept entry needs no kind of support on the device");
   assert.equal(
     cardStatus(bare, "saved", null, "none").save?.note,
-    'Add a kind of support to "Something unusual we cannot classify" first. Saving needs one on every need and offer.',
+    PRIVATE_NOTE,
   );
   const example = createSocialFixture("draft", "2026-11-04");
   await example.signIn();

@@ -11,6 +11,7 @@ export interface PublicProject {
   groupDid?: string;
   title: string;
   description?: string;
+  createdAt?: string;
 }
 export interface WorkspaceListing {
   workspaceId: string;
@@ -32,6 +33,7 @@ export function projectRecord(value: unknown): PublicProject {
       || (p.groupDid !== undefined && p.groupDid !== p.repoDid)) return invalid();
   return { uri: p.uri, cid: p.cid, repoDid: p.repoDid, title: p.title,
     ...(typeof p.description === "string" ? { description: p.description } : {}),
+    ...(typeof p.createdAt === "string" && Number.isFinite(Date.parse(p.createdAt)) ? { createdAt: p.createdAt } : {}),
     ...(typeof p.groupDid === "string" ? { groupDid: p.groupDid } : {}) };
 }
 export function projectPage(value: Record<string, unknown>) {
