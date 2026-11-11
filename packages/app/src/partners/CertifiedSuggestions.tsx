@@ -94,7 +94,7 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
   const Title = compact ? "h5" : "h4";
   return (
     <section className="rc-stack" aria-labelledby={heading}>
-      <Heading id={heading} className="rc-heading" data-size="section">Suggestions for your private entries</Heading>
+      <Heading id={heading} className="rc-heading" data-size="section">Partners for you</Heading>
       {!hasQueries ? <p>Keep an open need or offer to see suggestions.</p>
         : !online ? <p>Reconnect to check public Certified evidence.</p>
         : current?.status === "error" ? (

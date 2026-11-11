@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { Dialog } from "./Dialog.tsx";
 import { keepFocusOnPage } from "./focus.ts";
 
 /**
- * Explicit small task: native focus containment, Escape and return to the invoker.
- * A finished task can remove its invoker, and the page heading takes the focus then.
+ * Explicit small task. A finished task can remove its invoker, and the page heading takes the
+ * focus then. Its content leaves with it, so a finished task closes at once.
  */
 export function TaskDialog({
   title,
@@ -18,15 +19,9 @@ export function TaskDialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const shown = useRef(false);
-  const id = useId();
   useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    if (open && !dialog.open) {
-      dialog.showModal();
-      dialog.querySelector<HTMLElement>("[data-task-focus]:not(:disabled)")?.focus();
-    }
-    if (!open && dialog.open) dialog.close();
+    if (open && !shown.current)
+      ref.current?.querySelector<HTMLElement>("[data-task-focus]:not(:disabled)")?.focus();
     shown.current = open;
   }, [open]);
   useEffect(
@@ -37,29 +32,17 @@ export function TaskDialog({
     [],
   );
   return (
-    <dialog
-      className="rc-dialog"
-      data-presentation="task"
+    <Dialog
       ref={ref}
-      aria-labelledby={id}
+      presentation="task"
+      title={title}
+      open={open}
       onClose={() => {
         keepFocusOnPage();
         onClose();
       }}
     >
-      <div className="rc-dialog-body">
-        <div className="rc-dialog-head">
-          <h2 className="rc-dialog-title" id={id}>
-            {title}
-          </h2>
-          <form method="dialog">
-            <button className="rc-button" data-variant="secondary" type="submit">
-              Close
-            </button>
-          </form>
-        </div>
-        {open && children}
-      </div>
-    </dialog>
+      {open && children}
+    </Dialog>
   );
 }

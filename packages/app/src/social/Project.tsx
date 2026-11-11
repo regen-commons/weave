@@ -60,7 +60,7 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
       onDone(link);
     } catch (error) {
       setFailed(true);
-      setMessage(error instanceof Error ? error.message : "This example step did not work. Try again.");
+      setMessage(error instanceof Error ? error.message : "This step did not work. Try again.");
     } finally {
       setBusy(false);
     }
@@ -76,9 +76,7 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
   if (step === "certified")
     return (
       <div className="rc-stack" aria-busy={busy} ref={body}>
-        <p className="rc-notice" data-tone="info">
-          Example of Certified's page. Nothing leaves this browser.
-        </p>
+        <p className="rc-eyebrow">Certified</p>
         <h3 className="rc-heading" data-size="section">
           Create this project as {EXAMPLE_HANDLE}?
         </h3>
@@ -188,7 +186,6 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
               Not now
             </button>
           </div>
-          <p className="rc-meta">Example link. Nothing is sent.</p>
         </section>
       )}
       {picked === NEW &&
@@ -199,6 +196,12 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
             </h3>
             <Facts items={publicFacts(card)} />
             <p>Anyone can read these four details on Certified. Your needs and offers stay private.</p>
+            {state.saved && (
+              <p>
+                Your saved initiative moves to the new group's team workspace. Teammates who join later can
+                see it there.
+              </p>
+            )}
             <p className="rc-meta">It starts in a group with you as its only owner, so teammates can join later.</p>
             <div className="rc-action-bar">
               <button
@@ -275,6 +278,7 @@ export function ProjectAction({
   const fixture = useSocialFixture();
   const [open, setOpen] = useState(false);
   const { state: account } = useAccount();
+  // Outside the example world the real project directory and group creation run.
   if (!(import.meta.env.DEV && fixture)) return <>
     <button className="rc-button" data-variant={variant} data-size={size} type="button" onClick={() => setOpen(true)}>{children}</button>
     <TaskDialog title="Your Certified project" open={open} onClose={() => setOpen(false)}>
@@ -341,7 +345,7 @@ export function WorkspaceRow({ primary = false, focus = false }: { primary?: boo
       });
       keepFocusOnPage(row);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "This example step did not work. Try again.");
+      setMessage(error instanceof Error ? error.message : "This step did not work. Try again.");
     } finally {
       setBusy(false);
     }
@@ -349,8 +353,6 @@ export function WorkspaceRow({ primary = false, focus = false }: { primary?: boo
   return (
     <>
       <StatusLine
-        icon="people"
-        on={!line}
         actions={
           line ? (
             <button
@@ -374,11 +376,7 @@ export function WorkspaceRow({ primary = false, focus = false }: { primary?: boo
         {line ?? workspaceOpenLine(project)}
       </StatusLine>
       {line && (
-        <p className="rc-meta">
-          {asked
-            ? "A group admin or owner approves it. You can keep working privately. In this example, checking again approves it."
-            : "A group admin or owner approves it. You can keep working privately. Example request. Nothing is sent."}
-        </p>
+        <p className="rc-meta">A group admin or owner approves it. You can keep working privately.</p>
       )}
       {message && (
         <p className="rc-notice" data-tone="warning" role="alert">

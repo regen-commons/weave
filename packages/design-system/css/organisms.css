@@ -1,73 +1,86 @@
 /* Organisms: distinct sections of an interface. */
 
 /* App header: product name top-left returns home on every page. */
+/* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
+   under it, and its contents keep the page's edges. */
 .rc-app-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--layer-sticky);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
   inline-size: 100%;
-  max-inline-size: var(--page-width);
-  margin-inline: auto;
   padding-block: var(--space-2);
-  padding-inline: var(--gutter);
+  padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
   border-block-end: var(--border-thin) solid var(--line);
+  background: var(--surface);
 }
+/* Every tab is as wide as the widest, so the row reads as one control. The nav keeps to its
+   content and sits beside the name; the state goes to the far end. */
 .rc-app-nav {
   display: none;
-  flex: 1;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: var(--space-1);
+  margin-inline-end: auto;
 }
 .rc-app-nav > a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-block-size: var(--control-sm-height);
   padding-inline: var(--space-3);
   border-block-end: var(--border-edge) solid transparent;
   color: var(--text-secondary);
   text-decoration: none;
+  /* A tab name stays on one line; the save status gives way first. */
+  white-space: nowrap;
 }
 .rc-app-nav > a:hover { color: var(--on-surface); }
+/* The current tab keeps the same weight, so no tab changes width; its bar and colour mark it. */
 .rc-app-nav > a[aria-current="page"] {
   border-block-end-color: var(--action);
   color: var(--on-surface);
-  font: var(--type-title-sm);
 }
 @media (min-width: 56.25rem) {
-  .rc-app-nav { display: flex; }
+  .rc-app-nav { display: grid; }
 }
 
 /* Bottom navigation for phones. Icon and word, always both. */
+/* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
+   quarter of the narrowest phone; with very large text a label wraps inside its own tab. */
 .rc-bottom-nav {
   position: sticky;
   inset-block-end: 0;
   z-index: var(--layer-sticky);
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   padding-block-end: env(safe-area-inset-bottom);
   border-block-start: var(--border-thin) solid var(--control-line);
   background: var(--surface);
 }
 /* Equal widths at normal sizes. At large text sizes the labels wrap to a second row instead of colliding. */
 .rc-bottom-nav > a {
-  flex: 1 1 0;
-  min-inline-size: max-content;
   display: grid;
   justify-items: center;
   align-content: center;
   gap: var(--space-1);
   min-block-size: var(--space-8);
-  padding-inline: var(--space-1);
+  /* Tabs meet edge to edge, so the label gets the whole quarter. */
+  padding-inline: 0;
   border-block-start: var(--border-edge) solid transparent;
   color: var(--text-secondary);
-  font: var(--type-body-sm);
+  font: var(--type-label-sm);
+  text-align: center;
   text-decoration: none;
+  text-wrap: balance;
 }
 .rc-bottom-nav > a[aria-current="page"] {
   border-block-start-color: var(--action);
   color: var(--on-surface);
-  font: var(--type-label-md);
 }
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
@@ -148,8 +161,10 @@
   list-style: none;
 }
 
-/* Dialog: native, for consent and confirming steps only. */
+/* Dialog: native. A centred modal on wide screens and a bottom sheet on a phone. */
 .rc-dialog {
+  /* How far a finger has pulled the sheet down. behaviors/sheet.js writes it while dragging. */
+  --sheet-drag: 0;
   inline-size: min(100% - var(--space-5), var(--form-width));
   max-block-size: calc(100dvh - var(--space-6));
   padding: var(--sheet-padding);
@@ -159,6 +174,8 @@
   color: var(--on-surface-overlay);
   box-shadow: var(--shadow-4);
 }
+/* A record opened over its list reads at the list's width. */
+.rc-dialog[data-presentation="detail"] { inline-size: min(100% - var(--space-5), var(--list-width)); }
 .rc-dialog:modal { overscroll-behavior: contain; }
 .rc-dialog::backdrop { background: var(--backdrop); overflow: hidden; overscroll-behavior: contain; }
 .rc-dialog-body {
@@ -169,8 +186,22 @@
 .rc-dialog-head > h2 { flex: 1; min-inline-size: 0; }
 .rc-dialog-head > form { flex: none; }
 .rc-dialog-title { font: var(--type-headline-sm); }
+/* The grip shows only where the dialog is a bottom sheet, and there it pulls the sheet away. */
+.rc-dialog-grip { display: none; }
 @media (forced-colors: active) {
   .rc-dialog { border: var(--border-thin) solid CanvasText; }
+}
+/* Sheet motion: a dialog leaves the way it arrived. sheet.js sets data-closing and waits for it. */
+@keyframes rc-dialog-in { from { opacity: 0; transform: scale(0.96); } }
+@keyframes rc-dialog-out { to { opacity: 0; transform: scale(0.96); } }
+@keyframes rc-sheet-in { from { transform: translateY(100%); } }
+@keyframes rc-sheet-out { to { transform: translateY(100%); } }
+@keyframes rc-leave { to { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .rc-dialog[open] { animation: rc-dialog-in var(--duration-base) var(--ease-out); }
+  .rc-dialog[open]::backdrop { animation: rc-arrive var(--duration-base) var(--ease-out); }
+  .rc-dialog[data-closing] { animation: rc-dialog-out var(--duration-fast) ease-in both; }
+  .rc-dialog[data-closing]::backdrop { animation: rc-leave var(--duration-fast) ease-in both; }
 }
 
 /* Data table: right-aligned numbers, a few rows of space, no zebra lines. */
@@ -198,7 +229,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-.rc-app-header-state { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+/* The header stays on one line at every width: the status shortens before anything wraps. */
+.rc-app-header > .rc-logo { flex: none; }
+.rc-app-header > .rc-back { flex: 0 1 auto; }
+.rc-app-header-state { display: flex; align-items: center; justify-content: end; gap: var(--space-2); min-inline-size: 0; }
+.rc-app-header-state > .rc-save-status { min-inline-size: 0; }
+.rc-app-header-state > .rc-save-status > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button { flex: none; }
 /* The same filter bar on every list. Menus hold native checks, not ARIA menu items. */
 .rc-filter-bar { display: grid; min-inline-size: 0; gap: var(--space-3); }
 .rc-filter-controls, .rc-active-filters { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-2); }
@@ -242,35 +279,84 @@
 .rc-footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--space-11)), 1fr)); gap: var(--space-5); }
 .rc-footer-title { font: var(--type-title-sm); }
 .rc-footer ul { padding: 0; list-style: none; }
-.rc-footer-row { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); }
 .rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-decoration: underline; cursor: pointer; }
-.rc-footer[data-slim="true"] { padding-block: var(--space-5); }
+/* Bottom sheet: on a phone every presented dialog rises from the bottom edge and can be pulled back down. */
 @media (max-width: 37.5rem) {
-  .rc-dialog:is([data-presentation="information"], [data-presentation="task"]) {
+  .rc-dialog[data-presentation] {
     inset: auto 0 0;
     inline-size: 100%;
     max-inline-size: 100%;
     margin: 0;
     max-block-size: calc(100dvh - var(--space-5));
+    padding-block-end: max(var(--sheet-padding), env(safe-area-inset-bottom));
     border-end-start-radius: 0;
     border-end-end-radius: 0;
+    translate: 0 var(--sheet-drag);
   }
+  .rc-dialog-grip {
+    display: block;
+    inline-size: var(--space-7);
+    block-size: var(--space-1);
+    margin-block: calc(-1 * var(--space-2)) var(--space-2);
+    margin-inline: auto;
+    border-radius: var(--radius-full);
+    background: var(--control-line);
+    touch-action: none;
+  }
+  .rc-dialog-head[data-sheet-handle] { touch-action: none; user-select: none; }
+}
+@media (max-width: 37.5rem) and (prefers-reduced-motion: no-preference) {
+  .rc-dialog[data-presentation][open] { animation: rc-sheet-in calc(var(--duration-slow) * 1.25) var(--ease-out); }
+  .rc-dialog[data-presentation][data-closing] { animation: rc-sheet-out var(--duration-base) ease-in both; }
+  .rc-dialog[data-presentation][data-closing]::backdrop { animation-duration: var(--duration-base); }
+  .rc-dialog[data-settling] { transition: translate var(--duration-base) var(--ease-out); }
 }
 
 .rc-filter-bar > .rc-field { max-inline-size: var(--list-width); }
-/* Numbered list: a short sequence, with the first linked card as the way in. */
-.rc-numbered-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
-.rc-numbered-item { position: relative; display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
-.rc-numbered-item:has(a) { box-shadow: inset 0 0 0 var(--border-thick) var(--action), var(--shadow-1); }
+/* Numbered list: a short sequence that explains how something goes. No card is a link. */
+/* Numbered list and Tile grid set their columns by the section's own width, at the widths their
+   minimum card sizes allow, and each card spans two half columns. A short last row can then sit
+   in the middle instead of at the start. */
+.rc-section:has(> .rc-numbered-list, > .rc-tile-grid) { container-type: inline-size; }
+.rc-numbered-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+/* Two across from 2 x 18rem and a gap, three across from 3 x 18rem and two gaps (--card-min-width). */
+@container (min-width: 37rem) {
+  .rc-numbered-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-numbered-item { grid-column: span 2; }
+}
+@container (37rem <= width < 56rem) {
+  .rc-numbered-item:last-child:nth-child(2n + 1) { grid-column: 2 / span 2; }
+}
+@container (min-width: 56rem) {
+  .rc-numbered-list { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .rc-numbered-item:last-child:nth-child(3n + 1) { grid-column: 3 / span 2; }
+  .rc-numbered-item:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
+.rc-numbered-item { display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
 .rc-numbered-number { font: var(--type-headline-md); color: var(--text-accent); }
 .rc-numbered-title { font: var(--type-title-sm); }
-.rc-numbered-title > a { color: inherit; text-decoration: none; }
-.rc-numbered-title > a::after { content: ""; position: absolute; inset: 0; }
-.rc-numbered-title > a:focus-visible { outline: none; }
-.rc-numbered-item:has(a:focus-visible) { outline: var(--border-edge) solid var(--focus); outline-offset: var(--border-thick); }
 
 /* Tile grid: equal-size cards with one tooltip trigger each. */
-.rc-tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-card-min-width)), 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.rc-tile-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+/* Two, three and four across at 15rem cards and 0.75rem gaps (--tile-card-min-width, --space-3). */
+@container (min-width: 30.75rem) {
+  .rc-tile-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-tile-grid > li { grid-column: span 2; }
+}
+@container (30.75rem <= width < 46.5rem) {
+  .rc-tile-grid > li:last-child:nth-child(2n + 1) { grid-column: 2 / span 2; }
+}
+@container (46.5rem <= width < 62.25rem) {
+  .rc-tile-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .rc-tile-grid > li:last-child:nth-child(3n + 1) { grid-column: 3 / span 2; }
+  .rc-tile-grid > li:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
+@container (min-width: 62.25rem) {
+  .rc-tile-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .rc-tile-grid > li:last-child:nth-child(4n + 1) { grid-column: 4 / span 2; }
+  .rc-tile-grid > li:nth-last-child(2):nth-child(4n + 1) { grid-column: 3 / span 2; }
+  .rc-tile-grid > li:nth-last-child(3):nth-child(4n + 1) { grid-column: 2 / span 2; }
+}
 .rc-tile-grid > li { display: flex; min-inline-size: 0; }
 .rc-tile-grid .rc-tooltip-wrap, .rc-tile-grid .rc-tooltip-trigger { display: flex; inline-size: 100%; }
 /* Conversation panel: voice where local speech is available, typing everywhere. */

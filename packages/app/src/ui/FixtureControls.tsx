@@ -1,6 +1,10 @@
 import { DESCRIBE_VIEWS, INTAKE_VIEWS, type FixtureContext } from "../fixtures.ts";
 import { currentRoute, navigate, routePath } from "../router.tsx";
 import { routeWith } from "../routes.ts";
+/**
+ * The one label for the example world, with its development switches. It sits at the foot of
+ * every page so it never crowds what the page is about.
+ */
 export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
   const path = routePath();
   function set(key: string, value: string) {
@@ -18,8 +22,8 @@ export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
     );
   }
   return (
-    <aside className="rc-notice" data-tone="info" aria-label="Example controls">
-      <details className="rc-notice-body">
+    <aside aria-label="Example controls">
+      <details>
         <summary className="rc-footer-link">
           Fictional examples. Changes are temporary; nothing is sent.
         </summary>

@@ -13,7 +13,7 @@ export {
 import { AskStepSchema, emptyAskStep } from "../intake/contracts.ts";
 import { FundingDetailsSchema, emptyFundingDetails } from "../funding/contracts.ts";
 export const StageSchema = z.enum(["seed", "sprout", "flowering", "tree"]);
-export const LensSchema = z.enum(["art_culture", "research", "technology", "place_based", "funders"]);
+export const LensSchema = z.enum(["art_culture", "research", "technology", "place_based", "learning", "funders"]);
 export const DerivedKeySchema = z.enum(["stage", "lenses", "themes", "beneficiaries", "languages"]);
 export type DerivedKey = z.infer<typeof DerivedKeySchema>;
 export const SuggestionSchema = z.strictObject({
@@ -44,7 +44,8 @@ export const LENS_LABELS = {
   art_culture: "Art and culture",
   research: "Research",
   technology: "Technology",
-  place_based: "Place-based community",
+  place_based: "Place-based",
+  learning: "Learning and education",
   funders: "Funders",
 } as const;
 export const EMPTY_INITIATIVE: Initiative = {

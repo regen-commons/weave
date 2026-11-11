@@ -54,7 +54,7 @@ test("a removed detail stays removed through Keep card, and a corrected one keep
 
 test("details read as people see them, and empty ones say so", () => {
   assert.equal(detailText("stage", proposal), "Getting going");
-  assert.equal(detailText("lenses", proposal), "Place-based community");
+  assert.equal(detailText("lenses", proposal), "Place-based");
   assert.equal(detailText("themes", proposal), "soil, water");
   assert.equal(detailText("beneficiaries", proposal), "Not stated");
   assert.equal(detailText("languages", { ...proposal, languages: ["pt", "en"] }), "Portuguese, English");

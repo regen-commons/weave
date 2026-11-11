@@ -95,18 +95,20 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
 
   return (
     <section className="rc-stack" aria-label="Team needs and offers">
-      <p className="rc-meta">{canEdit ? "Saved entries are visible to your team. Choose what to share below." : "You have read-only access."}</p>
+      {/* The page says what a viewer can do, so this section does not repeat it. */}
+      {canEdit && <p className="rc-meta">Only your team sees these until you share them.</p>}
       {notice && <p role="status">{notice}</p>}
       {(["needs", "offers"] as const).map((kind) => (
         <section className="rc-stack" key={kind} aria-label={kind === "needs" ? "Team needs" : "Team offers"}>
-          <h2 className="rc-heading" data-size="section">{kind === "needs" ? "Needs" : "Offers"}</h2>
+          <h2 className="rc-heading" data-size="section">{kind === "needs" ? "What you need" : "What you can offer"}</h2>
           <CardGrid>
             {(saved?.document[kind] ?? []).map((entry) => (
               <li key={entry.id}>
                 <Card>
                   <h3 className="rc-card-title">{String(entry.value.title)}</h3>
                   {typeof entry.value.description === "string" && <p>{entry.value.description}</p>}
-                  <p className="rc-meta">{STATUS[entry.value.status as keyof typeof STATUS]}</p>
+                  {/* An open entry is the usual case, so only a closed one says so. */}
+                  {entry.value.status !== "open" && <p className="rc-meta">{STATUS[entry.value.status as keyof typeof STATUS]}</p>}
                   {canEdit && !edit && <div className="rc-action-bar">
                     <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
                       aria-label={`Change ${entry.value.title}`} onClick={() => open(kind, entry.id)}>Change</button>

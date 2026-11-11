@@ -1,5 +1,5 @@
 import { LiveYourInitiatives } from "../initiative/ProjectDirectory.tsx";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { AccountSection } from "../account/AccountSection.tsx";
 import { useAccountDoor } from "../account/door.tsx";
 import { newDraft, revise } from "../describe/contracts.ts";
@@ -14,28 +14,30 @@ import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo } from "../routes.ts";
 import { useSocialFixture } from "../social/context.tsx";
 import type { CertifiedRecord, SavedCard } from "../social/fixture.ts";
-import { ProjectAction } from "../social/Project.tsx";
 import { projectLine } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { Card, CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { Section } from "../ui/Section.tsx";
 import { ListLayout } from "../ui/layouts.tsx";
+import { AboutCertified } from "../ui/AboutCertified.tsx";
 
 /**
  * Everything a signed-in person can open: the card on this device, their private saves and
- * their Certified projects. The project list is an example until Weave can read projects.
+ * their Certified projects. Each card opens from its name, so no card carries a button.
+ * The project list is an example until Weave can read projects.
  */
 export function YourInitiatives() {
   const social = useSocialFixture();
   const { draft, controller } = useDraft();
   const status = useCardStatus();
   const openDoor = useAccountDoor();
-  const titles = useId();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const [starting, setStarting] = useState(false);
+  // Outside the example world the person's real projects and saves are listed.
   if (!(import.meta.env.DEV && social)) return <LiveYourInitiatives />;
   const { state, service, refresh } = social;
   const go = (href: string) => navigate(fixtureHref(href, routeSearch(), true));
@@ -49,7 +51,7 @@ export function YourInitiatives() {
       refresh();
     } catch (error) {
       setFailed(true);
-      setMessage(error instanceof Error ? error.message : "This example change failed. Try again.");
+      setMessage(error instanceof Error ? error.message : "This change did not work. Try again.");
     } finally {
       setBusy(false);
     }
@@ -67,15 +69,15 @@ export function YourInitiatives() {
           Your initiatives
         </Heading>
         <p>Sign in with Certified to open your projects and what you saved in Weave.</p>
+        <AboutCertified />
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="primary" type="button" onClick={() => openDoor("certified")}>
             Sign in with Certified
           </button>
-          <ButtonLink href={pathTo(onDevice ? cardRoute(draft) : "initiative")} variant="quiet">
+          <ButtonLink href={pathTo(onDevice ? cardRoute(draft) : "initiative")} variant="secondary">
             {onDevice ? "Open the card on this device" : "Describe a new initiative"}
           </ButtonLink>
         </div>
-        <p className="rc-meta">Example sign-in. Nothing is sent.</p>
         {note}
       </div>
     );
@@ -156,73 +158,52 @@ export function YourInitiatives() {
       )}
       {(onDevice || cards.length > 0) && (
         <Section id="initiatives-weave" title="In Weave">
-          <ul className="rc-card-grid">
+          <CardGrid>
             {onDevice && (
               <li>
-                <article className="rc-card" data-layout="listing">
-                  <h3 className="rc-card-title">{deviceName}</h3>
+                <Card>
+                  <h3 className="rc-card-title">
+                    {/* A button like its neighbours, so one card does not take the visited link colour. */}
+                    <button type="button" disabled={busy} onClick={() => go(pathTo(cardRoute(draft)))}>
+                      {deviceName}
+                    </button>
+                  </h3>
                   <p className="rc-card-meta">{status.line || "On this device only."}</p>
                   {project && <p className="rc-card-meta">Linked to your project on Certified.</p>}
-                  <div className="rc-action-bar">
-                    <ButtonLink href={pathTo(cardRoute(draft))} variant="primary">
-                      Open
-                    </ButtonLink>
-                    {!project && <ProjectAction variant="quiet" />}
-                  </div>
-                </article>
+                </Card>
               </li>
             )}
-            {cards.map((card, index) => (
+            {cards.map((card) => (
               <li key={card.id}>
-                <article className="rc-card" data-layout="listing">
-                  <h3 className="rc-card-title" id={`${titles}-card-${index}`}>
-                    {card.name}
+                <Card>
+                  <h3 className="rc-card-title">
+                    <button type="button" disabled={busy} onClick={() => void run(() => openCard(card))}>
+                      {card.name}
+                    </button>
                   </h3>
                   <p className="rc-card-meta">Saved privately in Weave on {fullDate(card.savedOn)}.</p>
-                  <div className="rc-action-bar">
-                    <button
-                      className="rc-button"
-                      data-variant="secondary"
-                      type="button"
-                      disabled={busy}
-                      aria-describedby={`${titles}-card-${index}`}
-                      onClick={() => void run(() => openCard(card))}
-                    >
-                      Open
-                    </button>
-                  </div>
-                </article>
+                </Card>
               </li>
             ))}
-          </ul>
+          </CardGrid>
         </Section>
       )}
       {records.length > 0 && (
         <Section id="initiatives-certified" title="On Certified">
-          <ul className="rc-card-grid">
-            {records.map((record, index) => (
+          <CardGrid>
+            {records.map((record) => (
               <li key={record.uri}>
-                <article className="rc-card" data-layout="listing">
-                  <h3 className="rc-card-title" id={`${titles}-project-${index}`}>
-                    {record.name}
+                <Card>
+                  <h3 className="rc-card-title">
+                    <button type="button" disabled={busy} onClick={() => void run(() => openRecord(record))}>
+                      {record.name}
+                    </button>
                   </h3>
                   <p className="rc-card-meta">{projectLine(record)}</p>
-                  <div className="rc-action-bar">
-                    <button
-                      className="rc-button"
-                      data-variant="secondary"
-                      type="button"
-                      disabled={busy}
-                      aria-describedby={`${titles}-project-${index}`}
-                      onClick={() => void run(() => openRecord(record))}
-                    >
-                      {record.workspace ? "Open workspace" : "Open"}
-                    </button>
-                  </div>
-                </article>
+                </Card>
               </li>
             ))}
-          </ul>
+          </CardGrid>
         </Section>
       )}
       {total > 0 && records.length === 0 && !project && (
@@ -245,7 +226,12 @@ export function YourInitiatives() {
               >
                 Back up this card and start new
               </button>
-              <button className="rc-button" data-variant="quiet" type="button" onClick={() => setStarting(false)}>
+              <button
+                className="rc-button"
+                data-variant="secondary"
+                type="button"
+                onClick={() => setStarting(false)}
+              >
                 Cancel
               </button>
             </div>

@@ -120,31 +120,40 @@
 
 /* Stepper: where you are in a short sequence. Number, weight and edge all mark the current step. */
 .rc-stepper {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-/* Equal widths when they fit. Long labels or large text wrap to new rows. */
-.rc-stepper > li {
-  flex: 1 1 0;
-  min-inline-size: max-content;
+/* Every step shares one row. In a narrow space the number sits above its label, which wraps inside its own column. */
+.rc-stepper > li,
+.rc-stepper > li > a {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-block-size: var(--control-sm-height);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.rc-stepper > li {
+  padding-block-end: var(--space-2);
   border-block-end: var(--border-edge) solid var(--line);
   font: var(--type-body-sm);
   color: var(--text-muted);
 }
-.rc-stepper > li > a {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-block-size: var(--control-sm-height);
-  color: inherit;
+.rc-stepper > li > a { color: inherit; }
+@container (min-width: 37.5rem) {
+  .rc-stepper > li,
+  .rc-stepper > li > a {
+    flex-direction: row;
+    gap: var(--space-2);
+    text-align: start;
+  }
+  .rc-stepper > li { padding-block-end: 0; }
 }
 .rc-stepper-mark {
   display: inline-grid;
@@ -224,21 +233,43 @@
   gap: var(--space-1);
 }
 .rc-card-title { font: var(--type-headline-sm); }
-.rc-card-title > a {
+/* The title opens the record: a link where the record has an address, a button where opening is an action. */
+.rc-card-title > :is(a, button) {
   color: inherit;
   text-decoration: none;
 }
+.rc-card-title > button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
 .rc-card-title > a:visited { color: var(--link-visited); }
-.rc-card-title > a:hover { text-decoration: underline; }
-.rc-card-title > a::after {
+.rc-card-title > :is(a, button):hover { text-decoration: underline; }
+.rc-card-title > :is(a, button)::after {
   content: "";
   position: absolute;
   inset: 0;
 }
-.rc-card-title > a:focus-visible { outline: none; }
-.rc-card:has(.rc-card-title > a:focus-visible) {
+.rc-card-title > :is(a, button):focus-visible { outline: none; }
+.rc-card:has(.rc-card-title > :is(a, button):focus-visible) {
   outline: var(--border-edge) solid var(--focus);
   outline-offset: var(--border-thick);
+}
+/* A card that opens its record is one target: a pointer where there is one, a press under a finger. */
+.rc-card:has(.rc-card-title > :is(a, button)) { cursor: pointer; }
+.rc-card-title > :is(a, button) { -webkit-tap-highlight-color: transparent; }
+.rc-card:has(.rc-card-title > :is(a, button):active) {
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+  box-shadow: none;
+}
+.rc-card:has(.rc-card-title > button:disabled) { cursor: progress; }
+@media (prefers-reduced-motion: no-preference) {
+  .rc-card:has(.rc-card-title > :is(a, button)) { transition: scale var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out); }
+  .rc-card:has(.rc-card-title > :is(a, button):active) { scale: 0.98; }
 }
 .rc-card-meta {
   display: flex;
@@ -326,6 +357,10 @@
   min-inline-size: 0;
 }
 .rc-notice-title { font: var(--type-title-sm); }
+/* Actions in a notice sit a step below its words. */
+.rc-notice-body > .rc-action-bar {
+  margin-block-start: var(--space-2);
+}
 
 /* Message: alignment and surface step tell speakers apart, not hue. */
 .rc-message {
@@ -387,6 +422,12 @@
   align-items: center;
   gap: var(--space-2) var(--space-4);
 }
+/* Rows: a short list of places to go, one to a line. */
+.rc-action-bar[data-layout="rows"] {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
 
 /* Progress: what is happening, how far along, and how to stop it. */
 .rc-progress {
@@ -399,17 +440,18 @@
   accent-color: var(--action);
 }
 
-/* Status line: where the work lives, and the one thing to do about it next. */
+/* Status line: a plain row that says where the work stands, with the one thing to do about it next. */
 .rc-status-line {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--surface-tint);
-  color: var(--on-surface-tint);
+}
+/* A hairline separates one step from the next; a note under a row stays with its row. */
+.rc-status-line ~ .rc-status-line {
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-thin) solid var(--line);
 }
 .rc-status-line > .rc-save-status {
   flex: 1 1 var(--card-min-width);
@@ -463,6 +505,24 @@ a.rc-save-status:hover { color: var(--on-surface); }
 }
 .rc-breadcrumbs [aria-current="page"] { font: var(--type-label-md); }
 
+/* Back link: the one way back on a page that is not a tab, at the start of the app bar where a
+   native app keeps it. It names the page it returns to; a long name gives way to the bar. */
+.rc-back { min-inline-size: 0; }
+.rc-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  min-block-size: var(--control-sm-height);
+  padding-inline-end: var(--space-2);
+  color: var(--on-surface);
+  font: var(--type-label-md);
+  text-decoration: none;
+}
+.rc-back-link > .rc-icon { flex: none; }
+.rc-back-link > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-back-link:hover { text-decoration: underline; }
+
 /* Facts: plain terms for consent and privacy. */
 .rc-facts {
   display: grid;
@@ -491,25 +551,20 @@ a.rc-save-status:hover { color: var(--on-surface); }
 
 /* Listing variant reserves title lines and keeps independent controls above the link. */
 .rc-card[data-layout="listing"] { display: flex; flex-direction: column; }
-.rc-card[data-layout="listing"] > [data-slot="comparison"] {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .rc-card[data-layout="listing"] .rc-card-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
-  min-block-size: 2lh;
 }
-.rc-card[data-layout="listing"] > .rc-action-bar { margin-block-start: auto; }
+/* Side by side, titles keep two lines so the rows under them line up. In one column they take what they need. */
+@container (min-width: 37.5rem) {
+  .rc-card[data-layout="listing"] .rc-card-title { min-block-size: 2lh; }
+}
+/* The last line sits at the foot, so cards in a row end together. */
+.rc-card[data-layout="listing"] > :last-child { margin-block-start: auto; }
 .rc-card .rc-tooltip-wrap { position: relative; z-index: 1; }
-@media (prefers-reduced-motion: no-preference) {
-  .rc-card[data-layout="listing"] { transition: translate var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
-  .rc-card[data-layout="listing"]:has(a:hover) { translate: 0 calc(-1 * var(--space-1)); box-shadow: var(--shadow-2); }
-}
 /* Equal-height field and action; stacking preserves both on small screens. */
 .rc-inline-field { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .rc-inline-field > .rc-input { flex: 1; min-inline-size: 0; }
@@ -560,12 +615,11 @@ a.rc-save-status:hover { color: var(--on-surface); }
 .rc-link-preview { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-sm); background: var(--surface-tint); color: var(--on-surface-tint); }
 .rc-link-preview-text { display: grid; min-inline-size: 0; gap: var(--space-1); }
 .rc-link-preview-text > a { font: var(--type-title-sm); }
-/* Price and date metadata above a listing title also reserve two lines. */
-.rc-card[data-layout="listing"] > .rc-meta:first-child { min-block-size: 2lh; }
 
 /* Section: a heading, optional browse action and its related content. */
 .rc-section { display: grid; gap: var(--space-4); min-inline-size: 0; }
 .rc-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+.rc-section-note { max-inline-size: var(--prose-width); color: var(--text-secondary); }
 
 /* Tile card: a large glyph, its framework title and a plain meaning. */
 .rc-tile-card {

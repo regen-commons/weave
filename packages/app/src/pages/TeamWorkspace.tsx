@@ -29,10 +29,27 @@ export function TeamWorkspace({ workspaceId }: { workspaceId: string }) {
   const { state } = useAccount();
   return (
     <div className="rc-stack">
-      <Heading level={1} size="page">Team workspace</Heading>
-      {state === null ? <p role="status">Checking your account</p>
-        : !state.user ? <WorkspaceSignIn workspaceId={workspaceId} available={state.available} />
+      {state === null ? <><WorkspaceHeading /><p role="status">Checking your account</p></>
+        : !state.user ? <><WorkspaceHeading /><WorkspaceSignIn workspaceId={workspaceId} available={state.available} /></>
           : <WorkspaceContent key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} />}
+    </div>
+  );
+}
+
+/** What each person can do here, in one line, so a viewer knows why nothing can be changed. */
+const ROLE_LINE: Record<TeamWorkspaceState["accessRole"], string> = {
+  viewer: "You can view this workspace. A workspace admin can give you editing access.",
+  editor: "You can change the team's needs and offers.",
+  admin: "You can change the team's needs and offers and manage teammates.",
+};
+
+/** The workspace is named for its initiative once it opens; until then it says what it is. */
+function WorkspaceHeading({ name, role }: { name?: string; role?: TeamWorkspaceState["accessRole"] }) {
+  return (
+    <div className="rc-stack">
+      {name && <p className="rc-eyebrow">Team workspace</p>}
+      <Heading level={1} size="page">{name ?? "Team workspace"}</Heading>
+      {role && <p>{ROLE_LINE[role]}</p>}
     </div>
   );
 }
@@ -101,9 +118,10 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
     }
   }
 
-  if (!online && loaded === undefined) return <p>Reconnect to open this workspace.</p>;
+  if (!online && loaded === undefined) return <><WorkspaceHeading /><p>Reconnect to open this workspace.</p></>;
   if (failure === "project_consent_required") return (
     <div className="rc-stack">
+      <WorkspaceHeading />
       <p>Confirm Certified group access to open this workspace.</p>
       {access === "denied" && <p role="status">Certified access was declined.</p>}
       {access === "failed" && <p role="status">Certified access could not be confirmed. Try again.</p>}
@@ -114,9 +132,10 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
     </div>
   );
   if (failure === "workspace_access_required" || failure === "project_authority_required" || failure === "not_found")
-    return <p role="status">This workspace is unavailable to your account.</p>;
+    return <><WorkspaceHeading /><p role="status">This workspace is unavailable to your account.</p></>;
   if (failure !== null) return (
     <div className="rc-stack">
+      <WorkspaceHeading />
       <p role="status">The workspace could not be opened.</p>
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="secondary" type="button"
@@ -124,12 +143,13 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       </div>
     </div>
   );
-  if (loaded === undefined) return <p role="status">Opening the team workspace</p>;
+  if (loaded === undefined) return <><WorkspaceHeading /><p role="status">Opening the team workspace</p></>;
   const saved = loaded.saved;
   return (
     <>
       {!online && <p role="status">You’re offline. Reconnect to save or change sharing.</p>}
-      <p className="rc-meta">{String(saved?.document.initiative.name ?? loaded.projectTitle ?? "Team initiative")}</p>
+      <WorkspaceHeading name={String(saved?.document.initiative.name ?? loaded.projectTitle ?? "Team initiative")}
+        role={loaded.accessRole} />
       {!saved && loaded.accessRole !== "viewer" && online && <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} />}
       {loaded.accessRole === "admin" && loaded.projectUri && <WorkspaceAccess workspaceId={workspaceId} projectUri={loaded.projectUri} />}
       <TeamEntries workspaceId={workspaceId} workspace={loaded} online={online} onSaved={saveResult}

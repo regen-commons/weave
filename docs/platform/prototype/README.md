@@ -4,7 +4,7 @@ A click-through prototype of Weave's first version, designed before the app was 
 
 It is the design reference for building the interface in `packages/app`, not code to port. The content is invented, the assistant and the network are simulated, and nothing typed is sent or stored. The [implementation handover](../handover/03-interface-implementation.md) says how to build from it.
 
-See [implementation status](implementation-status.md) for the app pull requests, browser proof and remaining launch work.
+See [implementation status](implementation-status.md) for the app pull requests, browser proof and remaining launch work. The [journey coverage](journey-coverage.md) maps the four first-release journeys onto the design and live screens and ends with the next prompt for the backend work. The [preview design review](preview-design-review.md) of 9 November 2026 walks the built preview, proposes a lighter structure and sketches the Certified publication step. Its prototype is the app itself, with a [clickable copy](#the-clickable-preview) at https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt.
 
 The published copy is the Artifact at https://claude.ai/artifact/797CzZQeSRsk7XsQ44CUBQ, which the maker shares by link. Its Notes button opens the design notes in [src/notes.html](src/notes.html).
 
@@ -52,3 +52,37 @@ Open the local page, paste `src/audit.js` into the browser console, then run `aw
 ## Publish an update
 
 Keep the same link. From a session with the Artifact tool, build, then publish `build/weave-prototype.html` to the URL above with the other files in `build/` at the same relative paths (`css/`, `tokens/`, `fonts/`, `prototype.css`, the four scripts, and `img/` if present). Record what changed in `src/notes.html`.
+
+## The clickable preview
+
+The preview is the Weave app itself with its development examples, inside a review page. It was last updated on 10 November 2026 for the second design review and the maker's answers to it (DL-033 to DL-042). Build it, then publish every file in `preview/build/` (ignored by Git) to https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt at the same relative paths, replacing the files already there:
+
+```bash
+node docs/platform/prototype/preview/build.mjs
+```
+
+The script runs `bun run --filter @weave/app prototype`, which builds the app with relative paths and its routes in the URL fragment, then saves it as `app.html` beside `preview/shell.html` as `index.html`. It leaves out what the examples never use: the funding catalog, the PDF reader and the font files, which load from Google Fonts instead. To check it locally, start `preview-prototype` from `.claude/launch.json` and open http://localhost:4198/preview/build/index.html.
+
+### Services the preview waits for
+
+The example account in `packages/app/src/social` stands in for services that are not built or not wired yet. `SocialService` in `src/social/fixture.ts` is the seam: each call below needs a real contract before its screen can leave the examples. Without a fixture the app shows only what is live today, which is Certified sign-in and the private save in `src/account`, with no project, sharing or publishing rows.
+
+| The interface does this | Example call | The service has to provide |
+|---|---|---|
+| Sign in with Certified | `signIn` | An identity and nothing else. Signing in must not save, load, link or share. |
+| List what the person can open | `records`, `cards` | Their Certified projects, each with its group, the person's role and whether a team workspace exists, and their private saves. |
+| Link a project, or open its workspace | `linkProject`, `openWorkspace` | The project's four public details, the person's access, and what the team saved when a workspace is open. |
+| Create a project | `createProject` | A project in a new group with the person as its one owner, and a refusal the interface can show when Certified does not confirm. |
+| Ask for a team workspace | `requestWorkspace`, `checkAgain` | A request that a group admin or owner approves, readable as absent, requested or open. |
+| Save | `save` | A private save, or a save into the open team workspace that teammates with access can read. |
+| Share for matching | `share`, `stopSharing` | The chosen needs and offers, who can see them, the day sharing ends, and whether a change since has taken an entry out of matching. |
+| Publish on Certified | `publish`, `withdraw`, `checkAgain` | A publish limited to the reviewed fields that reports whether Certified confirmed, and a withdrawal that reads as pending until Certified confirms it. |
+| Partners from other teams | Example teams in `src/partners` | Search over the entries other teams shared, open only to an initiative that shares an open entry. |
+| Save a match | `saveLead`, `removeLead` | A saved match kept with the account. Saving one sends nothing to the other initiative. |
+
+Four points affect the design and need an answer from the service side:
+
+- The live private save still rejects a need or offer with no kind of support. The first-release flows allow that for a private save, so the interface says it before the tap until the service changes.
+- After a shared or published card changes, the status line says the earlier version is out of matching, or the earlier listing is being withdrawn, and the changes stay private until the person shares or publishes again. The first-release flows ask for this. The example reads the change from the device draft and treats the whole share as changed. The ready-made shared and published examples do not notice a later change, so these lines show only after sharing or publishing during the visit. The service learns of a change at the next save and tracks each need and offer on its own, so the real lines have to follow that.
+- A share that changed since stops opening other teams' shared entries in the example, because searching them needs one open shared entry. The service has to say whether an unchanged entry in the same share keeps that search open.
+- Publishing reads the person's role from the Certified group. A plain member sees why there is no publish action, so the role has to arrive with the project.

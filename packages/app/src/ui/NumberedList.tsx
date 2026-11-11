@@ -1,11 +1,5 @@
-import { Link } from "../router.tsx";
-
-/** A short sequence. Only a step that can be started has a link. */
-export function NumberedList({
-  items,
-}: {
-  items: readonly { title: string; note: string; href?: string }[];
-}) {
+/** A short sequence that explains how something goes. Its steps are not links: the page's own action starts it. */
+export function NumberedList({ items }: { items: readonly { title: string; note: string }[] }) {
   return (
     <ol className="rc-numbered-list">
       {items.map((item, index) => (
@@ -13,9 +7,7 @@ export function NumberedList({
           <span className="rc-numbered-number" aria-hidden="true">
             {index + 1}
           </span>
-          <h3 className="rc-numbered-title">
-            {item.href ? <Link href={item.href}>{item.title}</Link> : item.title}
-          </h3>
+          <h3 className="rc-numbered-title">{item.title}</h3>
           <p className="rc-meta">{item.note}</p>
         </li>
       ))}

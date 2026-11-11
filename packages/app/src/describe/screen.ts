@@ -48,6 +48,24 @@ export function fieldsForm(draft: DeviceDraft): RecordForm {
   return draft.form ?? formFrom(previewFields(draft));
 }
 
+/** How the four fields open: whether speaking is offered first, and which one action is filled. */
+export interface FieldsLead {
+  readonly voice: boolean;
+  readonly primary: "speak" | "continue";
+}
+
+/**
+ * A new initiative is invited to speak first, because saying it aloud is the easier way in. The
+ * invitation needs speech this device can transcribe, and it goes once the initiative has a card.
+ * It stays while the person types, so the page does not jump, but then Continue is the filled
+ * action: only one is filled at a time.
+ */
+export function fieldsLead(draft: DeviceDraft, speechReady: boolean): FieldsLead {
+  const voice = speechReady && !draft.proposal && !draft.confirmed;
+  const typed = Object.values(fieldsForm(draft)).some((value) => value.trim());
+  return { voice, primary: voice && !typed ? "speak" : "continue" };
+}
+
 const NAME_HELP = "Add a name for your initiative.";
 const PLACES_HELP = "Use up to eight places, each up to 120 characters.";
 const LINKS_HELP = "Use up to six complete http or https links.";

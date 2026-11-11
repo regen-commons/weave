@@ -4,7 +4,7 @@ import { hasDraft, previewFields } from "../describe/view.ts";
 import { fullDate } from "../home.ts";
 import { asksWithoutKind, intakeComplete } from "../intake/finish.ts";
 import type { RouteName } from "../routes.ts";
-import type { Entries, PublicCard, SocialState } from "../social/fixture.ts";
+import type { Entries, PublicCard, SocialState, WorkspaceState } from "../social/fixture.ts";
 
 /** The card's one-line state: where it is kept, and the widest audience that can see any of it. */
 export type CardState = "none" | "device" | "saving" | "memory" | "conflict" | "saved" | "shared" | "published";
@@ -114,7 +114,8 @@ function locked(example: SocialState, project: NonNullable<SocialState["project"
 }
 function sharingOf(draft: DeviceDraft, example: SocialState): Exposure {
   const project = example.identity ? example.project : null;
-  if (!project) return { state: "locked", line: "Needs a Certified project.", waits: "project" };
+  if (!project)
+    return { state: "locked", line: "Sharing for matching needs a Certified project.", waits: "project" };
   const lock = locked(example, project);
   if (lock) return lock;
   if (!example.shared)
@@ -129,7 +130,7 @@ function sharingOf(draft: DeviceDraft, example: SocialState): Exposure {
   if (key !== null && key !== publicKey(draft, entries))
     return {
       state: "changed",
-      line: "Changed since you shared. Review again before it can appear in matches.",
+      line: "Changed since you shared. The earlier version is out of matching, and your changes stay private until you share again.",
       waits: null,
     };
   return {
@@ -165,6 +166,61 @@ function publishingOf(draft: DeviceDraft, example: SocialState): Exposure | null
   if (project.group && project.role === "member")
     return { state: "locked", line: "Only a group admin or owner can publish on Certified.", waits: "authority" };
   return locked(example, project) ?? { state: "off", line: "Not published.", waits: null };
+}
+
+/** What the saving and sharing section shows: the steps open now, the one to take next, and a line for the rest. */
+export interface OpenSteps {
+  /** The step to take next; it alone gets the filled button. Null when nothing waits on the person. */
+  readonly lead: "save" | "workspace" | "project" | "share" | null;
+  /** Sharing has a row once it is open, and while the project it needs is the next step. */
+  readonly sharing: Exposure | null;
+  /** Publishing has a row once it is open. */
+  readonly publishing: Exposure | null;
+  /** The steps still closed and what opens them, so no row repeats a lock. Empty when none is closed. */
+  readonly later: string;
+}
+const OPENS: Record<"project" | "workspace" | "save", string> = {
+  project: "once you save and link a Certified project",
+  workspace: "once the team workspace is set up",
+  save: "once you save",
+};
+const open = (exposure: Exposure | null): Exposure | null =>
+  exposure && exposure.state !== "locked" ? exposure : null;
+
+/**
+ * Chooses the rows for the saving and sharing section. A closed step gets no row of its own: one
+ * line under the open rows says what opens it, so the page never shows a button that cannot be used.
+ */
+export function openSteps(status: CardStatus, workspace: WorkspaceState | null): OpenSteps {
+  const waiting = workspace === "absent" || workspace === "requested";
+  const kept = status.state === "saved" || status.state === "shared" || status.state === "published";
+  const shareOpen = open(status.sharing);
+  const lead: OpenSteps["lead"] = status.save
+    ? "save"
+    : waiting
+      ? "workspace"
+      : kept && status.sharing?.waits === "project"
+        ? "project"
+        : shareOpen && shareOpen.state !== "on"
+          ? "share"
+          : null;
+  const sharing = lead === "project" ? status.sharing : shareOpen;
+  const publishing = open(status.publishing);
+  const closedSharing = sharing ? null : status.sharing;
+  const closedPublishing = publishing ? null : status.publishing;
+  const lines: string[] = [];
+  const sharingWaits = closedSharing?.waits;
+  const publishingWaits = closedPublishing?.waits;
+  if (sharingWaits && sharingWaits !== "authority")
+    lines.push(
+      publishingWaits === sharingWaits
+        ? `Sharing for matching and publishing open ${OPENS[sharingWaits]}.`
+        : `Sharing for matching opens ${OPENS[sharingWaits]}.`,
+    );
+  else if (publishingWaits && publishingWaits !== "authority") lines.push(`Publishing opens ${OPENS[publishingWaits]}.`);
+  // Authority is not a step the person can take, so its own sentence says who can.
+  if (closedPublishing && publishingWaits === "authority") lines.push(closedPublishing.line);
+  return { lead, sharing, publishing, later: lines.join(" ") };
 }
 
 /** What the live account holds for this card: no session, nothing, this version, or an earlier one. */

@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import type { ListingRecord } from "../listing.ts";
 import { CAPITALS } from "../capitals.ts";
 import { Tag } from "./Tag.tsx";
@@ -6,58 +5,57 @@ import { STAGE_LABELS } from "../listing.ts";
 import { fullDate } from "../home.ts";
 import { Link } from "../router.tsx";
 import { recordPath } from "../routes.ts";
-import { ButtonLink } from "./ButtonLink.tsx";
 import { Card } from "./Card.tsx";
 import { Fit } from "./Fit.tsx";
+import { Icon } from "./Icon.tsx";
 import { Media } from "./Media.tsx";
 import { WorkTag } from "./WorkTag.tsx";
 
-/** Shared listing Card composition. Home uses h3 under its section headings. */
+/**
+ * Shared listing Card composition. Home uses h3 under its section headings. The whole card
+ * opens its record, so it carries no button.
+ */
 export function ListingCard({
   record,
   personalized = false,
   level = 2,
   days,
-  actions,
 }: {
   record: ListingRecord;
   personalized?: boolean;
   level?: 2 | 3;
   days?: number;
-  actions?: ReactNode;
 }) {
   const Title = level === 3 ? "h3" : "h2";
   return (
     <Card>
       {record.kind === "initiative" && <Media />}
-      {(record.amount || record.closes || days !== undefined) && (
-        <p className="rc-meta">
-          {[
-            record.amount,
-            days !== undefined
-              ? `${days} ${days === 1 ? "day" : "days"} left`
-              : record.closes
-                ? `Closes ${fullDate(record.closes)}`
-                : undefined,
-          ]
-            .filter(Boolean)
-            .join(", ")}
+      {record.kind === "funding" && record.amount && (
+        <p className="rc-eyebrow">
+          <Icon name="funding" size="sm" />
+          {record.amount}
         </p>
       )}
       <Title className="rc-card-title">
         <Link href={recordPath(record.kind, record.id)}>{record.title}</Link>
       </Title>
       {personalized && record.fit && (
-        <Fit level={record.fit} explanation={`${record.reasons.join(" ")} Fictional example fit.`} />
+        <Fit level={record.fit} explanation={record.reasons.join(" ")} />
       )}
       <p className="rc-card-meta">
         {record.place}
         {record.kind === "initiative" ? `, ${STAGE_LABELS[record.stage]}` : ""}
       </p>
-      {days !== undefined && record.closes && (
-        <p className="rc-meta">
-          Closes <time dateTime={record.closes}>{fullDate(record.closes)}</time>
-        </p>
+      {record.closes && (
+        <ul className="rc-tag-list" aria-label="Deadline">
+          <li>
+            <Tag icon="clock">
+              {days === 0 ? "Closes today, " : "Closes "}
+              <time dateTime={record.closes}>{fullDate(record.closes, "medium")}</time>
+              {days !== undefined && days > 0 && `, ${days} ${days === 1 ? "day" : "days"} left`}
+            </Tag>
+          </li>
+        </ul>
       )}
       <ul className="rc-tag-list" aria-label="Type of work">
         {record.work.map((work) => (
@@ -100,21 +98,18 @@ export function ListingCard({
           </dl>
         )
       )}
-      <p className="rc-meta">
+      <p className="rc-time">
+        <Icon name="clock" size="sm" />
         {level === 3 && record.sharedOn ? (
           <>
-            Example shared <time dateTime={record.sharedOn}>{fullDate(record.sharedOn)}</time>
+            Shared <time dateTime={record.sharedOn}>{fullDate(record.sharedOn)}</time>
           </>
         ) : (
-          <>Example confirmed {fullDate(record.confirmed)}</>
+          <>
+            Confirmed <time dateTime={record.confirmed}>{fullDate(record.confirmed)}</time>
+          </>
         )}
       </p>
-      <div className="rc-action-bar">
-        <ButtonLink href={recordPath(record.kind, record.id)} variant="secondary">
-          Read the example
-        </ButtonLink>
-      </div>
-      {actions && <div className="rc-action-bar">{actions}</div>}
     </Card>
   );
 }

@@ -15,11 +15,11 @@ import { entryKey, entryReference, type MatchingEntry } from "./matching-client.
 import { sharedEntries, useNetworkMatching } from "./use-network-matching.ts";
 
 const sharingLabels: Record<MatchingEntry["sharing"], string> = {
-  private: "Private",
+  private: "Not shared",
   shared: "Shared for matching",
-  needs_review: "Changed since sharing. Review again",
+  needs_review: "Changed since you shared. Review it again",
   withdrawn: "Withdrawn from matching",
-  expired: "Sharing expired",
+  expired: "Sharing ended",
 };
 const selectionKey = (entry: MatchingEntry) => `${entryKey(entry)}/${entry.revision}/${entry.shareVersion}`;
 const subscribeOnline = (notify: () => void) => {
@@ -59,19 +59,20 @@ export function PartnerExperience({ mode }: { mode: "matches" | "preview" }) {
           active={active} synced={active.contentKey === accountKey(draft)}
           compact={compact} online={online} onExpired={onExpired} fixture={state?.fixture === true} />
       ) : (
-        ready && (
+        // With no card yet there is nothing to save: the list below asks for the card first.
+        ready && (!!draft.confirmed || (expired && !owner)) && (
           <div className="rc-stack">
             {expired && !owner ? (
               <p className="rc-notice" data-tone="warning" role="alert">Your session ended. Sign in again to continue matching.</p>
             ) : (
               <p>Link a Certified project to get partner suggestions for your private needs and offers.</p>
             )}
-            {!compact && <div className="rc-action-bar"><SaveAction variant="secondary">Save or load a card</SaveAction></div>}
+            {!compact && <div className="rc-action-bar"><SaveAction variant="secondary">Save your initiative</SaveAction></div>}
           </div>
         )
       )}
       {compact && active && (
-        <div className="rc-action-bar"><ButtonLink href={pathTo("partners")} variant="secondary">Explore partners</ButtonLink></div>
+        <div className="rc-action-bar"><ButtonLink href={pathTo("partners")} variant="secondary">See all partners</ButtonLink></div>
       )}
     </div>
   );
@@ -117,36 +118,36 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
 
   return (
     <section className="rc-stack" aria-labelledby={heading}>
-      <Title id={heading} className="rc-heading" data-size="section">{team ? "Shared matching" : String(active.document.initiative.name)}</Title>
+      <Title id={heading} className="rc-heading" data-size="section">{team ? "Sharing for matching" : String(active.document.initiative.name)}</Title>
       {import.meta.env.DEV && fixture && (
         <p className="rc-notice" data-tone="info">Local matching fixture. Changes last until the development server restarts.</p>
       )}
-      <p>Matching uses the entries you share from this saved card. You choose which entries others can see.</p>
+      <p>You choose which needs and offers people signed in can see.</p>
       {!synced && !team && (
-        <p className="rc-notice" data-tone="info">You have device edits. Save your checked card before reviewing a change to what you share.</p>
+        <p className="rc-notice" data-tone="info">Changed on this device since you saved. Save again before you change what you share.</p>
       )}
       {stale && (
         <p className="rc-notice" data-tone="warning" role="alert">{team ? "This workspace changed. Reload to see the latest entries. Copy any unsaved changes first."
-          : "This card changed in your account. Load the latest saved card to continue. Loading keeps a device backup."}</p>
+          : "This initiative changed in your account. Load the latest saved version to continue. Loading keeps a backup on this device."}</p>
       )}
       <div className="rc-action-bar">
         {!compact && !team && <SaveAction variant="secondary">Save or switch cards</SaveAction>}
-        <button className="rc-button" data-variant="quiet" type="button" disabled={blocked} onClick={network.refresh}>Refresh matching</button>
+        <button className="rc-button" data-variant="quiet" type="button" disabled={blocked} onClick={network.refresh}>Check again</button>
       </div>
-      {(network.loading || network.busy) && <p role="status">{network.loading ? "Checking sharing and matches" : "Updating matching"}</p>}
+      {(network.loading || network.busy) && <p role="status">{network.loading ? "Checking partners" : "Updating"}</p>}
       {network.error && !reviewing && <p className="rc-notice" data-tone="warning" role="alert">{network.error}</p>}
       {network.notice && <p className="rc-meta" role="status" tabIndex={-1} ref={notice}>{network.notice}</p>}
       {network.pending && !reviewing && (
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="secondary" type="button" disabled={network.busy || !online}
-            onClick={() => void network.mutate(network.pending!)}>Retry last change</button>
+            onClick={() => void network.mutate(network.pending!)}>Try again</button>
         </div>
       )}
       {state && !stale && (
         <>
           {entries.length ? (
             <fieldset className="rc-stack">
-              <legend>{readOnly ? "Sharing status" : "Choose entries to share"}</legend>
+              <legend>{readOnly ? "Sharing status" : "Choose what to share"}</legend>
               <ul className="rc-ask-summary">
                 {entries.map((entry) => {
                   const selectable = eligible.includes(entry);
@@ -198,12 +199,12 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
               {!!eligible.length && (
                 <div className="rc-action-bar">
                   <button className="rc-button" data-variant="primary" type="button" disabled={blocked || !synced || !selection.length}
-                    onClick={() => void network.review(selection.map(entryReference), "share")}>Review selected entries</button>
+                    onClick={() => void network.review(selection.map(entryReference), "share")}>Review what you’ll share</button>
                 </div>
               )}
             </fieldset>
-          ) : <p>Save an open need or offer on this card to start matching.</p>}
-          {!network.loading && !sharedEntries(entries).length && !!entries.length && <p>Share an open need or offer to see network matches.</p>}
+          ) : <p>Save an open need or offer to find partners.</p>}
+          {!network.loading && !sharedEntries(entries).length && !!entries.length && <p>To search what other teams have shared, share at least one open need or offer.</p>}
         </>
       )}
       {!readOnly && reviewing && (

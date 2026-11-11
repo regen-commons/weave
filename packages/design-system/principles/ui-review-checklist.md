@@ -6,7 +6,7 @@ Use the [five-minute review](../../../DESIGN.md#how-we-follow-them) for every UI
 
 - [ ] Home's first phone screen has a plain tagline of six to eight words, a start action and search. (K)
 - [ ] Home shows signed-in state, one sign of life and at most one teaser. (K)
-- [ ] Home has its hero, three steps with the first as the way in, eight kinds, recently shared initiatives and the earliest three upcoming funding deadlines, with days left.
+- [ ] Home has its hero with two doors (start, or open a saved initiative), three steps with the first as the way in, eight kinds, recently shared initiatives and the earliest three upcoming funding deadlines, with days left. A person with a card sees where it stands above the hero.
 - [ ] Every page has the footer, with a slim row on focused steps.
 - [ ] Partners, Funding and Initiatives are pages, with search, filter menus, removable chips, count and sort on lists.
 - [ ] New pages start at the top with the heading focused; phone heroes stay short.
@@ -61,20 +61,21 @@ Use the [five-minute review](../../../DESIGN.md#how-we-follow-them) for every UI
 - [ ] Empty, one, many, long text, stale, error, offline and Portuguese variants all work. (A)
 - [ ] Every list has an empty state: a headline, one line, one action, and no filters. (R)
 - [ ] With models off, the core task still completes. Anything derived appears in pencil until confirmed. (A)
-- [ ] Describe offers local speech when available, typing and attachments throughout, then Build my card and the four public fields in review. No extra structured fields are required.
+- [ ] Describe opens on the four public fields with one Continue. Talk it through instead offers local speech when available, typing and attachments, then Build my card and Check your card. No extra structured fields are required.
 - [ ] Keep, Change, Remove and Undo work. Confirmed corrections survive rebuilds; open corrections block continuing. Source changes mark an older card stale.
-- [ ] Needs and offers show a count out of five and every applicable kind alike. Overflow is explicit; removal frees a slot and Undo cannot exceed five. Empty steps can continue.
-- [ ] Manual entry retains earlier words and unfinished fields without running extraction. Finish requires checked steps and copies only the kept card data.
-- [ ] Finish shows no partner names to a private initiative, invents no live counts and offers no unconnected email or sharing controls.
+- [ ] Needs and offers share one page, each list with a count out of five and every applicable kind alike. Overflow is explicit; removal frees a slot and Undo cannot exceed five. One Continue keeps both lists or changes neither, and an empty list can continue.
+- [ ] Adding by hand retains earlier words and unfinished fields without running extraction. Your initiative requires checked steps and copies only the kept card data.
+- [ ] Your initiative shows no partner suggestions before a Certified project is linked, invents no live counts and offers no unconnected sharing or publishing controls.
 - [ ] Funding retains every catalog identity and exact program link. Visitors have no invented fit. Closed cycles, resources, unverified offers, missing screening data and source dates remain explicit.
 - [ ] Optional funding edits survive reload and validation errors. Team slots show counts only for private initiatives, count each requirement once and request each picked initiative once. Coverage is never eligibility.
 - [ ] Errors say what happened, keep what was typed and offer a next step. (K)
 
 ## Trust and saving
 
-- [ ] Saving asks for an email only, and accepts a pasted code with spaces. (K)
-- [ ] A wrong email or code can be fixed without losing the draft. (K)
-- [ ] No checkbox or subscription is pre-checked, and requesting a code subscribes to nothing. (K)
+- [ ] Signing in goes through Certified and asks for nothing else. An email is optional and stays closed until asked for. (K)
+- [ ] A cancelled or failed sign-in keeps the draft on the device and says so. (K)
+- [ ] No subscription or consent is pre-checked, and signing in subscribes to nothing. (K)
+- [ ] Signing in, saving, sharing for matching and publishing are separate taps. Each review names the entries, the fields and who will see them before anything leaves, and any entry can be unticked. (K)
 - [ ] The page works on a throttled connection without waiting for sign-in or a model. (K)
 - [ ] The privacy label on the screen is true. (K)
 - [ ] Reload retains unfinished words, links, corrections and original file bytes. Storage errors and other-tab conflicts preserve recovery text and do not claim a save.

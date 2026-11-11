@@ -7,11 +7,19 @@ framework. It is the root directory of the Weave Vercel project. Read the
 [app dialect](../design-system/dialects/app.md) before changing a screen.
 
 The route table in [src/routes.ts](src/routes.ts) owns pages and their section cues.
-Home, frame, lists, the three-step intake through Finish, Funding and opportunity
-detail are built. Initiative details follow in later steps. Settings now provides the private account connection. Development fixtures require an
-explicit `?fixture=draft` (or visitor, private, shared); `view` selects Describe
-states; `intake` selects Needs, Offers and Finish examples. Without that parameter,
-development uses the real device draft too.
+Home, frame, lists, the three-step intake through Your initiative, Your initiatives,
+Funding and opportunity detail are built. Initiative details follow in later steps.
+Settings provides the private account connection. Development fixtures require an
+explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
+returning); `view` selects Describe states; `intake` selects needs, offers and Your
+initiative examples; `projects=none` gives the example person no Certified project; and
+`certified=fail` makes the example Certified refuse to create a project or publish.
+`bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
+`docs/platform/prototype/preview`; that build alone sets `__WEAVE_PROTOTYPE__`, keeps routes in
+the URL fragment and talks to the review page through `src/prototype.ts`. With a fixture the
+one account door is the Certified example in `src/social`; without one, the real Certified
+sign-in in `src/account` runs. Without that parameter, development uses the real
+device draft too.
 `import.meta.env.DEV` removes invented records and service simulations from
 production. Account saving uses the same-origin API and stays unavailable until its server configuration is enabled.
 
@@ -25,6 +33,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/pages/` | Pages composed from `src/ui` |
 | `src/describe/` | Validated device draft, IndexedDB writer and local extraction adapters |
 | `src/intake/` | Need/offer contracts, review rules, local extraction and checked-card text |
+| `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, and a card started from a Certified project |
+| `src/social/` | Development-only example account: Certified sign-in, explicit saving, the project link and team workspace, sharing for matching, publishing, reminders and saved leads |
+| `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |
 | `dev/` | The dev server's `/api` bridge, which answers the way Vercel does |
@@ -41,6 +52,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   except on home, whose tab shows the product name alone.
 - TypeScript follows the [TypeScript rules](../../.claude/rules/typescript.md).
 - The theme follows the system. There is no theme toggle in the header.
+- Signing in only identifies the person. Saving, sharing for matching and publishing are
+  separate taps with their own rows. Sharing and publishing first show what leaves and
+  who sees it, and a refusal changes nothing (DL-032).
 - Drafts stay on the device until the person saves. The browser uses same-origin account endpoints; the server calls Supabase only after configuration. The content security policy in `vercel.json` allows only this origin. Widen it only
   with the change that needs it, such as the Supabase project or model files.
 - Keep raw unfinished answers, links and review edits in the device draft. Compare
@@ -62,9 +76,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   the root `dist/*.mjs` sources. Keep the rubric and live site intact; do not fork
   the engine into app code. Public catalog JSON is bundled and precached separately
   from private device drafts. Missing screening data must remain explicit.
-- Team requirements, coverage and introductions remain labelled development
-  examples until D29 and the service adapters are ready. Private views show counts
-  only; unknown requirements and counts stay unknown in production.
+- Team requirements and coverage remain labelled development examples until D29 and the
+  service adapters are ready, and Weave makes no introductions yet. Private views show
+  counts only; unknown requirements and counts stay unknown in production.
 
 ## Checks
 

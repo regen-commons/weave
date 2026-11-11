@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { fullDate } from "../home.ts";
 import { cardRoute, chosenEntries, entryCount, publicCard, publicKey } from "../initiative/status.ts";
 import { askTerms } from "../intake/presentation.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
@@ -11,7 +10,6 @@ import { Facts } from "../ui/Facts.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useSocialFixture } from "./context.tsx";
 import { ExampleDoor, ExampleSave } from "./Door.tsx";
-import { sharingEnds } from "./fixture.ts";
 import { exposureLabel, shareGate, type ShareIntent } from "./gate.ts";
 import { ProjectStep, WorkspaceRow } from "./Project.tsx";
 import { publicFacts } from "./words.ts";
@@ -210,7 +208,7 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
       ?.focus();
   }, []);
   if (!import.meta.env.DEV || !fixture) return null;
-  const { service, state, refresh, today } = fixture;
+  const { service, state, refresh } = fixture;
   const project = state.project;
   if (!project) return null;
   const sharing = intent === "share";
@@ -243,7 +241,7 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
       onClose();
     } catch (error) {
       setFailed(true);
-      setMessage(error instanceof Error ? error.message : "This example step did not work. Try again.");
+      setMessage(error instanceof Error ? error.message : "This step did not work. Try again.");
     } finally {
       setBusy(false);
     }
@@ -352,7 +350,6 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
           {live && !dirty ? "Done" : "Not now"}
         </button>
       </div>
-      <p className="rc-meta">{sharing ? "Example sharing. Nothing is sent." : "Example publishing. Nothing is sent."}</p>
       {message &&
         (failed ? (
           <p className="rc-notice" data-tone="warning" role="alert">

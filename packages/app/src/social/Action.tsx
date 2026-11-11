@@ -25,7 +25,7 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
       refresh();
     } catch (error) {
       setFailed(true);
-      setMessage(error instanceof Error ? error.message : "This example change failed. Try again.");
+      setMessage(error instanceof Error ? error.message : "This change did not work. Try again.");
     } finally {
       setBusy(false);
     }
@@ -71,11 +71,11 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
         disabled={completed}
         onClick={() => setOpen(true)}
       >
-        {completed ? "Example reminder on" : "Remind me"}
+        {completed ? "Reminder on" : "Remind me"}
       </button>
       <TaskDialog title="Remind me" open={open} onClose={() => setOpen(false)}>
         {completed ? (
-          <p role="status">Example reminder on. No email is scheduled.</p>
+          <p role="status">Reminder on for {intent.name}.</p>
         ) : !state.identity ? (
           <ExampleDoor
             onDone={(result) => {
@@ -85,7 +85,6 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
         ) : (
           <div className="rc-stack">
             <p>One reminder for {intent.name}, a week before it closes.</p>
-            <p className="rc-meta">Example only. No reminder is scheduled and nothing is sent.</p>
             <button
               className="rc-button"
               data-variant="primary"
@@ -93,7 +92,7 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
               disabled={busy}
               onClick={() => void run(() => service.remind(intent.id))}
             >
-              Confirm example reminder
+              Turn on the reminder
             </button>
           </div>
         )}

@@ -5,6 +5,9 @@
   grid-template-rows: auto 1fr auto auto;
   min-block-size: 100dvh;
 }
+/* Jumps and focus stop clear of the sticky app bar and, on phones, the tab bar. */
+:root:has(.rc-app-header) { scroll-padding-block-start: calc(var(--control-height) + var(--space-4)); }
+:root:has(.rc-bottom-nav) { scroll-padding-block-end: var(--space-8); }
 
 .rc-page:has(> .rc-site-banner) {
   grid-template-rows: auto auto 1fr auto auto;
@@ -47,6 +50,11 @@
 .rc-step-main {
   display: grid;
   gap: var(--space-5);
+  min-inline-size: 0;
+}
+.rc-step-aside {
+  display: grid;
+  gap: var(--space-6);
   min-inline-size: 0;
 }
 @container (min-width: 56.25rem) {
@@ -102,7 +110,8 @@
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
 .rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
-.rc-home-live { min-block-size: var(--control-sm-height); }
+/* Signs of life under the search: shared initiatives and funding closing soon, side by side. */
+.rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
 .rc-woven-backdrop {
   position: absolute;
   z-index: -1;
@@ -148,6 +157,9 @@
   .rc-card-grid > li { animation: rc-card-arrive var(--duration-slow) var(--ease-out) both; }
   .rc-card-grid > li:nth-child(3n + 2) { animation-delay: var(--duration-fast); }
   .rc-card-grid > li:nth-child(3n) { animation-delay: calc(var(--duration-fast) * 2); }
+  /* A page reached with Back or Forward shows as it was left: it does not arrive again. */
+  .rc-main[data-move="return"],
+  .rc-main[data-move="return"] .rc-card-grid > li { animation: none; }
 }
 @keyframes rc-arrive { from { opacity: 0; } to { opacity: 1; } }
 

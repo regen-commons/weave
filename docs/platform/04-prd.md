@@ -60,7 +60,7 @@ Non-goals (for the first two phases)
 | Funder, allocator, round operator, bioregional financing facility | Find ready partnerships and understand regional needs | Inbound applications | Browse initiatives and needs by region and theme; publish calls; see what a region needs |
 | Network stewards (Regen Commons council, Bloom, Greenpill, ReFi DAO, Regen Coordination) | Keep the commons tidy, run challenges, make the network legible to funders | Spreadsheets and docs | Steward desk views, regional curation, challenge cohorts, exports |
 
-Personas are deliberately framed by lens rather than by organisation type, because curation and recipes use the same five lenses: art and culture, research, technology, place-based community, funders.
+Personas are deliberately framed by lens rather than by organisation type, because curation and recipes use the same lenses: art and culture, research, technology, place-based community, learning and education, funders.
 
 ## 5. Core concepts and vocabulary
 
@@ -68,7 +68,7 @@ Personas are deliberately framed by lens rather than by organisation type, becau
 - Need: something an initiative is looking for, with one or more forms of capital, a place scope, a timeframe and the exchange terms it would accept.
 - Offer: something an initiative has in surplus and can give, exchange, sell or commit, with the same structure plus capacity.
 - Forms of capital (from Roland and Landua, used by Regen Commons already): financial, material, living, social, intellectual, experiential, cultural, spiritual. A need or offer can carry several.
-- Lenses: art and culture · research · technology · place-based community · funders. An initiative can carry several lenses; recipes use lenses as roles.
+- Lenses: art and culture · research · technology · place-based community · learning and education · funders. An initiative can carry several lenses; recipes use lenses as roles.
 - Opportunity: a funder program or call from the existing Funding Commons catalog, with its researched eligibility, award, route and dates. Opportunity is never eligibility.
 - Match: a scored, explained suggestion between an initiative and a partner, or an initiative and an opportunity. Opportunity matches show a solo score and a partnership score.
 - Recipe: a partnership forming around an opportunity or a shared problem. It names the base (the opportunity or problem), the ingredients needed (lenses and forms of capital), who has joined, status (forming, drafting, submitted, funded, not this time) and a working doc. This is the Partnerships tab of the hub doc, made live.
@@ -151,7 +151,7 @@ Places and curation
 
 - R17 Reference places: bioregions, subrealms, realms (One Earth or ecoregion equivalent), watershed basins (HydroBASINS levels 5 to 7), countries, and steward-defined custom places (a valley, a city region, an island).
 - R18 Place pages with initiatives, needs, offers, opportunities, recipes and later a synthesised needs-of-the-place summary with sources.
-- R19 Five-lens curation on every list; recipes name lenses as roles.
+- R19 Curation by lens on every list; recipes name lenses as roles.
 - R20 Steward highlights: pinned opportunities and recipes per place and lens, with an expiry.
 
 Recipes and introductions
@@ -236,7 +236,7 @@ Phase 3, Tree (from June 2027): offerings and commitments ledger; optional ancho
 
 Measured monthly from Phase 1; targets for end of Phase 2.
 
-- Shared initiatives: 150, across at least 12 bioregions and all five lenses.
+- Shared initiatives: 150, across at least 12 bioregions and every lens.
 - Saving: time from tapping save to saved on a phone under 90 seconds; people return after choosing Not now. Report the share of finished conversations that save, without a target until usability rounds give a baseline.
 - Needs and offers per initiative: median 3 needs and 2 offers, at least 60 percent carrying a non-financial form of capital.
 - Introductions accepted: 40 percent of requests; at least 50 accepted introductions.

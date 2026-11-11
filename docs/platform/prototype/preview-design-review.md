@@ -72,7 +72,7 @@ reading load and the number of things on screen are.
    needs and Change your offers, beside a full copy of the card.
 3. **Saving asks three times.** Email, then code, then "Save checked card privately",
    and the same dialog then offers "Load Orchard learning circle" for the card already
-   on the device. [08](../08-accounts-and-saving.md#first-visit-and-first-save) says "Save, then resume";
+   on the device. [08](../08-accounts-and-saving.md#first-visit-and-first-save) said "Save, then resume" at the time;
    the live slice made Save a separate step on purpose
    ([DL-030](../../../packages/design-system/decision-log.md#dl-030-private-account-connection-before-further-fixture-steps)).
    From the person's side it is the same decision asked again.
@@ -380,7 +380,7 @@ A clickable copy is published as an artifact at
 https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt, private to the maker until shared: the
 same app in a review page that picks a starting point, switches between a phone frame and
 the full width, sets the theme and steps back. `#check-card` and the other starting-point
-names open one directly. The [prototype README](README.md#run-it) says how
+names open one directly. The [prototype README](README.md#the-clickable-preview) says how
 to rebuild and republish it.
 
 Rendered proof, class `fixture`, Chromium in the Claude desktop app's built-in browser,

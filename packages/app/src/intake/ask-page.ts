@@ -37,7 +37,7 @@ export function cardsNote(step: AskStep): string {
     : "Your words changed. Make cards again, then continue.";
 }
 
-/** The conversation behind "Talk it through instead" holds unfinished work, so it starts open. */
+/** The conversation behind "Longer answers, files and links" holds unfinished work, so it starts open. */
 export const talkWaiting = (step: AskStep): boolean =>
   !!step.composer.trim() ||
   !!step.pendingLink.trim() ||

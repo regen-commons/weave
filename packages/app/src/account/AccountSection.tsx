@@ -10,6 +10,7 @@ import { accountKey, loadedDraft, saveBlocker, saveCommand } from "./document.ts
 import { accountMessage, accountRequest, parseSaved, assertAccount, AccountFailure } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
+import { AboutCertified } from "../ui/AboutCertified.tsx";
 export function AccountSection({
   compact = false,
   autoFocus = false,
@@ -126,11 +127,6 @@ export function AccountSection({
       <Title className="rc-heading" data-size="section" id={`${id}-title`}>
         {compact ? "Save your initiative" : "Your account"}
       </Title>
-      {import.meta.env.DEV && state?.fixture && (
-        <p className="rc-notice" data-tone="info">
-          Local sign-in example. No Certified account or email is used.
-        </p>
-      )}
       {!state ? (
         <>
           <p>Account access could not be checked yet.</p>
@@ -167,6 +163,7 @@ export function AccountSection({
               straight back.
             </p>
           </details>
+          <AboutCertified />
           <form className="rc-stack" method="post" onSubmit={(event) => {
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();
@@ -198,18 +195,18 @@ export function AccountSection({
       ) : (
         <>
           <p>Signed in with Certified.</p>
-          <p>
-            Save keeps a private copy of your checked card, needs, offers and kept funding details. Files and
-            conversations stay on this device.
-          </p>
           <details>
-            <summary className="rc-footer-link">About this session</summary>
+            <summary className="rc-footer-link">About saving and this session</summary>
+            <p>
+              Save keeps a private copy of your checked card, needs, offers and kept funding details. Files and
+              conversations stay on this device.
+            </p>
             <p>
               This session lasts up to one hour. Sign in again when it ends. Signing out leaves the device
               draft and its backups in this browser; clear this site’s browser storage when leaving a shared
               device.
             </p>
-            <p>Sharing is separate. Use Partners to review and share selected needs or offers.</p>
+            <p>Sharing is separate. Choose what to share from your initiative's page.</p>
           </details>
           {!key && (
             <p>
@@ -218,15 +215,18 @@ export function AccountSection({
             </p>
           )}
           <div className="rc-action-bar">
-            <button
-              className="rc-button"
-              data-variant="primary"
-              type="button"
-              disabled={busy || !ready || !key || storage !== "saved" || currentSaved}
-              onClick={() => void run(save)}
-            >
-              {currentSaved ? "Saved privately" : "Save privately"}
-            </button>
+            {/* Once the card is saved there is nothing to press: the header and the list say so. */}
+            {!currentSaved && (
+              <button
+                className="rc-button"
+                data-variant="primary"
+                type="button"
+                disabled={busy || !ready || !key || storage !== "saved"}
+                onClick={() => void run(save)}
+              >
+                Save privately
+              </button>
+            )}
             {showLeave && (
               <SignOutAction
                 disabled={busy}
@@ -244,16 +244,16 @@ export function AccountSection({
             )}
           </div>
           <h3 className="rc-heading" data-size="section">
-            Your saved cards
+            In Weave
           </h3>
           <div className="rc-action-bar">
-            <button className="rc-button" data-variant="secondary" type="button" disabled={busy || !ready}
+            <button className="rc-button" data-variant="quiet" type="button" disabled={busy || !ready}
               onClick={() => {
                 setSelected(null);
                 setBackup(null);
                 setStartingCard(true);
               }}>
-              Start a new card
+              Start a new initiative
             </button>
           </div>
           {startingCard && (
@@ -262,7 +262,7 @@ export function AccountSection({
                 <p>Weave will keep a device backup of this draft, including its conversations and files, before opening a new card.</p>
                 <div className="rc-action-bar">
                   <button className="rc-button" data-variant="primary" type="button" disabled={busy}
-                    onClick={() => void run(beginCard)}>Back up and start a card</button>
+                    onClick={() => void run(beginCard)}>Back up and start new</button>
                   <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
                     onClick={() => setStartingCard(false)}>Cancel</button>
                 </div>

@@ -7,6 +7,7 @@ import { keepFocusOnPage } from "../ui/focus.ts";
 import { InformationContext } from "../ui/information-context.ts";
 import { useSocialFixture } from "./context.tsx";
 import { EXAMPLE_HANDLE } from "./fixture.ts";
+import { AboutCertified } from "../ui/AboutCertified.tsx";
 
 export type DoorIntent = "keep" | "sign-in" | "certified";
 export type DoorResult = "saved" | "signed-in" | "cancelled";
@@ -100,9 +101,7 @@ export function ExampleDoor({
   if (step === "certified")
     return (
       <div className="rc-stack" aria-busy={busy} ref={body}>
-        <p className="rc-notice" data-tone="info">
-          Example of Certified's sign-in page. Nothing leaves this browser.
-        </p>
+        <p className="rc-eyebrow">Certified</p>
         <h3 className="rc-heading" data-size="section">
           Continue to Weave as {EXAMPLE_HANDLE}?
         </h3>
@@ -140,6 +139,7 @@ export function ExampleDoor({
         {reason ??
           "Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave."}
       </p>
+      <AboutCertified />
       <div className="rc-action-bar">
         <button
           className="rc-button"
@@ -159,7 +159,6 @@ export function ExampleDoor({
           </button>
         )}
       </div>
-      <p className="rc-meta">Example sign-in. Nothing is sent.</p>
       {message && (
         <p className="rc-notice" data-tone="info" role="status">
           {message}
@@ -208,7 +207,7 @@ export function ExampleSave({
       onSaved?.();
       keepFocusOnPage(row);
     } catch (error) {
-      onFailed(error instanceof Error ? error.message : "This example save did not work. Try again.");
+      onFailed(error instanceof Error ? error.message : "This save did not work. Try again.");
     } finally {
       setBusy(false);
     }
