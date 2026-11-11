@@ -34,6 +34,15 @@
   font: var(--type-headline-md);
   font-size: clamp(var(--size-headline-md), 1.25rem + 2vw, var(--size-headline-lg));
 }
+/* A page's title carries a short bar in its section's accent (DL-051). */
+.rc-heading[data-size="page"]::after {
+  content: "";
+  display: block;
+  inline-size: var(--space-7);
+  block-size: var(--border-edge);
+  margin-block-start: var(--space-2);
+  background: var(--section-accent, var(--action));
+}
 .rc-heading[data-size="section"] { font: var(--type-headline-sm); }
 .rc-heading[data-size="hero"] {
   font: var(--type-headline-display);
@@ -89,6 +98,7 @@
 }
 .rc-logo:visited { color: var(--on-surface); }
 .rc-logo:hover { color: var(--link-hover); }
+.rc-logo:hover .rc-logo-mark { color: var(--section-accent, var(--link)); }
 .rc-logo-mark {
   flex: none;
   inline-size: var(--space-6);

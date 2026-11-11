@@ -364,7 +364,7 @@ Soil and loam are the warm greys. Soil-600 is the only value that replaces a web
 
 ### Accents: where you are and what it is
 
-Green is for doing: buttons, links and the controls a person sets keep `--action` and `--link` on every page. Each section has an accent that says where you are, as each page of the website has: Home forest, Initiatives teal, Funding gold and Your initiatives signal blue. Copper is left out because in the light theme it sits too close to Funding's gold. It colours the current tab's bar, a page's eyebrow, the home hero's italic word and step numbers. `rc-page[data-section]` sets `--section-accent` for marks and `--section-accent-text` for words from the `--accent-*` and `--text-*` roles; pages outside a section, such as the steps that start a card, take Home's. A record keeps the colour of what it is wherever it appears: a funding card's eyebrow is funding gold on Home and in Partners as on Funding, and kinds of support and stages keep their own colours. Focus stays gold everywhere, held apart from Funding's bar by the ring's offset. An accent always comes with a word or an icon (DL-050).
+Green is for doing: buttons, links and the controls a person sets keep `--action` and `--link` on every page. Each section has an accent that says where you are, as each page of the website has: Home forest, Initiatives teal, Funding gold and Your initiatives signal blue. Copper is left out because in the light theme it sits too close to Funding's gold. It colours the current tab's bar and icon, a short bar under a page's title, a page's eyebrow, the home hero's italic word and step numbers. A card that opens its record shows a 3 px edge along its top on hover and keyboard focus, in the colour of what it is, funding gold or initiative teal, otherwise its section's. The logo's mark takes the accent on hover. The hero's italic word also carries the website's faint copper ghost (`--print-ghost`), like a print slightly out of register. `rc-page[data-section]` sets `--section-accent` for marks and `--section-accent-text` for words from the `--accent-*` and `--text-*` roles; pages outside a section, such as the steps that start a card, take Home's. A record keeps the colour of what it is wherever it appears: a funding card's eyebrow is funding gold on Home and in Partners as on Funding, and kinds of support and stages keep their own colours. Focus stays gold everywhere, held apart from Funding's bar by the ring's offset. An accent always comes with a word or an icon (DL-050, DL-051).
 
 ### Forms of capital
 
@@ -595,6 +595,7 @@ dark:
 derived:
   line: rgba(var(--copper-rgb), 0.25)
   line-subtle: rgba(var(--copper-rgb), 0.12)
+  print-ghost: rgba(var(--copper-rgb), 0.10)
 rgb:
   - copper
   - forest

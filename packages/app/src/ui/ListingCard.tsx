@@ -26,7 +26,7 @@ export function ListingCard({
 }) {
   const Title = level === 3 ? "h3" : "h2";
   return (
-    <Card>
+    <Card kind={record.kind}>
       {record.kind === "initiative" && <Media />}
       {record.kind === "funding" && record.amount && (
         <p className="rc-eyebrow">

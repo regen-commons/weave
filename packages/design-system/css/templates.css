@@ -115,7 +115,12 @@
   text-align: center;
 }
 .rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
-.rc-home-hero .rc-heading em { color: var(--section-accent-text, var(--text-accent)); }
+/* The website's hero accent: the italic word in the section's colour, with a faint copper ghost
+   beside it, like a print a little out of register (DL-051). */
+.rc-home-hero .rc-heading em {
+  color: var(--section-accent-text, var(--text-accent));
+  text-shadow: 0.04em -0.03em 0 var(--print-ghost);
+}
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
 .rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }

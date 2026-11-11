@@ -119,6 +119,10 @@ The tests check that generated files are current, the linter is clean, website v
   word and step numbers: Home forest, Initiatives teal, Funding gold, Your initiatives
   signal blue. Card takes `data-kind="funding"` for a funding-gold eyebrow anywhere.
   Adds the `--accent-*` and `--text-*` section roles.
+- Second accent pass (DL-051): the bottom bar's current icon, a short bar under page
+  titles, the logo's mark on hover, and a top edge on cards that open, in their own
+  colour (`data-kind="initiative"` added) or the section's. The hero's italic word
+  gains the website's copper ghost (`--print-ghost`).
 - Your initiative and the team workspace take the initiative's name as their heading
   under an Eyebrow, and the Your initiatives example ends with the account line
   (DL-047).

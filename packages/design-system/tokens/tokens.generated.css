@@ -471,4 +471,5 @@
 [data-theme] {
   --line: rgba(var(--copper-rgb), 0.25);
   --line-subtle: rgba(var(--copper-rgb), 0.12);
+  --print-ghost: rgba(var(--copper-rgb), 0.10);
 }

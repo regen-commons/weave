@@ -87,6 +87,8 @@
   border-block-start-color: var(--section-accent, var(--action));
   color: var(--on-surface);
 }
+/* The current tab's icon takes its section's accent, as a native tab bar tints it (DL-051). */
+.rc-bottom-nav > a[aria-current="page"] .rc-icon { color: var(--section-accent, var(--action)); }
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
 }

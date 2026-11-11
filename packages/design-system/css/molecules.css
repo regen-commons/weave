@@ -256,9 +256,18 @@
   inset: 0;
 }
 .rc-card-title > :is(a, button):focus-visible { outline: none; }
+/* A card that opens its record shows an accent along its top on hover and keyboard focus: the
+   colour of what it is, funding gold or initiative teal, otherwise its section's (DL-051). */
+.rc-card { --card-accent: var(--section-accent, var(--action)); }
+.rc-card[data-kind="funding"] { --card-accent: var(--accent-funding); }
+.rc-card[data-kind="initiative"] { --card-accent: var(--accent-initiatives); }
 .rc-card:has(.rc-card-title > :is(a, button):focus-visible) {
   outline: var(--border-edge) solid var(--focus);
   outline-offset: var(--border-thick);
+  box-shadow: inset 0 var(--border-edge) 0 var(--card-accent), var(--shadow-1);
+}
+@media (hover: hover) {
+  .rc-card:has(.rc-card-title > :is(a, button)):hover { box-shadow: inset 0 var(--border-edge) 0 var(--card-accent), var(--shadow-1); }
 }
 /* A card that opens its record is one target: a pointer where there is one, a press under a finger. */
 .rc-card:has(.rc-card-title > :is(a, button)) { cursor: pointer; }
