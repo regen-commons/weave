@@ -1,9 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import type { FixtureContext } from "../fixtures.ts";
-import { CLOSING_SOON_DAYS, homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
+import { fundingFixture, type FixtureContext } from "../fixtures.ts";
+import { catalogEntries } from "../funding/catalog.ts";
+import { useCatalogBundle } from "../funding/use-catalog.ts";
+import { CLOSING_SOON_DAYS, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { currentRoute, navigate, routeSearch } from "../router.tsx";
@@ -19,6 +21,7 @@ import { Heading } from "../ui/Heading.tsx";
 import { HomeHero, Stack } from "../ui/layouts.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
 import { NumberedList } from "../ui/NumberedList.tsx";
+import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { Section } from "../ui/Section.tsx";
 import { TileGrid } from "../ui/TileGrid.tsx";
 
@@ -34,13 +37,22 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const account = useAccount();
   const social = useSocial();
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
-  const { recent, upcoming, sharedCount, closingSoon } = homePreviews(
-    fixture?.initiatives ?? [],
-    fixture?.funding ?? [],
-    asOf,
+  const { recent, sharedCount } = homePreviews(fixture?.initiatives ?? [], asOf);
+  // The live funding catalog, read once the page is idle and shared with Funding. The example
+  // world brings its own, as Funding's does.
+  const fundingExample = useMemo(
+    () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
+    [fixture?.state, fixture?.scenario],
+  );
+  const catalog = useCatalogBundle(fundingExample, { idle: true });
+  const { upcoming, closingSoon } = useMemo(
+    () => fundingPreviews(catalog.bundle ? catalogEntries(catalog.bundle) : [], new Date()),
+    [catalog.bundle],
   );
   const loading = fixture?.state === "loading";
   const failed = fixture?.state === "error";
+  const fundingLoading = loading || catalog.loading;
+  const fundingFailed = failed || catalog.failed;
   const long = fixture?.state === "long";
   const example = social?.mode === "fixture" ? social.state : null;
   let resumeId: string | null = null;
@@ -61,7 +73,8 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
     navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, routeSearch(), import.meta.env.DEV));
   }
   function retry() {
-    navigate(routeWith(currentRoute(), "state", "ready"));
+    if (catalog.failed) catalog.retry();
+    if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
   }
   const skeleton = (
     <div className="rc-stack" aria-busy="true">
@@ -159,7 +172,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           You are offline. These lists may be out of date.
         </p>
       )}
-      {failed && (
+      {(failed || catalog.failed) && (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
             <h2 className="rc-notice-title">The latest did not load</h2>
@@ -209,28 +222,26 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </ButtonLink>
         }
       >
-        {loading ? (
+        {fundingLoading ? (
           skeleton
-        ) : upcoming.length && !failed ? (
+        ) : upcoming.length && !fundingFailed ? (
           <CardGrid>
-            {upcoming.map(({ record, days }) => (
-              <li key={record.id}>
-                <ListingCard record={record} level={3} days={days} />
+            {upcoming.map((entry) => (
+              <li key={entry.id}>
+                <OpportunityCard entry={entry} level={3} />
               </li>
             ))}
           </CardGrid>
         ) : (
           <EmptyState
-            title={failed ? "Funding did not load" : "No upcoming deadlines here yet"}
+            title={fundingFailed ? "Funding did not load" : "No closing dates coming up"}
             action={
               <ButtonLink href={pathTo("funding")} variant="quiet">
                 Browse funding
               </ButtonLink>
             }
           >
-            {failed
-              ? "Try again above."
-              : "The current catalog remains available through Funding Commons."}
+            {fundingFailed ? "Try again above." : "Some funding has no closing date. Funding lists it all."}
           </EmptyState>
         )}
       </Section>

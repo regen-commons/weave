@@ -160,6 +160,12 @@ listed above. The production pilot stays off.
 | Returning with a project | The team workspace names the initiative under a Team workspace eyebrow, then says what this person can do there. The header's save status steps aside, so the page's own rows are the one account of saving and sharing. Manage teammates leads with the default: choose what they can do, then create an invitation link. Adding someone by handle sits behind a disclosure, and each pending invitation says what it is, when it expires and what the admin can do. |
 | Returning without a linked project | The same named heading on Your initiative, and the account line at the end of Your initiatives. |
 
+Home now reads the live funding catalog. Until this round it read funding only from the
+development examples, so production showed no funding-closing-soon link and an empty Funding
+closing soon section. Home shares Funding's request, starts it once the page is idle, shows the
+three open calls that close soonest with Funding's own card, and counts closing calls with the
+Funding filter's rule, so the hero's number matches the list its link opens.
+
 ### Proof
 
 Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
@@ -175,6 +181,12 @@ Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
   follows the new order with a visible focus ring, and Escape returns focus to Manage teammates.
 - **Headings, Chrome and the Claude desktop browser pane.** The workspace heading at 1280 px
   light and 360 px dark, and Your initiatives at 360 px dark, with no overflow.
+- **Home's live catalog, Chrome and the Claude desktop browser pane.** With no example scenario,
+  Home loads the committed catalog release: the hero read 19 funds closing soon, and Funding
+  listed 19 of 768 records for the same filter, opening without a skeleton. With the first
+  catalog request blocked, Home showed its notice and said funding did not load; Try again
+  recovered both. Checked at 1280 px light and 360 px dark; Tab reaches the link with a visible
+  focus ring.
 
 Voice capture could not be exercised in either browser. No hosted Certified, database or
 production check was made.
@@ -188,8 +200,8 @@ and the build changed no tracked files. No dependencies or lockfile changed.
 
 - Claimed invitations return only a DID, so the list reads "Certified account ending …". The
   server should return the verified handle, so an admin knows who asked before approving.
-- Home does not load the live funding catalog in production, so its funding-closing-soon link
-  stays hidden there.
+- Shared initiatives exist only in the example world. In production, Home's Recently shared, its
+  shared count and the Initiatives list show their empty states until public listings arrive.
 
 ### Questions for the maker
 

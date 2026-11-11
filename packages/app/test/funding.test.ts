@@ -16,7 +16,8 @@ import { evaluateCatalog } from "../src/funding/engine.ts";
 import { EvaluationSchema, emptyFundingForm } from "../src/funding/contracts.ts";
 import { projectFrom, keepFundingForm } from "../src/funding/profile.ts";
 import { teamCoverage } from "../src/funding/team.ts";
-import { filterFunding, emptyFundingFilters } from "../src/funding/select.ts";
+import { filterFunding, emptyFundingFilters, timeToClose } from "../src/funding/select.ts";
+import { CLOSING_SOON_DAYS, fundingPreviews } from "../src/home.ts";
 import { fundingSourceUrl } from "../src/funding/source.ts";
 import {
   DeviceDraftSchema,
@@ -129,6 +130,17 @@ test("visitors keep the whole catalog with no synthetic fit; filtering distingui
       .length,
     0,
   );
+});
+test("on the real catalog, Home previews the soonest open calls and counts the Funding page's closing list", () => {
+  const { upcoming, closingSoon } = fundingPreviews(entries, at);
+  const listed = filterFunding(entries, { ...emptyFundingFilters, closing: String(CLOSING_SOON_DAYS) }, null, at);
+  assert.equal(closingSoon, listed.length);
+  assert.ok(upcoming.length > 0 && upcoming.length <= 3);
+  const left = upcoming.map((entry) => timeToClose(entry, at));
+  assert.ok(left.every((time) => time >= 0), "only calls still open");
+  assert.deepEqual(left, [...left].sort((a, b) => a - b), "soonest first");
+  const others = entries.filter((entry) => !upcoming.includes(entry)).map((entry) => timeToClose(entry, at));
+  assert.ok(others.every((time) => !(time >= 0) || time >= left.at(-1)!), "no open call closes sooner than those shown");
 });
 test("exact program and legacy links retain catalog case and reject missing calls without substituting another program", () => {
   const entry = entries.find((value) => value.program)!;

@@ -6,15 +6,23 @@ import { parseBundle } from "./catalog.ts";
 import { EvaluationSchema, type Bundle } from "./contracts.ts";
 import type { Project } from "./engine.ts";
 let loaded: Promise<Bundle> | undefined;
+/** The catalog once it has loaded in this session, so a page opened again shows it at once. */
+let ready: Bundle | undefined;
 async function read(url: string) {
   const response = await fetch(url);
   if (!response.ok) throw new Error("The catalog could not load.");
   return response.json() as Promise<unknown>;
 }
+export function loadedCatalog(): Bundle | undefined {
+  return ready;
+}
 export function loadCatalog(retry = false): Promise<Bundle> {
-  if (retry) loaded = undefined;
+  if (retry) {
+    loaded = undefined;
+    ready = undefined;
+  }
   return (loaded ??= Promise.all([read(catalogUrl), read(rulesUrl), read(conditionsUrl).catch(() => null)])
-    .then(([catalog, rules, conditions]) => parseBundle(catalog, rules, conditions))
+    .then(([catalog, rules, conditions]) => (ready = parseBundle(catalog, rules, conditions)))
     .catch((error) => {
       loaded = undefined;
       throw error;

@@ -19,12 +19,10 @@ export function ListingCard({
   record,
   personalized = false,
   level = 2,
-  days,
 }: {
   record: ListingRecord;
   personalized?: boolean;
   level?: 2 | 3;
-  days?: number;
 }) {
   const Title = level === 3 ? "h3" : "h2";
   return (
@@ -50,9 +48,7 @@ export function ListingCard({
         <ul className="rc-tag-list" aria-label="Deadline">
           <li>
             <Tag icon="clock">
-              {days === 0 ? "Closes today, " : "Closes "}
-              <time dateTime={record.closes}>{fullDate(record.closes, "medium")}</time>
-              {days !== undefined && days > 0 && `, ${days} ${days === 1 ? "day" : "days"} left`}
+              Closes <time dateTime={record.closes}>{fullDate(record.closes, "medium")}</time>
             </Tag>
           </li>
         </ul>

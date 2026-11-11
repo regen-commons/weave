@@ -15,6 +15,16 @@ export const emptyFundingFilters: FundingFilters = {
   group: "",
   sort: "fit",
 };
+/**
+ * Time left to apply, to the end of the closing day in UTC. NaN when the call states no closing
+ * date or has closed, so the closing filter and Home's previews both leave it out.
+ */
+export function timeToClose(entry: Entry, now = new Date()): number {
+  const deadline = entry.program?.application.closesOn;
+  if (!deadline || effectiveAccess(programFund(entry.fund, entry.program), now) === "closed") return Number.NaN;
+  return Date.parse(`${deadline}T23:59:59Z`) - now.getTime();
+}
+
 export function filterFunding(
   entries: Entry[],
   filters: FundingFilters,
@@ -43,17 +53,12 @@ export function filterFunding(
       .normalize("NFD")
       .replace(/\p{M}/gu, "")
       .toLowerCase();
-    const deadline = entry.program?.application.closesOn;
-    const remaining = deadline ? Date.parse(`${deadline}T23:59:59Z`) - now.getTime() : NaN;
+    const remaining = timeToClose(entry, now);
     return (
       query.every((word) => text.includes(word)) &&
       (!filters.access || access === filters.access) &&
       (!filters.group || ranks.get(entry.id)?.result.group === filters.group) &&
-      (!filters.closing ||
-        (Number.isFinite(remaining) &&
-          remaining >= 0 &&
-          remaining <= Number(filters.closing) * 86400000 &&
-          access !== "closed"))
+      (!filters.closing || (remaining >= 0 && remaining <= Number(filters.closing) * 86400000))
     );
   });
   return selected.sort((a, b) => {
