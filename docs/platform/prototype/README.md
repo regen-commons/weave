@@ -4,7 +4,7 @@ A click-through prototype of Weave's first version, designed before the app was 
 
 It is the design reference for building the interface in `packages/app`, not code to port. The content is invented, the assistant and the network are simulated, and nothing typed is sent or stored. The [implementation handover](../handover/03-interface-implementation.md) says how to build from it.
 
-See [implementation status](implementation-status.md) for the app pull requests, browser proof and remaining launch work. The [preview design review](preview-design-review.md) of 9 November 2026 walks the built preview, proposes a lighter structure and sketches the Certified publication step. Its prototype is the app itself, with a [clickable copy](#the-clickable-preview) at https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt.
+See [implementation status](implementation-status.md) for the app pull requests, browser proof and remaining launch work. The [journey coverage](journey-coverage.md) maps the four first-release journeys onto the design and live screens and ends with the next prompt for the backend work. The [preview design review](preview-design-review.md) of 9 November 2026 walks the built preview, proposes a lighter structure and sketches the Certified publication step. Its prototype is the app itself, with a [clickable copy](#the-clickable-preview) at https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt.
 
 The published copy is the Artifact at https://claude.ai/artifact/797CzZQeSRsk7XsQ44CUBQ, which the maker shares by link. Its Notes button opens the design notes in [src/notes.html](src/notes.html).
 

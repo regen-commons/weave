@@ -118,7 +118,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
 
   return (
     <section className="rc-stack" aria-labelledby={heading}>
-      <Title id={heading} className="rc-heading" data-size="section">{team ? "Shared matching" : String(active.document.initiative.name)}</Title>
+      <Title id={heading} className="rc-heading" data-size="section">{team ? "Sharing for matching" : String(active.document.initiative.name)}</Title>
       {import.meta.env.DEV && fixture && (
         <p className="rc-notice" data-tone="info">Local matching fixture. Changes last until the development server restarts.</p>
       )}

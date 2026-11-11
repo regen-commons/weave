@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { record, uuid } from "@weave/api/account-contract";
 import { AccountSection } from "../account/AccountSection.tsx";
 import { AccountFailure } from "../account/client.ts";
@@ -7,7 +7,7 @@ import { connectPersonalProject, loadPersonalProject, saveForProject } from "./p
 import { clearRejectedProjectCreate, parsePendingProjectCreate, projectCreationKey, projectGroupPattern, publicProjectProfile, validProjectGroupLabel, type PendingProjectCreate } from "./project-creation.ts";
 import { accountKey } from "../account/document.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { navigate } from "../router.tsx";
+import { Link, navigate } from "../router.tsx";
 import { pathTo, teamWorkspacePath } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { Heading } from "../ui/Heading.tsx";
@@ -19,6 +19,9 @@ import { ConsentButton } from "./ProjectConsent.tsx";
 import { PendingInvite } from "./WorkspaceAccess.tsx";
 
 type Group = { groupDid: string; role: "owner" | "admin" | "member" };
+/** Plain words for a Certified group role and a Weave workspace role. */
+const GROUP_ROLES: Record<Group["role"], string> = { owner: "A group you own", admin: "A group you help run", member: "A group you belong to" };
+const ROLE_NAMES: Record<WorkspaceListing["accessRole"], string> = { viewer: "you can view", editor: "you can edit", admin: "you manage it" };
 const messageFor = (error: unknown) => error instanceof AccountFailure && error.code === "project_consent_required"
   ? "Allow Weave to check your Certified groups to continue."
   : error instanceof AccountFailure && error.code === "project_pilot_access_required"
@@ -152,27 +155,30 @@ function AccountProjects({ pick }: { pick?: (project: PublicProject, role?: Grou
     {workspaces.length > 0 && !pick && <>
       <h2 className="rc-heading" data-size="section">Team workspaces</h2>
       <ul className="rc-card-grid">{workspaces.map((w) => <li key={w.workspaceId}>
-        <article className="rc-card" data-layout="listing"><h3 className="rc-card-title">{w.project?.title ?? "Project unavailable on Certified"}</h3>
-          <p className="rc-card-meta">{w.kind === "group" ? `Team workspace, ${w.accessRole}` : "Personal project"}</p>
-          {w.status==="paused" && <p>Matching is paused. Open your private work to review it or withdraw public support listings.</p>}
-          {w.kind === "group" ? <ButtonLink href={teamWorkspacePath(w.workspaceId)} variant="secondary">Open</ButtonLink>
+        <article className="rc-card" data-layout="listing">
+          {/* Each card opens from its name, as every listing card does. */}
+          {w.kind === "group" ? <h3 className="rc-card-title"><Link href={teamWorkspacePath(w.workspaceId)}>
+            {w.project?.title ?? "Project unavailable on Certified"}</Link></h3>
             : <OpenPersonalWorkspace workspace={w} />}
+          <p className="rc-card-meta">{w.kind === "group" ? `Team workspace, ${ROLE_NAMES[w.accessRole]}` : "Personal project"}</p>
+          {w.status==="paused" && <p>Matching is paused. Open your private work to review it or withdraw public support listings.</p>}
         </article></li>)}</ul>
     </>}
     {workspaceCursor && !pick && <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void more("workspaces")}>More workspaces</button>}
     <h2 className="rc-heading" data-size="section">On Certified</h2>
-    <label className="rc-field">Project owner
+    <label className="rc-field">Show projects from
       <select className="rc-input" value={target} disabled={busy} onChange={(event) => setTarget(event.target.value)}>
-        <option value="personal">Your personal projects</option>
-        {groups.map((g) => <option key={g.groupDid} value={g.groupDid}>{g.groupDid}, {g.role}</option>)}
+        <option value="personal">You</option>
+        {/* Groups have no names here yet, so each is told apart by its role and the end of its identifier. */}
+        {groups.map((g) => <option key={g.groupDid} value={g.groupDid}>{GROUP_ROLES[g.role]}, ending {g.groupDid.slice(-6)}</option>)}
       </select>
     </label>
     {groupCursor && <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void more("groups")}>More groups</button>}
     <ul className="rc-card-grid">{projects.map((p) => <li key={p.uri}><article className="rc-card" data-layout="listing">
-      <h3 className="rc-card-title">{p.title}</h3>{p.description && <p>{p.description}</p>}
-      <div className="rc-action-bar">{pick ? <button className="rc-button" data-variant="secondary" type="button"
-        onClick={() => pick(p, p.groupDid ? certifiedRole : undefined)}>Use this project</button>
-        : <ConnectProject project={p} role={p.groupDid ? certifiedRole : undefined} />}</div>
+      {pick ? <h3 className="rc-card-title">{p.title}</h3> : <ConnectProject project={p} role={p.groupDid ? certifiedRole : undefined} />}
+      {p.description && <p>{p.description}</p>}
+      {pick && <div className="rc-action-bar"><button className="rc-button" data-variant="secondary" type="button"
+        onClick={() => pick(p, p.groupDid ? certifiedRole : undefined)}>Use this project</button></div>}
     </article></li>)}</ul>
     {!busy && !error && projects.length === 0 && <p>No projects found for this owner.</p>}
     {cursor && <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void more("projects")}>More projects</button>}
@@ -208,7 +214,8 @@ function OpenPersonalWorkspace({ workspace }: { workspace: WorkspaceListing }) {
     } catch (cause) { if (!current.signal.aborted) setError(messageFor(cause)); }
     finally { if (!current.signal.aborted) setBusy(false); }
   }
-  return <><button className="rc-button" data-variant="secondary" type="button" onClick={() => setOpen(true)}>Open</button>
+  return <><h3 className="rc-card-title"><button type="button" onClick={() => setOpen(true)}>
+      {workspace.project?.title ?? "Project unavailable on Certified"}</button></h3>
     <TaskDialog title={workspace.project?.title ?? "Open your private card"} open={open} onClose={() => { task.current?.abort(); setOpen(false); setBusy(false); }}>
       <div className="rc-stack"><p>Open this project's saved private card. Weave will keep a device backup of your current draft, including unfinished words and files.</p>
         <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={() => void load()}>Back up and open saved card</button>
@@ -218,9 +225,13 @@ function OpenPersonalWorkspace({ workspace }: { workspace: WorkspaceListing }) {
 }
 
 export function LiveYourInitiatives() {
+  const { state } = useAccount();
   return <div className="rc-stack"><Heading level={1} size="page">Your initiatives</Heading>
-    <PendingInvite /><AccountSection /><ProjectDirectory /><CreateProject />
-    <ButtonLink href={pathTo("initiative")} variant="quiet">Describe a new initiative</ButtonLink></div>;
+    <PendingInvite /><AccountSection /><ProjectDirectory />
+    {/* The ways to begin something new sit together, after everything that can be opened. Signed in,
+        the saved list already offers a new initiative that backs up this device's card first. */}
+    <div className="rc-action-bar"><CreateProject />
+      {!state?.user && <ButtonLink href={pathTo("initiative")} variant="quiet">Describe a new initiative</ButtonLink>}</div></div>;
 }
 
 /** Linking never copies private entries into a team. The workspace offers that save separately. */
@@ -253,7 +264,7 @@ function AccountProject({ project, role }: { project: PublicProject; role?: Grou
     } catch (cause) { if (!current.signal.aborted) setError(messageFor(cause)); }
     finally { if (!current.signal.aborted) setBusy(false); }
   }
-  return <><button className="rc-button" data-variant="secondary" type="button" onClick={() => setOpen(true)}>Connect to Weave</button>
+  return <><h3 className="rc-card-title"><button type="button" onClick={() => setOpen(true)}>{project.title}</button></h3>
     <TaskDialog title={project.title} open={open} onClose={() => { task.current?.abort(); setOpen(false); setBusy(false); }}>
       <div className="rc-stack"><p>{project.description}</p>
         <p>{project.groupDid ? "Open this project's team workspace. Your device draft stays here."
@@ -293,6 +304,7 @@ function NewProject({ onDone }: { onDone(): void }) {
   useEffect(() => () => task.current?.abort(), []);
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [consent, setConsent] = useState(false);
+  const field = useId();
   async function create() {
     if ((!pending && !draft.confirmed) || !state?.user || busy) return;
     setBusy(true); setError("");
@@ -326,9 +338,12 @@ function NewProject({ onDone }: { onDone(): void }) {
   const tooLong = !pending && ([...publicProfile.title].length > 80 || [...publicProfile.description].length > 800);
   return <form className="rc-stack" onSubmit={event => { event.preventDefault(); void create(); }}><h3 className="rc-heading" data-size="section">{publicProfile.title}</h3>
     <p>{publicProfile.description}</p><p>These details become public on Certified in a new group with you as owner. Your needs and offers stay private.</p>
-    <label className="rc-field">Group name in the address<input className="rc-input" value={label} disabled={busy || pending !== null}
-      required minLength={3} maxLength={32} pattern={projectGroupPattern} onChange={(e) => setLabel(e.target.value)} /></label>
-    <p className="rc-hint">Use 3 to 32 lowercase letters, numbers or hyphens. Start with a letter and end with a letter or number.</p>
+    <div className="rc-field">
+      <label htmlFor={field}>Short name for the group's web address</label>
+      <p className="rc-hint" id={`${field}-hint`}>3 to 32 lowercase letters, numbers or hyphens. Start with a letter and end with a letter or number.</p>
+      <input className="rc-input" id={field} aria-describedby={`${field}-hint`} value={label} disabled={busy || pending !== null}
+        required minLength={3} maxLength={32} pattern={projectGroupPattern} onChange={(e) => setLabel(e.target.value)} />
+    </div>
     <button className="rc-button" data-variant="primary" type="submit" disabled={busy || tooLong}>
       {pending ? "Check creation again" : "Save privately and create project"}</button>
     {consent && <ConsentButton action="create-project" />}
