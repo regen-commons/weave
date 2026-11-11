@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AiRun } from "../describe/contracts.ts";
 import { assistantExport } from "../data/export.ts";
 import { downloadJson } from "../data/download.ts";
 import { fullDate } from "../home.ts";
+import { Dialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 /** A run belongs to the part of the card it read, which is finer than the step map. */
 const RUN_LABELS = { initiative: "Initiative", needs: "Needs", offers: "Offers" } as const;
@@ -28,35 +29,11 @@ export function InformationDialog({
   onPolicy(): void;
   runs: readonly AiRun[];
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
   const [message, setMessage] = useState("");
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    if (information && !dialog.open) dialog.showModal();
-    if (!information && dialog.open) dialog.close();
-    setMessage("");
-  }, [information]);
+  useEffect(() => setMessage(""), [information]);
   const cloudWords = runs.reduce((sum, run) => sum + run.cloudWords, 0);
   return (
-    <dialog
-      className="rc-dialog"
-      data-presentation="information"
-      ref={ref}
-      aria-labelledby="frame-information-title"
-      onClose={onClose}
-    >
-      <div className="rc-dialog-body">
-        <div className="rc-dialog-head">
-          <h2 className="rc-dialog-title" id="frame-information-title">
-            {TITLES[information ?? "storage"]}
-          </h2>
-          <form method="dialog">
-            <button className="rc-button" data-variant="secondary" type="submit">
-              Close
-            </button>
-          </form>
-        </div>
+    <Dialog presentation="information" title={TITLES[information ?? "storage"]} open={!!information} onClose={onClose}>
         {information === "storage" ? (
           <>
             <dl className="rc-facts">
@@ -160,7 +137,6 @@ export function InformationDialog({
             {message}
           </p>
         )}
-      </div>
-    </dialog>
+    </Dialog>
   );
 }

@@ -67,7 +67,7 @@ export function ListPage({
       {fixture?.state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
-            <h2 className="rc-notice-title">The example list did not load</h2>
+            <h2 className="rc-notice-title">The list did not load</h2>
             <p>Your search and filter choices are still here.</p>
             <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>
               Try again
@@ -75,8 +75,8 @@ export function ListPage({
           </div>
         </section>
       ) : fixture?.state === "loading" ? (
-        <section className="rc-stack" aria-busy="true" aria-label="Loading example list">
-          <p role="status">Loading examples</p>
+        <section className="rc-stack" aria-busy="true" aria-label="Loading list">
+          <p role="status">Loading</p>
           <div className="rc-skeleton" />
           <div className="rc-skeleton" />
         </section>
@@ -102,7 +102,7 @@ export function ListPage({
         <>
           {fixture?.state === "offline" && (
             <p className="rc-notice" data-tone="info">
-              You are viewing offline examples. Search and filters still work on this device.
+              You are offline. Search and filters still work on this device.
             </p>
           )}
           <FilterBar

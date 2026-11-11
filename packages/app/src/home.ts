@@ -49,18 +49,19 @@ export function fullDate(iso: string, dateStyle: "medium" | "long" = "long"): st
   );
 }
 
-type Emphasis = "primary" | "secondary" | "quiet";
+type Emphasis = "primary" | "secondary";
 
 /**
- * How home weights its actions, so the page keeps one solid primary. A card to come back to is
- * resumed from the status line and both doors step back. With no card, a signed-in person who
- * keeps initiatives elsewhere leads with opening one. Anyone else leads with starting.
+ * Which actions home's hero offers, so the page keeps one solid primary. A card to come back to
+ * is resumed there and nothing sits beside it: starting another and opening one kept elsewhere
+ * are on Your initiatives. With no card, a signed-in person who keeps initiatives elsewhere leads
+ * with opening one. Anyone else leads with starting.
  */
 export function homeDoors(
   card: boolean,
   elsewhere: number,
-): { readonly resume: boolean; readonly start: Emphasis; readonly open: Emphasis } {
-  if (card) return { resume: true, start: "secondary", open: "quiet" };
+): { readonly resume: boolean; readonly start: Emphasis | null; readonly open: Emphasis | null } {
+  if (card) return { resume: true, start: null, open: null };
   return elsewhere > 0
     ? { resume: false, start: "secondary", open: "primary" }
     : { resume: false, start: "primary", open: "secondary" };
@@ -69,4 +70,15 @@ export function homeDoors(
 /** The resume link is named for where it goes: the initiative's own page once nothing is left to add. */
 export function resumeLabel(route: RouteName): string {
   return route === "your-initiative" ? "Open your initiative" : "Continue your initiative";
+}
+
+/**
+ * The second door is named for what it opens. It names Certified only where a Certified project
+ * can be behind it: the example world, for someone not signed in yet or with projects there.
+ * Everyone else opens what they saved in Weave.
+ */
+export function openLabel(certified: { readonly signedIn: boolean; readonly projects: number } | null): string {
+  return certified && (!certified.signedIn || certified.projects > 0)
+    ? "Open one from Certified"
+    : "Open your saved initiative";
 }

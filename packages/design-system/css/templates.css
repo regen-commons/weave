@@ -5,6 +5,9 @@
   grid-template-rows: auto 1fr auto auto;
   min-block-size: 100dvh;
 }
+/* Jumps and focus stop clear of the sticky app bar and, on phones, the tab bar. */
+:root:has(.rc-app-header) { scroll-padding-block-start: calc(var(--control-height) + var(--space-4)); }
+:root:has(.rc-bottom-nav) { scroll-padding-block-end: var(--space-8); }
 
 .rc-page:has(> .rc-site-banner) {
   grid-template-rows: auto auto 1fr auto auto;
@@ -47,6 +50,11 @@
 .rc-step-main {
   display: grid;
   gap: var(--space-5);
+  min-inline-size: 0;
+}
+.rc-step-aside {
+  display: grid;
+  gap: var(--space-6);
   min-inline-size: 0;
 }
 @container (min-width: 56.25rem) {
@@ -148,6 +156,9 @@
   .rc-card-grid > li { animation: rc-card-arrive var(--duration-slow) var(--ease-out) both; }
   .rc-card-grid > li:nth-child(3n + 2) { animation-delay: var(--duration-fast); }
   .rc-card-grid > li:nth-child(3n) { animation-delay: calc(var(--duration-fast) * 2); }
+  /* A page reached with Back or Forward shows as it was left: it does not arrive again. */
+  .rc-main[data-move="return"],
+  .rc-main[data-move="return"] .rc-card-grid > li { animation: none; }
 }
 @keyframes rc-arrive { from { opacity: 0; } to { opacity: 1; } }
 

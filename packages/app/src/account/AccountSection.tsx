@@ -10,6 +10,7 @@ import { accountKey, loadedDraft, saveBlocker, saveCommand } from "./document.ts
 import { accountMessage, accountRequest, parseSaved, assertAccount, AccountFailure } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
+import { AboutCertified } from "../ui/AboutCertified.tsx";
 export function AccountSection({
   compact = false,
   autoFocus = false,
@@ -126,11 +127,6 @@ export function AccountSection({
       <Title className="rc-heading" data-size="section" id={`${id}-title`}>
         {compact ? "Save your initiative" : "Your account"}
       </Title>
-      {import.meta.env.DEV && state?.fixture && (
-        <p className="rc-notice" data-tone="info">
-          Local sign-in example. No Certified account or email is used.
-        </p>
-      )}
       {!state ? (
         <>
           <p>Account access could not be checked yet.</p>
@@ -167,6 +163,7 @@ export function AccountSection({
               straight back.
             </p>
           </details>
+          <AboutCertified />
           <form className="rc-stack" method="post" onSubmit={(event) => {
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();

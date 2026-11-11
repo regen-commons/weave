@@ -160,6 +160,11 @@ test("sharing for matching and publishing are separate actions, and neither undo
   assert.deepEqual(service.snapshot().shared, { entries: ["need-1"], until: null, key: "key-1" });
   assert.equal(service.snapshot().published, null, "sharing for matching does not publish");
   assert.equal(partnerAccessOf(service.snapshot()), "network");
+  assert.equal(
+    partnerAccessOf(service.snapshot(), false),
+    "public",
+    "a share the card moved on from opens public sources only",
+  );
   await service.notify("partners", true);
   await service.publish(["need-1", "offer-1"], "key-2");
   assert.deepEqual(service.snapshot().published, {

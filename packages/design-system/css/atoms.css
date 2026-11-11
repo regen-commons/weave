@@ -347,6 +347,8 @@ button.rc-chip {
   color: var(--on-surface-tint);
   font: var(--tag-font);
 }
+/* A toned tag says its state in its word; the icon carries the hue. */
+.rc-tag[data-tone] > .rc-icon { color: var(--tone-line); }
 .rc-tag[data-capital] {
   padding-inline-start: 0;
   background: var(--tone);

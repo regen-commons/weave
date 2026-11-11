@@ -294,8 +294,8 @@ independently.
 A share with no end date stays discoverable until the team closes or withdraws
 it, subject to the existing checks for the reviewed revision and project
 eligibility. When an end date applies, show it at review and enforce it in
-matching. The preview still caps shares at 90 days. Supporting open-ended shares
-requires an implementation change.
+matching. The preview's shares are open-ended, and its sharing review says they
+last until closed or withdrawn.
 
 In the first release, people can save a match and open its source. They can use
 contact routes the counterpart has already made public. Weave introductions and

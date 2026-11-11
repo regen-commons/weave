@@ -7,6 +7,8 @@ import {
   type Program,
 } from "./contracts.ts";
 import { validConditions } from "../../../../dist/matching.mjs";
+import { ACCESS } from "../../../../dist/domain.mjs";
+import type { IconName } from "../ui/icons.ts";
 
 export function parseBundle(catalog: unknown, rules: unknown, conditions: unknown): Bundle {
   const parsed = CatalogSchema.parse(catalog);
@@ -32,7 +34,28 @@ export function catalogEntries(bundle: Bundle): Entry[] {
       : [{ id: fund.id, fund, program: null }],
   );
 }
-/** Use structured current terms in the comparison row. The full note stays on the card. */
+export type AccessTone = "success" | "warning" | "info";
+const ACCESS_TONES: Record<string, AccessTone | undefined> = { green: "success", amber: "warning", purple: "info" };
+const ACCESS_ICONS: Record<string, IconName | undefined> = {
+  open: "check",
+  rolling: "check",
+  restricted: "people",
+  relationship: "people",
+  directory: "globe",
+  future: "clock",
+  closed: "lock",
+  conflicting: "alert",
+};
+/** How a card shows a way in: the catalog's own label, with an icon and a tone that repeat it. */
+export function accessSign(access: string): { label: string; icon: IconName; tone?: AccessTone } {
+  const known = ACCESS[access];
+  return {
+    label: known?.label ?? "Application route needs checking",
+    icon: ACCESS_ICONS[access] ?? "info",
+    tone: known ? ACCESS_TONES[known.tone] : undefined,
+  };
+}
+/** Use structured current terms in the comparison row. The full note stays in the opportunity. */
 export function awardLabel(award: Program["award"] | undefined): string {
   if (award?.basis === "historical") return "Past award terms";
   if (award?.basis !== "current_offer" || !award.currency) return "See award details";
@@ -43,6 +66,24 @@ export function awardLabel(award: Program["award"] | undefined): string {
   if (max !== null) return `Up to ${currency} ${amount(max)}`;
   if (min !== null) return `From ${currency} ${amount(min)}`;
   return "See award details";
+}
+const FUNDING_KINDS: Record<string, string | undefined> = {
+  grant: "Grant",
+  investment: "Investment",
+  fellowship: "Fellowship",
+  prize: "Prize",
+  scholarship: "Scholarship",
+  mixed: "Mixed funding",
+};
+/**
+ * The line above a funding card's title: the kind of funding and, where the source states a
+ * current one, the award. Most programs state none, so the kind stands alone.
+ */
+export function fundingEyebrow(program: Pick<Program, "instrument" | "award"> | null | undefined): string {
+  const kind = FUNDING_KINDS[program?.instrument ?? ""] ?? "Funding";
+  const award = awardLabel(program?.award);
+  if (program?.award.basis !== "current_offer" || award === "See award details") return kind;
+  return `${kind}, ${/^(Up to|From) /.test(award) ? award.charAt(0).toLowerCase() + award.slice(1) : award}`;
 }
 export function fundingSearch(search: string): URLSearchParams {
   const source = new URLSearchParams(search),

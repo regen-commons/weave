@@ -20,6 +20,7 @@ import { SettingsSection } from "../ui/SettingsSection.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useInformation } from "../ui/information-context.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { AboutCertified } from "../ui/AboutCertified.tsx";
 export function Settings() {
   const [theme, setTheme] = useState(readTheme);
   const [busy, setBusy] = useState(false);
@@ -59,7 +60,6 @@ export function Settings() {
         {hasDraft(draft) ? (
           <>
             <StatusLine
-              state={status.state}
               actions={
                 <ButtonLink href={pathTo(cardRoute(draft))} variant="secondary" size="sm">
                   Open
@@ -68,18 +68,16 @@ export function Settings() {
             >
               <strong>{cardName(draft)}</strong>. {status.line}
             </StatusLine>
-            {import.meta.env.DEV && example ? (
-              <p className="rc-meta">Fictional account choices. Nothing is published.</p>
-            ) : (
-              <AccountSection showLeave={false} />
-            )}
+            {!(import.meta.env.DEV && example) && <AccountSection showLeave={false} />}
           </>
         ) : (
           <>
             <p>No initiative on this device yet.</p>
-            <ButtonLink href={pathTo("initiative")} variant="secondary">
-              Describe your initiative
-            </ButtonLink>
+            <div className="rc-action-bar">
+              <ButtonLink href={pathTo("initiative")} variant="secondary">
+                Describe your initiative
+              </ButtonLink>
+            </div>
           </>
         )}
       </SettingsSection>
@@ -95,14 +93,16 @@ export function Settings() {
           ) : (
             <>
               <p>Not signed in. Your initiative stays on this device until you save it.</p>
-              <button
-                className="rc-button"
-                data-variant="secondary"
-                type="button"
-                onClick={() => openDoor("sign-in")}
-              >
-                Sign in with Certified
-              </button>
+              <div className="rc-action-bar">
+                <button
+                  className="rc-button"
+                  data-variant="secondary"
+                  type="button"
+                  onClick={() => openDoor("sign-in")}
+                >
+                  Sign in with Certified
+                </button>
+              </div>
             </>
           )
         ) : (
@@ -118,6 +118,7 @@ export function Settings() {
             </p>
           </>
         )}
+        <AboutCertified />
       </SettingsSection>
       <SettingsSection title="Assistant">
         <p>
@@ -130,31 +131,37 @@ export function Settings() {
         <p className="rc-meta">
           Downloaded and cloud models are not connected. No words are sent to a cloud model.
         </p>
-        {draft.assistant === "browser" && (
+        <div className="rc-action-bar">
+          {draft.assistant === "browser" && (
+            <button
+              className="rc-button"
+              data-variant="secondary"
+              type="button"
+              onClick={() => controller.change((current) => revise(current, { assistant: "keywords" }))}
+            >
+              Use keywords instead
+            </button>
+          )}
           <button
             className="rc-button"
-            data-variant="secondary"
+            data-variant="quiet"
             type="button"
-            onClick={() => controller.change((current) => revise(current, { assistant: "keywords" }))}
+            onClick={() => information("assistant")}
           >
-            Use keywords instead
+            What the assistant did
           </button>
-        )}
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          type="button"
-          onClick={() => information("assistant")}
-        >
-          What the assistant did
-        </button>
+        </div>
       </SettingsSection>
       <SettingsSection title="Appearance">
         <div className="rc-field">
           <label htmlFor="appearance">Appearance</label>
+          <p className="rc-hint" id="appearance-hint">
+            Choose a theme for this device.
+          </p>
           <select
             className="rc-input"
             id="appearance"
+            aria-describedby="appearance-hint"
             value={theme}
             onChange={(event) => {
               const value = event.target.value as Theme;
@@ -166,51 +173,73 @@ export function Settings() {
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
-          <p className="rc-hint">Choose a theme for this device.</p>
         </div>
+      </SettingsSection>
+      <SettingsSection title="Install Weave on your phone">
+        <p>Add Weave to your home screen and it opens like an app, full screen.</p>
+        <dl className="rc-facts">
+          <div>
+            <dt>iPhone or iPad</dt>
+            <dd>
+              Open Weave in Safari and tap Share. If you do not see it, tap the three dots first. Then choose
+              Add to Home Screen and tap Add.
+            </dd>
+          </div>
+          <div>
+            <dt>Android</dt>
+            <dd>
+              Open Weave in Chrome and tap the three-dot menu. Then choose Add to Home screen or Install app.
+            </dd>
+          </div>
+        </dl>
+        <p className="rc-meta">
+          On an iPhone or iPad the installed app starts empty, because it does not share what Safari keeps on
+          the device. Save your initiative first, then sign in from the app to open it there.
+        </p>
       </SettingsSection>
       <SettingsSection title="Your data">
         <p>
           Download this device's current draft, unfinished words, files, assistant records and backups. It
           does not fetch other account cards. Keep the file private.
         </p>
-        <button
-          className="rc-button"
-          data-variant="secondary"
-          type="button"
-          disabled={busy || !ready}
-          onClick={() =>
-            void perform(async () => {
-              await controller.settled();
-              const data = await deviceExport(
-                controller.getSnapshot().draft,
-                await controller.backups(),
-                theme,
-                blobDataUrl,
-              );
-              downloadJson("weave-device-data.json", data);
-              setMessage(
-                "Device snapshot download started, including files and backups. Other account cards were not fetched.",
-              );
-            })
-          }
-        >
-          {busy ? "Preparing your data" : "Download device data"}
-        </button>
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          type="button"
-          onClick={() => information("storage")}
-        >
-          What we store
-        </button>
+        <div className="rc-action-bar">
+          <button
+            className="rc-button"
+            data-variant="secondary"
+            type="button"
+            disabled={busy || !ready}
+            onClick={() =>
+              void perform(async () => {
+                await controller.settled();
+                const data = await deviceExport(
+                  controller.getSnapshot().draft,
+                  await controller.backups(),
+                  theme,
+                  blobDataUrl,
+                );
+                downloadJson("weave-device-data.json", data);
+                setMessage(
+                  "Device snapshot download started, including files and backups. Other account cards were not fetched.",
+                );
+              })
+            }
+          >
+            {busy ? "Preparing your data" : "Download device data"}
+          </button>
+          <button
+            className="rc-button"
+            data-variant="quiet"
+            type="button"
+            onClick={() => information("storage")}
+          >
+            What we store
+          </button>
+        </div>
       </SettingsSection>
-      <SettingsSection title="Leave" leave>
-        {import.meta.env.DEV && example ? (
-          <>
-            <p>This example changes no real account.</p>
-            {example.state.identity ? (
+      {!(import.meta.env.DEV && example && !example.state.identity) && (
+        <SettingsSection title="Leave" leave>
+          {import.meta.env.DEV && example ? (
+            <>
               <div className="rc-action-bar">
                 <button
                   className="rc-button"
@@ -234,46 +263,44 @@ export function Settings() {
                   disabled={busy}
                   onClick={() => setDeleting(true)}
                 >
-                  Delete the example
+                  Delete your account
                 </button>
               </div>
-            ) : (
-              <p>No example account is signed in. Reloading restores the seeded example.</p>
-            )}
-            {(status.state === "shared" || status.state === "published") && (
+              {(status.state === "shared" || status.state === "published") && (
+                <p className="rc-meta">
+                  Signing out does not stop sharing or withdraw a listing. Do that from{" "}
+                  <Link href={pathTo("your-initiative")}>your initiative</Link>.
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <SignOutAction
+                label="Sign out of this device"
+                onResult={(text, error) => {
+                  setMessage(text);
+                  setFailed(error);
+                }}
+              />
               <p className="rc-meta">
-                Signing out does not stop sharing or withdraw a listing. Do that from{" "}
-                <Link href={pathTo("your-initiative")}>your initiative</Link>.
+                Self-service account deletion is not connected yet.{" "}
+                <a href="https://regencommons.com">Contact Regen Commons</a> about deleting account copies.
+                Sign-out keeps this device's draft and backups.
               </p>
-            )}
-          </>
-        ) : (
-          <>
-            <SignOutAction
-              label="Sign out of this device"
-              onResult={(text, error) => {
-                setMessage(text);
-                setFailed(error);
-              }}
-            />
-            <p className="rc-meta">
-              Self-service account deletion is not connected yet.{" "}
-              <a href="https://regencommons.com">Contact Regen Commons</a> about deleting account copies.
-              Sign-out keeps this device's draft and backups.
-            </p>
-          </>
-        )}
-      </SettingsSection>
+            </>
+          )}
+        </SettingsSection>
+      )}
       {message && (
         <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
           {message}
         </p>
       )}
       {import.meta.env.DEV && example && (
-        <TaskDialog title="Delete the example?" open={deleting} onClose={() => setDeleting(false)}>
+        <TaskDialog title="Delete your account?" open={deleting} onClose={() => setDeleting(false)}>
           <p>
-            This clears only this page's in-memory account, choices and requests. Reloading restores its
-            seeded example. No Supabase account, initiative or device draft is deleted.
+            This deletes the initiatives you saved privately in Weave and takes back anything you shared.
+            Your Certified account is not deleted, and the card on this device stays.
           </p>
           <button
             className="rc-button"
@@ -285,11 +312,11 @@ export function Settings() {
                 await example.service.deleteAccount();
                 example.refresh();
                 setDeleting(false);
-                setMessage("Example account cleared. No real record was deleted.");
+                setMessage("Your Weave account is deleted. The card on this device is still here.");
               })
             }
           >
-            Clear the example account
+            Delete my account
           </button>
         </TaskDialog>
       )}

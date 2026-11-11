@@ -4,15 +4,16 @@ import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText, hasDraft } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
-import { cardRoute } from "../initiative/status.ts";
+import { cardRoute, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
-import { cardText, intakeComplete, keptAsks } from "../intake/finish.ts";
+import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { askTerms } from "../intake/presentation.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
 import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { pathTo } from "../routes.ts";
 import { ExampleSave } from "../social/Door.tsx";
-import { WorkspaceRow, ProjectAction } from "../social/Project.tsx";
+import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
+import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { ShareAction } from "../social/Share.tsx";
 import { useSocialFixture } from "../social/context.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -28,16 +29,14 @@ import { Stack, StepLayout } from "../ui/layouts.tsx";
 import { Tag } from "../ui/Tag.tsx";
 
 /**
- * The page a person comes back to. Its first rows say where the initiative is saved and who can
- * see its needs and offers, one row per separate action: saving, sharing for matching, publishing.
- * Then the card, then what fits it.
+ * The page a person comes back to. The initiative comes first. Beside it, or under it on a phone,
+ * one row per step that is open now (saving, the team workspace, sharing for matching, publishing)
+ * and the ways to change the card. Then what fits it.
  */
 export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const social = useSocialFixture();
   const { draft, ready, storage, error, controller } = useDraft();
   const status = useCardStatus();
-  const [copy, setCopy] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
@@ -50,26 +49,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const funds = examples && !empty ? fixture.funding.slice(0, 2) : [];
   const project = example?.identity ? example.project : null;
   const save = status.save;
-  // A row appears once its action is open. An earlier step still to take is that step's own row.
-  const sharing = status.sharing && status.sharing.state !== "locked" ? status.sharing : null;
-  const publishing =
-    status.publishing && (status.publishing.state !== "locked" || status.publishing.waits === "authority")
-      ? status.publishing
-      : null;
-  const waiting = project?.workspace === "absent" || project?.workspace === "requested";
-  // One primary on the page: the first step still open.
-  const lead = save ? "save" : waiting ? "workspace" : sharing && sharing.state !== "on" ? "share" : null;
-  async function copyCard() {
-    const text = cardText(draft);
-    try {
-      if (!navigator.clipboard) throw new Error();
-      await navigator.clipboard.writeText(text);
-      setMessage("Card text copied. This does not include file bytes.");
-    } catch {
-      setCopy(text);
-      setMessage("Select and copy your card text below. File bytes are not included.");
-    }
-  }
+  // Only steps that are open get a row, and only the next one gets the filled button.
+  const steps = openSteps(status, project?.workspace ?? null);
   return (
     <Stack>
       <Heading level={1} size="page">
@@ -100,75 +81,67 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
         <>
           <StepLayout
             aside={
-              <nav className="rc-stack" aria-label="Change your initiative">
-                <h2 className="rc-heading" data-size="section">
-                  Change it
-                </h2>
-                <div className="rc-action-bar">
-                  <ButtonLink href={pathTo("check-card")} variant="quiet">
-                    Change your card
-                  </ButtonLink>
-                  <ButtonLink href={pathTo("needs")} variant="quiet">
-                    Change needs and offers
-                  </ButtonLink>
-                  <button
-                    className="rc-button"
-                    data-variant="quiet"
-                    type="button"
-                    onClick={() => void copyCard()}
+              <>
+                <Section id="saving-sharing" title="Saving and sharing">
+                  <DuplicateNotice />
+                  <StatusLine
+                    actions={
+                      !save ? undefined : example && save.needs === "save" ? (
+                        <ExampleSave size="sm" onFailed={setSaveMessage} />
+                      ) : (
+                        <SaveAction variant="primary" size="sm">
+                          {save.label}
+                        </SaveAction>
+                      )
+                    }
                   >
-                    Copy as text
-                  </button>
-                </div>
-              </nav>
+                    {status.line}
+                  </StatusLine>
+                  {save?.note && <p className="rc-meta">{save.note}</p>}
+                  {saveMessage && (
+                    <p className="rc-notice" data-tone="warning" role="alert">
+                      {saveMessage}
+                    </p>
+                  )}
+                  {/* Outside the example world the real project directory links or creates the project. */}
+                  {!example && <ProjectAction />}
+                  {example && <WorkspaceRow primary={steps.lead === "workspace"} />}
+                  {steps.sharing && (
+                    <StatusLine
+                      actions={
+                        steps.lead === "project" ? (
+                          <ProjectAction variant="primary" size="sm" />
+                        ) : (
+                          <ShareAction variant={steps.lead === "share" ? "primary" : "secondary"} size="sm" />
+                        )
+                      }
+                    >
+                      {steps.sharing.line}
+                    </StatusLine>
+                  )}
+                  {steps.publishing && (
+                    <StatusLine actions={<ShareAction start="publish" variant="secondary" size="sm" />}>
+                      {steps.publishing.line}
+                    </StatusLine>
+                  )}
+                  {steps.later && <p className="rc-meta">{steps.later}</p>}
+                </Section>
+                <nav className="rc-section" aria-labelledby="change-it">
+                  <Heading level={2} size="section" id="change-it">
+                    Change it
+                  </Heading>
+                  <div className="rc-action-bar" data-layout="rows">
+                    <ButtonLink href={pathTo("check-card")} variant="quiet">
+                      Change your card
+                    </ButtonLink>
+                    <ButtonLink href={pathTo("needs")} variant="quiet">
+                      Change needs and offers
+                    </ButtonLink>
+                  </div>
+                </nav>
+              </>
             }
           >
-            <section className="rc-section" aria-label="Saving and sharing">
-              <StatusLine
-                state={status.state === "shared" || status.state === "published" ? "saved" : status.state}
-                actions={
-                  !save ? undefined : example && save.needs === "save" ? (
-                    <ExampleSave size="sm" onFailed={setSaveMessage} />
-                  ) : (
-                    <SaveAction variant="primary" size="sm">
-                      {save.label}
-                    </SaveAction>
-                  )
-                }
-              >
-                {status.line}
-              </StatusLine>
-              {save?.note && <p className="rc-meta">{save.note}</p>}
-              {saveMessage && (
-                <p className="rc-notice" data-tone="warning" role="alert">
-                  {saveMessage}
-                </p>
-              )}
-              {!example && <ProjectAction />}
-              {example && <WorkspaceRow primary={lead === "workspace"} />}
-              {sharing && (
-                <StatusLine
-                  icon="people"
-                  on={sharing.state === "on"}
-                  actions={<ShareAction variant={lead === "share" ? "primary" : "secondary"} size="sm" />}
-                >
-                  {sharing.line}
-                </StatusLine>
-              )}
-              {publishing && (
-                <StatusLine
-                  icon="globe"
-                  on={publishing.state === "on"}
-                  actions={
-                    publishing.state === "locked" ? undefined : (
-                      <ShareAction start="publish" variant="quiet" size="sm" />
-                    )
-                  }
-                >
-                  {publishing.line}
-                </StatusLine>
-              )}
-            </section>
             <RecordPreview fields={draft.confirmed!} confirmed>
               {project && (
                 <p className="rc-meta">The name, place, description and links come from your project on Certified.</p>
@@ -207,20 +180,15 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               ))}
             </RecordPreview>
           </StepLayout>
-          {examples && (
-            <p className="rc-notice" data-tone="info">
-              Fictional matching example. Counts, funding and fit are invented; nothing is sent or shared.
-            </p>
-          )}
           {(view === "offline" || !navigator.onLine) && (
             <p className="rc-notice" data-tone="info">
               You are offline. Your checked card remains on this device.
             </p>
           )}
           {failed && (
-            <section className="rc-notice" data-tone="warning" aria-label="Example catalog error">
+            <section className="rc-notice" data-tone="warning" aria-label="Funding did not load">
               <div className="rc-notice-body">
-                <p>Example catalog error. Your card is safe.</p>
+                <p>Funding did not load. Your card is safe.</p>
                 <div className="rc-action-bar">
                   <button
                     className="rc-button"
@@ -240,7 +208,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
             action={
               funds.length > 0 && !loading ? (
                 <ButtonLink href={pathTo("funding")} variant="quiet">
-                  See all funding examples
+                  See all funding
                 </ButtonLink>
               ) : undefined
             }
@@ -250,7 +218,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
             ) : loading ? (
               <>
                 <p className="rc-guide-status" role="status">
-                  Example: comparing your card with funding
+                  Comparing your card with funding
                 </p>
                 <div className="rc-skeleton" aria-hidden="true" />
                 <button
@@ -259,7 +227,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   type="button"
                   onClick={() => setRetrying(true)}
                 >
-                  Show the examples
+                  Show funding
                 </button>
               </>
             ) : funds.length ? (
@@ -272,7 +240,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </CardGrid>
             ) : (
               <>
-                <p>No funding fits in this example. You can browse the full directory.</p>
+                <p>No funding fits your card yet. You can browse the full directory.</p>
                 <div className="rc-action-bar">
                   <a
                     className="rc-button"
@@ -290,24 +258,6 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           <Section id="finish-partners" title="Partners">
             {examples ? <ExamplePartners compact /> : <PartnerExperience mode="preview" />}
           </Section>
-          {message && (
-            <p className="rc-meta" role="status">
-              {message}
-            </p>
-          )}
-          {copy && (
-            <div className="rc-field">
-              <label htmlFor="finished-card-text">Your card text</label>
-              <textarea
-                className="rc-input"
-                id="finished-card-text"
-                value={copy}
-                rows={12}
-                readOnly
-                onFocus={(event) => event.target.select()}
-              />
-            </div>
-          )}
         </>
       )}
     </Stack>

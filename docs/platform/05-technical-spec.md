@@ -119,7 +119,7 @@ create table weave.capital_forms (code text primary key, label text not null, de
 -- financial, material, living, social, intellectual, experiential, cultural, spiritual
 
 create table weave.lenses (code text primary key, label text not null, sort int);
--- art_culture, research, technology, place_based, funders
+-- art_culture, research, technology, place_based, learning, funders
 
 create table weave.stages (code text primary key, label text not null, sort int);
 -- seed, sprout, flowering, tree   (Regen Commons stages of growth)
@@ -564,7 +564,7 @@ The implemented initiative and device-draft schemas live in [contracts.ts](../..
 
 ```ts
 export const CapitalForm = z.enum(['financial','material','living','social','intellectual','experiential','cultural','spiritual']);
-export const Lens = z.enum(['art_culture','research','technology','place_based','funders']);
+export const Lens = z.enum(['art_culture','research','technology','place_based','learning','funders']);
 export const Stage = z.enum(['seed','sprout','flowering','tree']);
 export const ExchangeTerm = z.enum(['gift','exchange','paid','commitment','open']);
 

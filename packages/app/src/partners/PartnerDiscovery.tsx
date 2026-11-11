@@ -11,6 +11,7 @@ import { availableEvidence, localPartnerQuery, type PartnerMatch } from "./match
 import { queryLocalPartners } from "./local-query.ts";
 import { FitCard, FitGroups, SourceLink } from "./NetworkResults.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
+import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 
 /** The public catalog by kind of evidence, for browsing it with no need or offer to match. */
 const BROWSE: readonly { kind: EvidenceKind; heading: string }[] = [
@@ -116,7 +117,9 @@ export function PartnerDiscovery({ mode }: { mode: "browse" | "matches" | "previ
             );
           })}
         </>
-      ) : !ready ? <p role="status">Opening your draft</p> : (
+      ) : !ready ? <p role="status">Opening your draft</p> : !preview && !draft.confirmed ? (
+        <DescribePrompt>Partner suggestions come from the needs and offers on your card.</DescribePrompt>
+      ) : (
         <>
           {matching && local?.query !== query ? <p role="status">Checking public sources</p> : !results.length && (
             <p>{hasEntries
@@ -130,9 +133,8 @@ export function PartnerDiscovery({ mode }: { mode: "browse" | "matches" | "previ
           </FitGroups>
           {!preview && (
             <div className="rc-action-bar">
-              <ButtonLink href={pathTo(draft.confirmed ? "needs" : "initiative")} variant="secondary">
-                {!draft.confirmed ? "Describe your initiative"
-                  : hasEntries ? "Change needs and offers" : "Add needs and offers"}
+              <ButtonLink href={pathTo("needs")} variant="secondary">
+                {hasEntries ? "Change needs and offers" : "Add needs and offers"}
               </ButtonLink>
               <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse all initiatives</ButtonLink>
             </div>

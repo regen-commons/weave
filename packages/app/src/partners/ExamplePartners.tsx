@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useDraft } from "../describe/use-draft.ts";
-import { hasDraft } from "../describe/view.ts";
 import { examplePartners, readFixtures, type ExamplePartner } from "../fixtures.ts";
 import { shareable } from "../initiative/status.ts";
+import { useCardStatus } from "../initiative/use-card-status.ts";
 import { routeSearch } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import { SocialAction } from "../social/Action.tsx";
@@ -17,6 +17,7 @@ import { localPartnerQuery, rankLocalPartners, type PartnerMatch } from "./match
 import { FitCard, FitGroups } from "./NetworkResults.tsx";
 import { EvidenceCard } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
+import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 
 /** One result in the example world: an invented team that shared in Weave, or a real public source. */
 type ExampleFit =
@@ -26,8 +27,8 @@ type ExampleFit =
 /**
  * Partners in the example world, by how far the person has come. Before the initiative is linked to a
  * Certified project there is only a gate. A linked initiative sees fits from public sources, matched
- * for real on this device. Once it shares an open need or offer it also sees other teams, which are
- * invented and labeled. Renders nothing outside the example world.
+ * for real on this device. While it shares an open need or offer that is current it also sees other
+ * teams, which are invented and labeled. Renders nothing outside the example world.
  */
 export function ExamplePartners({ compact = false }: { compact?: boolean }) {
   const social = useSocialFixture();
@@ -38,7 +39,9 @@ export function ExamplePartners({ compact = false }: { compact?: boolean }) {
 
 function ExampleFits({ state, compact }: { state: SocialState; compact: boolean }) {
   const { draft, ready } = useDraft();
-  const access = partnerAccessOf(state);
+  // A share the card has moved on from is out of matching until it is shared again.
+  const stale = useCardStatus().sharing?.state === "changed";
+  const access = partnerAccessOf(state, !stale);
   const search = routeSearch();
   const query = useMemo(() => localPartnerQuery(draft.needs, draft.offers, draft.confirmed?.locations),
     [draft.needs, draft.offers, draft.confirmed?.locations]);
@@ -54,12 +57,17 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
 
   if (!ready) return <p role="status">Opening your draft</p>;
   if (access === "unlinked") {
-    const described = hasDraft(draft);
+    // Without a card there is nothing to link yet, so the page asks for the same thing Funding does.
+    if (!draft.confirmed)
+      return <DescribePrompt>Partner suggestions come from the needs and offers on your card.</DescribePrompt>;
     return (
       <ShareCard level={compact ? 3 : 2}>
-        <ButtonLink href={pathTo(described ? "your-initiatives" : "initiative")} variant="primary">
-          {described ? "Link or create a project" : "Describe your initiative"}
-        </ButtonLink>
+        {/* On the initiative page the saving and sharing section already carries this step. */}
+        {!compact && (
+          <ButtonLink href={pathTo("your-initiatives")} variant="primary">
+            Link or create a project
+          </ButtonLink>
+        )}
         <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse all initiatives</ButtonLink>
       </ShareCard>
     );
@@ -69,9 +77,6 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
   const level = compact ? 4 : 3;
   return (
     <div className="rc-stack">
-      {fits.some(({ from }) => from === "weave") && (
-        <p className="rc-meta">Example partners. The initiatives shared in Weave are invented.</p>
-      )}
       {!fits.length && (
         <p>{!hasEntries ? "Add an open need or offer to see partners."
           : access === "network" ? "No partners fit your open needs or offers yet."
@@ -98,7 +103,8 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
         )}
       </FitGroups>
       {access === "public" && (
-        <p>To search what other teams have shared, share at least one open need or offer.</p>
+        <p>{stale ? "To search what other teams have shared again, share your changes."
+          : "To search what other teams have shared, share at least one open need or offer."}</p>
       )}
       {(access === "public" || compact) && (
         <div className="rc-action-bar">

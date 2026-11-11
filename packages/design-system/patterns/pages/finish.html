@@ -28,10 +28,11 @@
   <header class="rc-app-header">
     <a class="rc-logo" href="home.html"><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark"/></svg>Weave</a>
     <nav class="rc-app-nav" aria-label="Main">
-      <a href="matches.html">Partners</a>
-      <a href="funding.html">Funding</a>
-      <a href="initiatives.html">Initiatives</a>
-    </nav>
+          <a href="home.html">Home</a>
+          <a href="initiatives.html">Initiatives</a>
+          <a href="funding.html">Funding</a>
+          <a href="your-initiatives.html" aria-current="page">Your initiatives</a>
+        </nav>
     <a class="rc-save-status" data-state="device" href="#keep"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg>Saved on this device only</a>
   </header>
   <main class="rc-main" id="main">
@@ -106,15 +107,80 @@
             </li>
           </ul>
         </section>
-        <p class="rc-meta">Preview from the <a href="../index.html">pattern library</a>. Every organisation on this page is fictional.</p>
     </div>
-  </main><footer class="rc-footer" data-slim="true"><ul class="rc-footer-row"><li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What we store</button></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the assistant did</button></li><li><a class="rc-footer-link" href="settings.html">Settings</a></li><li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li><li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data policy</button></li></ul></footer><dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-data-title">What we store</h2><p>This is fictional example content. Form choices stay in this page. Only an Appearance choice is stored in this browser.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog><dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2><p>The assistant has not run in this example.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog><dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2><p>The full Weave data policy must be published before saving or sharing opens. This example sends no initiative data.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog>
+  </main><footer class="rc-footer">
+        <div class="rc-footer-grid">
+          <section>
+            <h2 class="rc-footer-title">Weave</h2>
+            <ul>
+              <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
+              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
+              <li><a class="rc-footer-link" href="funding.html">Funding</a></li>
+              <li><a class="rc-footer-link" href="your-initiatives.html">Your Initiatives</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="rc-footer-title">Data &amp; Privacy</h2>
+            <ul>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What We Store</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the Assistant Did</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data Policy</button></li>
+              <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="rc-footer-title">Regen Commons</h2>
+            <ul>
+              <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+              <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+              <li><a class="rc-footer-link" href="https://www.youtube.com/@regencommons">YouTube</a></li>
+              <li><a class="rc-footer-link" href="https://hub.regencoordination.xyz/c/regen-commons/33">Forum</a></li>
+            </ul>
+          </section>
+        </div>
+        <p class="rc-meta">Example content from the <a href="../index.html">pattern library</a>.</p>
+      </footer>      <dialog class="rc-dialog" data-presentation="information" id="example-data" aria-labelledby="example-data-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>This is example content. Form choices stay in this page. Only an Appearance choice is stored in this browser.</p>
+        </div>
+      </dialog>
+      <dialog class="rc-dialog" data-presentation="information" id="example-assistant" aria-labelledby="example-assistant-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>The assistant has not run in this example.</p>
+        </div>
+      </dialog>
+      <dialog class="rc-dialog" data-presentation="information" id="example-policy" aria-labelledby="example-policy-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>The full Weave data policy must be published before saving or sharing opens. This example sends no initiative data.</p>
+        </div>
+      </dialog>
   <nav class="rc-bottom-nav" aria-label="Main">
-    <a href="home.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home"/></svg>Home</a>
-    <a href="matches.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people"/></svg>Partners</a>
-    <a href="matches.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding"/></svg>Funding</a>
-    <a href="#"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#place"/></svg>Places</a>
-  </nav>
+        <a href="home.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home" /></svg>Home</a>
+        <a href="initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
+        <a href="funding.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>Funding</a>
+        <a href="your-initiatives.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>Your initiatives</a>
+      </nav>
 </div>
 </body>
 </html>

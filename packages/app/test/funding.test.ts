@@ -3,12 +3,14 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { z } from "zod";
 import {
+  accessSign,
   awardLabel,
-  parseBundle,
   catalogEntries,
   findEntry,
-  opportunityHref,
+  fundingEyebrow,
   legacyFundingHref,
+  opportunityHref,
+  parseBundle,
 } from "../src/funding/catalog.ts";
 import { evaluateCatalog } from "../src/funding/engine.ts";
 import { EvaluationSchema, emptyFundingForm } from "../src/funding/contracts.ts";
@@ -38,6 +40,29 @@ test("funding comparison amounts preserve the distinction between current, past 
   assert.equal(awardLabel({ ...award, min: null }), "Up to USD 5,000");
   assert.equal(awardLabel({ ...award, basis: "historical" }), "Past award terms");
   assert.equal(awardLabel({ ...award, currency: null }), "See award details");
+});
+test("a funding card names the kind of funding and adds only an award the source currently states", () => {
+  const award = { currency: "USD", min: 1_000, max: 5_000, basis: "current_offer", note: "Full award terms." };
+  assert.equal(fundingEyebrow({ instrument: "grant", award }), "Grant, USD 1,000 to 5,000");
+  assert.equal(fundingEyebrow({ instrument: "prize", award: { ...award, min: null } }), "Prize, up to USD 5,000");
+  assert.equal(fundingEyebrow({ instrument: "grant", award: { ...award, basis: "historical" } }), "Grant");
+  assert.equal(fundingEyebrow({ instrument: "fellowship", award: { ...award, currency: null } }), "Fellowship");
+  assert.equal(fundingEyebrow({ instrument: "unknown", award }), "Funding, USD 1,000 to 5,000");
+  assert.equal(fundingEyebrow(undefined), "Funding");
+});
+test("a way in keeps the catalog's label and repeats its tone with an icon, never colour alone", () => {
+  assert.deepEqual(accessSign("open"), { label: "Open call", icon: "check", tone: "success" });
+  assert.deepEqual(accessSign("relationship"), { label: "By relationship", icon: "people", tone: "info" });
+  assert.deepEqual(accessSign("closed"), { label: "Intake closed", icon: "lock", tone: undefined });
+  assert.deepEqual(accessSign("not-a-route"), {
+    label: "Application route needs checking",
+    icon: "info",
+    tone: undefined,
+  });
+  for (const entry of entries) {
+    const fund = entry.fund as { access?: string };
+    assert.ok(accessSign(fund.access ?? "").label, "every catalog route has words");
+  }
 });
 const draft = () =>
   confirmDraft(

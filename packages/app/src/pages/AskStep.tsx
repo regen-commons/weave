@@ -44,7 +44,9 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { Conversation } from "../ui/Conversation.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
+import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { Stack } from "../ui/layouts.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
 import { VoiceInput } from "../ui/VoiceInput.tsx";
 
@@ -107,7 +109,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       <Heading level={1} size="page">
         Needs and offers
       </Heading>
-      <p>Add what would help and what you can share. A few words each is enough.</p>
+      <p>Say or add what would help and what you can share. A few words each is enough.</p>
+      {kind === "needs" && <DuplicateNotice />}
       <DraftNotice
         error={storageError}
         text={draftText(draft)}
@@ -204,12 +207,14 @@ function AskSection({
   const hint = pencilHint(step);
   const stale = cardsNote(step);
   const held = busy || listening;
-  const unfinished = ready && (held || talkWaiting(step));
+  // Words that are being spoken or made into cards are not waiting on the person yet.
+  const waiting = ready && !held && talkWaiting(step);
+  const voiceLead = listening || (speechReady && !full);
   useEffect(() => {
     setBusy(example?.intake === "loading");
     setNotice(
       import.meta.env.DEV && example?.intake === "error"
-        ? "Example model error. These are keyword cards; make cards again or change them by hand."
+        ? "The browser model could not finish. These are keyword cards; make cards again or change them by hand."
         : "",
     );
   }, [example?.intake]);
@@ -218,7 +223,7 @@ function AskSection({
       update((current) =>
         changeStep(
           current,
-          { composer: current.composer || "An example change that could not be saved." },
+          { composer: current.composer || "A change that could not be saved." },
           true,
         ),
       );
@@ -266,8 +271,8 @@ function AskSection({
   }, [held]);
   // Words waiting in the conversation, or a stop there, open it. Closing it stays the person's call.
   useEffect(() => {
-    if (unfinished || blocker?.where === "talk") setTalk(true);
-  }, [unfinished, blocker]);
+    if (waiting || blocker?.where === "talk") setTalk(true);
+  }, [waiting, blocker]);
   function perform(action: () => void): boolean {
     try {
       action();
@@ -433,6 +438,24 @@ function AskSection({
     } catch {
       setListening(false);
       if (!abort.signal.aborted) setNotice("Local speech is not ready. Type below or add a card by hand.");
+    }
+  }
+  /** Speak from the top of the list. Spoken words become cards, so the list uses the assistant on this device. */
+  function speakAloud() {
+    if (step.mode !== "conversation")
+      controller.change((current) =>
+        revise(current, {
+          assistant: current.assistant === "none" ? "keywords" : current.assistant,
+          [kind]: changeStep(current[kind], { mode: "conversation" }),
+        }),
+      );
+    void speak();
+  }
+  function stopWork() {
+    task.current?.abort();
+    if (!task.current) {
+      setBusy(false);
+      setNotice(import.meta.env.DEV ? "Stopped. Your words and cards are still here." : "");
     }
   }
   function stopSpeech() {
@@ -640,6 +663,20 @@ function AskSection({
           {blocker.message}
         </p>
       )}
+      {voiceLead && (
+        <VoiceInput
+          variant={activeItems(step).length ? "secondary" : "primary"}
+          label={need ? "Say what you need" : "Say what you can offer"}
+          available={speechReady}
+          listening={listening}
+          transcript={transcript}
+          language={language}
+          onLanguage={setLanguage}
+          onStart={speakAloud}
+          onStop={stopSpeech}
+          disabled={busy || !!step.editor}
+        />
+      )}
       {full ? (
         <p className="rc-meta">Five is the limit. Remove one to add another.</p>
       ) : (
@@ -699,9 +736,15 @@ function AskSection({
         </p>
       )}
       {busy && (
-        <p className="rc-guide-status" role="status">
+        <StatusLine
+          actions={
+            <button className="rc-button" data-variant="secondary" data-size="sm" type="button" onClick={stopWork}>
+              Cancel making cards
+            </button>
+          }
+        >
           Making cards on this device
-        </p>
+        </StatusLine>
       )}
       {step.items.length > 0 && (
         <ul className="rc-ask-list" aria-label={need ? "Your needs" : "Your offers"}>
@@ -753,14 +796,14 @@ function AskSection({
           {notice}
         </p>
       )}
-      {stale && (
+      {stale && !busy && (
         <p className="rc-notice" data-tone="warning">
           {stale}
         </p>
       )}
       <details open={talk} onToggle={(event) => setTalk(event.currentTarget.open)}>
         <summary className="rc-footer-link">
-          {step.mode === "conversation" ? "Talk it through instead" : "Notes, files and links"}
+          {step.mode === "conversation" ? "Longer answers, files and links" : "Notes, files and links"}
         </summary>
         <div className="rc-stack">
           {step.mode === "conversation" ? (
@@ -776,16 +819,19 @@ function AskSection({
                 .
               </p>
               {conversation}
-              <VoiceInput
-                variant="secondary"
-                available={speechReady}
-                listening={listening}
-                transcript={transcript}
-                language={language}
-                onLanguage={setLanguage}
-                onStart={() => void speak()}
-                onStop={stopSpeech}
-              />
+              {/* Speaking leads the list above. Here the language choice stays reachable when it cannot. */}
+              {!voiceLead && !full && (
+                <VoiceInput
+                  variant="secondary"
+                  available={false}
+                  listening={false}
+                  transcript=""
+                  language={language}
+                  onLanguage={setLanguage}
+                  onStart={speakAloud}
+                  onStop={stopSpeech}
+                />
+              )}
               <form className="rc-composer" onSubmit={add}>
                 <label htmlFor={part("answer")}>Type your answer, or edit what you said</label>
                 <textarea
@@ -825,24 +871,6 @@ function AskSection({
                 >
                   {step.builtVersion === null ? "Make cards" : "Make cards again"}
                 </button>
-                {busy && (
-                  <button
-                    className="rc-button"
-                    data-variant="secondary"
-                    type="button"
-                    onClick={() => {
-                      task.current?.abort();
-                      if (!task.current) {
-                        setBusy(false);
-                        setNotice(
-                          import.meta.env.DEV ? "Example stopped. Your words and cards are still here." : "",
-                        );
-                      }
-                    }}
-                  >
-                    Cancel making cards
-                  </button>
-                )}
                 <button
                   className="rc-button"
                   data-variant="quiet"

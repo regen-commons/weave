@@ -1,17 +1,20 @@
 import type { ReactNode } from "react";
 import { Heading } from "./Heading.tsx";
 
-/** Section molecule: a heading, optional browse action and related content. */
+/** Section molecule: a heading, an optional browse action, an optional line of context and related content. */
 export function Section({
   id,
   title,
   action,
+  note,
   children,
 }: {
   id: string;
   title: string;
   action?: ReactNode;
-  children: ReactNode;
+  /** One or two sentences that say why the section is here. */
+  note?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <section className="rc-section" aria-labelledby={id}>
@@ -21,6 +24,7 @@ export function Section({
         </Heading>
         {action}
       </div>
+      {note && <p className="rc-section-note">{note}</p>}
       {children}
     </section>
   );

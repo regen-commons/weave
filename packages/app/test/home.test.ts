@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { editsFromForm } from "../src/describe/forms.ts";
 import { continueWithFields } from "../src/describe/screen.ts";
-import { daysUntil, homeDoors, homePreviews, resumeLabel } from "../src/home.ts";
+import { daysUntil, homeDoors, homePreviews, openLabel, resumeLabel } from "../src/home.ts";
 import { cardRoute } from "../src/initiative/status.ts";
 import type { ListingRecord } from "../src/listing.ts";
 
@@ -85,7 +85,7 @@ test("Home keeps one solid primary: resume a card, open one kept elsewhere, or s
   const returning = homeDoors(true, 0);
   assert.deepEqual(newcomer, { resume: false, start: "primary", open: "secondary" });
   assert.deepEqual(signedInElsewhere, { resume: false, start: "secondary", open: "primary" });
-  assert.deepEqual(returning, { resume: true, start: "secondary", open: "quiet" });
+  assert.deepEqual(returning, { resume: true, start: null, open: null }, "a card to resume stands alone");
   assert.deepEqual(homeDoors(true, 2), returning, "a card on this device comes before ones kept elsewhere");
   for (const doors of [newcomer, signedInElsewhere, returning])
     assert.equal(
@@ -106,4 +106,15 @@ test("Home's resume link is named for where the card stopped", () => {
   assert.equal(resumeLabel(cardRoute(typed)), "Continue your initiative");
 
   assert.equal(resumeLabel("your-initiative"), "Open your initiative");
+});
+
+test("the second door names Certified only where a Certified project can be behind it", () => {
+  assert.equal(openLabel(null), "Open your saved initiative", "choosing a Certified project is an example only");
+  assert.equal(openLabel({ signedIn: false, projects: 0 }), "Open one from Certified");
+  assert.equal(openLabel({ signedIn: true, projects: 2 }), "Open one from Certified");
+  assert.equal(
+    openLabel({ signedIn: true, projects: 0 }),
+    "Open your saved initiative",
+    "a private save with no project is not on Certified",
+  );
 });

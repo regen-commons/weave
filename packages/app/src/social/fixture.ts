@@ -159,13 +159,14 @@ export const savedPlace = (state: SocialState): "device" | "private" | "workspac
 /**
  * Which partner suggestions a person can see. Funding needs none of this. A linked
  * project sees suggestions from public sources while its entries stay private, and
- * searching what other teams shared needs one shared entry of its own.
+ * searching what other teams shared needs one shared entry of its own. A share the
+ * card has moved on from is out of matching, so `current` false opens public sources only.
  */
 export type PartnerAccess = "unlinked" | "public" | "network";
-export const partnerAccessOf = (state: SocialState): PartnerAccess =>
-  !state.identity || !state.project ? "unlinked" : state.shared ? "network" : "public";
+export const partnerAccessOf = (state: SocialState, current = true): PartnerAccess =>
+  !state.identity || !state.project ? "unlinked" : state.shared && current ? "network" : "public";
 
-/** Sharing for matching ends after a fixed period, as the Certified work does. */
+/** A share has no end date: it stays discoverable until the team closes or withdraws it. */
 export function sharingEnds(_today: string): string | null {
   return null;
 }

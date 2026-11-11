@@ -8,6 +8,7 @@
     "dev": "node scripts/copy-brand.mjs && vite --port 5173 --strictPort",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && node scripts/copy-brand.mjs && vite build",
     "preview": "vite preview --port 4174 --strictPort",
+    "prototype": "node scripts/copy-brand.mjs && NODE_ENV=development vite build --mode prototype",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "test": "node --conditions=source --test test/*.test.ts",
     "prototype": "node scripts/copy-brand.mjs && NODE_ENV=development vite build --mode prototype"

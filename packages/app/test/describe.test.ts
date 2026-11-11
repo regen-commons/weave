@@ -13,7 +13,7 @@ import {
 } from "../src/describe/contracts.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { DraftConflict, MemoryDraftRepository } from "../src/describe/repository.ts";
-import { readKeywordSource } from "../src/describe/keywords.ts";
+import { keywordSuggestion, readKeywordSource } from "../src/describe/keywords.ts";
 import { availableBrowser, browserExtract } from "../src/describe/engines.ts";
 import {
   availableSpeech,
@@ -29,6 +29,7 @@ import {
   continueWithFields,
   describeView,
   fieldsForm,
+  fieldsLead,
   hasConversation,
   talkItThrough,
 } from "../src/describe/screen.ts";
@@ -427,6 +428,25 @@ const keywordBuild: NonNullable<DeviceDraft["lastBuild"]> = {
   fallback: false,
 };
 
+test("a new initiative is invited to speak first, and only one action is filled", () => {
+  const fresh = newDraft();
+  assert.deepEqual(fieldsLead(fresh, true), { voice: true, primary: "speak" });
+  assert.deepEqual(fieldsLead(fresh, false), { voice: false, primary: "continue" }, "no local speech");
+  assert.deepEqual(
+    fieldsLead(typed(), true),
+    { voice: true, primary: "continue" },
+    "the invitation stays while typing, and Continue takes over",
+  );
+  assert.deepEqual(
+    fieldsLead(typed({ ...FORM, name: " ", where: "", about: "", links: "" }), true),
+    { voice: true, primary: "speak" },
+    "blank fields are not typing",
+  );
+  const kept = continueWithFields(typed());
+  assert.ok(kept.proposal, "the typed card exists");
+  assert.deepEqual(fieldsLead(kept, true), { voice: false, primary: "continue" }, "an initiative with a card");
+});
+
 test("describe opens on the four fields, and on the conversation only when chosen or already used", () => {
   const fresh = newDraft();
   assert.equal(fresh.mode, "conversation", "the stored default mode is unchanged");
@@ -577,4 +597,10 @@ test("Talk it through keeps what was typed, lets the conversation fill blank fie
   assert.equal(talked.assistant, "keywords");
   assert.equal(talkItThrough(revise(named, { assistant: "browser" })).assistant, "browser");
   assert.equal(talkItThrough(revise(named, { assistant: "none" })).assistant, "keywords");
+});
+test("keyword rules suggest learning and education from school and workshop words, in English and Portuguese", () => {
+  const lenses = (text: string) => keywordSuggestion(newDraft(), text).lenses;
+  assert.ok(lenses("We run a school garden and teaching workshops.").includes("learning"));
+  assert.ok(lenses("Uma escola de agroecologia com oficinas para jovens.").includes("learning"));
+  assert.ok(!lenses("We restore the river with families.").includes("learning"));
 });

@@ -235,7 +235,6 @@ test("a cookie changed by another tab cannot save under a different account", as
   assert.equal(writes, 0);
 });
 
-
 test("private save and load round-trip unclassified entries while matching still requires classification", async () => {
   const draft = structuredClone(document);
   const need = draft.needs[0];
@@ -255,4 +254,10 @@ test("private save and load round-trip unclassified entries while matching still
   assert.deepEqual(parseSaved(receipt), receipt);
   assert.deepEqual(calls, ["save_initiative", "load_initiative"]);
   assert.throws(() => parseSavedAsk(need), /invalid_data/u);
+});
+
+test("a saved card carries any type of work the app offers, learning included, and nothing else", () => {
+  const withLenses = (lenses: unknown) => parseDocument({ ...document, initiative: { ...document.initiative, lenses } });
+  assert.deepEqual(withLenses(["learning", "place_based"]).initiative.lenses, ["learning", "place_based"]);
+  assert.throws(() => withLenses(["schools"]), /invalid_data/);
 });

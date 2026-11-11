@@ -12,7 +12,7 @@ export interface TeamAsk {
 export function teamCoverage(asks: TeamAsk[], selected: readonly string[]) {
   const available = new Set(asks.flatMap((ask) => ask.candidates.map((candidate) => candidate.id)));
   const chosen = [...new Set(selected)];
-  if (chosen.some((id) => !available.has(id))) throw new Error("This candidate is no longer in the example.");
+  if (chosen.some((id) => !available.has(id))) throw new Error("This candidate is no longer on the list.");
   return {
     chosen,
     covered: asks.filter((ask) => ask.candidates.some((candidate) => chosen.includes(candidate.id))).length,

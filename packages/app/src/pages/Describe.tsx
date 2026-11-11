@@ -21,10 +21,11 @@ import {
   continueWithFields,
   describeView,
   fieldsForm,
+  fieldsLead,
   talkItThrough,
   type DescribeMode,
 } from "../describe/screen.ts";
-import { draftText, previewFields } from "../describe/view.ts";
+import { draftText, hasDraft, previewFields } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, INTAKE_STEPS, pathTo } from "../routes.ts";
@@ -39,6 +40,8 @@ import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
 import { VoiceInput } from "../ui/VoiceInput.tsx";
 import { DescribeExamples } from "./DescribeExamples.tsx";
+import { useSocialFixture } from "../social/context.tsx";
+import { useAccountDoor } from "../account/door.tsx";
 
 /** The one file input of the step. Its label and hint say what happens to a file in the view it sits in. */
 function FileField({
@@ -69,11 +72,14 @@ function FileField({
 }
 
 /**
- * The describe step. It opens on the four fields with one Continue. Talking it through is the
- * other way in, and that path ends at the check card because the app proposes the details.
+ * The describe step. It opens on the four fields with one Continue, and a new initiative is
+ * invited to speak first where this device can transcribe speech. Talking it through is the other
+ * way in, and that path ends at the check card because the app proposes the details.
  */
 export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const { draft, storage, error: storageError, ready, controller, fixture } = useDraft();
+  const social = useSocialFixture();
+  const openDoor = useAccountDoor();
   // A view picked in this visit holds only for the draft it was picked on.
   const [choice, setChoice] = useState<{ controller: typeof controller; view: DescribeMode } | null>(null);
   const shown = describeView(draft, choice?.controller === controller ? choice.view : null);
@@ -81,8 +87,10 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const [problem, setProblem] = useState("");
   const [language, setLanguage] = useState(navigator.language || "en-US");
   const [speechReady, setSpeechReady] = useState(false);
+  const lead = fieldsLead(draft, speechReady);
   const [modelReady, setModelReady] = useState(false);
   const [listening, setListening] = useState(false);
+  const [spoke, setSpoke] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -115,7 +123,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     setTranscript(view === "listening" ? "Families share what they learn about the orchard." : "");
     setNotice(
       view === "speech-error"
-        ? "Example microphone error. Your words are still here; you can type below."
+        ? "The microphone did not work. Your words are still here; you can type below."
         : view === "weak"
           ? "Keyword mode is ready. No model download is needed."
           : "",
@@ -131,7 +139,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   useEffect(() => {
     if (import.meta.env.DEV && view === "storage-error" && ready && storage === "saved")
       controller.change((current) =>
-        revise(current, { composer: current.composer || "An example change that could not be saved." }, true),
+        revise(current, { composer: current.composer || "A change that could not be saved." }, true),
       );
   }, [controller, view, ready, storage]);
   useEffect(() => {
@@ -203,7 +211,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       );
       setListening(false);
       setTranscript("");
-      setNotice("Example transcript ready to edit below.");
+      setNotice("Transcript ready to edit below.");
     } else mic.current?.stop();
   }
   async function files(input: HTMLInputElement) {
@@ -400,11 +408,18 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     setNotice("");
     controller.change(talkItThrough);
   }
+  /** Speak from the four fields: the conversation opens already listening, with the focus on its button. */
+  function talkAloud() {
+    setSpoke(true);
+    talk();
+    void speak();
+  }
   function showFields() {
     task.current?.abort();
     micTask.current?.abort();
     mic.current?.dispose();
     setListening(false);
+    setSpoke(false);
     setChoice({ controller, view: "fields" });
     setNotice("");
     controller.change((current) => revise(current, { mode: "fields", assistant: "none" }));
@@ -435,6 +450,20 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
         conflict={storage === "conflict"}
         onRetry={() => controller.retry()}
       />
+      {/* Asked before anything is typed, so a project that already exists is not described twice. */}
+      {import.meta.env.DEV && social && ready && !social.state.identity && !hasDraft(draft) && (
+        <div className="rc-action-bar">
+          <button
+            className="rc-button"
+            data-variant="quiet"
+            data-size="sm"
+            type="button"
+            onClick={() => openDoor("certified")}
+          >
+            Sign in to start from a Certified project
+          </button>
+        </div>
+      )}
       {!ready ? (
         <p role="status">Opening your device draft</p>
       ) : shown === "fields" ? (
@@ -445,7 +474,27 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             </p>
           )}
           {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
+          {lead.voice && (
+            <>
+              <p>Say it in your own words. Weave turns what you say into a card you can check.</p>
+              <VoiceInput
+                available
+                listening={false}
+                transcript=""
+                language={language}
+                onLanguage={setLanguage}
+                onStart={talkAloud}
+                onStop={stopSpeech}
+                variant={lead.primary === "speak" ? "primary" : "secondary"}
+              />
+            </>
+          )}
           <form className="rc-form" onSubmit={continueFields}>
+            {lead.voice && (
+              <Heading level={2} size="section">
+                Or type it
+              </Heading>
+            )}
             <RecordFields value={form} onChange={changeForm} />
             {problem && (
               <p className="rc-error" role="alert">
@@ -453,12 +502,18 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               </p>
             )}
             <div className="rc-action-bar">
-              <button className="rc-button" data-variant="primary" type="submit">
+              <button
+                className="rc-button"
+                data-variant={lead.primary === "continue" ? "primary" : "secondary"}
+                type="submit"
+              >
                 Continue
               </button>
-              <button className="rc-button" data-variant="quiet" type="button" onClick={talk}>
-                Talk it through instead
-              </button>
+              {!lead.voice && (
+                <button className="rc-button" data-variant="secondary" type="button" onClick={talk}>
+                  Talk it through instead
+                </button>
+              )}
             </div>
           </form>
           <details>
@@ -546,6 +601,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               onLanguage={setLanguage}
               onStart={() => void speak()}
               onStop={stopSpeech}
+              focus={spoke}
             />
             <form className="rc-composer" onSubmit={add}>
               <label htmlFor="describe-answer">Type your answer, or edit what you said</label>
@@ -590,7 +646,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                         )
                       }
                     >
-                      {fixture ? "Try the browser option example" : "Use this browser's assistant"}
+                      Use this browser's assistant
                     </button>
                     <button
                       className="rc-button"
@@ -608,11 +664,9 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             )}
             {draft.assistant === "browser" && (
               <p className="rc-meta">
-                {fixture
-                  ? "Browser option example selected; the keyword draft powers this simulation."
-                  : modelReady
-                    ? "Browser model selected. It runs only when you build; keyword mode remains available."
-                    : "The browser model is not ready. Build uses the keyword draft."}
+                {modelReady && !fixture
+                  ? "Browser model selected. It runs only when you build; keyword mode remains available."
+                  : "The browser model is not ready. Build uses the keyword draft."}
               </p>
             )}
             <FileField

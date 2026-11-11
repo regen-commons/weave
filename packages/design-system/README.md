@@ -79,6 +79,31 @@ The tests check that generated files are current, the linter is clean, website v
 
 ## Changelog
 
+### Unreleased, preview design review
+
+- Add Back link, Dialog's detail presentation with the `./sheet` behaviour, Section
+  note and the Your initiatives example page. Status line loses its icon and appears
+  in Settings.
+- Modify stable patterns. App header and Bottom navigation carry four sections: Home,
+  Initiatives, Funding and Your initiatives. A listing Card opens from its title and
+  has no button. Dialog is a bottom sheet with a handle on phones, and a press
+  outside closes information and detail. Footer is the same on every page, with
+  title case links. Media's placeholder shows an icon only. Stepper stays on one row.
+  Voice input leads where the device can transcribe speech.
+- Remove the footer's slim variant and row part; the one footer replaces them. Remove
+  the listing card's comparison slot; an Eyebrow for the award and a clock Tag for
+  the deadline replace it.
+- Settle back navigation (DL-041). App header stays at the top, and on a page that
+  is not a section the Back link takes the product name's place; Back link becomes
+  stable. Tapping the current section in Bottom navigation brings its page to the top.
+  A page reached with Back or Forward shows where it was left, without arriving again
+  (`data-move="return"` on `rc-main`).
+- Add the learning icon for Learning and education, the fifth type of work (DL-040).
+  A Notice may ask one question with its own action bar, as the duplicate prompt does
+  (DL-042).
+- Deprecate Account button. The Your initiatives section replaces it, and it can be
+  removed after one build phase. No tokens changed.
+
 ### Unreleased, Step 8
 
 - Add Record list for metadata-only assistant history and Settings with Leave last.

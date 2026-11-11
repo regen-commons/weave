@@ -1,7 +1,11 @@
 import type { Capital } from "./capitals.ts";
 
 export type CapitalKey = Capital["key"];
-export type Work = "Place-based community" | "Research" | "Art and culture" | "Technology" | "Funders";
+/**
+ * The kinds of work the initiative list sorts by. Funders are not listed as initiatives: they
+ * live in the funding directory.
+ */
+export type Work = "Place-based" | "Research" | "Art and culture" | "Technology" | "Learning and education";
 export type Stage = "seed" | "sprout" | "flowering" | "tree";
 export type Fit = "strong" | "good" | "possible";
 export interface ListingRecord {
@@ -67,11 +71,11 @@ export const STAGE_LABELS: Record<Stage, string> = {
   tree: "Long established",
 };
 export const WORK: readonly Work[] = [
-  "Place-based community",
+  "Place-based",
   "Research",
   "Art and culture",
   "Technology",
-  "Funders",
+  "Learning and education",
 ];
 const folded = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase();
 const intersects = (a: readonly string[], b: readonly string[]) => a.some((value) => b.includes(value));

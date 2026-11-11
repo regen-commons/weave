@@ -11,9 +11,10 @@ import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { FundingFilters } from "../ui/FundingFilters.tsx";
 import { FundingProfile } from "../ui/FundingProfile.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
-import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { fullDate } from "../home.ts";
 import { replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
+import { DescribePrompt } from "../ui/DescribePrompt.tsx";
+import { SuggestFund } from "../funding/SuggestFund.tsx";
 export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
@@ -31,7 +32,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const loading = catalog.loading || (state === "loading" && !retried),
     failed =
       catalog.error ||
-      (state === "error" && !retried ? "The example catalog did not load. Your choices are still here." : "");
+      (state === "error" && !retried ? "The catalog did not load. Your choices are still here." : "");
   const entries = useMemo(() => (catalog.bundle ? catalogEntries(catalog.bundle) : []), [catalog.bundle]);
   const visibleFilters = catalog.results
     ? filters
@@ -58,20 +59,9 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
         Funding
       </Heading>
       {!catalog.personalized && (
-        <section className="rc-notice" data-tone="info">
-          <div className="rc-notice-body">
-            <h2 className="rc-notice-title">Describe your initiative to see what fits</h2>
-            <p>Browse the full catalog without ranking. Check eligibility with the funder before applying.</p>
-            <ButtonLink href="/start/initiative" variant="primary">
-              Describe your initiative
-            </ButtonLink>
-          </div>
-        </section>
-      )}
-      {import.meta.env.DEV && example && (
-        <p className="rc-notice" data-tone="info">
-          Fictional funding examples. Terms, counts and team requirements are invented.
-        </p>
+        <DescribePrompt>
+          For now every fund is listed without ranking. Check eligibility with the funder before applying.
+        </DescribePrompt>
       )}
       {(state === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
@@ -114,11 +104,6 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           <p role="status">Opening the funding catalog</p>
           <div className="rc-skeleton" />
           <div className="rc-skeleton" />
-          {import.meta.env.DEV && example && (
-            <button className="rc-button" data-variant="secondary" onClick={() => setRetried(true)}>
-              Show examples
-            </button>
-          )}
         </section>
       ) : !entries.length ? (
         <EmptyState
@@ -151,7 +136,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                       result={results.get(entry.id)}
                       teamLine={
                         import.meta.env.DEV && example
-                          ? `${teamFixture(null).length} example partner asks; ${teamFixture(null).filter((ask) => ask.candidates.length).length} could come from the list`
+                          ? `${teamFixture(null).length} partner asks, ${teamFixture(null).filter((ask) => ask.candidates.length).length} that people on the list could fill`
                           : undefined
                       }
                     />
@@ -185,6 +170,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
               Try fewer filters or another search.
             </EmptyState>
           )}
+          {import.meta.env.DEV && example && <SuggestFund />}
         </>
       )}
       <FundingProfile />
