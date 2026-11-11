@@ -100,6 +100,7 @@ The tests check that generated files are current, the linter is clean, website v
   (`data-move="return"` on `rc-main`).
 - Make the tabs the same width in Bottom navigation and the App header (DL-043). The
   current tab keeps its weight and shows its bar and a stronger colour.
+- Centre a short last row in Numbered list and Tile grid (DL-044).
 - Add the learning icon for Learning and education, the fifth type of work (DL-040).
   A Notice may ask one question with its own action bar, as the duplicate prompt does
   (DL-042).

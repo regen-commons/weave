@@ -194,3 +194,7 @@ remain proposed.
 ## DL-043: Tabs are all the same width
 
 **Status:** maker's call, 10 November 2026. The four tabs share their row equally, as a native tab bar does. On phones each tab is a quarter of the bar and its label uses the small label size, so "Your initiatives" fits a quarter of a 320 px screen on one line; tabs meet edge to edge with no side padding. In the header each tab is as wide as the widest. The current tab keeps the same weight as the others and is marked by its bar and a stronger colour, so no tab changes width as the person moves between them. This replaces the weight change in the earlier contract. With very large text a label wraps inside its own tab. No tokens changed.
+
+## DL-044: A short last row sits in the middle
+
+**Status:** maker's call, 10 November 2026. When the three steps run two across, the third sits centred on the second row; when the eight kinds of support run three across, the last two sit centred on the third row. Numbered list and Tile grid set their columns by their section's width, at the same widths their minimum card sizes gave before, and centre any short last row. Full rows still fill the width, so the page keeps its left edge. No tokens changed.

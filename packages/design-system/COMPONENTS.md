@@ -116,8 +116,8 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Menu | `rc-menu` | stable | Native controls in a popover. Parts: `rc-menu-group`, `rc-menu-option` | Local fallback without Popover API | Named fieldset, visible close action, Escape and outside dismissal | funding, initiatives |
 | Footer | `rc-footer` | stable | Weave, Data & Privacy and Regen Commons links. Parts: `rc-footer-grid`, `rc-footer-title`, `rc-footer-link` |  | Every page, the same; a page leaves out the link to itself; title case labels (DL-033) | check-card, code, describe, finish, funding, home, initiatives, intake-finish, matches, matches-empty, needs, offers, opportunity, opportunity-private, saved, settings, step-needs, your-initiatives |
 
-| Numbered list | `rc-numbered-list` | candidate | Three ordered cards that explain how something goes. Parts: `rc-numbered-item`, `rc-numbered-number`, `rc-numbered-title` |  | No card is a link; the page's own action starts the sequence | home |
-| Tile grid | `rc-tile-grid` | candidate | Equal-size Tile cards with tooltips | | Eight forms of capital | home |
+| Numbered list | `rc-numbered-list` | candidate | Three ordered cards that explain how something goes. Parts: `rc-numbered-item`, `rc-numbered-number`, `rc-numbered-title` |  | No card is a link; the page's own action starts the sequence. A short last row is centred | home |
+| Tile grid | `rc-tile-grid` | candidate | Equal-size Tile cards with tooltips | | Eight forms of capital. A short last row is centred | home |
 
 ## Templates
 

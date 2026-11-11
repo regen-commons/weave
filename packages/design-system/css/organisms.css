@@ -314,13 +314,49 @@
 
 .rc-filter-bar > .rc-field { max-inline-size: var(--list-width); }
 /* Numbered list: a short sequence that explains how something goes. No card is a link. */
-.rc-numbered-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+/* Numbered list and Tile grid set their columns by the section's own width, at the widths their
+   minimum card sizes allow, and each card spans two half columns. A short last row can then sit
+   in the middle instead of at the start. */
+.rc-section:has(> .rc-numbered-list, > .rc-tile-grid) { container-type: inline-size; }
+.rc-numbered-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+/* Two across from 2 x 18rem and a gap, three across from 3 x 18rem and two gaps (--card-min-width). */
+@container (min-width: 37rem) {
+  .rc-numbered-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-numbered-item { grid-column: span 2; }
+}
+@container (37rem <= width < 56rem) {
+  .rc-numbered-item:last-child:nth-child(2n + 1) { grid-column: 2 / span 2; }
+}
+@container (min-width: 56rem) {
+  .rc-numbered-list { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .rc-numbered-item:last-child:nth-child(3n + 1) { grid-column: 3 / span 2; }
+  .rc-numbered-item:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
 .rc-numbered-item { display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
 .rc-numbered-number { font: var(--type-headline-md); color: var(--text-accent); }
 .rc-numbered-title { font: var(--type-title-sm); }
 
 /* Tile grid: equal-size cards with one tooltip trigger each. */
-.rc-tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-card-min-width)), 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.rc-tile-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+/* Two, three and four across at 15rem cards and 0.75rem gaps (--tile-card-min-width, --space-3). */
+@container (min-width: 30.75rem) {
+  .rc-tile-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-tile-grid > li { grid-column: span 2; }
+}
+@container (30.75rem <= width < 46.5rem) {
+  .rc-tile-grid > li:last-child:nth-child(2n + 1) { grid-column: 2 / span 2; }
+}
+@container (46.5rem <= width < 62.25rem) {
+  .rc-tile-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .rc-tile-grid > li:last-child:nth-child(3n + 1) { grid-column: 3 / span 2; }
+  .rc-tile-grid > li:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
+@container (min-width: 62.25rem) {
+  .rc-tile-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .rc-tile-grid > li:last-child:nth-child(4n + 1) { grid-column: 4 / span 2; }
+  .rc-tile-grid > li:nth-last-child(2):nth-child(4n + 1) { grid-column: 3 / span 2; }
+  .rc-tile-grid > li:nth-last-child(3):nth-child(4n + 1) { grid-column: 2 / span 2; }
+}
 .rc-tile-grid > li { display: flex; min-inline-size: 0; }
 .rc-tile-grid .rc-tooltip-wrap, .rc-tile-grid .rc-tooltip-trigger { display: flex; inline-size: 100%; }
 /* Conversation panel: voice where local speech is available, typing everywhere. */
