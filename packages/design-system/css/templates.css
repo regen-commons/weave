@@ -117,12 +117,14 @@
 /* Mycelium: the website's branching growth, behind the home hero and nowhere else (DL-046). It
    takes no pointer, fades out behind the heading, actions and search, and is hidden in forced
    colours. On phones the words fill the hero, so only its corners show. behaviors/mycelium.js
-   draws it in the four thread colours set here. */
+   draws it in the website's six thread colours, set here, at the website's own strengths. */
 .rc-mycelium {
-  --mycelium-1: var(--circuit);
-  --mycelium-2: var(--sage);
-  --mycelium-3: var(--stage-sprout);
-  --mycelium-4: var(--text-accent);
+  --mycelium-1: var(--forest);
+  --mycelium-2: var(--moss);
+  --mycelium-3: var(--copper);
+  --mycelium-4: var(--teal);
+  --mycelium-5: var(--gold);
+  --mycelium-6: var(--signal);
   position: absolute;
   z-index: -1;
   inset-block: 0;
@@ -131,15 +133,13 @@
   inline-size: 100cqi;
   block-size: 100%;
   pointer-events: none;
-  /* Thin threads need more strength on dark loam than on paper, as the website's do. */
-  opacity: var(--mycelium-opacity);
   --mycelium-clear: radial-gradient(ellipse 62% 66% at 50% 50%, transparent 72%, black 100%);
   -webkit-mask-image: var(--mycelium-clear), var(--hero-fade);
   -webkit-mask-composite: source-in;
   mask-image: var(--mycelium-clear), var(--hero-fade);
   mask-composite: intersect;
 }
-/* The website's paper grain, in the same hero only. */
+/* The website's paper grain, at its strength, in the same hero only: it never shows against the page. */
 .rc-home-hero::before {
   content: "";
   position: absolute;
@@ -148,7 +148,7 @@
   left: 50%;
   translate: -50%;
   inline-size: 100cqi;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   background-size: calc(var(--space-8) * 4);
   mix-blend-mode: var(--grain-blend);
   opacity: var(--grain-opacity);

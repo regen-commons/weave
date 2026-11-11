@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { densityFor, growsFromPointer, seedNetwork, seededRandom, settle } from "../behaviors/mycelium.js";
+import { densityFor, growsFromPointer, growsOnItsOwn, seedNetwork, seededRandom, settle, tuftAlpha } from "../behaviors/mycelium.js";
 
 const grow = (width, height, seed = 7) => {
   const random = seededRandom(seed);
@@ -38,7 +38,7 @@ test("threads start at the hero's sides and stay near it", () => {
     }
 });
 
-test("on a phone, threads start in the hero's corners, clear of its words", () => {
+test("on a phone, threads start in the hero's top corners, clear of its words and links", () => {
   const width = 360;
   const height = 520;
   const roots = grow(width, height, 3).filter((branch) => branch.generation === 0);
@@ -46,7 +46,7 @@ test("on a phone, threads start in the hero's corners, clear of its words", () =
   for (const root of roots) {
     const [x, y] = root.points;
     assert.ok(x <= width * 0.1 || x >= width * 0.9, "beside the edge");
-    assert.ok(y <= height * 0.12 || y >= height * 0.88, "above the heading or below the links");
+    assert.ok(y <= height * 0.12, "beside the heading, never down by the links");
   }
 });
 
@@ -56,4 +56,19 @@ test("only a mouse grows more, and never under reduced motion; touch never does"
   assert.equal(growsFromPointer("pen", true, false), false);
   assert.equal(growsFromPointer("mouse", false, false), false, "a coarse pointer does not grow it");
   assert.equal(growsFromPointer("mouse", true, true), false, "reduced motion keeps it at rest");
+});
+
+test("without a mouse, tufts grow on their own, never under reduced motion; with one, only the mouse grows them", () => {
+  assert.equal(growsOnItsOwn(false, false), true, "a phone grows tufts on its own");
+  assert.equal(growsOnItsOwn(false, true), false, "reduced motion keeps it at rest");
+  assert.equal(growsOnItsOwn(true, false), false, "a mouse grows them instead");
+});
+
+test("a new tuft starts brighter than the resting network and fades away", () => {
+  const ages = [0, 40, 80, 120, 159, 160, 400];
+  const alphas = ages.map(tuftAlpha);
+  assert.ok(alphas[0] > 0.4, "fresh growth outshines the resting network");
+  assert.ok(alphas.every((alpha, i) => i === 0 || alpha <= alphas[i - 1]), "it only fades");
+  assert.equal(tuftAlpha(160), 0);
+  assert.equal(tuftAlpha(400), 0, "and stays gone");
 });

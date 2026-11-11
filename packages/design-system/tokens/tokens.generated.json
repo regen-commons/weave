@@ -153,8 +153,7 @@
       "backdrop": "rgba(26, 20, 8, .45)",
       "forest-glow": "rgba(30, 58, 16, 0.12)",
       "grain-blend": "multiply",
-      "grain-opacity": 0.35,
-      "mycelium-opacity": 0.55
+      "grain-opacity": 0.35
     },
     "dark": {
       "surface": "#0D100A",
@@ -237,8 +236,7 @@
       "backdrop": "rgba(0, 0, 0, .65)",
       "forest-glow": "rgba(122, 170, 106, 0.10)",
       "grain-blend": "screen",
-      "grain-opacity": 0.12,
-      "mycelium-opacity": 0.9
+      "grain-opacity": 0.12
     }
   },
   "derived": {

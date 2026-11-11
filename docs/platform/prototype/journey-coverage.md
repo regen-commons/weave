@@ -155,7 +155,7 @@ listed above. The production pilot stays off.
 
 | Journey | What changed |
 |---|---|
-| First visit with a Certified project | Home's hero carries the website's mycelium and paper grain (DL-046). On Your initiatives the In Weave and On Certified lists lead, and the signed-in line closes the page. A workspace this account cannot open now says what to do: ask a workspace admin for an invitation link. |
+| First visit with a Certified project | Home's hero carries the website's mycelium and paper grain, matched to regencommons.com, and on phones a tuft grows on its own every few seconds (DL-046, DL-048). On wide screens the header holds three sections and the logo goes home (DL-049). On Your initiatives the In Weave and On Certified lists lead, and the signed-in line closes the page. A workspace this account cannot open now says what to do: ask a workspace admin for an invitation link. |
 | First visit without a project | Your initiative takes the initiative's name as its heading, under a Your initiative eyebrow, and the card no longer repeats it (DL-047). Funding that fits says plainly when nothing in the catalog matches yet. |
 | Returning with a project | The team workspace names the initiative under a Team workspace eyebrow, then says what this person can do there. The header's save status steps aside, so the page's own rows are the one account of saving and sharing. Manage teammates leads with the default: choose what they can do, then create an invitation link. Adding someone by handle sits behind a disclosure, and each pending invitation says what it is, when it expires and what the admin can do. |
 | Returning without a linked project | The same named heading on Your initiative, and the account line at the end of Your initiatives. |
@@ -173,10 +173,15 @@ Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
 
 - **Home hero, Chrome with DevTools emulation, 360 px with touch and 1280 px with a mouse, light
   and dark.** Under reduced motion the mycelium is drawn at once, and its pixels do not change
-  over three seconds or under mouse moves. With motion allowed, a mouse grows a tuft that fades
-  back to the identical resting picture, and touch never changes it. The phone canvas is capped
-  at 1.5 times pixel density, its threads grow from the corners, and a theme change recolours it
-  without a reload. No page overflowed horizontally.
+  over three seconds or under mouse moves. With motion allowed, a mouse grows tufts that fade
+  back to the identical resting picture, and touch never changes it. On a phone with touch and no
+  mouse, the canvas changed on its own eight times in five seconds; under reduced motion it stayed
+  still. The phone canvas is capped at 1.5 times pixel density, its threads grow from the top
+  corners, and a theme change recolours it without a reload. The hero shows no band against the
+  page in either theme. No page overflowed horizontally.
+- **Header, Chrome, 1280 px light.** Initiatives, Funding and Your initiatives sit at their own
+  widths, 32 px apart and 32 px from the logo, which is the current page on Home. During a page
+  transition nothing in the header animates. At 360 px the bottom bar keeps four 90 px tabs.
 - **Manage teammates, Chrome, 360 px dark, keyboard only.** Focus starts inside the sheet, Tab
   follows the new order with a visible focus ring, and Escape returns focus to Manage teammates.
 - **Headings, Chrome and the Claude desktop browser pane.** The workspace heading at 1280 px
@@ -191,7 +196,7 @@ Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
 Voice capture could not be exercised in either browser. No hosted Certified, database or
 production check was made.
 
-Local checks passed: `bun run ci` ran 129 site and catalog tests, 24 design-system tests, 156
+Local checks passed: `bun run ci` ran 129 site and catalog tests, 26 design-system tests, 156
 API tests with the 38 opt-in database checks skipped, 207 app tests and 78 harness tests, and
 confirmed current design tokens and guidance. The app typecheck and `git diff --check` passed,
 and the build changed no tracked files. No dependencies or lockfile changed.

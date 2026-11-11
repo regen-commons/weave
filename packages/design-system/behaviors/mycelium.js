@@ -1,24 +1,34 @@
 // Mycelium behaviour shared by React and the static pattern library: the website's branching growth
-// (canvas.js on regencommons.com), adapted to an application hero. A few seeds grow from the sides,
-// fork, take the odd circuit-like right angle, leave small junction pads and tip bulbs, and fade
-// towards their tips. The growth settles and drawing stops. Where the pointer is fine and motion is
-// welcome, moving over the hero grows a little more, which fades away again; touch never does.
-// Under reduced motion the settled network is drawn at once. Colours come from the canvas's
-// --mycelium-1 to --mycelium-4 custom properties, so the theme decides them. The canvas is
-// decorative: it takes no pointer, and the CSS keeps it behind the hero's text.
+// (canvas.js on regencommons.com), with its step, thickness, length, branching, marks and six thread
+// colours, adapted to an application hero. Small tufts grow from the hero's sides, or the top
+// corners of a phone's, fork, take the odd circuit-like right angle and leave junction pads and tip bulbs. They
+// come to rest at the strength of the website's growth part way through fading, and drawing stops.
+// New tufts start bright and fade away while they grow, as the website's do: a moving mouse grows
+// them, and where there is no mouse, on a phone, one grows on its own every few seconds. Touch never
+// grows one. Under reduced motion the resting network is drawn at once and nothing more grows.
+// Colours come from the canvas's --mycelium-1 to --mycelium-6 custom properties, so the theme
+// decides them. The canvas is decorative: it takes no pointer, and the CSS keeps it behind the
+// hero's text.
 
 const TAU = Math.PI * 2;
 const RIGHT_ANGLE = Math.PI / 2;
-/** Four thread colours, read from the custom properties the CSS sets on the canvas. */
-const COLOURS = 4;
-/** Growth steps per drawn frame, so the network settles within a few seconds. */
-const STEPS_PER_FRAME = 2;
-/** A pointer must travel this far, in CSS pixels, before it grows a new tuft. */
-const POINTER_SPACING = 64;
-/** At most this many pointer tufts live at once; the oldest goes first. */
-const POINTER_TUFTS = 8;
-/** Frames a pointer tuft takes to fade once it has finished growing. */
-const TUFT_FADE = 90;
+/** The website's six thread colours, read from the custom properties the CSS sets on the canvas. */
+const COLOURS = 6;
+/** Growth steps per drawn frame: the website's pace. */
+const STEPS_PER_FRAME = 1;
+/** A mouse must travel this far, in CSS pixels, before it grows a new tuft, as on the website. */
+const POINTER_SPACING = 45;
+/** At most this many new tufts live at once, as on the website; the oldest goes first. */
+const LIVE_TUFTS = 30;
+/** Frames a new tuft takes to fade away while it grows, about the website's. */
+const TUFT_LIFE = 160;
+/** How strongly the resting network shows: the website's growth part way through fading. */
+const REST_ALPHA = 0.4;
+/** How strongly a new tuft starts: the website's fresh growth. */
+const FRESH_ALPHA = 0.85;
+/** Without a mouse, a tuft grows on its own after this many milliseconds, plus up to the spread. */
+const OWN_GROWTH_AFTER = 1500;
+const OWN_GROWTH_SPREAD = 1500;
 
 /** A small seeded generator, so the settled network looks the same on every visit and in tests. */
 export function seededRandom(seed) {
@@ -33,22 +43,23 @@ export function seededRandom(seed) {
 }
 
 /**
- * How much grows in a hero this wide. A phone's hero is filled by its words, so fewer, shorter
- * threads grow from its four corners; a wide hero grows from its sides.
+ * How much grows in a hero this wide: the website's tufts, a handful on each side. A phone's hero
+ * is filled by its words, with its links along the bottom, so fewer tufts grow, from the top
+ * corners beside the heading.
  */
 export function densityFor(width) {
   return width < 600
-    ? { seeds: 4, reach: 60, forkRate: 0.025, limit: 40, corners: true }
-    : { seeds: 4, reach: 105, forkRate: 0.028, limit: 100, corners: false };
+    ? { seeds: 6, reach: 55, forkRate: 0.015, limit: 60, corners: true }
+    : { seeds: 16, reach: 65, forkRate: 0.018, limit: 200, corners: false };
 }
 
 function newBranch(x, y, angle, generation, colour, random, reach) {
   return {
     points: [x, y],
     angle,
-    step: 1.4 + random() * 1.2,
-    width: Math.max(0.5, 1.3 - generation * 0.3 + random() * 0.3),
-    length: Math.max(6, Math.round((reach * (0.55 + random() * 0.6)) / (1 + generation * 0.45))),
+    step: 0.6 + random() * 1.0,
+    width: Math.max(0.3, 1.2 - generation * 0.25 + random() * 0.4),
+    length: Math.max(6, Math.round((reach * (0.5 + random() * 0.7)) / (1 + generation * 0.4))),
     generation,
     colour,
     growing: true,
@@ -57,7 +68,7 @@ function newBranch(x, y, angle, generation, colour, random, reach) {
 
 /** Puts out the first branches of one seed, spread around it as the website's are. */
 function sow(branches, x, y, random, reach, colour = Math.floor(random() * COLOURS)) {
-  const count = 2 + (random() < 0.35 ? 1 : 0);
+  const count = 2 + (random() < 0.3 ? 1 : 0);
   const start = random() * TAU;
   for (let i = 0; i < count; i++) {
     const angle = start + (i / count) * TAU + (random() - 0.5) * 0.8;
@@ -66,8 +77,8 @@ function sow(branches, x, y, random, reach, colour = Math.floor(random() * COLOU
 }
 
 /**
- * Seeds the hero's sides, or on a phone its corners, so the middle, where the heading and search
- * sit, stays mostly clear. The CSS mask clears it the rest of the way.
+ * Seeds the hero's sides, or on a phone its top corners, so the middle, where the heading and
+ * search sit, stays mostly clear. The CSS mask clears it the rest of the way.
  */
 export function seedNetwork(width, height, random, density = densityFor(width)) {
   const branches = [];
@@ -75,10 +86,7 @@ export function seedNetwork(width, height, random, density = densityFor(width)) 
   for (let i = 0; i < density.seeds; i++) {
     const left = i % 2 === 0;
     const x = left ? random() * width * inset : width - random() * width * inset;
-    const top = i % 4 < 2;
-    const y = density.corners
-      ? height * (top ? random() * 0.12 : 1 - random() * 0.12)
-      : height * (0.2 + random() * 0.75);
+    const y = density.corners ? height * random() * 0.12 : height * (0.2 + random() * 0.75);
     sow(branches, x, y, random, density.reach);
   }
   return branches;
@@ -126,6 +134,16 @@ export function growsFromPointer(pointerType, finePointer, reducedMotion) {
   return pointerType === "mouse" && finePointer && !reducedMotion;
 }
 
+/** Whether new tufts grow on their own: only where there is no mouse to grow them, with motion allowed. */
+export function growsOnItsOwn(finePointer, reducedMotion) {
+  return !finePointer && !reducedMotion;
+}
+
+/** How strongly a new tuft shows at an age in frames: bright at first, gone after its life. */
+export function tuftAlpha(age) {
+  return FRESH_ALPHA * Math.max(0, 1 - age / TUFT_LIFE);
+}
+
 /** Grows a network to rest at once, for reduced motion, a resize and the tests. */
 export function settle(branches, width, height, random, density) {
   // A bound, in case a future change could keep a branch growing forever.
@@ -133,15 +151,14 @@ export function settle(branches, width, height, random, density) {
   return branches;
 }
 
-/** How strongly a segment shows: lighter for later forks and towards the tip, as the website fades. */
-function strength(branch, index, base) {
-  const along = index / Math.max(1, branch.length);
-  return base * (1 - branch.generation * 0.2) * (1 - along * 0.55);
+/** How strongly a branch shows: later forks are lighter, as on the website. */
+function strength(branch, base) {
+  return base * (1 - branch.generation * 0.2);
 }
 
 function drawSegment(context, branch, index, colours, base) {
   const points = branch.points;
-  context.globalAlpha = Math.max(0, strength(branch, index, base));
+  context.globalAlpha = Math.max(0, strength(branch, base));
   context.strokeStyle = colours[branch.colour];
   context.lineWidth = branch.width;
   context.beginPath();
@@ -154,7 +171,7 @@ function drawSegment(context, branch, index, colours, base) {
 function drawMarks(context, branch, colours, base) {
   const points = branch.points;
   const colour = colours[branch.colour];
-  const alpha = base * (1 - branch.generation * 0.2);
+  const alpha = strength(branch, base);
   context.fillStyle = colour;
   if (branch.generation > 0 && points.length > 4) {
     context.globalAlpha = alpha * 0.5;
@@ -167,7 +184,7 @@ function drawMarks(context, branch, colours, base) {
     context.fill();
   }
   if (!branch.growing && points.length > 8) {
-    context.globalAlpha = alpha * 0.45;
+    context.globalAlpha = alpha * 0.6;
     context.beginPath();
     context.arc(points[points.length - 2], points[points.length - 1], 1.5 + branch.width * 0.5, 0, TAU);
     context.fill();
@@ -188,7 +205,7 @@ function drawNetwork(context, branches, colours, base) {
  * Starts the growth on a canvas. Returns `dispose`, which stops drawing and removes every listener
  * and observer; call it on unmount.
  */
-export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
+export function growMycelium(canvas, { seed = 7 } = {}) {
   const context = canvas.getContext("2d");
   const view = canvas.ownerDocument.defaultView;
   if (!context || !view) return { dispose() {} };
@@ -211,6 +228,7 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
   let shown = !canvas.ownerDocument.hidden;
   let onScreen = true;
   let lastPointer = null;
+  let ownTimer = 0;
 
   const listen = (target, type, listener, options) => {
     target.addEventListener(type, listener, options);
@@ -243,7 +261,7 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
   /** Draws the settled network once, keeps it as an image for pointer tufts to draw over, and rests. */
   function paintSettled() {
     context.clearRect(0, 0, width, height);
-    drawNetwork(context, branches, colours, base);
+    drawNetwork(context, branches, colours, REST_ALPHA);
     keep(null);
     if (typeof view.createImageBitmap !== "function") return;
     const paint = ++paints;
@@ -262,6 +280,7 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
     branches = settle(seedNetwork(width, height, random, density), width, height, random, density);
     tufts = [];
     paintSettled();
+    planOwnGrowth();
   }
 
   function stop() {
@@ -289,24 +308,28 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
         const growing = advance(branches, width, height, random, density);
         branches.forEach((branch, i) => {
           const was = before[i] ?? { length: 2, growing: true };
-          for (let point = was.length / 2; point < branch.points.length / 2; point++) drawSegment(context, branch, point, colours, base);
+          for (let point = was.length / 2; point < branch.points.length / 2; point++) drawSegment(context, branch, point, colours, REST_ALPHA);
           // Each pad and bulb is drawn once, as its branch comes to rest.
-          if (was.growing && !branch.growing) drawMarks(context, branch, colours, base);
+          if (was.growing && !branch.growing) drawMarks(context, branch, colours, REST_ALPHA);
         });
         if (!growing) break;
       }
       context.globalAlpha = 1;
-      if (!branches.some((branch) => branch.growing)) paintSettled();
+      if (!branches.some((branch) => branch.growing)) {
+        paintSettled();
+        planOwnGrowth();
+      }
     } else {
       context.clearRect(0, 0, width, height);
       if (settledImage) context.drawImage(settledImage, 0, 0, width, height);
-      else drawNetwork(context, branches, colours, base);
+      else drawNetwork(context, branches, colours, REST_ALPHA);
+      // New tufts grow and fade at once, as the website's do, and leave the resting network as it was.
       tufts = tufts.filter((tuft) => {
+        tuft.age += 1;
+        const alpha = tuftAlpha(tuft.age);
+        if (alpha <= 0) return false;
         if (tuft.branches.some((branch) => branch.growing)) advance(tuft.branches, width, height, Math.random, tuft.density);
-        else tuft.age += 1;
-        const fade = 1 - tuft.age / TUFT_FADE;
-        if (fade <= 0) return false;
-        drawNetwork(context, tuft.branches, colours, base * fade);
+        drawNetwork(context, tuft.branches, colours, alpha);
         return true;
       });
     }
@@ -328,7 +351,17 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
     schedule();
   }
 
-  /** A fine pointer moving over the hero grows a small tuft that fades again. Touch never does. */
+  /** Grows a new tuft that starts bright and fades away while it grows. */
+  function sprout(x, y) {
+    const tuftDensity = { ...density, limit: 16 };
+    const tuftBranches = [];
+    sow(tuftBranches, x, y, Math.random, tuftDensity.reach);
+    tufts.push({ branches: tuftBranches, age: 0, density: tuftDensity });
+    if (tufts.length > LIVE_TUFTS) tufts.shift();
+    schedule();
+  }
+
+  /** A mouse moving over the hero grows a tuft every little way, as on the website. Touch never does. */
   function onPointerMove(event) {
     if (!growsFromPointer(event.pointerType, finePointer.matches, still.matches)) return;
     if (branches.some((branch) => branch.growing)) return;
@@ -337,12 +370,38 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
     const y = event.clientY - box.top;
     if (lastPointer && Math.hypot(x - lastPointer.x, y - lastPointer.y) < POINTER_SPACING) return;
     lastPointer = { x, y };
-    const tuftDensity = { ...density, reach: density.reach * 0.45, limit: 12 };
-    const tuftBranches = [];
-    sow(tuftBranches, x, y, Math.random, tuftDensity.reach);
-    tufts.push({ branches: tuftBranches, age: 0, density: tuftDensity });
-    if (tufts.length > POINTER_TUFTS) tufts.shift();
-    schedule();
+    sprout(x, y);
+  }
+
+  /** Where a tuft grows on its own: where the resting network grows, clear of the words. */
+  function ownPoint() {
+    const left = Math.random() < 0.5;
+    if (density.corners) {
+      const x = left ? Math.random() * width * 0.12 : width - Math.random() * width * 0.12;
+      return [x, Math.random() * height * 0.15];
+    }
+    const x = left ? Math.random() * width * 0.2 : width - Math.random() * width * 0.2;
+    return [x, height * (0.15 + Math.random() * 0.75)];
+  }
+
+  /**
+   * Without a mouse, a tuft grows on its own every few seconds while the hero is on screen and the
+   * page is shown. It waits for the first growth to rest, and stops under reduced motion.
+   */
+  function planOwnGrowth() {
+    if (ownTimer || !shown || !onScreen || !growsOnItsOwn(finePointer.matches, still.matches)) return;
+    if (branches.some((branch) => branch.growing)) return;
+    ownTimer = view.setTimeout(() => {
+      ownTimer = 0;
+      const [x, y] = ownPoint();
+      sprout(x, y);
+      planOwnGrowth();
+    }, OWN_GROWTH_AFTER + Math.random() * OWN_GROWTH_SPREAD);
+  }
+
+  function stopOwnGrowth() {
+    if (ownTimer) view.clearTimeout(ownTimer);
+    ownTimer = 0;
   }
 
   /** A new theme repaints the same network in the new colours. */
@@ -358,16 +417,30 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
   listen(host, "pointermove", onPointerMove, { passive: true });
   listen(canvas.ownerDocument, "visibilitychange", () => {
     shown = !canvas.ownerDocument.hidden;
-    if (shown) schedule();
-    else stop();
+    if (shown) {
+      schedule();
+      planOwnGrowth();
+    } else {
+      stop();
+      stopOwnGrowth();
+    }
   });
   listen(still, "change", () => {
-    if (!still.matches) return;
+    if (!still.matches) {
+      planOwnGrowth();
+      return;
+    }
     // Motion turned off: show the rest of the growth at once and draw nothing more.
     stop();
+    stopOwnGrowth();
     settle(branches, width, height, random, density);
     tufts = [];
     paintSettled();
+  });
+  // A mouse plugged in or taken away decides whether tufts grow on their own.
+  listen(finePointer, "change", () => {
+    if (finePointer.matches) stopOwnGrowth();
+    else planOwnGrowth();
   });
   listen(darkScheme, "change", recolour);
 
@@ -379,8 +452,13 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
   if (typeof view.IntersectionObserver === "function") {
     const visibility = new view.IntersectionObserver((entries) => {
       onScreen = entries.some((entry) => entry.isIntersecting);
-      if (onScreen) schedule();
-      else stop();
+      if (onScreen) {
+        schedule();
+        planOwnGrowth();
+      } else {
+        stop();
+        stopOwnGrowth();
+      }
     });
     visibility.observe(canvas);
     cleanup.push(() => visibility.disconnect());
@@ -407,6 +485,7 @@ export function growMycelium(canvas, { seed = 7, strength: base = 0.75 } = {}) {
     dispose() {
       disposed = true;
       stop();
+      stopOwnGrowth();
       for (const undo of cleanup.splice(0)) undo();
       keep(null);
     },

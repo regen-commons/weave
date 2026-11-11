@@ -107,8 +107,13 @@ The tests check that generated files are current, the linter is clean, website v
   A Notice may ask one question with its own action bar, as the duplicate prompt does
   (DL-042).
 - Replace the Home hero's woven backdrop with the website's mycelium and paper grain
-  (`rc-mycelium` and the `./mycelium` behaviour), at rest under reduced motion and
-  from the hero's corners on phones (DL-046). Adds the `mycelium-opacity` token.
+  (`rc-mycelium` and the `./mycelium` behaviour), at rest under reduced motion
+  (DL-046). It matches the website's six thread colours, tuft size and grain strength;
+  new tufts start bright and fade, and on phones one grows on its own every few seconds
+  from the top corners (DL-048).
+- App header: Home leaves the header, because the logo goes home; sections take their
+  own widths with equal spacing, and the header no longer cross-fades between pages.
+  Bottom navigation keeps four equal tabs (DL-049).
 - Your initiative and the team workspace take the initiative's name as their heading
   under an Eyebrow, and the Your initiatives example ends with the account line
   (DL-047).
