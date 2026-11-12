@@ -3,7 +3,7 @@ import { PartnerDiscovery } from "../partners/PartnerDiscovery.tsx";
 import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { useState } from "react";
 import type { FixtureContext } from "../fixtures.ts";
-import { EMPTY_FILTERS, selectRecords, type CapitalKey } from "../listing.ts";
+import { EMPTY_FILTERS, applyListFacet, listFacets, listSorts, selectRecords, type CapitalKey } from "../listing.ts";
 import { currentRoute, navigate, routeSearch } from "../router.tsx";
 import { pathTo, routeWith } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -106,15 +106,18 @@ export function ListPage({
             </p>
           )}
           <FilterBar
-            filters={visibleFilters}
-            onChange={setFilters}
-            countries={[...new Set(records.map((record) => record.country))].sort()}
+            noun={kind === "funding" ? "funds" : "initiatives"}
+            search={visibleFilters.search}
+            onSearch={(search) => setFilters((current) => ({ ...current, search }))}
+            facets={listFacets(visibleFilters, [...new Set(records.map((record) => record.country))].sort())}
+            onFacet={(key, chosen) => setFilters((current) => applyListFacet(current, key, chosen))}
+            sort={{ value: visibleFilters.sort, options: listSorts(personalized) }}
+            onSort={(sort) =>
+              setFilters((current) => ({ ...current, sort: sort === "recent" || sort === "fit" ? sort : "name" }))
+            }
             count={selected.length}
             total={records.length}
-            noun={kind === "funding" ? "funds" : "initiatives"}
-            partners={false}
-            personalized={personalized}
-            funding={kind === "funding"}
+            onClear={() => setFilters((current) => ({ ...EMPTY_FILTERS, sort: current.sort }))}
           />
           {selected.length ? (
             <CardGrid>

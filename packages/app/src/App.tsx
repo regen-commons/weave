@@ -22,6 +22,7 @@ import { ListPage } from "./pages/ListPage.tsx";
 import { RecordDetail } from "./pages/RecordDetail.tsx";
 import { TeamWorkspace } from "./pages/TeamWorkspace.tsx";
 import { finishConsentReturn, takeConsentReturn } from "./initiative/consent-return.ts";
+import { headerStatus } from "./initiative/header-status.ts";
 import { Settings } from "./pages/Settings.tsx";
 import { NotFound } from "./pages/NotFound.tsx";
 import {
@@ -224,28 +225,13 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     settleScroll();
     document.querySelector<HTMLElement>("main h1")?.focus({ preventScroll: true });
   }, [location, route?.name]);
-  const status =
-    // A team workspace's own status line says where its work is kept; the device's would mislead.
-    // Nor does another account's card speak for this one (DL-055).
-    pageRoute?.name === "team-workspace" || setAside
-      ? "none"
-      : accountSaved || (import.meta.env.DEV && !!fixture && social?.state.saved)
-      ? "account"
-      : fixture && !["initiative", "check-card", "needs", "offers", "your-initiative"].includes(pageRoute?.name ?? "")
-        ? (social ? social.state.saved : ["private", "workspace", "shared", "published"].includes(fixture?.scenario ?? ""))
-          ? "account"
-          : fixture?.scenario === "draft"
-            ? "device"
-            : "none"
-        : device.storage === "saving"
-          ? "saving"
-          : device.storage === "memory"
-            ? "memory"
-            : device.storage === "conflict"
-              ? "conflict"
-              : device.storage === "saved" && hasDraft(device.draft)
-                ? "device"
-                : "none";
+  const status = headerStatus({
+    page: pageRoute?.name,
+    setAside: !!setAside,
+    accountSaved: accountSaved || (import.meta.env.DEV && !!fixture && !!social?.state.saved),
+    storage: device.storage,
+    hasCard: hasDraft(device.draft),
+  });
   return (
     <Page
       pathname={pagePath}

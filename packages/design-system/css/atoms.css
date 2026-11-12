@@ -215,6 +215,8 @@
   background: var(--surface-tint);
   color: var(--on-surface);
 }
+/* As a link, it marks the page it leads to once the person is there, as Settings does in the app header. */
+.rc-icon-button[aria-current="page"] { background: var(--surface-tint); color: var(--on-surface); }
 
 /* Text controls */
 /* Inline containment stops a control's intrinsic width from stretching its layout at large text sizes. */

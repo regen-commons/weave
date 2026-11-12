@@ -194,12 +194,10 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             },
             { title: "Add what you need and can offer", note: "Up to five of each." },
             {
-              title: "See funding that fits",
-              // Linking a project is not built outside the example world, so only there does the note name it.
-              note:
-                import.meta.env.DEV && social
-                  ? "No sign-in needed. Partner suggestions start with a Certified project."
-                  : "No sign-in needed.",
+              // The maker's wording, chosen over "fit", which the results pages keep (DL-063).
+              title: "See funding and partners that align",
+              // The step names two things, and only one of them works signed out.
+              note: "Funding needs no sign-in. Partners start with a Certified project.",
             },
           ]}
         />
@@ -282,7 +280,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="commons"
-        title="Built by Regen Commons"
+        title="Part of Regen Commons"
         note={
           <>
             Regen Commons is a shared home for the regenerative movement. Across places and practices, people
@@ -300,7 +298,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </ButtonLink>
         </div>
         <p className="rc-meta">
-          Weave is built by <a href={BUILDER.href}>{BUILDER.name}</a> for Regen Commons.
+          Weave is built by <a href={BUILDER.href}>{BUILDER.name}</a>.
         </p>
       </Section>
     </Stack>

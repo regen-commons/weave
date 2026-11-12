@@ -29,5 +29,7 @@ export const ICON_NAMES = [
   "lock",
   "alert",
   "pencil-note",
+  "settings",
+  "filter",
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

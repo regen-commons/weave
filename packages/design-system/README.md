@@ -141,6 +141,17 @@ The tests check that generated files are current, the linter is clean, website v
 - App header and Bottom navigation stay put between pages: each has its own view
   transition name at every width and changes at once above the page's cross-fade, and
   the page's content no longer takes a name of its own (DL-058).
+- App header gains Settings: the Icon button as a link, which marks its own page with
+  `aria-current`. Save status shows there only on the pages where the card is worked on
+  (DL-059). New icons `settings` and `filter`.
+- A phone sheet stops at two thirds of the window. Dialog gains a foot that stays in
+  view under its content, `rc-dialog-foot` (DL-060).
+- Filter bar is one pattern on every list. Add Sort control (`rc-sort`), a native select
+  drawn as a filter button, and Chip group (`rc-chip-group`). On phones one Filters
+  button opens every filter in a sheet. Menu gains `rc-menu-options`, in two columns for
+  a long list, and `./overlays` places a menu beside its trigger, never over it
+  (`blockPlacement`). Remove the inline field layout the old Sort used (DL-061, DL-062).
+- Home hero's two signs of life sit one per line on phones (DL-063).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
   removed after one build phase.
 

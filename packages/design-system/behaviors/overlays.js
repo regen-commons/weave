@@ -1,5 +1,25 @@
 // Platform enhancement shared by React and the static pattern library. All listeners
 // and delayed hides belong to the returned disposer; no polyfill or network request.
+/** Room enough under a trigger to read a few rows of a menu, in CSS pixels. */
+const READABLE = 240;
+
+/**
+ * Where a panel opens against its trigger, and how tall it may grow. It opens under the trigger
+ * when it fits there and over it when it fits only there. When it fits neither side it stays under
+ * the trigger while a few rows can be read there, and otherwise takes the roomier side. Either way
+ * it scrolls inside, so it never covers its trigger or runs off the window.
+ */
+export function blockPlacement({ triggerTop, triggerBottom, panelHeight, windowHeight, gap }) {
+  const below = triggerBottom + gap;
+  const roomBelow = Math.max(0, windowHeight - gap - below);
+  const roomAbove = Math.max(0, triggerTop - gap * 2);
+  if (panelHeight <= roomBelow) return { top: below, maxBlock: roomBelow };
+  if (panelHeight <= roomAbove) return { top: triggerTop - gap - panelHeight, maxBlock: roomAbove };
+  return roomBelow >= READABLE || roomBelow >= roomAbove
+    ? { top: below, maxBlock: roomBelow }
+    : { top: gap, maxBlock: roomAbove };
+}
+
 function place(trigger, panel) {
   const rect = trigger.getBoundingClientRect();
   const style = getComputedStyle(panel);
@@ -10,8 +30,15 @@ function place(trigger, panel) {
   panel.style.setProperty("--popover-max-block", `${Math.max(0, height - gap * 4)}px`);
   const box = panel.getBoundingClientRect();
   const left = Math.max(gap, Math.min(rect.left, width - box.width - gap));
-  const below = rect.bottom + gap;
-  const top = below + box.height <= height - gap ? below : Math.max(gap, rect.top - box.height - gap);
+  // The height above is the panel's own, measured with the whole window to grow into.
+  const { top, maxBlock } = blockPlacement({
+    triggerTop: rect.top,
+    triggerBottom: rect.bottom,
+    panelHeight: box.height,
+    windowHeight: height,
+    gap,
+  });
+  panel.style.setProperty("--popover-max-block", `${maxBlock}px`);
   panel.style.setProperty("--popover-left", `${left - margin}px`);
   panel.style.setProperty("--popover-top", `${top - margin}px`);
 }

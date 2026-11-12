@@ -1,33 +1,84 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { connectPopover } from "@regen-commons/design-system/overlays";
-import { CAPITALS } from "../capitals.ts";
-import { STAGE_LABELS, WORK, type ListFilters } from "../listing.ts";
+import {
+  activeChoices,
+  narrowing,
+  pickedValue,
+  pressOption,
+  withoutChoice,
+  type Facet,
+  type SortChoice,
+} from "../filters.ts";
+import { Dialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 
-export function FilterMenu({ label, count, children }: { label: string; count: number; children: ReactNode }) {
+type ChangeFacet = (key: string, chosen: readonly string[]) => void;
+
+/**
+ * A facet's options as native checks or radios: rows in a wide screen's menu, chips in a phone's
+ * sheet. Each place needs its own `name`, or two copies of one radio group would act as one.
+ */
+function Options({ facet, name, chips, onChange }: {
+  facet: Facet;
+  name: string;
+  chips: boolean;
+  onChange: ChangeFacet;
+}) {
+  const picked = pickedValue(facet);
+  return facet.options.map((option) => (
+    <label className={chips ? "rc-chip" : "rc-menu-option"} key={option.value}>
+      <input
+        className="rc-check"
+        type={facet.kind === "one" ? "radio" : "checkbox"}
+        name={facet.kind === "one" ? name : undefined}
+        checked={facet.kind === "one" ? picked === option.value : facet.chosen.includes(option.value)}
+        onChange={() => onChange(facet.key, pressOption(facet, option.value))}
+      />
+      {option.label}
+    </label>
+  ));
+}
+
+/** From this many options a menu reads down two columns, so it stays a menu and does not fill the window. */
+const LONG_MENU = 9;
+
+/** One filter's menu, for screens wide enough to give each filter its own button. */
+function FilterMenu({ facet, name, onChange }: { facet: Facet; name: string; onChange: ChangeFacet }) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (trigger.current && panel.current) return connectPopover(trigger.current, panel.current);
   }, []);
+  const count = narrowing(facet);
   return (
     <>
       <button
         className="rc-button"
         data-variant="secondary"
+        data-filter="one"
         data-active={count > 0}
         type="button"
         ref={trigger}
         popoverTarget={id}
       >
-        {label}
+        {facet.label}
         {count > 0 ? ` (${count})` : ""}
       </button>
       <div className="rc-menu" ref={panel} id={id} popover="auto">
+        {facet.scope && (
+          <fieldset className="rc-menu-group">
+            <legend>{facet.scope.label}</legend>
+            <div className="rc-menu-options">
+              <Options facet={facet.scope} name={`${name}-scope`} chips={false} onChange={onChange} />
+            </div>
+          </fieldset>
+        )}
         <fieldset className="rc-menu-group">
-          <legend>{label}</legend>
-          {children}
+          <legend>{facet.label}</legend>
+          <div className="rc-menu-options" data-columns={facet.options.length >= LONG_MENU ? "2" : undefined}>
+            <Options facet={facet} name={name} chips={false} onChange={onChange} />
+          </div>
         </fieldset>
         <button type="button" className="rc-button" data-variant="quiet" data-close-popover>
           Done
@@ -36,87 +87,81 @@ export function FilterMenu({ label, count, children }: { label: string; count: n
     </>
   );
 }
-const toggle = (values: readonly string[], value: string) =>
-  values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+
+/**
+ * Sort control (`rc-sort`): a native select drawn as one more filter button, so the bar's controls
+ * match and a phone opens its own picker. The select lies clear over the face and takes the press.
+ */
+function SortControl({ sort, onSort }: { sort: SortChoice; onSort(value: string): void }) {
+  const id = useId();
+  const current = sort.options.find((option) => option.value === sort.value) ?? sort.options[0];
+  return (
+    <div className="rc-button rc-sort" data-variant="secondary">
+      {/* The word is the select's label. The value beside it is for the eye; the select says its own. */}
+      <label className="rc-sort-face" htmlFor={id}>
+        Sort<span aria-hidden="true">: {current?.label}</span>
+      </label>
+      <select id={id} value={current?.value} onChange={(event) => onSort(event.target.value)}>
+        {sort.options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/**
+ * Filter bar organism (`rc-filter-bar`): the same on every list (DL-061). Search, the filters, Sort,
+ * the choices in force as removable chips, and how much of the list is left. On a phone one Filters
+ * button opens every filter in a sheet; a wide screen gives each filter its own menu. Choices take
+ * effect as they are made, so the sheet's foot only says how many results they leave.
+ */
 export function FilterBar({
-  filters,
-  onChange,
-  countries,
+  noun,
+  things = noun,
+  search,
+  onSearch,
+  facets,
+  onFacet,
+  sort,
+  onSort,
   count,
   total,
-  noun,
-  partners,
-  personalized,
-  funding,
+  onClear,
 }: {
-  filters: ListFilters;
-  onChange: (next: ListFilters) => void;
-  countries: readonly string[];
+  /** What the list holds, as the search field names it: "initiatives", "funding". */
+  noun: string;
+  /** What the count counts, where that differs from the noun. */
+  things?: string;
+  search: string;
+  onSearch(value: string): void;
+  facets: readonly Facet[];
+  onFacet: ChangeFacet;
+  sort: SortChoice;
+  onSort(value: string): void;
   count: number;
   total: number;
-  noun: string;
-  partners: boolean;
-  personalized: boolean;
-  funding: boolean;
+  /** Takes off the search and every filter. The sort order stays. */
+  onClear(): void;
 }) {
   const id = useId();
-  type MultiKey = "work" | "country" | "stage" | "support";
-  const groups: { key: MultiKey; label: string; options: readonly { value: string; label: string }[] }[] = [
-    { key: "work", label: "Type of work", options: WORK.map((value) => ({ value, label: value })) },
-    { key: "country", label: "Country", options: countries.map((value) => ({ value, label: value })) },
-    ...(!funding
-      ? [
-          {
-            key: "stage" as const,
-            label: "Stage",
-            options: Object.entries(STAGE_LABELS).map(([value, label]) => ({ value, label })),
-          },
-        ]
-      : []),
-    {
-      key: "support",
-      label: "Support",
-      options: CAPITALS.map((value) => ({ value: value.key, label: `${value.title}: ${value.label}` })),
-    },
-  ];
-  const update = (key: MultiKey, value: string) =>
-    onChange({ ...filters, [key]: toggle(filters[key], value) });
-  const chips = groups.flatMap((group) =>
-    filters[group.key].map((value) => ({
-      key: `${group.key}-${value}`,
-      label: group.options.find((option) => option.value === value)?.label ?? value,
-      remove: () => update(group.key, value),
-    })),
-  );
-  if (filters.search.trim())
-    chips.unshift({
-      key: "search",
-      label: `Search: ${filters.search}`,
-      remove: () => onChange({ ...filters, search: "" }),
-    });
-  if (filters.supportIn !== "either")
-    chips.push({
-      key: "supportIn",
-      label: `Support in ${filters.supportIn}`,
-      remove: () => onChange({ ...filters, supportIn: "either" }),
-    });
-  if (filters.relation !== "any")
-    chips.push({
-      key: "relation",
-      label: filters.relation === "offers-need" ? "Offers what you need" : "Needs what you offer",
-      remove: () => onChange({ ...filters, relation: "any" }),
-    });
+  const [sheet, setSheet] = useState(false);
+  const choices = activeChoices(facets);
+  const narrowed = facets.reduce((sum, facet) => sum + narrowing(facet), 0);
+  const query = search.trim();
   return (
-    <div className="rc-filter-bar">
-      <form className="rc-field" onSubmit={(event) => event.preventDefault()} role="search">
+    <section className="rc-filter-bar" aria-label={`Filter ${noun}`}>
+      <form className="rc-field" role="search" onSubmit={(event) => event.preventDefault()}>
         <label htmlFor={`${id}-search`}>Search {noun}</label>
-        <div className="rc-inline-field">
+        <div className="rc-search rc-inline-field">
           <input
             className="rc-input"
             id={`${id}-search`}
             type="search"
-            value={filters.search}
-            onChange={(event) => onChange({ ...filters, search: event.target.value })}
+            value={search}
+            onChange={(event) => onSearch(event.target.value)}
           />
           <button type="submit" className="rc-button" data-variant="secondary">
             Search
@@ -124,94 +169,83 @@ export function FilterBar({
         </div>
       </form>
       <div className="rc-filter-controls">
-        {groups.map((group) => (
-          <FilterMenu key={group.key} label={group.label} count={filters[group.key].length}>
-            {group.key === "support" && !funding && (
-              <div className="rc-field">
-                <label htmlFor={`${id}-support-in`}>Look in</label>
-                <select
-                  className="rc-input"
-                  id={`${id}-support-in`}
-                  value={filters.supportIn}
-                  onChange={(event) =>
-                    onChange({ ...filters, supportIn: event.target.value as ListFilters["supportIn"] })
-                  }
-                >
-                  <option value="either">Needs or offers</option>
-                  <option value="needs">Needs</option>
-                  <option value="offers">Offers</option>
-                </select>
-              </div>
-            )}
-            {group.options.map((option) => (
-              <label className="rc-menu-option" key={option.value}>
-                <input
-                  type="checkbox"
-                  className="rc-check"
-                  checked={filters[group.key].includes(option.value)}
-                  onChange={() => update(group.key, option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </FilterMenu>
+        <button
+          className="rc-button"
+          data-variant="secondary"
+          data-filter="all"
+          data-active={narrowed > 0}
+          type="button"
+          onClick={() => setSheet(true)}
+        >
+          <Icon name="filter" size="sm" />
+          Filters{narrowed > 0 ? ` (${narrowed})` : ""}
+        </button>
+        {facets.map((facet) => (
+          <FilterMenu key={facet.key} facet={facet} name={`${id}-${facet.key}-menu`} onChange={onFacet} />
         ))}
-        {partners && personalized && (
-          <FilterMenu label="Your initiative" count={filters.relation === "any" ? 0 : 1}>
-            {(
-              [
-                ["any", "Any connection"],
-                ["offers-need", "Offers what you need"],
-                ["needs-offer", "Needs what you offer"],
-              ] as const
-            ).map(([value, label]) => (
-              <label className="rc-menu-option" key={value}>
-                <input
-                  className="rc-check"
-                  type="radio"
-                  name={`${id}-relation`}
-                  checked={filters.relation === value}
-                  onChange={() => onChange({ ...filters, relation: value })}
-                />
-                {label}
-              </label>
-            ))}
-          </FilterMenu>
-        )}
-        <div className="rc-field">
-          <label htmlFor={`${id}-sort`}>Sort</label>
-          <select
-            className="rc-input"
-            id={`${id}-sort`}
-            value={filters.sort}
-            onChange={(event) => onChange({ ...filters, sort: event.target.value as ListFilters["sort"] })}
-          >
-            <option value="name">Name A to Z</option>
-            <option value="recent">Recently confirmed</option>
-            {personalized && <option value="fit">Best fit</option>}
-            {funding && <option value="closing">Closing first</option>}
-          </select>
-        </div>
+        <SortControl sort={sort} onSort={onSort} />
       </div>
-      {chips.length > 0 && (
-        <div className="rc-active-filters" aria-label="Chosen filters">
-          {chips.map((chip) => (
+      {(query || choices.length > 0) && (
+        <div className="rc-active-filters" role="group" aria-label="Chosen filters">
+          {query && (
+            <button className="rc-chip" type="button" onClick={() => onSearch("")} aria-label={`Remove search: ${query}`}>
+              Search: {query}
+              <Icon name="close" size="sm" />
+            </button>
+          )}
+          {choices.map((choice) => (
             <button
-              key={chip.key}
+              key={`${choice.facet.key} ${choice.value}`}
               className="rc-chip"
               type="button"
-              onClick={chip.remove}
-              aria-label={`Remove ${chip.label}`}
+              onClick={() => onFacet(choice.facet.key, withoutChoice(choice))}
+              aria-label={`Remove ${choice.label}`}
             >
-              {chip.label}
+              {choice.label}
               <Icon name="close" size="sm" />
             </button>
           ))}
+          <button className="rc-button" data-variant="quiet" data-size="sm" type="button" onClick={onClear}>
+            Clear filters
+          </button>
         </div>
       )}
       <p className="rc-meta" role="status" aria-atomic="true">
-        {count} of {total} {noun}
+        {count} of {total} {things}
       </p>
-    </div>
+      {/* Not a task: nothing here is lost by a press outside, which closes it like any sheet. */}
+      <Dialog presentation="information" title="Filters" open={sheet} leaves onClose={() => setSheet(false)}>
+        {facets.map((facet) => (
+          <fieldset key={facet.key}>
+            <legend>{facet.label}</legend>
+            <div className="rc-chip-group">
+              <Options facet={facet} name={`${id}-${facet.key}-sheet`} chips onChange={onFacet} />
+            </div>
+            {facet.scope && (
+              <fieldset>
+                <legend>{facet.scope.label}</legend>
+                <div className="rc-chip-group">
+                  <Options facet={facet.scope} name={`${id}-${facet.scope.key}-sheet`} chips onChange={onFacet} />
+                </div>
+              </fieldset>
+            )}
+          </fieldset>
+        ))}
+        <div className="rc-dialog-foot">
+          <button
+            className="rc-button"
+            data-variant="quiet"
+            type="button"
+            disabled={!query && choices.length === 0}
+            onClick={onClear}
+          >
+            Clear all
+          </button>
+          <button className="rc-button" data-variant="primary" type="button" onClick={() => setSheet(false)}>
+            Show {count} {count === 1 ? "result" : "results"}
+          </button>
+        </div>
+      </Dialog>
+    </section>
   );
 }
