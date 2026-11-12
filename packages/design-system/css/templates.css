@@ -172,7 +172,9 @@
    too and never through its words. One inside a card, a notice or a dialog sits on that fill and
    keeps its own clear one. */
 .rc-main:has(.rc-mycelium) .rc-button[data-variant="secondary"]:not(:hover, :disabled, .rc-card *, .rc-notice *, .rc-dialog *) { background: var(--surface); }
-/* The website's paper grain, at its strength, in the same hero only: it never shows against the page. */
+/* The website's paper grain, at its strength, in the same hero only: it never shows against the page.
+   It is a file, not an inline data: image, because the app's security policy loads images from the
+   site itself only; inline, production refused it and the grain never showed there. */
 .rc-home-hero::before, .rc-doorway::before {
   content: "";
   position: absolute;
@@ -181,7 +183,7 @@
   left: 50%;
   translate: -50%;
   inline-size: 100cqi;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-image: url("../brand/grain.svg");
   background-size: calc(var(--space-8) * 4);
   mix-blend-mode: var(--grain-blend);
   opacity: var(--grain-opacity);
