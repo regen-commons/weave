@@ -46,6 +46,7 @@ function withVerifiedHandle(item: ReturnType<typeof inviteSummary>, provider: Pr
 
 export function createWorkspaceInvites(provider: Provider, store: WorkspaceInviteStore, lifecycle: ProjectLifecycle) {
   return async (actor: ProjectActor, command: WorkspaceInviteCommand, cancellation?: AbortSignal) => {
+    const startedAt = performance.now();
     const signal = cancellation ? AbortSignal.any([cancellation, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000);
     if (signal.aborted) return unavailable();
     if (command.action === "claim_invite") {
@@ -88,8 +89,13 @@ export function createWorkspaceInvites(provider: Provider, store: WorkspaceInvit
       const summaries = result.invitations.map(inviteSummary);
       const invitations: ReturnType<typeof inviteSummary>[] = [];
       if (new Set(summaries.map(item => item.inviteId)).size !== summaries.length) return unavailable();
+      // Labels are optional: spend at most two seconds, leaving time to deliver the list
+      // before the browser's 15-second request deadline, including dispatch overhead.
+      const metadataBudget = Math.max(0, Math.floor(Math.min(2_000, 12_000 - (performance.now() - startedAt))));
+      const metadataSignal = metadataBudget === 0 ? AbortSignal.abort()
+        : AbortSignal.any([signal, AbortSignal.timeout(metadataBudget)]);
       for (let start = 0; start < summaries.length; start += 5)
-        invitations.push(...await Promise.all(summaries.slice(start, start + 5).map(item => withVerifiedHandle(item, provider, signal))));
+        invitations.push(...await Promise.all(summaries.slice(start, start + 5).map(item => withVerifiedHandle(item, provider, metadataSignal))));
       return { invitations, cursor: result.cursor as string | undefined };
     }
     if (command.action === "revoke_invite") {

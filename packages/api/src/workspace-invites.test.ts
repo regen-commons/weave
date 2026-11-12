@@ -144,6 +144,40 @@ test("slow metadata that ignores abort cannot fail or hold the list past its dea
   assert.deepEqual(result.invitations, rows);
 });
 
+test("unavailable metadata returns the fallback list before the browser's request deadline", async () => {
+  const rows = Array.from({ length: 12 }, (_, index) => ({ inviteId: `10000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+    status: "claimed", createdAt: date, expiresAt, claimedDid: recipientDid }));
+  const lookups: Array<{ signal: AbortSignal; finish: (result: ReturnType<typeof ok<{ did: string; handle: string }>>) => void }> = [];
+  const { execute } = fixture({ verifiedHandle: async (_, signal) => {
+    assert.ok(signal);
+    return new Promise(resolve => lookups.push({ signal, finish: resolve }));
+  } }, async () => ({ invitations: rows }));
+  const guard = new AbortController();
+  try {
+    const result = await Promise.race([
+      execute(actor, { action: "list_invites", ...target }),
+      delay(4_000, undefined, { signal: guard.signal }).then(() => assert.fail("optional labels delayed the list too close to the client timeout")),
+    ]);
+    assert.deepEqual(result.invitations, rows);
+    assert.equal(lookups.length, 5, "later batches do not start after the metadata budget expires");
+    assert.ok(lookups.every(lookup => lookup.signal.aborted));
+    for (const lookup of lookups) lookup.finish(ok({ did: recipientDid, handle: "late.certified.one" }));
+    await delay(0);
+    assert.deepEqual(result.invitations, rows, "late metadata cannot change the returned list");
+  } finally { guard.abort(); }
+});
+
+test("slow core authorization leaves the response reserve intact by skipping optional handles", async t => {
+  let elapsed = 0;
+  t.mock.method(performance, "now", () => elapsed);
+  const row = { inviteId, status: "claimed", createdAt: date, expiresAt, claimedDid: recipientDid };
+  const { execute } = fixture({
+    getMembership: async () => { elapsed = 12_001; return ok("member" as const); },
+    verifiedHandle: async () => assert.fail("no optional lookups after the response reserve begins"),
+  }, async () => ({ invitations: [row] }));
+  assert.deepEqual((await execute(actor, { action: "list_invites", ...target })).invitations, [row]);
+});
+
 test("invitation list authorization completes before another person's handle is requested", async () => {
   const { execute } = fixture({ verifiedHandle: async () => assert.fail("no identity lookup before admin authorization") },
     async () => { throw new AccountError(403, "workspace_admin_required"); });

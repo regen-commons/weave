@@ -26,11 +26,11 @@ The existing dialog layout and labels remained readable in the five-minute revie
 ## Local checks
 
 - `bun install --frozen-lockfile` passed; dependencies and lockfile are unchanged.
-- `bun run --filter @weave/api test`: 162 passed, 38 opt-in database/Auth checks skipped.
+- `bun run --filter @weave/api test`: 164 passed, 38 opt-in database/Auth checks skipped.
 - `bun run --filter @weave/api typecheck` passed.
 - `bun run --filter @weave/app test`: 211 passed.
 - `bun run --filter @weave/app typecheck` passed.
-- `bun run ci`: 607 passed, 38 skipped. This includes site/catalog, API, app,
+- `bun run ci`: 609 passed, 38 skipped. This includes site/catalog, API, app,
   design-system and harness checks.
 - `git diff --check` passed.
 
@@ -41,16 +41,23 @@ that ignores abort. Parsing tests preserve an absent handle and reject malformed
 ones. Existing approval tests still check the exact claimed DID and current
 membership before granting access.
 
+The independent review found that optional lookups could consume the browser's
+15-second request deadline. The fix limits metadata enrichment to two seconds and
+stops it by 12 seconds from handler start. Regression tests cover an unavailable
+provider, ignored cancellation, late results and slow core authorization. A local
+synthetic reproduction using the real account client and Certified provider
+returned all 12 fallback invitations in about 2.1 seconds, with only five lookups
+started. The independent re-review found no remaining issues.
+
 ## Hosted checks still needed
 
 These screenshots contain fictional identities and do not prove hosted Certified
 identity lookup or PostgreSQL access policies. Before release, check a real claimed
 invitation with an approved admin and verify that its current alias and forward
 resolution agree. Exercise missing-alias and unavailable-service fallback with
-hosted configuration, and obtain the required second critical-path review before
-merge. The production pilot remains off. No SQL, migration, tester-gate or
-authentication-setting change is included. No manual deployment or merge is part
-of this task.
+hosted configuration. These live checks are deferred at the user's request. The
+production pilot remains off. No SQL, migration, tester-gate or
+authentication-setting change is included, and no manual deployment was performed.
 
 To reproduce locally, use the `app-fixture` launch target when its port is free,
 open `/__fixture`, choose the admin account, open Watershed Team (fixture), then
