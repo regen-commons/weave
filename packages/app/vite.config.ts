@@ -13,6 +13,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import { previewSecurityHeaders } from "./dev/security-headers.ts";
 import { answerApiRequest, type LoadEntry } from "./dev/api-bridge.ts";
 import { fontPreloads } from "./dev/font-preloads.ts";
+import { linkPreviews } from "./dev/link-previews.ts";
 import { isolateFixtureProjectOAuth } from "./dev/fixture-oauth-isolation.ts";
 
 /**
@@ -97,7 +98,8 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       apiRoutes(),
-      ...(prototype ? [] : [fontPreloads()]),
+      // After the preloads, so each section's copy of index.html carries them too.
+      ...(prototype ? [] : [fontPreloads(), linkPreviews()]),
       ...(prototype ? [] : [VitePWA({
         registerType: "autoUpdate",
         injectRegister: "script",
@@ -112,7 +114,13 @@ export default defineConfig(({ mode }) => {
           // The manifest cannot read CSS, so its colours come from the generated tokens.
           background_color: tokens.themes.light.surface,
           theme_color: tokens.themes.light.surface,
-          icons: [{ src: "/brand/logo/mark.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
+          // A home screen wants a picture at its own sizes; a maskable one may be cut to a circle.
+          icons: [
+            { src: "/brand/logo/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: "/brand/logo/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: "/brand/logo/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+            { src: "/brand/logo/mark.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+          ],
         },
         workbox: {
           // The plugin turns these on for autoUpdate only when it injects the register

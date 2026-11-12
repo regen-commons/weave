@@ -1,6 +1,6 @@
 # UI review checklist
 
-Use the [five-minute review](../../../DESIGN.md#how-we-follow-them) for every UI change. Use this list for new screens and larger changes. Test on a rendered page at 360 px, then across widths up to 1440 px. Report what you checked, with screenshots and the proof class from the handoff. Letters mark the source: K for Krug, R for *Refactoring UI*, A for *Atomic Design*.
+Use the [five-minute review](../../../DESIGN.md#how-we-follow-them) for every UI change. Use this list for new screens and larger changes. Test on a rendered page at 360 px, then across widths up to 1440 px. Report what you checked, with screenshots and the proof class from the handoff. Letters mark the source: K for Krug, R for *Refactoring UI*, A for *Atomic Design*, D for Dirksen.
 
 ## Arriving and finding the way
 
@@ -25,12 +25,14 @@ Use the [five-minute review](../../../DESIGN.md#how-we-follow-them) for every UI
 - [ ] Labels use plain words from [VOICE.md](../brand/VOICE.md). (K)
 - [ ] Gated actions say so before the tap, and say what unlocks them. (K)
 - [ ] Nothing is shown that does not work yet. (R)
+- [ ] A list of more than about seven choices is grouped under a few headings, or cut to the ones people use. (D)
 
 ## Reading
 
 - [ ] In greyscale, the primary action, current step and key data stay obvious. (R)
 - [ ] Each card opens with its reason or purpose and reads in three seconds. (K)
 - [ ] Prompts are one sentence, and hints one or two. No welcome paragraphs. (K)
+- [ ] Steps to follow are numbered, shown only for the case in hand, and show the sign to look for. (D)
 - [ ] At most two weights and three text colours per screen. No weight under 400 below 36 px. (R)
 - [ ] Labels are merged into values where possible. (R)
 - [ ] Prose runs 45 to 75 characters on wide screens, and 35 to 45 on a 360 px phone. (R)

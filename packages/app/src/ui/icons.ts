@@ -31,5 +31,8 @@ export const ICON_NAMES = [
   "pencil-note",
   "settings",
   "filter",
+  "share",
+  "add-box",
+  "more",
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

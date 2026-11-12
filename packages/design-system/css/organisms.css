@@ -394,6 +394,8 @@
 .rc-numbered-item { display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
 .rc-numbered-number { font: var(--type-headline-md); color: var(--section-accent-text, var(--text-accent)); }
 .rc-numbered-title { font: var(--type-title-sm); }
+/* A step can show the sign to look for, such as a phone's Share mark, beside its words. */
+.rc-numbered-title:has(> .rc-icon) { display: flex; align-items: center; gap: var(--space-2); }
 
 /* Tile grid: equal-size cards with one tooltip trigger each. */
 .rc-tile-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
