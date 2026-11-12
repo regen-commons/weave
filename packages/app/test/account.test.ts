@@ -3,8 +3,12 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { assertAccount, AccountFailure } from "../src/account/client.ts";
-import { accountDocument, accountKey, loadedDraft, saveCommand } from "../src/account/document.ts";
+import { accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, saveCommand } from "../src/account/document.ts";
+import { projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { newDraft, revise, DeviceDraftSchema } from "../src/describe/contracts.ts";
+import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
+import { intakeComplete } from "../src/intake/finish.ts";
+import { reviewStep } from "../src/intake/state.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository, DraftConflict } from "../src/describe/repository.ts";
 const document = parseDocument(
@@ -31,6 +35,17 @@ test("checked card roundtrips without source text, files, confidence or local ed
     () => accountDocument(revise(draft, { funding: { ...draft.funding, editor: draft.funding.form } })),
     /funding/,
   );
+});
+test("a private save accepts an entry without a kind of support", () => {
+  const draft = loadedDraft(saved, owner);
+  const needs = reviewStep(keepPending(addEntry(draft.needs, "Something unusual we cannot classify")));
+  const bare = revise(draft, { needs });
+  assert.equal(intakeComplete(bare), true);
+  assert.deepEqual(accountDocument(bare).needs.at(-1)?.value.capitalForms, []);
+  assert.ok(accountKey(bare));
+  const id = needs.items.at(-1)!.id;
+  const fixed = revise(bare, { needs: reviewStep(toggleKind(needs, id, "social")) });
+  assert.deepEqual(accountDocument(fixed).needs.at(-1)?.value?.capitalForms, ["social"]);
 });
 test("save retries reuse the same request only for the same owner and checked payload", () => {
   const draft = loadedDraft(saved, owner),
@@ -105,4 +120,32 @@ test("saved list and load responses must belong to the account shown in the UI",
     () => assertAccount({ user: { id: other, email: "other@example.test" } }, owner),
     (error) => error instanceof AccountFailure && error.code === "account_changed",
   );
+});
+
+test("a card on this device belongs to the account that saved it, and is set aside for any other", () => {
+  const mine = loadedDraft(saved, owner);
+  assert.equal(cardOwner(mine), owner);
+  assert.equal(belongsToAnotherAccount(mine, owner), false, "its own account opens it");
+  assert.equal(belongsToAnotherAccount(mine, other), true, "another account signed in sets it aside");
+  assert.equal(belongsToAnotherAccount(mine, null), false, "signed out, it stays with whoever uses the device");
+  const unsaved = newDraft();
+  assert.equal(cardOwner(unsaved), null);
+  assert.equal(belongsToAnotherAccount(unsaved, other), false, "a card nobody saved can be saved by whoever signs in");
+  // A save on its way already decides whose the card is.
+  const pending = { id: "b3000000-0000-4000-8000-000000000009", owner, revision: 0, contentKey: "{}", requestId: "b5000000-0000-4000-8000-000000000009" };
+  const saving = revise(unsaved, { account: { saved: null, pending } });
+  assert.equal(cardOwner(saving), owner);
+  assert.equal(belongsToAnotherAccount(saving, other), true);
+});
+
+test("a card nobody saved, opened from another account's Certified project, is set aside for others", () => {
+  const card = newDraft();
+  const keys = [projectChoiceKey(owner, card.id), projectChoiceKey(other, "another-card"), "unrelated"];
+  const session = { length: keys.length, key: (index: number) => keys[index] ?? null };
+  const chosenBy = projectChoosers(session, card.id);
+  assert.deepEqual(chosenBy, [owner], "only the choices for this card count");
+  assert.equal(belongsToAnotherAccount(card, other, chosenBy), true, "another account does not get it");
+  assert.equal(belongsToAnotherAccount(card, owner, chosenBy), false, "the account that opened it does");
+  assert.equal(belongsToAnotherAccount(card, other, []), false, "with no choice made, it stays with the device");
+  assert.deepEqual(projectChoosers(undefined, card.id), []);
 });

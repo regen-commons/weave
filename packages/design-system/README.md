@@ -1,6 +1,6 @@
 # Regen Commons design system
 
-The shared visual language, brand and interface patterns for Regen Commons products. It is built from the website's existing brand and three books on interface design.
+The shared visual language, brand and interface patterns for Regen Commons products. It is built from the website's existing brand and four books on interface design.
 
 To see it, run the library:
 
@@ -19,7 +19,7 @@ Then open <http://localhost:4173/patterns/index.html>.
 | [`brand/VOICE.md`](brand/VOICE.md) | Voice, tone map, plain names, words to avoid |
 | [`COMPONENTS.md`](COMPONENTS.md) | Every pattern with status, limits and lineage, and how to add one |
 | [`decision-log.md`](decision-log.md) | Settled questions and why |
-| [`principles/`](principles/README.md) | How the three books apply, the review checklist, the usability testing plan |
+| [`principles/`](principles/README.md) | How the four books apply, the review checklist, the usability testing plan |
 | [`dialects/`](dialects/README.md) | Extra rules for the app, website, desk and email |
 | `css/` | The layered CSS. Import `css/index.css` |
 | `tokens/` | Generated CSS and JSON. Never edit these |
@@ -78,6 +78,105 @@ The tests check that generated files are current, the linter is clean, website v
 - Nothing here has been tested with people yet. The first round is in the [testing plan](principles/usability-testing.md).
 
 ## Changelog
+
+### Unreleased, preview design review
+
+- Add Back link, Dialog's detail presentation with the `./sheet` behaviour, Section
+  note and the Your initiatives example page. Status line loses its icon and appears
+  in Settings.
+- Modify stable patterns. App header and Bottom navigation carry four sections: Home,
+  Initiatives, Funding and Your initiatives. A listing Card opens from its title and
+  has no button. Dialog is a bottom sheet with a handle on phones, and a press
+  outside closes information and detail. Footer is the same on every page, with
+  title case links. Media's placeholder shows an icon only. Stepper stays on one row.
+  Voice input leads where the device can transcribe speech.
+- Remove the footer's slim variant and row part; the one footer replaces them. Remove
+  the listing card's comparison slot; an Eyebrow for the award and a clock Tag for
+  the deadline replace it.
+- Settle back navigation (DL-041). App header stays at the top, and on a page that
+  is not a section the Back link takes the product name's place; Back link becomes
+  stable. Tapping the current section in Bottom navigation brings its page to the top.
+  A page reached with Back or Forward shows where it was left, without arriving again
+  (`data-move="return"` on `rc-main`).
+- Make the tabs the same width in Bottom navigation and the App header (DL-043). The
+  current tab keeps its weight and shows its bar and a stronger colour.
+- Centre a short last row in Numbered list and Tile grid (DL-044).
+- Bottom navigation's fourth tab reads You on phones, and the Home hero adds a link to
+  funding closing soon (DL-045).
+- Add the learning icon for Learning and education, the fifth type of work (DL-040).
+  A Notice may ask one question with its own action bar, as the duplicate prompt does
+  (DL-042).
+- Replace the Home hero's woven backdrop with the website's mycelium and paper grain
+  (`rc-mycelium` and the `./mycelium` behaviour), at rest under reduced motion
+  (DL-046). It matches the website's six thread colours, tuft size and grain strength;
+  new tufts start bright and fade, and on phones one grows on its own every few seconds
+  from the top corners (DL-048).
+- App header: Home leaves the header, because the logo goes home; sections take their
+  own widths with equal spacing, and the header no longer cross-fades between pages.
+  Bottom navigation keeps four equal tabs (DL-049).
+- Accents say where you are and what a thing is (DL-050). Page shell takes
+  `data-section`, which colours the current tab's bar, Eyebrow, the home hero's italic
+  word and step numbers: Home forest, Initiatives teal, Funding gold, Your initiatives
+  signal blue. Card takes `data-kind="funding"` for a funding-gold eyebrow anywhere.
+  Adds the `--accent-*` and `--text-*` section roles.
+- Second accent pass (DL-051): the bottom bar's current icon, a short bar under page
+  titles, the logo's mark on hover, and a top edge on cards that open, in their own
+  colour (`data-kind="initiative"` added) or the section's. The hero's italic word
+  gains the website's copper ghost (`--print-ghost`).
+- Add the Doorway template (`rc-doorway`): pages with nothing to fill in and no list
+  open like Home's hero with the mycelium (DL-053). Logo's mark becomes the website's
+  living ring (`./mycelium` `growLogoMark`, DL-054). In forced colours only the current
+  tab keeps its bar in App header, Bottom navigation and Tabs.
+- A card on a shared device follows its account: another account's card is set aside
+  behind a Doorway and one quiet line on Your initiatives (DL-055).
+- Your initiative and the team workspace take the initiative's name as their heading
+  under an Eyebrow, and the Your initiatives example ends with the account line
+  (DL-047).
+- Dialog keeps clear of the window on wide screens: room above and below, at most
+  `--dialog-height` tall, `--prose-width` for information and tasks, `--dialog-padding`
+  inside, and buttons at their own width (DL-056). New tokens `--dialog-height` and
+  `--dialog-padding`. Fieldsets lose the browser's frame, and a legend reads as a field
+  label. Faces never change once drawn: the app preloads the faces a first visit draws, and
+  the prototype carries them in its stylesheet (DL-057).
+- App header and Bottom navigation stay put between pages: each has its own view
+  transition name at every width and changes at once above the page's cross-fade, and
+  the page's content no longer takes a name of its own (DL-058).
+- App header gains Settings: the Icon button as a link, which marks its own page with
+  `aria-current`. Save status shows there only on the pages where the card is worked on
+  (DL-059). New icons `settings` and `filter`.
+- A phone sheet stops at two thirds of the window. Dialog gains a foot that stays in
+  view under its content, `rc-dialog-foot` (DL-060).
+- Filter bar is one pattern on every list. Add Sort control (`rc-sort`), a native select
+  drawn as a filter button, and Chip group (`rc-chip-group`). On phones one Filters
+  button opens every filter in a sheet. Menu gains `rc-menu-options`, in two columns for
+  a long list, and `./overlays` places a menu beside its trigger, never over it
+  (`blockPlacement`). Remove the inline field layout the old Sort used (DL-061, DL-062).
+- Home hero's two signs of life sit one per line on phones (DL-063).
+- A partner card composes Fit, Tag list and Reason: strength first, from what is known
+  and never a score, then why it fits (DL-064). No new pattern.
+- Tag: a type of work takes a hue with `data-lens`, the capital recipe with a line icon.
+  Twelve role tokens, `lens-*` (DL-065).
+- Numbered list becomes stable on its second use, the install guide, and a step can show
+  the sign to look for. Add QR code (`rc-qr`). New icons `share`, `add-box` and `more`,
+  and home-screen icons in `brand/logo/` (DL-067).
+- Principles gain a fourth book, *Design for How People Learn* (DL-069).
+- Mycelium grows around a page's content and never behind it: `./mycelium` measures the
+  content it sits in, `data-extent="page"` puts one canvas under a whole page, and on a
+  phone scrolling grows new tufts. The clearing mask is removed (DL-066).
+- Deprecate Account button. The Your initiatives section replaces it, and it can be
+  removed after one build phase.
+- App header: the product name and the sections share a baseline in a new lead
+  (`rc-app-header-lead`), the far end's controls meet the page's edge, and the bar keeps one
+  height. Sign in is an outlined button. On a wide screen the gear gives way to the Account
+  button, back as a candidate, and its menu: Menu gains `rc-menu-head`, `rc-menu-item`
+  and `data-align="end"`, and `./overlays` places a menu by either edge of its trigger
+  (`inlinePlacement`). On a crowded phone header the Back link shows its arrow alone, and
+  it now carries its name as `aria-label` (DL-070).
+- Mycelium grows underneath the content: `./mycelium` no longer measures the page, seeds
+  the whole region, and draws the resting network whole in the margins and quieter under
+  the column of content (`restShare`). Its `avoid` option is now `within`, and
+  `occupancy` and `shows` are removed (DL-071).
+- A section's name is written as a name: Your Initiatives (DL-072).
 
 ### Unreleased, Step 8
 

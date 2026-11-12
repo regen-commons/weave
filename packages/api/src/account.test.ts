@@ -5,21 +5,19 @@ import { createServer } from "node:http";
 import { once } from "node:events";
 import { createAccountHandlers, GET } from "./account.ts";
 import { createSupabaseAccountProvider, AccountError, type AccountProvider } from "./account-provider.ts";
-import { parseDocument } from "./account-contract.ts";
+import { parseDocument, parseSaved, parseSavedAsk } from "./account-contract.ts";
 const document = parseDocument(
   JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")),
 );
-const user = { id: "b1000000-0000-4000-8000-000000000001", email: "example@weave.test" };
+const user = { id: "b1000000-0000-4000-8000-000000000001", email: null };
 const id = "b3000000-0000-4000-8000-000000000001",
   requestId = "b5000000-0000-4000-8000-000000000001";
 const saved = { id, revision: 1, updatedAt: "2026-11-05T00:00:00Z", document };
 function fixture() {
   const calls: string[] = [];
   const provider: AccountProvider = {
-    requestCode: async (email) => {
-      calls.push(email);
-    },
-    verifyCode: async () => ({ token: "test.access.token", expiresIn: 3600 }),
+    signInUrl: () => "https://supabase.example.test/auth/v1/authorize",
+    exchangeCode: async () => ({ token: "test.access.token", expiresIn: 3600 }),
     authorize: async (token) => {
       assert.equal(token, "test.access.token");
       return user;
@@ -44,21 +42,10 @@ function post(body: unknown, headers: Record<string, string> = {}) {
   });
 }
 
-test("sign-in keeps the access token in a Secure HttpOnly same-site cookie and never in JSON", async () => {
-  const { handlers, calls } = fixture();
-  assert.equal(
-    (await handlers.POST(post({ action: "request_code", email: " Example@Weave.test " }))).status,
-    200,
-  );
-  assert.deepEqual(calls, [user.email]);
-  const verified = await handlers.POST(post({ action: "verify_code", email: user.email, code: "1234 5678" }));
-  assert.equal(verified.status, 200);
-  assert.match(
-    verified.headers.get("set-cookie")!,
-    /^__Host-weave_account=test.access.token; Path=\/; HttpOnly; SameSite=Strict; Max-Age=3600; Secure$/,
-  );
-  assert.deepEqual(await verified.json(), { user });
-  assert.equal(verified.headers.get("cache-control"), "private, no-store");
+test("private account reads use the session and email-code sign-in is unavailable", async () => {
+  const { handlers } = fixture();
+  assert.equal((await handlers.POST(post({ action: "request_code", email: "example@weave.test" }))).status, 400);
+  assert.equal((await handlers.POST(post({ action: "verify_code", email: "example@weave.test", code: "12345678" }))).status, 400);
   const list = await handlers.GET(
     new Request("https://weave.test/api/account", {
       headers: { cookie: "__Host-weave_account=test.access.token" },
@@ -140,22 +127,6 @@ test("revocation clears the cookie; unavailable providers and failed remote sign
     { error: "account_unavailable" },
   );
 });
-test("an unverified or revoked new session never receives an account cookie", async () => {
-  const { provider } = fixture();
-  let revoked = false;
-  provider.authorize = async () => {
-    throw new AccountError(401, "sign_in_required");
-  };
-  provider.signOut = async () => {
-    revoked = true;
-  };
-  const result = await createAccountHandlers({ provider }).POST(
-    post({ action: "verify_code", email: user.email, code: "12345678" }),
-  );
-  assert.equal(result.status, 401);
-  assert.match(result.headers.get("set-cookie")!, /Max-Age=0/);
-  assert.equal(revoked, true);
-});
 test("native HTTP adapter sends Auth and schema RPC requests with the person's token; provider errors are sanitized", async (t) => {
   const seen: { url: string; headers: Record<string, string | string[] | undefined>; body: unknown }[] = [];
   let fail = false;
@@ -172,7 +143,7 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
     }
     res.end(
       JSON.stringify(
-        req.url === "/auth/v1/verify"
+        req.url === "/auth/v1/token?grant_type=pkce"
           ? { access_token: "test.access.token", refresh_token: "never-return-this", expires_in: 7200 }
           : req.url === "/auth/v1/user"
             ? user
@@ -201,12 +172,11 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
     `http://127.0.0.1:${address.port}`,
     "sb_publishable_synthetic",
   );
-  await provider.requestCode(user.email);
-  assert.deepEqual(seen[0]!.body, { email: user.email, create_user: true });
-  assert.deepEqual(await provider.verifyCode(user.email, "12345678"), {
-    token: "test.access.token",
-    expiresIn: 3600,
-  });
+  const target = new URL(provider.signInUrl("synthetic-challenge", "https://weave.test/api/sign-in?state=synthetic"));
+  assert.equal(target.searchParams.get("provider"), "custom:certified");
+  assert.equal(target.searchParams.get("code_challenge_method"), "s256");
+  assert.deepEqual(await provider.exchangeCode("synthetic-code", "synthetic-verifier"), { token: "test.access.token", expiresIn: 3600 });
+  assert.deepEqual(seen[0]!.body, { auth_code: "synthetic-code", code_verifier: "synthetic-verifier" });
   assert.deepEqual(await provider.authorize("test.access.token"), user);
   await provider.list("test.access.token", 0);
   assert.deepEqual(await provider.load("test.access.token", id), saved);
@@ -227,24 +197,24 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
       error instanceof AccountError && error.code === "save_conflict" && error.message === "save_conflict",
   );
 });
-test("timeouts, corrupt successful responses and delivery throttling do not leak provider content", async () => {
+test("timeouts, corrupt successful responses and exchange throttling do not leak provider content", async () => {
   const offline = createSupabaseAccountProvider("https://synthetic.test", "synthetic", async () => {
     throw new Error("private error");
   });
-  await assert.rejects(offline.requestCode(user.email), /account_unavailable/);
+  await assert.rejects(offline.exchangeCode("synthetic", "verifier"), /account_unavailable/);
   const corrupt = createSupabaseAccountProvider(
     "https://synthetic.test",
     "synthetic",
     async () => new Response("{}"),
   );
-  await assert.rejects(corrupt.verifyCode(user.email, "12345678"), /account_unavailable/);
+  await assert.rejects(corrupt.exchangeCode("synthetic", "verifier"), /account_unavailable/);
   const throttled = createSupabaseAccountProvider(
     "https://synthetic.test",
     "synthetic",
     async () => new Response(JSON.stringify({ message: "private detail" }), { status: 429 }),
   );
   await assert.rejects(
-    throttled.requestCode(user.email),
+    throttled.exchangeCode("synthetic", "verifier"),
     (error) => error instanceof AccountError && error.status === 429 && error.code === "rate_limited",
   );
 });
@@ -263,4 +233,31 @@ test("a cookie changed by another tab cannot save under a different account", as
   assert.equal(result.status, 409);
   assert.deepEqual(await result.json(), { error: "account_changed" });
   assert.equal(writes, 0);
+});
+
+test("private save and load round-trip unclassified entries while matching still requires classification", async () => {
+  const draft = structuredClone(document);
+  const need = draft.needs[0];
+  assert.ok(need);
+  need.value.capitalForms = [];
+  need.value.amount = null;
+  const checked = parseDocument(draft);
+  const receipt = { ...saved, document: checked };
+  const calls: string[] = [];
+  const provider = createSupabaseAccountProvider("https://db.example.test", "publishable-fixture", async url => {
+    calls.push(String(url).split("/").pop()!);
+    return Response.json(receipt);
+  });
+  assert.deepEqual(await provider.save("fixture.token", { id, expectedRevision: 0, requestId, document: checked }), receipt);
+  assert.deepEqual(await provider.load("fixture.token", id), receipt);
+  // The browser parses the same receipt after the server's provider boundary.
+  assert.deepEqual(parseSaved(receipt), receipt);
+  assert.deepEqual(calls, ["save_initiative", "load_initiative"]);
+  assert.throws(() => parseSavedAsk(need), /invalid_data/u);
+});
+
+test("a saved card carries any type of work the app offers, learning included, and nothing else", () => {
+  const withLenses = (lenses: unknown) => parseDocument({ ...document, initiative: { ...document.initiative, lenses } });
+  assert.deepEqual(withLenses(["learning", "place_based"]).initiative.lenses, ["learning", "place_based"]);
+  assert.throws(() => withLenses(["schools"]), /invalid_data/);
 });

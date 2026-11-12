@@ -26,10 +26,15 @@ export interface InitiativeSummary {
 }
 export interface AccountUser {
   id: string;
-  email: string;
+  email: string | null;
 }
 export const uuid = (value: unknown): value is string =>
   typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(value);
+const handleLabel = "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?";
+const certifiedHandlePattern = new RegExp(`^(?:${handleLabel}\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$`, "u");
+/** A canonical public handle, without an @ prefix or an AT URI. It never establishes authority. */
+export const certifiedHandle = (value: unknown): value is string =>
+  typeof value === "string" && value.length <= 253 && certifiedHandlePattern.test(value);
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid_data");
   return value as Record<string, unknown>;
@@ -71,7 +76,7 @@ const CAPITALS = [
 ];
 const TERMS = ["gift", "exchange", "paid", "commitment", "open"];
 const STAGES = ["seed", "sprout", "flowering", "tree"];
-const LENSES = ["art_culture", "research", "technology", "place_based", "funders"];
+export const LENSES = ["art_culture", "research", "technology", "place_based", "learning", "funders"];
 function safeLink(value: string) {
   try {
     const url = new URL(value);
@@ -110,7 +115,8 @@ function initiative(value: unknown): JsonObject {
     languages,
   };
 }
-function ask(value: unknown): SavedAsk {
+export function parseSavedAsk(value: unknown): SavedAsk { return checkedAsk(value, false); }
+function checkedAsk(value: unknown, allowUnclassified: boolean): SavedAsk {
   const row = exact(value, ["id", "value"]);
   if (!uuid(row.id)) throw Error("invalid_data");
   const o = exact(row.value, [
@@ -129,7 +135,7 @@ function ask(value: unknown): SavedAsk {
   ]);
   const capitalForms = list(o.capitalForms, 8, 80, CAPITALS),
     terms = list(o.exchangeTerms, 5, 80, TERMS);
-  if (!capitalForms.length || !terms.length || (terms.includes("open") && terms.length !== 1))
+  if ((!allowUnclassified && !capitalForms.length) || !terms.length || (terms.includes("open") && terms.length !== 1))
     throw Error("invalid_data");
   let amount: Json = null;
   if (o.amount !== null) {
@@ -165,10 +171,10 @@ function ask(value: unknown): SavedAsk {
     },
   };
 }
-function asks(value: unknown): SavedAsk[] {
+function asks(value: unknown, allowUnclassified: boolean): SavedAsk[] {
   if (!Array.isArray(value) || value.length > 5) throw Error("invalid_data");
-  const rows = value.map(ask);
-  if (new Set(rows.map((row) => row.id)).size !== rows.length) throw Error("invalid_data");
+  const rows = value.map(row => checkedAsk(row, allowUnclassified));
+  if (new Set(rows.map((row) => row.id.toLowerCase())).size !== rows.length) throw Error("invalid_data");
   return rows;
 }
 function funding(value: unknown): JsonObject {
@@ -223,20 +229,36 @@ function funding(value: unknown): JsonObject {
   }
   return { form, programAnswers: answers };
 }
-export function parseDocument(value: unknown): AccountDocument {
+export function parseDocument(value: unknown): AccountDocument { return checkedDocument(value, true); }
+export function parseTeamDocument(value: unknown): AccountDocument { return checkedDocument(value, true); }
+function checkedDocument(value: unknown, allowUnclassified: boolean): AccountDocument {
   const o = exact(value, ["version", "initiative", "needs", "offers", "funding"]);
   if (o.version !== 1) throw Error("invalid_data");
   const result: AccountDocument = {
     version: 1,
     initiative: initiative(o.initiative),
-    needs: asks(o.needs),
-    offers: asks(o.offers),
+    needs: asks(o.needs, allowUnclassified),
+    offers: asks(o.offers, allowUnclassified),
     funding: funding(o.funding),
   };
   if (new TextEncoder().encode(JSON.stringify(result)).length > 60000) throw Error("document_too_large");
   return result;
 }
-export function parseSaved(value: unknown): SavedInitiative {
+export function parseSaved(value: unknown): SavedInitiative { return checkedSave(value, true); }
+export function parseTeamSaved(value: unknown): SavedInitiative { return checkedSave(value, true); }
+export type WorkspaceAccessRole = "viewer" | "editor" | "admin";
+export function parseTeamWorkspace(value: unknown) {
+  const row = record(value);
+  return {
+    accessRole: choice(row.accessRole, ["viewer", "editor", "admin"]) as WorkspaceAccessRole,
+    saved: row.saved === null ? null : parseTeamSaved(row.saved),
+    projectTitle: row.projectTitle === undefined ? null : nullable(row.projectTitle, 200),
+    projectUri: row.projectUri === undefined ? null : nullable(row.projectUri, 2048),
+  };
+}
+export type TeamWorkspaceState = ReturnType<typeof parseTeamWorkspace>;
+
+function checkedSave(value: unknown, allowUnclassified: boolean): SavedInitiative {
   const o = record(value);
   if (
     !uuid(o.id) ||
@@ -250,13 +272,14 @@ export function parseSaved(value: unknown): SavedInitiative {
     id: o.id,
     revision: Number(o.revision),
     updatedAt: o.updatedAt,
-    document: parseDocument(o.document),
+    document: checkedDocument(o.document, allowUnclassified),
   };
 }
 export function parseUser(value: unknown): AccountUser {
   const o = record(value);
   if (!uuid(o.id)) throw Error("invalid_data");
-  return { id: o.id, email: text(o.email, 254, true) };
+  // GoTrue can serialize an absent optional email as an empty string.
+  return { id: o.id, email: o.email === null || o.email === undefined || o.email === "" ? null : text(o.email, 254, true) };
 }
 export function parseSummaries(value: unknown): InitiativeSummary[] {
   if (!Array.isArray(value) || value.length > 20) throw Error("invalid_data");

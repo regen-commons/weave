@@ -1,58 +1,115 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
+import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
-import type { FixtureContext } from "../fixtures.ts";
-import { fullDate, homePreviews } from "../home.ts";
-import { navigate } from "../router.tsx";
-import { fixtureHref, pathTo } from "../routes.ts";
+import { useDraft } from "../describe/use-draft.ts";
+import { fundingFixture, type FixtureContext } from "../fixtures.ts";
+import { catalogEntries } from "../funding/catalog.ts";
+import { useCatalogBundle } from "../funding/use-catalog.ts";
+import { CLOSING_SOON_DAYS, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
+import { cardName, cardRoute } from "../initiative/status.ts";
+import { useCardStatus } from "../initiative/use-card-status.ts";
+import { currentRoute, navigate, routeSearch } from "../router.tsx";
+import { fixtureHref, pathTo, routeWith } from "../routes.ts";
+import { useSocial } from "../social/context.tsx";
+import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
+import { useSetAside } from "../account/set-aside.ts";
+import { teamWorkspacePath } from "../routes.ts";
+import { BUILDER, COMMONS, EIGHT_FORMS_OF_CAPITAL } from "../links.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { HomeHero, Stack } from "../ui/layouts.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
+import { Mycelium } from "../ui/Mycelium.tsx";
 import { NumberedList } from "../ui/NumberedList.tsx";
+import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { Section } from "../ui/Section.tsx";
 import { TileGrid } from "../ui/TileGrid.tsx";
 
+/**
+ * Home says what Weave is and where to start. Its hero has two doors: start an initiative, or
+ * open one the person already has. A person with a card to come back to gets one action instead,
+ * to resume it, so the page keeps one solid primary.
+ */
 export function Home({ fixture }: { fixture?: FixtureContext }) {
   const [search, setSearch] = useState("");
+  const { draft } = useDraft();
+  const status = useCardStatus();
+  const account = useAccount();
+  const social = useSocial();
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
-  const { recent, upcoming, sharedCount } = homePreviews(
-    fixture?.initiatives ?? [],
-    fixture?.funding ?? [],
-    asOf,
+  const { recent, sharedCount } = homePreviews(fixture?.initiatives ?? [], asOf);
+  // The live funding catalog, read once the page is idle and shared with Funding. The example
+  // world brings its own, as Funding's does.
+  const fundingExample = useMemo(
+    () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
+    [fixture?.state, fixture?.scenario],
+  );
+  const catalog = useCatalogBundle(fundingExample, { idle: true });
+  const { upcoming, closingSoon } = useMemo(
+    () => fundingPreviews(catalog.bundle ? catalogEntries(catalog.bundle) : [], new Date()),
+    [catalog.bundle],
   );
   const loading = fixture?.state === "loading";
   const failed = fixture?.state === "error";
+  const fundingLoading = loading || catalog.loading;
+  const fundingFailed = failed || catalog.failed;
   const long = fixture?.state === "long";
+  const example = social?.mode === "fixture" ? social.state : null;
+  let resumeId: string | null = null;
+  try { if (account.state?.user) resumeId = readWorkspaceResume(account.state.user.id, window.localStorage); } catch { /* Optional navigation hint. */ }
+  const resume = social?.mode === "live" ? social.state.workspaces?.find(item => item.workspaceId === resumeId && item.group) : null;
+  const signedIn = example ? !!example.identity : !!account.state?.user;
+  // Initiatives a signed-in person keeps somewhere other than this device.
+  const elsewhere = !signedIn
+    ? 0
+    : example
+      ? example.cards.length + example.records.length
+      : (account.state?.items.length ?? 0) + (social?.state.workspaces?.length ?? 0);
+  const route = cardRoute(draft);
+  // Another account's card on this device is not one to resume here (DL-055).
+  const setAside = useSetAside();
+  const doors = homeDoors((status.state !== "none" && !setAside) || !!resume, elsewhere);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = new URLSearchParams({ q: search.trim() });
-    navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, window.location.search, import.meta.env.DEV));
+    navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, routeSearch(), import.meta.env.DEV));
   }
   function retry() {
-    const url = new URL(window.location.href);
-    url.searchParams.set("state", "ready");
-    navigate(`${url.pathname}${url.search}`);
+    if (catalog.failed) catalog.retry();
+    if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
   }
   const skeleton = (
     <div className="rc-stack" aria-busy="true">
-      <p role="status">Loading examples</p>
+      <p role="status">Loading</p>
       <div className="rc-skeleton" />
       <div className="rc-skeleton" />
     </div>
   );
   return (
     <Stack wide>
+      {/* One canvas under the whole page; it grows around everything below (DL-066). */}
+      <Mycelium extent="page" />
       <HomeHero
         actions={
           <>
-            <ButtonLink href={pathTo("initiative")} variant="primary" size="lg">
-              Describe your initiative
-            </ButtonLink>
-            <ButtonLink href={pathTo("initiatives")} variant="secondary" size="lg">
-              Browse initiatives
-            </ButtonLink>
+            {doors.resume && (
+              <ButtonLink href={resume?.workspaceId ? teamWorkspacePath(resume.workspaceId) : pathTo(route)} variant="primary" size="lg">
+                {resume ? "Continue your initiative" : resumeLabel(route)}
+              </ButtonLink>
+            )}
+            {doors.start && (
+              <ButtonLink href={pathTo("initiative")} variant={doors.start} size="lg">
+                Start an initiative
+              </ButtonLink>
+            )}
+            {/* Choosing a Certified project exists only in the example world, so only its door names Certified. */}
+            {doors.open && (
+              <ButtonLink href={pathTo("your-initiatives")} variant={doors.open} size="lg">
+                {openLabel(example && { signedIn, projects: example.records.length })}
+              </ButtonLink>
+            )}
           </>
         }
         search={
@@ -74,18 +131,26 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </form>
         }
         live={
-          !loading && !failed && sharedCount > 0 ? (
-            <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-              {sharedCount} example {sharedCount === 1 ? "initiative" : "initiatives"} shared
-            </ButtonLink>
+          loading || failed ? (
+            <p className="rc-meta">{loading ? "Loading what is new" : "The latest did not load"}</p>
           ) : (
-            <p className="rc-meta">
-              {loading
-                ? "Loading what is new"
-                : failed
-                  ? "Latest examples unavailable"
-                  : "A place for shared regenerative work"}
-            </p>
+            <>
+              {sharedCount > 0 && (
+                <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
+                  {sharedCount} {sharedCount === 1 ? "initiative" : "initiatives"} shared
+                </ButtonLink>
+              )}
+              {/* Opens Funding on the same deadlines it counts, soonest first. */}
+              {closingSoon > 0 && (
+                <ButtonLink
+                  href={`${pathTo("funding")}?closing=${CLOSING_SOON_DAYS}&sort=closing`}
+                  variant="quiet"
+                  size="sm"
+                >
+                  {closingSoon} {closingSoon === 1 ? "fund" : "funds"} closing soon
+                </ButtonLink>
+              )}
+            </>
           )
         }
       >
@@ -100,18 +165,23 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             </>
           )}
         </Heading>
-        <p className="rc-prose">Describe your initiative once to find support.</p>
+        {doors.resume ? (
+          <p className="rc-prose">
+            <strong>{resume?.name ?? cardName(draft)}</strong>. {resume ? "Saved in your team workspace." : status.line}
+          </p>
+        ) : (
+          <p className="rc-prose">Describe your initiative once to find support.</p>
+        )}
       </HomeHero>
       {fixture?.state === "offline" && (
         <p className="rc-notice" data-tone="info">
-          You are viewing offline examples. The rest of this page still works on this device.
+          You are offline. These lists may be out of date.
         </p>
       )}
-      {failed && (
+      {(failed || catalog.failed) && (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
-            <h2 className="rc-notice-title">The latest examples did not load</h2>
-            <p>You can still explore the steps and kinds of support.</p>
+            <h2 className="rc-notice-title">The latest did not load</h2>
             <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>
               Try again
             </button>
@@ -122,20 +192,62 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
         <NumberedList
           items={[
             {
-              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Tell us about it",
-              note: "Start with the work you do together.",
-              href: pathTo("initiative"),
+              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe your initiative",
+              note: "Four short fields.",
             },
+            { title: "Add what you need and can offer", note: "Up to five of each." },
             {
-              title: "Say what you need and offer",
-              note: "Up to five of each. Money is one of eight kinds.",
+              // The maker's wording, chosen over "fit", which the results pages keep (DL-063).
+              title: "See funding and partners that align",
+              // The step names two things, and only one of them works signed out.
+              note: "Funding needs no sign-in. Partners start with a Certified project.",
             },
-            { title: "See who fits", note: "Funding first. Partners once you share." },
           ]}
         />
       </Section>
-      <Section id="kinds" title="Money is one of eight kinds of support">
+      <Section
+        id="kinds"
+        title="Money is one of eight kinds of support"
+        note={
+          <>
+            An initiative also runs on skills, relationships, land and culture. Every need and offer in
+            Weave names its kind, an idea from <a href={EIGHT_FORMS_OF_CAPITAL}>the eight forms of capital</a>.
+          </>
+        }
+      >
         <TileGrid capitals={CAPITALS} />
+      </Section>
+      <Section
+        id="soon"
+        title="Funding closing soon"
+        action={
+          <ButtonLink href={pathTo("funding")} variant="quiet" size="sm">
+            See all funding
+          </ButtonLink>
+        }
+      >
+        {fundingLoading ? (
+          skeleton
+        ) : upcoming.length && !fundingFailed ? (
+          <CardGrid>
+            {upcoming.map((entry) => (
+              <li key={entry.id}>
+                <OpportunityCard entry={entry} level={3} />
+              </li>
+            ))}
+          </CardGrid>
+        ) : (
+          <EmptyState
+            title={fundingFailed ? "Funding did not load" : "No closing dates coming up"}
+            action={
+              <ButtonLink href={pathTo("funding")} variant="quiet">
+                Browse funding
+              </ButtonLink>
+            }
+          >
+            {fundingFailed ? "Try again above." : "Some funding has no closing date. Funding lists it all."}
+          </EmptyState>
+        )}
       </Section>
       <Section
         id="recent"
@@ -158,55 +270,39 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </CardGrid>
         ) : (
           <EmptyState
-            title={failed ? "Shared examples unavailable" : "No shared initiatives here yet"}
+            title={failed ? "Shared initiatives did not load" : "No shared initiatives here yet"}
             action={
-              <ButtonLink href={pathTo("initiative")} variant="primary">
-                Describe your initiative
+              <ButtonLink href={pathTo("initiative")} variant="secondary">
+                Start an initiative
               </ButtonLink>
             }
           >
-            {failed
-              ? "Try loading the examples again above."
-              : "Shared initiatives will appear here."}
+            {failed ? "Try again above." : "Shared initiatives will appear here."}
           </EmptyState>
         )}
       </Section>
       <Section
-        id="soon"
-        title="Funding closing soon"
-        action={
-          <ButtonLink href={pathTo("funding")} variant="quiet" size="sm">
-            See all funding
-          </ButtonLink>
+        id="commons"
+        title="Part of Regen Commons"
+        note={
+          <>
+            Regen Commons is a shared home for the regenerative movement. Across places and practices, people
+            are regenerating the same living systems, often without knowing each other exists. Weave helps
+            them find each other.
+          </>
         }
       >
-        {fixture && (
-          <p className="rc-meta">Example dates as of {fullDate(asOf)}. Check eligibility with the funder.</p>
-        )}
-        {loading ? (
-          skeleton
-        ) : upcoming.length && !failed ? (
-          <CardGrid>
-            {upcoming.map(({ record, days }) => (
-              <li key={record.id}>
-                <ListingCard record={record} level={3} days={days} />
-              </li>
-            ))}
-          </CardGrid>
-        ) : (
-          <EmptyState
-            title={failed ? "Funding examples unavailable" : "No upcoming deadlines here yet"}
-            action={
-              <ButtonLink href={pathTo("funding")} variant="secondary">
-                Browse funding
-              </ButtonLink>
-            }
-          >
-            {failed
-              ? "Try loading the examples again above."
-              : "The current catalog remains available through Funding Commons."}
-          </EmptyState>
-        )}
+        <div className="rc-action-bar">
+          <ButtonLink href={COMMONS.learn} variant="secondary">
+            Learn about Regen Commons
+          </ButtonLink>
+          <ButtonLink href={COMMONS.membership} variant="secondary">
+            Become a member
+          </ButtonLink>
+        </div>
+        <p className="rc-meta">
+          Weave is built by <a href={BUILDER.href}>{BUILDER.name}</a>.
+        </p>
       </Section>
     </Stack>
   );

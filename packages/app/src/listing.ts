@@ -1,7 +1,12 @@
-import type { Capital } from "./capitals.ts";
+import { CAPITALS, type Capital } from "./capitals.ts";
+import type { Facet, FacetOption } from "./filters.ts";
 
 export type CapitalKey = Capital["key"];
-export type Work = "Place-based community" | "Research" | "Art and culture" | "Technology" | "Funders";
+/**
+ * The kinds of work the initiative list sorts by. Funders are not listed as initiatives: they
+ * live in the funding directory.
+ */
+export type Work = "Place-based" | "Research" | "Art and culture" | "Technology" | "Learning and education";
 export type Stage = "seed" | "sprout" | "flowering" | "tree";
 export type Fit = "strong" | "good" | "possible";
 export interface ListingRecord {
@@ -40,10 +45,6 @@ export interface PublicAsk {
   readonly terms: string;
 }
 
-/** R16: account access alone never grants personalized partner names or reasons. */
-export function partnerAccess(scenario?: "visitor" | "draft" | "private" | "shared") {
-  return scenario === "shared";
-}
 export interface ListFilters {
   readonly search: string;
   readonly work: readonly string[];
@@ -71,12 +72,71 @@ export const STAGE_LABELS: Record<Stage, string> = {
   tree: "Long established",
 };
 export const WORK: readonly Work[] = [
-  "Place-based community",
+  "Place-based",
   "Research",
   "Art and culture",
   "Technology",
-  "Funders",
+  "Learning and education",
 ];
+/** The initiative list's filters, in the order the filter bar shows them. */
+export function listFacets(filters: ListFilters, countries: readonly string[]): Facet[] {
+  const named = (values: readonly string[]): FacetOption[] => values.map((value) => ({ value, label: value }));
+  return [
+    { key: "work", label: "Type of work", kind: "many", options: named(WORK), chosen: filters.work },
+    { key: "country", label: "Country", kind: "many", options: named(countries), chosen: filters.country },
+    {
+      key: "stage",
+      label: "Stage",
+      kind: "many",
+      options: Object.entries(STAGE_LABELS).map(([value, label]) => ({ value, label })),
+      chosen: filters.stage,
+    },
+    {
+      key: "support",
+      label: "Support",
+      kind: "many",
+      options: CAPITALS.map((capital) => ({ value: capital.key, label: `${capital.title}: ${capital.label}` })),
+      chosen: filters.support,
+      // A kind of support can be something an initiative needs or something it offers.
+      scope: {
+        key: "supportIn",
+        label: "Look in",
+        kind: "one",
+        options: [
+          { value: "either", label: "Needs or offers" },
+          { value: "needs", label: "Needs" },
+          { value: "offers", label: "Offers" },
+        ],
+        chosen: filters.supportIn === "either" ? [] : [filters.supportIn],
+      },
+    },
+  ];
+}
+
+/** The filters after one facet changes. A facet the list does not have changes nothing. */
+export function applyListFacet(filters: ListFilters, key: string, chosen: readonly string[]): ListFilters {
+  switch (key) {
+    case "work":
+    case "country":
+    case "stage":
+    case "support":
+      return { ...filters, [key]: chosen };
+    case "supportIn":
+      return { ...filters, supportIn: chosen[0] === "needs" || chosen[0] === "offers" ? chosen[0] : "either" };
+    default:
+      return filters;
+  }
+}
+
+/** Best fit needs a card to compare with, so only a personalised list offers it. */
+export function listSorts(personalized: boolean): FacetOption[] {
+  return [
+    { value: "name", label: "Name A to Z" },
+    { value: "recent", label: "Recently confirmed" },
+    ...(personalized ? [{ value: "fit", label: "Best fit" }] : []),
+  ];
+}
+
 const folded = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase();
 const intersects = (a: readonly string[], b: readonly string[]) => a.some((value) => b.includes(value));
 

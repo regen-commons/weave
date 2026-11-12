@@ -5,22 +5,236 @@
 <script>(function(){var theme=null;try{theme=new URLSearchParams(location.search).get("theme")||localStorage.getItem("rc-theme");}catch(e){}if(theme==="light"||theme==="dark"){document.documentElement.dataset.theme=theme;document.querySelector('meta[name="color-scheme"]').content=theme;}})();</script><title>Settings example</title><link rel="stylesheet" href="../../css/index.css"><script type="module" src="../library.js"></script>
 </head>
 <body>
-<div class="rc-page">
+<div class="rc-page" data-section="your-initiatives">
 <a class="rc-skip-link" href="#main">Skip to content</a>
-<header class="rc-app-header"><a class="rc-logo" href="home.html">Weave</a><nav class="rc-app-nav" aria-label="Main"><a href="home.html">Home</a><a href="matches.html">Partners</a><a href="funding.html">Funding</a><a href="initiatives.html">Initiatives</a></nav><p class="rc-save-status" data-state="account">Saved</p></header>
-<main class="rc-main" id="main"><div class="rc-narrow rc-settings">
-<h1 class="rc-heading" data-size="page">Settings</h1><p class="rc-meta">Fictional account. Only Appearance persists in this browser.</p>
-<section class="rc-stack"><h2 class="rc-heading" data-size="section">Your initiative</h2><p>Orchard learning circle</p><fieldset class="rc-choice-group" data-settings-example-choices><legend>Who can see it</legend><label class="rc-choice"><input class="rc-check" type="radio" name="example-visibility" value="private" checked><span class="rc-choice-text"><span class="rc-choice-title">Private, for finding funding</span><span class="rc-choice-note">Only this page's fictional choice changes.</span></span></label><label class="rc-choice"><input class="rc-check" type="radio" name="example-visibility" value="public"><span class="rc-choice-text"><span class="rc-choice-title">Shared with the community</span><span class="rc-choice-note">This example publishes nothing.</span></span></label></fieldset></section>
-<section class="rc-stack"><h2 class="rc-heading" data-size="section">Email</h2><p>example@weave.test</p><label class="rc-choice"><input class="rc-switch" type="checkbox" data-settings-example-notify><span class="rc-choice-text"><span class="rc-choice-title">Example funding reminders</span><span class="rc-choice-note">Off until chosen. No email is scheduled.</span></span></label></section>
-<section class="rc-stack"><h2 class="rc-heading" data-size="section">Assistant</h2><p>Keyword rules run on this device.</p><button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-assistant">What the assistant did</button></section>
-<section class="rc-stack"><h2 class="rc-heading" data-size="section">Appearance</h2><div class="rc-field"><label for="theme">Appearance</label><select class="rc-input" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div></section>
-<section class="rc-stack"><h2 class="rc-heading" data-size="section">Your data</h2><p>Download the example choices. It contains no real account data.</p><button class="rc-button" data-variant="secondary" type="button" data-settings-example-export>Download example data</button><button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-data">What we store</button></section>
-<section class="rc-settings-leave"><h2 class="rc-heading" data-size="section">Leave</h2><p>Clear the fictional choices in this page. Reloading restores them.</p><button class="rc-button" data-variant="secondary" type="button" data-open-dialog="example-delete">Delete the example</button></section>
-<p class="rc-meta" role="status" data-settings-example-status>No example choices changed.</p>
-</div></main>
-<footer class="rc-footer" data-slim="true"><ul class="rc-footer-row"><li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What we store</button></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the assistant did</button></li><li><a class="rc-footer-link" href="settings.html">Settings</a></li><li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li><li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li><li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data policy</button></li></ul></footer>
-<dialog class="rc-dialog" data-presentation="information" id="example-data" aria-labelledby="example-data-title"><div class="rc-dialog-body"><h2 class="rc-dialog-title" id="example-data-title">What we store</h2><dl class="rc-facts"><div><dt>Your draft</dt><dd>Example content in this page.</dd></div><div><dt>Saving</dt><dd>No account service is called.</dd></div><div><dt>Visibility</dt><dd>The choice publishes nothing.</dd></div><div><dt>Assistant</dt><dd>The record below is fictional metadata.</dd></div><div><dt>Leaving</dt><dd>Reloading restores the example.</dd></div></dl><form method="dialog"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></div></dialog>
-<dialog class="rc-dialog" data-presentation="information" id="example-assistant" aria-labelledby="example-assistant-title"><div class="rc-dialog-body"><h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2><p>One fictional local build. Zero words sent to the cloud. No source text.</p><ol class="rc-record-list"><li class="rc-record-row"><span aria-hidden="true">1</span><div class="rc-record-text"><h3 class="rc-record-title">Initiative: on this device</h3><p class="rc-meta">Keyword example. Completed 5 November 2026.</p><p class="rc-meta">42 words read, zero sent to the cloud.</p></div></li></ol><form method="dialog"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></div></dialog>
-<dialog class="rc-dialog" data-presentation="task" id="example-delete" aria-labelledby="example-delete-title"><form class="rc-dialog-body" method="dialog" data-settings-example-delete><div class="rc-dialog-head"><h2 class="rc-dialog-title" id="example-delete-title">Delete the example?</h2><button class="rc-button" data-variant="secondary" type="submit" value="cancel" autofocus>Keep the example</button></div><p>No real account or device draft is deleted.</p><button class="rc-button" data-variant="danger" type="submit" value="delete">Clear example choices</button></form></dialog>
-<dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title"><form class="rc-dialog-body" method="dialog"><h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2><p>This pattern example sends nothing and stores only your Appearance choice. The app explains its live private-saving boundary separately.</p><button class="rc-button" data-variant="secondary" type="submit">Close</button></form></dialog>
-</div></body></html>
+      <header class="rc-app-header">
+        <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="your-initiatives.html" aria-label="Back to Your Initiatives"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#back" /></svg><span>Your Initiatives</span></a></nav>
+        <nav class="rc-app-nav" aria-label="Main">
+          <a href="initiatives.html">Initiatives</a>
+          <a href="funding.html">Funding</a>
+          <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
+        </nav></div>
+        <div class="rc-app-header-state"><a class="rc-icon-button" href="settings.html" aria-label="Settings" aria-current="page" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" aria-current="page" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+      </header>
+      <main class="rc-main" id="main">
+        <div class="rc-narrow rc-settings">
+          <h1 class="rc-heading" data-size="page">Settings</h1>
+          <section class="rc-stack" aria-labelledby="settings-initiative">
+            <h2 class="rc-heading" data-size="section" id="settings-initiative">Your initiative</h2>
+            <div class="rc-status-line">
+              <p class="rc-save-status" role="status"><span><strong>Orchard learning circle</strong>. Saved privately in Weave. Only you can see it.</span></p>
+              <div class="rc-action-bar">
+                <a class="rc-button" data-variant="secondary" data-size="sm" href="saved.html">Open</a>
+              </div>
+            </div>
+          </section>
+          <section class="rc-stack" aria-labelledby="settings-account">
+            <h2 class="rc-heading" data-size="section" id="settings-account">Account</h2>
+            <p>Signed in with Certified as orchard.certified.one. No email is stored.</p>
+            <p class="rc-meta">Reminders and updates will ask for a way to reach you when you turn one on.</p>
+            <details>
+              <summary class="rc-footer-link">What is Certified?</summary>
+              <div class="rc-stack">
+                <dl class="rc-facts">
+                  <div>
+                    <dt>What it is</dt>
+                    <dd>A free account for your profile and your work that does not belong to any one app. The Hypercerts Foundation runs it.</dd>
+                  </div>
+                  <div>
+                    <dt>Why Weave uses it</dt>
+                    <dd>So you do not need a separate Weave account. The same sign-in works in other apps that use Certified.</dd>
+                  </div>
+                  <div>
+                    <dt>How you sign in</dt>
+                    <dd>With your email address. Certified sends you a code, so there is no password. If you are new, you can join there and come straight back.</dd>
+                  </div>
+                  <div>
+                    <dt>What Weave learns</dt>
+                    <dd>Who you are on Certified, and nothing else. Weave does not keep an email address from sign-in, and you do not need a public project there.</dd>
+                  </div>
+                </dl>
+                <p><a href="https://certified.app/welcome" target="_blank" rel="noopener noreferrer">Read more on Certified</a></p>
+              </div>
+            </details>
+          </section>
+          <section class="rc-stack" aria-labelledby="settings-assistant">
+            <h2 class="rc-heading" data-size="section" id="settings-assistant">Assistant</h2>
+            <p>Keyword rules run on this device. No model download is needed.</p>
+            <p class="rc-meta">Downloaded and cloud models are not connected. No words are sent to a cloud model.</p>
+            <div class="rc-action-bar">
+              <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-assistant">What the assistant did</button>
+            </div>
+          </section>
+          <section class="rc-stack" aria-labelledby="settings-appearance">
+            <h2 class="rc-heading" data-size="section" id="settings-appearance">Appearance</h2>
+            <div class="rc-field">
+              <label for="theme">Appearance</label>
+              <p class="rc-hint" id="theme-hint">Choose a theme for this device.</p>
+              <select class="rc-input" id="theme" aria-describedby="theme-hint">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+          </section>
+          <section class="rc-stack" aria-labelledby="settings-install">
+            <h2 class="rc-heading" data-size="section" id="settings-install">Install Weave on your phone</h2>
+            <p>Add Weave to your home screen and it opens like an app, full screen.</p>
+            <ol class="rc-numbered-list">
+              <li class="rc-numbered-item">
+                <span class="rc-numbered-number" aria-hidden="true">1</span>
+                <h3 class="rc-numbered-title"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#share"/></svg>Tap Share</h3>
+                <p class="rc-meta">In your browser's toolbar. If it is not there, tap the three dots first.</p>
+              </li>
+              <li class="rc-numbered-item">
+                <span class="rc-numbered-number" aria-hidden="true">2</span>
+                <h3 class="rc-numbered-title"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#add-box"/></svg>Tap Add to Home Screen</h3>
+                <p class="rc-meta">Scroll down the list to find it, then tap Add.</p>
+              </li>
+            </ol>
+            <p class="rc-meta">Save your initiative first. The installed app starts empty, so sign in there to open it.</p>
+          </section>
+          <section class="rc-stack" aria-labelledby="settings-data">
+            <h2 class="rc-heading" data-size="section" id="settings-data">Your data</h2>
+            <p>Download this device's current draft, unfinished words, files, assistant records and backups. It does not fetch other account cards. Keep the file private.</p>
+            <div class="rc-action-bar">
+              <button class="rc-button" data-variant="secondary" type="button">Download device data</button>
+              <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-data">What we store</button>
+            </div>
+          </section>
+          <section class="rc-settings-leave" aria-labelledby="settings-leave">
+            <h2 class="rc-heading" data-size="section" id="settings-leave">Leave</h2>
+            <div class="rc-action-bar">
+              <button class="rc-button" data-variant="secondary" type="button">Sign out</button>
+              <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-delete">Delete your account</button>
+            </div>
+          </section>
+        </div>
+      </main>
+      <footer class="rc-footer">
+        <div class="rc-footer-grid">
+          <section>
+            <h2 class="rc-footer-title">Weave</h2>
+            <ul>
+              <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
+              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
+              <li><a class="rc-footer-link" href="funding.html">Funding</a></li>
+              <li><a class="rc-footer-link" href="your-initiatives.html">Your Initiatives</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="rc-footer-title">Data &amp; Privacy</h2>
+            <ul>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What We Store</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the Assistant Did</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data Policy</button></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="rc-footer-title">Regen Commons</h2>
+            <ul>
+              <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+              <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+              <li><a class="rc-footer-link" href="https://www.youtube.com/@regencommons">YouTube</a></li>
+              <li><a class="rc-footer-link" href="https://hub.regencoordination.xyz/c/regen-commons/33">Forum</a></li>
+            </ul>
+          </section>
+        </div>
+        <p class="rc-meta">Example content from the <a href="../index.html">pattern library</a>.</p>
+      </footer>
+      <nav class="rc-bottom-nav" aria-label="Main">
+        <a href="home.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home" /></svg>Home</a>
+        <a href="initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
+        <a href="funding.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>Funding</a>
+        <a href="your-initiatives.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>You</a>
+      </nav>
+      <dialog class="rc-dialog" data-presentation="information" id="example-data" aria-labelledby="example-data-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <dl class="rc-facts">
+            <div>
+              <dt>Your draft</dt>
+              <dd>Conversations, unfinished words and files stay in this browser.</dd>
+            </div>
+            <div>
+              <dt>When you save</dt>
+              <dd>Checked cards go to Regen Commons, linked to your sign-in.</dd>
+            </div>
+            <div>
+              <dt>Details on your card</dt>
+              <dd>Places are your own words, with no map lookup. Themes are suggestions drawn from your words, not catalog labels.</dd>
+            </div>
+            <div>
+              <dt>Who can see it</dt>
+              <dd>Saved copies are private. Database administrators can technically access them.</dd>
+            </div>
+            <div>
+              <dt>Your words</dt>
+              <dd>Read on this device. Cloud models are not connected.</dd>
+            </div>
+            <div>
+              <dt>Leaving</dt>
+              <dd>Sign-out keeps device copies. You can download them or delete your account in Settings.</dd>
+            </div>
+          </dl>
+          <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-policy">Read the full data policy</button>
+        </div>
+      </dialog>
+      <dialog class="rc-dialog" data-presentation="information" id="example-assistant" aria-labelledby="example-assistant-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>1 build or attempt. 0 words sent to the cloud. The record contains no source text.</p>
+          <ol class="rc-record-list">
+            <li class="rc-record-row">
+              <svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device" /></svg>
+              <div class="rc-record-text">
+                <h3 class="rc-record-title">Initiative: On this device</h3>
+                <p class="rc-meta">Keyword rules. Completed. <time datetime="2026-11-05">5 November 2026</time></p>
+                <p class="rc-meta">42 words read, 0 sent to the cloud.</p>
+              </div>
+            </li>
+          </ol>
+          <button class="rc-button" data-variant="secondary" type="button">Download assistant record</button>
+          <p class="rc-meta">Cloud consent is off because cloud models are not connected. No consent withdrawal is needed for these local runs.</p>
+        </div>
+      </dialog>
+      <dialog class="rc-dialog" data-presentation="information" id="example-policy" aria-labelledby="example-policy-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>The full Weave data policy must be published before saving or sharing opens. This example sends no initiative data.</p>
+        </div>
+      </dialog>
+      <dialog class="rc-dialog" data-presentation="task" id="example-delete" aria-labelledby="example-delete-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-delete-title">Delete your account?</h2>
+            <form method="dialog" id="example-delete-close">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>This deletes the initiatives you saved privately in Weave and takes back anything you shared. Your Certified account is not deleted, and the card on this device stays.</p>
+          <button class="rc-button" data-variant="danger" type="submit" form="example-delete-close">Delete my account</button>
+        </div>
+      </dialog>
+    </div>
+  </body>
+</html>

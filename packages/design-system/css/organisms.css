@@ -1,73 +1,122 @@
 /* Organisms: distinct sections of an interface. */
 
 /* App header: product name top-left returns home on every page. */
+/* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
+   under it, and its contents keep the page's edges. */
 .rc-app-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--layer-sticky);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
   inline-size: 100%;
-  max-inline-size: var(--page-width);
-  margin-inline: auto;
   padding-block: var(--space-2);
-  padding-inline: var(--gutter);
+  padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
   border-block-end: var(--border-thin) solid var(--line);
+  background: var(--surface);
 }
+/* The lead holds the product name, or the way back, and the sections beside it; the state goes to
+   the far end. The name and the sections are one line of words in two sizes, so they sit on one
+   baseline, and the lead as a whole sits on the bar's centre line with the controls at the other
+   end (DL-070). Where a browser cannot align last baselines, each is centred instead. */
+.rc-app-header-lead {
+  display: flex;
+  flex: none;
+  align-items: center;
+  align-items: last baseline;
+  gap: var(--space-4);
+}
+/* A long name on the way back gives way to the bar; the product name never does. */
+.rc-app-header-lead:has(> .rc-back) { flex: 0 1 auto; min-inline-size: 0; }
+.rc-app-header-lead > .rc-logo { flex: none; }
+/* A flex box takes its baseline from the name's words; as a block it would take the arrow's foot. */
+.rc-app-header-lead > .rc-back { display: flex; flex: 0 1 auto; }
+/* The header's sections size to their words with equal space between them, and the logo, which
+   goes home, keeps the same space from the first (DL-049). Only the phone's bottom bar has equal
+   tabs. */
 .rc-app-nav {
   display: none;
-  flex: 1;
-  gap: var(--space-1);
+  flex: none;
+  gap: var(--space-6);
+  /* With the lead's own gap, the logo sits as far from the first section as sections sit apart. */
+  padding-inline-start: var(--space-4);
 }
 .rc-app-nav > a {
   display: inline-flex;
   align-items: center;
   min-block-size: var(--control-sm-height);
-  padding-inline: var(--space-3);
-  border-block-end: var(--border-edge) solid transparent;
+  /* The same edge above as below, so the bar that marks the current section never lifts its word. */
+  border-block: var(--border-edge) solid transparent;
   color: var(--text-secondary);
   text-decoration: none;
+  /* A tab name stays on one line; the save status gives way first. */
+  white-space: nowrap;
 }
 .rc-app-nav > a:hover { color: var(--on-surface); }
+/* The current tab keeps the same weight, so no tab changes width; its bar and colour mark it. */
 .rc-app-nav > a[aria-current="page"] {
-  border-block-end-color: var(--action);
+  border-block-end-color: var(--section-accent, var(--action));
   color: var(--on-surface);
-  font: var(--type-title-sm);
 }
 @media (min-width: 56.25rem) {
   .rc-app-nav { display: flex; }
 }
+/* Between pages the page cross-fades as one picture, and the app header and the bottom
+   navigation change at once above it. Each has its own name at every width, so neither fades,
+   slides or disappears under the page while it changes, and the current section's bar never
+   moves from one section to the next (DL-058). */
+.rc-app-header { view-transition-name: rc-app-header; }
+.rc-bottom-nav { view-transition-name: rc-bottom-nav; }
+::view-transition-old(rc-app-header),
+::view-transition-old(rc-bottom-nav) { display: none; }
+::view-transition-group(rc-app-header),
+::view-transition-group(rc-bottom-nav) { z-index: var(--layer-sticky); animation: none; }
+::view-transition-new(rc-app-header),
+::view-transition-new(rc-bottom-nav) { animation: none; }
 
 /* Bottom navigation for phones. Icon and word, always both. */
+/* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
+   quarter of the narrowest phone; with very large text a label wraps inside its own tab. */
 .rc-bottom-nav {
   position: sticky;
   inset-block-end: 0;
   z-index: var(--layer-sticky);
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   padding-block-end: env(safe-area-inset-bottom);
   border-block-start: var(--border-thin) solid var(--control-line);
   background: var(--surface);
 }
 /* Equal widths at normal sizes. At large text sizes the labels wrap to a second row instead of colliding. */
 .rc-bottom-nav > a {
-  flex: 1 1 0;
-  min-inline-size: max-content;
   display: grid;
   justify-items: center;
   align-content: center;
   gap: var(--space-1);
   min-block-size: var(--space-8);
-  padding-inline: var(--space-1);
+  /* Tabs meet edge to edge, so the label gets the whole quarter. */
+  padding-inline: 0;
   border-block-start: var(--border-edge) solid transparent;
   color: var(--text-secondary);
-  font: var(--type-body-sm);
+  font: var(--type-label-sm);
+  text-align: center;
   text-decoration: none;
+  text-wrap: balance;
 }
 .rc-bottom-nav > a[aria-current="page"] {
-  border-block-start-color: var(--action);
+  border-block-start-color: var(--section-accent, var(--action));
   color: var(--on-surface);
-  font: var(--type-label-md);
+}
+/* The current tab's icon takes its section's accent, as a native tab bar tints it (DL-051). */
+.rc-bottom-nav > a[aria-current="page"] .rc-icon { color: var(--section-accent, var(--action)); }
+/* In forced colours a transparent bar would show on every tab, so only the current tab keeps one. */
+@media (forced-colors: active) {
+  .rc-app-nav > a, .rc-bottom-nav > a { border-color: Canvas; }
+  .rc-app-nav > a[aria-current="page"] { border-block-end-color: Highlight; }
+  .rc-bottom-nav > a[aria-current="page"] { border-block-start-color: Highlight; }
 }
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
@@ -148,29 +197,72 @@
   list-style: none;
 }
 
-/* Dialog: native, for consent and confirming steps only. */
+/* Dialog: native. A centred modal on wide screens and a bottom sheet on a phone. On a wide
+   screen it keeps clear of the window and grows no taller than --dialog-height, so a long one
+   scrolls under its title row instead of filling the window (DL-056). */
 .rc-dialog {
-  inline-size: min(100% - var(--space-5), var(--form-width));
-  max-block-size: calc(100dvh - var(--space-6));
-  padding: var(--sheet-padding);
+  /* How far a finger has pulled the sheet down. behaviors/sheet.js writes it while dragging. */
+  --sheet-drag: 0;
+  /* Room above and below a centred dialog: 8 percent of the window's height, from 24 to 80 px. */
+  --dialog-inset: clamp(var(--space-5), 8dvh, var(--space-9));
+  /* The padding in use, which the sticky title row also reads. A bottom sheet uses --sheet-padding. */
+  --dialog-space: var(--dialog-padding);
+  /* The padding under the content, which a pinned foot also reads. A sheet adds the safe area. */
+  --dialog-end: var(--dialog-space);
+  inline-size: min(100% - var(--space-5), var(--prose-width));
+  max-block-size: min(100dvh - 2 * var(--dialog-inset), var(--dialog-height));
+  padding: var(--dialog-space);
   border: 0;
   border-radius: var(--sheet-radius);
   background: var(--surface-overlay);
   color: var(--on-surface-overlay);
   box-shadow: var(--shadow-4);
 }
+/* A record opened over its list reads at the list's width. */
+.rc-dialog[data-presentation="detail"] { inline-size: min(100% - var(--space-5), var(--list-width)); }
+/* A button keeps its own width wherever the dialog's layout puts it, as it does in an action bar. */
+.rc-dialog .rc-button { justify-self: start; }
 .rc-dialog:modal { overscroll-behavior: contain; }
 .rc-dialog::backdrop { background: var(--backdrop); overflow: hidden; overscroll-behavior: contain; }
 .rc-dialog-body {
   display: grid;
   gap: var(--space-4);
 }
-.rc-dialog-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); position: sticky; inset-block-start: calc(-1 * var(--sheet-padding)); z-index: var(--layer-sticky); padding-block: var(--space-2); background: var(--surface-overlay); }
+.rc-dialog-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); position: sticky; inset-block-start: calc(-1 * var(--dialog-space)); z-index: var(--layer-sticky); padding-block: var(--space-2); background: var(--surface-overlay); }
 .rc-dialog-head > h2 { flex: 1; min-inline-size: 0; }
 .rc-dialog-head > form { flex: none; }
 .rc-dialog-title { font: var(--type-headline-sm); }
+/* Foot: the way out of a set of choices, such as Show results, pinned under content that scrolls. */
+.rc-dialog-foot {
+  position: sticky;
+  inset-block-end: calc(-1 * var(--dialog-end));
+  z-index: var(--layer-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-block-end: calc(-1 * var(--dialog-end));
+  padding-block: var(--space-3) var(--dialog-end);
+  border-block-start: var(--border-thin) solid var(--line);
+  background: var(--surface-overlay);
+}
+/* The grip shows only where the dialog is a bottom sheet, and there it pulls the sheet away. */
+.rc-dialog-grip { display: none; }
 @media (forced-colors: active) {
   .rc-dialog { border: var(--border-thin) solid CanvasText; }
+}
+/* Sheet motion: a dialog leaves the way it arrived. sheet.js sets data-closing and waits for it. */
+@keyframes rc-dialog-in { from { opacity: 0; transform: scale(0.96); } }
+@keyframes rc-dialog-out { to { opacity: 0; transform: scale(0.96); } }
+@keyframes rc-sheet-in { from { transform: translateY(100%); } }
+@keyframes rc-sheet-out { to { transform: translateY(100%); } }
+@keyframes rc-leave { to { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .rc-dialog[open] { animation: rc-dialog-in var(--duration-base) var(--ease-out); }
+  .rc-dialog[open]::backdrop { animation: rc-arrive var(--duration-base) var(--ease-out); }
+  .rc-dialog[data-closing] { animation: rc-dialog-out var(--duration-fast) ease-in both; }
+  .rc-dialog[data-closing]::backdrop { animation: rc-leave var(--duration-fast) ease-in both; }
 }
 
 /* Data table: right-aligned numbers, a few rows of space, no zebra lines. */
@@ -198,23 +290,60 @@
   font-variant-numeric: tabular-nums;
 }
 
-.rc-app-header-state { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
-/* The same filter bar on every list. Menus hold native checks, not ARIA menu items. */
+/* The header stays on one line at every width: the status shortens before anything wraps. Its
+   controls sit on the bar's centre line, and the state keeps a full control's height whatever it
+   holds, so the bar is as tall signed in as signed out and on a phone as on a wide screen. */
+.rc-app-header-state { display: flex; align-items: center; justify-content: end; gap: var(--space-2); min-inline-size: 0; min-block-size: var(--control-height); }
+.rc-app-header-state > .rc-save-status { min-inline-size: 0; }
+.rc-app-header-state > .rc-save-status > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button, .rc-app-header-state > .rc-account { flex: none; }
+/* The gear has no box of its own to see, so its glyph, not the clear space around it, meets the
+   page's edge, as the logo's mark does at the other end. Its tint, under a mouse or on Settings
+   itself, is a round one about the glyph, so it reads as a mark on the gear and not a box off the edge. */
+.rc-app-header-state > .rc-icon-button { margin-inline-end: calc((var(--icon-size) - var(--control-height)) / 2); border-radius: var(--radius-full); }
+/* On a phone, a page where the card is worked on says how it is saved and, signed out, offers
+   Sign in beside that. The name of the page behind has no room there, so the way back keeps its
+   arrow alone, as a native bar does when its title is crowded. Its name is still read out. */
+@media (width <= 37.5rem) {
+  .rc-app-header:has(.rc-save-status ~ .rc-button) .rc-back-link { min-inline-size: var(--control-sm-height); padding-inline-end: 0; }
+  .rc-app-header:has(.rc-save-status ~ .rc-button) .rc-back-link > span { display: none; }
+}
+/* A page zoomed to twice its size on a phone, or a screen narrower than any phone's, cannot hold
+   the bar's two ends on one line. There they take a line each, the state still at the far end, so
+   nothing is drawn over anything else. */
+@media (width < 20rem) {
+  .rc-app-header { flex-wrap: wrap; }
+  .rc-app-header-state { margin-inline-start: auto; }
+}
+/* A phone keeps Settings one tap away as a gear. A wide screen has room for the account's own
+   menu, which holds Settings, so there the gear leaves and the menu's button arrives (DL-070). */
+.rc-app-header-state > [data-from="wide"] { display: none; }
+@media (min-width: 56.25rem) {
+  .rc-app-header-state > [data-until="wide"] { display: none; }
+  .rc-app-header-state > [data-from="wide"] { display: inline-grid; }
+}
+/* The same filter bar on every list (DL-061). Menus hold native checks, not ARIA menu items. */
 .rc-filter-bar { display: grid; min-inline-size: 0; gap: var(--space-3); }
-.rc-filter-controls, .rc-active-filters { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-2); }
-.rc-filter-controls > .rc-field { flex: 1 1 var(--card-min-width); min-inline-size: min(100%, var(--card-min-width)); }
-.rc-filter-controls > .rc-field[data-layout="inline"] {
-  display: flex;
-  align-items: center;
-  flex: 0 1 auto;
-  min-inline-size: 0;
-  max-inline-size: 100%;
+.rc-filter-controls, .rc-active-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+/* On a phone one Filters button opens every filter in a sheet. A wider screen has room for a menu each. */
+.rc-filter-controls > [data-filter="one"] { display: none; }
+/* Filters and Sort share a phone's row, so each gives up a little of its side padding to fit. */
+@media (width <= 37.5rem) {
+  .rc-filter-controls > .rc-button { padding-inline: var(--space-3); }
 }
-.rc-filter-controls > .rc-field[data-layout="inline"] > .rc-input {
-  inline-size: auto;
-  min-inline-size: 0;
+@media (width > 37.5rem) {
+  .rc-filter-controls > [data-filter="all"] { display: none; }
+  .rc-filter-controls > [data-filter="one"] { display: inline-flex; }
 }
-.rc-filter-controls > .rc-button[popovertarget]::after {
+/* Sort: a native select drawn as one more filter button, so the bar's controls match and line up
+   and a phone opens its own picker. The select lies clear over the face and takes the press. */
+.rc-sort { position: relative; max-inline-size: 100%; }
+.rc-sort > select { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; opacity: 0; font: inherit; cursor: pointer; }
+.rc-sort:has(> select:focus-visible) { outline: var(--border-edge) solid var(--focus); outline-offset: var(--border-thick); }
+.rc-sort-face { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A filter's menu button and Sort point down with the same mark, set the same distance in. */
+.rc-filter-controls > .rc-button[popovertarget]::after,
+.rc-sort::after {
   content: "";
   flex: none;
   inline-size: var(--space-2);
@@ -226,9 +355,42 @@
 .rc-filter-controls .rc-button[data-active="true"] { box-shadow: inset 0 0 0 var(--border-thick) var(--action); }
 .rc-menu { min-inline-size: min(var(--card-min-width), calc(100vw - var(--space-6))); }
 .rc-menu-group { display: grid; margin: 0; padding: 0; border: 0; gap: var(--space-1); }
+.rc-menu-options { display: grid; gap: var(--space-1); }
+/* A long list reads down two columns, so its menu stays a menu and does not fill the window. */
+.rc-menu-options[data-columns="2"] { display: block; columns: 2; column-gap: var(--space-3); }
+.rc-menu-options[data-columns="2"] > .rc-menu-option { break-inside: avoid; }
+.rc-menu:has(.rc-menu-options[data-columns="2"]) { min-inline-size: min(var(--form-width), calc(100vw - var(--space-6))); }
 .rc-menu-group > legend { font: var(--type-title-sm); margin-block-end: var(--space-2); }
 .rc-menu-option { display: flex; align-items: center; min-block-size: var(--control-sm-height); gap: var(--space-2); padding-inline: var(--space-2); cursor: pointer; }
 .rc-menu-option:hover { background: var(--surface-tint); }
+/* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
+   it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
+.rc-menu-head { padding: var(--space-1) var(--space-2) var(--space-2); color: var(--text-secondary); overflow-wrap: anywhere; }
+/* A long handle wraps to the menu's width and never widens it. */
+.rc-menu > .rc-menu-head { inline-size: 0; min-inline-size: 100%; }
+.rc-menu-item, .rc-menu-item:visited {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--control-sm-height);
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rc-menu-item:hover:not([aria-busy="true"]) { background: var(--surface-tint); }
+/* A row that is under way says so and keeps the focus, which a disabled button would drop. */
+.rc-menu-item[aria-busy="true"] { color: var(--text-muted); cursor: progress; }
+.rc-menu-item[aria-current="page"] { font: var(--type-label-md); }
+.rc-menu-item[data-divide] { margin-block-start: var(--space-1); border-block-start: var(--border-thin) solid var(--line); }
+/* A notice that arrives in an open menu wraps to the menu's width and never widens it, so the menu
+   stays where it opened. */
+.rc-menu > .rc-notice { inline-size: 0; min-inline-size: 100%; margin-block-start: var(--space-2); }
 /* Footer aligns with the logo on every page, with a slim focused-flow variant. */
 .rc-footer {
   display: grid;
@@ -242,35 +404,90 @@
 .rc-footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--space-11)), 1fr)); gap: var(--space-5); }
 .rc-footer-title { font: var(--type-title-sm); }
 .rc-footer ul { padding: 0; list-style: none; }
-.rc-footer-row { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); }
 .rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-decoration: underline; cursor: pointer; }
-.rc-footer[data-slim="true"] { padding-block: var(--space-5); }
+/* Bottom sheet: on a phone every presented dialog rises from the bottom edge and can be pulled back
+   down. It stops at two thirds of the window, a record included, so a third of the page stays in
+   view above it to press, and a long one scrolls under its title row (DL-060). */
 @media (max-width: 37.5rem) {
-  .rc-dialog:is([data-presentation="information"], [data-presentation="task"]) {
+  .rc-dialog[data-presentation] {
+    --dialog-space: var(--sheet-padding);
     inset: auto 0 0;
     inline-size: 100%;
     max-inline-size: 100%;
     margin: 0;
-    max-block-size: calc(100dvh - var(--space-5));
+    --dialog-end: max(var(--sheet-padding), env(safe-area-inset-bottom));
+    max-block-size: calc(100dvh * 2 / 3);
+    padding-block-end: var(--dialog-end);
     border-end-start-radius: 0;
     border-end-end-radius: 0;
+    translate: 0 var(--sheet-drag);
   }
+  .rc-dialog-grip {
+    display: block;
+    inline-size: var(--space-7);
+    block-size: var(--space-1);
+    margin-block: calc(-1 * var(--space-2)) var(--space-2);
+    margin-inline: auto;
+    border-radius: var(--radius-full);
+    background: var(--control-line);
+    touch-action: none;
+  }
+  .rc-dialog-head[data-sheet-handle] { touch-action: none; user-select: none; }
+}
+@media (max-width: 37.5rem) and (prefers-reduced-motion: no-preference) {
+  .rc-dialog[data-presentation][open] { animation: rc-sheet-in calc(var(--duration-slow) * 1.25) var(--ease-out); }
+  .rc-dialog[data-presentation][data-closing] { animation: rc-sheet-out var(--duration-base) ease-in both; }
+  .rc-dialog[data-presentation][data-closing]::backdrop { animation-duration: var(--duration-base); }
+  .rc-dialog[data-settling] { transition: translate var(--duration-base) var(--ease-out); }
 }
 
 .rc-filter-bar > .rc-field { max-inline-size: var(--list-width); }
-/* Numbered list: a short sequence, with the first linked card as the way in. */
-.rc-numbered-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
-.rc-numbered-item { position: relative; display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
-.rc-numbered-item:has(a) { box-shadow: inset 0 0 0 var(--border-thick) var(--action), var(--shadow-1); }
-.rc-numbered-number { font: var(--type-headline-md); color: var(--text-accent); }
+/* Numbered list: a short sequence that explains how something goes. No card is a link. */
+/* Numbered list and Tile grid set their columns by the section's own width, at the widths their
+   minimum card sizes allow, and each card spans two half columns. A short last row can then sit
+   in the middle instead of at the start. */
+.rc-section:has(> .rc-numbered-list, > .rc-tile-grid) { container-type: inline-size; }
+.rc-numbered-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+/* Two across from 2 x 18rem and a gap, three across from 3 x 18rem and two gaps (--card-min-width). */
+@container (min-width: 37rem) {
+  .rc-numbered-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-numbered-item { grid-column: span 2; }
+}
+@container (37rem <= width < 56rem) {
+  .rc-numbered-item:last-child:nth-child(2n + 1) { grid-column: 2 / span 2; }
+}
+@container (min-width: 56rem) {
+  .rc-numbered-list { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .rc-numbered-item:last-child:nth-child(3n + 1) { grid-column: 3 / span 2; }
+  .rc-numbered-item:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
+.rc-numbered-item { display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
+.rc-numbered-number { font: var(--type-headline-md); color: var(--section-accent-text, var(--text-accent)); }
 .rc-numbered-title { font: var(--type-title-sm); }
-.rc-numbered-title > a { color: inherit; text-decoration: none; }
-.rc-numbered-title > a::after { content: ""; position: absolute; inset: 0; }
-.rc-numbered-title > a:focus-visible { outline: none; }
-.rc-numbered-item:has(a:focus-visible) { outline: var(--border-edge) solid var(--focus); outline-offset: var(--border-thick); }
+/* A step can show the sign to look for, such as a phone's Share mark, beside its words. */
+.rc-numbered-title:has(> .rc-icon) { display: flex; align-items: center; gap: var(--space-2); }
 
 /* Tile grid: equal-size cards with one tooltip trigger each. */
-.rc-tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-card-min-width)), 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.rc-tile-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+/* Two, three and four across at 15rem cards and 0.75rem gaps (--tile-card-min-width, --space-3). */
+@container (min-width: 30.75rem) {
+  .rc-tile-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-tile-grid > li { grid-column: span 2; }
+}
+@container (30.75rem <= width < 46.5rem) {
+  .rc-tile-grid > li:last-child:nth-child(2n + 1) { grid-column: 2 / span 2; }
+}
+@container (46.5rem <= width < 62.25rem) {
+  .rc-tile-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .rc-tile-grid > li:last-child:nth-child(3n + 1) { grid-column: 3 / span 2; }
+  .rc-tile-grid > li:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
+@container (min-width: 62.25rem) {
+  .rc-tile-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .rc-tile-grid > li:last-child:nth-child(4n + 1) { grid-column: 4 / span 2; }
+  .rc-tile-grid > li:nth-last-child(2):nth-child(4n + 1) { grid-column: 3 / span 2; }
+  .rc-tile-grid > li:nth-last-child(3):nth-child(4n + 1) { grid-column: 2 / span 2; }
+}
 .rc-tile-grid > li { display: flex; min-inline-size: 0; }
 .rc-tile-grid .rc-tooltip-wrap, .rc-tile-grid .rc-tooltip-trigger { display: flex; inline-size: 100%; }
 /* Conversation panel: voice where local speech is available, typing everywhere. */

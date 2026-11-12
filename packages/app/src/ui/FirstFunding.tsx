@@ -1,10 +1,10 @@
-import { useCatalog } from "../funding/use-catalog.ts";
+import { useCatalog, type FundingSubject } from "../funding/use-catalog.ts";
 import { catalogEntries } from "../funding/catalog.ts";
 import { CardGrid } from "./Card.tsx";
 import { OpportunityCard } from "./OpportunityCard.tsx";
 import { ButtonLink } from "./ButtonLink.tsx";
-export function FirstFunding() {
-  const { bundle, results, loading, ranking, error, retry } = useCatalog();
+export function FirstFunding({ subject }: { subject?: FundingSubject }) {
+  const { bundle, results, loading, ranking, error, retry } = useCatalog(undefined, subject);
   const entries = bundle ? catalogEntries(bundle) : [];
   const first = results?.filter((result) => result.group === "lead").slice(0, 2) ?? [];
   return (
@@ -32,7 +32,7 @@ export function FirstFunding() {
           })}
         </CardGrid>
       ) : (
-        <p>No strong research leads were found in the keyword match. The whole catalog remains available.</p>
+        <p>Nothing in the catalog matches this card yet.</p>
       )}
       <ButtonLink href="/funding" variant="secondary">
         Browse all funding

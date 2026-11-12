@@ -12,6 +12,8 @@ const LENSES = {
   research: /\b(research|researchers|mapping|data|pesquisa|ciência)\b/iu,
   technology: /\b(software|technology|tools|tecnologia|digital)\b/iu,
   place_based: /\b(community|families|garden|land|river|water|comunidade|famílias|horta|terra|rio|água)\b/iu,
+  learning:
+    /\b(learning|education|school|schools|teach|teaching|teachers|training|courses?|workshops?|educação|escolas?|ensino|cursos?|oficinas?|aprendizagem)\b/iu,
   funders: /\b(funder|grants|grantmaking|financiador|doações)\b/iu,
 } as const;
 const THEMES = [

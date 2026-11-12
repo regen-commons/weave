@@ -1,0 +1,110 @@
+{
+  "lexicon": 1,
+  "id": "com.regencommons.weave.supportListing",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A public need or offer of support for a project, published by its representative.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "projectUri",
+          "kind",
+          "title",
+          "capitalForms",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "projectUri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "DID-based AT URI of the associated org.hypercerts.collection record with type project."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "need",
+              "offer"
+            ],
+            "description": "Whether the project seeks or offers support."
+          },
+          "title": {
+            "type": "string",
+            "minGraphemes": 1,
+            "maxGraphemes": 140,
+            "maxLength": 1400,
+            "description": "Short label for the support sought or offered."
+          },
+          "description": {
+            "type": "string",
+            "maxGraphemes": 600,
+            "maxLength": 6000,
+            "description": "Public details supplied by the publisher."
+          },
+          "capitalForms": {
+            "type": "array",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "Distinct forms of capital that apply. Order has no meaning.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "living",
+                "material",
+                "intellectual",
+                "experiential",
+                "social",
+                "financial",
+                "cultural",
+                "spiritual"
+              ]
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "met",
+              "withdrawn",
+              "expired"
+            ],
+            "description": "Open listings remain active until closed or withdrawn, or until their optional expiry."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When this public listing was first created."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Optional end time. Without one, an open listing remains active until closed or withdrawn."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "The reviewed publication version time. It changes on explicit republication, protecting a newer listing from delayed withdrawal of an earlier version."
+          },
+          "lenses": {
+            "type": "array",
+            "maxLength": 5,
+            "description": "Reviewed types of work for the linked initiative. Optional for compatibility with earlier listings; order has no meaning.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "art_culture",
+                "research",
+                "technology",
+                "place_based",
+                "learning",
+                "funders"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

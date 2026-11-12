@@ -11,12 +11,33 @@ Planning documents for growing Funding Commons into a platform where regenerativ
 | [05 Technical specification](05-technical-spec.md) | Stack, schema, auth, AI tiers and contracts, matching, places, email, interoperability, security, verification | Builders |
 | [06 Research digest](06-research-digest.md) | The evidence and sources behind the decisions | Anyone checking a claim |
 | [07 Agent scaffolding](07-agent-scaffolding.md) | The instructions, skills, rules and checks coding agents will use, and what we took from Green Goods and the Regen Commons site | Builders |
-| [08 Saving and accounts](08-accounts-and-saving.md) | How initiatives get saved, and how an email earns its place | Council, builders, designers |
+| [08 Saving and accounts](08-accounts-and-saving.md) | Certified-only sign-in, private saving, returning and recovery | Council, builders, designers |
 | [09 Repository layout](09-repository-layout.md) | Where the live site, catalog, design system, app, API and migrations live, and what each move must keep working | Builders |
 | [Interface prototype](prototype/README.md) | The click-through design of the first version, the decisions from its two reviews, and how to run it | Builders, designers, council |
 | [Open decisions](open-decisions.md) | Everything unresolved, with a recommendation and an owner | Council, builders |
 
 The design system has two homes: [DESIGN.md](../../DESIGN.md) at the repository root holds the tokens and interface principles, and the [design-system package](../../packages/design-system/README.md) holds the brand, voice, CSS and pattern library.
+
+The current build follows the [matching implementation plan and UI handoff](05-technical-spec.md#76-build-plan-and-ui-handoff), revised 8 November 2026. It builds on [Certified sign-in and private saving](05-technical-spec.md#51-first-build-certified-sign-in-and-private-saving), preserves owned needs/offers, adds explicit sharing and a public project evidence index, and records the matching checks to revisit before release. Use the [four first-visit and returning flows](08-accounts-and-saving.md#matching-on-a-first-or-returning-visit) and [remaining validation questions](open-decisions.md#matching-build-validation).
+
+For the next design pass, start with the [Weave Preview simplification handoff](handover/03-weave-preview-simplification.md).
+
+## Development and release branches
+
+Start design and implementation branches from `develop`. Open pull requests
+back into `develop` so the changes can be reviewed together. When the release
+checks are ready, open a release pull request from `develop` into `main`.
+`main` remains the production branch.
+
+The plan has six milestones: preserve entry identity; share and withdraw reviewed
+entries; index external evidence; retrieve and explain both directions; connect
+the app flow; prove quality, performance and hosted behavior. Both owner-confirmed
+entries and inferred possibilities belong in Partners, with distinct evidence
+labels. The detailed status, owning paths and acceptance criteria live only in
+technical spec section 7.6. The authorized Platform migrations and Weave preview
+deployment are complete with semantic retrieval disabled. The
+[rollout record](05-technical-spec.md#hosted-preview-rollout-8-november) separates
+hosted database and smoke checks from remaining real-user, corpus and quality gates.
 
 Status: drafts for review. Nothing here is a council decision until recorded in [open decisions](open-decisions.md). The working name "Weave" is a recommendation; see the brief for alternatives and the collision check.
 
@@ -24,4 +45,12 @@ Related repository docs: [maintenance workflow](../maintenance.md) for the funde
 
 ## Handover prompts
 
-The first two ran in parallel and are done: an [interface prototype](handover/01-ui-design-first.md) to click through as an Artifact before anything was built, and the [repository foundation and agent skills](handover/02-repo-scaffolding.md), with a Green Goods layout and the design system as a package. The third, [building the interface](handover/03-interface-implementation.md), turns [the prototype](prototype/README.md) and the decisions from its reviews into the app. The living plan doc, which these files mirror as of 2 November 2026, is at https://claude.ai/artifact/YEjb6QGeaF5iGLaQRczUhH.
+The [interface prototype prompt](handover/01-ui-design-first.md) and
+[repository foundation prompt](handover/02-repo-scaffolding.md) are historical
+2 November planning material. They no longer define the next work order. The
+current design handoff starts from the preview code and
+[the simplification brief](handover/03-weave-preview-simplification.md).
+[Technical spec section 7.6](05-technical-spec.md#76-build-plan-and-ui-handoff)
+records service contracts and remaining release checks. The earlier
+external Artifact is a historical snapshot; these checked-in core documents own
+the current architecture and product decisions.

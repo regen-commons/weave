@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AiRun } from "../describe/contracts.ts";
 import { assistantExport } from "../data/export.ts";
 import { downloadJson } from "../data/download.ts";
-import { INTAKE_STEPS } from "../routes.ts";
 import { fullDate } from "../home.ts";
+import { Dialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
+/** A run belongs to the part of the card it read, which is finer than the step map. */
+const RUN_LABELS = { initiative: "Initiative", needs: "Needs", offers: "Offers" } as const;
 export type Information = "storage" | "assistant" | "policy";
 const TITLES = { storage: "What we store", assistant: "What the assistant did", policy: "Data policy" };
 const STORAGE = [
   ["Your draft", "Conversations, unfinished words and files stay in this browser."],
-  ["When you save", "Checked cards go to Regen Commons, linked to your email."],
+  ["When you save", "Checked cards go to Regen Commons, linked to your sign-in."],
+  ["Details on your card", "Places are your own words, with no map lookup. Themes are suggestions drawn from your words, not catalog labels."],
   ["Who can see it", "Saved copies are private. Database administrators can technically access them."],
   ["Your words", "Read on this device. Cloud models are not connected."],
   ["Leaving", "Sign-out keeps device copies. Download them in Settings; contact us about account deletion."],
@@ -26,35 +29,11 @@ export function InformationDialog({
   onPolicy(): void;
   runs: readonly AiRun[];
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
   const [message, setMessage] = useState("");
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    if (information && !dialog.open) dialog.showModal();
-    if (!information && dialog.open) dialog.close();
-    setMessage("");
-  }, [information]);
+  useEffect(() => setMessage(""), [information]);
   const cloudWords = runs.reduce((sum, run) => sum + run.cloudWords, 0);
   return (
-    <dialog
-      className="rc-dialog"
-      data-presentation="information"
-      ref={ref}
-      aria-labelledby="frame-information-title"
-      onClose={onClose}
-    >
-      <div className="rc-dialog-body">
-        <div className="rc-dialog-head">
-          <h2 className="rc-dialog-title" id="frame-information-title">
-            {TITLES[information ?? "storage"]}
-          </h2>
-          <form method="dialog">
-            <button className="rc-button" data-variant="secondary" type="submit">
-              Close
-            </button>
-          </form>
-        </div>
+    <Dialog presentation="information" title={TITLES[information ?? "storage"]} open={!!information} onClose={onClose}>
         {information === "storage" ? (
           <>
             <dl className="rc-facts">
@@ -84,7 +63,7 @@ export function InformationDialog({
                     <Icon name="device" size="sm" />
                     <div className="rc-record-text">
                       <h3 className="rc-record-title">
-                        {INTAKE_STEPS.find((step) => step.route === run.step)!.label}:{" "}
+                        {RUN_LABELS[run.step]}:{" "}
                         {run.engine === "fixture" ? "Example" : "On this device"}
                       </h3>
                       <p className="rc-meta">
@@ -158,7 +137,6 @@ export function InformationDialog({
             {message}
           </p>
         )}
-      </div>
-    </dialog>
+    </Dialog>
   );
 }

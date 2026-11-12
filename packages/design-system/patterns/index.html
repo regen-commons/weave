@@ -53,7 +53,7 @@
     <h2 id="foundations-title" class="rc-heading" data-size="page">Foundations</h2>
 
     <article class="lib-pattern" id="themes">
-      <h3>Both themes, side by side</h3><footer class="rc-footer" data-slim="true"><ul class="rc-footer-row"><li><a class="rc-footer-link" href="pages/settings.html">Settings</a></li><li><a class="rc-footer-link" href="https://regencommons.com">Regen Commons</a></li></ul></footer>
+      <h3>Both themes, side by side</h3>
       <p class="lib-note">Any section can pin a theme with <code>data-theme</code>. The page follows the system unless it is pinned.</p>
       <div class="lib-compare" data-theme-compare>
         <template>
@@ -204,7 +204,7 @@
         <p class="rc-heading">A title without a set size</p>
         <div class="rc-prose"><p>Reading text keeps a comfortable measure.</p><p>Paragraphs stay short.</p></div>
         <p class="rc-meta">Meta and hints.</p>
-        <a class="rc-logo" href="#text"><svg class="rc-logo-mark" aria-hidden="true"><use href="../brand/icons.svg#mark"/></svg>Weave</a>
+        <a class="rc-logo" href="#text"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
         <span class="rc-visually-hidden">Only read by assistive technology.</span>
         <a class="rc-skip-link" href="#main">Skip to content</a>
       </div>
@@ -253,12 +253,17 @@
 
     <article class="lib-pattern" id="chips">
       <h3>Chip and tag</h3>
-      <p class="lib-note">A chip is a choice you tap, and it is 44 px high. A tag is a label you read.</p>
+      <p class="lib-note">A chip is a choice you tap, and it is 44 px high. A dashed chip is pencil: a value the assistant suggested that no person has confirmed; tapping it opens change or remove. A tag is a label you read.</p>
       <div class="lib-stage" data-example>
         <div class="lib-row">
           <label class="rc-chip"><input class="rc-check" type="checkbox" name="chip-a">Research</label>
           <label class="rc-chip"><input class="rc-check" type="checkbox" name="chip-b" checked>Place-based</label>
           <span class="rc-chip">Portuguese<button class="rc-chip-remove" aria-label="Remove Portuguese" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#close"/></svg></button></span>
+        </div>
+        <div class="lib-row">
+          <button class="rc-chip" data-pencil type="button">Stage: Getting going</button>
+          <button class="rc-chip" type="button">Type of work: Place-based</button>
+          <button class="rc-chip" type="button">Add themes</button>
         </div>
         <div class="lib-row">
           <span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#lock"/></svg>Only you</span>
@@ -312,6 +317,27 @@
         <span class="rc-time" data-stale><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>May be out of date</span>
         <span class="rc-spinner" aria-hidden="true"></span>
         <span class="rc-skeleton" style="inline-size: var(--space-10)"></span>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="media">
+      <h3>Media</h3>
+      <p class="lib-note">A placeholder until uploads are settled: an icon only, named for assistive technology where it stands for a picture, with no remote image request. The default leads an initiative card, thumb sits beside a link, and wide heads a detail sheet.</p>
+      <div class="lib-stage" data-example>
+        <div class="lib-row">
+          <div style="inline-size: var(--card-min-width)"><div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#sprout"/></svg></div></div>
+          <div class="rc-media" data-size="thumb"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#globe"/></svg></div>
+        </div>
+        <div class="rc-media" data-size="wide" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#sprout"/></svg></div>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="account-button">
+      <h3>Account button</h3>
+      <p class="lib-note">A person in a ring, at the far end of the app header from the logo's own ring. On a wide screen it opens the account's menu for a signed-in person. It always carries an accessible name, and it shows whether its menu is open.</p>
+      <div class="lib-stage" data-example>
+        <button class="rc-account" type="button" aria-label="Account"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button>
+        <button class="rc-account" type="button" aria-label="Account, menu open" aria-expanded="true"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button>
       </div>
     </article>
   </section>
@@ -396,8 +422,8 @@
       <div class="lib-stage" data-example>
         <ol class="rc-stepper" aria-label="Steps">
           <li data-state="done"><a href="#stepper"><span class="rc-stepper-mark"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#check"/></svg></span><span class="rc-visually-hidden">Done: </span>Initiative</a></li>
-          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs</li>
-          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Offers</li>
+          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
         </ol>
       </div>
     </article>
@@ -503,12 +529,23 @@
     </article>
 
     <article class="lib-pattern" id="status">
-      <h3>Save status, progress and search</h3>
-      <p class="lib-note">Save status always says where the work lives. Progress says what is happening and how to stop it. Search is a box, a button and the word Search.</p>
+      <h3>Save status, status line, progress and search</h3>
+      <p class="lib-note">Save status always says where the work lives. The status line is that sentence in plain words, with no icon, beside the one thing to do about it next and one primary at most. Progress says what is happening and how to stop it. Search is a box, a button and the word Search.</p>
       <div class="lib-stage" data-example>
         <div class="lib-row">
           <p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#device"/></svg>Saved on this device only</p>
           <p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg>Saved</p>
+        </div>
+        <div class="rc-status-line">
+          <p class="rc-save-status" role="status"><span>On this device only.</span></p>
+          <div class="rc-action-bar"><button class="rc-button" data-variant="primary" data-size="sm" type="button">Save privately</button></div>
+        </div>
+        <div class="rc-status-line">
+          <p class="rc-save-status" role="status"><span><strong>Orchard learning circle</strong>. Saved privately in Weave. Only you can see it.</span></p>
+          <div class="rc-action-bar"><a class="rc-button" data-variant="secondary" data-size="sm" href="#status">Open</a></div>
+        </div>
+        <div class="rc-status-line">
+          <p class="rc-save-status" role="status"><span>Saving on this device.</span></p>
         </div>
         <div class="rc-progress">
           <label for="download">Downloading the assistant: 12 of 40 MB</label>
@@ -540,6 +577,51 @@
         </section>
       </div>
     </article>
+
+    <article class="lib-pattern" id="back-link">
+      <h3>Back link</h3>
+      <p class="lib-note">The one way back on a page that is not a tab, at the start of the app header in place of the product name, where a native app keeps it. It names the page it returns to and steps through history, so it does what the back gesture does, and the page comes back where the person left it. On a phone, where the header also says how a card is saved and offers Sign in, it shows its arrow alone; the link still carries its whole name.</p>
+      <div class="lib-frame" data-example>
+        <header class="rc-app-header">
+          <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="#back-link" aria-label="Back to Your Initiatives"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#back"/></svg><span>Your Initiatives</span></a></nav></div>
+          <div class="rc-app-header-state"><p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg><span>Saved</span></p><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="back-link-account-menu" data-popup="back-link-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="back-link-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+        </header>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="qr-code">
+      <h3>QR code</h3>
+      <p class="lib-note">The way from a computer's screen to a phone's: a code to scan with the phone's camera, with the address it opens in words under it. It stays dark on light in both themes, and it shows only for an address the page itself is served from.</p>
+      <div class="lib-stage" data-example>
+        <figure class="rc-qr">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" shape-rendering="crispEdges" role="img" aria-label="QR code that opens regencommons.com">
+            <rect width="33" height="33" fill="#fff"/>
+            <path fill="#0d100a" d="M4 4h7v1h-7zM12 4h5v1h-5zM18 4h1v1h-1zM22 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM12 5h1v1h-1zM15 5h2v1h-2zM20 5h1v1h-1zM22 5h1v1h-1zM28 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h1v1h-1zM15 6h5v1h-5zM22 6h1v1h-1zM24 6h3v1h-3zM28 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM13 7h2v1h-2zM17 7h1v1h-1zM19 7h2v1h-2zM22 7h1v1h-1zM24 7h3v1h-3zM28 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h1v1h-1zM15 8h1v1h-1zM17 8h2v1h-2zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h3v1h-3zM28 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM13 9h6v1h-6zM22 9h1v1h-1zM28 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h7v1h-7zM15 11h4v1h-4zM20 11h1v1h-1zM4 12h1v1h-1zM7 12h6v1h-6zM15 12h1v1h-1zM18 12h1v1h-1zM20 12h2v1h-2zM24 12h1v1h-1zM26 12h3v1h-3zM4 13h3v1h-3zM11 13h4v1h-4zM16 13h1v1h-1zM19 13h1v1h-1zM23 13h5v1h-5zM5 14h2v1h-2zM9 14h3v1h-3zM14 14h7v1h-7zM22 14h1v1h-1zM25 14h1v1h-1zM28 14h1v1h-1zM5 15h3v1h-3zM12 15h2v1h-2zM18 15h2v1h-2zM22 15h1v1h-1zM25 15h4v1h-4zM6 16h1v1h-1zM8 16h3v1h-3zM13 16h1v1h-1zM15 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM22 16h1v1h-1zM28 16h1v1h-1zM4 17h2v1h-2zM7 17h1v1h-1zM9 17h1v1h-1zM11 17h2v1h-2zM16 17h1v1h-1zM18 17h3v1h-3zM24 17h1v1h-1zM27 17h1v1h-1zM4 18h4v1h-4zM10 18h2v1h-2zM14 18h1v1h-1zM18 18h2v1h-2zM21 18h2v1h-2zM24 18h5v1h-5zM4 19h1v1h-1zM6 19h4v1h-4zM14 19h1v1h-1zM16 19h1v1h-1zM18 19h4v1h-4zM23 19h1v1h-1zM25 19h2v1h-2zM28 19h1v1h-1zM4 20h1v1h-1zM6 20h2v1h-2zM9 20h3v1h-3zM13 20h5v1h-5zM19 20h6v1h-6zM26 20h2v1h-2zM12 21h4v1h-4zM20 21h1v1h-1zM24 21h1v1h-1zM26 21h2v1h-2zM4 22h7v1h-7zM12 22h2v1h-2zM16 22h1v1h-1zM18 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM28 22h1v1h-1zM4 23h1v1h-1zM10 23h1v1h-1zM12 23h1v1h-1zM14 23h2v1h-2zM17 23h1v1h-1zM19 23h2v1h-2zM24 23h1v1h-1zM28 23h1v1h-1zM4 24h1v1h-1zM6 24h3v1h-3zM10 24h1v1h-1zM12 24h1v1h-1zM14 24h3v1h-3zM18 24h7v1h-7zM4 25h1v1h-1zM6 25h3v1h-3zM10 25h1v1h-1zM12 25h1v1h-1zM14 25h1v1h-1zM16 25h3v1h-3zM21 25h2v1h-2zM27 25h2v1h-2zM4 26h1v1h-1zM6 26h3v1h-3zM10 26h1v1h-1zM15 26h1v1h-1zM17 26h1v1h-1zM20 26h2v1h-2zM24 26h5v1h-5zM4 27h1v1h-1zM10 27h1v1h-1zM14 27h2v1h-2zM18 27h1v1h-1zM22 27h3v1h-3zM26 27h3v1h-3zM4 28h7v1h-7zM12 28h2v1h-2zM16 28h1v1h-1zM20 28h1v1h-1zM22 28h1v1h-1zM25 28h1v1h-1zM28 28h1v1h-1z"/>
+            </svg>
+          <figcaption class="rc-meta">regencommons.com</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="section">
+      <h3>Section</h3>
+      <p class="lib-note">A heading with one optional browse action beside it and an optional note under it in secondary text, then the content they introduce.</p>
+      <div class="lib-stage" data-example>
+        <section class="rc-section" aria-labelledby="section-example-action">
+          <div class="rc-section-head">
+            <h4 id="section-example-action" class="rc-heading" data-size="section">Funding closing soon</h4>
+            <a class="rc-button" data-variant="quiet" data-size="sm" href="#section">See all funding</a>
+          </div>
+          <p>Two open calls close this month.</p>
+        </section>
+        <section class="rc-section" aria-labelledby="section-example-note">
+          <div class="rc-section-head">
+            <h4 id="section-example-note" class="rc-heading" data-size="section">Money is one of eight kinds of support</h4>
+          </div>
+          <p class="rc-section-note">An initiative also runs on skills, relationships, land and culture. Every need and offer in Weave names its kind.</p>
+        </section>
+      </div>
+    </article>
   </section>
 
   <section class="lib-level" id="organisms" aria-labelledby="organisms-title">
@@ -547,23 +629,76 @@
 
     <article class="lib-pattern" id="app-header">
       <h3>App header and bottom navigation</h3>
-      <p class="lib-note">The product name sits top-left and returns home. Sections sit in the header on wide screens and at the bottom on phones. Form pages keep only the name and helpful status.</p>
+      <p class="lib-note">The product name sits top-left and returns home. Four sections sit in the header on wide screens and at the bottom on phones. The name and the sections sit on one baseline, and the controls at the far end sit on the bar's centre line and meet the page's edge. Signed out, the header offers Sign in. On a phone a gear opens Settings and the You tab holds the account. On a wide screen a signed-in person has the Account button in the gear's place: it opens a small menu with Your Initiatives, Settings and Sign out. Form pages keep only the name and helpful status. The header stays at the top as the page scrolls, and on a page that is not a section the Back link takes the name's place. Tapping the section you are on brings its page to the top.</p>
       <div class="lib-frame" data-example>
         <header class="rc-app-header">
-          <a class="rc-logo" href="#app-header"><svg class="rc-logo-mark" aria-hidden="true"><use href="../brand/icons.svg#mark"/></svg>Weave</a>
-          <nav class="rc-app-nav" aria-label="Example main navigation">
-            <a href="#app-header" aria-current="page">Partners</a>
+          <div class="rc-app-header-lead"><a class="rc-logo" href="#app-header"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
+            <nav class="rc-app-nav" aria-label="Example main navigation">
+            <a href="#app-header">Home</a>
+            <a href="#app-header" aria-current="page">Initiatives</a>
             <a href="#app-header">Funding</a>
-            <a href="#app-header">Places</a>
-          </nav>
-          <a class="rc-button" data-variant="quiet" data-size="sm" href="#app-header">Sign in</a>
+            <a href="#app-header">Your Initiatives</a>
+          </nav></div>
+          <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a></div>
         </header>
         <nav class="rc-bottom-nav" aria-label="Example phone navigation">
           <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#home"/></svg>Home</a>
-          <a href="#app-header" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#people"/></svg>Partners</a>
+          <a href="#app-header" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#people"/></svg>Initiatives</a>
           <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#funding"/></svg>Funding</a>
-          <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#place"/></svg>Places</a>
+          <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg>You</a>
         </nav>
+      </div>
+      <p class="lib-note">Signed in, on a wide screen: the Account button and its menu.</p>
+      <div class="lib-frame" data-example>
+        <header class="rc-app-header">
+          <div class="rc-app-header-lead"><a class="rc-logo" href="#app-header"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
+            <nav class="rc-app-nav" aria-label="Example main navigation, signed in">
+            <a href="#app-header">Home</a>
+            <a href="#app-header" aria-current="page">Initiatives</a>
+            <a href="#app-header">Funding</a>
+            <a href="#app-header">Your Initiatives</a>
+          </nav></div>
+          <div class="rc-app-header-state"><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="app-header-account-menu" data-popup="app-header-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="app-header-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+        </header>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="footer">
+      <h3>Footer</h3>
+      <p class="lib-note">Three short lists on every page: the product's pages, data and privacy, and Regen Commons. Its link labels use title case, the one place that does. Data and privacy links are buttons that open a sheet in place. A page leaves out the link to itself.</p>
+      <div class="lib-frame" data-example>
+        <footer class="rc-footer">
+          <div class="rc-footer-grid">
+            <section>
+              <h4 class="rc-footer-title">Weave</h4>
+              <ul>
+                <li><a class="rc-footer-link" href="#footer">Describe Your Initiative</a></li>
+                <li><a class="rc-footer-link" href="#footer">Initiatives</a></li>
+                <li><a class="rc-footer-link" href="#footer">Funding</a></li>
+                <li><a class="rc-footer-link" href="#footer">Your Initiatives</a></li>
+              </ul>
+            </section>
+            <section>
+              <h4 class="rc-footer-title">Data &amp; Privacy</h4>
+              <ul>
+                <li><button class="rc-footer-link" type="button">What We Store</button></li>
+                <li><button class="rc-footer-link" type="button">What the Assistant Did</button></li>
+                <li><button class="rc-footer-link" type="button">Data Policy</button></li>
+                <li><a class="rc-footer-link" href="#footer">Settings</a></li>
+              </ul>
+            </section>
+            <section>
+              <h4 class="rc-footer-title">Regen Commons</h4>
+              <ul>
+                <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
+                <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
+                <li><a class="rc-footer-link" href="https://www.youtube.com/@regencommons">YouTube</a></li>
+                <li><a class="rc-footer-link" href="https://hub.regencoordination.xyz/c/regen-commons/33">Forum</a></li>
+              </ul>
+            </section>
+          </div>
+          <p class="rc-meta">Example content.</p>
+        </footer>
       </div>
     </article>
 
@@ -640,13 +775,22 @@
     </article>
 
     <article class="lib-pattern" id="dialog">
-      <h3>Dialog</h3>
-      <p class="lib-note">Native and modal, for consent and confirming steps only. Saving never uses one.</p>
+      <h3>Dialog and sheet</h3>
+      <p class="lib-note">Native and modal, in three presentations: information explains, a task asks for one decision, and detail holds a whole record over its list. On a phone each rises from the bottom edge as a sheet and follows a drag on its handle. A press outside closes all but a task. Saving never uses one.</p>
       <div class="lib-stage" data-example>
-        <button class="rc-button" data-variant="secondary" type="button" data-open-dialog="consent-example">Show the cloud assistant consent</button>
-        <dialog class="rc-dialog" id="consent-example" aria-labelledby="consent-example-title">
-          <form class="rc-dialog-body" method="dialog">
-            <h4 id="consent-example-title" class="rc-dialog-title">Send this to a cloud assistant?</h4>
+        <div class="rc-action-bar">
+          <button class="rc-button" data-variant="secondary" type="button" data-open-dialog="consent-example">Show a task</button>
+          <button class="rc-button" data-variant="secondary" type="button" data-open-dialog="detail-example">Show a record over its list</button>
+        </div>
+        <dialog class="rc-dialog" data-presentation="task" id="consent-example" aria-labelledby="consent-example-title">
+          <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+          <div class="rc-dialog-body">
+            <div class="rc-dialog-head" data-sheet-handle>
+              <h4 class="rc-dialog-title" id="consent-example-title">Send this to a cloud assistant?</h4>
+              <form method="dialog" id="consent-example-close">
+                <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+              </form>
+            </div>
             <p>Your device cannot run the assistant, so this one step needs a server.</p>
             <dl class="rc-facts">
               <div><dt>Who runs it</dt><dd>Example Provider, under a no-retention agreement</dd></div>
@@ -654,10 +798,29 @@
               <div><dt>How long it is kept</dt><dd>Not kept after the reply</dd></div>
             </dl>
             <div class="rc-action-bar">
-              <button class="rc-button" data-variant="primary" value="yes">Send this once</button>
-              <button class="rc-button" data-variant="quiet" value="no">Keep typing instead</button>
+              <button class="rc-button" data-variant="primary" type="submit" form="consent-example-close">Send this once</button>
+              <button class="rc-button" data-variant="quiet" type="submit" form="consent-example-close">Keep typing instead</button>
             </div>
-          </form>
+          </div>
+        </dialog>
+        <dialog class="rc-dialog" data-presentation="detail" id="detail-example" aria-labelledby="detail-example-title">
+          <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+          <div class="rc-dialog-body">
+            <div class="rc-dialog-head" data-sheet-handle>
+              <h4 class="rc-dialog-title" id="detail-example-title">Valley restoration call</h4>
+              <form method="dialog">
+                <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+              </form>
+            </div>
+            <p class="rc-card-meta">Headwaters Commons Fund</p>
+            <p>Example funding for groups restoring rivers and wetlands.</p>
+            <p>BRL 60,000</p>
+            <p>Source deadline 30 November 2026, exact time unverified.</p>
+            <div class="rc-action-bar">
+              <a class="rc-button" data-variant="primary" href="pages/describe.html">Describe your initiative</a>
+              <button class="rc-button" data-variant="secondary" type="button">Open the funder's page</button>
+            </div>
+          </div>
         </dialog>
       </div>
     </article>
@@ -693,6 +856,9 @@
       <li><a href="pages/saved.html">Saved</a></li>
       <li><a href="pages/matches.html">Matches</a></li>
       <li><a href="pages/matches-empty.html">Matches, empty</a></li>
+      <li><a href="pages/your-initiatives.html">Your Initiatives</a></li>
+      <li><a href="pages/signed-out.html">Your Initiatives, signed out (doorway)</a></li>
+      <li><a href="pages/settings.html">Settings</a></li>
     </ul>
   </section>
 <p><a href="pages/opportunity.html">Opportunity and team example</a></p><p><a href="pages/opportunity-private.html">Private team counts example</a></p></main>

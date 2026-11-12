@@ -1,5 +1,7 @@
 # Weave interface implementation status
 
+Current integration status is in [technical spec 7.6](../05-technical-spec.md#76-build-plan-and-ui-handoff). The dated release record below describes the earlier interface and is not evidence for the current Certified team/publishing build.
+
 5 November 2026. [Weave](https://weave.regencommons.com) is live with real email
 sign-in, private initiative saving and loading against the existing Regen Commons
 database. The remaining interface is prepared for review. This is a private

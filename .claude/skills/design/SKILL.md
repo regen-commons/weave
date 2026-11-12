@@ -1,13 +1,13 @@
 ---
 name: design
-description: Design or change any Regen Commons screen, component, CSS or product copy using the design system and the three books it follows. Use for new screens, pattern changes, token changes, UI polish, copy edits and design reviews in packages/app, packages/design-system or DESIGN.md.
+description: Design or change any Regen Commons screen, component, CSS or product copy using the design system and the books it follows. Use for new screens, pattern changes, token changes, UI polish, copy edits and design reviews in packages/app, packages/design-system or DESIGN.md.
 ---
 
 # Design with the Regen Commons system
 
-UI work follows three books: *Don't Make Me Think* for how people use it, *Refactoring
-UI* for how a screen shows what matters, and *Atomic Design* for how the system stays
-whole. [DESIGN.md](../../../DESIGN.md) applies them and owns every token. The
+UI work follows four books: *Don't Make Me Think* for how people use it, *Refactoring
+UI* for how a screen shows what matters, *Atomic Design* for how the system stays
+whole, and *Design for How People Learn* for how people take in steps, lists and choices. [DESIGN.md](../../../DESIGN.md) applies them and owns every token. The
 [notes on each book](../../../packages/design-system/principles/README.md) say how
 they apply here, with page references.
 

@@ -9,36 +9,29 @@
     <script type="module" src="../library.js"></script>
   </head>
   <body>
-    <div class="rc-page">
+    <div class="rc-page" data-section="initiatives">
       <a class="rc-skip-link" href="#main">Skip to content</a>
       <header class="rc-app-header">
-        <a class="rc-logo" href="home.html"
-          ><svg class="rc-logo-mark" aria-hidden="true">
-            <use href="../../brand/icons.svg#mark" /></svg
+        <div class="rc-app-header-lead"><a class="rc-logo" href="home.html"
+          ><canvas class="rc-logo-mark" aria-hidden="true"></canvas
           >Weave</a
         >
         <nav class="rc-app-nav" aria-label="Main">
-          <a href="home.html">Home</a><a href="matches.html">Partners</a><a href="funding.html">Funding</a
-          ><a href="initiatives.html">Initiatives</a>
-        </nav>
-        <div class="rc-app-header-state">
-          <p class="rc-save-status" data-state="account">
-            <svg class="rc-icon" data-size="sm" aria-hidden="true">
-              <use href="../../brand/icons.svg#done" /></svg
-            >Saved
-          </p>
-          <a class="rc-account" href="settings.html" aria-label="Your account and settings">A</a>
-        </div>
+          <a href="initiatives.html" aria-current="page">Initiatives</a>
+          <a href="funding.html">Funding</a>
+          <a href="your-initiatives.html">Your Initiatives</a>
+        </nav></div>
+        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
       </header>
       <main class="rc-main" id="main" data-list-example>
         <div class="rc-list-layout">
           <h1 class="rc-heading" data-size="page">Initiatives</h1>
-          <p class="rc-prose">Fictional examples for checking the frame and list patterns.</p>
+          <p class="rc-prose">See the work people are sharing.</p>
           <details><summary class="rc-footer-link">Example appearance</summary><div class="rc-field"><label for="theme">Appearance</label><select class="rc-input" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div></details>
           <div class="rc-filter-bar">
             <form class="rc-field" data-example-search>
               <label for="initiative-search">Search initiatives</label>
-              <div class="rc-inline-field">
+              <div class="rc-search rc-inline-field">
                 <input class="rc-input" id="initiative-search" type="search" /><button
                   class="rc-button"
                   data-variant="secondary"
@@ -49,34 +42,21 @@
               </div>
             </form>
             <div class="rc-filter-controls">
-              <button
-                class="rc-button"
-                data-variant="secondary"
-                type="button"
-                popovertarget="initiative-menu"
-                data-popup="initiative-menu"
-              >
-                Country
-              </button>
+              <button class="rc-button" data-variant="secondary" data-filter="all" type="button" data-open-dialog="initiative-filters"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#filter"/></svg>Filters</button>
+              <button class="rc-button" data-variant="secondary" data-filter="one" type="button" popovertarget="initiative-menu" data-popup="initiative-menu">Country</button>
               <div class="rc-menu" id="initiative-menu" popover>
                 <fieldset class="rc-menu-group">
                   <legend>Country</legend>
-                  <label class="rc-menu-option"
-                    ><input
-                      class="rc-check"
-                      type="checkbox"
-                      value="Brazil"
-                      data-example-country
-                    />Brazil</label
-                  ><label class="rc-menu-option"
-                    ><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label
-                  >
+                  <div class="rc-menu-options">
+                    <label class="rc-menu-option"><input class="rc-check" type="checkbox" value="Brazil" data-example-country />Brazil</label>
+                    <label class="rc-menu-option"><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label>
+                  </div>
                 </fieldset>
                 <button class="rc-button" data-variant="quiet" type="button" data-close-popover>Done</button>
               </div>
-              <div class="rc-field">
-                <label for="initiative-sort">Sort</label
-                ><select class="rc-input" id="initiative-sort" data-example-sort>
+              <div class="rc-button rc-sort" data-variant="secondary">
+                <label class="rc-sort-face" for="initiative-sort">Sort<span aria-hidden="true">: Name A to Z</span></label>
+                <select id="initiative-sort" data-example-sort>
                   <option value="name">Name A to Z</option>
                   <option value="reverse">Name Z to A</option>
                 </select>
@@ -85,15 +65,31 @@
             <div class="rc-active-filters" data-example-chips></div>
             <p class="rc-meta" role="status" data-example-count>3 of 3 examples</p>
           </div>
-          <ul class="rc-card-grid" data-example-grid>
-            <li data-example-record data-country="Brazil" data-work="Research">
-              <article class="rc-card" data-layout="listing">
-                <div class="rc-media">
-                  <svg class="rc-icon" data-size="sm" aria-hidden="true">
-                    <use href="../../brand/icons.svg#sprout" /></svg
-                  ><span>Example image</span>
+          <dialog class="rc-dialog" data-presentation="information" id="initiative-filters" aria-labelledby="initiative-filters-title">
+            <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+            <div class="rc-dialog-body">
+              <div class="rc-dialog-head" data-sheet-handle>
+                <h2 class="rc-dialog-title" id="initiative-filters-title">Filters</h2>
+                <form method="dialog" id="initiative-filters-close"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form>
+              </div>
+              <fieldset>
+                <legend>Country</legend>
+                <div class="rc-chip-group">
+                  <label class="rc-chip"><input class="rc-check" type="checkbox" value="Brazil" data-example-country />Brazil</label>
+                  <label class="rc-chip"><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label>
                 </div>
-                <h2 class="rc-card-title"><a href="#record-0">Orchard learning circle</a></h2>
+              </fieldset>
+              <div class="rc-dialog-foot">
+                <button class="rc-button" data-variant="quiet" type="button" data-example-clear>Clear all</button>
+                <button class="rc-button" data-variant="primary" type="submit" form="initiative-filters-close">Show results</button>
+              </div>
+            </div>
+          </dialog>
+          <ul class="rc-card-grid" data-example-grid>
+            <li data-example-record data-country="Brazil" data-work="Learning and education">
+              <article class="rc-card" data-layout="listing" data-kind="initiative">
+                <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
+                <h2 class="rc-card-title"><a href="#public-example">Orchard learning circle</a></h2>
                 <span class="rc-tooltip-wrap"
                   ><button
                     class="rc-tooltip-trigger"
@@ -105,11 +101,11 @@
                       ><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Good fit</span
                     ></button
                   ><span class="rc-tooltip" id="initiative-fit-0" popover="hint"
-                    >Example fit from fictional information, not eligibility.</span
+                    >Keyword topics: learning, seeds. Fit is not eligibility.</span
                   ></span
                 >
                 <p class="rc-card-meta">Brazil</p>
-                <ul class="rc-tag-list">
+                <ul class="rc-tag-list" aria-label="Type of work">
                   <li>
                     <span class="rc-tooltip-wrap"
                       ><button
@@ -118,33 +114,26 @@
                         data-tooltip="initiative-work-0"
                         interestfor="initiative-work-0"
                       >
-                        <span class="rc-tag" data-kind="work"
+                        <span class="rc-tag" data-kind="work" data-lens="learning"
                           ><svg class="rc-icon" data-size="sm" aria-hidden="true">
-                            <use href="../../brand/icons.svg#research" /></svg
-                          >Research</span
+                            <use href="../../brand/icons.svg#learning" /></svg
+                          >Learning and education</span
                         ></button
                       ><span class="rc-tooltip" id="initiative-work-0" popover="hint"
-                        >Research as a type of work.</span
+                        >Learning and education as a type of work.</span
                       ></span
                     >
                   </li>
                 </ul>
                 <p class="rc-card-summary">
-                  A fictional example of shared learning and practical support for community work.
+                  Shared learning and practical support for community work.
                 </p>
-                <div class="rc-action-bar">
-                  <a class="rc-button" data-variant="secondary" href="#record-0">Read the example</a>
-                </div>
               </article>
             </li>
             <li data-example-record data-country="Kenya" data-work="Technology">
-              <article class="rc-card" data-layout="listing">
-                <div class="rc-media">
-                  <svg class="rc-icon" data-size="sm" aria-hidden="true">
-                    <use href="../../brand/icons.svg#sprout" /></svg
-                  ><span>Example image</span>
-                </div>
-                <h2 class="rc-card-title"><a href="#record-1">Community tools cooperative</a></h2>
+              <article class="rc-card" data-layout="listing" data-kind="initiative">
+                <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
+                <h2 class="rc-card-title"><a href="#public-example">Community tools cooperative</a></h2>
                 <span class="rc-tooltip-wrap"
                   ><button
                     class="rc-tooltip-trigger"
@@ -156,11 +145,11 @@
                       ><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Good fit</span
                     ></button
                   ><span class="rc-tooltip" id="initiative-fit-1" popover="hint"
-                    >Example fit from fictional information, not eligibility.</span
+                    >Keyword topics: learning, seeds. Fit is not eligibility.</span
                   ></span
                 >
                 <p class="rc-card-meta">Kenya</p>
-                <ul class="rc-tag-list">
+                <ul class="rc-tag-list" aria-label="Type of work">
                   <li>
                     <span class="rc-tooltip-wrap"
                       ><button
@@ -169,7 +158,7 @@
                         data-tooltip="initiative-work-1"
                         interestfor="initiative-work-1"
                       >
-                        <span class="rc-tag" data-kind="work"
+                        <span class="rc-tag" data-kind="work" data-lens="technology"
                           ><svg class="rc-icon" data-size="sm" aria-hidden="true">
                             <use href="../../brand/icons.svg#device" /></svg
                           >Technology</span
@@ -181,22 +170,15 @@
                   </li>
                 </ul>
                 <p class="rc-card-summary">
-                  A fictional example of shared learning and practical support for community work.
+                  Shared learning and practical support for community work.
                 </p>
-                <div class="rc-action-bar">
-                  <a class="rc-button" data-variant="secondary" href="#record-1">Read the example</a>
-                </div>
               </article>
             </li>
             <li data-example-record data-country="Brazil" data-work="Art and culture">
-              <article class="rc-card" data-layout="listing">
-                <div class="rc-media">
-                  <svg class="rc-icon" data-size="sm" aria-hidden="true">
-                    <use href="../../brand/icons.svg#sprout" /></svg
-                  ><span>Example image</span>
-                </div>
+              <article class="rc-card" data-layout="listing" data-kind="initiative">
+                <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
                 <h2 class="rc-card-title">
-                  <a href="#record-2">Associação de Arte e Aprendizagem Comunitária do Vale das Sementes</a>
+                  <a href="#public-example">Associação de Arte e Aprendizagem Comunitária do Vale das Sementes</a>
                 </h2>
                 <span class="rc-tooltip-wrap"
                   ><button
@@ -209,11 +191,11 @@
                       ><span class="rc-fit-bar" aria-hidden="true"><i></i><i></i><i></i></span>Good fit</span
                     ></button
                   ><span class="rc-tooltip" id="initiative-fit-2" popover="hint"
-                    >Example fit from fictional information, not eligibility.</span
+                    >Keyword topics: learning, seeds. Fit is not eligibility.</span
                   ></span
                 >
                 <p class="rc-card-meta">Brazil</p>
-                <ul class="rc-tag-list">
+                <ul class="rc-tag-list" aria-label="Type of work">
                   <li>
                     <span class="rc-tooltip-wrap"
                       ><button
@@ -222,7 +204,7 @@
                         data-tooltip="initiative-work-2"
                         interestfor="initiative-work-2"
                       >
-                        <span class="rc-tag" data-kind="work"
+                        <span class="rc-tag" data-kind="work" data-lens="art_culture"
                           ><svg class="rc-icon" data-size="sm" aria-hidden="true">
                             <use href="../../brand/icons.svg#culture" /></svg
                           >Art and culture</span
@@ -234,29 +216,11 @@
                   </li>
                 </ul>
                 <p class="rc-card-summary">
-                  A fictional example of shared learning and practical support for community work.
+                  Shared learning and practical support for community work.
                 </p>
-                <div class="rc-action-bar">
-                  <a class="rc-button" data-variant="secondary" href="#record-2">Read the example</a>
-                </div>
               </article>
             </li>
           </ul>
-          <details id="record-0">
-            <summary class="rc-footer-link">Read the full example</summary>
-            <p>Orchard learning circle. All information is fictional.</p>
-          </details>
-          <details id="record-1">
-            <summary class="rc-footer-link">Read the full example</summary>
-            <p>Community tools cooperative. All information is fictional.</p>
-          </details>
-          <details id="record-2">
-            <summary class="rc-footer-link">Read the full example</summary>
-            <p>
-              Associação de Arte e Aprendizagem Comunitária do Vale das Sementes. All information is
-              fictional.
-            </p>
-          </details>
           <div class="rc-link-preview">
             <div class="rc-media" data-size="thumb">
               <svg class="rc-icon" data-size="sm" aria-hidden="true">
@@ -270,7 +234,7 @@
           </div>
           <section id="public-example" class="rc-card-list" aria-labelledby="public-example-title">
             <h2 class="rc-heading" data-size="section" id="public-example-title">Shared initiative detail</h2>
-            <p class="rc-meta">Fictional public content. Private records never enter this view.</p><div class="rc-media" data-size="wide"><span>Example image</span></div>
+            <div class="rc-media" data-size="wide" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
             <div class="rc-step-layout">
               <div class="rc-step-main">
                 <p class="rc-prose">Families restore an orchard and share practical growing skills.</p>
@@ -279,7 +243,7 @@
                 </section>
                 <section class="rc-card-list" aria-labelledby="public-offers"><h3 id="public-offers">What they offer</h3><p class="rc-meta">Nothing listed yet.</p></section>
               </div>
-              <aside class="rc-step-aside"><h3>Get in touch</h3><p>Introductions require a connected service. No contact details are shown.</p><p class="rc-meta">Example confirmed 5 November 2026.</p></aside>
+              <aside class="rc-step-aside"><h3>Get in touch</h3><p>Introductions require a connected service. No contact details are shown.</p><p class="rc-meta">Confirmed 5 November 2026.</p></aside>
             </div>
           </section>
         </div>
@@ -289,25 +253,17 @@
           <section>
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
-              <li><a class="rc-footer-link" href="step-needs.html">Describe your initiative</a></li>
-              <li><a class="rc-footer-link" href="matches.html">Partners</a></li>
+              <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
               <li><a class="rc-footer-link" href="funding.html">Funding</a></li>
-              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
+              <li><a class="rc-footer-link" href="your-initiatives.html">Your Initiatives</a></li>
             </ul>
           </section>
           <section>
-            <h2 class="rc-footer-title">Your data</h2>
+            <h2 class="rc-footer-title">Data &amp; Privacy</h2>
             <ul>
-              <li>
-                <button class="rc-footer-link" type="button" data-open-dialog="example-data">
-                  What we store
-                </button>
-              </li>
-              <li>
-                <button class="rc-footer-link" type="button" data-open-dialog="example-assistant">
-                  What the assistant did
-                </button>
-              </li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What We Store</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the Assistant Did</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data Policy</button></li>
               <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
             </ul>
           </section>
@@ -316,61 +272,54 @@
             <ul>
               <li><a class="rc-footer-link" href="https://regencommons.com">Website</a></li>
               <li><a class="rc-footer-link" href="https://regencommons.com/join">Membership</a></li>
-              <li>
-                <button class="rc-footer-link" type="button" data-open-dialog="example-policy">
-                  Data policy
-                </button>
-              </li>
+              <li><a class="rc-footer-link" href="https://www.youtube.com/@regencommons">YouTube</a></li>
+              <li><a class="rc-footer-link" href="https://hub.regencoordination.xyz/c/regen-commons/33">Forum</a></li>
             </ul>
           </section>
         </div>
-        <p class="rc-meta">Fictional example content. Nothing is sent or saved by this example.</p>
+        <p class="rc-meta">Example content from the <a href="../index.html">pattern library</a>.</p>
       </footer>
       <nav class="rc-bottom-nav" aria-label="Main">
-        <a href="home.html"
-          ><svg class="rc-icon" data-size="sm" aria-hidden="true">
-            <use href="../../brand/icons.svg#home" /></svg
-          >Home</a
-        ><a href="matches.html"
-          ><svg class="rc-icon" data-size="sm" aria-hidden="true">
-            <use href="../../brand/icons.svg#people" /></svg
-          >Partners</a
-        ><a href="funding.html"
-          ><svg class="rc-icon" data-size="sm" aria-hidden="true">
-            <use href="../../brand/icons.svg#funding" /></svg
-          >Funding</a
-        ><a href="initiatives.html"
-          ><svg class="rc-icon" data-size="sm" aria-hidden="true">
-            <use href="../../brand/icons.svg#search" /></svg
-          >Initiatives</a
-        >
+        <a href="home.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home" /></svg>Home</a>
+        <a href="initiatives.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
+        <a href="funding.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>Funding</a>
+        <a href="your-initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>You</a>
       </nav>
-      <dialog class="rc-dialog" id="example-data" aria-labelledby="example-data-title">
-        <form class="rc-dialog-body" method="dialog">
-          <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
-          <p>
-            This is fictional example content. Form choices stay in this page. Only an Appearance choice is
-            stored in this browser.
-          </p>
-          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
-        </form>
+      <dialog class="rc-dialog" data-presentation="information" id="example-data" aria-labelledby="example-data-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>This is example content. Form choices stay in this page. Only an Appearance choice is stored in this browser.</p>
+        </div>
       </dialog>
-      <dialog class="rc-dialog" id="example-assistant" aria-labelledby="example-assistant-title">
-        <form class="rc-dialog-body" method="dialog">
-          <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+      <dialog class="rc-dialog" data-presentation="information" id="example-assistant" aria-labelledby="example-assistant-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
           <p>The assistant has not run in this example.</p>
-          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
-        </form>
+        </div>
       </dialog>
-      <dialog class="rc-dialog" id="example-policy" aria-labelledby="example-policy-title">
-        <form class="rc-dialog-body" method="dialog">
-          <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
-          <p>
-            The full Weave data policy must be published before saving or sharing opens. This example sends no
-            initiative data.
-          </p>
-          <button class="rc-button" data-variant="secondary" type="submit">Close</button>
-        </form>
+      <dialog class="rc-dialog" data-presentation="information" id="example-policy" aria-labelledby="example-policy-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>The full Weave data policy must be published before saving or sharing opens. This example sends no initiative data.</p>
+        </div>
       </dialog>
     </div>
   </body>

@@ -8,9 +8,9 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
   const id = useId();
   return (
     <section className="rc-card-list" aria-labelledby={id}>
-      <h2 className="rc-heading" data-size="section" id={id}>
+      <h3 className="rc-heading" data-size="section" id={id}>
         {kind === "needs" ? "What they need" : "What they offer"}
-      </h2>
+      </h3>
       {!asks.length ? (
         <p className="rc-meta">Nothing listed yet.</p>
       ) : (
@@ -25,7 +25,7 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
                     </li>
                   ))}
                 </ul>
-                <h3 className="rc-ask-title">{ask.title}</h3>
+                <h4 className="rc-ask-title">{ask.title}</h4>
                 <p>{ask.description}</p>
                 <p className="rc-ask-terms">{ask.terms}</p>
               </article>

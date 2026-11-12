@@ -64,18 +64,21 @@ The left column is the domain language used in data, code and documents. The mid
 
 ## Saving and signing in
 
-Use one door and one family of verbs: Save and Sign in. Account and membership are different things, so keep the words apart.
+Use one door and one family of verbs: Sign in and Save. Signing in says who you are. Saving, sharing and publishing are each their own action with their own words (DL-032). Account and membership are different things, so keep the words apart.
 
 | Moment | Words |
 |---|---|
-| The offer | Keep this initiative. Email yourself a code to save it and open it on any device. Only you can see it until you choose to share it. |
-| Buttons | Email me a code. Not now. |
-| Field hint | No password. We only use this for your code and anything you turn on later. |
-| After sending | We sent a code to ana@example.org. Wrong email? Send a new code. |
-| Waiting | It can take a minute to arrive. Check your spam folder if it does not. |
-| Success | Saved. Only you can see it. |
-| Before saving | Saved on this device only. |
-| Gated action | Ask for an introduction. They need a way to reply, so this asks for your email. |
+| The offer | Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave. |
+| Buttons | Sign in with Certified. Sign in to save. Not now. |
+| Optional email | Add your email (optional). Your email appears in the link to Certified and may be saved in browser history or request logs. |
+| Before saving | On this device only. |
+| Save | Save privately. Save to team workspace. Save changes. |
+| Saved privately | Saved privately in Weave. Only you can see it. |
+| Saved for a team | Saved in the Upper valley growers workspace. Teammates with access can see it. |
+| Changed since saving | Changed on this device since you saved. |
+| Sharing | Share for matching. Not shared. Only you see your needs and offers. |
+| Publishing | Publish on Certified. Not published. |
+| Withdrawing | Ask to withdraw. The listing can stay readable until Certified confirms. |
 
 ## Words we avoid
 
@@ -87,7 +90,7 @@ Use one door and one family of verbs: Save and Sign in. Account and membership a
 
 ## Mechanics
 
-- Sentence case everywhere, including factual record labels.
+- Sentence case everywhere, including factual record labels. There are two exceptions. A section's name is written as a name wherever it names the section, so the header, the page and a sentence that sends a person there all say Your Initiatives (DL-072). Footer links use title case (DL-033).
 - A button says what happens: Save my initiative, not Submit. An action keeps its name through the flow.
 - No arrows in links or buttons. No em dashes in product copy.
 - No decorative kickers or eyebrows above headings. Keep a factual label only where no heading can carry its meaning, in sentence case (DL-028).

@@ -9,10 +9,11 @@ import {
   newDraft,
   revise,
   reviewedProposal,
+  type DeviceDraft,
 } from "../src/describe/contracts.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { DraftConflict, MemoryDraftRepository } from "../src/describe/repository.ts";
-import { readKeywordSource } from "../src/describe/keywords.ts";
+import { keywordSuggestion, readKeywordSource } from "../src/describe/keywords.ts";
 import { availableBrowser, browserExtract } from "../src/describe/engines.ts";
 import {
   availableSpeech,
@@ -22,6 +23,16 @@ import {
 } from "../src/describe/speech.ts";
 import { editsFromForm, formFrom, parseRecordForm } from "../src/describe/forms.ts";
 import { previewFields } from "../src/describe/view.ts";
+import {
+  afterFields,
+  builtCard,
+  continueWithFields,
+  describeView,
+  fieldsForm,
+  fieldsLead,
+  hasConversation,
+  talkItThrough,
+} from "../src/describe/screen.ts";
 
 const seed = () =>
   addAnswer(
@@ -398,4 +409,198 @@ test("unapproved cloud and downloaded-model adapters cannot send or download dat
     downloadedModels.download(new AbortController().signal, () => {}),
     /D32/,
   );
+});
+
+const FORM = {
+  name: "Orchard circle",
+  where: "Upper valley; Lower valley",
+  about: "Families share growing skills.",
+  links: "https://example.org",
+};
+/** A draft as the four fields leave it: raw text in the form, parsed values in the public edits. */
+const typed = (form = FORM, from = newDraft()) =>
+  revise(from, { form, publicEdits: editsFromForm(form, from.publicEdits) }, true);
+const keywordBuild: NonNullable<DeviceDraft["lastBuild"]> = {
+  engine: "keywords",
+  unreadFiles: 0,
+  sourceCharacters: 80,
+  files: [],
+  fallback: false,
+};
+
+test("a new initiative is invited to speak first, and only one action is filled", () => {
+  const fresh = newDraft();
+  assert.deepEqual(fieldsLead(fresh, true), { voice: true, primary: "speak" });
+  assert.deepEqual(fieldsLead(fresh, false), { voice: false, primary: "continue" }, "no local speech");
+  assert.deepEqual(
+    fieldsLead(typed(), true),
+    { voice: true, primary: "continue" },
+    "the invitation stays while typing, and Continue takes over",
+  );
+  assert.deepEqual(
+    fieldsLead(typed({ ...FORM, name: " ", where: "", about: "", links: "" }), true),
+    { voice: true, primary: "speak" },
+    "blank fields are not typing",
+  );
+  const kept = continueWithFields(typed());
+  assert.ok(kept.proposal, "the typed card exists");
+  assert.deepEqual(fieldsLead(kept, true), { voice: false, primary: "continue" }, "an initiative with a card");
+});
+
+test("describe opens on the four fields, and on the conversation only when chosen or already used", () => {
+  const fresh = newDraft();
+  assert.equal(fresh.mode, "conversation", "the stored default mode is unchanged");
+  assert.equal(describeView(fresh, null), "fields");
+  assert.equal(describeView(fresh, "conversation"), "conversation", "chosen in this visit");
+  assert.equal(describeView(typed(), null), "fields");
+  assert.equal(hasConversation(typed()), false);
+
+  const talked = seed();
+  assert.equal(describeView(talked, null), "conversation");
+  assert.equal(describeView(talked, "fields"), "fields");
+  assert.equal(describeView(revise(talked, { mode: "fields" }), null), "fields", "a switch to the fields is kept");
+  assert.equal(describeView(revise(fresh, { composer: "Half an answer" }, true), null), "conversation");
+  assert.equal(describeView(revise(fresh, { pendingLink: "https://" }, true), null), "conversation");
+
+  const card = { ...EMPTY_INITIATIVE, name: "Orchard circle" };
+  const fromFiles = revise(fresh, { proposal: card, proposalVersion: 0, lastBuild: keywordBuild });
+  assert.equal(describeView(fromFiles, null), "conversation", "a card the app built belongs to the conversation");
+  assert.equal(describeView(continueWithFields(typed()), null), "fields", "a typed card does not");
+});
+
+test("Continue confirms exactly the four typed fields and goes on to needs and offers", () => {
+  const draft = typed();
+  assert.deepEqual(fieldsForm(draft), FORM);
+  const next = continueWithFields(draft);
+  assert.equal(afterFields(next), "needs");
+  assert.deepEqual(next.confirmed, {
+    ...EMPTY_INITIATIVE,
+    name: "Orchard circle",
+    locations: ["Upper valley", "Lower valley"],
+    description: "Families share growing skills.",
+    links: ["https://example.org"],
+    confidence: 1,
+  });
+  assert.equal(next.proposalVersion, next.inputVersion);
+  assert.equal(next.lastBuild?.engine, "manual");
+  assert.equal(next.mode, "fields");
+  assert.equal(next.assistant, draft.assistant, "typing the fields does not switch the assistant off");
+  assert.deepEqual(fieldsForm(next), FORM, "the fields read the same when the person comes back");
+  assert.equal(afterFields(continueWithFields(next)), "needs", "Continue again changes nothing they did not type");
+});
+
+test("Continue refuses a missing name, too many places and unsafe links in plain words, and stores nothing", async () => {
+  assert.throws(() => continueWithFields(newDraft()), /^Error: Add a name for your initiative\.$/);
+  assert.throws(() => continueWithFields(typed({ ...FORM, name: "  " })), /Add a name/);
+  const nine = Array.from({ length: 9 }, (_, index) => `Place ${index + 1}`).join("; ");
+  assert.throws(() => continueWithFields(typed({ ...FORM, where: nine })), /^Error: Use up to eight places/);
+  assert.throws(() => continueWithFields(typed({ ...FORM, where: "x".repeat(121) })), /120 characters/);
+  for (const links of ["https://", "javascript:alert(1)", "https://name:password@example.org"])
+    assert.throws(() => continueWithFields(typed({ ...FORM, links })), /^Error: Use up to six complete http or https links\.$/);
+  const seven = Array.from({ length: 7 }, (_, index) => `https://example.org/${index}`).join("\n");
+  assert.throws(() => continueWithFields(typed({ ...FORM, links: seven })), /six complete/);
+
+  const controller = new DraftController(new MemoryDraftRepository());
+  await controller.initialize();
+  const before = controller.change((draft) => typed({ ...FORM, links: "https://" }, draft));
+  assert.throws(() => controller.change(continueWithFields), /six complete/);
+  assert.equal(controller.getSnapshot().draft, before);
+  assert.equal(afterFields(before), "check-card", "an unconfirmed draft never skips ahead");
+});
+
+test("details the app drew from a conversation are never confirmed from the four fields unseen", () => {
+  const talked = seed();
+  const built = revise(talked, {
+    proposal: { ...EMPTY_INITIATIVE, name: "Orchard learning circle", lenses: ["place_based"], themes: ["soil"] },
+    proposalVersion: talked.inputVersion,
+    lastBuild: keywordBuild,
+  });
+  const toFields = (draft: typeof built) => typed(FORM, revise(draft, { mode: "fields", assistant: "none" }));
+
+  // Suggestions still in pencil are dropped, not confirmed.
+  const dropped = continueWithFields(toFields(built));
+  assert.equal(afterFields(dropped), "needs");
+  assert.equal(dropped.confirmed?.name, "Orchard circle");
+  assert.deepEqual(dropped.confirmed?.lenses, []);
+  assert.deepEqual(dropped.confirmed?.themes, []);
+
+  // A detail the person kept earlier is not on this screen, so the check card shows it before it counts.
+  const kept = continueWithFields(
+    toFields(revise(built, { kept: ["lenses"], derivedEdits: { lenses: ["place_based"] } })),
+  );
+  assert.equal(kept.confirmed, null);
+  assert.equal(afterFields(kept), "check-card");
+  assert.deepEqual(reviewedProposal(kept)?.lenses, ["place_based"]);
+  assert.equal(reviewedProposal(kept)?.name, "Orchard circle");
+  assert.deepEqual(confirmDraft(kept).confirmed?.lenses, ["place_based"], "the check card can confirm it");
+
+  // A removed detail stays removed and owes nothing.
+  const removed = continueWithFields(
+    toFields(revise(built, { removed: ["lenses"], derivedEdits: { lenses: ["place_based"] } })),
+  );
+  assert.equal(afterFields(removed), "needs");
+  assert.deepEqual(removed.confirmed?.lenses, []);
+
+  // An open detail editor is unfinished work for the check card.
+  const editing = continueWithFields(
+    typed(FORM, revise(newDraft(), { reviewEdits: { themes: { value: "soil", lenses: [], wasKept: false } } })),
+  );
+  assert.equal(editing.confirmed, null);
+  assert.equal(afterFields(editing), "check-card");
+});
+
+test("Talk it through keeps what was typed, lets the conversation fill blank fields, and a build clears the raw field text", () => {
+  const named = typed({ name: "Orchard circle", where: "", about: " ", links: "" });
+  assert.equal(named.publicEdits.description, " ", "typing one field stores the others as blank");
+  const talked = talkItThrough(named);
+  assert.equal(talked.mode, "conversation");
+  assert.equal(talked.inputVersion, named.inputVersion, "opening the conversation changes no words");
+  assert.deepEqual(talked.publicEdits, { name: "Orchard circle", links: [] });
+  assert.deepEqual(talked.form, named.form, "the raw field text is still there if they switch back");
+
+  const proposal = {
+    ...EMPTY_INITIATIVE,
+    name: "Orchard learning circle",
+    description: "Families care for soil and water.",
+    locations: ["Upper valley, Brazil"],
+  };
+  const built = builtCard(talked, proposal, talked.inputVersion, keywordBuild);
+  assert.equal(built.form, null, "the check card reads the built card, not the old field text");
+  assert.equal(built.confirmed, null);
+  assert.equal(built.proposalVersion, built.inputVersion);
+  const card = reviewedProposal(built)!;
+  assert.equal(card.name, "Orchard circle", "what the person typed wins");
+  assert.equal(card.description, "Families care for soil and water.", "a blank field is filled from their words");
+  assert.deepEqual(card.locations, ["Upper valley, Brazil"]);
+  assert.equal(describeView(built, null), "conversation");
+
+  // Without the pruning, the blank fields would have blanked the built card.
+  const unpruned = reviewedProposal(builtCard(named, proposal, named.inputVersion, keywordBuild))!;
+  assert.equal(unpruned.description, " ");
+  assert.deepEqual(unpruned.locations, []);
+
+  // Everything typed stays: places, the description and links.
+  const full = talkItThrough(typed());
+  assert.deepEqual(full.publicEdits, {
+    name: "Orchard circle",
+    description: "Families share growing skills.",
+    locations: ["Upper valley", "Lower valley"],
+    isGlobal: false,
+    links: ["https://example.org"],
+  });
+  assert.deepEqual(full.links, ["https://example.org"]);
+  const global = talkItThrough(typed({ ...FORM, where: "Global" }));
+  assert.equal(global.publicEdits.isGlobal, true);
+  assert.deepEqual(global.publicEdits.locations, []);
+
+  // A chosen browser assistant is kept. "Use the four fields" stores none, which goes back to keywords.
+  assert.equal(talked.assistant, "keywords");
+  assert.equal(talkItThrough(revise(named, { assistant: "browser" })).assistant, "browser");
+  assert.equal(talkItThrough(revise(named, { assistant: "none" })).assistant, "keywords");
+});
+test("keyword rules suggest learning and education from school and workshop words, in English and Portuguese", () => {
+  const lenses = (text: string) => keywordSuggestion(newDraft(), text).lenses;
+  assert.ok(lenses("We run a school garden and teaching workshops.").includes("learning"));
+  assert.ok(lenses("Uma escola de agroecologia com oficinas para jovens.").includes("learning"));
+  assert.ok(!lenses("We restore the river with families.").includes("learning"));
 });

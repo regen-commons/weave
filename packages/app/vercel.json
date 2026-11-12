@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "codex/matching-evaluation": false,
+      "develop": false
+    }
+  },
   "framework": "vite",
   "installCommand": "bun install --frozen-lockfile --filter @weave/app",
   "buildCommand": "bun run --filter '@weave/*' build && bun run --filter '@weave/*' test",

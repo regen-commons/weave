@@ -4,7 +4,7 @@ A click-through prototype of Weave's first version, designed before the app was 
 
 It is the design reference for building the interface in `packages/app`, not code to port. The content is invented, the assistant and the network are simulated, and nothing typed is sent or stored. The [implementation handover](../handover/03-interface-implementation.md) says how to build from it.
 
-See [implementation status](implementation-status.md) for the app pull requests, browser proof and remaining launch work.
+See [implementation status](implementation-status.md) for the app pull requests, browser proof and remaining launch work. The [journey coverage](journey-coverage.md) maps the four first-release journeys onto the design and live screens and ends with the next prompt for the backend work. The [preview design review](preview-design-review.md) of 9 November 2026 walks the built preview, proposes a lighter structure and sketches the Certified publication step. Its prototype is the app itself, with a [clickable copy](#the-clickable-preview) at https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt.
 
 The published copy is the Artifact at https://claude.ai/artifact/797CzZQeSRsk7XsQ44CUBQ, which the maker shares by link. Its Notes button opens the design notes in [src/notes.html](src/notes.html).
 
@@ -52,3 +52,36 @@ Open the local page, paste `src/audit.js` into the browser console, then run `aw
 ## Publish an update
 
 Keep the same link. From a session with the Artifact tool, build, then publish `build/weave-prototype.html` to the URL above with the other files in `build/` at the same relative paths (`css/`, `tokens/`, `fonts/`, `prototype.css`, the four scripts, and `img/` if present). Record what changed in `src/notes.html`.
+
+## The clickable preview
+
+The preview is the Weave app itself with its development examples, inside a review page. It was last updated on 11 November 2026 for the polish round on `claude/weave-ui-polish`: the website's mycelium, which grows on its own on phones, the named initiative pages and the simpler header (DL-046 to DL-049). Before that it showed the second design review and the maker's answers to it (DL-033 to DL-042). Build it, then publish every file in `preview/build/` (ignored by Git) to https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt at the same relative paths, replacing the files already there:
+
+```bash
+node docs/platform/prototype/preview/build.mjs
+```
+
+The script runs `bun run --filter @weave/app prototype`, which builds the app with relative paths and its routes in the URL fragment, then saves it as `app.html` beside `preview/shell.html` as `index.html`. It leaves out what the examples never use: the funding catalog, the PDF reader and the font files, which load from Google Fonts instead. To check it locally, start `preview-prototype` from `.claude/launch.json` and open http://localhost:4198/preview/build/index.html.
+
+### Services the preview waits for
+
+The example account in `packages/app/src/social` supplies synthetic records for design review. The agreed initiative and project screens also use a live adapter for same-origin account and project APIs. Sharing and publication use the existing server-reviewed commands in focused dialogs. The [journey coverage](journey-coverage.md) owns current integration status, local proof and remaining hosted checks. The table below maps the example calls to the service behavior; it is not evidence of a deployed flow.
+
+| The interface does this | Example call | The service has to provide |
+|---|---|---|
+| Sign in with Certified | `signIn` | An identity and nothing else. Signing in must not save, load, link or share. |
+| List what the person can open | `records`, `cards` | Their Certified projects, each with its group, the person's role and whether a team workspace exists, and their private saves. |
+| Link a project, or open its workspace | `linkProject`, `openWorkspace` | The project's four public details, the person's access, and what the team saved when a workspace is open. |
+| Create a project | `createProject` | A project in a new group with the person as its one owner, and a refusal the interface can show when Certified does not confirm. |
+| Ask for a team workspace | `requestWorkspace`, `checkAgain` | A request that a group admin or owner approves, readable as absent, requested or open. |
+| Save | `save` | A private save, or a save into the open team workspace that teammates with access can read. |
+| Share for matching | `share`, `stopSharing` | The chosen needs and offers, who can see them, the day sharing ends, and whether a change since has taken an entry out of matching. |
+| Publish on Certified | `publish`, `withdraw`, `checkAgain` | A publish limited to the reviewed fields that reports whether Certified confirmed, and a withdrawal that reads as pending until Certified confirms it. |
+| Partners from other teams | Example teams in `src/partners` | Search over the entries other teams shared, open only to an initiative that shares an open entry. |
+| Save a match | `saveLead`, `removeLead` | A saved match kept with the account. Saving one sends nothing to the other initiative. |
+
+Private saves may omit kinds of support; sharing requires a reviewed choice. The
+server tracks sharing by entry and removes changed entries from matching. An
+unchanged shared entry can keep network search open. Public publishing remains a
+separate review, with authority verified on the server. Reminders, account deletion
+and fund suggestions still need live contracts before leaving the examples.

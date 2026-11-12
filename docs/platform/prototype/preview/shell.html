@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Weave preview prototype</title>
+  <link rel="icon" href="./brand/logo/favicon.svg" type="image/svg+xml">
+  <!--APP-STYLES-->
+  <style>
+    /* Review chrome only: proto- classes never move into the product. The controls reuse the
+       design system's patterns from the app's stylesheet, so both themes and the tokens apply. */
+    html, body { block-size: 100%; }
+    body { display: flex; flex-direction: column; min-block-size: 0; }
+    .proto-bar {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--gutter);
+      border-block-end: var(--border-thin) solid var(--line);
+      background: var(--surface-raised);
+      color: var(--on-surface-raised);
+    }
+    .proto-row { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-2) var(--space-4); }
+    .proto-name { flex: 1 1 100%; margin: 0; font: var(--type-headline-sm); }
+    .proto-row > .rc-field { flex: 1 1 16rem; max-inline-size: 26rem; }
+    .proto-row > .proto-theme { flex: 0 1 10rem; }
+    .proto-chips { display: flex; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+    .proto-status { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin: 0; font: var(--type-body-sm); color: var(--text-secondary); }
+    .proto-status > :last-child { font: var(--type-label-md); color: var(--on-surface-raised); }
+    .proto-stage {
+      position: relative;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+      min-block-size: 0;
+      overflow: auto;
+      padding: var(--space-4);
+      background: var(--surface-tint);
+    }
+    .proto-stage > iframe { display: block; flex: none; border: 0; background: var(--surface); }
+    .proto-stage[data-width="phone"] > iframe {
+      inline-size: 22.5rem;
+      block-size: min(48.75rem, 100%);
+      border: var(--border-thin) solid var(--control-line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-3);
+    }
+    .proto-stage[data-width="wide"] { padding: 0; }
+    .proto-stage[data-width="wide"] > iframe { inline-size: 100%; block-size: 100%; }
+    .proto-stage > .rc-notice { max-inline-size: var(--form-width); }
+    .proto-list { display: grid; gap: var(--space-2); margin: 0; padding-inline-start: var(--space-5); }
+    @media (min-width: 64rem) { .proto-name { flex: 0 1 auto; align-self: center; } }
+    @media (max-width: 45rem) {
+      .proto-name, .proto-width, .proto-theme { display: none; }
+      .proto-stage, .proto-stage[data-width] { padding: 0; }
+      .proto-stage[data-width] > iframe { inline-size: 100%; block-size: 100%; border: 0; border-radius: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="proto-bar">
+    <div class="proto-row">
+      <p class="proto-name">Weave preview prototype</p>
+      <div class="rc-field">
+        <label for="journey">Start from</label>
+        <select class="rc-input" id="journey"></select>
+      </div>
+      <div class="rc-action-bar">
+        <button class="rc-button" data-variant="secondary" type="button" id="back">Back</button>
+        <button class="rc-button" data-variant="secondary" type="button" id="restart">Restart</button>
+      </div>
+      <fieldset class="proto-chips proto-width">
+        <legend class="rc-visually-hidden">Width</legend>
+        <label class="rc-chip"><input class="rc-check" type="radio" name="width" value="phone" checked>Phone</label>
+        <label class="rc-chip"><input class="rc-check" type="radio" name="width" value="wide">Wide</label>
+      </fieldset>
+      <div class="rc-field proto-theme">
+        <label for="theme">Theme</label>
+        <select class="rc-input" id="theme">
+          <option value="auto">Automatic</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <button class="rc-button" data-variant="quiet" type="button" id="open-about">About this prototype</button>
+    </div>
+    <p class="proto-status"><span id="hint"></span><span id="now" aria-live="polite"></span></p>
+  </header>
+  <main class="proto-stage" id="stage" data-width="phone">
+    <section class="rc-notice" data-tone="warning" id="fallback" aria-label="The prototype did not open" hidden>
+      <div class="rc-notice-body">
+        <p class="rc-notice-title">The prototype did not open inside this page.</p>
+        <p><a id="fallback-link" href="app.html">Open it on its own</a>. Its own example controls switch the starting point there.</p>
+      </div>
+    </section>
+  </main>
+  <dialog class="rc-dialog" data-presentation="information" id="about" aria-labelledby="about-title">
+    <div class="rc-dialog-body">
+      <div class="rc-dialog-head">
+        <h2 class="rc-dialog-title" id="about-title">About this prototype</h2>
+        <form method="dialog"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form>
+      </div>
+      <p>This is the Weave app itself with its built-in examples, from 10 November 2026. Names and records are fictional. Nothing you type leaves this page, and Restart clears it.</p>
+      <h3 class="rc-heading" data-size="section">What changed</h3>
+      <ul class="proto-list">
+        <li>Describe is one screen with one Continue. Talking it through is still there when you want it.</li>
+        <li>Needs and offers are one page. Type one, add it, and tap a kind of support to add or remove it.</li>
+        <li>Signing in with Certified only says who you are. Saving is its own tap and says where your work goes.</li>
+        <li>A Certified project is linked or created as its own step. Linking reuses its details, and creating reuses yours.</li>
+        <li>Sharing for matching and publishing on Certified are separate, each with a review of what leaves.</li>
+        <li>Partners come as direct fits and possible fits, and start with a Certified project.</li>
+      </ul>
+      <h3 class="rc-heading" data-size="section">Still an example</h3>
+      <p>Certified sign-in, projects, team workspaces, sharing and publishing are examples here, and nothing is sent. Projects, team workspaces, sharing and publishing still wait for their services.</p>
+    </div>
+  </dialog>
+  <script type="module">
+    // Each starting point opens the app afresh at a route with its example scenario. The ids
+    // are plain names, so a link such as #check-card opens that starting point directly.
+    const JOURNEYS = [
+      { group: "First visit, with a Certified project", id: "first-with-project", label: "Open a project from Certified", route: "/?fixture=visitor", hint: "Open one from Certified, sign in, then Open workspace beside Orchard learning circle." },
+      { group: "First visit, with a Certified project", id: "workspace-setup", label: "Ask for a team workspace", route: "/your-initiatives?fixture=visitor", hint: "Sign in, Open beside Seed library of the upper valley, Continue, then Ask for a team workspace and Check again." },
+      { group: "First visit, no Certified project", id: "first-no-project", label: "Describe an initiative", route: "/?fixture=visitor&projects=none", hint: "Start an initiative, fill in the fields, then Continue." },
+      { group: "First visit, no Certified project", id: "check-card", label: "A card built from a conversation", route: "/start/initiative/check?fixture=draft&view=review", hint: "Tap a detail to change it, then Keep card and continue." },
+      { group: "First visit, no Certified project", id: "needs-offers", label: "Needs and offers", route: "/start/needs?fixture=draft&intake=ready&projects=none", hint: "Add a need, tap a kind of support to add or remove it, then Continue." },
+      { group: "First visit, no Certified project", id: "save-privately", label: "Sign in and save privately", route: "/your-initiative?fixture=draft&projects=none", hint: "Sign in to save, Sign in with Certified, then Save privately." },
+      { group: "First visit, no Certified project", id: "create-project", label: "Create a Certified project", route: "/your-initiatives?fixture=private&projects=none", hint: "Link or create a project, Continue to Certified, then Create project." },
+      { group: "Returning, with a project", id: "back-with-project", label: "Back in the team workspace", route: "/?fixture=workspace", hint: "Open your initiative." },
+      { group: "Returning, with a project", id: "share", label: "Share for matching", route: "/your-initiative?fixture=workspace", hint: "Share for matching, untick anything to keep private, then Share." },
+      { group: "Returning, with a project", id: "publish", label: "Publish on Certified", route: "/your-initiative?fixture=shared", hint: "Publish on Certified, untick anything to keep private, then Publish." },
+      { group: "Returning, with a project", id: "publish-fails", label: "Certified does not confirm", route: "/your-initiative?fixture=workspace&certified=fail", hint: "Publish on Certified, then Publish. Nothing is published." },
+      { group: "Returning, with a project", id: "withdraw", label: "Withdraw a listing", route: "/your-initiative?fixture=published", hint: "Change or withdraw, Ask to withdraw, then Check again." },
+      { group: "Returning, with a project", id: "partners", label: "Partners for a linked initiative", route: "/partners?fixture=shared", hint: "Save a fit, or Open the source." },
+      { group: "Returning, no project", id: "back-on-device", label: "Back on this device", route: "/?fixture=draft&projects=none", hint: "Open your initiative." },
+      { group: "Returning, no project", id: "back-private", label: "Back on another device", route: "/?fixture=returning&projects=none", hint: "Open your saved initiative, then Open." },
+      { group: "Returning, no project", id: "partners-gate", label: "Partners before a project", route: "/partners?fixture=private&projects=none", hint: "Link or create a project, or Browse all initiatives." },
+    ];
+    const KIND = "weave-prototype";
+    const $ = (id) => document.getElementById(id);
+    const select = $("journey"), stage = $("stage"), theme = $("theme");
+    const hostTheme = document.documentElement.dataset.theme;
+    for (const group of [...new Set(JOURNEYS.map((journey) => journey.group))]) {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = group;
+      for (const journey of JOURNEYS.filter((item) => item.group === group))
+        optgroup.append(new Option(journey.label, journey.id));
+      select.append(optgroup);
+    }
+    let frame = null, current = null, ready = false, timer = 0;
+    const send = (message) => frame?.contentWindow?.postMessage({ kind: KIND, ...message }, "*");
+    function applyTheme() {
+      const chosen = theme.value === "auto" ? hostTheme : theme.value;
+      if (chosen === "light" || chosen === "dark") document.documentElement.dataset.theme = chosen;
+      else delete document.documentElement.dataset.theme;
+      send({ theme: chosen === "light" || chosen === "dark" ? chosen : "system" });
+    }
+    function open(journey) {
+      current = journey;
+      select.value = journey.id;
+      $("hint").textContent = `Try: ${journey.hint}`;
+      $("now").textContent = "";
+      $("fallback").hidden = true;
+      ready = false;
+      const src = `app.html#${journey.route}`;
+      $("fallback-link").href = src;
+      frame?.remove();
+      frame = document.createElement("iframe");
+      frame.title = "Weave, fictional example";
+      frame.src = src;
+      stage.append(frame);
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (!ready) $("fallback").hidden = false; }, 8000);
+    }
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!frame || event.source !== frame.contentWindow || data?.kind !== KIND || typeof data.title !== "string") return;
+      if (!ready) {
+        ready = true;
+        $("fallback").hidden = true;
+        applyTheme();
+      }
+      $("now").textContent = `Open: ${data.title.replace(/ \| Weave$/u, "")}`;
+    });
+    const fromHash = () => JOURNEYS.find((journey) => journey.id === location.hash.slice(1)) ?? JOURNEYS[0];
+    select.addEventListener("change", () => {
+      if (location.hash.slice(1) === select.value) open(fromHash());
+      else location.hash = select.value;
+    });
+    window.addEventListener("hashchange", () => {
+      const journey = fromHash();
+      if (journey !== current) open(journey);
+    });
+    $("back").addEventListener("click", () => send({ back: true }));
+    $("restart").addEventListener("click", () => open(current));
+    for (const input of document.querySelectorAll('input[name="width"]'))
+      input.addEventListener("change", () => { stage.dataset.width = input.value; });
+    theme.addEventListener("change", applyTheme);
+    $("open-about").addEventListener("click", () => $("about").showModal());
+    applyTheme();
+    open(fromHash());
+  </script>
+</body>
+</html>

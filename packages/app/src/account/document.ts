@@ -2,10 +2,16 @@ import { parseDocument, type AccountDocument, type SavedInitiative } from "@weav
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "../describe/contracts.ts";
 import { intakeComplete } from "../intake/finish.ts";
 import { emptyAskStep, type AskStep } from "../intake/contracts.ts";
+/** Why this draft cannot be saved to the account yet, in the words the person reads. Null when it can. */
+export function saveBlocker(draft: DeviceDraft): string | null {
+  if (!intakeComplete(draft)) return "Check your initiative, needs and offers before saving.";
+  if (draft.funding.editor) return "Keep or cancel your funding detail changes before saving.";
+  return null;
+}
 /** Explicit projection: source words, files, AI records and open editors never cross this boundary. */
 export function accountDocument(draft: DeviceDraft): AccountDocument {
-  if (!intakeComplete(draft)) throw new Error("Check your initiative, needs and offers before saving.");
-  if (draft.funding.editor) throw new Error("Keep or cancel your funding detail changes before saving.");
+  const blocker = saveBlocker(draft);
+  if (blocker) throw new Error(blocker);
   const { confidence: _confidence, ...initiative } = draft.confirmed!;
   const asks = (kind: "needs" | "offers") =>
     draft[kind].items.filter((item) => item.decision === "kept").map(({ id, value }) => ({ id, value }));
@@ -57,6 +63,26 @@ export function loadedDraft(saved: SavedInitiative, owner: string): DeviceDraft 
     },
   });
 }
+/** The account a card on this device belongs to: the one that saved it, or is saving it now. */
+export function cardOwner(draft: DeviceDraft): string | null {
+  return draft.account.saved?.owner ?? draft.account.pending?.owner ?? null;
+}
+
+/**
+ * Whether the card on this device belongs to another account than the one signed in now (DL-055).
+ * A saved card belongs to the account that saved it. A card nobody has saved belongs to the
+ * accounts that opened it from their Certified project (`chosenBy`), and otherwise to whoever uses
+ * the device. Signed out, nothing is set aside.
+ */
+export function belongsToAnotherAccount(
+  draft: DeviceDraft, accountId: string | null | undefined, chosenBy: readonly string[] = [],
+): boolean {
+  if (!accountId) return false;
+  const owner = cardOwner(draft);
+  if (owner !== null) return owner !== accountId;
+  return chosenBy.length > 0 && !chosenBy.includes(accountId);
+}
+
 export function saveCommand(draft: DeviceDraft, owner: string) {
   const document = accountDocument(draft),
     contentKey = JSON.stringify(document),

@@ -1,8 +1,9 @@
 import { LinkSchema, type Attachment, type Turn } from "../describe/source-contracts.ts";
 import {
   ASK_LIMIT,
-  AskSchema,
   AskStepSchema,
+  AskSchema,
+  AskSuggestionSchema,
   EMPTY_ASK,
   type AskExtraction,
   type AskFields,
@@ -69,14 +70,15 @@ export function keepLink(step: AskStep): AskStep {
   return changeStep(step, { links: [...new Set([...step.links, link])], pendingLink: "" }, true);
 }
 export function reconcile(step: AskStep, result: AskExtraction): AskStep {
-  const fixed = step.items.filter((item) => item.decision === "kept" || item.decision === "removed");
+  // Entries a person added by hand have no source chunk, so a rebuild never drops them.
+  const fixed = step.items.filter((item) => item.decision !== "pencil" || item.sourceKey === null);
   const keys = new Set(fixed.map((item) => item.sourceKey).filter(Boolean));
   const prints = new Set(fixed.map((item) => item.fingerprint));
   const candidates = result.items.filter(
     (item) =>
       !keys.has(item.sourceKey) && !prints.has(fingerprint(item.value.description || item.value.title)),
   );
-  const kept = fixed.filter((item) => item.decision === "kept").length;
+  const kept = fixed.filter((item) => item.decision !== "removed").length;
   const added: AskItem[] = candidates.slice(0, ASK_LIMIT - kept).map((item) => ({
     id:
       step.items.find((old) => old.sourceKey === item.sourceKey && old.decision === "pencil")?.id ??
@@ -99,7 +101,6 @@ export function decide(step: AskStep, id: string, decision: AskItem["decision"])
   if (!item) throw new Error("This card is no longer present.");
   const restored =
     item.decision === "removed" && decision === "pencil" ? (item.decisionBeforeRemove ?? "pencil") : decision;
-  if (restored === "kept") AskSchema.parse(item.value);
   if (item.decision === "removed" && decision !== "removed" && activeItems(step).length >= ASK_LIMIT)
     throw new Error("Five is the limit. Remove another card before undoing this removal.");
   return changeStep(step, {
@@ -145,10 +146,10 @@ function numeric(text: string): number | null {
   if (!Number.isFinite(number)) throw new Error("Check the amount.");
   return number;
 }
-export function parseAskForm(form: AskForm, kind: AskKind): AskFields {
+export function parseAskForm(form: AskForm, kind: AskKind, allowUnclassified = true): AskFields {
   const financial = form.capitalForms.includes("financial");
   const hasAmount = financial && !!(form.amountMin.trim() || form.amountMax.trim() || form.currency.trim());
-  return AskSchema.parse({
+  return (allowUnclassified ? AskSuggestionSchema : AskSchema).parse({
     title: form.title.trim(),
     description: form.description.trim() || null,
     capitalForms: form.capitalForms,
@@ -159,7 +160,7 @@ export function parseAskForm(form: AskForm, kind: AskKind): AskFields {
           currency: form.currency.trim().toUpperCase(),
         }
       : null,
-    timeframe: kind === "needs" ? form.timeframe.trim() || null : null,
+    timeframe: form.timeframe.trim() || null,
     urgency: kind === "needs" ? form.urgency || null : null,
     placeScope: form.placeScope,
     exchangeTerms: form.exchangeTerms,

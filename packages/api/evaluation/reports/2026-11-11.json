@@ -1,0 +1,4229 @@
+{
+  "proof": "synthetic fixture",
+  "environment": {
+    "node": "v24.20.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4"
+  },
+  "reports": [
+    {
+      "fixtureSha256": "d0a606d2909b4414cfe7421a0d051d6a95b9a477270fdd74dd135c62e989888e",
+      "baselineSha256": "2a14ce54e8bbd488d32f56792db37ce5c1c549aa1a2827b7db23bf715ec0cf33",
+      "split": "development",
+      "annotationStatus": "synthetic-agent-authored-awaiting-human-review",
+      "conceptVersion": "partner-concepts-en-v1",
+      "queryCount": 176,
+      "projectCount": 200,
+      "limits": [
+        "Synthetic agent-authored judgments; not blind or human validated.",
+        "Vocabulary and fixture author are shared; scores are regression evidence, not unbiased quality estimates.",
+        "Template variants are correlated; families are the sampling unit.",
+        "Indexed retrieval simulates token overlap, not PostgreSQL ranking. It assumes a refreshed public index.",
+        "Device path uses the first 80 fixture projects, not a representative production snapshot.",
+        "No network, model inference, database, real-user or hosted validation; timings cover ranking only."
+      ],
+      "paths": {
+        "indexed": {
+          "baseline": {
+            "engine": "partner-lexical-v1",
+            "path": "indexed",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 182,
+              "relevantReturned": 124,
+              "precisionAmongReturnedAt5": 0.7317,
+              "candidateRecallAt80": 0.775,
+              "finalRecallAt5": 0.775,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 2,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 0.1696
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 0.8,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 3.0313
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 0.8,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0567
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.8,
+                "candidateRecallAt80": 0.7,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0918
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.8,
+                "candidateRecallAt80": 0.7,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0705
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 30,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 0.7,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.4881
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 30,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 0.7,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.1696
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 21,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.5758,
+                "candidateRecallAt80": 0.6,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 1,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0562
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 21,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.5758,
+                "candidateRecallAt80": 0.6,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 1,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0478
+              }
+            },
+            "misses": [
+              {
+                "id": "art-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-06-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "software-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-02-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-08-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "place-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-02-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-06-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-06-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-06-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-06-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-08-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              }
+            ]
+          },
+          "improved": {
+            "engine": "partner-concepts-v2",
+            "path": "indexed",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 160,
+              "relevantReturned": 160,
+              "precisionAmongReturnedAt5": 1,
+              "candidateRecallAt80": 1,
+              "finalRecallAt5": 1,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 1.0246
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.3179
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.349
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.8375
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.95
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.0246
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.9602
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.1661
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.6672
+              }
+            },
+            "misses": []
+          }
+        },
+        "device": {
+          "baseline": {
+            "engine": "partner-lexical-v1",
+            "path": "device",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 154,
+              "relevantReturned": 104,
+              "precisionAmongReturnedAt5": 0.6937,
+              "candidateRecallAt80": 0.8,
+              "finalRecallAt5": 0.65,
+              "positiveQueryAbstentions": 8,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 2,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 0.8272
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.813
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.9029
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.8,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.0865
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.8,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.6854
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 30,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 0.7,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.5628
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 30,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 0.7,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.8984
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 7,
+                "relevantReturned": 2,
+                "precisionAmongReturnedAt5": 0.2857,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.1,
+                "positiveQueryAbstentions": 4,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 1,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.5291
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 7,
+                "relevantReturned": 2,
+                "precisionAmongReturnedAt5": 0.2857,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.1,
+                "positiveQueryAbstentions": 4,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 1,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.469
+              }
+            },
+            "misses": [
+              {
+                "id": "art-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-06-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "software-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-02-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-08-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "place-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-02-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-04-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-08-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": [
+                  "place-00-b"
+                ]
+              }
+            ]
+          },
+          "improved": {
+            "engine": "partner-concepts-v2",
+            "path": "device",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 128,
+              "relevantReturned": 128,
+              "precisionAmongReturnedAt5": 1,
+              "candidateRecallAt80": 0.8,
+              "finalRecallAt5": 0.8,
+              "positiveQueryAbstentions": 16,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 10.526
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 12.9108
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 11.4973
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 8.4807
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 9.2873
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 10.7263
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 11.5838
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 4,
+                "relevantReturned": 4,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.2,
+                "positiveQueryAbstentions": 8,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 10.526
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 4,
+                "relevantReturned": 4,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.2,
+                "positiveQueryAbstentions": 8,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 10.1068
+              }
+            },
+            "misses": [
+              {
+                "id": "place-02-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-02-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-02-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-02-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-04-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-06-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-08-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-08-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-08-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-08-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              }
+            ]
+          }
+        },
+        "full-corpus": {
+          "baseline": {
+            "engine": "partner-lexical-v1",
+            "path": "full-corpus",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 182,
+              "relevantReturned": 124,
+              "precisionAmongReturnedAt5": 0.7317,
+              "candidateRecallAt80": 1,
+              "finalRecallAt5": 0.775,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 2,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 0.833
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.6502
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.1346
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.8,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.6204
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.8,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.5968
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 30,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 0.7,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.7592
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 30,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 0.7,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.6223
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 21,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.5758,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 1,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.0411
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 21,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.5758,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 1,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.5679
+              }
+            },
+            "misses": [
+              {
+                "id": "art-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-00-b"
+                ]
+              },
+              {
+                "id": "art-06-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "art-06-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-06-b"
+                ]
+              },
+              {
+                "id": "software-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-00-b"
+                ]
+              },
+              {
+                "id": "software-02-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-02-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-02-b",
+                  "art-06-a",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "software-08-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "software-08-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-08-b"
+                ]
+              },
+              {
+                "id": "place-00-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-00-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-00-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-00-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-00-b",
+                  "place-08-b"
+                ]
+              },
+              {
+                "id": "place-02-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-02-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-02-b",
+                  "art-06-near"
+                ]
+              },
+              {
+                "id": "place-06-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-06-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-06-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-06-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-06-b"
+                ]
+              },
+              {
+                "id": "place-08-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              },
+              {
+                "id": "place-08-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-08-b",
+                  "place-00-b"
+                ]
+              }
+            ]
+          },
+          "improved": {
+            "engine": "partner-concepts-v2",
+            "path": "full-corpus",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 160,
+              "relevantReturned": 160,
+              "precisionAmongReturnedAt5": 1,
+              "candidateRecallAt80": 1,
+              "finalRecallAt5": 1,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 12.441
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 10.3365
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 10.8346
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 12.8699
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 12.9504
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 12.1183
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 11.9019
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 13.9321
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 12.5695
+              }
+            },
+            "misses": []
+          }
+        }
+      },
+      "engineSha256": "a437a1c488a3b759ee61960c4c78bd68329efe6709042c32943481891528074d"
+    },
+    {
+      "fixtureSha256": "d0a606d2909b4414cfe7421a0d051d6a95b9a477270fdd74dd135c62e989888e",
+      "baselineSha256": "2a14ce54e8bbd488d32f56792db37ce5c1c549aa1a2827b7db23bf715ec0cf33",
+      "engineSha256": "a437a1c488a3b759ee61960c4c78bd68329efe6709042c32943481891528074d",
+      "split": "holdout",
+      "annotationStatus": "synthetic-agent-authored-awaiting-human-review",
+      "conceptVersion": "partner-concepts-en-v1",
+      "queryCount": 176,
+      "projectCount": 200,
+      "limits": [
+        "Synthetic agent-authored judgments; not blind or human validated.",
+        "Vocabulary and fixture author are shared; scores are regression evidence, not unbiased quality estimates.",
+        "Template variants are correlated; families are the sampling unit.",
+        "Indexed retrieval simulates token overlap, not PostgreSQL ranking. It assumes a refreshed public index.",
+        "Device path uses the first 80 fixture projects, not a representative production snapshot.",
+        "No network, model inference, database, real-user or hosted validation; timings cover ranking only."
+      ],
+      "paths": {
+        "indexed": {
+          "baseline": {
+            "engine": "partner-lexical-v1",
+            "path": "indexed",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 164,
+              "relevantReturned": 120,
+              "precisionAmongReturnedAt5": 0.8117,
+              "candidateRecallAt80": 0.75,
+              "finalRecallAt5": 0.75,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 0.3868
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 14,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.9,
+                "candidateRecallAt80": 0.6,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 8.6382
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 14,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.9,
+                "candidateRecallAt80": 0.6,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.1493
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.6667,
+                "candidateRecallAt80": 0.7,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.2692
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.6667,
+                "candidateRecallAt80": 0.7,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.289
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 24,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8133,
+                "candidateRecallAt80": 0.8,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.7555
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 24,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8133,
+                "candidateRecallAt80": 0.8,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.2375
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 0.9,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0767
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 0.9,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 0.0461
+              }
+            },
+            "misses": [
+              {
+                "id": "art-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-05-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "art-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "art-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "art-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "software-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "research-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-05-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "place-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-09-b"
+                ]
+              },
+              {
+                "id": "place-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-09-b"
+                ]
+              },
+              {
+                "id": "place-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-09-b"
+                ]
+              },
+              {
+                "id": "place-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "place-09-b"
+                ]
+              }
+            ]
+          },
+          "improved": {
+            "engine": "partner-concepts-v2",
+            "path": "indexed",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 156,
+              "relevantReturned": 156,
+              "precisionAmongReturnedAt5": 1,
+              "candidateRecallAt80": 0.975,
+              "finalRecallAt5": 0.975,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 2.174
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 3.6997
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.9433
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 18,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.9,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.174
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 18,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.9,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.6252
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.2958
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.9238
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.253
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.1665
+              }
+            },
+            "misses": [
+              {
+                "id": "software-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 0.5,
+                "results": [
+                  "software-01-b"
+                ]
+              }
+            ]
+          }
+        },
+        "device": {
+          "baseline": {
+            "engine": "partner-lexical-v1",
+            "path": "device",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 124,
+              "relevantReturned": 92,
+              "precisionAmongReturnedAt5": 0.8375,
+              "candidateRecallAt80": 0.8,
+              "finalRecallAt5": 0.575,
+              "positiveQueryAbstentions": 16,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 1.9873
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 12,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.4098
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 12,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.4656
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.6667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 3.2026
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.6667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 8.3522
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 24,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8133,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.9873
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 24,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8133,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.0831
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 4,
+                "relevantReturned": 4,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.2,
+                "positiveQueryAbstentions": 8,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.8783
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 4,
+                "relevantReturned": 4,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.2,
+                "positiveQueryAbstentions": 8,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.1363
+              }
+            },
+            "misses": [
+              {
+                "id": "art-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-05-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b"
+                ]
+              },
+              {
+                "id": "art-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b"
+                ]
+              },
+              {
+                "id": "art-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b"
+                ]
+              },
+              {
+                "id": "art-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b"
+                ]
+              },
+              {
+                "id": "software-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "research-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-05-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "place-03-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-03-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-03-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-03-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              }
+            ]
+          },
+          "improved": {
+            "engine": "partner-concepts-v2",
+            "path": "device",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 124,
+              "relevantReturned": 124,
+              "precisionAmongReturnedAt5": 1,
+              "candidateRecallAt80": 0.8,
+              "finalRecallAt5": 0.775,
+              "positiveQueryAbstentions": 16,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 14.576
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 12.8122
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 11.998
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 18,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 11.5617
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 18,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 11.9813
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 15.1234
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 14.576
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 4,
+                "relevantReturned": 4,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.2,
+                "positiveQueryAbstentions": 8,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 16.0906
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 4,
+                "relevantReturned": 4,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 0.2,
+                "finalRecallAt5": 0.2,
+                "positiveQueryAbstentions": 8,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 16.7366
+              }
+            },
+            "misses": [
+              {
+                "id": "software-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "place-03-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-03-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-03-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-03-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-05-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-07-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-need-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-need-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-offer-0",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              },
+              {
+                "id": "place-09-offer-1",
+                "relevant": 2,
+                "correct": 0,
+                "candidateRecall": 0,
+                "results": []
+              }
+            ]
+          }
+        },
+        "full-corpus": {
+          "baseline": {
+            "engine": "partner-lexical-v1",
+            "path": "full-corpus",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 164,
+              "relevantReturned": 120,
+              "precisionAmongReturnedAt5": 0.8117,
+              "candidateRecallAt80": 1,
+              "finalRecallAt5": 0.75,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 2.5074
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 14,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.9,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.5852
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 14,
+                "relevantReturned": 12,
+                "precisionAmongReturnedAt5": 0.9,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.6,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.2131
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.6667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 3.2013
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 14,
+                "precisionAmongReturnedAt5": 0.6667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.7,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.3581
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 24,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8133,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.7646
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 24,
+                "relevantReturned": 16,
+                "precisionAmongReturnedAt5": 0.8133,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.8,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.1035
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 1.1189
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 22,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 0.8667,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 2.6746
+              }
+            },
+            "misses": [
+              {
+                "id": "art-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-01-b"
+                ]
+              },
+              {
+                "id": "art-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-03-b"
+                ]
+              },
+              {
+                "id": "art-05-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-05-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-05-b"
+                ]
+              },
+              {
+                "id": "art-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "art-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "art-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "art-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "art-09-b",
+                  "place-03-a"
+                ]
+              },
+              {
+                "id": "software-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b",
+                  "research-07-a"
+                ]
+              },
+              {
+                "id": "software-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-03-b",
+                  "software-07-a"
+                ]
+              },
+              {
+                "id": "software-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "software-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-09-b"
+                ]
+              },
+              {
+                "id": "research-03-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-03-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-03-b"
+                ]
+              },
+              {
+                "id": "research-05-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "research-05-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "research-05-b"
+                ]
+              },
+              {
+                "id": "place-09-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-09-b"
+                ]
+              },
+              {
+                "id": "place-09-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-09-b"
+                ]
+              },
+              {
+                "id": "place-09-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-09-b"
+                ]
+              },
+              {
+                "id": "place-09-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "place-09-b"
+                ]
+              }
+            ]
+          },
+          "improved": {
+            "engine": "partner-concepts-v2",
+            "path": "full-corpus",
+            "summary": {
+              "queries": 88,
+              "families": 24,
+              "returned": 156,
+              "relevantReturned": 156,
+              "precisionAmongReturnedAt5": 1,
+              "candidateRecallAt80": 1,
+              "finalRecallAt5": 0.975,
+              "positiveQueryAbstentions": 0,
+              "noMatchQueries": 8,
+              "noMatchFalsePositives": 0,
+              "unsupportedConfirmations": 0,
+              "rankingP95Ms": 29.7447
+            },
+            "byDomainAndDirection": {
+              "art/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 21.1406
+              },
+              "art/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 15.9443
+              },
+              "software/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 18,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 16.487
+              },
+              "software/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 18,
+                "relevantReturned": 18,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 0.9,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 26.8252
+              },
+              "research/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 26.553
+              },
+              "research/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 25.0446
+              },
+              "place/need": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 52.2935
+              },
+              "place/offer": {
+                "queries": 11,
+                "families": 6,
+                "returned": 20,
+                "relevantReturned": 20,
+                "precisionAmongReturnedAt5": 1,
+                "candidateRecallAt80": 1,
+                "finalRecallAt5": 1,
+                "positiveQueryAbstentions": 0,
+                "noMatchQueries": 1,
+                "noMatchFalsePositives": 0,
+                "unsupportedConfirmations": 0,
+                "rankingP95Ms": 99.8114
+              }
+            },
+            "misses": [
+              {
+                "id": "software-01-need-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-need-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-offer-0",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              },
+              {
+                "id": "software-01-offer-1",
+                "relevant": 2,
+                "correct": 1,
+                "candidateRecall": 1,
+                "results": [
+                  "software-01-b"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

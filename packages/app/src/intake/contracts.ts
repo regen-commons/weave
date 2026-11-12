@@ -101,19 +101,15 @@ export const AskFormSchema = z.strictObject({
   status: StatusSchema,
 });
 export type AskForm = z.infer<typeof AskFormSchema>;
-export const AskItemSchema = z
-  .strictObject({
-    id: z.string().uuid(),
-    sourceKey: z.string().max(100).nullable(),
-    fingerprint: z.string(),
-    decision: z.enum(["pencil", "kept", "removed"]),
-    decisionBeforeRemove: z.enum(["pencil", "kept"]).nullable().default(null),
-    value: AskSuggestionSchema,
-  })
-  .refine(
-    (item) => item.decision !== "kept" || AskSchema.safeParse(item.value).success,
-    "Kept cards need a kind of support.",
-  );
+/** A kept entry may have no kind of support on the device. `AskSchema` is the rule for sharing one. */
+export const AskItemSchema = z.strictObject({
+  id: z.string().uuid(),
+  sourceKey: z.string().max(100).nullable(),
+  fingerprint: z.string(),
+  decision: z.enum(["pencil", "kept", "removed"]),
+  decisionBeforeRemove: z.enum(["pencil", "kept"]).nullable().default(null),
+  value: AskSuggestionSchema,
+});
 export type AskItem = z.infer<typeof AskItemSchema>;
 export const AskStepSchema = z
   .strictObject({

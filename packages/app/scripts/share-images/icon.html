@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Weave home-screen icon</title>
+<!-- Draws the home-screen icon: the Regen Commons mark, as the favicon has it, on a full square.
+     ?inset=0.2 keeps that share of the square clear on every side; a maskable icon needs more,
+     because a phone may cut it to a circle. render.mjs screenshots it with a headless browser. -->
+<style>
+  html, body { margin: 0; block-size: 100%; background: #0d100a; }
+  svg { display: block; inline-size: 100vw; block-size: 100vh; }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" id="icon">
+  <rect width="48" height="48" fill="#0d100a"/>
+  <g id="mark">
+    <g fill="none" stroke="#a6b878" stroke-width="2" stroke-linecap="round">
+      <path d="M24 24 12 11m12 13L37 11M24 24l-1 17m1-17L7 27m17-3 17 6M17 17l1-9m13 9 9 1M23 33l-8 5"/>
+    </g>
+    <circle cx="24" cy="24" r="4" fill="#c9956b"/>
+  </g>
+</svg>
+<script>
+  // The mark is drawn to fill a 48 unit square; shrink it about the centre to leave the inset clear.
+  const inset = Number(new URLSearchParams(location.search).get("inset") ?? "0.16");
+  const scale = 1 - inset * 2;
+  document.getElementById("mark").setAttribute("transform", `translate(24 24) scale(${scale}) translate(-24 -24)`);
+</script>
+</body>
+</html>

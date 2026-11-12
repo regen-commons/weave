@@ -4,7 +4,7 @@ import type { IconName } from "./icons.ts";
 export function Icon({ name, size }: { name: IconName; size?: "sm" | "lg" }) {
   return (
     <svg className="rc-icon" data-size={size} aria-hidden="true">
-      <use href={`/brand/icons.svg#${name}`} />
+      <use href={`${import.meta.env.BASE_URL}brand/icons.svg#${name}`} />
     </svg>
   );
 }

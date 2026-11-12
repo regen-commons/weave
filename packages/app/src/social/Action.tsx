@@ -1,42 +1,20 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useSocialFixture } from "./context.tsx";
-import type { Visibility } from "./fixture.ts";
+import { ExampleDoor } from "./Door.tsx";
+import { partnerAccessOf } from "./fixture.ts";
 export type SocialIntent =
-  | { kind: "save" }
-  | { kind: "share" }
   | { kind: "remind"; id: string; name: string }
-  | { kind: "intro"; ids: readonly string[]; names: readonly string[] };
-/** A single example email door for private save, sharing, reminders and introductions. */
-export function SocialAction({ intent, inline = false }: { intent: SocialIntent; inline?: boolean }) {
+  | { kind: "lead"; id: string; name: string };
+/** Example reminders and saved partners. A saved partner stays in the workspace and sends no invitation. */
+export function SocialAction({ intent }: { intent: SocialIntent }) {
   const fixture = useSocialFixture();
   const [open, setOpen] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [visibility, setVisibility] = useState<Visibility>(fixture?.state.visibility ?? "private");
-  const [onward, setOnward] = useState(false);
-  const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const id = useId();
   if (!import.meta.env.DEV || !fixture) return null;
   const { state, service, refresh } = fixture;
-  const label =
-    intent.kind === "save"
-      ? "Save privately"
-      : intent.kind === "share"
-        ? "Choose who can see it"
-        : intent.kind === "remind"
-          ? "Remind me"
-          : "Ask for an introduction";
-  const completed =
-    intent.kind === "remind"
-      ? state.reminders.includes(intent.id)
-      : intent.kind === "intro"
-        ? intent.ids.every((id) => state.introductions.includes(id))
-        : false;
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -47,222 +25,44 @@ export function SocialAction({ intent, inline = false }: { intent: SocialIntent;
       refresh();
     } catch (error) {
       setFailed(true);
-      setMessage(error instanceof Error ? error.message : "This example change failed. Try again.");
+      setMessage(error instanceof Error ? error.message : "This change did not work. Try again.");
     } finally {
       setBusy(false);
     }
   }
-  const body = (
-    <>
-      <p className="rc-notice" data-tone="info">
-        Example email door. No email, publication or request is sent. Use example@weave.test and 12345678.
-      </p>
-      {completed ? <p role="status">{intent.kind === "remind" ? "Example reminder on. No email is scheduled." : "Example introduction requested. Nothing was sent."}</p> : !state.email ? (
-        <form
-          className="rc-stack"
-          onSubmit={(event) => {
-            event.preventDefault();
+  if (intent.kind === "lead") {
+    // A saved partner is kept with the linked project, so the control waits for a link.
+    if (partnerAccessOf(state) === "unlinked") return null;
+    const saved = state.leads.includes(intent.id);
+    return (
+      <>
+        <button
+          className="rc-button"
+          data-variant={saved ? "quiet" : "secondary"}
+          data-size="sm"
+          type="button"
+          disabled={busy}
+          aria-label={`${saved ? "Remove from saved" : "Save"}: ${intent.name}`}
+          onClick={() =>
             void run(async () => {
-              if (sent) {
-                await service.verifyCode(email, code);
-                setSent(false);
-                setCode("");
-              } else {
-                await service.requestCode(email);
-                setSent(true);
-              }
-            });
-          }}
+              if (saved) await service.removeLead(intent.id);
+              else await service.saveLead(intent.id);
+              setMessage(saved ? "Removed from saved." : "Saved. No invitation is sent.");
+            })
+          }
         >
-          <p>Your email keeps the example card privately. Sharing and sending still ask you first.</p>
-          <div className="rc-field">
-            <label htmlFor={`${id}-email`}>Email address</label>
-            <input
-              className="rc-input"
-              id={`${id}-email`}
-              autoFocus={!inline}
-                data-task-focus
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              disabled={sent || busy}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-          {sent && (
-            <div className="rc-field">
-              <label htmlFor={`${id}-code`}>Sign-in code</label>
-              <input
-                className="rc-input"
-                data-kind="code"
-                id={`${id}-code`}
-                autoFocus
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                required
-                minLength={8}
-                maxLength={16}
-                value={code}
-                onChange={(event) => setCode(event.target.value.replace(/\s/gu, ""))}
-              />
-            </div>
-          )}
-          <div className="rc-action-bar">
-            <button className="rc-button" data-variant="primary" type="submit" disabled={busy}>
-              {sent ? "Sign in to the example" : "Email me a code"}
-            </button>
-            {sent && (
-              <button
-                className="rc-button"
-                data-variant="quiet"
-                type="button"
-                onClick={() => {
-                  setSent(false);
-                  setCode("");
-                }}
-              >
-                Wrong email?
-              </button>
-            )}
-          </div>
-        </form>
-      ) : !state.saved ? (
-        <div className="rc-stack">
-          <p>Signed in to the example. Saving is separate from sharing.</p>
-          <button
-            className="rc-button"
-            data-variant="primary"
-            type="button"
-            disabled={busy}
-            onClick={() => void run(() => service.save())}
-          >
-            Save the example privately
-          </button>
-        </div>
-      ) : intent.kind === "save" ? (
-        <p role="status">
-          {state.visibility === "private" ? "Example saved privately." : "Example shared with the community."}{" "}
-          Only this temporary example changed.
-        </p>
-      ) : intent.kind === "share" || (intent.kind === "intro" && state.visibility !== "public") ? (
-        <form
-          className="rc-stack"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void run(async () => {
-              await service.share(visibility, onward);
-              setMessage("Example visibility saved. No real initiative was published.");
-            });
-          }}
-        >
-          <fieldset className="rc-choice-group">
-            <legend>Who can see it</legend>
-            {(
-              [
-                ["private", "Private, for finding funding", "Only you. Funding stays available."],
-                [
-                  "public",
-                  "Shared with the community",
-                  "A public page and directory entry. Partners can find you.",
-                ],
-              ] as const
-            ).map(([value, title, description]) => (
-              <label className="rc-choice" key={value}>
-                <input
-                  className="rc-check"
-                  type="radio"
-                  name={`${id}-visibility`}
-                  checked={visibility === value}
-                  onChange={() => setVisibility(value)}
-                />
-                <span className="rc-choice-text">
-                  <span className="rc-choice-title">{title}</span>
-                  <span className="rc-choice-note">{description}</span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
-          {visibility === "public" && (
-            <label className="rc-choice">
-              <input
-                className="rc-switch"
-                type="checkbox"
-                checked={onward}
-                onChange={(event) => setOnward(event.target.checked)}
-              />
-              <span className="rc-choice-text">
-                <span className="rc-choice-title">Also list it on other open directories</span>
-                <span className="rc-choice-note">
-                  Off until you choose. This example distributes nothing.
-                </span>
-              </span>
-            </label>
-          )}
-          <button className="rc-button" data-variant="primary" type="submit" disabled={busy}>
-            Save this choice
-          </button>
-        </form>
-      ) : intent.kind === "remind" ? (
-        <div className="rc-stack">
-          <p>
-            One reminder for {intent.name}, a week before it closes. This does not enable a weekly update.
+          {saved ? "Remove from saved" : "Save"}
+        </button>
+        {message && (
+          <p className="rc-meta" role={failed ? "alert" : "status"}>
+            {message}
           </p>
-          <button
-            className="rc-button"
-            data-variant="primary"
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              void run(async () => {
-                await service.remind(intent.id);
-                setMessage("Example reminder on. No email is scheduled.");
-              })
-            }
-          >
-            Confirm example reminder
-          </button>
-        </div>
-      ) : (
-        <form
-          className="rc-stack"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void run(async () => {
-              await service.introduce(intent.ids, note);
-              setMessage("Example introduction requested. Nothing was sent.");
-            });
-          }}
-        >
-          <p>
-            {intent.names.join(", ")} would see your card and the note below. Contact details would be
-            exchanged only after they accept.
-          </p>
-          <div className="rc-field">
-            <label htmlFor={`${id}-note`}>A line in your own words</label>
-            <textarea
-              className="rc-input"
-              id={`${id}-note`}
-              maxLength={1000}
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-            />
-          </div>
-          <button className="rc-button" data-variant="primary" type="submit" disabled={busy}>
-            Confirm example introduction
-          </button>
-        </form>
-      )}
-      {message && !completed && (
-        <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
-          {message}
-        </p>
-      )}
-    </>
-  );
-  return inline ? (
-    <div className="rc-stack">{body}</div>
-  ) : (
+        )}
+      </>
+    );
+  }
+  const completed = state.reminders.includes(intent.id);
+  return (
     <>
       <button
         className="rc-button"
@@ -271,14 +71,36 @@ export function SocialAction({ intent, inline = false }: { intent: SocialIntent;
         disabled={completed}
         onClick={() => setOpen(true)}
       >
-        {completed
-          ? intent.kind === "remind"
-            ? "Example reminder on"
-            : "Example introduction requested"
-          : label}
+        {completed ? "Reminder on" : "Remind me"}
       </button>
-      <TaskDialog title={label} open={open} onClose={() => setOpen(false)}>
-        {body}
+      <TaskDialog title="Remind me" open={open} onClose={() => setOpen(false)}>
+        {completed ? (
+          <p role="status">Reminder on for {intent.name}.</p>
+        ) : !state.identity ? (
+          <ExampleDoor
+            onDone={(result) => {
+              if (result === "cancelled") setOpen(false);
+            }}
+          />
+        ) : (
+          <div className="rc-stack">
+            <p>One reminder for {intent.name}, a week before it closes.</p>
+            <button
+              className="rc-button"
+              data-variant="primary"
+              type="button"
+              disabled={busy}
+              onClick={() => void run(() => service.remind(intent.id))}
+            >
+              Turn on the reminder
+            </button>
+          </div>
+        )}
+        {message && !completed && (
+          <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
+            {message}
+          </p>
+        )}
       </TaskDialog>
     </>
   );

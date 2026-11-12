@@ -34,6 +34,15 @@
   font: var(--type-headline-md);
   font-size: clamp(var(--size-headline-md), 1.25rem + 2vw, var(--size-headline-lg));
 }
+/* A page's title carries a short bar in its section's accent (DL-051). */
+.rc-heading[data-size="page"]::after {
+  content: "";
+  display: block;
+  inline-size: var(--space-7);
+  block-size: var(--border-edge);
+  margin-block-start: var(--space-2);
+  background: var(--section-accent, var(--action));
+}
 .rc-heading[data-size="section"] { font: var(--type-headline-sm); }
 .rc-heading[data-size="hero"] {
   font: var(--type-headline-display);
@@ -47,7 +56,7 @@
   gap: var(--space-1);
   font: var(--type-label-sm);
   letter-spacing: normal;
-  color: var(--text-accent);
+  color: var(--section-accent-text, var(--text-accent));
 }
 
 .rc-prose {
@@ -89,11 +98,24 @@
 }
 .rc-logo:visited { color: var(--on-surface); }
 .rc-logo:hover { color: var(--link-hover); }
+.rc-logo:hover .rc-logo-mark { border-color: var(--section-accent, var(--link)); }
+/* The website's six thread colours, for the hero's mycelium and the logo's ring. */
+.rc-mycelium, .rc-logo-mark {
+  --mycelium-1: var(--forest);
+  --mycelium-2: var(--moss);
+  --mycelium-3: var(--copper);
+  --mycelium-4: var(--teal);
+  --mycelium-5: var(--gold);
+  --mycelium-6: var(--signal);
+}
+/* The website's logo: a little mycelium in a ring, drawn by behaviors/mycelium.js (DL-054). */
 .rc-logo-mark {
   flex: none;
   inline-size: var(--space-6);
   block-size: var(--space-6);
-  color: var(--link);
+  border: var(--border-thin) solid var(--line);
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
 }
 
 /* Button: one solid primary per region, then outlined, then link-style. */
@@ -193,6 +215,8 @@
   background: var(--surface-tint);
   color: var(--on-surface);
 }
+/* As a link, it marks the page it leads to once the person is there, as Settings does in the app header. */
+.rc-icon-button[aria-current="page"] { background: var(--surface-tint); color: var(--on-surface); }
 
 /* Text controls */
 /* Inline containment stops a control's intrinsic width from stretching its layout at large text sizes. */
@@ -307,6 +331,17 @@ textarea.rc-input {
   outline: var(--border-edge) solid var(--focus);
   outline-offset: var(--border-thick);
 }
+/* A chip that is a button wraps long values from its start edge, like the label chips around it. */
+button.rc-chip {
+  padding-block: var(--space-1);
+  text-align: start;
+}
+/* A dashed chip is pencil: the assistant suggested this value and no person has confirmed it. */
+.rc-chip[data-pencil] {
+  border-style: dashed;
+  background: transparent;
+  color: var(--on-surface);
+}
 .rc-chip .rc-check {
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
@@ -336,6 +371,8 @@ textarea.rc-input {
   color: var(--on-surface-tint);
   font: var(--tag-font);
 }
+/* A toned tag says its state in its word; the icon carries the hue. */
+.rc-tag[data-tone] > .rc-icon { color: var(--tone-line); }
 .rc-tag[data-capital] {
   padding-inline-start: 0;
   background: var(--tone);
@@ -504,14 +541,30 @@ textarea.rc-input {
 .rc-media > img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .rc-media[data-size="thumb"] { inline-size: var(--space-9); flex: none; aspect-ratio: 1; }
 .rc-media[data-size="wide"] { aspect-ratio: auto; block-size: var(--space-11); }
+/* Account button: a person in a ring, at the far end of the app header from the logo's own ring.
+   It opens the account's menu (DL-070), and always carries an accessible name. */
 .rc-account {
   display: inline-grid;
   place-items: center;
   inline-size: var(--control-sm-height);
   min-block-size: var(--control-sm-height);
+  padding: 0;
+  border: var(--border-thin) solid var(--control-line);
   border-radius: var(--radius-full);
-  background: var(--surface-tint);
-  color: var(--link);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
   font: var(--type-title-sm);
+  cursor: pointer;
+  touch-action: manipulation;
 }
+.rc-account:hover, .rc-account[aria-expanded="true"] { border-color: var(--on-surface); background: var(--surface-tint); color: var(--on-surface-tint); }
+/* Types of work: the capital recipe with a line icon in place of the glyph tile (DL-065). Colour
+   only groups them; the word and the icon say which. A type with no hue of its own keeps the outline. */
 .rc-tag[data-kind="work"] { border: var(--border-thin) solid var(--control-line); background: transparent; color: inherit; }
+.rc-tag[data-kind="work"][data-lens] { border-color: transparent; background: var(--tone); color: var(--on-tone); }
+[data-lens="place_based"] { --tone: var(--lens-place-based); --on-tone: var(--on-lens-place-based); }
+[data-lens="research"] { --tone: var(--lens-research); --on-tone: var(--on-lens-research); }
+[data-lens="art_culture"] { --tone: var(--lens-art-culture); --on-tone: var(--on-lens-art-culture); }
+[data-lens="learning"] { --tone: var(--lens-learning); --on-tone: var(--on-lens-learning); }
+[data-lens="technology"] { --tone: var(--lens-technology); --on-tone: var(--on-lens-technology); }
+[data-lens="funders"] { --tone: var(--lens-funders); --on-tone: var(--on-lens-funders); }

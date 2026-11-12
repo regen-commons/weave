@@ -1,4 +1,4 @@
-import { SocialAction } from "../social/Action.tsx";
+import { ShareAction } from "../social/Share.tsx";
 import { useEffect, useId, useState } from "react";
 import type { TeamAsk } from "../funding/team.ts";
 import { teamCoverage } from "../funding/team.ts";
@@ -12,9 +12,9 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
   if (!import.meta.env.DEV || asks === null)
     return (
       <section className="rc-stack">
-        <h2 className="rc-heading" data-size="section">
+        <h3 className="rc-heading" data-size="section">
           Stronger with a team
-        </h2>
+        </h3>
         <p>
           Partner requirements have not been structured or checked for this call. Check the funder's published
           terms.
@@ -23,32 +23,26 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
       </section>
     );
   const coverage = teamCoverage(asks, shared ? selected : []);
-  const candidates = [
-    ...new Map(asks.flatMap((ask) => ask.candidates).map((candidate) => [candidate.id, candidate])).values(),
-  ].filter((candidate) => coverage.chosen.includes(candidate.id));
   return (
     <section className="rc-stack" aria-labelledby={`${id}-heading`}>
-      <h2 className="rc-heading" data-size="section" id={`${id}-heading`}>
+      <h3 className="rc-heading" data-size="section" id={`${id}-heading`}>
         Stronger with a team
-      </h2>
-      <p className="rc-meta">
-        Fictional team requirements and coverage. These are not this funder's verified terms. Nothing is sent.
-      </p>
+      </h3>
       {!asks.length ? (
-        <p>This example asks for no partner. It does not establish eligibility.</p>
+        <p>This call asks for no partner. That does not establish eligibility.</p>
       ) : (
         <>
           <ol className="rc-team-slots">
             {asks.map((ask, index) => (
               <li className="rc-team-slot" key={ask.id}>
-                <h3 className="rc-card-title">
+                <h4 className="rc-card-title">
                   {index + 1}. {ask.label}
-                </h3>
+                </h4>
                 {!ask.candidates.length ? (
-                  <p className="rc-meta">Nobody in the example list yet.</p>
+                  <p className="rc-meta">Nobody on the list yet.</p>
                 ) : !shared ? (
                   <p className="rc-meta">
-                    {new Set(ask.candidates.map((candidate) => candidate.id)).size} on the example list could
+                    {new Set(ask.candidates.map((candidate) => candidate.id)).size} on the list could
                     do this. Names stay private.
                   </p>
                 ) : (
@@ -86,32 +80,23 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
                 level={
                   coverage.covered === coverage.total ? "strong" : coverage.covered ? "good" : "possible"
                 }
-                label={`Example team: ${coverage.covered === coverage.total ? "Strong fit" : coverage.covered ? "Good fit" : "Possible fit"}`}
-                explanation="Example coverage only. Team scoring is still being agreed. This never changes the solo fit or establishes eligibility."
+                label={`Team: ${coverage.covered === coverage.total ? "Strong fit" : coverage.covered ? "Good fit" : "Possible fit"}`}
+                explanation="Team scoring is still being agreed. This never changes your own fit or establishes eligibility."
               />
               <p role="status">
-                {coverage.covered} of {coverage.total} example asks covered by {coverage.chosen.length}{" "}
+                {coverage.covered} of {coverage.total} asks covered by {coverage.chosen.length}{" "}
                 {coverage.chosen.length === 1 ? "initiative" : "initiatives"}.
               </p>
               <p className="rc-meta">
-                One initiative can cover several asks and is requested once. This does not establish
-                eligibility.
+                One initiative can cover several asks. This does not establish eligibility, and Weave makes no
+                introductions yet.
               </p>
-              {coverage.chosen.length > 0 && (
-                <SocialAction
-                  intent={{
-                    kind: "intro",
-                    ids: coverage.chosen,
-                    names: candidates.map((candidate) => candidate.name),
-                  }}
-                />
-              )}
             </div>
           ) : (
             <div className="rc-stack">
-              <SocialAction intent={{ kind: "share" }} />
+              <ShareAction />
               <p className="rc-meta">
-                Partners are for shared initiatives. This example keeps names hidden until you share.
+                Other teams' names stay hidden until you share a need or an offer for matching.
               </p>
             </div>
           )}

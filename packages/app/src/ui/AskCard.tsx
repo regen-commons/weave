@@ -1,22 +1,31 @@
 import { CAPITALS } from "../capitals.ts";
+import { entryId, suggestedEntry, type CapitalForm } from "../intake/ask-page.ts";
 import type { AskItem, AskKind } from "../intake/contracts.ts";
-import { askTerms } from "../intake/presentation.ts";
-import { Tag } from "./Tag.tsx";
-/** Ask card molecule: plain source state and equal capital tags, with explicit review. */
+import { askExtras } from "../intake/presentation.ts";
+import { Icon } from "./Icon.tsx";
+
+/**
+ * Ask card molecule: one need or offer in the person's words, with its kinds of support as
+ * chips. A dashed chip, or a whole dashed card, is a suggestion until the page's Continue
+ * keeps it, so the card has no Keep of its own.
+ */
 export function AskCard({
   item,
   kind,
   disabled,
-  onKeep,
-  onChange,
+  noteId,
+  onKind,
+  onMore,
   onRemove,
   onUndo,
 }: {
   item: AskItem;
   kind: AskKind;
   disabled: boolean;
-  onKeep(): void;
-  onChange(): void;
+  /** The line under the list that says what dashed means, when the list has one. */
+  noteId?: string;
+  onKind(kind: CapitalForm): void;
+  onMore(): void;
   onRemove(): void;
   onUndo(): void;
 }) {
@@ -28,7 +37,7 @@ export function AskCard({
           className="rc-button"
           data-variant="quiet"
           type="button"
-          id={`ask-${item.id}-undo`}
+          id={entryId(item.id, "undo")}
           disabled={disabled}
           onClick={onUndo}
         >
@@ -36,59 +45,92 @@ export function AskCard({
         </button>
       </div>
     );
-  const kept = item.decision === "kept";
+  const pencil = item.decision === "pencil";
+  const suggested = suggestedEntry(item);
+  const chosen = CAPITALS.filter((capital) => item.value.capitalForms.includes(capital.key));
+  const addable = CAPITALS.filter((capital) => !item.value.capitalForms.includes(capital.key));
+  const extras = askExtras(item.value, kind);
   return (
     <article
       className="rc-card rc-ask-card"
-      data-kind={kept ? (kind === "needs" ? "need" : "offer") : undefined}
-      data-pencil={!kept || undefined}
-      aria-labelledby={`ask-${item.id}-title`}
+      data-kind={suggested ? undefined : kind === "needs" ? "need" : "offer"}
+      data-pencil={suggested || undefined}
+      aria-labelledby={entryId(item.id, "title")}
     >
-      {item.value.capitalForms.length ? (
-        <ul className="rc-tag-list" aria-label="Kinds of support">
-          {CAPITALS.filter((capital) => item.value.capitalForms.includes(capital.key)).map((capital) => (
-            <li key={capital.key}>
-              <Tag capital={capital} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="rc-meta">Choose the kinds of support in Change.</p>
-      )}
-      <h3 className="rc-ask-title" id={`ask-${item.id}-title`}>
+      <h3 className="rc-ask-title" id={entryId(item.id, "title")}>
         {item.value.title}
       </h3>
       {item.value.description && item.value.description !== item.value.title && (
         <p>{item.value.description}</p>
       )}
-      <p className="rc-ask-terms">{askTerms(item.value, kind)}</p>
+      {chosen.length ? (
+        <ul className="rc-tag-list" aria-label="Kinds of support">
+          {chosen.map((capital) => (
+            <li key={capital.key}>
+              <span className="rc-chip" data-capital={capital.key} data-pencil={pencil || undefined}>
+                <span className="rc-tile" data-state={pencil ? "suggested" : undefined} aria-hidden="true">
+                  {capital.glyph}
+                </span>
+                {capital.label}
+                <button
+                  className="rc-chip-remove"
+                  type="button"
+                  id={entryId(item.id, `kind-${capital.key}-remove`)}
+                  aria-label={`Remove ${capital.label} from ${item.value.title}`}
+                  aria-describedby={pencil ? noteId : undefined}
+                  disabled={disabled}
+                  onClick={() => onKind(capital.key)}
+                >
+                  <Icon name="close" size="sm" />
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="rc-meta">No kind of support yet</p>
+      )}
+      {addable.length > 0 && (
+        <details>
+          <summary className="rc-footer-link" id={entryId(item.id, "kinds")}>
+            Add a kind of support
+          </summary>
+          <ul className="rc-tag-list" aria-label="Kinds of support you can add">
+            {addable.map((capital) => (
+              <li key={capital.key}>
+                <button
+                  className="rc-chip"
+                  type="button"
+                  data-capital={capital.key}
+                  id={entryId(item.id, `kind-${capital.key}-add`)}
+                  disabled={disabled}
+                  onClick={() => onKind(capital.key)}
+                >
+                  <span className="rc-tile" data-state="empty" aria-hidden="true">
+                    {capital.glyph}
+                  </span>
+                  {capital.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {extras && <p className="rc-ask-terms">{extras}</p>}
       {item.value.purpose && kind === "needs" && <p className="rc-meta">{item.value.purpose}</p>}
       {item.value.audience && kind === "offers" && <p className="rc-meta">For {item.value.audience}</p>}
       <div className="rc-ask-foot">
-        <p className="rc-proposal-source">
-          {kept ? "Kept by you" : "Suggested from your words. Check this."}
-        </p>
+        {suggested && <p className="rc-proposal-source">Suggested from your words</p>}
         <div className="rc-action-bar">
-          {!kept && (
-            <button
-              className="rc-button"
-              data-variant="secondary"
-              type="button"
-              disabled={disabled}
-              onClick={onKeep}
-            >
-              Keep
-            </button>
-          )}
           <button
             className="rc-button"
             data-variant="quiet"
             type="button"
             disabled={disabled}
-            id={`ask-${item.id}-change`}
-            onClick={onChange}
+            id={entryId(item.id, "more")}
+            onClick={onMore}
           >
-            Change
+            More details
           </button>
           <button
             className="rc-button"

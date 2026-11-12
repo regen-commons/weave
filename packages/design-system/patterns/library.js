@@ -66,6 +66,17 @@ for (const button of document.querySelectorAll("[data-open-dialog]")) {
   button.addEventListener("click", () => document.getElementById(button.dataset.openDialog)?.showModal());
 }
 
+// Sheets behave as the app's dialog does: each leaves with its arriving motion and follows a drag
+// on a phone. A press outside closes everything but a task.
+import { connectSheet } from "../behaviors/sheet.js";
+import { growLogoMark, growMycelium } from "../behaviors/mycelium.js";
+// The home hero's mycelium grows once, as the app's does.
+for (const canvas of document.querySelectorAll("canvas.rc-mycelium")) growMycelium(canvas);
+for (const canvas of document.querySelectorAll("canvas.rc-logo-mark")) growLogoMark(canvas);
+for (const dialog of document.querySelectorAll("dialog.rc-dialog[data-presentation]")) {
+  connectSheet(dialog, { lightDismiss: dialog.dataset.presentation !== "task" });
+}
+
 // Local native overlay enhancements, shared with the app.
 import { connectPopover, connectTooltip } from "../behaviors/overlays.js";
 const tooltipDisposers = new WeakMap();
@@ -84,7 +95,8 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
   const records = [...example.querySelectorAll("[data-example-record]")];
   const checks = [...example.querySelectorAll("[data-example-country]")];
   function update() {
-    const countries = checks.filter((check) => check.checked).map((check) => check.value);
+    // A filter has a copy in the wide screen's menu and one in the phone's sheet.
+    const countries = [...new Set(checks.filter((check) => check.checked).map((check) => check.value))];
     let count = 0;
     for (const record of records) {
       record.hidden = !record.textContent.toLowerCase().includes(search.value.trim().toLowerCase()) || (countries.length > 0 && !countries.includes(record.dataset.country));
@@ -95,17 +107,31 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
     example.querySelector("[data-example-count]").textContent = `${count} of ${records.length} examples`;
     const chips = example.querySelector("[data-example-chips]");
     chips.replaceChildren();
-    for (const check of checks.filter((check) => check.checked)) {
+    for (const country of countries) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "rc-chip";
-      button.textContent = `Remove ${check.value}`;
-      button.addEventListener("click", () => { check.checked = false; update(); });
+      button.textContent = `Remove ${country}`;
+      button.addEventListener("click", () => { choose(country, false); update(); });
       chips.append(button);
     }
+    // Sort shows its choice on its face; the select under it is clear.
+    const sort = example.querySelector("[data-example-sort]");
+    const face = sort.closest(".rc-sort")?.querySelector(".rc-sort-face > span");
+    if (face) face.textContent = `: ${sort.selectedOptions[0].textContent}`;
   }
+  function choose(country, chosen) {
+    for (const check of checks) if (check.value === country) check.checked = chosen;
+  }
+  example.querySelector("[data-example-clear]")?.addEventListener("click", () => {
+    for (const check of checks) check.checked = false;
+    update();
+  });
   example.querySelector("[data-example-search]").addEventListener("submit", (event) => { event.preventDefault(); update(); });
-  example.addEventListener("change", update);
+  example.addEventListener("change", (event) => {
+    if (event.target.matches("[data-example-country]")) choose(event.target.value, event.target.checked);
+    update();
+  });
   search.addEventListener("input", update);
 }
 
@@ -190,19 +216,3 @@ for (const list of document.querySelectorAll("[data-ask-demo]")) {
 document.querySelector("[data-finish-demo-copy]")?.addEventListener("click", () => { const field = document.querySelector("[data-finish-demo-text]"); field.hidden = false; field.querySelector("textarea").focus(); field.querySelector("textarea").select(); });
 
 for (const input of document.querySelectorAll('[data-team-example]')) input.addEventListener('change', () => { const picked = [...document.querySelectorAll('[data-team-example]:checked')]; document.querySelector('[data-team-example-status]').textContent = picked.length ? '1 of 2 example asks covered by 1 initiative. This does not establish eligibility.' : 'Pick a partner to see what they cover.'; });
-
-// Settings demonstrations affect only the current fictional page.
-const settingsExampleStatus = document.querySelector('[data-settings-example-status]');
-for (const choice of document.querySelectorAll('[data-settings-example-choices] input, [data-settings-example-notify]')) choice.addEventListener('change', () => { settingsExampleStatus.textContent = 'Example choice changed. Nothing is published or emailed.'; });
-document.querySelector('[data-settings-example-export]')?.addEventListener('click', () => {
-  const data = {example: true, visibility: document.querySelector('[name="example-visibility"]:checked')?.value, reminder: document.querySelector('[data-settings-example-notify]').checked};
-  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
-  const link = document.createElement('a'); link.href = url; link.download = 'weave-settings-example.json'; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  settingsExampleStatus.textContent = 'Example download started. It contains no real account data.';
-});
-document.querySelector('[data-settings-example-delete]')?.addEventListener('submit', event => {
-  if(event.submitter?.value !== 'delete') return;
-  document.querySelector('[name="example-visibility"][value="private"]').checked = true;
-  document.querySelector('[data-settings-example-notify]').checked = false;
-  settingsExampleStatus.textContent = 'Example choices cleared. No real record was deleted.';
-});

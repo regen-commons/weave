@@ -13,16 +13,22 @@ export class AccountFailure extends Error {
     this.code = code;
   }
 }
-export async function accountRequest(path = "", body?: unknown): Promise<Record<string, unknown>> {
+export async function accountRequest(
+  path = "",
+  body?: unknown,
+  endpoint = "/api/account",
+  signal?: AbortSignal,
+): Promise<Record<string, unknown>> {
+  const timeout = AbortSignal.timeout(15000);
   let response: Response;
   try {
-    response = await fetch(`/api/account${path}`, {
+    response = await fetch(`${endpoint}${path}`, {
       method: body === undefined ? "GET" : "POST",
       credentials: "same-origin",
       cache: "no-store",
       headers: { "Content-Type": "application/json" },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      signal: AbortSignal.timeout(15000),
+      signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
     });
   } catch {
     throw new AccountFailure("connection_failed");
@@ -31,6 +37,7 @@ export async function accountRequest(path = "", body?: unknown): Promise<Record<
   try {
     data = record(await response.json());
   } catch {
+    if (timeout.aborted) throw new AccountFailure("connection_failed");
     throw new AccountFailure("account_unavailable");
   }
   if (!response.ok)
@@ -39,25 +46,19 @@ export async function accountRequest(path = "", body?: unknown): Promise<Record<
 }
 export interface AccountState {
   available: boolean;
-  otpDigits: number;
   fixture: boolean;
+  emailHintAvailable?: boolean;
   user: AccountUser | null;
   items: InitiativeSummary[];
 }
 export function accountState(data: Record<string, unknown>): AccountState {
   if (data.available === false)
-    return { available: false, otpDigits: 8, fixture: false, user: null, items: [] };
-  if (
-    data.available !== true ||
-    !Number.isInteger(data.otpDigits) ||
-    Number(data.otpDigits) < 6 ||
-    Number(data.otpDigits) > 10
-  )
-    throw new AccountFailure("account_unavailable");
+    return { available: false, fixture: false, user: null, items: [] };
+  if (data.available !== true || data.signIn !== "certified") throw new AccountFailure("account_unavailable");
   return {
     available: true,
-    otpDigits: Number(data.otpDigits),
     fixture: data.fixture === true,
+    ...(data.emailHintAvailable === true ? { emailHintAvailable: true } : {}),
     user: data.user === null ? null : parseUser(data.user),
     items: parseSummaries(data.items),
   };
@@ -71,7 +72,9 @@ export function accountMessage(error: unknown): string {
   return (
     (
       {
-        invalid_code: "That code is invalid or expired. Request a new code and try again.",
+        sign_in_failed: "Certified sign-in could not finish. Your device draft is still here. Try again.",
+        sign_in_unavailable: "Certified sign-in is unavailable. Your device draft is still here. Try again later.",
+        invalid_sign_in_email: "Enter a valid email address for Certified.",
         rate_limited: "Please wait before trying this account action again.",
         sign_in_required: "Your session ended. Sign in again. Your device draft is still here.",
         account_changed:

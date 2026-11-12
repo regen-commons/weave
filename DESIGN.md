@@ -193,6 +193,22 @@ components:
   text-muted-dark: { textColor: "{colors.soil-500}" }
   text-accent: { textColor: "{colors.copper-700}" }
   text-accent-dark: { textColor: "{colors.copper-400}" }
+  accent-home: { backgroundColor: "{colors.forest-700}" }
+  accent-home-dark: { backgroundColor: "{colors.forest-400}" }
+  text-home: { textColor: "{colors.forest-700}" }
+  text-home-dark: { textColor: "{colors.forest-400}" }
+  accent-initiatives: { backgroundColor: "{colors.teal-700}" }
+  accent-initiatives-dark: { backgroundColor: "{colors.teal-400}" }
+  text-initiatives: { textColor: "{colors.teal-800}" }
+  text-initiatives-dark: { textColor: "{colors.teal-400}" }
+  accent-funding: { backgroundColor: "{colors.gold-800}" }
+  accent-funding-dark: { backgroundColor: "{colors.gold-400}" }
+  text-funding: { textColor: "{colors.gold-800}" }
+  text-funding-dark: { textColor: "{colors.gold-400}" }
+  accent-yours: { backgroundColor: "{colors.signal-700}" }
+  accent-yours-dark: { backgroundColor: "{colors.signal-400}" }
+  text-yours: { textColor: "{colors.signal-800}" }
+  text-yours-dark: { textColor: "{colors.signal-400}" }
   text-danger: { textColor: "{colors.madder-800}" }
   text-danger-dark: { textColor: "{colors.madder-300}" }
   link: { textColor: "{colors.forest-700}" }
@@ -247,6 +263,18 @@ components:
   capital-cultural-dark: { backgroundColor: "{colors.gold-900}", textColor: "{colors.gold-300}" }
   capital-spiritual: { backgroundColor: "{colors.signal-100}", textColor: "{colors.signal-800}" }
   capital-spiritual-dark: { backgroundColor: "{colors.signal-900}", textColor: "{colors.signal-300}" }
+  lens-place-based: { backgroundColor: "{colors.forest-100}", textColor: "{colors.forest-800}" }
+  lens-place-based-dark: { backgroundColor: "{colors.forest-900}", textColor: "{colors.forest-300}" }
+  lens-research: { backgroundColor: "{colors.circuit-100}", textColor: "{colors.circuit-800}" }
+  lens-research-dark: { backgroundColor: "{colors.circuit-900}", textColor: "{colors.circuit-300}" }
+  lens-art-culture: { backgroundColor: "{colors.gold-100}", textColor: "{colors.gold-800}" }
+  lens-art-culture-dark: { backgroundColor: "{colors.gold-900}", textColor: "{colors.gold-300}" }
+  lens-learning: { backgroundColor: "{colors.teal-100}", textColor: "{colors.teal-800}" }
+  lens-learning-dark: { backgroundColor: "{colors.teal-900}", textColor: "{colors.teal-300}" }
+  lens-technology: { backgroundColor: "{colors.signal-100}", textColor: "{colors.signal-800}" }
+  lens-technology-dark: { backgroundColor: "{colors.signal-900}", textColor: "{colors.signal-300}" }
+  lens-funders: { backgroundColor: "{colors.amber-100}", textColor: "{colors.amber-800}" }
+  lens-funders-dark: { backgroundColor: "{colors.amber-900}", textColor: "{colors.amber-300}" }
   paper: { backgroundColor: "{colors.soil-100}" }
   paper-dark: { backgroundColor: "{colors.loam-950}" }
   parchment: { backgroundColor: "{colors.soil-200}" }
@@ -282,6 +310,7 @@ components:
   control-lg: { height: 56px, padding: "{spacing.5}" }
   card: { padding: "{spacing.4}", rounded: "{rounded.sm}" }
   sheet: { padding: "{spacing.5}", rounded: "{rounded.lg}" }
+  dialog: { height: 720px, padding: "{spacing.6}" }
   chip: { typography: "{typography.body-sm}", height: 44px, padding: "{spacing.3}", rounded: "{rounded.sm}" }
   tag: { typography: "{typography.body-sm}", height: 28px, padding: "{spacing.2}", rounded: "{rounded.sm}" }
   tile: { typography: "{typography.label-md}", size: 28px, rounded: "{rounded.sm}" }
@@ -346,9 +375,15 @@ Soil and loam are the warm greys. Soil-600 is the only value that replaces a web
 - Colour never carries meaning alone. Pair it with a word, an icon, a shape or a position.
 - Cards are lighter than the page in both themes, so they read as closer.
 
+### Accents: where you are and what it is
+
+Green is for doing: buttons, links and the controls a person sets keep `--action` and `--link` on every page. Each section has an accent that says where you are, as each page of the website has: Home forest, Initiatives teal, Funding gold and Your Initiatives signal blue. Copper is left out because in the light theme it sits too close to Funding's gold. It colours the current tab's bar and icon, a short bar under a page's title, a page's eyebrow, the home hero's italic word and step numbers. A card that opens its record shows a 3 px edge along its top on hover and keyboard focus, in the colour of what it is, funding gold or initiative teal, otherwise its section's. The logo's ring takes the accent on hover. The hero's italic word also carries the website's faint copper ghost (`--print-ghost`), like a print slightly out of register. `rc-page[data-section]` sets `--section-accent` for marks and `--section-accent-text` for words from the `--accent-*` and `--text-*` roles; pages outside a section, such as the steps that start a card, take Home's. A record keeps the colour of what it is wherever it appears: a funding card's eyebrow is funding gold on Home and in Partners as on Funding, and kinds of support and stages keep their own colours. Focus stays gold everywhere, held apart from Funding's bar by the ring's offset. An accent always comes with a word or an icon (DL-050, DL-051).
+
 ### Forms of capital
 
 Eight forms of capital use one recipe: a pale tint with a same-hue dark word and a glyph tile. Colour only groups them. The word and glyph identify them, because several pairs look alike under colour blindness.
+
+Types of work use the same recipe with a line icon in place of the glyph tile: a pale tint, a same-hue word and its icon. Each takes the hue of the nearest form of capital, so the two codes rhyme where they meet on a card: Place-based forest (living), Research circuit (intellectual), Art and culture gold (cultural), Learning and education teal (experiential), Technology signal blue and Funders amber (financial). Colour only groups them; the word and the icon say which (DL-065).
 
 Use each form's framework name as its title, the plain meaning beneath, and examples in a tooltip. Compact tags use that title with the meaning in help. This places review decision 10 and DL-026; the eight names and meanings remain paired in [VOICE.md](packages/design-system/brand/VOICE.md#plain-names).
 
@@ -394,6 +429,7 @@ Tokens are generated into explicit theme blocks instead of using `light-dark()`.
 - Buttons and labels use sentence case. No decorative labels above headings; a factual label stays only when the heading cannot carry it (DL-028).
 - Prose stays within 45 to 75 characters per line (`--prose-width`). Left-align text. Centre three lines at most. Right-align numbers.
 - Fonts are subset to Latin. Yoruba and Vietnamese marks fall back to the system face until [latin-ext subsets](packages/design-system/decision-log.md) are added.
+- Text never changes face once it is drawn. Every face uses `font-display: optional` with a fallback matched to its size, and each surface has the faces it draws first ready before it draws: the app and the pattern library preload them. The clickable prototype carries them inside its stylesheet and draws them with `font-display: block`, because inlined faces are decoded after the first paint and `optional` would keep the fallback. Never load the faces from a service with `display=swap` (DL-057).
 
 ## Layout
 
@@ -419,11 +455,11 @@ There are five levels, tied to distance from the page. Light themes use shadows 
 | 3 | `--shadow-3` | Popovers, sheets |
 | 4 | `--shadow-4` | Dialogs |
 
-Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain and mycelium canvas stay behind one hero region at most, never behind inputs or rows, and they stop under reduced motion.
+Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain sits behind one region per page at most: Home's hero, or a doorway, a page with nothing to fill in and no list, such as signing in to Your Initiatives or a missing page (DL-053). The mycelium grows behind a doorway and under the whole of Home, underneath the page's content (DL-071). A card, a field or a button covers the threads that pass under it, and an outlined button on the page takes the page's fill there. Words set on the page itself have threads behind them, so at rest the network shows whole only in the page's margins and at under half that strength beneath the column of content. New tufts, from a mouse or from scrolling on a phone, are bright wherever they grow and gone within three seconds. The grain never sits behind inputs or rows, and both rest under reduced motion.
 
 ### Motion
 
-Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The home woven-thread backdrop is the only decorative motion and becomes still. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
+Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. The app header and the bottom navigation never fade or move between pages: they change at once above the cross-fade (DL-058). Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: on Home and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them. Without a mouse, as on a phone, scrolling grows them beside the part of the page in view, and one grows on its own every few seconds while the hero is on screen (DL-048, DL-066). Under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
 
 ## Shapes
 
@@ -447,6 +483,7 @@ Border widths mean something: 1 px divides, 2 px marks selection or emphasis, 3 
 - **Conversation** asks one short thing at a time. A large local Speak action comes first when available, with typing and attachments below. The card fills in beside the conversation on wide screens and follows it on phones. Build my card opens review: four public fields and derived details with Keep, Change and Remove. Confirmed corrections stay fixed across builds; Remove offers Undo. Full words remain on the device even when the public description is shortened.
 - **Needs and offers** use the same Ask card, with all applicable kinds of support shown alike. Keep, Change and Remove are explicit decisions. Each list has a counter and at most five active cards; overflow stays in the source words and is named. Undo respects the same limit. Finish brings funding, a count-only Share card and the person's checked card together; unavailable feeds keep their counts unknown.
 - **Local assistant choices** explain privacy before asking for a tap. A download needs an exact size, cancellation, resumption and removal. Keyword and manual entry remain usable meanwhile. An unavailable service is shown only as a labelled development example, never as a working production choice.
+- **Dialogs** hold one thing to read or one decision. On a wide screen a dialog keeps clear of the window: room above and below of 8 percent of the window's height, from 24 to 80 px, and never taller than `--dialog-height` (720 px), so a long one scrolls under its title row and the window still shows around it. Information and tasks read at `--prose-width`, a record at `--list-width`, with `--dialog-padding` (32 px) inside. Buttons keep their own width. On phones every dialog is a bottom sheet with `--sheet-padding` (DL-056). A sheet stops at two thirds of the window, a record included, and scrolls under its title row, so a third of the page stays in view above it to press (DL-060).
 - **Empty states** act as a first screen: a short headline, one line of guidance, one action, and no filters.
 - **Funding** keeps thematic fit apart from readiness and research priority. Visitors browse without invented fit. Program source dates, unknowns and eligibility checks remain visible. Team slots show requirements and count distinct asks and selected initiatives; private initiatives see counts only. Example coverage never establishes eligibility or changes the solo rubric.
 
@@ -454,7 +491,7 @@ Names describe structure, not content. `Card`, not NeedCard. Product words live 
 
 ## Interface Principles
 
-UI work follows three books. Page numbers are PDF pages of the editions the team holds. The PDFs are not in this repository. The [principles folder](packages/design-system/principles/README.md) has fuller notes on how each applies here, and the [review checklist](packages/design-system/principles/ui-review-checklist.md) turns them into checks.
+UI work follows four books. Page numbers are PDF pages of the editions the team holds, and the book's own for the fourth. The PDFs are not in this repository. The [principles folder](packages/design-system/principles/README.md) has fuller notes on how each applies here, and the [review checklist](packages/design-system/principles/ui-review-checklist.md) turns them into checks.
 
 ### How people use what we build
 
@@ -500,6 +537,15 @@ From *Atomic Design* by Brad Frost.
 - Add a shared pattern on its second real use. Retire with notice and a named replacement (152-156).
 - Name patterns by structure: blur the content to find the name (173-174).
 - Run this as a living product with named owners and one code source (140-162).
+
+### How people take in what we show
+
+From *Design for How People Learn* by Julie Dirksen, chapter 4.
+
+- People stop seeing what never changes. Say a status where it answers a question, and nowhere else (86-88).
+- Working memory is small. Group a long list under a few headings, and keep steps to two or three (88-93).
+- A job aid turns remembering into following. Give numbered steps at the moment of the task, for the case in hand, with the sign to look for (97-99, 107).
+- Recognising is easier than recalling. Offer choices before a blank, and say what a fact means for the person (89, 103-104).
 
 ### How we follow them
 
@@ -575,6 +621,7 @@ dark:
 derived:
   line: rgba(var(--copper-rgb), 0.25)
   line-subtle: rgba(var(--copper-rgb), 0.12)
+  print-ghost: rgba(var(--copper-rgb), 0.10)
 rgb:
   - copper
   - forest

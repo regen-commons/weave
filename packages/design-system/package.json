@@ -13,6 +13,14 @@
     "./overlays": {
       "types": "./behaviors/overlays.d.ts",
       "default": "./behaviors/overlays.js"
+    },
+    "./sheet": {
+      "types": "./behaviors/sheet.d.ts",
+      "default": "./behaviors/sheet.js"
+    },
+    "./mycelium": {
+      "types": "./behaviors/mycelium.d.ts",
+      "default": "./behaviors/mycelium.js"
     }
   },
   "scripts": {

@@ -23,7 +23,7 @@ Funding Commons (funding-commons.vercel.app) is a public, browser-local director
 
 Then: partners ranked with reasons: before you share, a teaser shows how many partners match and why, with names hidden; names and contacts open once you add your own project to the list of initiatives (give to get). Anyone can still browse the public directory; opportunities ranked with a solo score and a "stronger with" partner suggestion; recipes to open or join around an opportunity; a weekly pulse for your work and your region; a one-tap "still accurate" that keeps the commons trustworthy. Your work stays on your device until you choose to save it, stays private until you choose to share it, and can be withdrawn at any time.
 
-Saving asks for an email and nothing else, and only after you have seen your first opportunities and the partner teaser. You never have to "create an account". People keep their work because it helps them: on any device, with a reminder before a fund closes, and with a way to reach a partner.
+Saving offers one Certified sign-in after the person has seen value. Weave creates or retrieves its internal account automatically, then the person explicitly saves privately. There is no separate Weave registration, email-code flow or account migration. Certified identity does not require a public project or Ma Earth listing. Reminders and introductions are later, separately consented services.
 
 ## What is different
 
@@ -56,12 +56,12 @@ Regen Commons. The platform is the first tangible member utility: a reason to jo
 
 | Phase | Window | What ships | Gate |
 |---|---|---|---|
-| Phase 0, Seed: the first version | November 2026 (early demo at Community Spotlight on 5 November) | Agent scaffolding and the Regen Commons design system first, so the product carries Regen Commons branding and identity from day one; voice, file and typed input with local AI extraction in the browser and consented cloud fallback; the four public fields, with stage, lenses, themes and place derived; needs and offers with forms of capital; public directory of initiatives; partner matches with reasons, shown once you share your project; opportunities with partner suggestions; saving with an email code, private by default; hub doc import; the first usability round | Working local AI with real users documented for the Mozilla proposal by 20 November; the full first version live by 30 November |
+| Phase 0, Seed: the first version | November 2026 (early demo at Community Spotlight on 5 November) | Agent scaffolding and the Regen Commons design system first, so the product carries Regen Commons branding and identity from day one; voice, file and typed input with local AI extraction in the browser and consented cloud fallback; the four public fields, with stage, lenses, themes and place derived; needs and offers with forms of capital; public directory of initiatives; partner matches with reasons, shown once you share your project; opportunities with partner suggestions; Certified sign-in and explicit private saving; hub doc import; the first usability round | Working local AI with real users documented for the Mozilla proposal by 20 November; the full first version live by 30 November |
 | Phase 1, Sprout | December 2026 to February 2027 | Partnership scoring refinements; weekly pulse; steward desk sections; bioregion and watershed pages; Murmurations publishing; open data export; Portuguese and Spanish | 100 published initiatives across 8 bioregions; pulse open rate above 30 percent |
 | Phase 2, Flowering | March to May 2027 | Recipes with join flows and introduction relay; challenge cohorts; regional pulses for funders; knowledge commons export and KOI partial node; members-first tier; needs-of-the-place synthesis; funder accounts; matching feedback loop | 20 recipes opened, 8 submitted; first funder subscribers |
 | Phase 3, Tree | from June 2027 | Offerings and commitments ledger; Cosmo-Local Credit anchoring for one pilot bioregion; cross-pool coordination with partner networks; federation and shared schema repository | Council policy on shared data; a second network running an instance |
 
-Web3 elements are not needed at the start. The first three phases are email, browser and Postgres. Phase 3 anchors existing records; it does not change how people use the product.
+Web3 elements are not needed at the start. The first build uses Certified sign-in, a browser and Postgres; it requires no wallet. Phase 3 anchors existing records; it does not change how people use the product.
 
 ## How it gets built well
 

@@ -1,0 +1,4760 @@
+{
+  "fixtureSha256": "d0a606d2909b4414cfe7421a0d051d6a95b9a477270fdd74dd135c62e989888e",
+  "baselineSha256": "2a14ce54e8bbd488d32f56792db37ce5c1c549aa1a2827b7db23bf715ec0cf33",
+  "engineSha256": "677ae7a9ebe9531549c3651e77aef6316e22f6306be95ae1fa4dbf6d4db39481",
+  "split": "holdout",
+  "evaluationStatus": "reviewed-holdout-regression",
+  "annotationStatus": "synthetic-agent-authored-awaiting-human-review",
+  "conceptVersion": "partner-concepts-en-v1",
+  "queryCount": 176,
+  "projectCount": 200,
+  "limits": [
+    "Synthetic agent-authored judgments; not blind or human validated.",
+    "Vocabulary and fixture author are shared; scores are regression evidence, not unbiased quality estimates.",
+    "Template variants are correlated; families are the sampling unit.",
+    "Indexed retrieval simulates token overlap, not PostgreSQL ranking. It assumes a refreshed public index.",
+    "Device path uses the first 80 fixture projects, not a representative production snapshot.",
+    "No network, model inference, database, real-user or hosted validation; timings cover ranking only.",
+    "This holdout has already been reviewed; reruns are regression evidence, not independent held-out validation."
+  ],
+  "paths": {
+    "indexed": {
+      "baseline": {
+        "engine": "partner-lexical-v1",
+        "path": "indexed",
+        "summary": {
+          "queries": 88,
+          "families": 24,
+          "returned": 164,
+          "relevantReturned": 120,
+          "precisionAmongReturnedAt5": 0.8117,
+          "candidateRecallAt80": 0.75,
+          "finalRecallAt5": 0.75,
+          "positiveQueryAbstentions": 0,
+          "noMatchQueries": 8,
+          "noMatchFalsePositives": 0,
+          "unsupportedConfirmations": 0,
+          "rankingP95Ms": 0.0813
+        },
+        "byDomainAndDirection": {
+          "art/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 14,
+            "relevantReturned": 12,
+            "precisionAmongReturnedAt5": 0.9,
+            "candidateRecallAt80": 0.6,
+            "finalRecallAt5": 0.6,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 2.0931
+          },
+          "art/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 14,
+            "relevantReturned": 12,
+            "precisionAmongReturnedAt5": 0.9,
+            "candidateRecallAt80": 0.6,
+            "finalRecallAt5": 0.6,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.0467
+          },
+          "software/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 14,
+            "precisionAmongReturnedAt5": 0.6667,
+            "candidateRecallAt80": 0.7,
+            "finalRecallAt5": 0.7,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.3744
+          },
+          "software/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 14,
+            "precisionAmongReturnedAt5": 0.6667,
+            "candidateRecallAt80": 0.7,
+            "finalRecallAt5": 0.7,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.044
+          },
+          "research/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 24,
+            "relevantReturned": 16,
+            "precisionAmongReturnedAt5": 0.8133,
+            "candidateRecallAt80": 0.8,
+            "finalRecallAt5": 0.8,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.0708
+          },
+          "research/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 24,
+            "relevantReturned": 16,
+            "precisionAmongReturnedAt5": 0.8133,
+            "candidateRecallAt80": 0.8,
+            "finalRecallAt5": 0.8,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.0512
+          },
+          "place/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 0.8667,
+            "candidateRecallAt80": 0.9,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.234
+          },
+          "place/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 0.8667,
+            "candidateRecallAt80": 0.9,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.0574
+          }
+        },
+        "misses": [
+          {
+            "id": "art-01-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-03-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-05-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-09-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "art-09-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "art-09-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "art-09-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "software-01-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-03-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-05-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-07-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-09-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "research-03-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-05-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-07-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-09-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "place-03-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-03-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-03-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-03-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-07-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-07-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-07-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-07-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-09-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          },
+          {
+            "id": "place-09-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          },
+          {
+            "id": "place-09-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          },
+          {
+            "id": "place-09-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          }
+        ]
+      },
+      "improved": {
+        "engine": "partner-concepts-v2",
+        "path": "indexed",
+        "summary": {
+          "queries": 88,
+          "families": 24,
+          "returned": 156,
+          "relevantReturned": 156,
+          "precisionAmongReturnedAt5": 1,
+          "candidateRecallAt80": 0.975,
+          "finalRecallAt5": 0.975,
+          "positiveQueryAbstentions": 0,
+          "noMatchQueries": 8,
+          "noMatchFalsePositives": 0,
+          "unsupportedConfirmations": 0,
+          "rankingP95Ms": 0.8934
+        },
+        "byDomainAndDirection": {
+          "art/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 2.4347
+          },
+          "art/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.675
+          },
+          "software/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 18,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 0.9,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.8376
+          },
+          "software/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 18,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 0.9,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.7611
+          },
+          "research/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.9998
+          },
+          "research/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 1.0052
+          },
+          "place/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.4335
+          },
+          "place/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.4448
+          }
+        },
+        "misses": [
+          {
+            "id": "software-01-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 0.5,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          }
+        ]
+      }
+    },
+    "device": {
+      "baseline": {
+        "engine": "partner-lexical-v1",
+        "path": "device",
+        "summary": {
+          "queries": 88,
+          "families": 24,
+          "returned": 124,
+          "relevantReturned": 92,
+          "precisionAmongReturnedAt5": 0.8375,
+          "candidateRecallAt80": 0.8,
+          "finalRecallAt5": 0.575,
+          "positiveQueryAbstentions": 16,
+          "noMatchQueries": 8,
+          "noMatchFalsePositives": 0,
+          "unsupportedConfirmations": 0,
+          "rankingP95Ms": 0.4278
+        },
+        "byDomainAndDirection": {
+          "art/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 12,
+            "relevantReturned": 12,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.6,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.3554
+          },
+          "art/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 12,
+            "relevantReturned": 12,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.6,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.4997
+          },
+          "software/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 14,
+            "precisionAmongReturnedAt5": 0.6667,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.7,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.3957
+          },
+          "software/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 14,
+            "precisionAmongReturnedAt5": 0.6667,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.7,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.5508
+          },
+          "research/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 24,
+            "relevantReturned": 16,
+            "precisionAmongReturnedAt5": 0.8133,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.8,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.3768
+          },
+          "research/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 24,
+            "relevantReturned": 16,
+            "precisionAmongReturnedAt5": 0.8133,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.8,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.6099
+          },
+          "place/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 4,
+            "relevantReturned": 4,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 0.2,
+            "finalRecallAt5": 0.2,
+            "positiveQueryAbstentions": 8,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.4325
+          },
+          "place/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 4,
+            "relevantReturned": 4,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 0.2,
+            "finalRecallAt5": 0.2,
+            "positiveQueryAbstentions": 8,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.3905
+          }
+        },
+        "misses": [
+          {
+            "id": "art-01-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-03-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-05-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-09-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b"
+            ]
+          },
+          {
+            "id": "art-09-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b"
+            ]
+          },
+          {
+            "id": "art-09-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b"
+            ]
+          },
+          {
+            "id": "art-09-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b"
+            ]
+          },
+          {
+            "id": "software-01-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-03-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-05-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-07-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-09-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "research-03-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-05-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-07-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-09-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "place-03-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-03-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-03-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-03-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          }
+        ]
+      },
+      "improved": {
+        "engine": "partner-concepts-v2",
+        "path": "device",
+        "summary": {
+          "queries": 88,
+          "families": 24,
+          "returned": 124,
+          "relevantReturned": 124,
+          "precisionAmongReturnedAt5": 1,
+          "candidateRecallAt80": 0.8,
+          "finalRecallAt5": 0.775,
+          "positiveQueryAbstentions": 16,
+          "noMatchQueries": 8,
+          "noMatchFalsePositives": 0,
+          "unsupportedConfirmations": 0,
+          "rankingP95Ms": 10.5859
+        },
+        "byDomainAndDirection": {
+          "art/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 11.5988
+          },
+          "art/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 10.7136
+          },
+          "software/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 18,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 8.3649
+          },
+          "software/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 18,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 10.4243
+          },
+          "research/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 10.8748
+          },
+          "research/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 11.2501
+          },
+          "place/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 4,
+            "relevantReturned": 4,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 0.2,
+            "finalRecallAt5": 0.2,
+            "positiveQueryAbstentions": 8,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 8.2126
+          },
+          "place/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 4,
+            "relevantReturned": 4,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 0.2,
+            "finalRecallAt5": 0.2,
+            "positiveQueryAbstentions": 8,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 10.435
+          }
+        },
+        "misses": [
+          {
+            "id": "software-01-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "place-03-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-03-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-03-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-03-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-05-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-05",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-07-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          },
+          {
+            "id": "place-09-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 0,
+            "correct": 0,
+            "candidateRecall": 0,
+            "finalRecall": 0,
+            "precision": null,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": []
+          }
+        ]
+      }
+    },
+    "full-corpus": {
+      "baseline": {
+        "engine": "partner-lexical-v1",
+        "path": "full-corpus",
+        "summary": {
+          "queries": 88,
+          "families": 24,
+          "returned": 164,
+          "relevantReturned": 120,
+          "precisionAmongReturnedAt5": 0.8117,
+          "candidateRecallAt80": 1,
+          "finalRecallAt5": 0.75,
+          "positiveQueryAbstentions": 0,
+          "noMatchQueries": 8,
+          "noMatchFalsePositives": 0,
+          "unsupportedConfirmations": 0,
+          "rankingP95Ms": 0.7019
+        },
+        "byDomainAndDirection": {
+          "art/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 14,
+            "relevantReturned": 12,
+            "precisionAmongReturnedAt5": 0.9,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.6,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.5255
+          },
+          "art/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 14,
+            "relevantReturned": 12,
+            "precisionAmongReturnedAt5": 0.9,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.6,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 1.0712
+          },
+          "software/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 14,
+            "precisionAmongReturnedAt5": 0.6667,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.7,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.6062
+          },
+          "software/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 14,
+            "precisionAmongReturnedAt5": 0.6667,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.7,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 1.9837
+          },
+          "research/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 24,
+            "relevantReturned": 16,
+            "precisionAmongReturnedAt5": 0.8133,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.8,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 1.1882
+          },
+          "research/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 24,
+            "relevantReturned": 16,
+            "precisionAmongReturnedAt5": 0.8133,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.8,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.7037
+          },
+          "place/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 0.8667,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.6182
+          },
+          "place/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 22,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 0.8667,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 0.6332
+          }
+        },
+        "misses": [
+          {
+            "id": "art-01-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-01-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-01-b"
+            ]
+          },
+          {
+            "id": "art-03-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-03-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-03-b"
+            ]
+          },
+          {
+            "id": "art-05-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-05-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-05-b"
+            ]
+          },
+          {
+            "id": "art-09-need-0",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "art-09-need-1",
+            "domain": "art",
+            "direction": "need",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "art-09-offer-0",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "art-09-offer-1",
+            "domain": "art",
+            "direction": "offer",
+            "family": "art-09",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "art-09-b",
+              "place-03-a"
+            ]
+          },
+          {
+            "id": "software-01-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-01-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b",
+              "research-07-a"
+            ]
+          },
+          {
+            "id": "software-03-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-03-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-03",
+            "relevant": 2,
+            "returned": 2,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 0.5,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-03-b",
+              "software-07-a"
+            ]
+          },
+          {
+            "id": "software-05-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-05-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-05",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-05-b",
+              "software-05-a",
+              "software-05-near"
+            ]
+          },
+          {
+            "id": "software-07-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-07-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-07-b",
+              "software-07-a",
+              "software-07-near"
+            ]
+          },
+          {
+            "id": "software-09-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "software-09-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-09-b"
+            ]
+          },
+          {
+            "id": "research-03-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-03-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-03",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-03-b"
+            ]
+          },
+          {
+            "id": "research-05-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-05-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-05",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-05-b"
+            ]
+          },
+          {
+            "id": "research-07-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-07-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-07-b",
+              "research-07-a",
+              "research-07-near"
+            ]
+          },
+          {
+            "id": "research-09-need-0",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-need-1",
+            "domain": "research",
+            "direction": "need",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-offer-0",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "research-09-offer-1",
+            "domain": "research",
+            "direction": "offer",
+            "family": "research-09",
+            "relevant": 2,
+            "returned": 5,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.4,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "research-09-b",
+              "research-09-a",
+              "research-09-near",
+              "software-01-a",
+              "software-01-near"
+            ]
+          },
+          {
+            "id": "place-03-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-03-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-03-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-03-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-03",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-03-b",
+              "place-03-a",
+              "place-03-near"
+            ]
+          },
+          {
+            "id": "place-07-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-07-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-07-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-07-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-07",
+            "relevant": 2,
+            "returned": 3,
+            "correct": 2,
+            "candidateRecall": 1,
+            "finalRecall": 1,
+            "precision": 0.6666666666666666,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-07-b",
+              "place-07-a",
+              "place-07-near"
+            ]
+          },
+          {
+            "id": "place-09-need-0",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          },
+          {
+            "id": "place-09-need-1",
+            "domain": "place",
+            "direction": "need",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          },
+          {
+            "id": "place-09-offer-0",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          },
+          {
+            "id": "place-09-offer-1",
+            "domain": "place",
+            "direction": "offer",
+            "family": "place-09",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "place-09-b"
+            ]
+          }
+        ]
+      },
+      "improved": {
+        "engine": "partner-concepts-v2",
+        "path": "full-corpus",
+        "summary": {
+          "queries": 88,
+          "families": 24,
+          "returned": 156,
+          "relevantReturned": 156,
+          "precisionAmongReturnedAt5": 1,
+          "candidateRecallAt80": 1,
+          "finalRecallAt5": 0.975,
+          "positiveQueryAbstentions": 0,
+          "noMatchQueries": 8,
+          "noMatchFalsePositives": 0,
+          "unsupportedConfirmations": 0,
+          "rankingP95Ms": 12.0927
+        },
+        "byDomainAndDirection": {
+          "art/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 11.2765
+          },
+          "art/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 12.0927
+          },
+          "software/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 18,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 12.0332
+          },
+          "software/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 18,
+            "relevantReturned": 18,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 0.9,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 10.6042
+          },
+          "research/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 11.1725
+          },
+          "research/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 18.0068
+          },
+          "place/need": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 10.2711
+          },
+          "place/offer": {
+            "queries": 11,
+            "families": 6,
+            "returned": 20,
+            "relevantReturned": 20,
+            "precisionAmongReturnedAt5": 1,
+            "candidateRecallAt80": 1,
+            "finalRecallAt5": 1,
+            "positiveQueryAbstentions": 0,
+            "noMatchQueries": 1,
+            "noMatchFalsePositives": 0,
+            "unsupportedConfirmations": 0,
+            "rankingP95Ms": 12.141
+          }
+        },
+        "misses": [
+          {
+            "id": "software-01-need-0",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-need-1",
+            "domain": "software",
+            "direction": "need",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-offer-0",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          },
+          {
+            "id": "software-01-offer-1",
+            "domain": "software",
+            "direction": "offer",
+            "family": "software-01",
+            "relevant": 2,
+            "returned": 1,
+            "correct": 1,
+            "candidateRecall": 1,
+            "finalRecall": 0.5,
+            "precision": 1,
+            "falsePositiveNoMatch": false,
+            "unsupportedConfirmation": false,
+            "results": [
+              "software-01-b"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

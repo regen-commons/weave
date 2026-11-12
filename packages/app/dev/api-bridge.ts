@@ -44,6 +44,11 @@ export async function answerApiRequest(
   }
   const body = method === "GET" || method === "HEAD" ? undefined : Readable.toWeb(request);
   const result: Response = await handler(new Request(url, { method, headers, body, duplex: "half" } as RequestInit));
+  // Navigation can close the socket while a handler is still working.
+  if (response.destroyed || response.writableEnded) {
+    await result.body?.cancel();
+    return;
+  }
   response.statusCode = result.status;
   if (result.statusText) response.statusMessage = result.statusText;
   for (const [key, value] of result.headers) {
@@ -51,6 +56,13 @@ export async function answerApiRequest(
   }
   const cookies = result.headers.getSetCookie();
   if (cookies.length) response.setHeader("set-cookie", cookies);
-  if (result.body) await pipeline(Readable.fromWeb(result.body as WebReadableStream), response);
-  else response.end();
+  if (result.body) {
+    try {
+      await pipeline(Readable.fromWeb(result.body as WebReadableStream), response);
+    } catch (error) {
+      // Pipeline cancels its source on disconnect. Preserve actual handler/source errors.
+      const code = error instanceof Error && "code" in error ? error.code : undefined;
+      if (!response.destroyed || (code !== "ERR_STREAM_PREMATURE_CLOSE" && code !== "ERR_STREAM_UNABLE_TO_PIPE")) throw error;
+    }
+  } else response.end();
 }

@@ -2,74 +2,38 @@ import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
 import { useDraft } from "../describe/use-draft.ts";
-import { revise } from "../describe/contracts.ts";
+import { newDraft, revise } from "../describe/contracts.ts";
+import { navigate } from "../router.tsx";
+import { pathTo } from "../routes.ts";
 import type { DraftBackup } from "../describe/repository.ts";
-import { accountKey, loadedDraft, saveCommand } from "./document.ts";
+import { accountKey, loadedDraft, saveBlocker, saveCommand } from "./document.ts";
 import { accountMessage, accountRequest, parseSaved, assertAccount, AccountFailure } from "./client.ts";
 import { useAccount } from "./context.tsx";
-function pendingEmail(): string {
-  try {
-    const value = sessionStorage.getItem("weave-pending-email");
-    return value && value.length <= 254 ? value : "";
-  } catch {
-    return "";
-  }
-}
-function pendingResendAt(): number {
-  try {
-    const value = Number(sessionStorage.getItem("weave-code-resend-at"));
-    return Number.isFinite(value) ? Math.min(value, Date.now() + 60000) : 0;
-  } catch {
-    return 0;
-  }
-}
+import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
+import { AboutCertified } from "../ui/AboutCertified.tsx";
 export function AccountSection({
   compact = false,
   autoFocus = false,
+  heading = true,
   showLeave = true,
+  onBeginCard,
 }: {
   compact?: boolean;
   autoFocus?: boolean;
+  /** Off where a dialog's title already names the section, such as the account door. */
+  heading?: boolean;
   showLeave?: boolean;
+  onBeginCard?: () => void;
 }) {
   const id = useId();
   const Title = compact ? "h3" : "h2";
-  const { state, refresh, clear } = useAccount();
+  const { state, refresh, clear, returnResult, acknowledgeReturn, missingRecord, savedCheck } = useAccount();
   const { controller, draft, ready, storage } = useDraft();
-  const [email, setEmail] = useState(pendingEmail);
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(() => !!pendingEmail());
-  const [focusCode, setFocusCode] = useState(false);
-  useEffect(() => {
-    if (sent && (autoFocus || focusCode)) document.getElementById(`${id}-code`)?.focus();
-  }, [sent, id, autoFocus, focusCode]);
-  const [resendAt, setResendAt] = useState(() => (pendingEmail() ? pendingResendAt() : 0));
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    if (!sent || Date.now() >= resendAt) return;
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, [sent, resendAt]);
-  useEffect(() => {
-    try {
-      if (sent) sessionStorage.setItem("weave-pending-email", email);
-      else sessionStorage.removeItem("weave-pending-email");
-    } catch {}
-  }, [email, sent]);
-  function startCooldown() {
-    const requestedAt = Date.now();
-    setResendAt(requestedAt + 60000);
-    setNow(requestedAt);
-    try {
-      sessionStorage.setItem("weave-code-resend-at", String(requestedAt + 60000));
-    } catch {}
-  }
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    if (failed && !busy && sent) document.getElementById(`${id}-code`)?.focus();
-  }, [failed, busy, sent, id]);
+  const [message, setMessage] = useState(() => signInReturnMessage(returnResult));
+  const [failed, setFailed] = useState(() => ["failed", "cancelled"].includes(returnResult ?? ""));
+  useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
+  const [startingCard, setStartingCard] = useState(false);
   const [selected, setSelected] = useState<InitiativeSummary | null>(null);
   const [backups, setBackups] = useState<DraftBackup[]>([]);
   const [backup, setBackup] = useState<DraftBackup | null>(null);
@@ -77,7 +41,7 @@ export function AccountSection({
   const [more, setMore] = useState(true);
   const key = accountKey(draft),
     saved = draft.account.saved;
-  const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key;
+  const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key && savedCheck === "present";
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -94,6 +58,7 @@ export function AccountSection({
           clear();
         }
         setSelected(null);
+        setStartingCard(false);
         setExtra([]);
       }
       setMessage(accountMessage(error));
@@ -139,9 +104,15 @@ export function AccountSection({
     setMore(true);
     setMessage(
       accountKey(controller.getSnapshot().draft) === binding.contentKey
-        ? "Your checked card is saved privately in your account."
+        ? "Saved privately in Weave. Review any entries you want to share in Partners."
         : "The earlier checked card was saved. Your latest changes are still on this device; save again when ready.",
     );
+  }
+  async function beginCard() {
+    await controller.replace(newDraft());
+    setStartingCard(false);
+    onBeginCard?.();
+    navigate(pathTo("initiative"));
   }
   async function load() {
     if (!selected || !state?.user) return;
@@ -152,18 +123,16 @@ export function AccountSection({
     await controller.replace(loadedDraft(saved, user.id));
     setBackups(await controller.backups());
     setSelected(null);
-    setMessage("Your saved card is loaded. Any previous device draft is kept in Device backups below.");
+    setMessage("Your saved card is loaded. The previous device draft is kept in Device backups in Settings.");
   }
   return (
-    <section className="rc-stack" aria-labelledby={`${id}-title`} aria-busy={busy}>
-      <Title className="rc-heading" data-size="section" id={`${id}-title`}>
-        {compact ? "Keep this initiative" : "Your account"}
-      </Title>
-      {import.meta.env.DEV && state?.fixture && (
-        <p className="rc-notice" data-tone="info">
-          Local account example. Use example@weave.test and code 12345678. No email is sent.
-        </p>
+    <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
+      {heading && (
+        <Title className="rc-heading" data-size="section" id={`${id}-title`}>
+          {compact ? "Save your initiative" : "Your account"}
+        </Title>
       )}
+      {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here. You can save it again.</p>}
       {!state ? (
         <>
           <p>Account access could not be checked yet.</p>
@@ -186,149 +155,84 @@ export function AccountSection({
       ) : !state.user ? (
         <>
           <p>
-            Sign in to save a private copy of your checked card, needs, offers and kept funding details.
-            Conversations, files, unfinished edits and assistant records stay on this device.
+            Sign in with Certified to save your work and open it on another device. Your saved work stays
+            private in Weave.
           </p>
-          <p className="rc-meta">
-            Signing in creates an account if needed. It does not make you a Regen Commons member or share your
-            card.
-          </p>
-          <form
-            className="rc-stack"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void run(async () => {
-                if (sent) {
-                  await accountRequest("", { action: "verify_code", email, code });
-                  await refresh();
-                  setCode("");
-                  setSent(false);
-                  setExtra([]);
-                  setMore(true);
-                  setMessage(
-                    "You are signed in. Choose whether to save this device card or load a saved one.",
-                  );
-                } else {
-                  await accountRequest("", { action: "request_code", email });
-                  setSent(true);
-                  setFocusCode(true);
-                  startCooldown();
-                  setMessage(
-                    "If sign-in is available for this address, a code is on its way. Check your inbox and spam folder.",
-                  );
-                }
-              });
-            }}
-          >
-            <div className="rc-field">
-              <label htmlFor={`${id}-email`}>Email address</label>
-              <input
-                className="rc-input"
-                id={`${id}-email`}
-                autoFocus={autoFocus && !sent}
-                data-task-focus={(autoFocus && !sent) || undefined}
-                type="email"
-                autoComplete="email"
-                spellCheck={false}
-                enterKeyHint="done"
-                maxLength={254}
-                required
-                value={email}
-                disabled={sent || busy}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </div>
-            {sent && (
-              <div className="rc-field">
-                <label htmlFor={`${id}-code`}>Sign-in code</label>
-                <input
-                  className="rc-input"
-                  id={`${id}-code`}
-                  autoFocus={autoFocus || focusCode}
-                  data-task-focus={autoFocus || undefined}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern={`[0-9]{${state.otpDigits}}`}
-                  minLength={state.otpDigits}
-                  maxLength={state.otpDigits * 2}
-                  required
-                  value={code}
-                  disabled={busy}
-                  onChange={(event) => setCode(event.target.value.replace(/\s/gu, ""))}
-                />
-                <p className="rc-hint">
-                  Enter the {state.otpDigits}-digit code from your email. Request a new code if it has
-                  expired.
-                </p>
-              </div>
-            )}
+          <details>
+            <summary className="rc-footer-link">What is saved</summary>
+            <p>
+              Saving keeps your checked card, needs, offers and kept funding details. Conversations, files,
+              unfinished edits and assistant records stay on this device.
+            </p>
+            <p>
+              Signing in does not save, load or share anything. New to Certified? You can join there and come
+              straight back.
+            </p>
+          </details>
+          <AboutCertified />
+          <form className="rc-stack" method="post" onSubmit={(event) => {
+            event.preventDefault();
+            const email = new FormData(event.currentTarget).get("email")?.toString().trim();
+            void run(() => continueToCertified(controller, window.location.pathname,
+              (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
+              (target) => window.location.assign(target)));
+          }}>
             <div className="rc-action-bar">
-              <button className="rc-button" data-variant="primary" disabled={busy} type="submit">
-                {sent ? "Sign in" : "Email a sign-in code"}
+              <button className="rc-button" data-variant="primary" type="submit" disabled={busy || !ready}
+                data-task-focus={autoFocus || undefined}>
+                Sign in with Certified
               </button>
-              {sent && (
-                <>
-                  <button
-                    className="rc-button"
-                    data-variant="secondary"
-                    disabled={busy || now < resendAt}
-                    type="button"
-                    onClick={() =>
-                      void run(async () => {
-                        await accountRequest("", { action: "request_code", email });
-                        startCooldown();
-                        setMessage("If sign-in is available, another code is on its way.");
-                      })
-                    }
-                  >
-                    {now < resendAt ? `Resend code in ${Math.ceil((resendAt - now) / 1000)}s` : "Resend code"}
-                  </button>
-                  <button
-                    className="rc-button"
-                    data-variant="quiet"
-                    disabled={busy}
-                    type="button"
-                    onClick={() => {
-                      setSent(false);
-                      setCode("");
-                      setMessage("");
-                    }}
-                  >
-                    Change email
-                  </button>
-                </>
-              )}
             </div>
+            {state.emailHintAvailable && (
+              <details>
+                <summary className="rc-footer-link">Add your email (optional)</summary>
+                <div className="rc-field">
+                  <label htmlFor={`${id}-email`}>Email for Certified</label>
+                  <p id={`${id}-email-help`} className="rc-hint">
+                    Your email appears in the link to Certified and may be saved in browser history or request logs.
+                  </p>
+                  <input className="rc-input" id={`${id}-email`} name="email" type="email" autoComplete="email" maxLength={254}
+                    aria-describedby={`${id}-email-help`} disabled={busy || !ready} />
+                </div>
+              </details>
+            )}
           </form>
         </>
       ) : (
         <>
-          <p>Signed in as {state.user.email}.</p>
-          <p>
-            Your checked card, needs, offers and kept funding details are saved only when you choose Save.
-            They stay private to this account. Your conversations, files, unfinished edits and assistant
-            records stay on this device.
-          </p>
-          <p className="rc-meta">
-            This session lasts up to one hour. Sign in again when it ends. Signing out leaves the device draft
-            and its backups in this browser; clear this site’s browser storage when leaving a shared device.
-          </p>
+          <p>Signed in with Certified.</p>
+          <details>
+            <summary className="rc-footer-link">About saving and this session</summary>
+            <p>
+              Save keeps a private copy of your checked card, needs, offers and kept funding details. Files and
+              conversations stay on this device.
+            </p>
+            <p>
+              This session lasts up to one hour. Sign in again when it ends. Signing out leaves the device
+              draft and its backups in this browser; clear this site’s browser storage when leaving a shared
+              device.
+            </p>
+            <p>Sharing is separate. Choose what to share from your initiative's page.</p>
+          </details>
           {!key && (
             <p>
-              Check your initiative, needs and offers, and keep or cancel open funding changes before saving.
+              {saveBlocker(draft) ??
+                "Check your initiative, needs and offers, and keep or cancel open funding changes before saving."}
             </p>
           )}
           <div className="rc-action-bar">
-            <button
-              className="rc-button"
-              data-variant="primary"
-              type="button"
-              disabled={busy || !ready || !key || storage !== "saved" || currentSaved}
-              onClick={() => void run(save)}
-            >
-              {currentSaved ? "Checked card saved" : "Save checked card privately"}
-            </button>
+            {/* Once the card is saved there is nothing to press: the header and the list say so. */}
+            {!currentSaved && (
+              <button
+                className="rc-button"
+                data-variant="primary"
+                type="button"
+                disabled={busy || !ready || !key || storage !== "saved"}
+                onClick={() => void run(save)}
+              >
+                Save privately
+              </button>
+            )}
             {showLeave && (
               <SignOutAction
                 disabled={busy}
@@ -338,6 +242,7 @@ export function AccountSection({
                   setFailed(failed);
                   if (!failed) {
                     setSelected(null);
+                    setStartingCard(false);
                     setExtra([]);
                   }
                 }}
@@ -345,8 +250,31 @@ export function AccountSection({
             )}
           </div>
           <h3 className="rc-heading" data-size="section">
-            Your saved cards
+            In Weave
           </h3>
+          <div className="rc-action-bar">
+            <button className="rc-button" data-variant="quiet" type="button" disabled={busy || !ready}
+              onClick={() => {
+                setSelected(null);
+                setBackup(null);
+                setStartingCard(true);
+              }}>
+              Start a new initiative
+            </button>
+          </div>
+          {startingCard && (
+            <section className="rc-notice" data-tone="info" aria-label="Confirm starting a new card">
+              <div className="rc-notice-body">
+                <p>Weave will keep a device backup of this draft, including its conversations and files, before opening a new card.</p>
+                <div className="rc-action-bar">
+                  <button className="rc-button" data-variant="primary" type="button" disabled={busy}
+                    onClick={() => void run(beginCard)}>Back up and start new</button>
+                  <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                    onClick={() => setStartingCard(false)}>Cancel</button>
+                </div>
+              </div>
+            </section>
+          )}
           {!state.items.length && !extra.length ? (
             <p>No cards saved in this account yet.</p>
           ) : (
@@ -366,6 +294,7 @@ export function AccountSection({
                     onClick={() => {
                       setSelected(item);
                       setBackup(null);
+                      setStartingCard(false);
                     }}
                   >
                     Load {item.name}
@@ -464,6 +393,7 @@ export function AccountSection({
                   onClick={() => {
                     setBackup(item);
                     setSelected(null);
+                    setStartingCard(false);
                   }}
                 >
                   Restore {item.draft.confirmed?.name || item.draft.proposal?.name || "untitled draft"},{" "}
@@ -509,7 +439,7 @@ export function AccountSection({
         </p>
       )}
       {busy && <p role="status">Connecting to your account</p>}
-      {message && (
+      {message && (message !== signInReturnMessage("signed-in") || state?.user) && (
         <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
           {message}
         </p>

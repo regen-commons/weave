@@ -95,7 +95,7 @@ for (const theme of ["light", "dark"]) {
 
   test(`${theme} theme: text meets 4.5:1 on every surface`, () => {
     for (const surface of ["surface", "surface-raised", "surface-overlay", "surface-tint", "field"]) {
-      const text = [`on-${surface}`, "text-secondary", "text-muted", "text-accent", "text-danger", "link", "link-hover", "link-visited"];
+      const text = [`on-${surface}`, "text-secondary", "text-muted", "text-accent", "text-danger", "link", "link-hover", "link-visited", "text-home", "text-initiatives", "text-funding", "text-yours"];
       for (const role of text) {
         const ratio = contrast(roles[role], roles[surface]);
         assert.ok(ratio >= 4.5, `${role} on ${surface} is ${ratio.toFixed(2)}:1`);
@@ -113,7 +113,7 @@ for (const theme of ["light", "dark"]) {
   });
 
   test(`${theme} theme: boundaries, focus and state marks meet 3:1 on every surface`, () => {
-    const marks = ["control-line", "focus", "state-success", "state-warning", "state-danger", "state-info", "stage-seed", "stage-sprout", "stage-flowering", "stage-tree", "action"];
+    const marks = ["control-line", "focus", "state-success", "state-warning", "state-danger", "state-info", "stage-seed", "stage-sprout", "stage-flowering", "stage-tree", "action", "accent-home", "accent-initiatives", "accent-funding", "accent-yours"];
     for (const surface of ["surface", "surface-raised", "surface-overlay", "surface-tint"]) {
       for (const mark of marks) {
         const ratio = contrast(roles[mark], roles[surface]);
@@ -145,6 +145,23 @@ test("CSS uses tokens instead of raw values", () => {
   }
 });
 
+test("the app bars keep their place between pages, above the page's cross-fade (DL-058)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  // A rule inside an at-rule applies at some widths only; the bars must be named at every width.
+  const depthAt = (css, index) => [...css.slice(0, index)].reduce((depth, char) => depth + (char === "{") - (char === "}"), 0);
+  for (const [bar, name] of [[".rc-app-header", "rc-app-header"], [".rc-bottom-nav", "rc-bottom-nav"]]) {
+    const named = organisms.match(new RegExp(`\\${bar} \\{ view-transition-name: ${name}; \\}`));
+    assert.ok(named, `${bar} has its own view transition name`);
+    assert.equal(depthAt(organisms, named.index), 0, `${bar} is named at every width`);
+    assert.match(organisms, new RegExp(`::view-transition-old\\(${name}\\)[^{]*\\{ display: none; \\}`), `${bar} changes at once`);
+    assert.match(organisms, new RegExp(`::view-transition-group\\(${name}\\)[^{]*\\{ z-index: var\\(--layer-sticky\\); animation: none; \\}`),
+      `${bar} is drawn above the page`);
+  }
+  // Any other named part of a page would be drawn over the bars while the page changes.
+  const names = CSS_FILES.flatMap((file) => [...stripComments(read(file)).matchAll(/view-transition-name:\s*([a-z-]+)/g)].map((match) => match[1]));
+  assert.deepEqual(names.sort(), ["rc-app-header", "rc-bottom-nav"]);
+});
+
 test("every custom property used is defined", () => {
   const defined = new Set([...tokensCss.matchAll(/--([\w-]+):/g)].map((match) => match[1]));
   const sources = [...CSS_FILES, LIBRARY_CSS].map(read).concat(LIBRARY, Object.values(PAGES));
@@ -152,6 +169,43 @@ test("every custom property used is defined", () => {
   for (const source of sources) {
     for (const match of source.matchAll(/var\(--([\w-]+)/g)) assert.ok(defined.has(match[1]), `--${match[1]} is not defined`);
   }
+});
+
+test("a menu opens beside its trigger and never over it, scrolling inside when the window is short", async () => {
+  const { blockPlacement } = await import("../behaviors/overlays.js");
+  const at = (panelHeight, triggerTop = 380) => blockPlacement({ triggerTop, triggerBottom: triggerTop + 48, panelHeight, windowHeight: 800, gap: 12 });
+  assert.deepEqual(at(200), { top: 440, maxBlock: 348 }, "under the trigger when it fits");
+  assert.deepEqual(at(350), { top: 380 - 12 - 350, maxBlock: 356 }, "over the trigger when it fits only there");
+  assert.deepEqual(at(500, 300), { top: 360, maxBlock: 428 }, "a long menu under a trigger near the top fits whole");
+  const long = at(752);
+  assert.deepEqual(long, { top: 440, maxBlock: 348 }, "too tall for either side: under the trigger while a few rows fit there");
+  assert.ok(long.top >= 428 && long.top + long.maxBlock <= 800, "it starts under its trigger and ends inside the window");
+  const low = at(752, 600);
+  assert.deepEqual(low, { top: 12, maxBlock: 576 }, "with little room under the trigger it takes the room above");
+  assert.ok(low.top + low.maxBlock <= 600, "it ends above the trigger it opened from");
+  assert.deepEqual(blockPlacement({ triggerTop: 4, triggerBottom: 796, panelHeight: 300, windowHeight: 800, gap: 12 }).maxBlock, 0, "no room is no height, never a negative one");
+});
+
+test("a menu starts at its trigger's edge, or ends at it when asked, and stays inside the window (DL-070)", async () => {
+  const { inlinePlacement } = await import("../behaviors/overlays.js");
+  const account = { triggerLeft: 1108, triggerRight: 1152, panelWidth: 288, windowWidth: 1280, gap: 12 };
+  assert.equal(inlinePlacement({ ...account, align: "end" }), 1152 - 288, "the account's menu ends under its button's edge, at the page's edge");
+  assert.equal(inlinePlacement(account), 1280 - 12 - 288, "started at that button it would leave the window, so it is held inside");
+  assert.equal(inlinePlacement({ triggerLeft: 200, triggerRight: 300, panelWidth: 288, windowWidth: 1280, gap: 12 }), 200, "a filter's menu starts at its button");
+  assert.equal(inlinePlacement({ triggerLeft: 20, triggerRight: 64, panelWidth: 288, windowWidth: 360, gap: 12, align: "end" }), 12, "ending at a button near the start would leave the window too");
+  assert.equal(inlinePlacement({ triggerLeft: 300, triggerRight: 344, panelWidth: 348, windowWidth: 360, gap: 12, align: "end" }), 12, "a menu wider than the room keeps its start in view");
+  assert.equal(inlinePlacement({ ...account, align: undefined }), inlinePlacement(account), "a panel that asks for nothing starts at its trigger");
+});
+
+test("the header's name and sections share a baseline, and are centred where a browser cannot align them (DL-070)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  const lead = organisms.match(/\.rc-app-header-lead \{([^}]*)\}/)?.[1] ?? "";
+  const aligns = [...lead.matchAll(/align-items:\s*([^;]+);/g)].map((match) => match[1].trim());
+  // Two values on purpose: a browser that does not know the second keeps the first.
+  assert.deepEqual(aligns, ["center", "last baseline"], "the fallback comes first, so the baseline wins wherever it is understood");
+  assert.match(organisms, /\.rc-app-nav > a \{[^}]*border-block: var\(--border-edge\) solid transparent;/, "a section's box has the same edge above as below, so the fallback centres its word");
+  assert.match(organisms, /\.rc-app-header-state \{[^}]*min-block-size: var\(--control-height\);/, "the bar keeps one height whatever its far end holds");
+  assert.match(organisms, /@media \(width < 20rem\) \{\s*\.rc-app-header \{ flex-wrap: wrap; \}/, "zoomed to twice its size on a phone, the bar's ends take a line each and never overlap");
 });
 
 test("every class is defined, documented and shown", () => {
