@@ -1,8 +1,15 @@
 import { useId, type ReactNode } from "react";
 import type { MatchingEntryKey } from "@weave/api/matching-contract";
+import { CAPITALS } from "../capitals.ts";
 import { Card, CardGrid } from "../ui/Card.tsx";
+import { Fit } from "../ui/Fit.tsx";
+import { Icon } from "../ui/Icon.tsx";
+import { Tag } from "../ui/Tag.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
-import { PREVIEW_FITS, entryLine, fitLines, groupFits, type FitEvidence } from "./groups.ts";
+import {
+  FIT_BASIS, PREVIEW_FITS, entryLine, fitLead, fitLines, fitStrength, groupFits, topicsLine, unknownLine,
+  type FitEvidence,
+} from "./groups.ts";
 import {
   entryKey, leadKey, type EntryRef, type MatchingSearch, type NetworkLead, type NetworkMatch,
 } from "./matching-client.ts";
@@ -46,7 +53,11 @@ export function MatchDetails({ match }: { match: NetworkMatch }) {
   );
 }
 
-export type NamedEntry = EntryRef & { title: string };
+export type NamedEntry = EntryRef & {
+  title: string;
+  /** The kinds of support the person gave the entry, which colour the card it is matched on. */
+  kinds?: readonly string[];
+};
 type ChangeLead = (entry: EntryRef, candidateId: string, disposition: NetworkLead["disposition"]) => void;
 
 /**
@@ -81,16 +92,29 @@ export function FitGroups<Result>({ results, kindOf, keyOf, level, limit, childr
 }
 
 /**
- * One partner result: who it is, which of the person's entries it is for, the other side's own words,
- * what supports the result and what to check. The name is plain text, never a link, so opening the
- * source, saving and hiding stay separate targets.
+ * One partner result (DL-064). It leads with how strong the fit is, then who it is, why it fits, the
+ * other side's own words, what to check and what the result rests on, using the system's Fit, Tag
+ * and Reason patterns. Strength and reasons show only where one of the person's entries is matched;
+ * a browsed result claims no fit. The name is plain text, never a link, so opening the source,
+ * saving and hiding stay separate targets.
  */
-export function FitCard({ level, name, entry, kind, basis, checkPlace = false, actions, children }: {
+export function FitCard({
+  level, name, entry, kind, reciprocal = false, topics = [], kinds = [], unknowns = [], basis, checkPlace = false,
+  actions, children,
+}: {
   level: 3 | 4 | 5;
   name: string;
   /** The person's own need or offer this result is for. Left out where nothing is being matched. */
   entry?: { kind: "need" | "offer"; title: string };
   kind: FitEvidence;
+  /** The other side also has a need or an offer that fits the person's. */
+  reciprocal?: boolean;
+  /** Words the two sides share. */
+  topics?: readonly string[];
+  /** Kinds of support the result is about. */
+  kinds?: readonly string[];
+  /** What the search could not tell. */
+  unknowns?: readonly string[];
   /** Where the evidence comes from and its date in full. It follows the line that says what supports the result. */
   basis: ReactNode;
   /** The result does not say whether the place fits. */
@@ -101,13 +125,35 @@ export function FitCard({ level, name, entry, kind, basis, checkPlace = false, a
 }) {
   const Title = `h${level}` as const;
   const { supports, check } = fitLines(kind);
+  const strength = fitStrength(kind, reciprocal);
+  const { direction, lead } = fitLead(kind);
+  const shared = topicsLine(topics);
+  const unknown = unknownLine(checkPlace ? [...unknowns, "place"] : unknowns);
+  const capitals = CAPITALS.filter((capital) => kinds.includes(capital.key));
   return (
     <Card>
+      {entry && <Fit level={strength} explanation={FIT_BASIS[strength]} />}
       <Title className="rc-card-title">{name}</Title>
-      {entry && <p className="rc-card-meta">{entryLine(entry.kind, entry.title)}</p>}
+      {capitals.length > 0 && (
+        <ul className="rc-tag-list" aria-label="Kinds of support">
+          {capitals.map((capital) => <li key={capital.key}><Tag capital={capital} /></li>)}
+        </ul>
+      )}
+      {entry && (
+        <ul className="rc-reasons">
+          <li className="rc-reason">
+            <Icon name={direction === "they-offer" ? "offer" : "need"} size="sm" />
+            <span>{lead}: <strong>{entry.title}</strong></span>
+          </li>
+          {reciprocal && (
+            <li className="rc-reason"><Icon name="people" size="sm" /><span>The fit goes both ways.</span></li>
+          )}
+          {shared && <li className="rc-reason"><Icon name="search" size="sm" /><span>{shared}</span></li>}
+        </ul>
+      )}
       {children}
+      <p>{check}{unknown && ` ${unknown}`}</p>
       <p className="rc-meta">{supports} {basis}</p>
-      <p>{check}{checkPlace && " Check the location."}</p>
       {actions && <div className="rc-action-bar">{actions}</div>}
     </Card>
   );
@@ -189,12 +235,10 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
           const { evidence } = match;
           return (
             <FitCard level={compact ? 5 : 4} name={name} entry={entry} kind={match.evidenceKind}
-              checkPlace={match.unknowns.includes("place")}
+              reciprocal={match.reciprocal} topics={match.reasons.flatMap(({ terms }) => terms)}
+              kinds={entry.kinds} unknowns={match.unknowns}
               basis={evidence.type === "shared" ? (
-                <>
-                  Shared in Weave on <MatchingDate value={evidence.confirmedAt} />.
-                  {match.reciprocal && " The fit goes both ways."}
-                </>
+                <>Shared in Weave on <MatchingDate value={evidence.confirmedAt} />.</>
               ) : (
                 <>
                   Source dated <MatchingDate value={evidence.sourceCreatedAt} />, checked on{" "}

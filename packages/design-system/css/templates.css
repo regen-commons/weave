@@ -142,10 +142,10 @@
    phone, where the two already fill the row and one more digit would wrap them unevenly, and side
    by side when wide (DL-063). */
 .rc-home-live { display: grid; justify-items: center; min-block-size: var(--control-sm-height); }
-/* Mycelium: the website's branching growth, behind the home hero and nowhere else (DL-046). It
-   takes no pointer, fades out behind the heading, actions and search, and is hidden in forced
-   colours. On phones the words fill the hero, so only its corners show. behaviors/mycelium.js
-   draws it in the website's six thread colours, set here, at the website's own strengths. */
+/* Mycelium: the website's branching growth, behind a doorway, or behind the whole of Home
+   (DL-046, DL-066). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js
+   draws it in the website's six thread colours, set here, at the website's own strengths, and
+   grows it around the page's content, so no mask has to clear the words. */
 .rc-mycelium {
   position: absolute;
   z-index: -1;
@@ -155,11 +155,17 @@
   inline-size: 100cqi;
   block-size: 100%;
   pointer-events: none;
-  --mycelium-clear: radial-gradient(ellipse 62% 66% at 50% 50%, transparent 72%, black 100%);
-  -webkit-mask-image: var(--mycelium-clear), var(--hero-fade);
-  -webkit-mask-composite: source-in;
-  mask-image: var(--mycelium-clear), var(--hero-fade);
-  mask-composite: intersect;
+  -webkit-mask-image: var(--hero-fade);
+  mask-image: var(--hero-fade);
+}
+/* Under a whole page: the page is what the canvas measures and grows around. */
+.rc-main:has(.rc-mycelium[data-extent="page"]) { position: relative; isolation: isolate; }
+.rc-mycelium[data-extent="page"] {
+  inset: 0;
+  translate: none;
+  inline-size: 100%;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 /* The website's paper grain, at its strength, in the same hero only: it never shows against the page. */
 .rc-home-hero::before, .rc-doorway::before {
@@ -184,7 +190,6 @@
 }
 @container (min-width: 37.5rem) {
   .rc-home-hero { padding-block: var(--space-8); gap: var(--space-5); }
-  .rc-mycelium { --mycelium-clear: radial-gradient(ellipse 46% 58% at 50% 46%, transparent 45%, black 100%); }
   .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
   .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); }
   .rc-home-actions {

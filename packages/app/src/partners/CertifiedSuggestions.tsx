@@ -3,8 +3,10 @@ import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
 import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
 import { AccountFailure } from "../account/client.ts";
 import { Card, CardGrid } from "../ui/Card.tsx";
-import { entryLine } from "./groups.ts";
-import { MatchDetails, evidenceLabels } from "./NetworkResults.tsx";
+import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
+import { Fit } from "../ui/Fit.tsx";
+import { Icon } from "../ui/Icon.tsx";
+import { MatchDetails } from "./NetworkResults.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import { projectSuggestions, rankCertifiedSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
 import { requestPublicEvidence } from "./matching-client.ts";
@@ -130,21 +132,31 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
 }
 
 /**
- * One project: each of the person's needs and offers it fits, with what kind of fit it is, then the
- * project's own words once and why each fits on request.
+ * One project (DL-052, DL-064): how strong its best fit is, each of the person's needs and offers it
+ * fits and which way, then the project's own words once and why each fits on request.
  */
 function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" }) {
   const sources = [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
   const several = project.fits.length > 1;
+  const strength = strongestFit(project.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));
   return (
     <Card>
+      <Fit level={strength} explanation={FIT_BASIS[strength]} />
       <Title className="rc-card-title">{project.name}</Title>
-      {project.fits.map(({ query, match }) => (
-        <p className="rc-card-meta" key={`${query.kind}:${query.entryId}`}>
-          {entryLine(query.kind, String(query.value.title))}. {evidenceLabels[match.evidenceKind]}
-          {match.unknowns.includes("availability") ? ", availability unknown." : "."}
-        </p>
-      ))}
+      <ul className="rc-reasons">
+        {project.fits.map(({ query, match }) => {
+          const { direction, lead } = fitLead(match.evidenceKind);
+          return (
+            <li className="rc-reason" key={`${query.kind}:${query.entryId}`}>
+              <Icon name={direction === "they-offer" ? "offer" : "need"} size="sm" />
+              <span>
+                {lead}: <strong>{String(query.value.title)}</strong>
+                {match.unknowns.includes("availability") && ". Availability is unknown."}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
       {project.passages.map(({ text }) => <blockquote className="rc-prose" key={text}>{text}</blockquote>)}
       <details className="rc-stack">
         <summary>{several ? "Why these fit" : "Why this fits"}</summary>

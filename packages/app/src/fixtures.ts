@@ -548,6 +548,10 @@ export interface ExamplePartner {
   /** The person's own need or offer the result is for. */
   readonly entry: { readonly kind: "need" | "offer"; readonly title: string };
   readonly kind: "confirmed_offer" | "confirmed_need";
+  /** The kinds of support the two entries have in common, which is why they were paired. */
+  readonly kinds: ListingRecord["needs"];
+  /** The initiative also fits one of the person's entries the other way round. */
+  readonly reciprocal: boolean;
   readonly title: string;
   readonly passage: string;
   readonly confirmedOn: string;
@@ -572,11 +576,19 @@ export function examplePartners(
       );
       if (!theirs) continue;
       used.add(record.id);
+      // The other way round: one of the person's entries of the other sort, met by this same initiative.
+      const reciprocal = entries.some((other) =>
+        other.kind !== entry.kind &&
+        !!record.publicDetails?.[other.kind === "needs" ? "offers" : "needs"].some((ask) =>
+          ask.capitals.some((capital) => other.kinds.includes(capital))),
+      );
       partners.push({
         id: record.id,
         name: record.title,
         entry: { kind: need ? "need" : "offer", title: entry.title },
         kind: need ? "confirmed_offer" : "confirmed_need",
+        kinds: theirs.capitals.filter((capital) => entry.kinds.includes(capital)),
+        reciprocal,
         title: theirs.title,
         passage: theirs.description,
         confirmedOn: record.confirmed,

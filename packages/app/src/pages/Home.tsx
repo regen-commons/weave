@@ -21,6 +21,7 @@ import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { HomeHero, Stack } from "../ui/layouts.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
+import { Mycelium } from "../ui/Mycelium.tsx";
 import { NumberedList } from "../ui/NumberedList.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { Section } from "../ui/Section.tsx";
@@ -88,6 +89,8 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   );
   return (
     <Stack wide>
+      {/* One canvas under the whole page; it grows around everything below (DL-066). */}
+      <Mycelium extent="page" />
       <HomeHero
         actions={
           <>
