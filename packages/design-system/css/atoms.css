@@ -551,4 +551,13 @@ button.rc-chip {
   color: var(--link);
   font: var(--type-title-sm);
 }
+/* Types of work: the capital recipe with a line icon in place of the glyph tile (DL-065). Colour
+   only groups them; the word and the icon say which. A type with no hue of its own keeps the outline. */
 .rc-tag[data-kind="work"] { border: var(--border-thin) solid var(--control-line); background: transparent; color: inherit; }
+.rc-tag[data-kind="work"][data-lens] { border-color: transparent; background: var(--tone); color: var(--on-tone); }
+[data-lens="place_based"] { --tone: var(--lens-place-based); --on-tone: var(--on-lens-place-based); }
+[data-lens="research"] { --tone: var(--lens-research); --on-tone: var(--on-lens-research); }
+[data-lens="art_culture"] { --tone: var(--lens-art-culture); --on-tone: var(--on-lens-art-culture); }
+[data-lens="learning"] { --tone: var(--lens-learning); --on-tone: var(--on-lens-learning); }
+[data-lens="technology"] { --tone: var(--lens-technology); --on-tone: var(--on-lens-technology); }
+[data-lens="funders"] { --tone: var(--lens-funders); --on-tone: var(--on-lens-funders); }

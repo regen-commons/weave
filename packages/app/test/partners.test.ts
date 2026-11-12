@@ -6,7 +6,21 @@ import { examplePartners, readFixtures } from "../src/fixtures.ts";
 import type { AskKind } from "../src/intake/contracts.ts";
 import { PUBLIC_PARTNER_EVIDENCE } from "../src/partners/catalog.ts";
 import type { PartnerEvidence } from "../src/partners/evidence.ts";
-import { entryLine, fitGroupOf, fitLines, groupFits, PREVIEW_FITS, type FitEvidence } from "../src/partners/groups.ts";
+import {
+  FIT_BASIS,
+  FIT_TOPICS,
+  entryLine,
+  fitGroupOf,
+  fitLead,
+  fitLines,
+  fitStrength,
+  groupFits,
+  PREVIEW_FITS,
+  strongestFit,
+  topicsLine,
+  unknownLine,
+  type FitEvidence,
+} from "../src/partners/groups.ts";
 import { matchPartners } from "../src/partners/match.ts";
 import { projectSuggestions } from "../src/partners/certified-suggestions.ts";
 import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
@@ -170,6 +184,12 @@ test("example partners pair each shared entry with one invented initiative, neve
 
   // The example's own initiative offers living support and is passed over. Willow tools is the only
   // other initiative offering material support, so the second request for it finds no one.
+  assert.deepEqual(partners.map(({ kinds, reciprocal }) => ({ kinds, reciprocal })), [
+    { kinds: ["living"], reciprocal: false },
+    // Willow tools also needs what the workshop offers, so that fit goes both ways.
+    { kinds: ["material"], reciprocal: true },
+    { kinds: ["living"], reciprocal: false },
+  ], "each pair names the kinds of support the two entries share, and whether it holds both ways");
   assert.deepEqual(partners.map(({ id, name, entry, kind }) => ({ id, name, entry, kind })), [
     { id: "field-school", name: "Field learning school", entry: { kind: "need", title: "Native seedlings" }, kind: "confirmed_offer" },
     { id: "willow-tools", name: "Willow tools cooperative", entry: { kind: "need", title: "Planting tools" }, kind: "confirmed_offer" },
@@ -214,4 +234,61 @@ test("Partners for you shows a project once, naming each need and offer it fits"
   assert.deepEqual(lab.passages, [{ text: passage, sourceUrl: "https://example.org/lab" }], "its words show once");
   // A preview keeps the first match for each entry, so the lab stays one card with both fits.
   assert.deepEqual(projectSuggestions(ranked, [need, offer], 1).map(({ name, fits }) => [name, fits.length]), [["Stream Survey Lab", 2]]);
+});
+
+test("a fit's strength comes from what is known about it, never from a score (DL-064)", () => {
+  const stated: FitEvidence[] = ["confirmed_offer", "confirmed_need", "published_offer", "published_need", "published_request"];
+  const read: FitEvidence[] = ["inferred_capability", "potential_use"];
+  for (const kind of stated) {
+    assert.equal(fitStrength(kind), "good", kind);
+    assert.equal(fitStrength(kind, true), "strong", `${kind}, both ways`);
+    assert.equal(fitGroupOf(kind), "direct", "a stated fit is a direct fit");
+  }
+  for (const kind of read) {
+    assert.equal(fitStrength(kind), "possible", kind);
+    assert.equal(fitStrength(kind, true), "possible", "public work read both ways is still not a statement");
+  }
+  assert.equal(strongestFit(["possible", "good"]), "good");
+  assert.equal(strongestFit(["good", "strong", "possible"]), "strong");
+  assert.equal(strongestFit([]), "possible", "nothing known claims the least");
+  for (const basis of Object.values(FIT_BASIS)) assert.doesNotMatch(basis, /\d|score|percent|match/i, "a strength is explained in words");
+  assert.match(FIT_BASIS.possible, /have not offered or asked/);
+});
+
+test("a fit says which way it runs, and a possible fit never claims an offer or a request", () => {
+  assert.deepEqual(fitLead("confirmed_offer"), { direction: "they-offer", lead: "They offer what you need" });
+  assert.deepEqual(fitLead("confirmed_need"), { direction: "they-need", lead: "They need what you offer" });
+  assert.equal(fitLead("published_request").direction, "they-need");
+  assert.equal(fitLead("published_need").lead, fitLead("published_request").lead);
+  for (const kind of ["inferred_capability", "potential_use"] as const) {
+    assert.match(fitLead(kind).lead, /^Their work /, "it speaks of their work, not of something they said");
+  }
+  assert.equal(fitLead("inferred_capability").direction, "they-offer");
+  assert.equal(fitLead("potential_use").direction, "they-need");
+});
+
+test("shared topics and gaps read as one sentence each, and say nothing when there is nothing to say", () => {
+  assert.equal(topicsLine([]), "");
+  assert.equal(topicsLine(["seedlings"]), "You both mention seedlings.");
+  assert.equal(topicsLine(["seedlings", " watershed ", "seedlings", ""]), "You both mention seedlings and watershed.");
+  assert.equal(topicsLine(["a", "b", "c", "d", "e", "f"]), "You both mention a, b, c and d.");
+  assert.equal(FIT_TOPICS, 4);
+  assert.equal(unknownLine([]), "");
+  assert.equal(unknownLine(["place"]), "Not known yet: the place.");
+  assert.equal(unknownLine(["place", "timing", "place"]), "Not known yet: the place and the timing.");
+  assert.equal(unknownLine(["terms", "capacity", "availability"]), "Not known yet: the terms, how much they can take on and whether it is still available.");
+  assert.equal(unknownLine(["something-new"]), "", "a gap with no plain words is left out, never shown raw");
+});
+
+test("an example initiative that fits both ways is told apart from one that fits one way", () => {
+  const { initiatives } = readFixtures("?fixture=shared");
+  const partner = initiatives.find(({ id }) => id === "field-school")!;
+  const theirNeed = partner.publicDetails!.needs[0]!;
+  const partners = examplePartners([
+    { kind: "needs", title: "Native seedlings", kinds: ["living"] },
+    { kind: "offers", title: "What they asked for", kinds: [...theirNeed.capitals] },
+  ], initiatives);
+  assert.equal(partners[0]?.id, "field-school");
+  assert.equal(partners[0]?.reciprocal, true, "they offer what is needed and need what is offered");
+  assert.equal(fitStrength(partners[0]!.kind, partners[0]!.reciprocal), "strong");
 });

@@ -152,6 +152,13 @@ The tests check that generated files are current, the linter is clean, website v
   a long list, and `./overlays` places a menu beside its trigger, never over it
   (`blockPlacement`). Remove the inline field layout the old Sort used (DL-061, DL-062).
 - Home hero's two signs of life sit one per line on phones (DL-063).
+- A partner card composes Fit, Tag list and Reason: strength first, from what is known
+  and never a score, then why it fits (DL-064). No new pattern.
+- Tag: a type of work takes a hue with `data-lens`, the capital recipe with a line icon.
+  Twelve role tokens, `lens-*` (DL-065).
+- Mycelium grows around a page's content and never behind it: `./mycelium` measures the
+  content it sits in, `data-extent="page"` puts one canvas under a whole page, and on a
+  phone scrolling grows new tufts. The clearing mask is removed (DL-066).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
   removed after one build phase.
 

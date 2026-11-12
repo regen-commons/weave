@@ -263,6 +263,18 @@ components:
   capital-cultural-dark: { backgroundColor: "{colors.gold-900}", textColor: "{colors.gold-300}" }
   capital-spiritual: { backgroundColor: "{colors.signal-100}", textColor: "{colors.signal-800}" }
   capital-spiritual-dark: { backgroundColor: "{colors.signal-900}", textColor: "{colors.signal-300}" }
+  lens-place-based: { backgroundColor: "{colors.forest-100}", textColor: "{colors.forest-800}" }
+  lens-place-based-dark: { backgroundColor: "{colors.forest-900}", textColor: "{colors.forest-300}" }
+  lens-research: { backgroundColor: "{colors.circuit-100}", textColor: "{colors.circuit-800}" }
+  lens-research-dark: { backgroundColor: "{colors.circuit-900}", textColor: "{colors.circuit-300}" }
+  lens-art-culture: { backgroundColor: "{colors.gold-100}", textColor: "{colors.gold-800}" }
+  lens-art-culture-dark: { backgroundColor: "{colors.gold-900}", textColor: "{colors.gold-300}" }
+  lens-learning: { backgroundColor: "{colors.teal-100}", textColor: "{colors.teal-800}" }
+  lens-learning-dark: { backgroundColor: "{colors.teal-900}", textColor: "{colors.teal-300}" }
+  lens-technology: { backgroundColor: "{colors.signal-100}", textColor: "{colors.signal-800}" }
+  lens-technology-dark: { backgroundColor: "{colors.signal-900}", textColor: "{colors.signal-300}" }
+  lens-funders: { backgroundColor: "{colors.amber-100}", textColor: "{colors.amber-800}" }
+  lens-funders-dark: { backgroundColor: "{colors.amber-900}", textColor: "{colors.amber-300}" }
   paper: { backgroundColor: "{colors.soil-100}" }
   paper-dark: { backgroundColor: "{colors.loam-950}" }
   parchment: { backgroundColor: "{colors.soil-200}" }
@@ -371,6 +383,8 @@ Green is for doing: buttons, links and the controls a person sets keep `--action
 
 Eight forms of capital use one recipe: a pale tint with a same-hue dark word and a glyph tile. Colour only groups them. The word and glyph identify them, because several pairs look alike under colour blindness.
 
+Types of work use the same recipe with a line icon in place of the glyph tile: a pale tint, a same-hue word and its icon. Each takes the hue of the nearest form of capital, so the two codes rhyme where they meet on a card: Place-based forest (living), Research circuit (intellectual), Art and culture gold (cultural), Learning and education teal (experiential), Technology signal blue and Funders amber (financial). Colour only groups them; the word and the icon say which (DL-065).
+
 Use each form's framework name as its title, the plain meaning beneath, and examples in a tooltip. Compact tags use that title with the meaning in help. This places review decision 10 and DL-026; the eight names and meanings remain paired in [VOICE.md](packages/design-system/brand/VOICE.md#plain-names).
 
 | Form and title | Glyph | Hue | Plain meaning |
@@ -441,11 +455,11 @@ There are five levels, tied to distance from the page. Light themes use shadows 
 | 3 | `--shadow-3` | Popovers, sheets |
 | 4 | `--shadow-4` | Dialogs |
 
-Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain and mycelium canvas sit behind one region per page at most: Home's hero, or a doorway, a page with nothing to fill in and no list, such as signing in to Your initiatives or a missing page (DL-053). They never sit behind inputs or rows, and they rest under reduced motion.
+Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain sits behind one region per page at most: Home's hero, or a doorway, a page with nothing to fill in and no list, such as signing in to Your initiatives or a missing page (DL-053). The mycelium grows behind a doorway and under the whole of Home, and always around the page's content: its words, cards, fields and buttons are measured, and a thread that would cross one turns away or stops, so nothing is drawn behind anything a person reads or fills in (DL-066). Neither sits behind inputs or rows, and both rest under reduced motion.
 
 ### Motion
 
-Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. The app header and the bottom navigation never fade or move between pages: they change at once above the cross-fade (DL-058). Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: in Home's hero and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them; without a mouse, as on a phone, one grows on its own every few seconds while the hero is on screen. Touch never grows one, and under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
+Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. The app header and the bottom navigation never fade or move between pages: they change at once above the cross-fade (DL-058). Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: on Home and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them. Without a mouse, as on a phone, scrolling grows them beside the part of the page in view, and one grows on its own every few seconds while the hero is on screen (DL-048, DL-066). Under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
 
 ## Shapes
 

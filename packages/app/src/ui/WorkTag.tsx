@@ -21,11 +21,13 @@ const INFO: Record<Lens, { icon: IconName; description: string }> = {
   },
   Funders: { icon: "funding", description: "Groups that give or move money to support the work." },
 };
+/** The lens behind a label, which names the tag's colour (DL-065). */
+const LENS_OF = Object.fromEntries(Object.entries(LENS_LABELS).map(([lens, label]) => [label, lens])) as Record<Lens, string>;
 export function WorkTag({ work }: { work: Lens }) {
   const info = INFO[work];
   return (
     <Tooltip text={info.description}>
-      <span className="rc-tag" data-kind="work">
+      <span className="rc-tag" data-kind="work" data-lens={LENS_OF[work]}>
         <Icon name={info.icon} size="sm" />
         {work}
       </span>

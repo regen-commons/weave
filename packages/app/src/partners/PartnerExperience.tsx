@@ -34,6 +34,10 @@ const subscribeOnline = (notify: () => void) => {
 };
 const isOnline = () => navigator.onLine;
 
+/** The kinds of support a saved entry names. The saved document is checked data, but its values are untyped here. */
+const kindsOf = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((kind): kind is string => typeof kind === "string") : [];
+
 export function PartnerExperience({ mode, separateActions = false, refreshVersion = 0 }: { mode: "matches" | "preview"; separateActions?: boolean; refreshVersion?: number }) {
   const { state, clear } = useAccount();
   const social = useSocial();
@@ -121,7 +125,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   const blocked = network.loading || network.busy || !!network.pending || !online;
   const entries = stale ? [] : (state?.entries ?? []).flatMap((entry) => {
     const item = active.document[entry.kind === "need" ? "needs" : "offers"].find(({ id }) => id === entry.entryId);
-    return typeof item?.value.title === "string" ? [{ ...entry, title: item.value.title, classified: Array.isArray(item.value.capitalForms) && item.value.capitalForms.length > 0 }] : [];
+    return typeof item?.value.title === "string" ? [{ ...entry, title: item.value.title, kinds: kindsOf(item.value.capitalForms), classified: Array.isArray(item.value.capitalForms) && item.value.capitalForms.length > 0 }] : [];
   });
   const eligible = entries.filter((entry) =>
     !readOnly && entry.classified && entry.status === "open" && ["private", "needs_review", "withdrawn"].includes(entry.sharing));

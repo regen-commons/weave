@@ -31,10 +31,10 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Check | `rc-check` | stable | Native checkbox and radio |  |  | funding, initiatives, needs, offers, opportunity, saved |
 | Switch | `rc-switch` | stable | A setting that applies at once | `role="switch"` | Never pre-checked for email |  |
 | Chip | `rc-chip` | stable | A choice you tap. Parts: `rc-chip-remove`, and `rc-chip-group` for one question answered with chips, under its fieldset's legend | Selectable, removable, `data-pencil` for a suggested value that opens change or remove | 44 px high | funding, initiatives |
-| Tag | `rc-tag` | stable | A label you read | Plain, with an icon, `data-capital`, `data-kind`: work, `data-tone` for the icon's colour | Three words | funding, home, initiatives, needs, offers, step-needs |
+| Tag | `rc-tag` | stable | A label you read | Plain, with an icon, `data-capital`, `data-kind`: work with `data-lens` for its type's hue (DL-065), `data-tone` for the icon's colour | Three words | funding, home, initiatives, needs, offers, step-needs |
 | Tile | `rc-tile` | stable | Glyph for a form of capital | `data-state`: suggested, empty | Two letters | home, needs, offers, step-needs |
 | Stage | `rc-stage` | stable | Stage of growth, with icon and plain word | `data-stage`: seed, sprout, flowering, tree |  | finish, matches, step-needs |
-| Fit | `rc-fit` | stable | Strength of a match as a word and bar. Part: `rc-fit-bar` | `data-level`: strong, good, possible | Never a number | finish, funding, initiatives, matches |
+| Fit | `rc-fit` | stable | Strength of a match as a word and bar. Part: `rc-fit-bar` | `data-level`: strong, good, possible | Never a number. On a partner card it comes from what is known: stated and both ways, stated, or read from public work (DL-064) | finish, funding, initiatives, matches |
 | Timestamp | `rc-time` | stable | When a record was shared or last confirmed | `data-stale` | Stale after 180 days | finish, home, matches |
 | Spinner | `rc-spinner` | stable | Short waits, inside a button |  |  |  |
 | Skeleton | `rc-skeleton` | stable | Space held for content that is loading |  |  |  |
@@ -129,8 +129,8 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Step layout | `rc-step-layout` | stable | One column, then a sticky side panel. Parts: `rc-step-main`, `rc-step-aside` |  |  | check-card, describe, finish, initiatives, intake-finish, needs, offers, opportunity, opportunity-private, step-needs |
 | List layout | `rc-list-layout` | stable | Full-width list with its own prose measure |  | Card grid columns at least 18 rem | funding, initiatives, matches, matches-empty, your-initiatives |
 | Narrow layout | `rc-narrow` | stable | Focused single tasks |  | 28 rem | code, saved, settings |
-| Home hero | `rc-home-hero` | candidate | Centred heading, one primary (start an initiative, or open the one on this device), search and two signs of life: initiatives shared and funding closing soon, one per line on a phone (DL-063). The italic word takes the section's accent and the website's faint copper ghost. Parts: `rc-home-actions`, `rc-home-live`, `rc-mycelium` | Mycelium at rest under reduced motion | Short phone hero; the website's mycelium and paper grain sit behind it, from the top corners on phones and the sides when wide, clear of the text. On phones a tuft grows on its own every few seconds (DL-046, DL-048) | home |
-| Doorway | `rc-doorway` | candidate | A page with nothing to fill in and no list, such as signing in to Your initiatives or a missing page, opens like Home's hero. Parts: `rc-mycelium` | Mycelium at rest under reduced motion | Only where the page has no field or list; the mycelium and paper grain sit behind it, clear of the words (DL-053) | signed-out |
+| Home hero | `rc-home-hero` | candidate | Centred heading, one primary (start an initiative, or open the one on this device), search and two signs of life: initiatives shared and funding closing soon, one per line on a phone (DL-063). The italic word takes the section's accent and the website's faint copper ghost. Parts: `rc-home-actions`, `rc-home-live`, `rc-mycelium` | Mycelium at rest under reduced motion | Short phone hero; the paper grain sits behind it, and the mycelium grows under the whole of Home, around its content and never behind it. On phones scrolling grows new tufts, and one grows on its own every few seconds while the hero is on screen (DL-046, DL-048, DL-066) | home |
+| Doorway | `rc-doorway` | candidate | A page with nothing to fill in and no list, such as signing in to Your initiatives or a missing page, opens like Home's hero. Parts: `rc-mycelium` | Mycelium at rest under reduced motion | Only where the page has no field or list; the paper grain sits behind it and the mycelium grows down both its sides, around the words (DL-053, DL-066) | signed-out |
 
 | Card grid | `rc-card-grid` | stable | Equal-height record cards with aligned fit lines; a card that has actions keeps them at the bottom | Responsive columns at least `--card-min-width` | Full width with one column on phones | finish, funding, home, initiatives, matches, your-initiatives |
 
@@ -190,7 +190,7 @@ Every page has the same footer, with three short lists: Weave's pages, Data & Pr
 
 ### Work tag and media
 
-Work tags use an icon and outline, apart from filled theme tags and capital tiles. The five types of work are Place-based, Research, Art and culture, Technology, and Learning and education. The research, culture and learning icons follow the existing sprite grid and stroke. Initiative media uses a fixed ratio; Funding has no image. Until uploads are settled (D30), Media is a placeholder that shows an icon only, is named for assistive technology where it stands for a picture, and requests no remote image. Link preview renders supplied content and a destination; it performs no external request. Step 6 adds the public-page composition and approved preview service boundary.
+Work tags use an icon and the hue of their type of work, as a pale tint with a same-hue word (DL-065); capital tags carry a glyph tile instead. The five types of work are Place-based, Research, Art and culture, Technology, and Learning and education. The research, culture and learning icons follow the existing sprite grid and stroke. Initiative media uses a fixed ratio; Funding has no image. Until uploads are settled (D30), Media is a placeholder that shows an icon only, is named for assistive technology where it stands for a picture, and requests no remote image. Link preview renders supplied content and a destination; it performs no external request. Step 6 adds the public-page composition and approved preview service boundary.
 
 ### App header and navigation
 
@@ -370,7 +370,10 @@ public sources, matched on the device, while its entries stay private. Searching
 other teams shared also needs one shared, open need or offer. Results come in two
 groups: direct fits, where they have said they offer or need this, and possible fits,
 where their public work suggests a fit and they have not offered or asked. Each result
-says what supports it and what still needs checking. There are no introductions; a
+leads with how strong the fit is, as a word and a bar, then says why in one-sentence reasons:
+which way it runs with the person's own need or offer named, that it goes both ways where it
+does, and the words both sides share. The other side's own words follow, then what still
+needs checking and what the result rests on (DL-064). There are no introductions; a
 person can save a lead and open its source. Unknown counts stay unknown. The independent
 public directory remains browsable. Live sharing, matching and publishing require their
 service contracts and D26, D28, D30 and D31 decisions. Development examples never

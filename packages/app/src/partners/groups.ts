@@ -68,6 +68,81 @@ export function entryLine(kind: "need" | "offer", title: string): string {
   return `${kind === "need" ? "For your need" : "For your offer"}: ${title}`;
 }
 
+/**
+ * How strong a fit is, as a card says it (DL-064). It comes from what is known about the fit and
+ * nothing else: whether the other side stated it, and whether it holds in both directions. It is
+ * never a score, and it does not reorder results; the search's own order stands.
+ */
+export type FitStrength = "strong" | "good" | "possible";
+
+export function fitStrength(kind: FitEvidence, reciprocal = false): FitStrength {
+  if (fitGroupOf(kind) === "possible") return "possible";
+  return reciprocal ? "strong" : "good";
+}
+
+/** Why a fit has its strength, in one sentence a person can check against the card. */
+export const FIT_BASIS: Readonly<Record<FitStrength, string>> = {
+  strong: "They said so themselves, and the fit goes both ways.",
+  good: "They said so themselves.",
+  possible: "Read from their public work. They have not offered or asked.",
+};
+
+const ORDER: readonly FitStrength[] = ["strong", "good", "possible"];
+
+/** The strongest of several fits, for a card that stands for more than one. */
+export function strongestFit(strengths: readonly FitStrength[]): FitStrength {
+  return ORDER.find((strength) => strengths.includes(strength)) ?? "possible";
+}
+
+/** Which way a fit runs: the other side has something the person needs, or needs something they offer. */
+export type FitDirection = "they-offer" | "they-need";
+
+const LEADS: Record<FitEvidence, { direction: FitDirection; lead: string }> = {
+  confirmed_offer: { direction: "they-offer", lead: "They offer what you need" },
+  published_offer: { direction: "they-offer", lead: "They offer what you need" },
+  inferred_capability: { direction: "they-offer", lead: "Their work relates to what you need" },
+  confirmed_need: { direction: "they-need", lead: "They need what you offer" },
+  published_need: { direction: "they-need", lead: "They ask for what you offer" },
+  published_request: { direction: "they-need", lead: "They ask for what you offer" },
+  potential_use: { direction: "they-need", lead: "Their work could use what you offer" },
+};
+
+/**
+ * What the other side brings to one of the person's entries, as a phrase the entry's title completes:
+ * "They offer what you need: Native seedlings". A possible fit never claims an offer or a request.
+ */
+export function fitLead(kind: FitEvidence): { direction: FitDirection; lead: string } {
+  return LEADS[kind];
+}
+
+const UNKNOWN_WORDS: Record<string, string> = {
+  terms: "the terms",
+  place: "the place",
+  timing: "the timing",
+  capacity: "how much they can take on",
+  audience: "who it is for",
+  availability: "whether it is still available",
+};
+
+/** What the search could not tell, as one sentence, or nothing when it found no gap. */
+export function unknownLine(unknowns: readonly string[]): string {
+  const words = [...new Set(unknowns)].flatMap((unknown) => UNKNOWN_WORDS[unknown] ?? []);
+  if (!words.length) return "";
+  const list = words.length === 1 ? words[0] : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
+  return `Not known yet: ${list}.`;
+}
+
+/** At most this many shared topics on a card; more would be a list to read, not a reason. */
+export const FIT_TOPICS = 4;
+
+/** The topics two sides share, as one sentence, or nothing when none were found. */
+export function topicsLine(topics: readonly string[]): string {
+  const shown = [...new Set(topics.map((topic) => topic.trim()).filter(Boolean))].slice(0, FIT_TOPICS);
+  if (!shown.length) return "";
+  const list = shown.length === 1 ? shown[0] : `${shown.slice(0, -1).join(", ")} and ${shown.at(-1)}`;
+  return `You both mention ${list}.`;
+}
+
 export interface FitGroup<Result> {
   key: FitGroupKey;
   heading: string;

@@ -36,6 +36,7 @@ export function EvidenceCard({ level, evidence, match, save }: {
   const { project, source } = evidence;
   return (
     <FitCard level={level} name={project} kind={evidence.kind} checkPlace={match?.checkPlace}
+      topics={match?.hits} kinds={evidence.capitals}
       entry={match && { kind: evidence.kind === "published_need" ? "offer" : "need", title: match.ask.value.title }}
       basis={evidence.kind === "confirmed_offer" ? (
         <>Confirmed on <MatchingDate value={evidence.confirmation.confirmedOn} />. Source: {source.publisher}.</>

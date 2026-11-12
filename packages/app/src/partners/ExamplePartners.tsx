@@ -88,6 +88,7 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
         level={compact ? 3 : 2} limit={compact ? PREVIEW_FITS : undefined}>
         {(fit) => fit.from === "weave" ? (
           <FitCard level={level} name={fit.partner.name} entry={fit.partner.entry} kind={fit.partner.kind}
+            reciprocal={fit.partner.reciprocal} kinds={fit.partner.kinds}
             basis={<>Shared in Weave on <MatchingDate value={fit.partner.confirmedOn} />.</>}
             actions={!compact && (
               <SocialAction intent={{ kind: "lead", id: fit.partner.id, name: fit.partner.name }} />
