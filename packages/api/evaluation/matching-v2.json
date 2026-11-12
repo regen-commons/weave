@@ -1,0 +1,4049 @@
+{
+  "version": 2,
+  "annotationStatus": "synthetic-agent-authored-awaiting-human-review",
+  "splitPolicy": "project/topic-family/query-disjoint; freeze before scoring holdout; no holdout tuning",
+  "projects": [
+    {
+      "id": "art-00-a",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our ongoing practice is wall art. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-00-b",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "passage": "The collective runs mural painting sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-00-negative",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "passage": "We no longer do wall art.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-00-request",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "passage": "We are seeking wall art.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-00-near",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our current practice is wall insulation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-01-a",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our ongoing practice is pottery kiln. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-01-b",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "The collective runs ceramic firing sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-01-negative",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We no longer do pottery kiln.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-01-request",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We are seeking pottery kiln.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-01-near",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our current practice is pottery shipping.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-02-a",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our ongoing practice is sound recording. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-02-b",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "passage": "The collective runs audio recording sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-02-negative",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "passage": "We no longer do sound recording.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-02-request",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "passage": "We are seeking sound recording.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-02-near",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our current practice is sound insulation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-03-a",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our ongoing practice is video post production. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-03-b",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "The collective runs film editing sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-03-negative",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We no longer do video post production.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-03-request",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We are seeking video post production.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-03-near",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our current practice is video streaming.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-04-a",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our ongoing practice is loom weaving. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-04-b",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "passage": "The collective runs textile weaving sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-04-negative",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "passage": "We no longer do loom weaving.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-04-request",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "passage": "We are seeking loom weaving.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-04-near",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our current practice is textile retail.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-05-a",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our ongoing practice is recorded life stories. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-05-b",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "The collective runs oral history sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-05-negative",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We no longer do recorded life stories.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-05-request",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We are seeking recorded life stories.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-05-near",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our current practice is life insurance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-06-a",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our ongoing practice is screen printing. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-06-b",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "passage": "The collective runs printmaking sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-06-negative",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "passage": "We no longer do screen printing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-06-request",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "passage": "We are seeking screen printing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-06-near",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our current practice is screen repair.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-07-a",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our ongoing practice is bronze casting. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-07-b",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "The collective runs sculpture casting sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-07-negative",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We no longer do bronze casting.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-07-request",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We are seeking bronze casting.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-07-near",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our current practice is bronze cleaning.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-08-a",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our ongoing practice is dance instruction. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-08-b",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "passage": "The collective runs dance teaching sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-08-negative",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "passage": "We no longer do dance instruction.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-08-request",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "passage": "We are seeking dance instruction.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-08-near",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "passage": "Our current practice is dance ticketing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-09-a",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our ongoing practice is artwork restoration. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-09-b",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "The collective runs art conservation sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "art-09-negative",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We no longer do artwork restoration.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-09-request",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "We are seeking artwork restoration.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "art-09-near",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "passage": "Our current practice is artwork shipping.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-00-a",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our ongoing practice is cartography. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-00-b",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "passage": "The collective runs mapmaking sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-00-negative",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "passage": "We no longer do cartography.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-00-request",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "passage": "We are seeking cartography.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-00-near",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our current practice is geography trivia.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-01-a",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our ongoing practice is quality assurance. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-01-b",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "The collective runs software testing sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-01-negative",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We no longer do quality assurance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-01-request",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We are seeking quality assurance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-01-near",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our current practice is quality furniture.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-02-a",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our ongoing practice is web accessibility. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-02-b",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "passage": "The collective runs screen reader support sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-02-negative",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "passage": "We no longer do web accessibility.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-02-request",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "passage": "We are seeking web accessibility.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-02-near",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our current practice is web advertising.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-03-a",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our ongoing practice is interactive charts. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-03-b",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "The collective runs data visualization sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-03-negative",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We no longer do interactive charts.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-03-request",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We are seeking interactive charts.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-03-near",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our current practice is chart music.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-04-a",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our ongoing practice is software security. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-04-b",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "passage": "The collective runs application security sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-04-negative",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "passage": "We no longer do software security.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-04-request",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "passage": "We are seeking software security.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-04-near",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our current practice is security fencing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-05-a",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our ongoing practice is language localization. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-05-b",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "The collective runs language translation sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-05-negative",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We no longer do language localization.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-05-request",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We are seeking language localization.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-05-near",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our current practice is language classification.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-06-a",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our ongoing practice is database maintenance. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-06-b",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "passage": "The collective runs database administration sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-06-negative",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "passage": "We no longer do database maintenance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-06-request",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "passage": "We are seeking database maintenance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-06-near",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our current practice is data entry.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-07-a",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our ongoing practice is offline data sync. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-07-b",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "The collective runs offline synchronization sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-07-negative",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We no longer do offline data sync.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-07-request",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We are seeking offline data sync.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-07-near",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our current practice is offline events.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-08-a",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our ongoing practice is source code management. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-08-b",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "passage": "The collective runs version control sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-08-negative",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "passage": "We no longer do source code management.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-08-request",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "passage": "We are seeking source code management.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-08-near",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "passage": "Our current practice is source water protection.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-09-a",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our ongoing practice is usability studies. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-09-b",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "The collective runs user research sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "software-09-negative",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We no longer do usability studies.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-09-request",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "We are seeking usability studies.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "software-09-near",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "passage": "Our current practice is clinical studies.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-00-a",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our ongoing practice is statistical modelling. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-00-b",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "passage": "The collective runs statistical analysis sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-00-negative",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "passage": "We no longer do statistical modelling.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-00-request",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "passage": "We are seeking statistical modelling.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-00-near",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our current practice is fashion modelling.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-01-a",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our ongoing practice is genome sequencing. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-01-b",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "The collective runs DNA sequencing sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-01-negative",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We no longer do genome sequencing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-01-request",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We are seeking genome sequencing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-01-near",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our current practice is genome illustration.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-02-a",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our ongoing practice is water quality analysis. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-02-b",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "passage": "The collective runs water quality testing sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-02-negative",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "passage": "We no longer do water quality analysis.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-02-request",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "passage": "We are seeking water quality analysis.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-02-near",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our current practice is water delivery.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-03-a",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our ongoing practice is microscope imaging. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-03-b",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "The collective runs microscopy sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-03-negative",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We no longer do microscope imaging.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-03-request",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We are seeking microscope imaging.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-03-near",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our current practice is satellite imaging.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-04-a",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our ongoing practice is questionnaire design. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-04-b",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "passage": "The collective runs survey design sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-04-negative",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "passage": "We no longer do questionnaire design.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-04-request",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "passage": "We are seeking questionnaire design.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-04-near",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our current practice is furniture design.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-05-a",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our ongoing practice is evidence synthesis. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-05-b",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "The collective runs systematic review sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-05-negative",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We no longer do evidence synthesis.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-05-request",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We are seeking evidence synthesis.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-05-near",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our current practice is music synthesis.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-06-a",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our ongoing practice is taxonomic identification. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-06-b",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "passage": "The collective runs species identification sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-06-negative",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "passage": "We no longer do taxonomic identification.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-06-request",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "passage": "We are seeking taxonomic identification.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-06-near",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our current practice is identity documents.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-07-a",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our ongoing practice is soil testing. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-07-b",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "The collective runs soil analysis sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-07-negative",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We no longer do soil testing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-07-request",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We are seeking soil testing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-07-near",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our current practice is soil transport.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-08-a",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our ongoing practice is research data curation. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-08-b",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "passage": "The collective runs research data stewardship sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-08-negative",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "passage": "We no longer do research data curation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-08-request",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "passage": "We are seeking research data curation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-08-near",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "passage": "Our current practice is art curation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-09-a",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our ongoing practice is air pollution measurement. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-09-b",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "The collective runs air quality monitoring sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "research-09-negative",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We no longer do air pollution measurement.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-09-request",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "We are seeking air pollution measurement.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "research-09-near",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "passage": "Our current practice is air conditioning.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-00-a",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our ongoing practice is marsh rehabilitation. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-00-b",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "passage": "The collective runs wetland restoration sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-00-negative",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "passage": "We no longer do marsh rehabilitation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-00-request",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "passage": "We are seeking marsh rehabilitation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-00-near",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our current practice is hospital rehabilitation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-01-a",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our ongoing practice is rainwater collection. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-01-b",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "The collective runs rainwater harvesting sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-01-negative",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We no longer do rainwater collection.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-01-request",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We are seeking rainwater collection.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-01-near",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our current practice is waste collection.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-02-a",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our ongoing practice is bike maintenance. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-02-b",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "passage": "The collective runs bicycle repair sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-02-negative",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "passage": "We no longer do bike maintenance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-02-request",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "passage": "We are seeking bike maintenance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-02-near",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our current practice is bike racing.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-03-a",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our ongoing practice is seed conservation. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-03-b",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "The collective runs seed saving sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-03-negative",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We no longer do seed conservation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-03-request",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We are seeking seed conservation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-03-near",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our current practice is seed finance.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-04-a",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our ongoing practice is surplus food distribution. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-04-b",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "passage": "The collective runs food redistribution sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-04-negative",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "passage": "We no longer do surplus food distribution.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-04-request",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "passage": "We are seeking surplus food distribution.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-04-near",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our current practice is food photography.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-05-a",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our ongoing practice is organic waste composting. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-05-b",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "The collective runs composting sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-05-negative",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We no longer do organic waste composting.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-05-request",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We are seeking organic waste composting.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-05-near",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our current practice is waste incineration.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-06-a",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our ongoing practice is conflict resolution. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-06-b",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "passage": "The collective runs community mediation sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-06-negative",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "passage": "We no longer do conflict resolution.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-06-request",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "passage": "We are seeking conflict resolution.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-06-near",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our current practice is conflict reporting.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-07-a",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our ongoing practice is photovoltaic installation. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-07-b",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "The collective runs solar installation sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-07-negative",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We no longer do photovoltaic installation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-07-request",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We are seeking photovoltaic installation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-07-near",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our current practice is solar astronomy.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-08-a",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our ongoing practice is stream rehabilitation. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-08-b",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "passage": "The collective runs river restoration sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-08-negative",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "passage": "We no longer do stream rehabilitation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-08-request",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "passage": "We are seeking stream rehabilitation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-08-near",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "passage": "Our current practice is video stream production.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-09-a",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our ongoing practice is reforestation. We document completed activities and techniques.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-09-b",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "The collective runs tree planting sessions with a documented portfolio.",
+      "source": "synthetic",
+      "relevant": true
+    },
+    {
+      "id": "place-09-negative",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We no longer do reforestation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-09-request",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "We are seeking reforestation.",
+      "source": "synthetic",
+      "relevant": false
+    },
+    {
+      "id": "place-09-near",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "passage": "Our current practice is forest tourism.",
+      "source": "synthetic",
+      "relevant": false
+    }
+  ],
+  "queries": [
+    {
+      "id": "art-00-need-0",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "mural painting",
+      "relevant": [
+        "art-00-a",
+        "art-00-b"
+      ],
+      "rationale": "Documented wall art or mural painting; availability and demand are unknown."
+    },
+    {
+      "id": "art-00-need-1",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "mural painting for a neighbourhood initiative",
+      "relevant": [
+        "art-00-a",
+        "art-00-b"
+      ],
+      "rationale": "Documented wall art or mural painting; availability and demand are unknown."
+    },
+    {
+      "id": "art-00-offer-0",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "mural painting",
+      "relevant": [
+        "art-00-a",
+        "art-00-b"
+      ],
+      "rationale": "Documented wall art or mural painting; availability and demand are unknown."
+    },
+    {
+      "id": "art-00-offer-1",
+      "family": "art-00",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "mural painting for a neighbourhood initiative",
+      "relevant": [
+        "art-00-a",
+        "art-00-b"
+      ],
+      "rationale": "Documented wall art or mural painting; availability and demand are unknown."
+    },
+    {
+      "id": "art-01-need-0",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "ceramic firing",
+      "relevant": [
+        "art-01-a",
+        "art-01-b"
+      ],
+      "rationale": "Documented pottery kiln or ceramic firing; availability and demand are unknown."
+    },
+    {
+      "id": "art-01-need-1",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "ceramic firing for a neighbourhood initiative",
+      "relevant": [
+        "art-01-a",
+        "art-01-b"
+      ],
+      "rationale": "Documented pottery kiln or ceramic firing; availability and demand are unknown."
+    },
+    {
+      "id": "art-01-offer-0",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "ceramic firing",
+      "relevant": [
+        "art-01-a",
+        "art-01-b"
+      ],
+      "rationale": "Documented pottery kiln or ceramic firing; availability and demand are unknown."
+    },
+    {
+      "id": "art-01-offer-1",
+      "family": "art-01",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "ceramic firing for a neighbourhood initiative",
+      "relevant": [
+        "art-01-a",
+        "art-01-b"
+      ],
+      "rationale": "Documented pottery kiln or ceramic firing; availability and demand are unknown."
+    },
+    {
+      "id": "art-02-need-0",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "audio recording",
+      "relevant": [
+        "art-02-a",
+        "art-02-b"
+      ],
+      "rationale": "Documented sound recording or audio recording; availability and demand are unknown."
+    },
+    {
+      "id": "art-02-need-1",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "audio recording for a neighbourhood initiative",
+      "relevant": [
+        "art-02-a",
+        "art-02-b"
+      ],
+      "rationale": "Documented sound recording or audio recording; availability and demand are unknown."
+    },
+    {
+      "id": "art-02-offer-0",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "audio recording",
+      "relevant": [
+        "art-02-a",
+        "art-02-b"
+      ],
+      "rationale": "Documented sound recording or audio recording; availability and demand are unknown."
+    },
+    {
+      "id": "art-02-offer-1",
+      "family": "art-02",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "audio recording for a neighbourhood initiative",
+      "relevant": [
+        "art-02-a",
+        "art-02-b"
+      ],
+      "rationale": "Documented sound recording or audio recording; availability and demand are unknown."
+    },
+    {
+      "id": "art-03-need-0",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "film editing",
+      "relevant": [
+        "art-03-a",
+        "art-03-b"
+      ],
+      "rationale": "Documented video post production or film editing; availability and demand are unknown."
+    },
+    {
+      "id": "art-03-need-1",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "film editing for a neighbourhood initiative",
+      "relevant": [
+        "art-03-a",
+        "art-03-b"
+      ],
+      "rationale": "Documented video post production or film editing; availability and demand are unknown."
+    },
+    {
+      "id": "art-03-offer-0",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "film editing",
+      "relevant": [
+        "art-03-a",
+        "art-03-b"
+      ],
+      "rationale": "Documented video post production or film editing; availability and demand are unknown."
+    },
+    {
+      "id": "art-03-offer-1",
+      "family": "art-03",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "film editing for a neighbourhood initiative",
+      "relevant": [
+        "art-03-a",
+        "art-03-b"
+      ],
+      "rationale": "Documented video post production or film editing; availability and demand are unknown."
+    },
+    {
+      "id": "art-04-need-0",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "textile weaving",
+      "relevant": [
+        "art-04-a",
+        "art-04-b"
+      ],
+      "rationale": "Documented loom weaving or textile weaving; availability and demand are unknown."
+    },
+    {
+      "id": "art-04-need-1",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "textile weaving for a neighbourhood initiative",
+      "relevant": [
+        "art-04-a",
+        "art-04-b"
+      ],
+      "rationale": "Documented loom weaving or textile weaving; availability and demand are unknown."
+    },
+    {
+      "id": "art-04-offer-0",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "textile weaving",
+      "relevant": [
+        "art-04-a",
+        "art-04-b"
+      ],
+      "rationale": "Documented loom weaving or textile weaving; availability and demand are unknown."
+    },
+    {
+      "id": "art-04-offer-1",
+      "family": "art-04",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "textile weaving for a neighbourhood initiative",
+      "relevant": [
+        "art-04-a",
+        "art-04-b"
+      ],
+      "rationale": "Documented loom weaving or textile weaving; availability and demand are unknown."
+    },
+    {
+      "id": "art-05-need-0",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "oral history",
+      "relevant": [
+        "art-05-a",
+        "art-05-b"
+      ],
+      "rationale": "Documented recorded life stories or oral history; availability and demand are unknown."
+    },
+    {
+      "id": "art-05-need-1",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "oral history for a neighbourhood initiative",
+      "relevant": [
+        "art-05-a",
+        "art-05-b"
+      ],
+      "rationale": "Documented recorded life stories or oral history; availability and demand are unknown."
+    },
+    {
+      "id": "art-05-offer-0",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "oral history",
+      "relevant": [
+        "art-05-a",
+        "art-05-b"
+      ],
+      "rationale": "Documented recorded life stories or oral history; availability and demand are unknown."
+    },
+    {
+      "id": "art-05-offer-1",
+      "family": "art-05",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "oral history for a neighbourhood initiative",
+      "relevant": [
+        "art-05-a",
+        "art-05-b"
+      ],
+      "rationale": "Documented recorded life stories or oral history; availability and demand are unknown."
+    },
+    {
+      "id": "art-06-need-0",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "printmaking",
+      "relevant": [
+        "art-06-a",
+        "art-06-b"
+      ],
+      "rationale": "Documented screen printing or printmaking; availability and demand are unknown."
+    },
+    {
+      "id": "art-06-need-1",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "printmaking for a neighbourhood initiative",
+      "relevant": [
+        "art-06-a",
+        "art-06-b"
+      ],
+      "rationale": "Documented screen printing or printmaking; availability and demand are unknown."
+    },
+    {
+      "id": "art-06-offer-0",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "printmaking",
+      "relevant": [
+        "art-06-a",
+        "art-06-b"
+      ],
+      "rationale": "Documented screen printing or printmaking; availability and demand are unknown."
+    },
+    {
+      "id": "art-06-offer-1",
+      "family": "art-06",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "printmaking for a neighbourhood initiative",
+      "relevant": [
+        "art-06-a",
+        "art-06-b"
+      ],
+      "rationale": "Documented screen printing or printmaking; availability and demand are unknown."
+    },
+    {
+      "id": "art-07-need-0",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "sculpture casting",
+      "relevant": [
+        "art-07-a",
+        "art-07-b"
+      ],
+      "rationale": "Documented bronze casting or sculpture casting; availability and demand are unknown."
+    },
+    {
+      "id": "art-07-need-1",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "sculpture casting for a neighbourhood initiative",
+      "relevant": [
+        "art-07-a",
+        "art-07-b"
+      ],
+      "rationale": "Documented bronze casting or sculpture casting; availability and demand are unknown."
+    },
+    {
+      "id": "art-07-offer-0",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "sculpture casting",
+      "relevant": [
+        "art-07-a",
+        "art-07-b"
+      ],
+      "rationale": "Documented bronze casting or sculpture casting; availability and demand are unknown."
+    },
+    {
+      "id": "art-07-offer-1",
+      "family": "art-07",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "sculpture casting for a neighbourhood initiative",
+      "relevant": [
+        "art-07-a",
+        "art-07-b"
+      ],
+      "rationale": "Documented bronze casting or sculpture casting; availability and demand are unknown."
+    },
+    {
+      "id": "art-08-need-0",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "dance teaching",
+      "relevant": [
+        "art-08-a",
+        "art-08-b"
+      ],
+      "rationale": "Documented dance instruction or dance teaching; availability and demand are unknown."
+    },
+    {
+      "id": "art-08-need-1",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "dance teaching for a neighbourhood initiative",
+      "relevant": [
+        "art-08-a",
+        "art-08-b"
+      ],
+      "rationale": "Documented dance instruction or dance teaching; availability and demand are unknown."
+    },
+    {
+      "id": "art-08-offer-0",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "dance teaching",
+      "relevant": [
+        "art-08-a",
+        "art-08-b"
+      ],
+      "rationale": "Documented dance instruction or dance teaching; availability and demand are unknown."
+    },
+    {
+      "id": "art-08-offer-1",
+      "family": "art-08",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "dance teaching for a neighbourhood initiative",
+      "relevant": [
+        "art-08-a",
+        "art-08-b"
+      ],
+      "rationale": "Documented dance instruction or dance teaching; availability and demand are unknown."
+    },
+    {
+      "id": "art-09-need-0",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "art conservation",
+      "relevant": [
+        "art-09-a",
+        "art-09-b"
+      ],
+      "rationale": "Documented artwork restoration or art conservation; availability and demand are unknown."
+    },
+    {
+      "id": "art-09-need-1",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "art conservation for a neighbourhood initiative",
+      "relevant": [
+        "art-09-a",
+        "art-09-b"
+      ],
+      "rationale": "Documented artwork restoration or art conservation; availability and demand are unknown."
+    },
+    {
+      "id": "art-09-offer-0",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "art conservation",
+      "relevant": [
+        "art-09-a",
+        "art-09-b"
+      ],
+      "rationale": "Documented artwork restoration or art conservation; availability and demand are unknown."
+    },
+    {
+      "id": "art-09-offer-1",
+      "family": "art-09",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "art conservation for a neighbourhood initiative",
+      "relevant": [
+        "art-09-a",
+        "art-09-b"
+      ],
+      "rationale": "Documented artwork restoration or art conservation; availability and demand are unknown."
+    },
+    {
+      "id": "software-00-need-0",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "mapmaking",
+      "relevant": [
+        "software-00-a",
+        "software-00-b"
+      ],
+      "rationale": "Documented cartography or mapmaking; availability and demand are unknown."
+    },
+    {
+      "id": "software-00-need-1",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "mapmaking for a neighbourhood initiative",
+      "relevant": [
+        "software-00-a",
+        "software-00-b"
+      ],
+      "rationale": "Documented cartography or mapmaking; availability and demand are unknown."
+    },
+    {
+      "id": "software-00-offer-0",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "mapmaking",
+      "relevant": [
+        "software-00-a",
+        "software-00-b"
+      ],
+      "rationale": "Documented cartography or mapmaking; availability and demand are unknown."
+    },
+    {
+      "id": "software-00-offer-1",
+      "family": "software-00",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "mapmaking for a neighbourhood initiative",
+      "relevant": [
+        "software-00-a",
+        "software-00-b"
+      ],
+      "rationale": "Documented cartography or mapmaking; availability and demand are unknown."
+    },
+    {
+      "id": "software-01-need-0",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "software testing",
+      "relevant": [
+        "software-01-a",
+        "software-01-b"
+      ],
+      "rationale": "Documented quality assurance or software testing; availability and demand are unknown."
+    },
+    {
+      "id": "software-01-need-1",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "software testing for a neighbourhood initiative",
+      "relevant": [
+        "software-01-a",
+        "software-01-b"
+      ],
+      "rationale": "Documented quality assurance or software testing; availability and demand are unknown."
+    },
+    {
+      "id": "software-01-offer-0",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "software testing",
+      "relevant": [
+        "software-01-a",
+        "software-01-b"
+      ],
+      "rationale": "Documented quality assurance or software testing; availability and demand are unknown."
+    },
+    {
+      "id": "software-01-offer-1",
+      "family": "software-01",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "software testing for a neighbourhood initiative",
+      "relevant": [
+        "software-01-a",
+        "software-01-b"
+      ],
+      "rationale": "Documented quality assurance or software testing; availability and demand are unknown."
+    },
+    {
+      "id": "software-02-need-0",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "screen reader support",
+      "relevant": [
+        "software-02-a",
+        "software-02-b"
+      ],
+      "rationale": "Documented web accessibility or screen reader support; availability and demand are unknown."
+    },
+    {
+      "id": "software-02-need-1",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "screen reader support for a neighbourhood initiative",
+      "relevant": [
+        "software-02-a",
+        "software-02-b"
+      ],
+      "rationale": "Documented web accessibility or screen reader support; availability and demand are unknown."
+    },
+    {
+      "id": "software-02-offer-0",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "screen reader support",
+      "relevant": [
+        "software-02-a",
+        "software-02-b"
+      ],
+      "rationale": "Documented web accessibility or screen reader support; availability and demand are unknown."
+    },
+    {
+      "id": "software-02-offer-1",
+      "family": "software-02",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "screen reader support for a neighbourhood initiative",
+      "relevant": [
+        "software-02-a",
+        "software-02-b"
+      ],
+      "rationale": "Documented web accessibility or screen reader support; availability and demand are unknown."
+    },
+    {
+      "id": "software-03-need-0",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "data visualization",
+      "relevant": [
+        "software-03-a",
+        "software-03-b"
+      ],
+      "rationale": "Documented interactive charts or data visualization; availability and demand are unknown."
+    },
+    {
+      "id": "software-03-need-1",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "data visualization for a neighbourhood initiative",
+      "relevant": [
+        "software-03-a",
+        "software-03-b"
+      ],
+      "rationale": "Documented interactive charts or data visualization; availability and demand are unknown."
+    },
+    {
+      "id": "software-03-offer-0",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "data visualization",
+      "relevant": [
+        "software-03-a",
+        "software-03-b"
+      ],
+      "rationale": "Documented interactive charts or data visualization; availability and demand are unknown."
+    },
+    {
+      "id": "software-03-offer-1",
+      "family": "software-03",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "data visualization for a neighbourhood initiative",
+      "relevant": [
+        "software-03-a",
+        "software-03-b"
+      ],
+      "rationale": "Documented interactive charts or data visualization; availability and demand are unknown."
+    },
+    {
+      "id": "software-04-need-0",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "application security",
+      "relevant": [
+        "software-04-a",
+        "software-04-b"
+      ],
+      "rationale": "Documented software security or application security; availability and demand are unknown."
+    },
+    {
+      "id": "software-04-need-1",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "application security for a neighbourhood initiative",
+      "relevant": [
+        "software-04-a",
+        "software-04-b"
+      ],
+      "rationale": "Documented software security or application security; availability and demand are unknown."
+    },
+    {
+      "id": "software-04-offer-0",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "application security",
+      "relevant": [
+        "software-04-a",
+        "software-04-b"
+      ],
+      "rationale": "Documented software security or application security; availability and demand are unknown."
+    },
+    {
+      "id": "software-04-offer-1",
+      "family": "software-04",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "application security for a neighbourhood initiative",
+      "relevant": [
+        "software-04-a",
+        "software-04-b"
+      ],
+      "rationale": "Documented software security or application security; availability and demand are unknown."
+    },
+    {
+      "id": "software-05-need-0",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "language translation",
+      "relevant": [
+        "software-05-a",
+        "software-05-b"
+      ],
+      "rationale": "Documented language localization or language translation; availability and demand are unknown."
+    },
+    {
+      "id": "software-05-need-1",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "language translation for a neighbourhood initiative",
+      "relevant": [
+        "software-05-a",
+        "software-05-b"
+      ],
+      "rationale": "Documented language localization or language translation; availability and demand are unknown."
+    },
+    {
+      "id": "software-05-offer-0",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "language translation",
+      "relevant": [
+        "software-05-a",
+        "software-05-b"
+      ],
+      "rationale": "Documented language localization or language translation; availability and demand are unknown."
+    },
+    {
+      "id": "software-05-offer-1",
+      "family": "software-05",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "language translation for a neighbourhood initiative",
+      "relevant": [
+        "software-05-a",
+        "software-05-b"
+      ],
+      "rationale": "Documented language localization or language translation; availability and demand are unknown."
+    },
+    {
+      "id": "software-06-need-0",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "database administration",
+      "relevant": [
+        "software-06-a",
+        "software-06-b"
+      ],
+      "rationale": "Documented database maintenance or database administration; availability and demand are unknown."
+    },
+    {
+      "id": "software-06-need-1",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "database administration for a neighbourhood initiative",
+      "relevant": [
+        "software-06-a",
+        "software-06-b"
+      ],
+      "rationale": "Documented database maintenance or database administration; availability and demand are unknown."
+    },
+    {
+      "id": "software-06-offer-0",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "database administration",
+      "relevant": [
+        "software-06-a",
+        "software-06-b"
+      ],
+      "rationale": "Documented database maintenance or database administration; availability and demand are unknown."
+    },
+    {
+      "id": "software-06-offer-1",
+      "family": "software-06",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "database administration for a neighbourhood initiative",
+      "relevant": [
+        "software-06-a",
+        "software-06-b"
+      ],
+      "rationale": "Documented database maintenance or database administration; availability and demand are unknown."
+    },
+    {
+      "id": "software-07-need-0",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "offline synchronization",
+      "relevant": [
+        "software-07-a",
+        "software-07-b"
+      ],
+      "rationale": "Documented offline data sync or offline synchronization; availability and demand are unknown."
+    },
+    {
+      "id": "software-07-need-1",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "offline synchronization for a neighbourhood initiative",
+      "relevant": [
+        "software-07-a",
+        "software-07-b"
+      ],
+      "rationale": "Documented offline data sync or offline synchronization; availability and demand are unknown."
+    },
+    {
+      "id": "software-07-offer-0",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "offline synchronization",
+      "relevant": [
+        "software-07-a",
+        "software-07-b"
+      ],
+      "rationale": "Documented offline data sync or offline synchronization; availability and demand are unknown."
+    },
+    {
+      "id": "software-07-offer-1",
+      "family": "software-07",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "offline synchronization for a neighbourhood initiative",
+      "relevant": [
+        "software-07-a",
+        "software-07-b"
+      ],
+      "rationale": "Documented offline data sync or offline synchronization; availability and demand are unknown."
+    },
+    {
+      "id": "software-08-need-0",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "version control",
+      "relevant": [
+        "software-08-a",
+        "software-08-b"
+      ],
+      "rationale": "Documented source code management or version control; availability and demand are unknown."
+    },
+    {
+      "id": "software-08-need-1",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "version control for a neighbourhood initiative",
+      "relevant": [
+        "software-08-a",
+        "software-08-b"
+      ],
+      "rationale": "Documented source code management or version control; availability and demand are unknown."
+    },
+    {
+      "id": "software-08-offer-0",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "version control",
+      "relevant": [
+        "software-08-a",
+        "software-08-b"
+      ],
+      "rationale": "Documented source code management or version control; availability and demand are unknown."
+    },
+    {
+      "id": "software-08-offer-1",
+      "family": "software-08",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "version control for a neighbourhood initiative",
+      "relevant": [
+        "software-08-a",
+        "software-08-b"
+      ],
+      "rationale": "Documented source code management or version control; availability and demand are unknown."
+    },
+    {
+      "id": "software-09-need-0",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "user research",
+      "relevant": [
+        "software-09-a",
+        "software-09-b"
+      ],
+      "rationale": "Documented usability studies or user research; availability and demand are unknown."
+    },
+    {
+      "id": "software-09-need-1",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "user research for a neighbourhood initiative",
+      "relevant": [
+        "software-09-a",
+        "software-09-b"
+      ],
+      "rationale": "Documented usability studies or user research; availability and demand are unknown."
+    },
+    {
+      "id": "software-09-offer-0",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "user research",
+      "relevant": [
+        "software-09-a",
+        "software-09-b"
+      ],
+      "rationale": "Documented usability studies or user research; availability and demand are unknown."
+    },
+    {
+      "id": "software-09-offer-1",
+      "family": "software-09",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "user research for a neighbourhood initiative",
+      "relevant": [
+        "software-09-a",
+        "software-09-b"
+      ],
+      "rationale": "Documented usability studies or user research; availability and demand are unknown."
+    },
+    {
+      "id": "research-00-need-0",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "statistical analysis",
+      "relevant": [
+        "research-00-a",
+        "research-00-b"
+      ],
+      "rationale": "Documented statistical modelling or statistical analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-00-need-1",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "statistical analysis for a neighbourhood initiative",
+      "relevant": [
+        "research-00-a",
+        "research-00-b"
+      ],
+      "rationale": "Documented statistical modelling or statistical analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-00-offer-0",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "statistical analysis",
+      "relevant": [
+        "research-00-a",
+        "research-00-b"
+      ],
+      "rationale": "Documented statistical modelling or statistical analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-00-offer-1",
+      "family": "research-00",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "statistical analysis for a neighbourhood initiative",
+      "relevant": [
+        "research-00-a",
+        "research-00-b"
+      ],
+      "rationale": "Documented statistical modelling or statistical analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-01-need-0",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "DNA sequencing",
+      "relevant": [
+        "research-01-a",
+        "research-01-b"
+      ],
+      "rationale": "Documented genome sequencing or DNA sequencing; availability and demand are unknown."
+    },
+    {
+      "id": "research-01-need-1",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "DNA sequencing for a neighbourhood initiative",
+      "relevant": [
+        "research-01-a",
+        "research-01-b"
+      ],
+      "rationale": "Documented genome sequencing or DNA sequencing; availability and demand are unknown."
+    },
+    {
+      "id": "research-01-offer-0",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "DNA sequencing",
+      "relevant": [
+        "research-01-a",
+        "research-01-b"
+      ],
+      "rationale": "Documented genome sequencing or DNA sequencing; availability and demand are unknown."
+    },
+    {
+      "id": "research-01-offer-1",
+      "family": "research-01",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "DNA sequencing for a neighbourhood initiative",
+      "relevant": [
+        "research-01-a",
+        "research-01-b"
+      ],
+      "rationale": "Documented genome sequencing or DNA sequencing; availability and demand are unknown."
+    },
+    {
+      "id": "research-02-need-0",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "water quality testing",
+      "relevant": [
+        "research-02-a",
+        "research-02-b"
+      ],
+      "rationale": "Documented water quality analysis or water quality testing; availability and demand are unknown."
+    },
+    {
+      "id": "research-02-need-1",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "water quality testing for a neighbourhood initiative",
+      "relevant": [
+        "research-02-a",
+        "research-02-b"
+      ],
+      "rationale": "Documented water quality analysis or water quality testing; availability and demand are unknown."
+    },
+    {
+      "id": "research-02-offer-0",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "water quality testing",
+      "relevant": [
+        "research-02-a",
+        "research-02-b"
+      ],
+      "rationale": "Documented water quality analysis or water quality testing; availability and demand are unknown."
+    },
+    {
+      "id": "research-02-offer-1",
+      "family": "research-02",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "water quality testing for a neighbourhood initiative",
+      "relevant": [
+        "research-02-a",
+        "research-02-b"
+      ],
+      "rationale": "Documented water quality analysis or water quality testing; availability and demand are unknown."
+    },
+    {
+      "id": "research-03-need-0",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "microscopy",
+      "relevant": [
+        "research-03-a",
+        "research-03-b"
+      ],
+      "rationale": "Documented microscope imaging or microscopy; availability and demand are unknown."
+    },
+    {
+      "id": "research-03-need-1",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "microscopy for a neighbourhood initiative",
+      "relevant": [
+        "research-03-a",
+        "research-03-b"
+      ],
+      "rationale": "Documented microscope imaging or microscopy; availability and demand are unknown."
+    },
+    {
+      "id": "research-03-offer-0",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "microscopy",
+      "relevant": [
+        "research-03-a",
+        "research-03-b"
+      ],
+      "rationale": "Documented microscope imaging or microscopy; availability and demand are unknown."
+    },
+    {
+      "id": "research-03-offer-1",
+      "family": "research-03",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "microscopy for a neighbourhood initiative",
+      "relevant": [
+        "research-03-a",
+        "research-03-b"
+      ],
+      "rationale": "Documented microscope imaging or microscopy; availability and demand are unknown."
+    },
+    {
+      "id": "research-04-need-0",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "survey design",
+      "relevant": [
+        "research-04-a",
+        "research-04-b"
+      ],
+      "rationale": "Documented questionnaire design or survey design; availability and demand are unknown."
+    },
+    {
+      "id": "research-04-need-1",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "survey design for a neighbourhood initiative",
+      "relevant": [
+        "research-04-a",
+        "research-04-b"
+      ],
+      "rationale": "Documented questionnaire design or survey design; availability and demand are unknown."
+    },
+    {
+      "id": "research-04-offer-0",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "survey design",
+      "relevant": [
+        "research-04-a",
+        "research-04-b"
+      ],
+      "rationale": "Documented questionnaire design or survey design; availability and demand are unknown."
+    },
+    {
+      "id": "research-04-offer-1",
+      "family": "research-04",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "survey design for a neighbourhood initiative",
+      "relevant": [
+        "research-04-a",
+        "research-04-b"
+      ],
+      "rationale": "Documented questionnaire design or survey design; availability and demand are unknown."
+    },
+    {
+      "id": "research-05-need-0",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "systematic review",
+      "relevant": [
+        "research-05-a",
+        "research-05-b"
+      ],
+      "rationale": "Documented evidence synthesis or systematic review; availability and demand are unknown."
+    },
+    {
+      "id": "research-05-need-1",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "systematic review for a neighbourhood initiative",
+      "relevant": [
+        "research-05-a",
+        "research-05-b"
+      ],
+      "rationale": "Documented evidence synthesis or systematic review; availability and demand are unknown."
+    },
+    {
+      "id": "research-05-offer-0",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "systematic review",
+      "relevant": [
+        "research-05-a",
+        "research-05-b"
+      ],
+      "rationale": "Documented evidence synthesis or systematic review; availability and demand are unknown."
+    },
+    {
+      "id": "research-05-offer-1",
+      "family": "research-05",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "systematic review for a neighbourhood initiative",
+      "relevant": [
+        "research-05-a",
+        "research-05-b"
+      ],
+      "rationale": "Documented evidence synthesis or systematic review; availability and demand are unknown."
+    },
+    {
+      "id": "research-06-need-0",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "species identification",
+      "relevant": [
+        "research-06-a",
+        "research-06-b"
+      ],
+      "rationale": "Documented taxonomic identification or species identification; availability and demand are unknown."
+    },
+    {
+      "id": "research-06-need-1",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "species identification for a neighbourhood initiative",
+      "relevant": [
+        "research-06-a",
+        "research-06-b"
+      ],
+      "rationale": "Documented taxonomic identification or species identification; availability and demand are unknown."
+    },
+    {
+      "id": "research-06-offer-0",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "species identification",
+      "relevant": [
+        "research-06-a",
+        "research-06-b"
+      ],
+      "rationale": "Documented taxonomic identification or species identification; availability and demand are unknown."
+    },
+    {
+      "id": "research-06-offer-1",
+      "family": "research-06",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "species identification for a neighbourhood initiative",
+      "relevant": [
+        "research-06-a",
+        "research-06-b"
+      ],
+      "rationale": "Documented taxonomic identification or species identification; availability and demand are unknown."
+    },
+    {
+      "id": "research-07-need-0",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "soil analysis",
+      "relevant": [
+        "research-07-a",
+        "research-07-b"
+      ],
+      "rationale": "Documented soil testing or soil analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-07-need-1",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "soil analysis for a neighbourhood initiative",
+      "relevant": [
+        "research-07-a",
+        "research-07-b"
+      ],
+      "rationale": "Documented soil testing or soil analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-07-offer-0",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "soil analysis",
+      "relevant": [
+        "research-07-a",
+        "research-07-b"
+      ],
+      "rationale": "Documented soil testing or soil analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-07-offer-1",
+      "family": "research-07",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "soil analysis for a neighbourhood initiative",
+      "relevant": [
+        "research-07-a",
+        "research-07-b"
+      ],
+      "rationale": "Documented soil testing or soil analysis; availability and demand are unknown."
+    },
+    {
+      "id": "research-08-need-0",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "research data stewardship",
+      "relevant": [
+        "research-08-a",
+        "research-08-b"
+      ],
+      "rationale": "Documented research data curation or research data stewardship; availability and demand are unknown."
+    },
+    {
+      "id": "research-08-need-1",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "research data stewardship for a neighbourhood initiative",
+      "relevant": [
+        "research-08-a",
+        "research-08-b"
+      ],
+      "rationale": "Documented research data curation or research data stewardship; availability and demand are unknown."
+    },
+    {
+      "id": "research-08-offer-0",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "research data stewardship",
+      "relevant": [
+        "research-08-a",
+        "research-08-b"
+      ],
+      "rationale": "Documented research data curation or research data stewardship; availability and demand are unknown."
+    },
+    {
+      "id": "research-08-offer-1",
+      "family": "research-08",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "research data stewardship for a neighbourhood initiative",
+      "relevant": [
+        "research-08-a",
+        "research-08-b"
+      ],
+      "rationale": "Documented research data curation or research data stewardship; availability and demand are unknown."
+    },
+    {
+      "id": "research-09-need-0",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "air quality monitoring",
+      "relevant": [
+        "research-09-a",
+        "research-09-b"
+      ],
+      "rationale": "Documented air pollution measurement or air quality monitoring; availability and demand are unknown."
+    },
+    {
+      "id": "research-09-need-1",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "air quality monitoring for a neighbourhood initiative",
+      "relevant": [
+        "research-09-a",
+        "research-09-b"
+      ],
+      "rationale": "Documented air pollution measurement or air quality monitoring; availability and demand are unknown."
+    },
+    {
+      "id": "research-09-offer-0",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "air quality monitoring",
+      "relevant": [
+        "research-09-a",
+        "research-09-b"
+      ],
+      "rationale": "Documented air pollution measurement or air quality monitoring; availability and demand are unknown."
+    },
+    {
+      "id": "research-09-offer-1",
+      "family": "research-09",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "air quality monitoring for a neighbourhood initiative",
+      "relevant": [
+        "research-09-a",
+        "research-09-b"
+      ],
+      "rationale": "Documented air pollution measurement or air quality monitoring; availability and demand are unknown."
+    },
+    {
+      "id": "place-00-need-0",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "wetland restoration",
+      "relevant": [
+        "place-00-a",
+        "place-00-b"
+      ],
+      "rationale": "Documented marsh rehabilitation or wetland restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-00-need-1",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "wetland restoration for a neighbourhood initiative",
+      "relevant": [
+        "place-00-a",
+        "place-00-b"
+      ],
+      "rationale": "Documented marsh rehabilitation or wetland restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-00-offer-0",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "wetland restoration",
+      "relevant": [
+        "place-00-a",
+        "place-00-b"
+      ],
+      "rationale": "Documented marsh rehabilitation or wetland restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-00-offer-1",
+      "family": "place-00",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "wetland restoration for a neighbourhood initiative",
+      "relevant": [
+        "place-00-a",
+        "place-00-b"
+      ],
+      "rationale": "Documented marsh rehabilitation or wetland restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-01-need-0",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "rainwater harvesting",
+      "relevant": [
+        "place-01-a",
+        "place-01-b"
+      ],
+      "rationale": "Documented rainwater collection or rainwater harvesting; availability and demand are unknown."
+    },
+    {
+      "id": "place-01-need-1",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "rainwater harvesting for a neighbourhood initiative",
+      "relevant": [
+        "place-01-a",
+        "place-01-b"
+      ],
+      "rationale": "Documented rainwater collection or rainwater harvesting; availability and demand are unknown."
+    },
+    {
+      "id": "place-01-offer-0",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "rainwater harvesting",
+      "relevant": [
+        "place-01-a",
+        "place-01-b"
+      ],
+      "rationale": "Documented rainwater collection or rainwater harvesting; availability and demand are unknown."
+    },
+    {
+      "id": "place-01-offer-1",
+      "family": "place-01",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "rainwater harvesting for a neighbourhood initiative",
+      "relevant": [
+        "place-01-a",
+        "place-01-b"
+      ],
+      "rationale": "Documented rainwater collection or rainwater harvesting; availability and demand are unknown."
+    },
+    {
+      "id": "place-02-need-0",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "bicycle repair",
+      "relevant": [
+        "place-02-a",
+        "place-02-b"
+      ],
+      "rationale": "Documented bike maintenance or bicycle repair; availability and demand are unknown."
+    },
+    {
+      "id": "place-02-need-1",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "bicycle repair for a neighbourhood initiative",
+      "relevant": [
+        "place-02-a",
+        "place-02-b"
+      ],
+      "rationale": "Documented bike maintenance or bicycle repair; availability and demand are unknown."
+    },
+    {
+      "id": "place-02-offer-0",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "bicycle repair",
+      "relevant": [
+        "place-02-a",
+        "place-02-b"
+      ],
+      "rationale": "Documented bike maintenance or bicycle repair; availability and demand are unknown."
+    },
+    {
+      "id": "place-02-offer-1",
+      "family": "place-02",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "bicycle repair for a neighbourhood initiative",
+      "relevant": [
+        "place-02-a",
+        "place-02-b"
+      ],
+      "rationale": "Documented bike maintenance or bicycle repair; availability and demand are unknown."
+    },
+    {
+      "id": "place-03-need-0",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "seed saving",
+      "relevant": [
+        "place-03-a",
+        "place-03-b"
+      ],
+      "rationale": "Documented seed conservation or seed saving; availability and demand are unknown."
+    },
+    {
+      "id": "place-03-need-1",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "seed saving for a neighbourhood initiative",
+      "relevant": [
+        "place-03-a",
+        "place-03-b"
+      ],
+      "rationale": "Documented seed conservation or seed saving; availability and demand are unknown."
+    },
+    {
+      "id": "place-03-offer-0",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "seed saving",
+      "relevant": [
+        "place-03-a",
+        "place-03-b"
+      ],
+      "rationale": "Documented seed conservation or seed saving; availability and demand are unknown."
+    },
+    {
+      "id": "place-03-offer-1",
+      "family": "place-03",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "seed saving for a neighbourhood initiative",
+      "relevant": [
+        "place-03-a",
+        "place-03-b"
+      ],
+      "rationale": "Documented seed conservation or seed saving; availability and demand are unknown."
+    },
+    {
+      "id": "place-04-need-0",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "food redistribution",
+      "relevant": [
+        "place-04-a",
+        "place-04-b"
+      ],
+      "rationale": "Documented surplus food distribution or food redistribution; availability and demand are unknown."
+    },
+    {
+      "id": "place-04-need-1",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "food redistribution for a neighbourhood initiative",
+      "relevant": [
+        "place-04-a",
+        "place-04-b"
+      ],
+      "rationale": "Documented surplus food distribution or food redistribution; availability and demand are unknown."
+    },
+    {
+      "id": "place-04-offer-0",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "food redistribution",
+      "relevant": [
+        "place-04-a",
+        "place-04-b"
+      ],
+      "rationale": "Documented surplus food distribution or food redistribution; availability and demand are unknown."
+    },
+    {
+      "id": "place-04-offer-1",
+      "family": "place-04",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "food redistribution for a neighbourhood initiative",
+      "relevant": [
+        "place-04-a",
+        "place-04-b"
+      ],
+      "rationale": "Documented surplus food distribution or food redistribution; availability and demand are unknown."
+    },
+    {
+      "id": "place-05-need-0",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "composting",
+      "relevant": [
+        "place-05-a",
+        "place-05-b"
+      ],
+      "rationale": "Documented organic waste composting or composting; availability and demand are unknown."
+    },
+    {
+      "id": "place-05-need-1",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "composting for a neighbourhood initiative",
+      "relevant": [
+        "place-05-a",
+        "place-05-b"
+      ],
+      "rationale": "Documented organic waste composting or composting; availability and demand are unknown."
+    },
+    {
+      "id": "place-05-offer-0",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "composting",
+      "relevant": [
+        "place-05-a",
+        "place-05-b"
+      ],
+      "rationale": "Documented organic waste composting or composting; availability and demand are unknown."
+    },
+    {
+      "id": "place-05-offer-1",
+      "family": "place-05",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "composting for a neighbourhood initiative",
+      "relevant": [
+        "place-05-a",
+        "place-05-b"
+      ],
+      "rationale": "Documented organic waste composting or composting; availability and demand are unknown."
+    },
+    {
+      "id": "place-06-need-0",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "community mediation",
+      "relevant": [
+        "place-06-a",
+        "place-06-b"
+      ],
+      "rationale": "Documented conflict resolution or community mediation; availability and demand are unknown."
+    },
+    {
+      "id": "place-06-need-1",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "community mediation for a neighbourhood initiative",
+      "relevant": [
+        "place-06-a",
+        "place-06-b"
+      ],
+      "rationale": "Documented conflict resolution or community mediation; availability and demand are unknown."
+    },
+    {
+      "id": "place-06-offer-0",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "community mediation",
+      "relevant": [
+        "place-06-a",
+        "place-06-b"
+      ],
+      "rationale": "Documented conflict resolution or community mediation; availability and demand are unknown."
+    },
+    {
+      "id": "place-06-offer-1",
+      "family": "place-06",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "community mediation for a neighbourhood initiative",
+      "relevant": [
+        "place-06-a",
+        "place-06-b"
+      ],
+      "rationale": "Documented conflict resolution or community mediation; availability and demand are unknown."
+    },
+    {
+      "id": "place-07-need-0",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "solar installation",
+      "relevant": [
+        "place-07-a",
+        "place-07-b"
+      ],
+      "rationale": "Documented photovoltaic installation or solar installation; availability and demand are unknown."
+    },
+    {
+      "id": "place-07-need-1",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "solar installation for a neighbourhood initiative",
+      "relevant": [
+        "place-07-a",
+        "place-07-b"
+      ],
+      "rationale": "Documented photovoltaic installation or solar installation; availability and demand are unknown."
+    },
+    {
+      "id": "place-07-offer-0",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "solar installation",
+      "relevant": [
+        "place-07-a",
+        "place-07-b"
+      ],
+      "rationale": "Documented photovoltaic installation or solar installation; availability and demand are unknown."
+    },
+    {
+      "id": "place-07-offer-1",
+      "family": "place-07",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "solar installation for a neighbourhood initiative",
+      "relevant": [
+        "place-07-a",
+        "place-07-b"
+      ],
+      "rationale": "Documented photovoltaic installation or solar installation; availability and demand are unknown."
+    },
+    {
+      "id": "place-08-need-0",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "river restoration",
+      "relevant": [
+        "place-08-a",
+        "place-08-b"
+      ],
+      "rationale": "Documented stream rehabilitation or river restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-08-need-1",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "river restoration for a neighbourhood initiative",
+      "relevant": [
+        "place-08-a",
+        "place-08-b"
+      ],
+      "rationale": "Documented stream rehabilitation or river restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-08-offer-0",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "river restoration",
+      "relevant": [
+        "place-08-a",
+        "place-08-b"
+      ],
+      "rationale": "Documented stream rehabilitation or river restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-08-offer-1",
+      "family": "place-08",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "river restoration for a neighbourhood initiative",
+      "relevant": [
+        "place-08-a",
+        "place-08-b"
+      ],
+      "rationale": "Documented stream rehabilitation or river restoration; availability and demand are unknown."
+    },
+    {
+      "id": "place-09-need-0",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "tree planting",
+      "relevant": [
+        "place-09-a",
+        "place-09-b"
+      ],
+      "rationale": "Documented reforestation or tree planting; availability and demand are unknown."
+    },
+    {
+      "id": "place-09-need-1",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "tree planting for a neighbourhood initiative",
+      "relevant": [
+        "place-09-a",
+        "place-09-b"
+      ],
+      "rationale": "Documented reforestation or tree planting; availability and demand are unknown."
+    },
+    {
+      "id": "place-09-offer-0",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "tree planting",
+      "relevant": [
+        "place-09-a",
+        "place-09-b"
+      ],
+      "rationale": "Documented reforestation or tree planting; availability and demand are unknown."
+    },
+    {
+      "id": "place-09-offer-1",
+      "family": "place-09",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "tree planting for a neighbourhood initiative",
+      "relevant": [
+        "place-09-a",
+        "place-09-b"
+      ],
+      "rationale": "Documented reforestation or tree planting; availability and demand are unknown."
+    },
+    {
+      "id": "art-development-need-none",
+      "family": "art-development-none",
+      "split": "development",
+      "domain": "art",
+      "kind": "need",
+      "title": "lacquer gilding",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "art-development-offer-none",
+      "family": "art-development-none",
+      "split": "development",
+      "domain": "art",
+      "kind": "offer",
+      "title": "lacquer gilding",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "art-holdout-need-none",
+      "family": "art-holdout-none",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "need",
+      "title": "glass etching",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "art-holdout-offer-none",
+      "family": "art-holdout-none",
+      "split": "holdout",
+      "domain": "art",
+      "kind": "offer",
+      "title": "glass etching",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "software-development-need-none",
+      "family": "software-development-none",
+      "split": "development",
+      "domain": "software",
+      "kind": "need",
+      "title": "quantum compilation",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "software-development-offer-none",
+      "family": "software-development-none",
+      "split": "development",
+      "domain": "software",
+      "kind": "offer",
+      "title": "quantum compilation",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "software-holdout-need-none",
+      "family": "software-holdout-none",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "need",
+      "title": "hardware soldering",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "software-holdout-offer-none",
+      "family": "software-holdout-none",
+      "split": "holdout",
+      "domain": "software",
+      "kind": "offer",
+      "title": "hardware soldering",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "research-development-need-none",
+      "family": "research-development-none",
+      "split": "development",
+      "domain": "research",
+      "kind": "need",
+      "title": "cryogenic isotope separation",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "research-development-offer-none",
+      "family": "research-development-none",
+      "split": "development",
+      "domain": "research",
+      "kind": "offer",
+      "title": "cryogenic isotope separation",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "research-holdout-need-none",
+      "family": "research-holdout-none",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "need",
+      "title": "radiocarbon dating",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "research-holdout-offer-none",
+      "family": "research-holdout-none",
+      "split": "holdout",
+      "domain": "research",
+      "kind": "offer",
+      "title": "radiocarbon dating",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "place-development-need-none",
+      "family": "place-development-none",
+      "split": "development",
+      "domain": "place",
+      "kind": "need",
+      "title": "snow avalanche control",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "place-development-offer-none",
+      "family": "place-development-none",
+      "split": "development",
+      "domain": "place",
+      "kind": "offer",
+      "title": "snow avalanche control",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "place-holdout-need-none",
+      "family": "place-holdout-none",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "need",
+      "title": "coastal desalination",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    },
+    {
+      "id": "place-holdout-offer-none",
+      "family": "place-holdout-none",
+      "split": "holdout",
+      "domain": "place",
+      "kind": "offer",
+      "title": "coastal desalination",
+      "relevant": [],
+      "rationale": "No project in this collection documents this activity."
+    }
+  ]
+}

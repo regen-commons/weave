@@ -275,7 +275,7 @@ export function parseMatchingSearch(value: unknown): MatchingSearch {
         : { type, ...parseProjectEvidence(evidence) },
       reasons: array(r.reasons, 15, value => {
         const reason = record(value);
-        return { type: option(reason.type, ["shared_terms"]), terms: array(reason.terms, 20, value => text(value, 120)) };
+        return { type: option(reason.type, ["shared_terms", "related_terms"]), terms: array(reason.terms, 20, value => text(value, 120)) };
       }),
       unknowns: array(r.unknowns, 6, value => option(value, ["terms", "place", "timing", "capacity", "audience", "availability"])),
     };

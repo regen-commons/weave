@@ -1293,7 +1293,7 @@ app uses them directly. No dependencies were added for this matching slice.
 |---|---|---|
 | M1 and M2 | Version-1 Save/Load compatibility, stable entry reconciliation, selected revision review/share/renew/withdraw, expiry and private leads. Real PostgreSQL tests cover two synthetic account identities, grants/RLS, stale retries, removal/re-add and a two-connection Save/Share race. | Full Supabase Auth/PostgREST and hosted Certified acceptance on the final migration. |
 | M3 | Bounded public Hypercerts adapter, explicit permitted-project manifest, durable transactional checkpoints, restricted indexing role, source suppression and optional pinned passage embeddings. | A live permitted corpus across all four domains, deployed job credentials/scheduler and measured freshness. The live source probe was blocked by this environment's network access; fixture success is not live source proof. |
-| M4 | Directional lexical matching, current shared projections, public evidence/provenance, unknowns, reciprocal fit, private leads and optional pgvector hybrid retrieval. A separate restricted worker embeds current shared query revisions. | Held-out relevance/recall and intended-host performance. The final evidence gate remains lexical. Hybrid candidate recall alone does not establish better final suggestions; semantic retrieval remains disabled pending validation. |
+| M4 | Directional lexical matching, current shared projections, public evidence/provenance, unknowns, reciprocal fit, private leads and optional pgvector hybrid retrieval. A separate restricted worker embeds current shared query revisions. | Held-out relevance/recall and intended-host performance. The final evidence gate now also supports a bounded related-phrase vocabulary (see the local evaluation below). Hybrid candidate recall alone does not establish better final suggestions; semantic retrieval remains disabled pending validation. |
 | M5 | Functional Finish/Partners controls, explicit Save/Load binding, sharing review, renewal, withdrawal, private saved/hidden leads, cancellation on account/initiative changes and a device-only public text worker. | Hosted four-flow acceptance and a permitted refreshed browser corpus. The device fallback still uses the bounded starter collection. |
 | M6 | Package tests, real PostgreSQL/pgvector authorization and race fixtures, synthetic scale/model comparisons, Chrome fixture rendering and the authorized hosted preview rollout below. | Independent critical review before merge, real-user acceptance, held-out quality and hosted performance. |
 
@@ -1529,6 +1529,21 @@ handoff. This is a source-level finding, not a completed browser reproduction.
 Earlier database and fixture evidence remains distinct from browser proof.
 
 #### Quality and performance proof
+
+**Local implementation, 11 November 2026.** The shared browser/API matcher now uses
+`partner-concepts-v2`: supported word overlap plus a bounded English vocabulary of
+related activities. Public index text includes these phrases while evidence remains
+verbatim. A versioned projection refresh requires a new manifest generation; neither
+production refresh nor semantic retrieval is enabled by this change. Private queries
+remain on-device, within the existing 80-project snapshot. Shared-entry SQL retrieval
+is unchanged. See the [evaluation protocol and recorded fixture results](../../packages/api/evaluation/README.md)
+for reproducible development/held-out runs, independent-review preparation and the
+actual local PostgreSQL retrieval check. Independent code review added clause-boundary,
+reordered-evidence and activity-list regressions, and opaque reviewer worksheet IDs.
+The already-reviewed holdout retains the recall gains after these fixes; this rerun
+is regression evidence. Shared fixture/vocabulary authorship prevents an independent
+quality claim. Human judgments on permitted real records, broader coverage and hosted
+checks remain open.
 
 - Build a labeled set of at least 20 needs and 20 offers in each of art, software,
   research and place-based work, using permitted real passages plus synthetic
