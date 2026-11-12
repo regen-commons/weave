@@ -74,3 +74,38 @@ test("production bundles exclude the development fixture records and controls", 
   for (const liveCopy of ["You have no project on Certified yet", "Which project is this initiative?"])
     assert.ok(bundle.includes(liveCopy), `${liveCopy} is missing from the live project screens`);
 });
+
+/** The sources a directive of the deployed security policy allows, falling back to default-src. */
+function allowedSources(policy: string, directive: string): string[] {
+  const directives = new Map(
+    policy.split(";").map((part) => part.trim().split(/\s+/)).filter((words) => words[0]).map(([name, ...sources]) => [name!, sources]),
+  );
+  return directives.get(directive) ?? directives.get("default-src") ?? [];
+}
+
+test("the production stylesheet asks only for images and fonts the security policy lets it load", async (context) => {
+  if (!existsSync(assets)) {
+    context.skip("Build @weave/app first; CI builds before running this check.");
+    return;
+  }
+  // An image or font the policy refuses fails silently in the browser, and only on the deployed
+  // site: the dev server sends no policy. The paper grain was lost that way as an inline data: image.
+  const { previewSecurityHeaders } = await import("../dev/security-headers.ts");
+  const policy = previewSecurityHeaders()["Content-Security-Policy"]!;
+  const styles = readdirSync(assets).filter((path) => path.endsWith(".css"));
+  assert.ok(styles.length > 0, "Expected a built stylesheet");
+  const urls = styles.flatMap((path) =>
+    [...readFileSync(`${assets}/${path}`, "utf8").matchAll(/url\(\s*(["']?)([^"')]+)\1\s*\)/g)].map((match) => match[2]!),
+  );
+  assert.ok(urls.some((url) => /grain[-.\w]*\.svg$/.test(url)), "the paper grain is loaded as a file");
+  for (const directive of ["img-src", "font-src"]) {
+    const sources = allowedSources(policy, directive);
+    for (const url of urls) {
+      if (url.startsWith("#")) continue;
+      if (url.startsWith("data:")) assert.ok(sources.includes("data:"), `${directive} refuses the inline ${url.slice(0, 40)}`);
+      else if (/^[a-z][a-z0-9+.-]*:/i.test(url))
+        assert.ok(sources.some((source) => source !== "'self'" && url.startsWith(source)), `${directive} refuses ${url}`);
+      else assert.ok(sources.includes("'self'"), `${directive} refuses the site's own ${url}`);
+    }
+  }
+});
