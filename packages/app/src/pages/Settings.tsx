@@ -21,6 +21,7 @@ import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useInformation } from "../ui/information-context.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
+import { InstallGuide } from "../install/InstallGuide.tsx";
 export function Settings() {
   const [theme, setTheme] = useState(readTheme);
   const [busy, setBusy] = useState(false);
@@ -176,26 +177,7 @@ export function Settings() {
         </div>
       </SettingsSection>
       <SettingsSection title="Install Weave on your phone">
-        <p>Add Weave to your home screen and it opens like an app, full screen.</p>
-        <dl className="rc-facts">
-          <div>
-            <dt>iPhone or iPad</dt>
-            <dd>
-              Open Weave in Safari and tap Share. If you do not see it, tap the three dots first. Then choose
-              Add to Home Screen and tap Add.
-            </dd>
-          </div>
-          <div>
-            <dt>Android</dt>
-            <dd>
-              Open Weave in Chrome and tap the three-dot menu. Then choose Add to Home screen or Install app.
-            </dd>
-          </div>
-        </dl>
-        <p className="rc-meta">
-          On an iPhone or iPad the installed app starts empty, because it does not share what Safari keeps on
-          the device. Save your initiative first, then sign in from the app to open it there.
-        </p>
+        <InstallGuide />
       </SettingsSection>
       <SettingsSection title="Your data">
         <p>

@@ -69,6 +69,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Save status | `rc-save-status` | stable | Says where the work lives | `data-state`: device, account | In the app header only on the pages where the card is worked on (DL-059) | check-card, code, describe, finish, intake-finish, needs, offers, saved, settings, step-needs |
 | Status line | `rc-status-line` | candidate | One plain sentence on where the work stands, beside the one thing to do about it next. The words carry the state, so the row has no icon. Composes Save status and Action bar | On this device, saved, shared, published, withdrawal asked for | One sentence and one action a row; one primary across the rows | settings |
 | Sort control | `rc-sort` | stable | A native select drawn as one more filter button: the word Sort, the order in force and the same mark as a filter's menu (DL-061). Part: `rc-sort-face` |  | The word Sort is the select's label. A phone opens its own picker | funding, initiatives |
+| QR code | `rc-qr` | candidate | The way from a computer's screen to a phone's: a code to scan, with the address it opens in words under it (DL-067) |  | Dark on light in both themes. Only for an address the page itself is served from | library only |
 | Search | `rc-search` | candidate | A box, a button and the word Search |  | No scope menu before results | funding, home, initiatives |
 | Breadcrumbs | `rc-breadcrumbs` | candidate | A place inside its larger places |  |  |  |
 | Back link | `rc-back` | stable | The one way back on a page that is not a section, at the start of the app header in place of the product name. It names the page it returns to. Part: `rc-back-link` |  | One a page; a long name gives way to the header | opportunity, opportunity-private, settings |
@@ -117,7 +118,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Menu | `rc-menu` | stable | Native controls in a popover. Parts: `rc-menu-group`, `rc-menu-options`, `rc-menu-option` | `data-columns`: 2 on the options, for a list of nine or more. Local fallback without Popover API | Named fieldset, visible close action, Escape and outside dismissal | funding, initiatives |
 | Footer | `rc-footer` | stable | Weave, Data & Privacy and Regen Commons links. Parts: `rc-footer-grid`, `rc-footer-title`, `rc-footer-link` |  | Every page, the same; a page leaves out the link to itself; title case labels (DL-033) | check-card, code, describe, finish, funding, home, initiatives, intake-finish, matches, matches-empty, needs, offers, opportunity, opportunity-private, saved, settings, signed-out, step-needs, your-initiatives |
 
-| Numbered list | `rc-numbered-list` | candidate | Three ordered cards that explain how something goes. Parts: `rc-numbered-item`, `rc-numbered-number`, `rc-numbered-title` |  | No card is a link; the page's own action starts the sequence. A short last row is centred | home |
+| Numbered list | `rc-numbered-list` | stable | Two or three ordered cards that explain how something goes. A step can show the sign to look for beside its words. Parts: `rc-numbered-item`, `rc-numbered-number`, `rc-numbered-title` |  | No card is a link; the page's own action starts the sequence. A short last row is centred | home, settings |
 | Tile grid | `rc-tile-grid` | candidate | Equal-size Tile cards with tooltips | | Eight forms of capital. A short last row is centred | home |
 
 ## Templates
@@ -382,9 +383,12 @@ publish a private initiative.
 ## Settings and data contracts
 
 Settings groups Your initiative, Account, Assistant, Appearance, Install Weave on your
-phone and Your data in place. Leave comes last, with sign-out and deletion set apart;
-the example world hides it while nobody is signed in. Settings is reached from Your
-initiatives and the footer, and its Back link returns to Your initiatives. Membership
+phone and Your data in place. The install guide shows only what the device in hand needs
+(DL-067): one Install button where the browser offers it, two numbered steps with the
+signs to look for on an iPhone or an Android phone, a way out of an app's own browser,
+and on a computer a code to scan, because Weave installs on a phone. Leave comes last, with sign-out and deletion set apart;
+the example world hides it while nobody is signed in. Settings is reached from the
+gear in the app header on every page, from Your initiatives and from the footer, and its Back link returns to Your initiatives. Membership
 stays in the footer. Unconnected server controls appear only as labelled development
 examples; production explains what service is missing.
 

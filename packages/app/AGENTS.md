@@ -38,7 +38,8 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |
-| `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, and the font preloads that the dev server and the build add to `index.html` |
+| `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads that the dev server and the build add to `index.html`, and the link previews: one copy of `index.html` for each section, written by the build |
+| `scripts/share-images/` | Renders the link-preview pictures in `public/share/` and the home-screen icons with a local browser. The pictures are committed; run it after changing a headline or a template |
 | `public/brand/` | Copied from the design system by `scripts/copy-brand.mjs`; ignored by Git |
 | `vercel.json` | The Weave project's build, rewrites, security headers and caching |
 

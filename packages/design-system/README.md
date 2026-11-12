@@ -1,6 +1,6 @@
 # Regen Commons design system
 
-The shared visual language, brand and interface patterns for Regen Commons products. It is built from the website's existing brand and three books on interface design.
+The shared visual language, brand and interface patterns for Regen Commons products. It is built from the website's existing brand and four books on interface design.
 
 To see it, run the library:
 
@@ -19,7 +19,7 @@ Then open <http://localhost:4173/patterns/index.html>.
 | [`brand/VOICE.md`](brand/VOICE.md) | Voice, tone map, plain names, words to avoid |
 | [`COMPONENTS.md`](COMPONENTS.md) | Every pattern with status, limits and lineage, and how to add one |
 | [`decision-log.md`](decision-log.md) | Settled questions and why |
-| [`principles/`](principles/README.md) | How the three books apply, the review checklist, the usability testing plan |
+| [`principles/`](principles/README.md) | How the four books apply, the review checklist, the usability testing plan |
 | [`dialects/`](dialects/README.md) | Extra rules for the app, website, desk and email |
 | `css/` | The layered CSS. Import `css/index.css` |
 | `tokens/` | Generated CSS and JSON. Never edit these |
@@ -156,6 +156,10 @@ The tests check that generated files are current, the linter is clean, website v
   and never a score, then why it fits (DL-064). No new pattern.
 - Tag: a type of work takes a hue with `data-lens`, the capital recipe with a line icon.
   Twelve role tokens, `lens-*` (DL-065).
+- Numbered list becomes stable on its second use, the install guide, and a step can show
+  the sign to look for. Add QR code (`rc-qr`). New icons `share`, `add-box` and `more`,
+  and home-screen icons in `brand/logo/` (DL-067).
+- Principles gain a fourth book, *Design for How People Learn* (DL-069).
 - Mycelium grows around a page's content and never behind it: `./mycelium` measures the
   content it sits in, `data-extent="page"` puts one canvas under a whole page, and on a
   phone scrolling grows new tufts. The clearing mask is removed (DL-066).

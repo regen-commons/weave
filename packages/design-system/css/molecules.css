@@ -65,6 +65,11 @@
   .rc-proposal[data-state="confirmed"] { border-color: CanvasText; }
 }
 
+/* QR code: the way from a computer's screen to a phone's. Its picture stays dark on light in both
+   themes, and the address it opens sits under it in words. */
+.rc-qr { display: grid; justify-items: start; gap: var(--space-2); margin: 0; }
+.rc-qr > :is(img, svg) { inline-size: var(--space-11); block-size: var(--space-11); border-radius: var(--radius-sm); }
+
 /* Chip group: one question answered by tapping chips, such as one filter in the Filters sheet.
    The question is the legend of the fieldset around it; a narrower question can follow it. */
 .rc-chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }

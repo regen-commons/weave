@@ -1,11 +1,19 @@
-// Copies the brand files the app serves at fixed URLs (the favicon, the manifest icon
-// and the icon sprite) from the design system into public/brand/, so there is one
-// source. The copies are ignored by Git and rewritten on every dev start and build.
+// Copies the brand files the app serves at fixed URLs (the favicon, the manifest and
+// home-screen icons and the icon sprite) from the design system into public/brand/, so
+// there is one source. The copies are ignored by Git and rewritten on every dev start and build.
 import { copyFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const FILES = ["icons.svg", "logo/favicon.svg", "logo/mark.svg"];
+const FILES = [
+  "icons.svg",
+  "logo/favicon.svg",
+  "logo/mark.svg",
+  "logo/apple-touch-icon.png",
+  "logo/icon-192.png",
+  "logo/icon-512.png",
+  "logo/icon-maskable-512.png",
+];
 
 for (const file of FILES) {
   const source = fileURLToPath(import.meta.resolve(`@regen-commons/design-system/brand/${file}`));

@@ -491,7 +491,7 @@ Names describe structure, not content. `Card`, not NeedCard. Product words live 
 
 ## Interface Principles
 
-UI work follows three books. Page numbers are PDF pages of the editions the team holds. The PDFs are not in this repository. The [principles folder](packages/design-system/principles/README.md) has fuller notes on how each applies here, and the [review checklist](packages/design-system/principles/ui-review-checklist.md) turns them into checks.
+UI work follows four books. Page numbers are PDF pages of the editions the team holds, and the book's own for the fourth. The PDFs are not in this repository. The [principles folder](packages/design-system/principles/README.md) has fuller notes on how each applies here, and the [review checklist](packages/design-system/principles/ui-review-checklist.md) turns them into checks.
 
 ### How people use what we build
 
@@ -537,6 +537,15 @@ From *Atomic Design* by Brad Frost.
 - Add a shared pattern on its second real use. Retire with notice and a named replacement (152-156).
 - Name patterns by structure: blur the content to find the name (173-174).
 - Run this as a living product with named owners and one code source (140-162).
+
+### How people take in what we show
+
+From *Design for How People Learn* by Julie Dirksen, chapter 4.
+
+- People stop seeing what never changes. Say a status where it answers a question, and nowhere else (86-88).
+- Working memory is small. Group a long list under a few headings, and keep steps to two or three (88-93).
+- A job aid turns remembering into following. Give numbered steps at the moment of the task, for the case in hand, with the sign to look for (97-99, 107).
+- Recognising is easier than recalling. Offer choices before a blank, and say what a fact means for the person (89, 103-104).
 
 ### How we follow them
 
