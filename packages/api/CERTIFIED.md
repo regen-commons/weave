@@ -429,7 +429,8 @@ migration owner. Use the separate Weave Preview database for staging.
 
 | Configuration | Purpose |
 |---|---|
-| `WEAVE_PROJECT_PILOT_DIDS` | Exactly two comma-separated Certified DIDs. The verified actor must be on this list for project commands, consent, and consent callbacks. |
+| `WEAVE_PROJECT_ACCESS_MODE` | Explicit `authenticated` permits any verified Certified identity to enter project flows. Omitted or `pilot` retains the two-account restriction. This only controls rollout eligibility; current project authority and workspace grants still apply. |
+| `WEAVE_PROJECT_PILOT_DIDS` | Exactly two comma-separated Certified DIDs in pilot mode. Leave absent in authenticated mode; conflicting configuration fails closed. |
 | `WEAVE_PROJECT_WORKSPACE_DATABASE_URL` | Dedicated login granted only `weave_workspace_runtime`. |
 | `WEAVE_PROJECT_OAUTH_DATABASE_URL` | Separate login granted only `weave_project_oauth_runtime`. |
 | `WEAVE_PROJECT_OAUTH_ENCRYPTION_KEYS`, `WEAVE_PROJECT_OAUTH_SIGNING_KEYS` | Dedicated state cipher and ES256 private JWK array for the project OAuth client. Provision separately from identity bridge keys. |
@@ -590,6 +591,15 @@ session has neither a local PostgreSQL server nor access to the Docker daemon.
 Hosted personal/group consent, write and independent read-back remain pilot gates.
 
 ### Production pilot preparation
+
+On 12 November the user chose open project access rather than supplying two
+tester DIDs. The `authenticated` access mode implements that choice without
+weakening Certified session verification, current group membership, explicit
+workspace grants or editor/admin rules. Signed-out, email-only and unauthorized
+workspace requests remain rejected. Hybrid retrieval, optional email hints and
+group public support publishing remain off. This change is prepared for review;
+it does not establish a production release or hosted acceptance. The earlier
+two-account pilot procedure below is retained for restricted environments.
 
 Platform records `20261110040828_weave_project_oauth` and
 `20261110040924_weave_project_workspaces`. The website migration folder owns

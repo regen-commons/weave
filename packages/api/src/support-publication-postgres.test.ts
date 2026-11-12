@@ -215,8 +215,8 @@ integration("PostgreSQL bound sessions, explicit editor grants and current membe
   const [grant] = await sql`select suspension_reason from weave_workspace.access_grants where workspace_id=${f.id} and user_id=${owner}`;
   assert.equal(grant!.suspension_reason, "membership_removed");
   await reject(command(f, "support_state"), "PT404");
-  await sql.begin(async tx => {
+  await reject(sql.begin(async tx => {
     await tx`set local role authenticated`;
-    await reject(tx`select * from weave_workspace.support_listings`, "42501");
-  });
+    await tx`select * from weave_workspace.support_listings`;
+  }), "42501");
 });
