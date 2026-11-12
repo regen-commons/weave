@@ -6,7 +6,7 @@ import { createProjectCommands } from "./project-commands.ts";
 import { createProjectDiscovery } from "./project-discovery.ts";
 import { createProjectDiscoveryStore } from "./project-discovery-store.ts";
 import { createProjectHandler } from "./project-http.ts";
-import { createProjectPilot } from "./project-pilot.ts";
+import { createProjectAccess } from "./project-pilot.ts";
 import { createProjectActorResolver, createProjectStore, createWorkspaceContentStore, projectDatabase } from "./project-store.ts";
 import { createWorkspaceContent } from "./workspace-content.ts";
 import { createSupportPublication } from "./support-publication.ts";
@@ -22,7 +22,7 @@ const groupMembers = "app.certified.group.member.list";
 
 async function createRuntime(env: NodeJS.ProcessEnv) {
   if (env.WEAVE_PROJECTS_ENABLED !== "true") return null;
-  const pilot = createProjectPilot(env.WEAVE_PROJECT_PILOT_DIDS);
+  const access = createProjectAccess(env.WEAVE_PROJECT_ACCESS_MODE, env.WEAVE_PROJECT_PILOT_DIDS);
   const account = accountConfiguration(env);
   if (!account || !account.secureCookies) throw Error("projects_require_https");
   const required = (key: string) => {
@@ -43,7 +43,7 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
     origin: account.origin,
     cgsOrigin: groupServiceOrigin,
     resolveActor,
-    allowsDid: pilot.allowsDid,
+    allowsDid: access.allowsDid,
     store: projectOAuthStore(authSql, cipherFromSecret(
       required("WEAVE_PROJECT_OAUTH_ENCRYPTION_KEYS"), `${account.origin}/api/certified-project-client`,
     )),
@@ -54,7 +54,7 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
   const discovery = createProjectDiscoveryStore(sql);
   const publications = createSupportPublicationStore(sql);
   const invitations = createWorkspaceInviteStore(sql);
-  const pilotActor = pilot.restrict(resolveActor);
+  const allowedActor = access.restrict(resolveActor);
   function providerFor(request: Request) {
     const optionalGrant = async <T>(call: () => Promise<T>) => {
       try { return await call(); }
@@ -76,12 +76,12 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
     auth,
     origin: account.origin,
     async matching(request: Request, command: MatchingCommand) {
-      const actor = await pilotActor(request);
+      const actor = await allowedActor(request);
       return createWorkspaceContent(providerFor(request), content, store).match(actor, command);
     },
     projects: createProjectHandler({
       origin: account.origin,
-      resolveActor: pilotActor,
+      resolveActor: allowedActor,
       async execute(request, actor, command) {
         const provider = providerFor(request);
         if (command.action === "claim_invite" || command.action === "create_invite" || command.action === "list_invites"

@@ -117,6 +117,15 @@ not assignments to people or authorization to provision infrastructure.
 
 ### Project integration and support listing validation
 
+On 12 November 2026 the user chose to open project flows to verified Certified
+accounts instead of restricting production to two tester DIDs. Rollout access
+and workspace authority stay separate: current Certified membership, verified
+project authority and explicit Weave grants still control private team access
+and actions. The explicit `WEAVE_PROJECT_ACCESS_MODE=authenticated` setting is
+required; omitted mode keeps the existing two-account pilot behavior. Its code
+release and real-user production acceptance remain pending. Optional email
+hints and hybrid retrieval remain off.
+
 These are the remaining decisions and evidence for the
 [project integration target](05-technical-spec.md#certified-project-integration-target).
 
