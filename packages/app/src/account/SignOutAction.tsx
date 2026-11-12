@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { AccountFailure, accountMessage, accountRequest } from "./client.ts";
+import { accountRequest } from "./client.ts";
 import { useAccount } from "./context.tsx";
-/** Clear UI identity only after confirmed sign-out or an already-invalid session. */
+import { signOut as endSession } from "./sign-out.ts";
+/** Sign out as a button with its own notice. The rule for when identity leaves the screen is in sign-out.ts. */
 export function SignOutAction({
   label = "Sign out",
   onResult,
@@ -26,12 +27,8 @@ export function SignOutAction({
     onBusyChange?.(true);
     setNotice(null);
     try {
-      await accountRequest("", { action: "sign_out" });
-      clear();
-      report("You are signed out. The device draft and its backups are still here.", false);
-    } catch (error) {
-      if (error instanceof AccountFailure && error.code === "sign_in_required") clear();
-      report(accountMessage(error), true);
+      const result = await endSession(() => accountRequest("", { action: "sign_out" }), clear);
+      report(result.message, result.failed);
     } finally {
       setBusy(false);
       onBusyChange?.(false);

@@ -7,12 +7,11 @@ import {
   growsFromScroll,
   growsOnItsOwn,
   logoNetwork,
-  occupancy,
+  restShare,
   scrolledEnough,
   seedNetwork,
   seededRandom,
   settle,
-  shows,
   tuftAlpha,
 } from "../behaviors/mycelium.js";
 
@@ -36,15 +35,14 @@ test("the mycelium settles into the same sparse network for the same hero", () =
   assert.ok(phone.length <= densityFor(360).limit && phone.length < wide.length, "a phone grows less");
 });
 
-test("threads start at the hero's sides and stay near it", () => {
+test("threads start all over a region, under its content as well as beside it (DL-071)", () => {
   const width = 1280;
   const height = 520;
   const branches = grow(width, height, 3);
   const roots = branches.filter((branch) => branch.generation === 0);
-  assert.ok(
-    roots.every((branch) => branch.points[0] <= width * 0.2 || branch.points[0] >= width * 0.8),
-    "seeds sit at the sides, clear of the heading and search",
-  );
+  const share = (from, to) => roots.filter((branch) => branch.points[0] >= width * from && branch.points[0] < width * to).length / roots.length;
+  assert.ok(share(0.3, 0.7) > 0.2, "seeds sit under the middle of the page, where the content is");
+  assert.ok(share(0, 0.2) > 0.05 && share(0.8, 1) > 0.05, "and still down both sides");
   for (const branch of branches)
     for (let i = 0; i < branch.points.length; i += 2) {
       assert.ok(branch.points[i] >= -20 && branch.points[i] <= width + 20);
@@ -52,13 +50,17 @@ test("threads start at the hero's sides and stay near it", () => {
     }
 });
 
-test("on a phone, threads start beside the edges, down the region's whole height (DL-066)", () => {
+test("on a phone, threads start across the whole width and down the region's whole height", () => {
   const width = 360;
-  const height = 520;
-  const roots = grow(width, height, 3).filter((branch) => branch.generation === 0);
-  assert.ok(roots.length > 0);
-  for (const root of roots) assert.ok(root.points[0] <= width * 0.1 || root.points[0] >= width * 0.9, "beside the edge");
-  assert.ok(roots.some((root) => root.points[1] > height * 0.5), "no longer only in the top corners");
+  const height = 1560;
+  const random = seededRandom(3);
+  const density = densityFor(width, height);
+  const branches = settle(seedNetwork(width, height, random, density), width, height, random, density);
+  const roots = branches.filter((branch) => branch.generation === 0);
+  // A phone's content fills the width but for a gutter each side: growth must run under it to be there at all.
+  assert.ok(roots.filter((root) => root.points[0] > 16 && root.points[0] < width - 16).length > roots.length / 2, "most start under the column of content");
+  assert.ok(roots.some((root) => root.points[1] > height * 0.6), "and they reach the lower part of a long page");
+  assert.ok(branches.every((branch) => !branch.growing), "growth comes to rest");
 });
 
 test("a longer page grows as much for each stretch of its height as a hero does", () => {
@@ -66,54 +68,25 @@ test("a longer page grows as much for each stretch of its height as a hero does"
   assert.equal(densityFor(1280, 3120).seeds, densityFor(1280).seeds * 6);
   assert.equal(densityFor(360, 4680).seeds, densityFor(360).seeds * 9);
   assert.equal(densityFor(360, 4680).limit, densityFor(360).limit * 9);
-  assert.equal(densityFor(1280, 200).seeds, densityFor(1280).seeds, "a short region never grows less than a hero");
+  assert.equal(densityFor(1280, 338).seeds, Math.round(densityFor(1280).seeds * 0.65), "a shorter region grows fewer, so its words are no more crowded");
+  assert.equal(densityFor(1280, 100).seeds, densityFor(1280).seeds / 2, "but never less than half a hero's");
 });
 
-test("the map of content marks what a box covers and nothing else", () => {
-  const ground = occupancy(120, 60, [{ left: 30, top: 12, right: 66, bottom: 30 }], 6);
-  assert.equal(ground.isFree(29, 20), true);
-  assert.equal(ground.isFree(30, 12), false);
-  assert.equal(ground.isFree(65, 29), false);
-  assert.equal(ground.isFree(66, 20), true, "the box ends where it says");
-  assert.equal(ground.isFree(40, 31), true);
-  assert.equal(ground.isFree(-5, 20), true, "outside the region is free: growth is cut off there anyway");
-  assert.equal(ground.isFree(500, 500), true);
-  const beyond = occupancy(60, 60, [{ left: -40, top: -40, right: 9, bottom: 9 }, { left: 200, top: 0, right: 260, bottom: 60 }], 6);
-  assert.equal(beyond.isFree(3, 3), false, "a box that starts outside still covers what it reaches");
-  assert.equal(beyond.isFree(30, 30), true, "a box wholly outside covers nothing");
-});
-
-test("growth goes around content: no thread starts on it or crosses it (DL-066)", () => {
-  const width = 360;
-  const height = 1560;
-  // A phone page: a column of content with a gutter each side and a gap between its sections.
-  const blocks = [0, 1, 2, 3].map((index) => ({ left: 16, top: 40 + index * 380, right: 344, bottom: 360 + index * 380 }));
-  const ground = occupancy(width, height, blocks);
-  const random = seededRandom(7);
-  const density = densityFor(width, height);
-  const branches = settle(seedNetwork(width, height, random, density, ground.isFree), width, height, random, density, ground.isFree);
-  assert.ok(branches.length > 0, "the gutters and gaps leave room to grow");
-  assert.ok(branches.every((branch) => !branch.growing), "growth comes to rest");
-  let points = 0;
-  for (const branch of branches)
-    for (let i = 0; i < branch.points.length; i += 2) {
-      points++;
-      assert.ok(ground.isFree(branch.points[i], branch.points[i + 1]), `a thread is on content at ${branch.points[i]}, ${branch.points[i + 1]}`);
-    }
-  assert.ok(points > branches.length * 3, "threads still grow some way before they rest");
-  assert.ok(branches.some((branch) => branch.points[1] > height * 0.6), "growth reaches the lower part of a long page");
-  const filled = occupancy(width, height, [{ left: 0, top: 0, right: width, bottom: height }]);
-  assert.deepEqual(seedNetwork(width, height, seededRandom(7), density, filled.isFree), [], "a region with no free ground grows nothing");
-});
-
-test("a computed colour shows unless it is transparent", () => {
-  assert.equal(shows("rgb(0, 0, 0)"), true, "black has no alpha part and shows");
-  assert.equal(shows("rgba(0, 0, 0, 0)"), false);
-  assert.equal(shows("rgba(12, 34, 56, 0.4)"), true);
-  assert.equal(shows("rgb(0 0 0 / 0)"), false);
-  assert.equal(shows("color(srgb 0.1 0.2 0.3 / 0.5)"), true);
-  assert.equal(shows("transparent"), false);
-  assert.equal(shows(""), false);
+test("at rest the network shows whole in the margins and quieter under the content (DL-071)", () => {
+  const column = { left: 128, right: 1152 };
+  assert.equal(restShare(40, column), 1, "the left margin shows it whole");
+  assert.equal(restShare(1200, column), 1, "and so does the right");
+  assert.equal(restShare(128, column), 1, "up to the column's own edge");
+  const under = restShare(640, column);
+  assert.ok(under > 0 && under < 1, "under the content it is quieter, and still there");
+  assert.equal(restShare(400, column), under, "by the same amount across the column");
+  assert.equal(restShare(900, column), under);
+  const easing = [130, 140, 150, 160].map((x) => restShare(x, column));
+  assert.ok(easing.every((share, i) => share < 1 && share >= under && (i === 0 || share <= easing[i - 1])), "it eases down inside the edge, with no hard line");
+  assert.equal(restShare(column.left + 10, column), restShare(column.right - 10, column), "the same at both sides");
+  // A phone's column runs almost edge to edge, so nearly all of its network is the quiet kind.
+  assert.equal(restShare(180, { left: 16, right: 344 }), under);
+  assert.equal(restShare(0, { left: 0, right: 0 }), 1, "a region with no column measured shows whole");
 });
 
 test("only a mouse grows more, and never under reduced motion; touch never does", () => {

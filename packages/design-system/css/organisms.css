@@ -17,21 +17,38 @@
   border-block-end: var(--border-thin) solid var(--line);
   background: var(--surface);
 }
+/* The lead holds the product name, or the way back, and the sections beside it; the state goes to
+   the far end. The name and the sections are one line of words in two sizes, so they sit on one
+   baseline, and the lead as a whole sits on the bar's centre line with the controls at the other
+   end (DL-070). Where a browser cannot align last baselines, each is centred instead. */
+.rc-app-header-lead {
+  display: flex;
+  flex: none;
+  align-items: center;
+  align-items: last baseline;
+  gap: var(--space-4);
+}
+/* A long name on the way back gives way to the bar; the product name never does. */
+.rc-app-header-lead:has(> .rc-back) { flex: 0 1 auto; min-inline-size: 0; }
+.rc-app-header-lead > .rc-logo { flex: none; }
+/* A flex box takes its baseline from the name's words; as a block it would take the arrow's foot. */
+.rc-app-header-lead > .rc-back { display: flex; flex: 0 1 auto; }
 /* The header's sections size to their words with equal space between them, and the logo, which
    goes home, keeps the same space from the first (DL-049). Only the phone's bottom bar has equal
-   tabs. The nav sits beside the name; the state goes to the far end. */
+   tabs. */
 .rc-app-nav {
   display: none;
+  flex: none;
   gap: var(--space-6);
-  /* With the header's own gap, the logo sits as far from the first section as sections sit apart. */
+  /* With the lead's own gap, the logo sits as far from the first section as sections sit apart. */
   padding-inline-start: var(--space-4);
-  margin-inline-end: auto;
 }
 .rc-app-nav > a {
   display: inline-flex;
   align-items: center;
   min-block-size: var(--control-sm-height);
-  border-block-end: var(--border-edge) solid transparent;
+  /* The same edge above as below, so the bar that marks the current section never lifts its word. */
+  border-block: var(--border-edge) solid transparent;
   color: var(--text-secondary);
   text-decoration: none;
   /* A tab name stays on one line; the save status gives way first. */
@@ -273,13 +290,38 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The header stays on one line at every width: the status shortens before anything wraps. */
-.rc-app-header > .rc-logo { flex: none; }
-.rc-app-header > .rc-back { flex: 0 1 auto; }
-.rc-app-header-state { display: flex; align-items: center; justify-content: end; gap: var(--space-2); min-inline-size: 0; }
+/* The header stays on one line at every width: the status shortens before anything wraps. Its
+   controls sit on the bar's centre line, and the state keeps a full control's height whatever it
+   holds, so the bar is as tall signed in as signed out and on a phone as on a wide screen. */
+.rc-app-header-state { display: flex; align-items: center; justify-content: end; gap: var(--space-2); min-inline-size: 0; min-block-size: var(--control-height); }
 .rc-app-header-state > .rc-save-status { min-inline-size: 0; }
 .rc-app-header-state > .rc-save-status > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button { flex: none; }
+.rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button, .rc-app-header-state > .rc-account { flex: none; }
+/* The gear has no box of its own to see, so its glyph, not the clear space around it, meets the
+   page's edge, as the logo's mark does at the other end. Its tint, under a mouse or on Settings
+   itself, is a round one about the glyph, so it reads as a mark on the gear and not a box off the edge. */
+.rc-app-header-state > .rc-icon-button { margin-inline-end: calc((var(--icon-size) - var(--control-height)) / 2); border-radius: var(--radius-full); }
+/* On a phone, a page where the card is worked on says how it is saved and, signed out, offers
+   Sign in beside that. The name of the page behind has no room there, so the way back keeps its
+   arrow alone, as a native bar does when its title is crowded. Its name is still read out. */
+@media (width <= 37.5rem) {
+  .rc-app-header:has(.rc-save-status ~ .rc-button) .rc-back-link { min-inline-size: var(--control-sm-height); padding-inline-end: 0; }
+  .rc-app-header:has(.rc-save-status ~ .rc-button) .rc-back-link > span { display: none; }
+}
+/* A page zoomed to twice its size on a phone, or a screen narrower than any phone's, cannot hold
+   the bar's two ends on one line. There they take a line each, the state still at the far end, so
+   nothing is drawn over anything else. */
+@media (width < 20rem) {
+  .rc-app-header { flex-wrap: wrap; }
+  .rc-app-header-state { margin-inline-start: auto; }
+}
+/* A phone keeps Settings one tap away as a gear. A wide screen has room for the account's own
+   menu, which holds Settings, so there the gear leaves and the menu's button arrives (DL-070). */
+.rc-app-header-state > [data-from="wide"] { display: none; }
+@media (min-width: 56.25rem) {
+  .rc-app-header-state > [data-until="wide"] { display: none; }
+  .rc-app-header-state > [data-from="wide"] { display: inline-grid; }
+}
 /* The same filter bar on every list (DL-061). Menus hold native checks, not ARIA menu items. */
 .rc-filter-bar { display: grid; min-inline-size: 0; gap: var(--space-3); }
 .rc-filter-controls, .rc-active-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
@@ -321,6 +363,34 @@
 .rc-menu-group > legend { font: var(--type-title-sm); margin-block-end: var(--space-2); }
 .rc-menu-option { display: flex; align-items: center; min-block-size: var(--control-sm-height); gap: var(--space-2); padding-inline: var(--space-2); cursor: pointer; }
 .rc-menu-option:hover { background: var(--surface-tint); }
+/* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
+   it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
+.rc-menu-head { padding: var(--space-1) var(--space-2) var(--space-2); color: var(--text-secondary); overflow-wrap: anywhere; }
+/* A long handle wraps to the menu's width and never widens it. */
+.rc-menu > .rc-menu-head { inline-size: 0; min-inline-size: 100%; }
+.rc-menu-item, .rc-menu-item:visited {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--control-sm-height);
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rc-menu-item:hover:not([aria-busy="true"]) { background: var(--surface-tint); }
+/* A row that is under way says so and keeps the focus, which a disabled button would drop. */
+.rc-menu-item[aria-busy="true"] { color: var(--text-muted); cursor: progress; }
+.rc-menu-item[aria-current="page"] { font: var(--type-label-md); }
+.rc-menu-item[data-divide] { margin-block-start: var(--space-1); border-block-start: var(--border-thin) solid var(--line); }
+/* A notice that arrives in an open menu wraps to the menu's width and never widens it, so the menu
+   stays where it opened. */
+.rc-menu > .rc-notice { inline-size: 0; min-inline-size: 100%; margin-block-start: var(--space-2); }
 /* Footer aligns with the logo on every page, with a slim focused-flow variant. */
 .rc-footer {
   display: grid;

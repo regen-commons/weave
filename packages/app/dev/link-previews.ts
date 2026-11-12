@@ -51,9 +51,9 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
   {
     route: "your-initiatives",
     image: "your-initiatives",
-    title: "Your initiatives | Weave",
+    title: "Your Initiatives | Weave",
     description: "Open the initiatives you saved, see the partners that fit them, and choose what you share.",
-    headline: { lines: ["Your"], accent: ["initiatives"] },
+    headline: { lines: ["Your"], accent: ["Initiatives"] },
   },
 ];
 

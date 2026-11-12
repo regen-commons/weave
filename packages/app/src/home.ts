@@ -63,7 +63,7 @@ type Emphasis = "primary" | "secondary";
 /**
  * Which actions home's hero offers, so the page keeps one solid primary. A card to come back to
  * is resumed there and nothing sits beside it: starting another and opening one kept elsewhere
- * are on Your initiatives. With no card, a signed-in person who keeps initiatives elsewhere leads
+ * are on Your Initiatives. With no card, a signed-in person who keeps initiatives elsewhere leads
  * with opening one. Anyone else leads with starting.
  */
 export function homeDoors(

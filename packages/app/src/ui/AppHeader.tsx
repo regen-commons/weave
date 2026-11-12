@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { useSocialFixture } from "../social/context.tsx";
+import { AccountMenu } from "../account/AccountMenu.tsx";
 import { useAccount } from "../account/context.tsx";
 import { useAccountDoor } from "../account/door.tsx";
 import type { SaveStatus } from "../initiative/header-status.ts";
@@ -36,24 +38,34 @@ export function AppHeader({
   const signedIn = !!state?.user || (import.meta.env.DEV && !!social?.state.identity);
   const route = matchRoute(pathname);
   const current = route?.section;
+  // Signing out from the account's menu removes the menu, so Sign in takes the focus it held and
+  // the header says what happened to people who cannot see it change.
+  const signIn = useRef<HTMLButtonElement>(null);
+  const [signedOut, setSignedOut] = useState("");
+  useEffect(() => {
+    if (signedOut && !signedIn) signIn.current?.focus();
+    if (signedOut && signedIn) setSignedOut("");
+  }, [signedOut, signedIn]);
   return (
     <header className="rc-app-header">
-      {/* The way back takes the logo's place, where a native app bar keeps it. */}
-      {back ? <BackLink target={back} /> : <Logo current={current === "home"} />}
-      {sections && (
-        <nav className="rc-app-nav" aria-label="Main">
-          {SECTIONS.filter((section) => section.header !== false).map((section) => (
-            <Link
-              key={section.route}
-              href={pathTo(section.route)}
-              aria-current={section.route === current ? "page" : undefined}
-              onClick={(event) => tabPress(event, section.route, pathname)}
-            >
-              {section.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      <div className="rc-app-header-lead">
+        {/* The way back takes the logo's place, where a native app bar keeps it. */}
+        {back ? <BackLink target={back} /> : <Logo current={current === "home"} />}
+        {sections && (
+          <nav className="rc-app-nav" aria-label="Main">
+            {SECTIONS.filter((section) => section.header !== false).map((section) => (
+              <Link
+                key={section.route}
+                href={pathTo(section.route)}
+                aria-current={section.route === current ? "page" : undefined}
+                onClick={(event) => tabPress(event, section.route, pathname)}
+              >
+                {section.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+      </div>
       <div className="rc-app-header-state">
         {status !== "none" && (
           <p className="rc-save-status" data-state={status}>
@@ -61,21 +73,34 @@ export function AppHeader({
             <span>{STATUS_TEXT[status]}</span>
           </p>
         )}
-        {/* Signed in, the Your initiatives tab holds the account, so the header adds no second door. */}
         {!signedIn && (
-          <button className="rc-button" data-variant="quiet" type="button" onClick={() => openAccount("sign-in")}>
+          <button
+            ref={signIn}
+            className="rc-button"
+            data-variant="secondary"
+            data-size="sm"
+            type="button"
+            onClick={() => openAccount("sign-in")}
+          >
             Sign in
           </button>
         )}
-        {/* Settings is the same on every page, signed in or out. The gear is read without a word (DL-059). */}
+        {/* On a phone Settings is a gear on every page, read without a word (DL-059), and the You tab
+            holds the account. A wide screen gives a signed-in person the account's menu in the
+            gear's place; it holds Settings, and signed out Settings is in the footer (DL-070). */}
         <Link
           className="rc-icon-button"
           href={pathTo("settings")}
           aria-label="Settings"
           aria-current={route?.name === "settings" ? "page" : undefined}
+          data-until="wide"
         >
           <Icon name="settings" />
         </Link>
+        {signedIn && <AccountMenu current={route?.name} onSignedOut={setSignedOut} />}
+        <p className="rc-visually-hidden" role="status">
+          {signedIn ? "" : signedOut}
+        </p>
       </div>
     </header>
   );

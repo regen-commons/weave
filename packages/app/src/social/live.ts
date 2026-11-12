@@ -177,7 +177,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (project && !project.group) {
         const linked = await post({ action: "link", projectUri: project.uri, ...receipt });
         if (linked.status !== "linked" || linked.workspaceId !== receipt.initiativeId || linked.projectUri !== project.uri || linked.accessRole !== "admin")
-          throw Error("Your card was saved privately. This Certified project already has another workspace; open it from Your initiatives before sharing.");
+          throw Error("Your card was saved privately. This Certified project already has another workspace; open it from Your Initiatives before sharing.");
         const record = find(project.uri);
         if (!record) throw Error("Your card was saved privately. Refresh your projects before sharing.");
         const workspace = { ...record, workspace: true, workspaceId: linked.workspaceId, accessRole: "admin" as const };
@@ -241,7 +241,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (result.status === "pending") {
         try { options.storage?.setItem(requestKey(project.uri), requestedOn); } catch { /* The current view can retain the acknowledged request. */ }
       }
-      if (state.project?.uri !== project.uri) throw Error("Your project choice changed. Open the reviewed project from Your initiatives to check its workspace.");
+      if (state.project?.uri !== project.uri) throw Error("Your project choice changed. Open the reviewed project from Your Initiatives to check its workspace.");
       if (result.status === "linked" && uuid(result.workspaceId)) {
         state = { ...state, project: { ...project, workspace: "open", workspaceId: result.workspaceId } }; emit();
         options.openWorkspace(result.workspaceId);

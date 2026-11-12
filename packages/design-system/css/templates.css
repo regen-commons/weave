@@ -108,7 +108,7 @@
   position: relative;
   isolation: isolate;
 }
-/* Doorway: a page with nothing to fill in and no list, such as signing in to Your initiatives or a
+/* Doorway: a page with nothing to fill in and no list, such as signing in to Your Initiatives or a
    missing page, opens like Home's hero, with the mycelium and grain behind it (DL-053). */
 .rc-doorway {
   display: grid;
@@ -143,9 +143,9 @@
    by side when wide (DL-063). */
 .rc-home-live { display: grid; justify-items: center; min-block-size: var(--control-sm-height); }
 /* Mycelium: the website's branching growth, behind a doorway, or behind the whole of Home
-   (DL-046, DL-066). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js
-   draws it in the website's six thread colours, set here, at the website's own strengths, and
-   grows it around the page's content, so no mask has to clear the words. */
+   (DL-046, DL-071). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js
+   draws it in the website's six thread colours, set here, and grows it underneath the content:
+   at the website's own strength in the page's margins, and quieter under the column of content. */
 .rc-mycelium {
   position: absolute;
   z-index: -1;
@@ -158,7 +158,7 @@
   -webkit-mask-image: var(--hero-fade);
   mask-image: var(--hero-fade);
 }
-/* Under a whole page: the page is what the canvas measures and grows around. */
+/* Under a whole page: the canvas lies behind everything on it. */
 .rc-main:has(.rc-mycelium[data-extent="page"]) { position: relative; isolation: isolate; }
 .rc-mycelium[data-extent="page"] {
   inset: 0;
@@ -167,6 +167,11 @@
   -webkit-mask-image: none;
   mask-image: none;
 }
+/* The threads pass under whatever is on the page. A card and a field cover them with their own
+   fill; an outlined button sitting on the page takes the page's fill there, so they pass under it
+   too and never through its words. One inside a card, a notice or a dialog sits on that fill and
+   keeps its own clear one. */
+.rc-main:has(.rc-mycelium) .rc-button[data-variant="secondary"]:not(:hover, :disabled, .rc-card *, .rc-notice *, .rc-dialog *) { background: var(--surface); }
 /* The website's paper grain, at its strength, in the same hero only: it never shows against the page. */
 .rc-home-hero::before, .rc-doorway::before {
   content: "";

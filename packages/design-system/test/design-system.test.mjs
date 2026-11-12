@@ -186,6 +186,28 @@ test("a menu opens beside its trigger and never over it, scrolling inside when t
   assert.deepEqual(blockPlacement({ triggerTop: 4, triggerBottom: 796, panelHeight: 300, windowHeight: 800, gap: 12 }).maxBlock, 0, "no room is no height, never a negative one");
 });
 
+test("a menu starts at its trigger's edge, or ends at it when asked, and stays inside the window (DL-070)", async () => {
+  const { inlinePlacement } = await import("../behaviors/overlays.js");
+  const account = { triggerLeft: 1108, triggerRight: 1152, panelWidth: 288, windowWidth: 1280, gap: 12 };
+  assert.equal(inlinePlacement({ ...account, align: "end" }), 1152 - 288, "the account's menu ends under its button's edge, at the page's edge");
+  assert.equal(inlinePlacement(account), 1280 - 12 - 288, "started at that button it would leave the window, so it is held inside");
+  assert.equal(inlinePlacement({ triggerLeft: 200, triggerRight: 300, panelWidth: 288, windowWidth: 1280, gap: 12 }), 200, "a filter's menu starts at its button");
+  assert.equal(inlinePlacement({ triggerLeft: 20, triggerRight: 64, panelWidth: 288, windowWidth: 360, gap: 12, align: "end" }), 12, "ending at a button near the start would leave the window too");
+  assert.equal(inlinePlacement({ triggerLeft: 300, triggerRight: 344, panelWidth: 348, windowWidth: 360, gap: 12, align: "end" }), 12, "a menu wider than the room keeps its start in view");
+  assert.equal(inlinePlacement({ ...account, align: undefined }), inlinePlacement(account), "a panel that asks for nothing starts at its trigger");
+});
+
+test("the header's name and sections share a baseline, and are centred where a browser cannot align them (DL-070)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  const lead = organisms.match(/\.rc-app-header-lead \{([^}]*)\}/)?.[1] ?? "";
+  const aligns = [...lead.matchAll(/align-items:\s*([^;]+);/g)].map((match) => match[1].trim());
+  // Two values on purpose: a browser that does not know the second keeps the first.
+  assert.deepEqual(aligns, ["center", "last baseline"], "the fallback comes first, so the baseline wins wherever it is understood");
+  assert.match(organisms, /\.rc-app-nav > a \{[^}]*border-block: var\(--border-edge\) solid transparent;/, "a section's box has the same edge above as below, so the fallback centres its word");
+  assert.match(organisms, /\.rc-app-header-state \{[^}]*min-block-size: var\(--control-height\);/, "the bar keeps one height whatever its far end holds");
+  assert.match(organisms, /@media \(width < 20rem\) \{\s*\.rc-app-header \{ flex-wrap: wrap; \}/, "zoomed to twice its size on a phone, the bar's ends take a line each and never overlap");
+});
+
 test("every class is defined, documented and shown", () => {
   const defined = cssClasses();
   const used = classesIn([LIBRARY, ...Object.values(PAGES)].join("\n"));

@@ -44,7 +44,7 @@ export function HomeHero({
 
 /**
  * Doorway template (`rc-doorway`): a page with nothing to fill in and no list, such as signing in to
- * Your initiatives or a missing page, opens like Home's hero, with the mycelium behind it (DL-053).
+ * Your Initiatives or a missing page, opens like Home's hero, with the mycelium behind it (DL-053).
  */
 export function Doorway({ children }: { children: ReactNode }) {
   return (

@@ -39,7 +39,7 @@ export function SetAsideCard() {
           Start a new initiative
         </button>
         <ButtonLink href={pathTo("your-initiatives")} variant="secondary">
-          Go to Your initiatives
+          Go to Your Initiatives
         </ButtonLink>
       </div>
       <p className="rc-meta">Starting keeps a copy of the other card on this device.</p>
