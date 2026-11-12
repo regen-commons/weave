@@ -69,7 +69,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --test src/*.test.ts",
+    "test": "node --test src/*.test.ts evaluation/*.test.mjs",
+    "eval:matching": "node scripts/matching-heldout.mjs",
     "auth:bridge": "node src/certified-server.ts",
     "auth:check": "node src/certified-check.ts",
     "auth:keys": "node src/certified-admin.ts",

@@ -37,7 +37,9 @@ export function MatchDetails({ match }: { match: NetworkMatch }) {
         </p>
       )}
       <p>{evidenceContext[match.evidenceKind]}</p>
-      {match.reasons.map(({ terms }) => <p className="rc-meta" key={terms.join(", ")}>Shared topics include {terms.join(", ")}.</p>)}
+      {match.reasons.map(({ type, terms }) => <p className="rc-meta" key={`${type}:${terms.join(", ")}`}>
+        {type === "related_terms" ? "Related wording: " : "Shared topics include "}{terms.join(", ")}.
+      </p>)}
       {!!match.unknowns.length && <p className="rc-meta">Details to check include {match.unknowns.join(", ")}.</p>}
       {match.reciprocal && <p className="rc-meta">This initiative has a match in both directions.</p>}
     </>
@@ -284,7 +286,9 @@ function HowItWorks({ coverage }: { coverage: MatchingSearch["coverage"] }) {
       <p>
         Results come from what other teams shared in Weave and from a limited set of public sources.
         {coverage.external === "partial" && " Some public sources were not checked, so results may be incomplete."}
-        {coverage.modelVersion === null && " This search matched words only, so related wording can be missed."}
+        {coverage.modelVersion === null && (coverage.engineVersion === "partner-concepts-v2"
+          ? " This search uses words and related phrases. Other wording may be missed."
+          : " This search matched words only, so related wording can be missed.")}
         {" "}Saving keeps a result in a private list and sends no invitation.
       </p>
     </details>

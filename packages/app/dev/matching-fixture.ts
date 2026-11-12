@@ -4,7 +4,7 @@ import {
   parseMatchingPreview, parseMatchingSearch, matchingCandidateId,
   type MatchingEntryRef, type MatchingEntryState, type MatchingLead, type MatchingPreview, type MatchingState,
 } from "@weave/api/matching-contract";
-import { rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "@weave/api/partner-matcher";
+import { PARTNER_ENGINE_VERSION, rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "@weave/api/partner-matcher";
 import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedInitiative } from "@weave/api/account-contract";
 import { createProjectHandler } from "../../api/src/project-http.ts";
 import { sessionCookies } from "../../api/src/account-http.ts";
@@ -73,7 +73,7 @@ const publicEvidence: ProjectEvidence[] = [{
   cid: "fictional-cid",
   contentHash: "fixture-v1",
   fieldPath: "/description",
-  passage: "The Stream Survey Lab runs GPS watershed mapping and environmental monitoring workshops.",
+  passage: "The Stream Survey Lab runs GPS watershed mapping, cartography and environmental monitoring workshops.",
   sourceCreatedAt: "2026-10-01T00:00:00Z",
   sourceIndexedAt: null,
   fetchedAt: "2026-11-08T00:00:00Z",
@@ -270,7 +270,7 @@ export const matchingFixture = createMatchingHandlers({
         if (command.entries && rows.some((row) => !projection(initiativeId, row).length)) return conflict();
         return parseMatchingSearch({ initiativeId, results: search(rows), coverage: {
           shared: rows.some((row) => projection(initiativeId, row).length) ? "available" : "not_joined",
-          external: "partial", corpusVersion: "local-fictional-corpus", modelVersion: null, engineVersion: "partner-lexical-v1",
+          external: "partial", corpusVersion: "local-fictional-corpus", modelVersion: null, engineVersion: PARTNER_ENGINE_VERSION,
         } });
       }
       if (action === "preview") {

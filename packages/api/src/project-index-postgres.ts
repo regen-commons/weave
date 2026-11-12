@@ -1,5 +1,6 @@
 import { connectRestrictedIndexDatabase } from "./project-index-db.ts";
 import { partnerLexicalText } from "./partner-matcher.ts";
+import { expandPartnerText } from "./partner-concepts.ts";
 import { PROJECT_EXTRACTION_VERSION } from "./project-index-source.ts";
 import type { ProjectCheckpoint, ProjectIndexStore } from "./project-index.ts";
 
@@ -162,7 +163,7 @@ export async function connectProjectIndex(url: string): Promise<{ store: Project
           const rows = read.passages.map((evidence, index) => ({
             id: evidence.id,
             project_uri: permission.uri,
-            lexical_text: partnerLexicalText(evidence.passage),
+            lexical_text: partnerLexicalText(expandPartnerText(evidence.passage)),
             evidence: tx.json(evidence),
             embedding: embedding ? JSON.stringify(embedding.vectors[index]) : null,
             embedding_model: embedding?.modelVersion ?? null,
