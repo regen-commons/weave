@@ -32,6 +32,8 @@
 
 :where(p, figure, dl, dd, blockquote) { margin: 0; }
 :where(ul, ol) { margin: 0; }
+:where(fieldset) { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+:where(legend) { padding: 0; margin-block-end: var(--space-2); font: var(--type-label-md); }
 :where(hr) {
   border: 0;
   border-block-start: var(--border-thin) solid var(--line);

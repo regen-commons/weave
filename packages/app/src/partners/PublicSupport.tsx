@@ -104,13 +104,13 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
     <ul className="rc-ask-summary">{entries.map((e) => <li key={`${e.kind}/${e.entryId}`}><strong>{e.title}</strong>
       {!readOnly && <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
         onClick={() => void prepare(e.kind, e.entryId)}>Review public listing</button>}</li>)}</ul>
-    <ul className="rc-ask-summary">{listings.map((l) => <li key={`${l.kind}/${l.entryId}`}><strong>{l.title}</strong>
+    {listings.length > 0 && <ul className="rc-ask-summary">{listings.map((l) => <li key={`${l.kind}/${l.entryId}`}><strong>{l.title}</strong>
       <p>{statuses[l.status]}</p>{!readOnly && <div className="rc-action-bar">
         <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
           onClick={() => void run({ action: "support_reconcile", workspaceId, kind: l.kind, entryId: l.entryId })}>Check public status</button>
         {l.status !== "withdrawn" && <button className="rc-button" data-variant="secondary" type="button" disabled={busy || pending !== null}
           onClick={() => void run({ action: "support_withdraw", workspaceId, kind: l.kind, entryId: l.entryId, requestId: crypto.randomUUID() }, true)}>Withdraw public listing</button>}
-      </div>}</li>)}</ul>
+      </div>}</li>)}</ul>}
     {cursor && <button className="rc-button" data-variant="quiet" disabled={busy}
       onClick={() => {
         if (task.current || !cursor) return;

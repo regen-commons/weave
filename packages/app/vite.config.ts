@@ -12,6 +12,7 @@ import {
 import { VitePWA } from "vite-plugin-pwa";
 import { previewSecurityHeaders } from "./dev/security-headers.ts";
 import { answerApiRequest, type LoadEntry } from "./dev/api-bridge.ts";
+import { fontPreloads } from "./dev/font-preloads.ts";
 import { isolateFixtureProjectOAuth } from "./dev/fixture-oauth-isolation.ts";
 
 /**
@@ -86,12 +87,17 @@ export default defineConfig(({ mode }) => {
   return {
     base: prototype ? "./" : "/",
     define: { __WEAVE_PROTOTYPE__: JSON.stringify(prototype) },
-    build: prototype ? { outDir: "dist-prototype", emptyOutDir: true } : {},
+    // Artifact pages load fonts only as data: URIs or from Google Fonts, so the prototype carries
+    // the design system's own faces inside its stylesheet (DL-057).
+    build: prototype
+      ? { outDir: "dist-prototype", emptyOutDir: true, assetsInlineLimit: (file: string) => (file.endsWith(".woff2") ? true : undefined) }
+      : {},
     resolve: { conditions: ["source", ...defaultClientConditions] },
     preview: { headers: previewSecurityHeaders() },
     plugins: [
       react(),
       apiRoutes(),
+      ...(prototype ? [] : [fontPreloads()]),
       ...(prototype ? [] : [VitePWA({
         registerType: "autoUpdate",
         injectRegister: "script",

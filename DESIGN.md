@@ -298,6 +298,7 @@ components:
   control-lg: { height: 56px, padding: "{spacing.5}" }
   card: { padding: "{spacing.4}", rounded: "{rounded.sm}" }
   sheet: { padding: "{spacing.5}", rounded: "{rounded.lg}" }
+  dialog: { height: 720px, padding: "{spacing.6}" }
   chip: { typography: "{typography.body-sm}", height: 44px, padding: "{spacing.3}", rounded: "{rounded.sm}" }
   tag: { typography: "{typography.body-sm}", height: 28px, padding: "{spacing.2}", rounded: "{rounded.sm}" }
   tile: { typography: "{typography.label-md}", size: 28px, rounded: "{rounded.sm}" }
@@ -414,6 +415,7 @@ Tokens are generated into explicit theme blocks instead of using `light-dark()`.
 - Buttons and labels use sentence case. No decorative labels above headings; a factual label stays only when the heading cannot carry it (DL-028).
 - Prose stays within 45 to 75 characters per line (`--prose-width`). Left-align text. Centre three lines at most. Right-align numbers.
 - Fonts are subset to Latin. Yoruba and Vietnamese marks fall back to the system face until [latin-ext subsets](packages/design-system/decision-log.md) are added.
+- Text never changes face once it is drawn. Every face uses `font-display: optional` with a fallback matched to its size, and each surface has the faces it draws first ready before it draws: the app and the pattern library preload them. The clickable prototype carries them inside its stylesheet and draws them with `font-display: block`, because inlined faces are decoded after the first paint and `optional` would keep the fallback. Never load the faces from a service with `display=swap` (DL-057).
 
 ## Layout
 
@@ -443,7 +445,7 @@ Inputs use `--shadow-inset` to read as recessed. Use space or a surface step bef
 
 ### Motion
 
-Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: in Home's hero and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them; without a mouse, as on a phone, one grows on its own every few seconds while the hero is on screen. Touch never grows one, and under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
+Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. The app header and the bottom navigation never fade or move between pages: they change at once above the cross-fade (DL-058). Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: in Home's hero and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them; without a mouse, as on a phone, one grows on its own every few seconds while the hero is on screen. Touch never grows one, and under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
 
 ## Shapes
 
@@ -467,6 +469,7 @@ Border widths mean something: 1 px divides, 2 px marks selection or emphasis, 3 
 - **Conversation** asks one short thing at a time. A large local Speak action comes first when available, with typing and attachments below. The card fills in beside the conversation on wide screens and follows it on phones. Build my card opens review: four public fields and derived details with Keep, Change and Remove. Confirmed corrections stay fixed across builds; Remove offers Undo. Full words remain on the device even when the public description is shortened.
 - **Needs and offers** use the same Ask card, with all applicable kinds of support shown alike. Keep, Change and Remove are explicit decisions. Each list has a counter and at most five active cards; overflow stays in the source words and is named. Undo respects the same limit. Finish brings funding, a count-only Share card and the person's checked card together; unavailable feeds keep their counts unknown.
 - **Local assistant choices** explain privacy before asking for a tap. A download needs an exact size, cancellation, resumption and removal. Keyword and manual entry remain usable meanwhile. An unavailable service is shown only as a labelled development example, never as a working production choice.
+- **Dialogs** hold one thing to read or one decision. On a wide screen a dialog keeps clear of the window: room above and below of 8 percent of the window's height, from 24 to 80 px, and never taller than `--dialog-height` (720 px), so a long one scrolls under its title row and the window still shows around it. Information and tasks read at `--prose-width`, a record at `--list-width`, with `--dialog-padding` (32 px) inside. Buttons keep their own width. On phones every dialog is a bottom sheet with `--sheet-padding` (DL-056).
 - **Empty states** act as a first screen: a short headline, one line of guidance, one action, and no filters.
 - **Funding** keeps thematic fit apart from readiness and research priority. Visitors browse without invented fit. Program source dates, unknowns and eligibility checks remain visible. Team slots show requirements and count distinct asks and selected initiatives; private initiatives see counts only. Example coverage never establishes eligibility or changes the solo rubric.
 

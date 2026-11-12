@@ -57,7 +57,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
             {message && <p role="alert">{message}</p>}
           </div>
         ) : (
-          <AccountSection autoFocus onBeginCard={() => setIntent(null)} />
+          <AccountSection autoFocus heading={false} onBeginCard={() => setIntent(null)} />
         )}
       </TaskDialog>
     </DoorContext.Provider>

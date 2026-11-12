@@ -132,6 +132,15 @@ The tests check that generated files are current, the linter is clean, website v
 - Your initiative and the team workspace take the initiative's name as their heading
   under an Eyebrow, and the Your initiatives example ends with the account line
   (DL-047).
+- Dialog keeps clear of the window on wide screens: room above and below, at most
+  `--dialog-height` tall, `--prose-width` for information and tasks, `--dialog-padding`
+  inside, and buttons at their own width (DL-056). New tokens `--dialog-height` and
+  `--dialog-padding`. Fieldsets lose the browser's frame, and a legend reads as a field
+  label. Faces never change once drawn: the app preloads the faces a first visit draws, and
+  the prototype carries them in its stylesheet (DL-057).
+- App header and Bottom navigation stay put between pages: each has its own view
+  transition name at every width and changes at once above the page's cross-fade, and
+  the page's content no longer takes a name of its own (DL-058).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
   removed after one build phase.
 

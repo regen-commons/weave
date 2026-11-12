@@ -33,7 +33,6 @@
   display: grid;
   align-content: start;
   gap: var(--space-5);
-  view-transition-name: rc-content;
   container-type: inline-size;
   inline-size: 100%;
   max-inline-size: var(--page-width);
@@ -215,7 +214,8 @@
 @keyframes rc-arrive { from { opacity: 0; } to { opacity: 1; } }
 
 @media (prefers-reduced-motion: no-preference) {
-  ::view-transition-group(rc-content) { animation-duration: var(--duration-base); animation-timing-function: var(--ease-out); }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: var(--duration-base); animation-timing-function: var(--ease-out); }
 }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*) { animation: none; }

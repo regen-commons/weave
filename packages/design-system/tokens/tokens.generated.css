@@ -163,6 +163,8 @@
   --card-radius: var(--radius-sm);
   --sheet-padding: var(--space-5);
   --sheet-radius: var(--radius-lg);
+  --dialog-height: 45rem;
+  --dialog-padding: var(--space-6);
   --chip-font: var(--type-body-sm);
   --chip-height: 2.75rem;
   --chip-padding: var(--space-3);

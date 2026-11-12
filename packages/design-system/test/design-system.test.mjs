@@ -145,6 +145,23 @@ test("CSS uses tokens instead of raw values", () => {
   }
 });
 
+test("the app bars keep their place between pages, above the page's cross-fade (DL-058)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  // A rule inside an at-rule applies at some widths only; the bars must be named at every width.
+  const depthAt = (css, index) => [...css.slice(0, index)].reduce((depth, char) => depth + (char === "{") - (char === "}"), 0);
+  for (const [bar, name] of [[".rc-app-header", "rc-app-header"], [".rc-bottom-nav", "rc-bottom-nav"]]) {
+    const named = organisms.match(new RegExp(`\\${bar} \\{ view-transition-name: ${name}; \\}`));
+    assert.ok(named, `${bar} has its own view transition name`);
+    assert.equal(depthAt(organisms, named.index), 0, `${bar} is named at every width`);
+    assert.match(organisms, new RegExp(`::view-transition-old\\(${name}\\)[^{]*\\{ display: none; \\}`), `${bar} changes at once`);
+    assert.match(organisms, new RegExp(`::view-transition-group\\(${name}\\)[^{]*\\{ z-index: var\\(--layer-sticky\\); animation: none; \\}`),
+      `${bar} is drawn above the page`);
+  }
+  // Any other named part of a page would be drawn over the bars while the page changes.
+  const names = CSS_FILES.flatMap((file) => [...stripComments(read(file)).matchAll(/view-transition-name:\s*([a-z-]+)/g)].map((match) => match[1]));
+  assert.deepEqual(names.sort(), ["rc-app-header", "rc-bottom-nav"]);
+});
+
 test("every custom property used is defined", () => {
   const defined = new Set([...tokensCss.matchAll(/--([\w-]+):/g)].map((match) => match[1]));
   const sources = [...CSS_FILES, LIBRARY_CSS].map(read).concat(LIBRARY, Object.values(PAGES));

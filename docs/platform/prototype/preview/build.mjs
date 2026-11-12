@@ -5,8 +5,12 @@
 // Artifact at the same relative paths.
 //
 // Files the build only copies are left out: the funding catalog (the examples never load
-// it), the PDF reader (files stay unread in the prototype) and the font files, which load
-// from Google Fonts instead, as Artifact pages allow.
+// it) and the PDF reader (files stay unread in the prototype). The design system's fonts
+// arrive inside the stylesheet as data: URIs, which Artifact pages allow. Their bytes are
+// already there, so they use font-display: block: text waits the few milliseconds the
+// browser takes to decode them and is drawn in Weave's own faces, never in a fallback
+// first. The app's optional faces would keep the fallback, because they are decoded after
+// the first paint (DL-057).
 import { execFileSync } from "node:child_process";
 import { cpSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -14,8 +18,6 @@ import { fileURLToPath } from "node:url";
 const path = (relative) => fileURLToPath(new URL(relative, import.meta.url));
 const APP = path("../../../../packages/app/");
 const OUT = path("build/");
-const FONTS =
-  '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,400&family=Space+Grotesk:wght@300..700&display=swap">';
 
 execFileSync("bun", ["run", "prototype"], { cwd: APP, stdio: "inherit" });
 rmSync(OUT, { recursive: true, force: true });
@@ -23,20 +25,29 @@ cpSync(APP + "dist-prototype/", OUT, { recursive: true });
 renameSync(OUT + "index.html", OUT + "app.html");
 
 for (const file of readdirSync(OUT + "assets")) {
-  if (/\.(json|woff2)$/u.test(file) || file.startsWith("pdf")) rmSync(OUT + "assets/" + file);
+  if (file.endsWith(".json") || file.startsWith("pdf")) rmSync(OUT + "assets/" + file);
+  // A font file here would be blocked by the Artifact's policy; the build inlines them instead.
+  else if (file.endsWith(".woff2")) throw new Error(`The prototype build emitted ${file} instead of inlining it.`);
   else if (file.endsWith(".css")) {
     const css = readFileSync(OUT + "assets/" + file, "utf8");
-    writeFileSync(OUT + "assets/" + file, css.replace(/@font-face\{[^}]*\.woff2[^}]*\}/gu, ""));
+    let inlined = 0;
+    const blocking = css.replace(/@font-face\{[^}]*\}/gu, (face) => {
+      if (!face.includes("data:font/woff2")) return face;
+      if (!face.includes("font-display:optional"))
+        throw new Error(`${file} has an inlined face that is not font-display: optional; check DL-057 before changing this.`);
+      inlined += 1;
+      return face.replace("font-display:optional", "font-display:block");
+    });
+    if (inlined > 0) writeFileSync(OUT + "assets/" + file, blocking);
   }
 }
 
 const app = readFileSync(OUT + "app.html", "utf8");
 const styles = app.match(/<link rel="stylesheet"[^>]*>/gu);
 if (!styles) throw new Error("The app build has no stylesheet for the review page.");
-writeFileSync(OUT + "app.html", app.replace(styles[0], `${FONTS}\n    ${styles[0]}`));
 const shell = readFileSync(path("shell.html"), "utf8");
 if (!shell.includes("<!--APP-STYLES-->")) throw new Error("shell.html has lost its <!--APP-STYLES--> marker.");
-writeFileSync(OUT + "index.html", shell.replace("<!--APP-STYLES-->", [FONTS, ...styles].join("\n  ")));
+writeFileSync(OUT + "index.html", shell.replace("<!--APP-STYLES-->", styles.join("\n  ")));
 
 const count = readdirSync(OUT, { recursive: true, withFileTypes: true }).filter((entry) => entry.isFile()).length;
 console.log(`Built the preview prototype in ${OUT}: ${count} files.`);
