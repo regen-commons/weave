@@ -174,13 +174,19 @@
   list-style: none;
 }
 
-/* Dialog: native. A centred modal on wide screens and a bottom sheet on a phone. */
+/* Dialog: native. A centred modal on wide screens and a bottom sheet on a phone. On a wide
+   screen it keeps clear of the window and grows no taller than --dialog-height, so a long one
+   scrolls under its title row instead of filling the window (DL-056). */
 .rc-dialog {
   /* How far a finger has pulled the sheet down. behaviors/sheet.js writes it while dragging. */
   --sheet-drag: 0;
-  inline-size: min(100% - var(--space-5), var(--form-width));
-  max-block-size: calc(100dvh - var(--space-6));
-  padding: var(--sheet-padding);
+  /* Room above and below a centred dialog: 8 percent of the window's height, from 24 to 80 px. */
+  --dialog-inset: clamp(var(--space-5), 8dvh, var(--space-9));
+  /* The padding in use, which the sticky title row also reads. A bottom sheet uses --sheet-padding. */
+  --dialog-space: var(--dialog-padding);
+  inline-size: min(100% - var(--space-5), var(--prose-width));
+  max-block-size: min(100dvh - 2 * var(--dialog-inset), var(--dialog-height));
+  padding: var(--dialog-space);
   border: 0;
   border-radius: var(--sheet-radius);
   background: var(--surface-overlay);
@@ -189,13 +195,15 @@
 }
 /* A record opened over its list reads at the list's width. */
 .rc-dialog[data-presentation="detail"] { inline-size: min(100% - var(--space-5), var(--list-width)); }
+/* A button keeps its own width wherever the dialog's layout puts it, as it does in an action bar. */
+.rc-dialog .rc-button { justify-self: start; }
 .rc-dialog:modal { overscroll-behavior: contain; }
 .rc-dialog::backdrop { background: var(--backdrop); overflow: hidden; overscroll-behavior: contain; }
 .rc-dialog-body {
   display: grid;
   gap: var(--space-4);
 }
-.rc-dialog-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); position: sticky; inset-block-start: calc(-1 * var(--sheet-padding)); z-index: var(--layer-sticky); padding-block: var(--space-2); background: var(--surface-overlay); }
+.rc-dialog-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); position: sticky; inset-block-start: calc(-1 * var(--dialog-space)); z-index: var(--layer-sticky); padding-block: var(--space-2); background: var(--surface-overlay); }
 .rc-dialog-head > h2 { flex: 1; min-inline-size: 0; }
 .rc-dialog-head > form { flex: none; }
 .rc-dialog-title { font: var(--type-headline-sm); }
@@ -296,6 +304,7 @@
 /* Bottom sheet: on a phone every presented dialog rises from the bottom edge and can be pulled back down. */
 @media (max-width: 37.5rem) {
   .rc-dialog[data-presentation] {
+    --dialog-space: var(--sheet-padding);
     inset: auto 0 0;
     inline-size: 100%;
     max-inline-size: 100%;

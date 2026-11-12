@@ -1,12 +1,12 @@
 // Development-only interaction fixtures. No model, download or cloud request occurs here.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { DescribeView } from "../fixtures.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { countWords } from "../describe/keywords.ts";
 import { revise } from "../describe/contracts.ts";
+import { TaskDialog } from "../ui/TaskDialog.tsx";
 export function DescribeExamples({ view }: { view: DescribeView }) {
   const { controller } = useDraft();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [phase, setPhase] = useState<"off" | "paused" | "running" | "ready">(
     view === "downloading" ? "running" : "paused",
   );
@@ -16,10 +16,8 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
   const [message, setMessage] = useState("");
   const isDownload = ["download", "downloading", "download-error"].includes(view);
   const isCloud = view === "cloud" || view === "cloud-error";
-  useEffect(() => {
-    if (isCloud) dialog.current?.showModal();
-    return () => dialog.current?.close();
-  }, [isCloud]);
+  // A consent question is a decision, so it is a task: a press outside never closes it.
+  const [cloudOpen, setCloudOpen] = useState(isCloud);
   useEffect(() => {
     if (phase !== "running") return;
     const timer = window.setInterval(() => setBytes((current) => Math.min(250, current + 5)), 500);
@@ -57,7 +55,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
       }),
     );
     setMessage("Consent example complete. Nothing was sent; zero cloud words were recorded.");
-    dialog.current?.close();
+    setCloudOpen(false);
   }
   return (
     <>
@@ -127,7 +125,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
           className="rc-button"
           data-variant="quiet"
           type="button"
-          onClick={() => dialog.current?.showModal()}
+          onClick={() => setCloudOpen(true)}
         >
           Cloud consent example
         </button>
@@ -137,22 +135,14 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
           {message}
         </p>
       )}
-      <dialog
-        className="rc-dialog"
-        ref={dialog}
-        aria-labelledby="cloud-example-title"
-        data-presentation="information"
-      >
+      <TaskDialog title="Send this step to a cloud assistant?" open={cloudOpen} onClose={() => setCloudOpen(false)}>
         <form
-          className="rc-dialog-body"
+          className="rc-stack"
           onSubmit={(event) => {
             event.preventDefault();
             simulate();
           }}
         >
-          <h2 className="rc-dialog-title" id="cloud-example-title">
-            Send this step to a cloud assistant?
-          </h2>
           <p>Fictional consent example. Nothing is sent or kept by a provider.</p>
           <dl className="rc-facts">
             <div>
@@ -181,6 +171,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
               className="rc-check"
               type="checkbox"
               checked={selected}
+              data-task-focus
               onChange={(event) => setSelected(event.target.checked)}
             />
             Use the description in this example only
@@ -201,13 +192,13 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
               className="rc-button"
               data-variant="quiet"
               type="button"
-              onClick={() => dialog.current?.close()}
+              onClick={() => setCloudOpen(false)}
             >
               Keep it on this device
             </button>
           </div>
         </form>
-      </dialog>
+      </TaskDialog>
     </>
   );
 }

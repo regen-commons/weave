@@ -14,11 +14,14 @@ import { AboutCertified } from "../ui/AboutCertified.tsx";
 export function AccountSection({
   compact = false,
   autoFocus = false,
+  heading = true,
   showLeave = true,
   onBeginCard,
 }: {
   compact?: boolean;
   autoFocus?: boolean;
+  /** Off where a dialog's title already names the section, such as the account door. */
+  heading?: boolean;
   showLeave?: boolean;
   onBeginCard?: () => void;
 }) {
@@ -123,10 +126,12 @@ export function AccountSection({
     setMessage("Your saved card is loaded. The previous device draft is kept in Device backups in Settings.");
   }
   return (
-    <section className="rc-stack" aria-labelledby={`${id}-title`} aria-busy={busy}>
-      <Title className="rc-heading" data-size="section" id={`${id}-title`}>
-        {compact ? "Save your initiative" : "Your account"}
-      </Title>
+    <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
+      {heading && (
+        <Title className="rc-heading" data-size="section" id={`${id}-title`}>
+          {compact ? "Save your initiative" : "Your account"}
+        </Title>
+      )}
       {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here. You can save it again.</p>}
       {!state ? (
         <>
