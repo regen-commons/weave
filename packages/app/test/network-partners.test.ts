@@ -401,3 +401,24 @@ test("team editing shares only selected entries, invalidates edits and denies vi
     globalThis.fetch = original;
   }
 });
+
+test("private suggestions understand related public wording without asserting offers or making a query request", async (t) => {
+  const { privatePartnerQueries, rankCertifiedSuggestions } = await import("../src/partners/certified-suggestions.ts");
+  const { extractCollection } = await import("../../api/src/project-index-source.ts");
+  t.mock.method(globalThis, "fetch", () => { throw Error("private matching must not send a query"); });
+  const did = "did:plc:pktwukejt6bnubpkhldnaeyc", uri = `at://${did}/org.hypercerts.collection/atlas`;
+  const source = extractCollection({ uri, did,
+    cid: "bafyreicr6uunzpaa7hzwbkvctviqz6pvnab5sziptgdqwe5jboqlhm55vi", indexedAt: null,
+    author: { did, organization: null }, record: { $type: "org.hypercerts.collection", type: "project",
+      title: "Civic atlas", createdAt: "2026-11-01T00:00:00Z", shortDescription: "Our ongoing work is cartography." },
+  }, uri, "2026-11-11T00:00:00Z");
+  assert.equal(source.status, "indexed");
+  if (source.status !== "indexed") return;
+  const id = crypto.randomUUID();
+  const queries = privatePartnerQueries(id, 1, [ask("Mapmaking")], [ask("Mapmaking")]);
+  const results = rankCertifiedSuggestions(id, queries, source.passages);
+  assert.deepEqual(results.map(r=>r.evidenceKind), ["inferred_capability", "potential_use"]);
+  assert.ok(results.every(r=>r.reasons.some(reason=>reason.type==="related_terms") && r.unknowns.includes("availability")));
+  assert.ok(results.every(r=>r.evidence.passage==="Our ongoing work is cartography."));
+  assert.deepEqual(rankCertifiedSuggestions(crypto.randomUUID(), queries, source.passages), []);
+});

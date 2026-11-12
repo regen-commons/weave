@@ -1,6 +1,7 @@
+import { partnerRelatedTerms, partnerConcepts } from "./partner-concepts.ts";
 import type { JsonObject } from "./account-contract.ts";
 
-export const PARTNER_ENGINE_VERSION = "partner-lexical-v1";
+export const PARTNER_ENGINE_VERSION = "partner-concepts-v2";
 export type PartnerKind = "need" | "offer";
 export type PartnerEntry = {
   initiativeId: string;
@@ -43,7 +44,7 @@ export type PartnerMatch = {
   evidence:
     | { type: "shared"; entryId: string; revision: number; title: string; passage: string; confirmedAt: string; expiresAt: string | null }
     | ({ type: "public" } & ProjectEvidence);
-  reasons: { type: "shared_terms"; terms: string[] }[];
+  reasons: { type: "shared_terms" | "related_terms"; terms: string[] }[];
   unknowns: Unknown[];
   reciprocal: boolean;
   action: "review_entry" | "open_source";
@@ -86,21 +87,42 @@ export const partnerLexicalText = (text: string): string => [...lexicalTerms(tex
 const negative = /\b(?:not|never|without|unable to|cannot|can['’]t|do(?:es)? not|don['’]t|doesn['’]t|no longer|used to|discontinued|unavailable|was offered|previously offered)\b/iu;
 const noTopic = /\bno\s+(?!later\b|more than\b|less than\b)/iu;
 
+// Split a contrast only when its right side starts an independent assertion.
+// "Seeking everything but GIS mapping" remains a request, not a capability.
+const clauses = (text: string) => text.split(/[.!?;\n]+|\b(?:but|however|although)\b(?=\s+(?:we|i|they|it)\s+\p{L})/iu);
+
 const aspiration = /\b(?:need(?:s|ed|ing)?|seek(?:s|ing)?|request(?:s|ing)?|look(?:s|ing)? for|want(?:s|ed)?|hope(?:s|d)?|plan(?:s|ning)? to|aim(?:s|ing)? to|intend(?:s|ed)? to|would like|will need|lack(?:s|ing)?|wish(?:es)? to)\b/iu;
 
-function supportedTerms(query: Map<string, string>, statement: string, rejectRequests = false): string[] {
-  const overlap = new Map<string, string>();
-  const excluded = new Set<string>();
-  for (const clause of statement.split(/[.!?;\n]+/u)) {
-    const isNegative = negative.test(clause) || noTopic.test(clause) || (rejectRequests && aspiration.test(clause));
-    for (const key of lexicalTerms(clause).keys()) {
-      const term = query.get(key);
-      if (!term) continue;
-      if (isNegative) excluded.add(key);
-      else overlap.set(key, term);
+function supportingEvidence(query: PartnerEntry, statement: string, rejectRequests: boolean) {
+  const text = partnerQueryProjection(query);
+  const positive: string[] = [], excluded: string[] = [];
+  for (const clause of clauses(statement)) {
+    (negative.test(clause) || noTopic.test(clause) || (rejectRequests && aspiration.test(clause)) ? excluded : positive).push(clause);
+  }
+  const related = partnerRelatedTerms(text, positive.join(". "), excluded.join(". "));
+  const denied = partnerConcepts(excluded.join(". "));
+  const excludedTerms = new Set(excluded.flatMap(unit => [...lexicalTerms(unit).keys()]));
+  const shared = new Set<string>();
+  // A second activity must not veto evidence for the first. Keep fields and
+  // explicit activity conjunctions separate; never combine partial source clauses.
+  const queryUnits = clauses(text).flatMap(unit => unit.split(/[,/]+|\b(?:and|or)\b/iu));
+  for (const unit of queryUnits) {
+    const wanted = partnerConcepts(unit), topics = lexicalTerms(unit);
+    for (const assertion of positive) {
+      const present = lexicalTerms(assertion), concepts = partnerConcepts(assertion);
+      const overlap = [...topics.keys()].filter(term => present.has(term) && !excludedTerms.has(term));
+      const supportedActivity = [...wanted].some(([id, phrase]) => !denied.has(id)
+        && (concepts.has(id) || [...lexicalTerms(phrase).keys()].every(term => overlap.includes(term))));
+      // Recognized activities need their full phrase or all its literal terms
+      // ("testing of water quality"), not a fragment such as "water delivery".
+      if (wanted.size ? !supportedActivity : overlap.length < (topics.size >= 3 ? 2 : 1)) continue;
+      for (const term of overlap) shared.add(topics.get(term)!);
     }
   }
-  return [...overlap].filter(([key]) => !excluded.has(key)).map(([, term]) => term);
+  return [
+    ...(shared.size ? [{ type: "shared_terms" as const, terms: [...shared].slice(0, 6) }] : []),
+    ...(related.length ? [{ type: "related_terms" as const, terms: related.slice(0, 6) }] : []),
+  ];
 }
 
 const intersects = (a: readonly string[], b: readonly string[]) => a.some((item) => b.includes(item));
@@ -204,8 +226,8 @@ export function rankPartnerMatches(input: {
     for (const other of input.sharedByEntry?.[entryKey] ?? input.shared ?? []) {
       if (other.value.status !== "open" || !(Date.parse(other.confirmedAt) <= now && (other.expiresAt === null || Date.parse(other.expiresAt) > now))) continue;
       if (other.kind === query.kind || other.initiativeId === query.initiativeId) continue;
-      const terms = supportedTerms(topics, partnerQueryProjection(other), other.kind === "offer");
-      if (!terms.length) continue;
+      const reasons = supportingEvidence(query, partnerQueryProjection(other), other.kind === "offer");
+      if (!reasons.length) continue;
       const unknowns = compatible(query, other);
       if (!unknowns) continue;
       const key = JSON.stringify([query.initiativeId, other.initiativeId]);
@@ -222,12 +244,12 @@ export function rankPartnerMatches(input: {
             type: "shared", entryId: other.entryId, revision: other.revision, title: str(other.value.title),
             passage: partnerQueryProjection(other), confirmedAt: other.confirmedAt, expiresAt: other.expiresAt,
           },
-          reasons: [{ type: "shared_terms", terms: terms.slice(0, 6) }],
+          reasons,
           unknowns,
           reciprocal: false,
           action: "review_entry",
         },
-        overlap: terms.length,
+        overlap: reasons.reduce((sum, reason) => sum + reason.terms.length, 0),
         capital: intersects(strings(query.value.capitalForms), strings(other.value.capitalForms)),
         freshness: Date.parse(other.confirmedAt),
         retrieval: 0,
@@ -239,8 +261,8 @@ export function rankPartnerMatches(input: {
     for (const [index, passage] of passages.entries()) {
       const evidenceKind = publicKind(query.kind, passage.kind);
       if (!evidenceKind) continue;
-      const terms = supportedTerms(topics, passage.passage, passage.kind === "work" || passage.kind === "published_offer");
-      if (!terms.length) continue;
+      const reasons = supportingEvidence(query, passage.passage, passage.kind === "work" || passage.kind === "published_offer");
+      if (!reasons.length) continue;
       const unknowns: Unknown[] = ["terms", "timing", "capacity", "audience", "availability"];
       if (query.value.placeScope !== "anywhere") unknowns.push("place");
       candidates.push({
@@ -250,12 +272,12 @@ export function rankPartnerMatches(input: {
           counterpart: { id: passage.projectUri, name: passage.projectName },
           evidenceKind,
           evidence: { ...passage, type: "public" },
-          reasons: [{ type: "shared_terms", terms: terms.slice(0, 6) }],
+          reasons,
           unknowns,
           reciprocal: false,
           action: "open_source",
         },
-        overlap: terms.length,
+        overlap: reasons.reduce((sum, reason) => sum + reason.terms.length, 0),
         capital: false,
         freshness: Date.parse(passage.sourceIndexedAt ?? passage.sourceCreatedAt) || 0,
         retrieval: byEntry ? passages.length - index : 0,

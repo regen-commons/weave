@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  createHypercertsSource, extractCollection, parseProjectPermissions, parseProjectUri,
+  createHypercertsSource, extractCollection, parseProjectPermissions, parseProjectUri, PROJECT_EXTRACTION_VERSION,
 } from "./project-index-source.ts";
 import { refreshProjectIndex } from "./project-index.ts";
 import type { ProjectIndexStore } from "./project-index.ts";
@@ -298,7 +298,7 @@ test("Leaflet extraction bounds blocks, characters and passages while preserving
   })) });
   if (result.status !== "indexed") assert.fail("expected bounded narrative");
   assert.equal(result.passages.length, 5);
-  assert.ok(result.passages.every(row => row.extractionVersion === "hypercerts-collection-v2-leaflet"));
+  assert.ok(result.passages.every(row => row.extractionVersion === PROJECT_EXTRACTION_VERSION));
   const blocked = read({ blocks: [
     { block: { $type: "pub.leaflet.blocks.text", plaintext: "x".repeat(20_000) } },
     { block: { $type: "pub.leaflet.blocks.text", plaintext: "This sentence is beyond the character budget." } },

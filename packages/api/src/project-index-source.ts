@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { record } from "./account-contract.ts";
 import type { ProjectEvidence } from "./partner-matcher.ts";
+import { PARTNER_CONCEPT_VERSION } from "./partner-concepts.ts";
 
 const origin = "https://api.hypercerts.dev";
 const collection = "org.hypercerts.collection";
@@ -9,7 +10,8 @@ const maxResponseBytes = 512 * 1024;
 const did = /^did:(?:plc:[a-z2-7]{24}|web:[A-Za-z0-9][A-Za-z0-9._:%-]{0,252})$/u;
 const cidPattern = /^b[a-z2-7]{40,100}$/u;
 const recordKey = /^[A-Za-z0-9._:~-]{1,128}$/u;
-export const PROJECT_EXTRACTION_VERSION = "hypercerts-collection-v2-leaflet";
+// The projection version also invalidates stored lexical text on the next permitted refresh.
+export const PROJECT_EXTRACTION_VERSION = `hypercerts-collection-v3-${PARTNER_CONCEPT_VERSION}`;
 
 export const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
