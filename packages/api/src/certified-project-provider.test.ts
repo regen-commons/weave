@@ -44,6 +44,43 @@ test("teammate handles require the DID document to confirm the same alias and an
   assert.deepEqual(await down.provider.resolveHandle(target), { ok: false, code: "unavailable" });
 });
 
+test("a claimed DID gets a handle only after its alias resolves back to that same identity", async () => {
+  const target = "orchard.certified.one";
+  const good = fixture(url => url.pathname === "/xrpc/com.atproto.identity.resolveHandle"
+    ? Response.json({ did: recipientDid }) : Response.json({ ...identity(recipientDid), alsoKnownAs: [`at://${target}`] }));
+  assert.deepEqual(await good.provider.verifiedHandle(recipientDid), { ok: true, value: { did: recipientDid, handle: target } });
+  assert.equal(good.calls.length, 3, "read alias, resolve handle, then verify the current DID document");
+  assert.deepEqual(good.auth, [], "public display metadata never requests service authorization");
+  const missing = fixture(() => Response.json({ ...identity(recipientDid), alsoKnownAs: ["https://example.test/profile", "at://invalid-"] }));
+  assert.deepEqual(await missing.provider.verifiedHandle(recipientDid), { ok: false, code: "not_found" });
+  assert.equal(missing.calls.length, 1);
+  const different = fixture(url => url.pathname === "/xrpc/com.atproto.identity.resolveHandle"
+    ? Response.json({ did: groupDid }) : Response.json({ ...identity(url.pathname.slice(1)), alsoKnownAs: [`at://${target}`] }));
+  assert.deepEqual(await different.provider.verifiedHandle(recipientDid), { ok: false, code: "conflict" });
+});
+
+test("claimed-handle lookup keeps approved origins and a bounded deadline on missing, failed or changing identities", async () => {
+  const target = "orchard.certified.one";
+  const untrusted = fixture(() => Response.json({ ...identity(recipientDid), alsoKnownAs: [`at://${target}`], service: [
+    { id: "#atproto_pds", type: "AtprotoPersonalDataServer", serviceEndpoint: "https://untrusted.example.test" },
+  ] }));
+  assert.deepEqual(await untrusted.provider.verifiedHandle(recipientDid), { ok: false, code: "unsupported" });
+  assert.equal(untrusted.calls.length, 1, "no request goes to an unapproved PDS");
+  const down = fixture(() => badGateway());
+  assert.deepEqual(await down.provider.verifiedHandle(recipientDid), { ok: false, code: "unavailable" });
+  const missingAlias = fixture(() => Response.json({ ...identity(recipientDid), alsoKnownAs: undefined }));
+  assert.deepEqual(await missingAlias.provider.verifiedHandle(recipientDid), { ok: false, code: "not_found" });
+  let didReads = 0;
+  const changed = fixture(url => url.pathname === "/xrpc/com.atproto.identity.resolveHandle" ? Response.json({ did: recipientDid })
+    : Response.json({ ...identity(recipientDid), alsoKnownAs: ++didReads === 1 ? [`at://${target}`] : [] }));
+  assert.deepEqual(await changed.provider.verifiedHandle(recipientDid), { ok: false, code: "conflict" });
+  const slow = fixture(async () => { await delay(100); return Response.json(identity(recipientDid)); }, { timeoutMs: 5 });
+  assert.deepEqual(await slow.provider.verifiedHandle(recipientDid), { ok: false, code: "unavailable" });
+  const stopped = fixture(() => assert.fail("canceled metadata cannot issue HTTP"));
+  assert.deepEqual(await stopped.provider.verifiedHandle(recipientDid, AbortSignal.abort()), { ok: false, code: "unavailable" });
+  assert.deepEqual(await stopped.provider.verifiedHandle("not-a-did"), { ok: false, code: "invalid_input" });
+});
+
 test("group discovery enriches names and handles without deriving roles from public profile fields", async () => {
   const { provider } = fixture(url => {
     if (url.origin === cgs) return Response.json({ groups: [{ groupDid, role: "member", joinedAt: date }] });

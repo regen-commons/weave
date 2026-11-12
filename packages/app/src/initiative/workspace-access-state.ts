@@ -1,10 +1,10 @@
-import { record, uuid } from "@weave/api/account-contract";
+import { certifiedHandle, record, uuid } from "@weave/api/account-contract";
 import { fullDate } from "../home.ts";
 
 export const invitationStatuses: Record<string, string> = {
   pending: "Waiting to be claimed", claimed: "Ready for your review", approved: "Access approved", revoked: "Invitation revoked", expired: "Invitation expired",
 };
-export type WorkspaceInvitation = { inviteId: string; status: string; expiresAt: string; claimedDid?: string };
+export type WorkspaceInvitation = { inviteId: string; status: string; expiresAt: string; claimedDid?: string; claimedHandle?: string };
 export function workspaceInvitations(input: unknown, after?: string) {
   const result = record(input);
   if (!Array.isArray(result.invitations) || result.invitations.length > 25
@@ -13,9 +13,11 @@ export function workspaceInvitations(input: unknown, after?: string) {
     const invitation = record(input);
     if (!uuid(invitation.inviteId) || typeof invitation.status !== "string" || !Object.hasOwn(invitationStatuses, invitation.status)
         || typeof invitation.expiresAt !== "string" || !Number.isFinite(Date.parse(invitation.expiresAt))
-        || (invitation.claimedDid !== undefined && (typeof invitation.claimedDid !== "string" || !/^did:[a-z]+:[^/\s]+$/u.test(invitation.claimedDid)))) throw Error("invalid_invitation_page");
+        || (invitation.claimedDid !== undefined && (typeof invitation.claimedDid !== "string" || !/^did:[a-z]+:[^/\s]+$/u.test(invitation.claimedDid)))
+        || (invitation.claimedHandle !== undefined && !certifiedHandle(invitation.claimedHandle))) throw Error("invalid_invitation_page");
     return { inviteId: invitation.inviteId, status: invitation.status, expiresAt: invitation.expiresAt,
-      ...(typeof invitation.claimedDid === "string" ? { claimedDid: invitation.claimedDid } : {}) };
+      ...(typeof invitation.claimedDid === "string" ? { claimedDid: invitation.claimedDid } : {}),
+      ...(typeof invitation.claimedHandle === "string" ? { claimedHandle: invitation.claimedHandle } : {}) };
   });
   if (new Set(invitations.map(item => item.inviteId)).size !== invitations.length) throw Error("invalid_invitation_page");
   return { invitations, cursor: result.cursor as string | undefined };

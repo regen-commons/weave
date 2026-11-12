@@ -98,9 +98,10 @@ const project = (uri: string, title: string, group?: string) => ({ uri, cid: "ba
   ...(group ? { groupDid: group } : {}), title, description: "A fictional local project for learning and watershed monitoring.", createdAt: "2026-11-01T00:00:00Z" });
 const fixtureProjects = [project(groupUri, "Watershed Team (fixture)", groupDid),
   project(memberUri, "Seed library (fixture)", memberGroup), project(personalUri, "Water notes (fixture)")];
-const invitations = new Map<string, { inviteId: string; status: string; expiresAt: string; claimedDid?: string }>([
+const invitations = new Map<string, { inviteId: string; status: string; expiresAt: string; claimedDid?: string; claimedHandle?: string }>([
   ["41000000-0000-4000-8000-000000000001", { inviteId: "41000000-0000-4000-8000-000000000001", status: "pending", expiresAt: "2027-01-01T00:00:00Z" }],
-  ["41000000-0000-4000-8000-000000000002", { inviteId: "41000000-0000-4000-8000-000000000002", status: "claimed", expiresAt: "2027-01-01T00:00:00Z", claimedDid: "did:plc:dddddddddddddddddddddddd" }],
+  ["41000000-0000-4000-8000-000000000002", { inviteId: "41000000-0000-4000-8000-000000000002", status: "claimed", expiresAt: "2027-01-01T00:00:00Z", claimedDid: "did:plc:dddddddddddddddddddddddd", claimedHandle: "orchard.certified.one" }],
+  ["41000000-0000-4000-8000-000000000003", { inviteId: "41000000-0000-4000-8000-000000000003", status: "claimed", expiresAt: "2027-01-01T00:00:00Z", claimedDid: "did:plc:eeeeeeeeeeeeeeeeeeeeeeee" }],
 ]);
 const fixtureInvites = new Map<string, string>();
 const requested = new Set<string>();

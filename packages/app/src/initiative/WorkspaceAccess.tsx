@@ -69,7 +69,7 @@ function AccountWorkspaceAccess({ workspaceId, projectUri, expanded }: { workspa
   const Container = expanded ? "div" : "details";
   const access = role === "viewer" ? "viewing access" : role === "editor" ? "editing access" : "teammate management";
   const waiting = invitations.filter(i => ["pending", "claimed"].includes(i.status));
-  // Only the identifier comes back with a claim, so the end of it tells two requests apart.
+  // Without a verified public handle, the identifier's end distinguishes requests.
   const account = (did: string) => `Certified account ending ${did.slice(-6)}`;
   return <Container className="rc-stack" aria-busy={busy}>{!expanded && <summary>Manage teammates</summary>}
     <p>Invite someone with a link. They sign in with Certified, then you approve what they can do here.</p>
@@ -105,7 +105,7 @@ function AccountWorkspaceAccess({ workspaceId, projectUri, expanded }: { workspa
     </div></section>}
     <h3 className="rc-heading" data-size="section">Pending invitations</h3>
     {waiting.length ? <ul className="rc-ask-summary">{waiting.map((i) => <li key={i.inviteId}>
-      <p>{i.claimedDid && i.status === "claimed" ? `${account(i.claimedDid)} asked to join.` : "Invitation link, not used yet."}</p>
+      <p>{i.claimedDid && i.status === "claimed" ? `${i.claimedHandle ?? account(i.claimedDid)} asked to join.` : "Invitation link, not used yet."}</p>
       <p className="rc-meta">Expires {invitationDate(i.expiresAt)}</p>
       <div className="rc-action-bar">{i.claimedDid && i.status === "claimed" && <button className="rc-button" data-variant="secondary" disabled={busy}
         onClick={() => void run("approve_invite", { inviteId: i.inviteId, recipientDid: i.claimedDid, accessRole: role })}>Approve {access}</button>}

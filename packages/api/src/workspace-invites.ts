@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { record, uuid } from "./account-contract.ts";
+import { certifiedHandle, record, uuid } from "./account-contract.ts";
 import { AccountError } from "./account-provider.ts";
 import { requireCertifiedProjectResult, type ProjectActor } from "./project-commands.ts";
 import { discoveryDid } from "./project-discovery-contract.ts";
@@ -8,7 +8,7 @@ import type { WorkspaceInviteCommand } from "./workspace-invites-contract.ts";
 import type { WorkspaceInviteStore } from "./workspace-invites-store.ts";
 import { suspendDepartedMember, workspaceProjectTarget, type ProjectLifecycle } from "./project-discovery-lifecycle.ts";
 
-type Provider = Pick<CertifiedProjectProvider, "getProject" | "getMembership" | "getGroupMember">;
+type Provider = Pick<CertifiedProjectProvider, "getProject" | "getMembership" | "getGroupMember" | "verifiedHandle">;
 const unavailable = (): never => { throw new AccountError(503, "project_workspace_unavailable"); };
 const date = (value: unknown): value is string => typeof value === "string" && Number.isFinite(Date.parse(value));
 const tokenHash = (value: string) => createHash("sha256").update(value).digest("hex");
@@ -17,12 +17,31 @@ function inviteSummary(value: unknown) {
   const item = record(value);
   if (!uuid(item.inviteId) || !date(item.createdAt) || !date(item.expiresAt)
     || !["pending","claimed","approved","revoked","expired"].includes(String(item.status))
-    || (item.claimedDid !== undefined && !discoveryDid(item.claimedDid))) return unavailable();
+    || (item.claimedDid !== undefined && !discoveryDid(item.claimedDid))
+    || (item.claimedHandle !== undefined && !certifiedHandle(item.claimedHandle))) return unavailable();
   const dates = ["claimedAt","approvedAt","revokedAt"] as const;
   if (dates.some(key => item[key] !== undefined && !date(item[key]))) return unavailable();
   return { inviteId: item.inviteId, status: item.status as string, createdAt: item.createdAt, expiresAt: item.expiresAt,
     ...(item.claimedDid === undefined ? {} : { claimedDid: item.claimedDid }),
+    ...(item.claimedHandle === undefined ? {} : { claimedHandle: item.claimedHandle }),
     ...Object.fromEntries(dates.filter(key => item[key] !== undefined).map(key => [key,item[key]])) };
+}
+
+/** Optional display metadata must not hold the list open if a provider ignores cancellation. */
+function withVerifiedHandle(item: ReturnType<typeof inviteSummary>, provider: Provider, signal: AbortSignal) {
+  // A stored or cached label cannot substitute for fresh identity proof.
+  const { claimedHandle: _unverified, ...base } = item;
+  if (base.status !== "claimed" || !base.claimedDid || signal.aborted) return Promise.resolve(base);
+  const claimedDid = base.claimedDid;
+  return new Promise<ReturnType<typeof inviteSummary>>(resolve => {
+    const finish = (result: ReturnType<typeof inviteSummary> = base) => { signal.removeEventListener("abort", aborted); resolve(result); };
+    const aborted = () => finish();
+    signal.addEventListener("abort", aborted, { once: true });
+    Promise.resolve().then(() => signal.aborted ? null : provider.verifiedHandle(claimedDid, signal)).then(result => {
+      finish(!signal.aborted && result?.ok && result.value.did === claimedDid && certifiedHandle(result.value.handle)
+        ? { ...base, claimedHandle: result.value.handle } : base);
+    }).catch(() => finish());
+  });
 }
 
 export function createWorkspaceInvites(provider: Provider, store: WorkspaceInviteStore, lifecycle: ProjectLifecycle) {
@@ -66,8 +85,11 @@ export function createWorkspaceInvites(provider: Provider, store: WorkspaceInvit
       const result = record(await store.execute(actor,"list",{ ...proof, cursor: command.cursor }));
       if (!Array.isArray(result.invitations) || result.invitations.length > 25
         || (result.cursor !== undefined && (!uuid(result.cursor) || result.cursor === command.cursor || result.invitations.length !== 25))) return unavailable();
-      const invitations = result.invitations.map(inviteSummary);
-      if (new Set(invitations.map(item => item.inviteId)).size !== invitations.length) return unavailable();
+      const summaries = result.invitations.map(inviteSummary);
+      const invitations: ReturnType<typeof inviteSummary>[] = [];
+      if (new Set(summaries.map(item => item.inviteId)).size !== summaries.length) return unavailable();
+      for (let start = 0; start < summaries.length; start += 5)
+        invitations.push(...await Promise.all(summaries.slice(start, start + 5).map(item => withVerifiedHandle(item, provider, signal))));
       return { invitations, cursor: result.cursor as string | undefined };
     }
     if (command.action === "revoke_invite") {
