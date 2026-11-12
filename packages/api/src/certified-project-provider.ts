@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { record } from "./account-contract.ts";
+import { certifiedHandle, record } from "./account-contract.ts";
 import { parseProjectUri } from "./project-index-source.ts";
 
 const collection = "org.hypercerts.collection";
@@ -423,24 +423,39 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     return ok(project);
   }
 
+  /** Bidirectional handle proof. Only approved PDS origins receive requests; no handle-derived URL is fetched. */
+  async function resolveHandle(input: string, cancellation?: AbortSignal) {
+    const normalized = input.trim().replace(/^@/u, "").toLowerCase();
+    if (normalized.length > 253 || !handle.test(normalized)) return fail("invalid_input");
+    const signal = deadline(cancellation);
+    const url = new URL("/xrpc/com.atproto.identity.resolveHandle", groupPds);
+    url.searchParams.set("handle", normalized);
+    const resolved = decode(await fetchJson(url, signal), value => {
+      const { did } = record(value);
+      if (!isDid(did)) throw Error("invalid_handle_resolution");
+      return did;
+    });
+    if (!resolved.ok) return resolved;
+    const identity = await readIdentity(resolved.value, signal);
+    if (!identity.ok) return identity;
+    if (!Array.isArray(identity.value.aliases) || !identity.value.aliases.includes(`at://${normalized}`)) return fail("conflict");
+    return ok({ did: resolved.value, handle: normalized });
+  }
+
   return {
-    /** Bidirectional handle proof. Only approved PDS origins receive requests; no handle-derived URL is fetched. */
-    async resolveHandle(input: string, cancellation?: AbortSignal) {
-      const normalized = input.trim().replace(/^@/u, "").toLowerCase();
-      if (normalized.length > 253 || !handle.test(normalized)) return fail("invalid_input");
+    resolveHandle,
+    async verifiedHandle(did: string, cancellation?: AbortSignal) {
+      if (!isDid(did)) return fail("invalid_input");
       const signal = deadline(cancellation);
-      const url = new URL("/xrpc/com.atproto.identity.resolveHandle", groupPds);
-      url.searchParams.set("handle", normalized);
-      const resolved = decode(await fetchJson(url, signal), value => {
-        const { did } = record(value);
-        if (!isDid(did)) throw Error("invalid_handle_resolution");
-        return did;
-      });
-      if (!resolved.ok) return resolved;
-      const identity = await readIdentity(resolved.value, signal);
+      const identity = await readIdentity(did, signal);
       if (!identity.ok) return identity;
-      if (!Array.isArray(identity.value.aliases) || !identity.value.aliases.includes(`at://${normalized}`)) return fail("conflict");
-      return ok({ did: resolved.value, handle: normalized });
+      const aliases = Array.isArray(identity.value.aliases) ? identity.value.aliases : [];
+      const alias = aliases.find((entry): entry is string => typeof entry === "string"
+        && entry.startsWith("at://") && certifiedHandle(entry.slice(5)));
+      if (!alias) return fail("not_found");
+      const resolved = await resolveHandle(alias.slice(5), signal);
+      if (!resolved.ok) return resolved;
+      return resolved.value.did === did ? resolved : fail("conflict");
     },
     async listMemberships(actorDid: string, cursor?: string, cancellation?: AbortSignal) {
       if (!isDid(actorDid) || (cursor !== undefined && !isCursor(cursor))) return fail("invalid_input");

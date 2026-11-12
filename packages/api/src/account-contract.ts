@@ -30,6 +30,11 @@ export interface AccountUser {
 }
 export const uuid = (value: unknown): value is string =>
   typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(value);
+const handleLabel = "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?";
+const certifiedHandlePattern = new RegExp(`^(?:${handleLabel}\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$`, "u");
+/** A canonical public handle, without an @ prefix or an AT URI. It never establishes authority. */
+export const certifiedHandle = (value: unknown): value is string =>
+  typeof value === "string" && value.length <= 253 && certifiedHandlePattern.test(value);
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid_data");
   return value as Record<string, unknown>;

@@ -65,6 +65,16 @@ test("invitation summaries keep capabilities and internal fields out of review a
   assert.equal(inviteToken("#invite=" + "a".repeat(43)), false);
 });
 
+test("invitation handles are optional canonical metadata and preserve the claimed DID", () => {
+  const invitation = { inviteId: entry, status: "claimed", expiresAt: "2026-11-17T00:00:00Z", claimedDid: destination };
+  assert.deepEqual(workspaceInvitations({ invitations: [invitation] }).invitations, [invitation]);
+  const named = { ...invitation, claimedHandle: "orchard.certified.one" };
+  assert.deepEqual(workspaceInvitations({ invitations: [named] }).invitations, [named]);
+  for (const claimedHandle of [null, 4, "", "@orchard.certified.one", "https://orchard.certified.one", "orchard@certified.one",
+    "orchard.Certified.one", "orchard.certified.one/", "orchard.certified.-one", "orchard.certified.one-", "a".repeat(254) + ".one"])
+    assert.throws(() => workspaceInvitations({ invitations: [{ ...invitation, claimedHandle }] }));
+});
+
 
 test("pending public writes request the permission for the actual stored operation", () => {
   assert.equal(publicPublicationFeedback("withdrawal_pending", "project_consent_required").consent, "withdraw-support");

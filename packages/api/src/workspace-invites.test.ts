@@ -29,6 +29,7 @@ function fixture(overrides: Partial<Provider> = {}, run?: WorkspaceInviteStore["
     getProject: async () => ok(project),
     getMembership: async () => ok("member" as const),
     getGroupMember: async (_,__,did) => { memberReads.push(did); return ok("member" as const); },
+    verifiedHandle: async () => ({ ok: false, code: "not_found" }),
     ...overrides,
   };
   const execute = createWorkspaceInvites(provider,{ async execute(actor,action,data) {
@@ -88,6 +89,99 @@ test("lists bounded invitation summaries for an authorized admin while excluding
   const result = await execute(actor,{action:"list_invites",...target});
   assert.deepEqual(result,{invitations:[{inviteId,status:"claimed",createdAt:date,expiresAt,claimedDid:recipientDid,claimedAt:date}],cursor:undefined});
   assert.ok(!JSON.stringify(result).includes("PRIVATE"));
+});
+
+test("claimed handles are freshly verified metadata and never replace the claimed DID", async () => {
+  const claimedHandle = "orchard.certified.one";
+  const row = { inviteId, status: "claimed", createdAt: date, expiresAt, claimedDid: recipientDid };
+  const { execute, calls } = fixture({ verifiedHandle: async did => {
+    assert.equal(did, recipientDid); return ok({ did, handle: claimedHandle });
+  } }, async () => ({ invitations: [row] }));
+  const result = await execute(actor, { action: "list_invites", ...target });
+  assert.deepEqual(result.invitations, [{ ...row, claimedHandle }]);
+  assert.deepEqual(calls.map(call => call.action), ["list"], "display metadata grants no access");
+  for (const verifiedHandle of [
+    async () => ({ ok: false as const, code: "not_found" as const }),
+    async () => ({ ok: false as const, code: "unavailable" as const }),
+    async () => { throw Error("private upstream details"); },
+    async () => ok({ did: groupDid, handle: claimedHandle }),
+    async () => ok({ did: recipientDid, handle: "not a handle" }),
+  ]) {
+    const fallback = fixture({ verifiedHandle }, async () => ({ invitations: [{ ...row, claimedHandle: "cached.certified.one" }] }));
+    assert.deepEqual((await fallback.execute(actor, { action: "list_invites", ...target })).invitations, [row]);
+  }
+  const malformed = fixture({}, async () => ({ invitations: [{ ...row, claimedHandle: "@invalid" }] }));
+  await rejects(malformed.execute(actor, { action: "list_invites", ...target }), 503, "project_workspace_unavailable");
+});
+
+test("claimed invitation metadata uses at most five lookups at a time and leaves other invitations alone", async () => {
+  const rows = Array.from({ length: 12 }, (_, index) => ({ inviteId: `10000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+    status: "claimed", createdAt: date, expiresAt, claimedDid: `did:plc:${String.fromCharCode(97 + index).repeat(24)}` }));
+  const pending = { inviteId, status: "pending", createdAt: date, expiresAt };
+  let active = 0, peak = 0, lookups = 0;
+  const { execute } = fixture({ verifiedHandle: async did => {
+    active++; lookups++; peak = Math.max(peak, active);
+    await delay(2); active--; return ok({ did, handle: "orchard.certified.one" });
+  } }, async () => ({ invitations: [...rows, pending] }));
+  const result = await execute(actor, { action: "list_invites", ...target });
+  assert.equal(peak, 5); assert.equal(lookups, 12); assert.equal(active, 0);
+  assert.deepEqual(result.invitations!.at(-1), pending);
+  assert.deepEqual(result.invitations!.slice(0, 12).map(row => row.claimedDid), rows.map(row => row.claimedDid));
+});
+
+test("slow metadata that ignores abort cannot fail or hold the list past its deadline", async () => {
+  const rows = Array.from({ length: 12 }, (_, index) => ({ inviteId: `10000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+    status: "claimed", createdAt: date, expiresAt, claimedDid: recipientDid }));
+  const cancellation = new AbortController();
+  let calls = 0;
+  const { execute } = fixture({ verifiedHandle: async (_, signal) => {
+    assert.ok(signal); assert.equal(signal.aborted, false);
+    if (++calls === 5) queueMicrotask(() => cancellation.abort());
+    return new Promise<never>(() => {});
+  } }, async () => ({ invitations: rows }));
+  const result = await execute(actor, { action: "list_invites", ...target }, cancellation.signal);
+  assert.equal(calls, 5, "no later lookup starts after the shared deadline aborts");
+  assert.deepEqual(result.invitations, rows);
+});
+
+test("unavailable metadata returns the fallback list before the browser's request deadline", async () => {
+  const rows = Array.from({ length: 12 }, (_, index) => ({ inviteId: `10000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+    status: "claimed", createdAt: date, expiresAt, claimedDid: recipientDid }));
+  const lookups: Array<{ signal: AbortSignal; finish: (result: ReturnType<typeof ok<{ did: string; handle: string }>>) => void }> = [];
+  const { execute } = fixture({ verifiedHandle: async (_, signal) => {
+    assert.ok(signal);
+    return new Promise(resolve => lookups.push({ signal, finish: resolve }));
+  } }, async () => ({ invitations: rows }));
+  const guard = new AbortController();
+  try {
+    const result = await Promise.race([
+      execute(actor, { action: "list_invites", ...target }),
+      delay(4_000, undefined, { signal: guard.signal }).then(() => assert.fail("optional labels delayed the list too close to the client timeout")),
+    ]);
+    assert.deepEqual(result.invitations, rows);
+    assert.equal(lookups.length, 5, "later batches do not start after the metadata budget expires");
+    assert.ok(lookups.every(lookup => lookup.signal.aborted));
+    for (const lookup of lookups) lookup.finish(ok({ did: recipientDid, handle: "late.certified.one" }));
+    await delay(0);
+    assert.deepEqual(result.invitations, rows, "late metadata cannot change the returned list");
+  } finally { guard.abort(); }
+});
+
+test("slow core authorization leaves the response reserve intact by skipping optional handles", async t => {
+  let elapsed = 0;
+  t.mock.method(performance, "now", () => elapsed);
+  const row = { inviteId, status: "claimed", createdAt: date, expiresAt, claimedDid: recipientDid };
+  const { execute } = fixture({
+    getMembership: async () => { elapsed = 12_001; return ok("member" as const); },
+    verifiedHandle: async () => assert.fail("no optional lookups after the response reserve begins"),
+  }, async () => ({ invitations: [row] }));
+  assert.deepEqual((await execute(actor, { action: "list_invites", ...target })).invitations, [row]);
+});
+
+test("invitation list authorization completes before another person's handle is requested", async () => {
+  const { execute } = fixture({ verifiedHandle: async () => assert.fail("no identity lookup before admin authorization") },
+    async () => { throw new AccountError(403, "workspace_admin_required"); });
+  await rejects(execute(actor, { action: "list_invites", ...target }), 403, "workspace_admin_required");
 });
 
 test("approval checks explicit workspace administration and exact claimed DID before reading recipient membership", async () => {
