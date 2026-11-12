@@ -95,7 +95,7 @@ for (const theme of ["light", "dark"]) {
 
   test(`${theme} theme: text meets 4.5:1 on every surface`, () => {
     for (const surface of ["surface", "surface-raised", "surface-overlay", "surface-tint", "field"]) {
-      const text = [`on-${surface}`, "text-secondary", "text-muted", "text-accent", "text-danger", "link", "link-hover", "link-visited"];
+      const text = [`on-${surface}`, "text-secondary", "text-muted", "text-accent", "text-danger", "link", "link-hover", "link-visited", "text-home", "text-initiatives", "text-funding", "text-yours"];
       for (const role of text) {
         const ratio = contrast(roles[role], roles[surface]);
         assert.ok(ratio >= 4.5, `${role} on ${surface} is ${ratio.toFixed(2)}:1`);
@@ -113,7 +113,7 @@ for (const theme of ["light", "dark"]) {
   });
 
   test(`${theme} theme: boundaries, focus and state marks meet 3:1 on every surface`, () => {
-    const marks = ["control-line", "focus", "state-success", "state-warning", "state-danger", "state-info", "stage-seed", "stage-sprout", "stage-flowering", "stage-tree", "action"];
+    const marks = ["control-line", "focus", "state-success", "state-warning", "state-danger", "state-info", "stage-seed", "stage-sprout", "stage-flowering", "stage-tree", "action", "accent-home", "accent-initiatives", "accent-funding", "accent-yours"];
     for (const surface of ["surface", "surface-raised", "surface-overlay", "surface-tint"]) {
       for (const mark of marks) {
         const ratio = contrast(roles[mark], roles[surface]);

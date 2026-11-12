@@ -38,16 +38,14 @@
     <script type="module" src="../library.js"></script>
   </head>
   <body>
-    <div class="rc-page">
+    <div class="rc-page" data-section="home">
       <a class="rc-skip-link" href="#main">Skip to content</a>
       <p class="rc-site-banner">Still in development will be live soon</p>
       <header class="rc-app-header">
-        <a class="rc-logo" href="home.html"
-          ><svg class="rc-logo-mark" aria-hidden="true"><use href="../../brand/icons.svg#mark" /></svg
-          >Weave</a
+        <a class="rc-logo" href="home.html" aria-current="page"
+          ><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a
         >
         <nav class="rc-app-nav" aria-label="Main">
-          <a href="home.html" aria-current="page">Home</a>
           <a href="initiatives.html">Initiatives</a>
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html">Your initiatives</a>
@@ -59,9 +57,7 @@
       <main class="rc-main" id="main">
         <div class="rc-stack" data-gap="wide">
           <section class="rc-home-hero" aria-labelledby="home-title">
-            <svg class="rc-woven-backdrop" aria-hidden="true" focusable="false">
-              <use href="../../brand/weave-threads.svg#threads" />
-            </svg>
+            <canvas class="rc-mycelium" aria-hidden="true"></canvas>
             <h1 class="rc-heading" data-size="hero" id="home-title">
               Find partners and funding for <em>regenerative work</em>
             </h1>
@@ -276,7 +272,7 @@
             </div>
             <ul class="rc-card-grid">
               <li>
-                <article class="rc-card" data-layout="listing">
+                <article class="rc-card" data-layout="listing" data-kind="funding">
                   <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>US$ 15,000</p>
                   <h3 class="rc-card-title"><a href="opportunity.html">Headwater learning grant</a></h3>
                   <p class="rc-card-meta">Brazil</p>
@@ -286,7 +282,7 @@
                 </article>
               </li>
               <li>
-                <article class="rc-card" data-layout="listing">
+                <article class="rc-card" data-layout="listing" data-kind="funding">
                   <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>US$ 20,000</p>
                   <h3 class="rc-card-title"><a href="opportunity.html">Shared tools fund</a></h3>
                   <p class="rc-card-meta">Kenya</p>
@@ -313,7 +309,7 @@
             </div>
             <ul class="rc-card-grid">
               <li>
-                <article class="rc-card" data-layout="listing">
+                <article class="rc-card" data-layout="listing" data-kind="initiative">
                   <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
                   <h3 class="rc-card-title"><a href="initiatives.html#public-example">Orchard learning circle</a></h3>
                   <p class="rc-card-meta">Upper valley, Brazil, Getting going</p>
@@ -323,7 +319,7 @@
                 </article>
               </li>
               <li>
-                <article class="rc-card" data-layout="listing">
+                <article class="rc-card" data-layout="listing" data-kind="initiative">
                   <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
                   <h3 class="rc-card-title"><a href="initiatives.html#public-example">Field learning school</a></h3>
                   <p class="rc-card-meta">Coastal valley, Portugal, Up and running</p>
@@ -333,7 +329,7 @@
                 </article>
               </li>
               <li>
-                <article class="rc-card" data-layout="listing">
+                <article class="rc-card" data-layout="listing" data-kind="initiative">
                   <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
                   <h3 class="rc-card-title"><a href="initiatives.html#public-example">Willow tools cooperative</a></h3>
                   <p class="rc-card-meta">Hill district, Kenya, Just starting</p>

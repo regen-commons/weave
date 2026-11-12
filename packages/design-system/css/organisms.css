@@ -17,21 +17,20 @@
   border-block-end: var(--border-thin) solid var(--line);
   background: var(--surface);
 }
-/* Every tab is as wide as the widest, so the row reads as one control. The nav keeps to its
-   content and sits beside the name; the state goes to the far end. */
+/* The header's sections size to their words with equal space between them, and the logo, which
+   goes home, keeps the same space from the first (DL-049). Only the phone's bottom bar has equal
+   tabs. The nav sits beside the name; the state goes to the far end. */
 .rc-app-nav {
   display: none;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: var(--space-1);
+  gap: var(--space-6);
+  /* With the header's own gap, the logo sits as far from the first section as sections sit apart. */
+  padding-inline-start: var(--space-4);
   margin-inline-end: auto;
 }
 .rc-app-nav > a {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   min-block-size: var(--control-sm-height);
-  padding-inline: var(--space-3);
   border-block-end: var(--border-edge) solid transparent;
   color: var(--text-secondary);
   text-decoration: none;
@@ -41,12 +40,18 @@
 .rc-app-nav > a:hover { color: var(--on-surface); }
 /* The current tab keeps the same weight, so no tab changes width; its bar and colour mark it. */
 .rc-app-nav > a[aria-current="page"] {
-  border-block-end-color: var(--action);
+  border-block-end-color: var(--section-accent, var(--action));
   color: var(--on-surface);
 }
 @media (min-width: 56.25rem) {
-  .rc-app-nav { display: grid; }
+  .rc-app-nav { display: flex; }
+  /* Between pages only the content cross-fades: the header changes at once, so the current
+     section's bar never fades or slides from one section to the next. */
+  .rc-app-header { view-transition-name: rc-app-header; }
 }
+::view-transition-old(rc-app-header) { display: none; }
+::view-transition-group(rc-app-header),
+::view-transition-new(rc-app-header) { animation: none; }
 
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
@@ -79,8 +84,16 @@
   text-wrap: balance;
 }
 .rc-bottom-nav > a[aria-current="page"] {
-  border-block-start-color: var(--action);
+  border-block-start-color: var(--section-accent, var(--action));
   color: var(--on-surface);
+}
+/* The current tab's icon takes its section's accent, as a native tab bar tints it (DL-051). */
+.rc-bottom-nav > a[aria-current="page"] .rc-icon { color: var(--section-accent, var(--action)); }
+/* In forced colours a transparent bar would show on every tab, so only the current tab keeps one. */
+@media (forced-colors: active) {
+  .rc-app-nav > a, .rc-bottom-nav > a { border-color: Canvas; }
+  .rc-app-nav > a[aria-current="page"] { border-block-end-color: Highlight; }
+  .rc-bottom-nav > a[aria-current="page"] { border-block-start-color: Highlight; }
 }
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
@@ -333,7 +346,7 @@
   .rc-numbered-item:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
 }
 .rc-numbered-item { display: grid; align-content: start; gap: var(--space-2); padding: var(--card-padding); border-radius: var(--card-radius); background: var(--surface-raised); color: var(--on-surface-raised); box-shadow: var(--shadow-1); }
-.rc-numbered-number { font: var(--type-headline-md); color: var(--text-accent); }
+.rc-numbered-number { font: var(--type-headline-md); color: var(--section-accent-text, var(--text-accent)); }
 .rc-numbered-title { font: var(--type-title-sm); }
 
 /* Tile grid: equal-size cards with one tooltip trigger each. */

@@ -1,6 +1,6 @@
 import { uuid } from "@weave/api/account-contract";
 import { useEffect, useId, useRef, useState } from "react";
-import { invitationDate, invitationStatuses, inviteToken, pendingInviteKey, pendingWorkspaceInvite, workspaceInvitations, type WorkspaceInvitation } from "./workspace-access-state.ts";
+import { invitationDate, inviteToken, pendingInviteKey, pendingWorkspaceInvite, workspaceInvitations, type WorkspaceInvitation } from "./workspace-access-state.ts";
 import { useAccount } from "../account/context.tsx";
 import { AccountFailure } from "../account/client.ts";
 import { ConsentButton } from "./ProjectConsent.tsx";
@@ -12,7 +12,7 @@ export function WorkspaceAccess({ workspaceId, projectUri, expanded = false }: {
   return state?.user ? <AccountWorkspaceAccess key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} projectUri={projectUri} expanded={expanded} /> : null;
 }
 function AccountWorkspaceAccess({ workspaceId, projectUri, expanded }: { workspaceId: string; projectUri: string; expanded: boolean }) {
-  const linkId = useId();
+  const linkId = useId(), roleId = useId(), handleId = useId();
   const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]), [cursor, setCursor] = useState<string>();
   const [link, setLink] = useState(""), [expires, setExpires] = useState("");
   const [handle, setHandle] = useState("");
@@ -67,17 +67,26 @@ function AccountWorkspaceAccess({ workspaceId, projectUri, expanded }: { workspa
     }
   }
   const Container = expanded ? "div" : "details";
+  const access = role === "viewer" ? "viewing access" : role === "editor" ? "editing access" : "teammate management";
+  const waiting = invitations.filter(i => ["pending", "claimed"].includes(i.status));
+  // Only the identifier comes back with a claim, so the end of it tells two requests apart.
+  const account = (did: string) => `Certified account ending ${did.slice(-6)}`;
   return <Container className="rc-stack" aria-busy={busy}>{!expanded && <summary>Manage teammates</summary>}
-    <p>Teammates need Certified group membership and a separate Weave workspace grant.</p>
+    <p>Invite someone with a link. They sign in with Certified, then you approve what they can do here.</p>
+    <div className="rc-field"><label htmlFor={roleId}>What they can do</label>
+      <select id={roleId} className="rc-input" value={role} disabled={busy}
+        onChange={(e) => setRole(e.target.value as typeof role)}><option value="viewer">Can view</option><option value="editor">Can edit</option><option value="admin">Manages teammates</option></select></div>
     <div className="rc-action-bar"><button className="rc-button" data-variant="primary" disabled={busy}
-      onClick={() => void run("create_invite")}>Create invitation link</button>
-      <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites")}>Refresh invitations</button></div>
-    <label className="rc-field">Workspace access<select className="rc-input" value={role} disabled={busy}
-      onChange={(e) => setRole(e.target.value as typeof role)}><option value="viewer">Can view</option><option value="editor">Can edit</option><option value="admin">Manages teammates</option></select></label>
-    <details><summary className="rc-footer-link">Add by Certified handle</summary>
-      <label className="rc-field">Teammate's Certified handle<input className="rc-input" value={handle} maxLength={254} disabled={busy}
-        autoCapitalize="none" spellCheck={false} placeholder="name.certified.one"
-        onChange={e => { setHandle(e.target.value.trim()); setDid(""); setWider(false); }} /></label>
+      onClick={() => void run("create_invite")}>Create invitation link</button></div>
+    {link && <div className="rc-field"><label htmlFor={linkId}>Invitation link</label>
+      <p className="rc-hint" id={`${linkId}-hint`}>Send it yourself. It expires {invitationDate(expires)} and gives no access until you approve.</p>
+      <input id={linkId} className="rc-input" aria-describedby={`${linkId}-hint`} value={link} readOnly onFocus={(e) => e.target.select()} /></div>}
+    <details><summary className="rc-footer-link">Add someone by their Certified handle</summary>
+      <div className="rc-field"><label htmlFor={handleId}>Certified handle</label>
+        <p className="rc-hint" id={`${handleId}-hint`}>Such as name.certified.one. Weave checks it with Certified before anything changes.</p>
+        <input id={handleId} className="rc-input" aria-describedby={`${handleId}-hint`} value={handle} maxLength={254} disabled={busy}
+          autoCapitalize="none" spellCheck={false}
+          onChange={e => { setHandle(e.target.value.trim()); setDid(""); setWider(false); }} /></div>
       <div className="rc-action-bar"><button className="rc-button" data-variant="secondary" disabled={busy || !handle}
         onClick={() => void run("resolve_teammate", { handle })}>Check Certified handle</button>
       {did && <><button className="rc-button" data-variant="secondary" disabled={busy}
@@ -94,18 +103,18 @@ function AccountWorkspaceAccess({ workspaceId, projectUri, expanded }: { workspa
       <button className="rc-button" data-variant="secondary" disabled={busy || !did}
         onClick={() => void run("add_member_and_grant", { recipientDid: did, accessRole: role, confirmGroupPermissions: true })}>Add to Certified group and grant workspace access</button>
     </div></section>}
-    {link && <div className="rc-field"><label htmlFor={linkId}>Invitation link</label>
-      <input id={linkId} className="rc-input" value={link} readOnly onFocus={(e) => e.target.select()} />
-      <p className="rc-hint">Expires {invitationDate(expires)}. Share this link with the person yourself. It grants no access.</p></div>}
     <h3 className="rc-heading" data-size="section">Pending invitations</h3>
-    <ul className="rc-ask-summary">{invitations.filter(i => ["pending", "claimed"].includes(i.status)).map((i) => <li key={i.inviteId}>
-      <p>{i.claimedDid ?? "Waiting for a Certified identity"}</p><p className="rc-meta">{invitationStatuses[i.status]}, expires {invitationDate(i.expiresAt)}</p>
+    {waiting.length ? <ul className="rc-ask-summary">{waiting.map((i) => <li key={i.inviteId}>
+      <p>{i.claimedDid && i.status === "claimed" ? `${account(i.claimedDid)} asked to join.` : "Invitation link, not used yet."}</p>
+      <p className="rc-meta">Expires {invitationDate(i.expiresAt)}</p>
       <div className="rc-action-bar">{i.claimedDid && i.status === "claimed" && <button className="rc-button" data-variant="secondary" disabled={busy}
-        onClick={() => void run("approve_invite", { inviteId: i.inviteId, recipientDid: i.claimedDid, accessRole: role })}>Approve {role === "viewer" ? "viewing access" : role === "editor" ? "editing access" : "teammate management"}</button>}
-        {["pending", "claimed"].includes(i.status) && <button className="rc-button" data-variant="quiet" disabled={busy}
-          onClick={() => void run("revoke_invite", { inviteId: i.inviteId })}>Revoke invitation</button>}</div>
-    </li>)}</ul>
-    {cursor && <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites", { cursor })}>More invitations</button>}
+        onClick={() => void run("approve_invite", { inviteId: i.inviteId, recipientDid: i.claimedDid, accessRole: role })}>Approve {access}</button>}
+        <button className="rc-button" data-variant="quiet" disabled={busy}
+          onClick={() => void run("revoke_invite", { inviteId: i.inviteId })}>Revoke invitation</button></div>
+    </li>)}</ul> : <p className="rc-meta">No invitations are waiting.</p>}
+    <div className="rc-action-bar">
+      {cursor && <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites", { cursor })}>More invitations</button>}
+      <button className="rc-button" data-variant="quiet" disabled={busy} onClick={() => void run("list_invites")}>Check again</button></div>
     {consent && <ConsentButton action="workspace-members" />}{notice && <p role="status">{notice}</p>}
   </Container>;
 }

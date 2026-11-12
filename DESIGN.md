@@ -193,6 +193,22 @@ components:
   text-muted-dark: { textColor: "{colors.soil-500}" }
   text-accent: { textColor: "{colors.copper-700}" }
   text-accent-dark: { textColor: "{colors.copper-400}" }
+  accent-home: { backgroundColor: "{colors.forest-700}" }
+  accent-home-dark: { backgroundColor: "{colors.forest-400}" }
+  text-home: { textColor: "{colors.forest-700}" }
+  text-home-dark: { textColor: "{colors.forest-400}" }
+  accent-initiatives: { backgroundColor: "{colors.teal-700}" }
+  accent-initiatives-dark: { backgroundColor: "{colors.teal-400}" }
+  text-initiatives: { textColor: "{colors.teal-800}" }
+  text-initiatives-dark: { textColor: "{colors.teal-400}" }
+  accent-funding: { backgroundColor: "{colors.gold-800}" }
+  accent-funding-dark: { backgroundColor: "{colors.gold-400}" }
+  text-funding: { textColor: "{colors.gold-800}" }
+  text-funding-dark: { textColor: "{colors.gold-400}" }
+  accent-yours: { backgroundColor: "{colors.signal-700}" }
+  accent-yours-dark: { backgroundColor: "{colors.signal-400}" }
+  text-yours: { textColor: "{colors.signal-800}" }
+  text-yours-dark: { textColor: "{colors.signal-400}" }
   text-danger: { textColor: "{colors.madder-800}" }
   text-danger-dark: { textColor: "{colors.madder-300}" }
   link: { textColor: "{colors.forest-700}" }
@@ -346,6 +362,10 @@ Soil and loam are the warm greys. Soil-600 is the only value that replaces a web
 - Colour never carries meaning alone. Pair it with a word, an icon, a shape or a position.
 - Cards are lighter than the page in both themes, so they read as closer.
 
+### Accents: where you are and what it is
+
+Green is for doing: buttons, links and the controls a person sets keep `--action` and `--link` on every page. Each section has an accent that says where you are, as each page of the website has: Home forest, Initiatives teal, Funding gold and Your initiatives signal blue. Copper is left out because in the light theme it sits too close to Funding's gold. It colours the current tab's bar and icon, a short bar under a page's title, a page's eyebrow, the home hero's italic word and step numbers. A card that opens its record shows a 3 px edge along its top on hover and keyboard focus, in the colour of what it is, funding gold or initiative teal, otherwise its section's. The logo's ring takes the accent on hover. The hero's italic word also carries the website's faint copper ghost (`--print-ghost`), like a print slightly out of register. `rc-page[data-section]` sets `--section-accent` for marks and `--section-accent-text` for words from the `--accent-*` and `--text-*` roles; pages outside a section, such as the steps that start a card, take Home's. A record keeps the colour of what it is wherever it appears: a funding card's eyebrow is funding gold on Home and in Partners as on Funding, and kinds of support and stages keep their own colours. Focus stays gold everywhere, held apart from Funding's bar by the ring's offset. An accent always comes with a word or an icon (DL-050, DL-051).
+
 ### Forms of capital
 
 Eight forms of capital use one recipe: a pale tint with a same-hue dark word and a glyph tile. Colour only groups them. The word and glyph identify them, because several pairs look alike under colour blindness.
@@ -419,11 +439,11 @@ There are five levels, tied to distance from the page. Light themes use shadows 
 | 3 | `--shadow-3` | Popovers, sheets |
 | 4 | `--shadow-4` | Dialogs |
 
-Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain and mycelium canvas stay behind one hero region at most, never behind inputs or rows, and they stop under reduced motion.
+Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain and mycelium canvas sit behind one region per page at most: Home's hero, or a doorway, a page with nothing to fill in and no list, such as signing in to Your initiatives or a missing page (DL-053). They never sit behind inputs or rows, and they rest under reduced motion.
 
 ### Motion
 
-Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The home woven-thread backdrop is the only decorative motion and becomes still. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
+Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: in Home's hero and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them; without a mouse, as on a phone, one grows on its own every few seconds while the hero is on screen. Touch never grows one, and under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
 
 ## Shapes
 
@@ -575,6 +595,7 @@ dark:
 derived:
   line: rgba(var(--copper-rgb), 0.25)
   line-subtle: rgba(var(--copper-rgb), 0.12)
+  print-ghost: rgba(var(--copper-rgb), 0.10)
 rgb:
   - copper
   - forest

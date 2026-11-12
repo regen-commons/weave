@@ -12,6 +12,7 @@ import { useCatalog } from "../funding/use-catalog.ts";
 import { fitLevel } from "../funding/select.ts";
 import { fundingFixture, teamFixture, type FixtureContext } from "../fixtures.ts";
 import { useDraft } from "../describe/use-draft.ts";
+import { useSetAside } from "../account/set-aside.ts";
 import { revise } from "../describe/contracts.ts";
 import { fullDate } from "../home.ts";
 import { pathTo } from "../routes.ts";
@@ -43,7 +44,9 @@ export function Opportunity({
     [fixture?.state, fixture?.scenario],
   );
   const catalog = useCatalog(example),
-    device = useDraft();
+    device = useDraft(),
+    // Another account's card keeps its answers to itself (DL-055).
+    setAside = useSetAside();
   const [retried, setRetried] = useState(false);
   const query = new URLSearchParams(search);
   const programId = query.get("program"),
@@ -232,7 +235,7 @@ export function Opportunity({
                 {condition.kind === "priority" ? "Priority criterion" : "Prerequisite"}, checked{" "}
                 {fullDate(condition.checkedOn)}. Your answer is self-reported, not eligibility approval.
               </p>
-              {device.draft.confirmed ? (
+              {device.draft.confirmed && !setAside ? (
                 <select
                   className="rc-input"
                   id={`condition-${condition.id}`}

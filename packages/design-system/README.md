@@ -106,8 +106,34 @@ The tests check that generated files are current, the linter is clean, website v
 - Add the learning icon for Learning and education, the fifth type of work (DL-040).
   A Notice may ask one question with its own action bar, as the duplicate prompt does
   (DL-042).
+- Replace the Home hero's woven backdrop with the website's mycelium and paper grain
+  (`rc-mycelium` and the `./mycelium` behaviour), at rest under reduced motion
+  (DL-046). It matches the website's six thread colours, tuft size and grain strength;
+  new tufts start bright and fade, and on phones one grows on its own every few seconds
+  from the top corners (DL-048).
+- App header: Home leaves the header, because the logo goes home; sections take their
+  own widths with equal spacing, and the header no longer cross-fades between pages.
+  Bottom navigation keeps four equal tabs (DL-049).
+- Accents say where you are and what a thing is (DL-050). Page shell takes
+  `data-section`, which colours the current tab's bar, Eyebrow, the home hero's italic
+  word and step numbers: Home forest, Initiatives teal, Funding gold, Your initiatives
+  signal blue. Card takes `data-kind="funding"` for a funding-gold eyebrow anywhere.
+  Adds the `--accent-*` and `--text-*` section roles.
+- Second accent pass (DL-051): the bottom bar's current icon, a short bar under page
+  titles, the logo's mark on hover, and a top edge on cards that open, in their own
+  colour (`data-kind="initiative"` added) or the section's. The hero's italic word
+  gains the website's copper ghost (`--print-ghost`).
+- Add the Doorway template (`rc-doorway`): pages with nothing to fill in and no list
+  open like Home's hero with the mycelium (DL-053). Logo's mark becomes the website's
+  living ring (`./mycelium` `growLogoMark`, DL-054). In forced colours only the current
+  tab keeps its bar in App header, Bottom navigation and Tabs.
+- A card on a shared device follows its account: another account's card is set aside
+  behind a Doorway and one quiet line on Your initiatives (DL-055).
+- Your initiative and the team workspace take the initiative's name as their heading
+  under an Eyebrow, and the Your initiatives example ends with the account line
+  (DL-047).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
-  removed after one build phase. No tokens changed.
+  removed after one build phase.
 
 ### Unreleased, Step 8
 

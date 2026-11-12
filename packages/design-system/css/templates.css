@@ -22,6 +22,13 @@
   text-align: center;
 }
 
+/* Where you are: each section's accent marks the current tab, the page's eyebrow, the home hero's
+   italic word and step numbers. Pages outside a section take Home's (DL-050). */
+.rc-page { --section-accent: var(--accent-home); --section-accent-text: var(--text-home); }
+.rc-page[data-section="initiatives"] { --section-accent: var(--accent-initiatives); --section-accent-text: var(--text-initiatives); }
+.rc-page[data-section="funding"] { --section-accent: var(--accent-funding); --section-accent-text: var(--text-funding); }
+.rc-page[data-section="your-initiatives"] { --section-accent: var(--accent-yours); --section-accent-text: var(--text-yours); }
+
 .rc-main {
   display: grid;
   align-content: start;
@@ -86,19 +93,36 @@
   max-inline-size: var(--form-width);
 }
 
-/* Home: measure the backdrop against the full page while keeping content inset. */
-.rc-main:has(.rc-home-hero) {
+/* Home and doorways: measure the backdrop against the full page while keeping content inset. */
+.rc-main:has(.rc-home-hero, .rc-doorway) {
   max-inline-size: none;
   padding-inline: 0;
 }
-.rc-main:has(.rc-home-hero) > * {
+.rc-main:has(.rc-home-hero, .rc-doorway) > * {
   inline-size: calc(min(100%, var(--page-width)) - 2 * var(--gutter));
   margin-inline: auto;
 }
 
-.rc-home-hero {
+.rc-home-hero, .rc-doorway {
+  /* The grain and the mycelium fade in and out at the region's top and bottom edges. */
+  --hero-fade: linear-gradient(transparent, black var(--space-6), black calc(100% - var(--space-6)), transparent);
   position: relative;
   isolation: isolate;
+}
+/* Doorway: a page with nothing to fill in and no list, such as signing in to Your initiatives or a
+   missing page, opens like Home's hero, with the mycelium and grain behind it (DL-053). */
+.rc-doorway {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-6) var(--space-8);
+  text-align: center;
+}
+.rc-doorway > :not(.rc-mycelium) { max-inline-size: var(--prose-width); }
+.rc-doorway > .rc-heading[data-size="page"]::after { margin-inline: auto; }
+.rc-doorway > .rc-action-bar { justify-content: center; }
+
+.rc-home-hero {
   display: grid;
   justify-items: center;
   gap: var(--space-3);
@@ -106,13 +130,22 @@
   text-align: center;
 }
 .rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
-.rc-home-hero .rc-heading em { color: var(--text-accent); }
+/* The website's hero accent: the italic word in the section's colour, with a faint copper ghost
+   beside it, like a print a little out of register (DL-051). */
+.rc-home-hero .rc-heading em {
+  color: var(--section-accent-text, var(--text-accent));
+  text-shadow: 0.04em -0.03em 0 var(--print-ghost);
+}
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
 .rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
 /* Signs of life under the search: shared initiatives and funding closing soon, side by side. */
 .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
-.rc-woven-backdrop {
+/* Mycelium: the website's branching growth, behind the home hero and nowhere else (DL-046). It
+   takes no pointer, fades out behind the heading, actions and search, and is hidden in forced
+   colours. On phones the words fill the hero, so only its corners show. behaviors/mycelium.js
+   draws it in the website's six thread colours, set here, at the website's own strengths. */
+.rc-mycelium {
   position: absolute;
   z-index: -1;
   inset-block: 0;
@@ -120,7 +153,28 @@
   translate: -50%;
   inline-size: 100cqi;
   block-size: 100%;
-  overflow: hidden;
+  pointer-events: none;
+  --mycelium-clear: radial-gradient(ellipse 62% 66% at 50% 50%, transparent 72%, black 100%);
+  -webkit-mask-image: var(--mycelium-clear), var(--hero-fade);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--mycelium-clear), var(--hero-fade);
+  mask-composite: intersect;
+}
+/* The website's paper grain, at its strength, in the same hero only: it never shows against the page. */
+.rc-home-hero::before, .rc-doorway::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-block: 0;
+  left: 50%;
+  translate: -50%;
+  inline-size: 100cqi;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: calc(var(--space-8) * 4);
+  mix-blend-mode: var(--grain-blend);
+  opacity: var(--grain-opacity);
+  -webkit-mask-image: var(--hero-fade);
+  mask-image: var(--hero-fade);
   pointer-events: none;
 }
 .rc-home-actions {
@@ -129,17 +183,14 @@
 }
 @container (min-width: 37.5rem) {
   .rc-home-hero { padding-block: var(--space-8); gap: var(--space-5); }
+  .rc-mycelium { --mycelium-clear: radial-gradient(ellipse 46% 58% at 50% 46%, transparent 45%, black 100%); }
   .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
   .rc-home-actions {
     grid-auto-flow: column;
     justify-content: center;
   }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .rc-woven-backdrop > use { animation: rc-weave calc(var(--duration-slow) * 40) var(--ease-out) infinite alternate; }
-}
-@keyframes rc-weave { to { transform: translate(var(--space-4), var(--space-2)); } }
-@media (forced-colors: active) { .rc-woven-backdrop { display: none; } }
+@media (forced-colors: active) { .rc-mycelium, .rc-home-hero::before, .rc-doorway::before { display: none; } }
 
 /* Card grid: resilient single column on phones, equal-height cards across wide rows. */
 .rc-card-grid {

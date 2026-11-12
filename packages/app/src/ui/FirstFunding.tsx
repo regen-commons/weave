@@ -32,7 +32,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
           })}
         </CardGrid>
       ) : (
-        <p>No strong research leads were found in the keyword match. The whole catalog remains available.</p>
+        <p>Nothing in the catalog matches this card yet.</p>
       )}
       <ButtonLink href="/funding" variant="secondary">
         Browse all funding

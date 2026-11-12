@@ -21,7 +21,8 @@ import { Card, CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { Section } from "../ui/Section.tsx";
-import { ListLayout } from "../ui/layouts.tsx";
+import { Doorway, ListLayout } from "../ui/layouts.tsx";
+import { useSetAside } from "../account/set-aside.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 
 /**
@@ -62,14 +63,16 @@ export function YourInitiatives() {
       {message}
     </p>
   );
-  const onDevice = hasDraft(draft);
+  // Another account's card stays on the device but out of this account's lists (DL-055).
+  const setAside = useSetAside();
+  const onDevice = hasDraft(draft) && !setAside;
   if (!state.identity)
     return (
-      <div className="rc-narrow rc-stack">
+      <Doorway>
         <Heading level={1} size="page">
           Your initiatives
         </Heading>
-        {!live && <p>Sign in with Certified to open your projects and what you saved in Weave.</p>}
+        {!live && <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>}
         {live && <PendingInvite />}
         {live && social.loading && <p role="status">Checking your account</p> }
         <AboutCertified />
@@ -82,7 +85,7 @@ export function YourInitiatives() {
           </ButtonLink>
         </div>
         {note}
-      </div>
+      </Doorway>
     );
   const deviceName = cardName(draft);
   const project = onDevice ? state.project : null;
@@ -140,24 +143,6 @@ export function YourInitiatives() {
       <Heading level={1} size="page">
         Your initiatives
       </Heading>
-      <div className="rc-action-bar">
-        <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          data-size="sm"
-          type="button"
-          disabled={busy}
-          onClick={() =>
-            void run(async () => {
-              await service.signOut();
-              setMessage("You are signed out. The card on this device is still here.");
-            })
-          }
-        >
-          Sign out
-        </button>
-      </div>
       {live && <PendingInvite />}
       {social.loading && <p role="status">Checking your Certified projects</p>}
       {social.problem && <p role="status">{social.problem}</p>}
@@ -286,6 +271,28 @@ export function YourInitiatives() {
           </ButtonLink>
         </div>
       )}
+      {setAside && (
+        <p className="rc-meta">A card from another account is on this device. It opens again when that account signs in.</p>
+      )}
+      {/* The account is not what people come here for, so it closes the page. */}
+      <div className="rc-action-bar">
+        <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
+        <button
+          className="rc-button"
+          data-variant="quiet"
+          data-size="sm"
+          type="button"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              await service.signOut();
+              setMessage("You are signed out. The card on this device is still here.");
+            })
+          }
+        >
+          Sign out
+        </button>
+      </div>
       {busy && <p role="status">Opening</p>}
       {note}
     </ListLayout>

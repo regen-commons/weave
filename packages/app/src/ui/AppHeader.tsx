@@ -37,10 +37,10 @@ export function AppHeader({
   return (
     <header className="rc-app-header">
       {/* The way back takes the logo's place, where a native app bar keeps it. */}
-      {back ? <BackLink target={back} /> : <Logo />}
+      {back ? <BackLink target={back} /> : <Logo current={current === "home"} />}
       {sections && (
         <nav className="rc-app-nav" aria-label="Main">
-          {SECTIONS.map((section) => (
+          {SECTIONS.filter((section) => section.header !== false).map((section) => (
             <Link
               key={section.route}
               href={pathTo(section.route)}

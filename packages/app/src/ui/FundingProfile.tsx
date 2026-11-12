@@ -1,12 +1,14 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { COUNTRIES, FUNDING_INSTRUMENTS, US_STATES } from "../../../../dist/storage.mjs";
 import { useDraft } from "../describe/use-draft.ts";
+import { useSetAside } from "../account/set-aside.ts";
 import { revise } from "../describe/contracts.ts";
 import { keepFundingForm } from "../funding/profile.ts";
 import type { FundingForm } from "../funding/contracts.ts";
 export function FundingProfile() {
   const { draft, controller } = useDraft(),
-    id = useId();
+    id = useId(),
+    setAside = useSetAside();
   const [error, setError] = useState("");
   const editor = draft.funding.editor;
   const form = useRef<HTMLFormElement>(null),
@@ -17,7 +19,8 @@ export function FundingProfile() {
     else if (!editor && wasOpen.current) trigger.current?.focus();
     wasOpen.current = !!editor;
   }, [!!editor]);
-  if (!draft.confirmed) return null;
+  // Another account's funding details stay with that account (DL-055).
+  if (!draft.confirmed || setAside) return null;
   const update = (form: FundingForm | null) =>
     controller.change((current) => revise(current, { funding: { ...current.funding, editor: form } }));
   const field = (

@@ -1,3 +1,4 @@
+import { Mycelium } from "./Mycelium.tsx";
 import type { ReactNode } from "react";
 
 /** Stack (`rc-stack`): vertical rhythm, with more space between groups when wide. */
@@ -33,14 +34,25 @@ export function HomeHero({
 }) {
   return (
     <section className="rc-home-hero" aria-labelledby="home-title">
-      <svg className="rc-woven-backdrop" aria-hidden="true" focusable="false">
-        <use href={`${import.meta.env.BASE_URL}brand/weave-threads.svg#threads`} />
-      </svg>
+      <Mycelium />
       {children}
       <div className="rc-home-actions">{actions}</div>
       {search}
       <div className="rc-home-live">{live}</div>
     </section>
+  );
+}
+
+/**
+ * Doorway template (`rc-doorway`): a page with nothing to fill in and no list, such as signing in to
+ * Your initiatives or a missing page, opens like Home's hero, with the mycelium behind it (DL-053).
+ */
+export function Doorway({ children }: { children: ReactNode }) {
+  return (
+    <div className="rc-doorway">
+      <Mycelium />
+      {children}
+    </div>
   );
 }
 

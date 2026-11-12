@@ -9,11 +9,14 @@ export function RecordPreview({
   confirmed,
   children,
   team = false,
+  named = true,
 }: {
   fields: Initiative;
   confirmed: boolean;
   children?: ReactNode;
   team?: boolean;
+  /** False where the page heading already carries the initiative's name. */
+  named?: boolean;
 }) {
   return (
     <article
@@ -21,7 +24,7 @@ export function RecordPreview({
       data-pencil={!confirmed || undefined}
       aria-label="Your initiative preview"
     >
-      <h2 className="rc-card-title">{fields.name || "Your initiative"}</h2>
+      {named && <h2 className="rc-card-title">{fields.name || "Your initiative"}</h2>}
       <p className="rc-card-meta">
         {fields.isGlobal ? "Global" : fields.locations.join("; ") || "Add where you work"}
       </p>

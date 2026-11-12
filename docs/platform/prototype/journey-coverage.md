@@ -3,7 +3,8 @@
 Updated 11 November 2026. The implementation branch `codex/weave-social-live`
 starts at design commit `2cf6a7a`, which includes `develop` at `0520df8` and the
 review through DL-045. This report records implementation and local evidence. Hosted validation is
-deferred at the maker's request, and the production pilot remains off.
+deferred at the maker's request, and the production pilot remains off. The design polish that
+followed PR #38 is under [Design polish on develop](#design-polish-on-develop-11-november-2026).
 
 ## One interface over real services
 
@@ -145,6 +146,104 @@ guidance check. No dependencies, lockfile or tracked generated output changed.
 4. Confirm permitted corpus ingestion, refresh/removal, match quality and latency.
    Semantic retrieval remains disabled. Confirm the six-lens launch metric with
    the council; the learning lens does not resolve that product metric decision.
+
+## Design polish on develop, 11 November 2026
+
+The design branch `claude/weave-ui-polish` starts at `develop` `810e199`, after PR #38. It
+polishes the API-connected screens instead of adding new ones, and keeps every behaviour
+listed above. The production pilot stays off.
+
+| Journey | What changed |
+|---|---|
+| First visit with a Certified project | Home's hero carries the website's mycelium and paper grain, matched to regencommons.com, and on phones a tuft grows on its own every few seconds (DL-046, DL-048). On wide screens the header holds three sections and the logo goes home (DL-049). On Your initiatives the In Weave and On Certified lists lead, and the signed-in line closes the page. A workspace this account cannot open now says what to do: ask a workspace admin for an invitation link. |
+| First visit without a project | Your initiative takes the initiative's name as its heading, under a Your initiative eyebrow, and the card no longer repeats it (DL-047). Funding that fits says plainly when nothing in the catalog matches yet. |
+| Returning with a project | The team workspace names the initiative under a Team workspace eyebrow, then says what this person can do there. The header's save status steps aside, so the page's own rows are the one account of saving and sharing. Manage teammates leads with the default: choose what they can do, then create an invitation link. Adding someone by handle sits behind a disclosure, and each pending invitation says what it is, when it expires and what the admin can do. |
+| Returning without a linked project | The same named heading on Your initiative, and the account line at the end of Your initiatives. |
+
+Every section now has its own accent for where you are (Home forest, Initiatives teal, Funding
+gold, Your initiatives signal blue), while buttons and links stay green and funding cards keep
+funding gold wherever they appear (DL-050).
+
+Home now reads the live funding catalog. Until this round it read funding only from the
+development examples, so production showed no funding-closing-soon link and an empty Funding
+closing soon section. Home shares Funding's request, starts it once the page is idle, shows the
+three open calls that close soonest with Funding's own card, and counts closing calls with the
+Funding filter's rule, so the hero's number matches the list its link opens.
+
+### Proof
+
+Proof class: **fixture**. The `app-fixture` server ran on port 5173 with
+`WEAVE_ACCOUNT_FIXTURE=1`, using the synthetic visitor and admin accounts.
+
+- **Home hero, Chrome with DevTools emulation, 360 px with touch and 1280 px with a mouse, light
+  and dark.** Under reduced motion the mycelium is drawn at once, and its pixels do not change
+  over three seconds or under mouse moves. With motion allowed, a mouse grows tufts that fade
+  back to the identical resting picture, and touch never changes it. On a phone with touch and no
+  mouse, the canvas changed on its own eight times in five seconds; under reduced motion it stayed
+  still. The phone canvas is capped at 1.5 times pixel density, its threads grow from the top
+  corners, and a theme change recolours it without a reload. The hero shows no band against the
+  page in either theme. No page overflowed horizontally.
+- **Header, Chrome, 1280 px light.** Initiatives, Funding and Your initiatives sit at their own
+  widths, 32 px apart and 32 px from the logo, which is the current page on Home. During a page
+  transition nothing in the header animates. At 360 px the bottom bar keeps four 90 px tabs.
+- **Manage teammates, Chrome, 360 px dark, keyboard only.** Focus starts inside the sheet, Tab
+  follows the new order with a visible focus ring, and Escape returns focus to Manage teammates.
+- **Headings, Chrome and the Claude desktop browser pane.** The workspace heading at 1280 px
+  light and 360 px dark, and Your initiatives at 360 px dark, with no overflow.
+- **Home's live catalog, Chrome and the Claude desktop browser pane.** With no example scenario,
+  Home loads the committed catalog release: the hero read 19 funds closing soon, and Funding
+  listed 19 of 768 records for the same filter, opening without a skeleton. With the first
+  catalog request blocked, Home showed its notice and said funding did not load; Try again
+  recovered both. Checked at 1280 px light and 360 px dark; Tab reaches the link with a visible
+  focus ring.
+
+Voice capture could not be exercised in either browser. No hosted Certified, database or
+production check was made.
+
+Local checks passed: `bun run ci` ran 129 site and catalog tests, 27 design-system tests, 156
+API tests with the 38 opt-in database checks skipped, 210 app tests and 78 harness tests, and
+confirmed current design tokens and guidance. The app typecheck and `git diff --check` passed,
+and the build changed no tracked files. No dependencies or lockfile changed.
+
+### Still waiting on the backend
+
+- Claimed invitations return only a DID, so the list reads "Certified account ending …". The
+  server should return the verified handle, so an admin knows who asked before approving.
+  [The Codex task](../handover/04-invitation-handles.md) sets out the work; quality checks
+  start once it lands.
+- Shared initiatives exist only in the example world. In production, Home's Recently shared, its
+  shared count and the Initiatives list show their empty states until public listings arrive.
+
+### Decided by the maker
+
+- The mycelium goes beyond Home, onto doorways: signing in to Your initiatives and a missing page
+  (DL-053).
+- The header's logo is the website's living ring, grown once and filled under a mouse (DL-054).
+- A project that fits several needs and offers shows once in Partners for you, naming each fit
+  (DL-052).
+- The grain now uses the website's strength, so it no longer shows behind the search field.
+- A card on a shared device follows the account it belongs to (DL-055). Checked with the editor
+  and admin fixture accounts in one tab: after the editor opened a project, the admin saw it once,
+  as their own Certified entry, with a quiet line for the set-aside card; Home, the header, the
+  card's pages, partners and funding fit left it out; switching back gave the editor the card again.
+
+### Accessibility checks, 11 November 2026
+
+Proof class: **fixture**, Chrome with DevTools emulation.
+
+- **Forced colours.** The mycelium and grain hide, buttons and cards keep system borders, and
+  keyboard focus shows a clear ring. Every header tab showed a bar, because transparent borders
+  become visible; now only the current tab keeps one, in the system highlight, in App header,
+  Bottom navigation and Tabs.
+- **200 percent zoom** (a 1280 by 800 window): eight pages reflow to the phone layout with no
+  horizontal scrolling. The sticky header and bottom bar leave 70 percent of the window for
+  content.
+- **Voice.** Speech stays on the device. This Chrome reports its English speech pack as
+  downloadable, not installed, so Weave hides Speak and people type. With a simulated local
+  engine, Speak shows "Listening on this device", writes words as they come and puts the
+  finished text in the field. Real speech with a microphone is left for quality checks with a
+  person. Weave could offer to download the speech pack where Chrome reports it as downloadable.
+
 
 ## Implementation request, 10 November 2026
 

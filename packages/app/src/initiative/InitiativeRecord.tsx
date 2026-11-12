@@ -6,10 +6,10 @@ import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { Tag } from "../ui/Tag.tsx";
 
 /** The same checked card on device and in a team workspace. Its surrounding page owns the available actions. */
-export function InitiativeRecord({ fields, needs, offers, team = false }: {
-  fields: Initiative; needs: readonly AskFields[]; offers: readonly AskFields[]; team?: boolean;
+export function InitiativeRecord({ fields, needs, offers, team = false, named = true }: {
+  fields: Initiative; needs: readonly AskFields[]; offers: readonly AskFields[]; team?: boolean; named?: boolean;
 }) {
-  return <RecordPreview fields={fields} confirmed team={team}>
+  return <RecordPreview fields={fields} confirmed team={team} named={named}>
     {(["needs", "offers"] as const).map(kind => {
       const entries = kind === "needs" ? needs : offers;
       return <section className="rc-stack" key={kind} aria-label={kind === "needs" ? "Needs" : "Offers"}>

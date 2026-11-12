@@ -53,11 +53,12 @@ const ROLE_LINE: Record<TeamWorkspaceState["accessRole"], string> = {
   admin: "You can change the team's needs and offers and manage teammates.",
 };
 
-/** The page title is stable; the checked card carries the initiative's name. */
+/** Once the workspace opens the page names its initiative, echoing the name that led here. */
 function WorkspaceHeading({ name, role }: { name?: string; role?: TeamWorkspaceState["accessRole"] }) {
   return (
     <div className="rc-stack">
-      <Heading level={1} size="page">{name ? "Your initiative" : "Team workspace"}</Heading>
+      {name && <p className="rc-eyebrow">Team workspace</p>}
+      <Heading level={1} size="page">{name ?? "Team workspace"}</Heading>
       {role && <p>{ROLE_LINE[role]}</p>}
     </div>
   );
@@ -147,7 +148,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
     </div>
   );
   if (failure === "workspace_access_required" || failure === "project_authority_required" || failure === "not_found")
-    return <><WorkspaceHeading /><p role="status">This workspace is unavailable to your account.</p></>;
+    return <><WorkspaceHeading /><p role="status">You can't open this workspace with this account. If you should, ask a workspace admin for an invitation link.</p></>;
   if (failure !== null) return (
     <div className="rc-stack">
       <WorkspaceHeading />
@@ -182,7 +183,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
             onClick={() => setPanel("teammates")}>Manage teammates</button>}
         </div></Section>}
       </>}>
-        {saved && fields ? <InitiativeRecord fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
+        {saved && fields ? <InitiativeRecord named={false} fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
           offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
           : <p>No needs or offers saved yet. {readOnly ? "An editor can add them." : "Add them here or review a copy of this device's card."}</p>}
       </StepLayout>

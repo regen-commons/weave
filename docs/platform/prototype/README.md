@@ -55,7 +55,7 @@ Keep the same link. From a session with the Artifact tool, build, then publish `
 
 ## The clickable preview
 
-The preview is the Weave app itself with its development examples, inside a review page. It was last updated on 10 November 2026 for the second design review and the maker's answers to it (DL-033 to DL-042). Build it, then publish every file in `preview/build/` (ignored by Git) to https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt at the same relative paths, replacing the files already there:
+The preview is the Weave app itself with its development examples, inside a review page. It was last updated on 11 November 2026 for the polish round on `claude/weave-ui-polish`: the website's mycelium, which grows on its own on phones, the named initiative pages and the simpler header (DL-046 to DL-049). Before that it showed the second design review and the maker's answers to it (DL-033 to DL-042). Build it, then publish every file in `preview/build/` (ignored by Git) to https://claude.ai/artifact/KrVcXKRNCHaQDA2iP17Zdt at the same relative paths, replacing the files already there:
 
 ```bash
 node docs/platform/prototype/preview/build.mjs

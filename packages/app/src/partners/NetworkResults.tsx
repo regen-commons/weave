@@ -7,7 +7,7 @@ import {
   entryKey, leadKey, type EntryRef, type MatchingSearch, type NetworkLead, type NetworkMatch,
 } from "./matching-client.ts";
 
-const evidenceLabels: Record<NetworkMatch["evidenceKind"], string> = {
+export const evidenceLabels: Record<NetworkMatch["evidenceKind"], string> = {
   confirmed_offer: "Owner-confirmed offer",
   confirmed_need: "Owner-confirmed need",
   published_offer: "Published offer to check",
@@ -24,12 +24,10 @@ const evidenceContext: Record<NetworkMatch["evidenceKind"], string> = {
   potential_use: "Your offer could support the work described here. The source gives no confirmed need.",
 };
 
-export function MatchEvidence({ match, discloseDetails = false }: {
-  match: NetworkMatch;
-  discloseDetails?: boolean;
-}) {
+/** What supports one match and what to check: dates, why it fits, shared topics and what is unknown. */
+export function MatchDetails({ match }: { match: NetworkMatch }) {
   const evidence = match.evidence;
-  const details = (
+  return (
     <>
       {evidence.type === "shared" ? (
         <p className="rc-meta">Confirmed on <MatchingDate value={evidence.confirmedAt} />. {evidence.expiresAt ? <>Sharing ends on <MatchingDate value={evidence.expiresAt} />.</> : "Shared until closed or withdrawn."}</p>
@@ -42,26 +40,6 @@ export function MatchEvidence({ match, discloseDetails = false }: {
       {match.reasons.map(({ terms }) => <p className="rc-meta" key={terms.join(", ")}>Shared topics include {terms.join(", ")}.</p>)}
       {!!match.unknowns.length && <p className="rc-meta">Details to check include {match.unknowns.join(", ")}.</p>}
       {match.reciprocal && <p className="rc-meta">This initiative has a match in both directions.</p>}
-    </>
-  );
-  return (
-    <>
-      <p className="rc-card-meta">
-        {evidenceLabels[match.evidenceKind]}
-        {discloseDetails && match.unknowns.includes("availability") && ". Availability unknown."}
-      </p>
-      {evidence.type === "shared" ? (
-        <>
-          <p><strong>{evidence.title}</strong></p>
-          {evidence.passage && <p>{evidence.passage}</p>}
-        </>
-      ) : <blockquote className="rc-prose">{evidence.passage}</blockquote>}
-      {discloseDetails ? (
-        <details className="rc-stack">
-          <summary>Why this fits</summary>
-          {details}
-        </details>
-      ) : details}
     </>
   );
 }

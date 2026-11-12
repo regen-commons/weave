@@ -8,6 +8,8 @@ import { PUBLIC_PARTNER_EVIDENCE } from "../src/partners/catalog.ts";
 import type { PartnerEvidence } from "../src/partners/evidence.ts";
 import { entryLine, fitGroupOf, fitLines, groupFits, PREVIEW_FITS, type FitEvidence } from "../src/partners/groups.ts";
 import { matchPartners } from "../src/partners/match.ts";
+import { projectSuggestions } from "../src/partners/certified-suggestions.ts";
+import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
 
 function keep(draft: DeviceDraft, kind: AskKind, fields: Partial<ReturnType<typeof formFromAsk>>) {
   const form = { ...formFromAsk(), capitalForms: ["intellectual"] as const, ...fields };
@@ -182,4 +184,34 @@ test("example partners pair each shared entry with one invented initiative, neve
   );
   assert.deepEqual(examplePartners([], initiatives), []);
   assert.deepEqual(examplePartners([{ kind: "needs", title: "Native seedlings", kinds: ["living"] }], []), []);
+});
+
+test("Partners for you shows a project once, naming each need and offer it fits", () => {
+  const query = (kind: "need" | "offer", entryId: string, title: string): PartnerEntry =>
+    ({ initiativeId: "team", entryId, revision: 1, kind, summary: {}, value: { status: "open", title } });
+  const passage = "The lab maps streams with GPS and runs monitoring workshops.";
+  const match = (entry: PartnerEntry, project: string, evidenceKind: PartnerMatch["evidenceKind"], text = passage): PartnerMatch => ({
+    query: { kind: entry.kind, entryId: entry.entryId, revision: 1 },
+    candidateId: `public:${project}:${entry.entryId}`,
+    counterpart: { id: project, name: project === "lab" ? "Stream Survey Lab" : "Seed Bank" },
+    evidenceKind,
+    evidence: {
+      type: "public", id: project, projectUri: `at://${project}`, projectName: project, sourceUri: `at://${project}/source`,
+      sourceUrl: `https://example.org/${project}`, cid: "cid", contentHash: "hash", fieldPath: "description", passage: text,
+      sourceCreatedAt: "2026-10-01T00:00:00Z", sourceIndexedAt: null, fetchedAt: "2026-11-01T00:00:00Z",
+      extractionVersion: "1", kind: "work",
+    },
+    reasons: [], unknowns: ["availability"], reciprocal: false, action: "open_source",
+  });
+  const need = query("need", "n1", "GPS watershed mapping");
+  const offer = query("offer", "o1", "Monitoring workshop");
+  const ranked = [match(need, "lab", "inferred_capability"), match(need, "seeds", "inferred_capability", "Seeds."), match(offer, "lab", "potential_use")];
+  const projects = projectSuggestions(ranked, [need, offer]);
+  assert.deepEqual(projects.map(({ name }) => name), ["Stream Survey Lab", "Seed Bank"], "projects keep their best rank");
+  const [lab] = projects;
+  assert.ok(lab);
+  assert.deepEqual(lab.fits.map(({ query: { kind } }) => kind), ["need", "offer"], "one card names the need and the offer");
+  assert.deepEqual(lab.passages, [{ text: passage, sourceUrl: "https://example.org/lab" }], "its words show once");
+  // A preview keeps the first match for each entry, so the lab stays one card with both fits.
+  assert.deepEqual(projectSuggestions(ranked, [need, offer], 1).map(({ name, fits }) => [name, fits.length]), [["Stream Survey Lab", 2]]);
 });

@@ -86,6 +86,14 @@
       "text-secondary": "#4A3E2C",
       "text-muted": "#5D503B",
       "text-accent": "#944818",
+      "accent-home": "#1E3A10",
+      "text-home": "#1E3A10",
+      "accent-initiatives": "#1A7860",
+      "text-initiatives": "#115945",
+      "accent-funding": "#7A4B0A",
+      "text-funding": "#7A4B0A",
+      "accent-yours": "#2A6888",
+      "text-yours": "#1C4965",
       "text-danger": "#6E1D12",
       "link": "#1E3A10",
       "link-hover": "#142C0B",
@@ -169,6 +177,14 @@
       "text-secondary": "#B8AE96",
       "text-muted": "#A49A87",
       "text-accent": "#C47838",
+      "accent-home": "#7AAA6A",
+      "text-home": "#7AAA6A",
+      "accent-initiatives": "#48B890",
+      "text-initiatives": "#48B890",
+      "accent-funding": "#D4A030",
+      "text-funding": "#D4A030",
+      "accent-yours": "#5AACCC",
+      "text-yours": "#5AACCC",
       "text-danger": "#F0B3A2",
       "link": "#7AAA6A",
       "link-hover": "#A8CD98",
@@ -241,7 +257,8 @@
   },
   "derived": {
     "line": "rgba(var(--copper-rgb), 0.25)",
-    "line-subtle": "rgba(var(--copper-rgb), 0.12)"
+    "line-subtle": "rgba(var(--copper-rgb), 0.12)",
+    "print-ghost": "rgba(var(--copper-rgb), 0.10)"
   },
   "typography": {
     "label-sm": {

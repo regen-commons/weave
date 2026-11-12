@@ -1,6 +1,6 @@
 import { InformationContext } from "./information-context.ts";
 import { useState, type ReactNode } from "react";
-import type { BackTarget, RouteName } from "../routes.ts";
+import { matchRoute, type BackTarget, type RouteName } from "../routes.ts";
 import { AppHeader, type SaveStatus } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
 import { BottomNav } from "./BottomNav.tsx";
@@ -35,7 +35,8 @@ export function Page({
   const [information, setInformation] = useState<Information | null>(null);
   return (
     <InformationContext.Provider value={setInformation}>
-      <div className="rc-page">
+      {/* The section sets its accent: the current tab's bar, the page's eyebrow and step numbers (DL-050). */}
+      <div className="rc-page" data-section={matchRoute(pathname)?.section}>
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
