@@ -138,6 +138,9 @@ The tests check that generated files are current, the linter is clean, website v
   `--dialog-padding`. Fieldsets lose the browser's frame, and a legend reads as a field
   label. Faces never change once drawn: the app preloads the faces a first visit draws, and
   the prototype carries them in its stylesheet (DL-057).
+- App header and Bottom navigation stay put between pages: each has its own view
+  transition name at every width and changes at once above the page's cross-fade, and
+  the page's content no longer takes a name of its own (DL-058).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
   removed after one build phase.
 

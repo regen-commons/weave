@@ -45,13 +45,19 @@
 }
 @media (min-width: 56.25rem) {
   .rc-app-nav { display: flex; }
-  /* Between pages only the content cross-fades: the header changes at once, so the current
-     section's bar never fades or slides from one section to the next. */
-  .rc-app-header { view-transition-name: rc-app-header; }
 }
-::view-transition-old(rc-app-header) { display: none; }
+/* Between pages the page cross-fades as one picture, and the app header and the bottom
+   navigation change at once above it. Each has its own name at every width, so neither fades,
+   slides or disappears under the page while it changes, and the current section's bar never
+   moves from one section to the next (DL-058). */
+.rc-app-header { view-transition-name: rc-app-header; }
+.rc-bottom-nav { view-transition-name: rc-bottom-nav; }
+::view-transition-old(rc-app-header),
+::view-transition-old(rc-bottom-nav) { display: none; }
 ::view-transition-group(rc-app-header),
-::view-transition-new(rc-app-header) { animation: none; }
+::view-transition-group(rc-bottom-nav) { z-index: var(--layer-sticky); animation: none; }
+::view-transition-new(rc-app-header),
+::view-transition-new(rc-bottom-nav) { animation: none; }
 
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
