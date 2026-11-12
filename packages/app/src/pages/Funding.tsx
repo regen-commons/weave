@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FixtureContext } from "../fixtures.ts";
 import { fundingFixture, teamFixture } from "../fixtures.ts";
-import { catalogEntries, fundingSearch } from "../funding/catalog.ts";
-import { emptyFundingFilters, filterFunding, type FundingFilters as Filters } from "../funding/select.ts";
+import { catalogEntries } from "../funding/catalog.ts";
+import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } from "../funding/facets.ts";
+import {
+  emptyFundingFilters,
+  filterFunding,
+  readFundingFilters,
+  writeFundingFilters,
+  type FundingFilters as Filters,
+} from "../funding/select.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { CardGrid } from "../ui/Card.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListLayout } from "../ui/layouts.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
-import { FundingFilters } from "../ui/FundingFilters.tsx";
+import { FilterBar } from "../ui/FilterBar.tsx";
 import { FundingProfile } from "../ui/FundingProfile.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { fullDate } from "../home.ts";
@@ -21,11 +28,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
     [fixture?.state, fixture?.scenario],
   );
   const catalog = useCatalog(example);
-  const [filters, setFilters] = useState<Filters>(() => ({
-    ...emptyFundingFilters,
-    search: new URLSearchParams(routeSearch()).get("q") ?? "",
-    ...Object.fromEntries([...fundingSearch(routeSearch())].filter(([key]) => key !== "q")),
-  }));
+  const [filters, setFilters] = useState<Filters>(() => readFundingFilters(routeSearch()));
   const [limit, setLimit] = useState(24),
     [retried, setRetried] = useState(false);
   const state = fixture?.state;
@@ -34,7 +37,10 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
       catalog.error ||
       (state === "error" && !retried ? "The catalog did not load. Your choices are still here." : "");
   const entries = useMemo(() => (catalog.bundle ? catalogEntries(catalog.bundle) : []), [catalog.bundle]);
-  const visibleFilters = catalog.results
+  const vocabulary = useMemo(() => fundingVocabulary(entries), [entries]);
+  // Ranking needs a card to compare with; without one its group and its sort order mean nothing.
+  const personalized = !!catalog.results;
+  const visibleFilters = personalized
     ? filters
     : { ...filters, group: "", sort: filters.sort === "fit" ? "closing" : filters.sort };
   const selected = useMemo(
@@ -45,11 +51,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   useEffect(() => setLimit(24), [filters]);
   useEffect(() => {
     const params = new URLSearchParams(routeSearch());
-    for (const [key, value] of Object.entries(filters)) {
-      const name = key === "search" ? "q" : key;
-      if (value) params.set(name, value);
-      else params.delete(name);
-    }
+    writeFundingFilters(filters, params);
     const query = params.toString();
     replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
   }, [filters]);
@@ -119,12 +121,18 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
       ) : (
         <>
           {catalog.ranking && <p role="status">Comparing your card with the catalog on this device</p>}
-          <FundingFilters
-            filters={visibleFilters}
-            onChange={setFilters}
+          <FilterBar
+            noun="funding"
+            things="programs and overview records"
+            search={visibleFilters.search}
+            onSearch={(search) => setFilters((current) => ({ ...current, search }))}
+            facets={fundingFacets(vocabulary, visibleFilters, personalized)}
+            onFacet={(key, chosen) => setFilters((current) => applyFundingFacet(current, key, chosen))}
+            sort={{ value: visibleFilters.sort, options: fundingSorts(personalized) }}
+            onSort={(sort) => setFilters((current) => ({ ...current, sort }))}
             count={selected.length}
             total={entries.length}
-            personalized={!!catalog.results}
+            onClear={() => setFilters((current) => ({ ...emptyFundingFilters, sort: current.sort }))}
           />
           {selected.length ? (
             <>

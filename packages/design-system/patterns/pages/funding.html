@@ -21,13 +21,7 @@
           <a href="funding.html" aria-current="page">Funding</a>
           <a href="your-initiatives.html">Your initiatives</a>
         </nav>
-        <div class="rc-app-header-state">
-          <p class="rc-save-status" data-state="account">
-            <svg class="rc-icon" data-size="sm" aria-hidden="true">
-              <use href="../../brand/icons.svg#done" /></svg
-            >Saved
-          </p>
-        </div>
+        <div class="rc-app-header-state"><a class="rc-icon-button" href="settings.html" aria-label="Settings"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
       </header>
       <main class="rc-main" id="main" data-list-example>
         <div class="rc-list-layout">
@@ -36,7 +30,7 @@
           <div class="rc-filter-bar">
             <form class="rc-field" data-example-search>
               <label for="funding-search">Search funding</label>
-              <div class="rc-inline-field">
+              <div class="rc-search rc-inline-field">
                 <input class="rc-input" id="funding-search" type="search" /><button
                   class="rc-button"
                   data-variant="secondary"
@@ -47,34 +41,21 @@
               </div>
             </form>
             <div class="rc-filter-controls">
-              <button
-                class="rc-button"
-                data-variant="secondary"
-                type="button"
-                popovertarget="funding-menu"
-                data-popup="funding-menu"
-              >
-                Country
-              </button>
+              <button class="rc-button" data-variant="secondary" data-filter="all" type="button" data-open-dialog="funding-filters"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#filter"/></svg>Filters</button>
+              <button class="rc-button" data-variant="secondary" data-filter="one" type="button" popovertarget="funding-menu" data-popup="funding-menu">Country</button>
               <div class="rc-menu" id="funding-menu" popover>
                 <fieldset class="rc-menu-group">
                   <legend>Country</legend>
-                  <label class="rc-menu-option"
-                    ><input
-                      class="rc-check"
-                      type="checkbox"
-                      value="Brazil"
-                      data-example-country
-                    />Brazil</label
-                  ><label class="rc-menu-option"
-                    ><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label
-                  >
+                  <div class="rc-menu-options">
+                    <label class="rc-menu-option"><input class="rc-check" type="checkbox" value="Brazil" data-example-country />Brazil</label>
+                    <label class="rc-menu-option"><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label>
+                  </div>
                 </fieldset>
                 <button class="rc-button" data-variant="quiet" type="button" data-close-popover>Done</button>
               </div>
-              <div class="rc-field" data-layout="inline">
-                <label for="funding-sort">Sort</label
-                ><select class="rc-input" id="funding-sort" data-example-sort>
+              <div class="rc-button rc-sort" data-variant="secondary">
+                <label class="rc-sort-face" for="funding-sort">Sort<span aria-hidden="true">: Name A to Z</span></label>
+                <select id="funding-sort" data-example-sort>
                   <option value="name">Name A to Z</option>
                   <option value="reverse">Name Z to A</option>
                 </select>
@@ -83,6 +64,26 @@
             <div class="rc-active-filters" data-example-chips></div>
             <p class="rc-meta" role="status" data-example-count>3 of 3 examples</p>
           </div>
+          <dialog class="rc-dialog" data-presentation="information" id="funding-filters" aria-labelledby="funding-filters-title">
+            <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+            <div class="rc-dialog-body">
+              <div class="rc-dialog-head" data-sheet-handle>
+                <h2 class="rc-dialog-title" id="funding-filters-title">Filters</h2>
+                <form method="dialog" id="funding-filters-close"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form>
+              </div>
+              <fieldset>
+                <legend>Country</legend>
+                <div class="rc-chip-group">
+                  <label class="rc-chip"><input class="rc-check" type="checkbox" value="Brazil" data-example-country />Brazil</label>
+                  <label class="rc-chip"><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label>
+                </div>
+              </fieldset>
+              <div class="rc-dialog-foot">
+                <button class="rc-button" data-variant="quiet" type="button" data-example-clear>Clear all</button>
+                <button class="rc-button" data-variant="primary" type="submit" form="funding-filters-close">Show results</button>
+              </div>
+            </div>
+          </dialog>
           <ul class="rc-card-grid" data-example-grid>
             <li data-example-record data-country="Brazil" data-work="Research">
               <article class="rc-card" data-layout="listing" data-kind="funding">

@@ -9,6 +9,7 @@ import {
 import { validConditions } from "../../../../dist/matching.mjs";
 import { ACCESS } from "../../../../dist/domain.mjs";
 import type { IconName } from "../ui/icons.ts";
+import { FUNDING_QUERY } from "./select.ts";
 
 export function parseBundle(catalog: unknown, rules: unknown, conditions: unknown): Bundle {
   const parsed = CatalogSchema.parse(catalog);
@@ -88,10 +89,11 @@ export function fundingEyebrow(program: Pick<Program, "instrument" | "award"> | 
 export function fundingSearch(search: string): URLSearchParams {
   const source = new URLSearchParams(search),
     result = new URLSearchParams();
-  for (const key of ["q", "closing", "access", "group", "sort"]) {
+  for (const key of FUNDING_QUERY.one) {
     const value = source.get(key);
     if (value) result.set(key, value);
   }
+  for (const key of FUNDING_QUERY.many) for (const value of source.getAll(key)) if (value) result.append(key, value);
   return result;
 }
 export function fundingBackHref(search: string): string {
@@ -101,7 +103,8 @@ export function fundingBackHref(search: string): string {
 export function opportunityHref(entry: Entry, search = ""): string {
   const query = new URLSearchParams();
   if (entry.program) query.set("program", entry.program.id);
-  for (const [key, value] of fundingSearch(search)) query.set(key, value);
+  // A filter can hold several values, so each is added, never set over the last.
+  for (const [key, value] of fundingSearch(search)) query.append(key, value);
   return `/funding/${entry.fund.id}${query.size ? `?${query}` : ""}`;
 }
 /** A stale or mistyped program must never silently open a different call. */

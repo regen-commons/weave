@@ -138,8 +138,10 @@
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
 .rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
-/* Signs of life under the search: shared initiatives and funding closing soon, side by side. */
-.rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
+/* Signs of life under the search: shared initiatives and funding closing soon. One per line on a
+   phone, where the two already fill the row and one more digit would wrap them unevenly, and side
+   by side when wide (DL-063). */
+.rc-home-live { display: grid; justify-items: center; min-block-size: var(--control-sm-height); }
 /* Mycelium: the website's branching growth, behind the home hero and nowhere else (DL-046). It
    takes no pointer, fades out behind the heading, actions and search, and is hidden in forced
    colours. On phones the words fill the hero, so only its corners show. behaviors/mycelium.js
@@ -184,6 +186,7 @@
   .rc-home-hero { padding-block: var(--space-8); gap: var(--space-5); }
   .rc-mycelium { --mycelium-clear: radial-gradient(ellipse 46% 58% at 50% 46%, transparent 45%, black 100%); }
   .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
+  .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); }
   .rc-home-actions {
     grid-auto-flow: column;
     justify-content: center;

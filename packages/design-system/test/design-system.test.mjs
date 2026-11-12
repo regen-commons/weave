@@ -171,6 +171,21 @@ test("every custom property used is defined", () => {
   }
 });
 
+test("a menu opens beside its trigger and never over it, scrolling inside when the window is short", async () => {
+  const { blockPlacement } = await import("../behaviors/overlays.js");
+  const at = (panelHeight, triggerTop = 380) => blockPlacement({ triggerTop, triggerBottom: triggerTop + 48, panelHeight, windowHeight: 800, gap: 12 });
+  assert.deepEqual(at(200), { top: 440, maxBlock: 348 }, "under the trigger when it fits");
+  assert.deepEqual(at(350), { top: 380 - 12 - 350, maxBlock: 356 }, "over the trigger when it fits only there");
+  assert.deepEqual(at(500, 300), { top: 360, maxBlock: 428 }, "a long menu under a trigger near the top fits whole");
+  const long = at(752);
+  assert.deepEqual(long, { top: 440, maxBlock: 348 }, "too tall for either side: under the trigger while a few rows fit there");
+  assert.ok(long.top >= 428 && long.top + long.maxBlock <= 800, "it starts under its trigger and ends inside the window");
+  const low = at(752, 600);
+  assert.deepEqual(low, { top: 12, maxBlock: 576 }, "with little room under the trigger it takes the room above");
+  assert.ok(low.top + low.maxBlock <= 600, "it ends above the trigger it opened from");
+  assert.deepEqual(blockPlacement({ triggerTop: 4, triggerBottom: 796, panelHeight: 300, windowHeight: 800, gap: 12 }).maxBlock, 0, "no room is no height, never a negative one");
+});
+
 test("every class is defined, documented and shown", () => {
   const defined = cssClasses();
   const used = classesIn([LIBRARY, ...Object.values(PAGES)].join("\n"));

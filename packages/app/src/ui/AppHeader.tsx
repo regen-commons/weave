@@ -1,6 +1,7 @@
 import { useSocialFixture } from "../social/context.tsx";
 import { useAccount } from "../account/context.tsx";
 import { useAccountDoor } from "../account/door.tsx";
+import type { SaveStatus } from "../initiative/header-status.ts";
 import { Link } from "../router.tsx";
 import { matchRoute, pathTo, type BackTarget } from "../routes.ts";
 import { BackLink } from "./BackLink.tsx";
@@ -8,7 +9,6 @@ import { tabPress } from "./BottomNav.tsx";
 import { Icon } from "./Icon.tsx";
 import { Logo } from "./Logo.tsx";
 import { SECTIONS } from "./sections.ts";
-export type SaveStatus = "none" | "device" | "account" | "saving" | "memory" | "conflict";
 /** Short enough to sit beside the logo on a phone. The card's own page says the rest. */
 const STATUS_TEXT: Record<Exclude<SaveStatus, "none">, string> = {
   account: "Saved",
@@ -25,6 +25,7 @@ export function AppHeader({
 }: {
   pathname: string;
   sections: boolean;
+  /** How the card is saved, on the pages where it is worked on; "none" everywhere else. */
   status: SaveStatus;
   /** On a page that is not a tab, the way back. */
   back: BackTarget | null;
@@ -33,7 +34,8 @@ export function AppHeader({
   const { state } = useAccount();
   const social = useSocialFixture();
   const signedIn = !!state?.user || (import.meta.env.DEV && !!social?.state.identity);
-  const current = matchRoute(pathname)?.section;
+  const route = matchRoute(pathname);
+  const current = route?.section;
   return (
     <header className="rc-app-header">
       {/* The way back takes the logo's place, where a native app bar keeps it. */}
@@ -65,6 +67,15 @@ export function AppHeader({
             Sign in
           </button>
         )}
+        {/* Settings is the same on every page, signed in or out. The gear is read without a word (DL-059). */}
+        <Link
+          className="rc-icon-button"
+          href={pathTo("settings")}
+          aria-label="Settings"
+          aria-current={route?.name === "settings" ? "page" : undefined}
+        >
+          <Icon name="settings" />
+        </Link>
       </div>
     </header>
   );

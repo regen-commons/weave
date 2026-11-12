@@ -1,7 +1,8 @@
 import { InformationContext } from "./information-context.ts";
 import { useState, type ReactNode } from "react";
 import { matchRoute, type BackTarget, type RouteName } from "../routes.ts";
-import { AppHeader, type SaveStatus } from "./AppHeader.tsx";
+import type { SaveStatus } from "../initiative/header-status.ts";
+import { AppHeader } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
 import { BottomNav } from "./BottomNav.tsx";
 import { Footer } from "./Footer.tsx";

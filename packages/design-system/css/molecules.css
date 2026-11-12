@@ -65,6 +65,11 @@
   .rc-proposal[data-state="confirmed"] { border-color: CanvasText; }
 }
 
+/* Chip group: one question answered by tapping chips, such as one filter in the Filters sheet.
+   The question is the legend of the fieldset around it; a narrower question can follow it. */
+.rc-chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.rc-chip-group + fieldset { margin-block-start: var(--space-3); }
+
 /* Choice group: selectable cards for short vocabularies. */
 .rc-choice-group {
   display: grid;

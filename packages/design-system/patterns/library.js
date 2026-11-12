@@ -95,7 +95,8 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
   const records = [...example.querySelectorAll("[data-example-record]")];
   const checks = [...example.querySelectorAll("[data-example-country]")];
   function update() {
-    const countries = checks.filter((check) => check.checked).map((check) => check.value);
+    // A filter has a copy in the wide screen's menu and one in the phone's sheet.
+    const countries = [...new Set(checks.filter((check) => check.checked).map((check) => check.value))];
     let count = 0;
     for (const record of records) {
       record.hidden = !record.textContent.toLowerCase().includes(search.value.trim().toLowerCase()) || (countries.length > 0 && !countries.includes(record.dataset.country));
@@ -106,17 +107,31 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
     example.querySelector("[data-example-count]").textContent = `${count} of ${records.length} examples`;
     const chips = example.querySelector("[data-example-chips]");
     chips.replaceChildren();
-    for (const check of checks.filter((check) => check.checked)) {
+    for (const country of countries) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "rc-chip";
-      button.textContent = `Remove ${check.value}`;
-      button.addEventListener("click", () => { check.checked = false; update(); });
+      button.textContent = `Remove ${country}`;
+      button.addEventListener("click", () => { choose(country, false); update(); });
       chips.append(button);
     }
+    // Sort shows its choice on its face; the select under it is clear.
+    const sort = example.querySelector("[data-example-sort]");
+    const face = sort.closest(".rc-sort")?.querySelector(".rc-sort-face > span");
+    if (face) face.textContent = `: ${sort.selectedOptions[0].textContent}`;
   }
+  function choose(country, chosen) {
+    for (const check of checks) if (check.value === country) check.checked = chosen;
+  }
+  example.querySelector("[data-example-clear]")?.addEventListener("click", () => {
+    for (const check of checks) check.checked = false;
+    update();
+  });
   example.querySelector("[data-example-search]").addEventListener("submit", (event) => { event.preventDefault(); update(); });
-  example.addEventListener("change", update);
+  example.addEventListener("change", (event) => {
+    if (event.target.matches("[data-example-country]")) choose(event.target.value, event.target.checked);
+    update();
+  });
   search.addEventListener("input", update);
 }
 
