@@ -90,9 +90,11 @@ export default defineConfig(({ mode }) => {
     define: { __WEAVE_PROTOTYPE__: JSON.stringify(prototype) },
     // Artifact pages load fonts only as data: URIs or from Google Fonts, so the prototype carries
     // the design system's own faces inside its stylesheet (DL-057).
+    // The deployed security policy loads images and fonts from the site itself only (img-src and
+    // font-src 'self' in vercel.json), so the production build never inlines an asset as a data: URI.
     build: prototype
       ? { outDir: "dist-prototype", emptyOutDir: true, assetsInlineLimit: (file: string) => (file.endsWith(".woff2") ? true : undefined) }
-      : {},
+      : { assetsInlineLimit: 0 },
     resolve: { conditions: ["source", ...defaultClientConditions] },
     preview: { headers: previewSecurityHeaders() },
     plugins: [

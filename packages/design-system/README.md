@@ -177,6 +177,9 @@ The tests check that generated files are current, the linter is clean, website v
   the column of content (`restShare`). Its `avoid` option is now `within`, and
   `occupancy` and `shows` are removed (DL-071).
 - A section's name is written as a name: Your Initiatives (DL-072).
+- The paper grain is a file, `brand/grain.svg`, instead of an inline `data:` image. The app's
+  security policy allows images from the site itself only, so production refused the inline
+  grain and it never showed there; the app's production build no longer inlines assets.
 
 ### Unreleased, Step 8
 
