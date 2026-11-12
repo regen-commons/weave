@@ -334,9 +334,10 @@
 
     <article class="lib-pattern" id="account-button">
       <h3>Account button</h3>
-      <p class="lib-note">Deprecated. Your initiatives holds the account, so the header no longer carries this button.</p>
+      <p class="lib-note">A person in a ring, at the far end of the app header from the logo's own ring. On a wide screen it opens the account's menu for a signed-in person. It always carries an accessible name, and it shows whether its menu is open.</p>
       <div class="lib-stage" data-example>
-        <a class="rc-account" href="#account-button" aria-label="Your account and settings">A</a>
+        <button class="rc-account" type="button" aria-label="Account"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button>
+        <button class="rc-account" type="button" aria-label="Account, menu open" aria-expanded="true"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button>
       </div>
     </article>
   </section>
@@ -579,11 +580,11 @@
 
     <article class="lib-pattern" id="back-link">
       <h3>Back link</h3>
-      <p class="lib-note">The one way back on a page that is not a tab, at the start of the app header in place of the product name, where a native app keeps it. It names the page it returns to and steps through history, so it does what the back gesture does, and the page comes back where the person left it.</p>
+      <p class="lib-note">The one way back on a page that is not a tab, at the start of the app header in place of the product name, where a native app keeps it. It names the page it returns to and steps through history, so it does what the back gesture does, and the page comes back where the person left it. On a phone, where the header also says how a card is saved and offers Sign in, it shows its arrow alone; the link still carries its whole name.</p>
       <div class="lib-frame" data-example>
         <header class="rc-app-header">
-          <nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="#back-link"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#back"/></svg><span><span class="rc-visually-hidden">Back to </span>Your initiatives</span></a></nav>
-          <div class="rc-app-header-state"><p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg>Saved</p><a class="rc-icon-button" href="#app-header" aria-label="Settings"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a></div>
+          <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="#back-link" aria-label="Back to Your Initiatives"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#back"/></svg><span>Your Initiatives</span></a></nav></div>
+          <div class="rc-app-header-state"><p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg><span>Saved</span></p><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="back-link-account-menu" data-popup="back-link-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="back-link-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
         </header>
       </div>
     </article>
@@ -628,17 +629,17 @@
 
     <article class="lib-pattern" id="app-header">
       <h3>App header and bottom navigation</h3>
-      <p class="lib-note">The product name sits top-left and returns home. Four sections sit in the header on wide screens and at the bottom on phones. Signed out, the header offers Sign in. Signed in, Your initiatives holds the account, so the header adds no second door. Form pages keep only the name and helpful status. The header stays at the top as the page scrolls, and on a page that is not a section the Back link takes the name's place. Tapping the section you are on brings its page to the top.</p>
+      <p class="lib-note">The product name sits top-left and returns home. Four sections sit in the header on wide screens and at the bottom on phones. The name and the sections sit on one baseline, and the controls at the far end sit on the bar's centre line and meet the page's edge. Signed out, the header offers Sign in. On a phone a gear opens Settings and the You tab holds the account. On a wide screen a signed-in person has the Account button in the gear's place: it opens a small menu with Your Initiatives, Settings and Sign out. Form pages keep only the name and helpful status. The header stays at the top as the page scrolls, and on a page that is not a section the Back link takes the name's place. Tapping the section you are on brings its page to the top.</p>
       <div class="lib-frame" data-example>
         <header class="rc-app-header">
-          <a class="rc-logo" href="#app-header"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
-          <nav class="rc-app-nav" aria-label="Example main navigation">
+          <div class="rc-app-header-lead"><a class="rc-logo" href="#app-header"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
+            <nav class="rc-app-nav" aria-label="Example main navigation">
             <a href="#app-header">Home</a>
             <a href="#app-header" aria-current="page">Initiatives</a>
             <a href="#app-header">Funding</a>
-            <a href="#app-header">Your initiatives</a>
-          </nav>
-          <div class="rc-app-header-state"><a class="rc-button" data-variant="quiet" href="#app-header">Sign in</a><a class="rc-icon-button" href="#app-header" aria-label="Settings"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a></div>
+            <a href="#app-header">Your Initiatives</a>
+          </nav></div>
+          <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a></div>
         </header>
         <nav class="rc-bottom-nav" aria-label="Example phone navigation">
           <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#home"/></svg>Home</a>
@@ -646,6 +647,19 @@
           <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#funding"/></svg>Funding</a>
           <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg>You</a>
         </nav>
+      </div>
+      <p class="lib-note">Signed in, on a wide screen: the Account button and its menu.</p>
+      <div class="lib-frame" data-example>
+        <header class="rc-app-header">
+          <div class="rc-app-header-lead"><a class="rc-logo" href="#app-header"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
+            <nav class="rc-app-nav" aria-label="Example main navigation, signed in">
+            <a href="#app-header">Home</a>
+            <a href="#app-header" aria-current="page">Initiatives</a>
+            <a href="#app-header">Funding</a>
+            <a href="#app-header">Your Initiatives</a>
+          </nav></div>
+          <div class="rc-app-header-state"><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="app-header-account-menu" data-popup="app-header-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="app-header-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+        </header>
       </div>
     </article>
 
@@ -842,8 +856,8 @@
       <li><a href="pages/saved.html">Saved</a></li>
       <li><a href="pages/matches.html">Matches</a></li>
       <li><a href="pages/matches-empty.html">Matches, empty</a></li>
-      <li><a href="pages/your-initiatives.html">Your initiatives</a></li>
-      <li><a href="pages/signed-out.html">Your initiatives, signed out (doorway)</a></li>
+      <li><a href="pages/your-initiatives.html">Your Initiatives</a></li>
+      <li><a href="pages/signed-out.html">Your Initiatives, signed out (doorway)</a></li>
       <li><a href="pages/settings.html">Settings</a></li>
     </ul>
   </section>

@@ -90,7 +90,7 @@ Use one door and one family of verbs: Sign in and Save. Signing in says who you 
 
 ## Mechanics
 
-- Sentence case everywhere, including factual record labels. Footer links are the one exception: they use title case (DL-033).
+- Sentence case everywhere, including factual record labels. There are two exceptions. A section's name is written as a name wherever it names the section, so the header, the page and a sentence that sends a person there all say Your Initiatives (DL-072). Footer links use title case (DL-033).
 - A button says what happens: Save my initiative, not Submit. An action keeps its name through the flow.
 - No arrows in links or buttons. No em dashes in product copy.
 - No decorative kickers or eyebrows above headings. Keep a factual label only where no heading can carry its meaning, in sentence case (DL-028).

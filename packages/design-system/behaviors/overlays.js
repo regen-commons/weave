@@ -20,6 +20,16 @@ export function blockPlacement({ triggerTop, triggerBottom, panelHeight, windowH
     : { top: gap, maxBlock: roomAbove };
 }
 
+/**
+ * Where a panel sits across the window against its trigger. It starts at the trigger's own start
+ * edge, or ends at the trigger's end edge when the panel asks to (`data-align="end"`), as a menu
+ * at the end of a bar does. Either way it stays inside the window.
+ */
+export function inlinePlacement({ triggerLeft, triggerRight, panelWidth, windowWidth, gap, align = "start" }) {
+  const wanted = align === "end" ? triggerRight - panelWidth : triggerLeft;
+  return Math.max(gap, Math.min(wanted, windowWidth - panelWidth - gap));
+}
+
 function place(trigger, panel) {
   const rect = trigger.getBoundingClientRect();
   const style = getComputedStyle(panel);
@@ -29,7 +39,14 @@ function place(trigger, panel) {
   const height = window.innerHeight;
   panel.style.setProperty("--popover-max-block", `${Math.max(0, height - gap * 4)}px`);
   const box = panel.getBoundingClientRect();
-  const left = Math.max(gap, Math.min(rect.left, width - box.width - gap));
+  const left = inlinePlacement({
+    triggerLeft: rect.left,
+    triggerRight: rect.right,
+    panelWidth: box.width,
+    windowWidth: width,
+    gap,
+    align: panel.dataset.align,
+  });
   // The height above is the panel's own, measured with the whole window to grow into.
   const { top, maxBlock } = blockPlacement({
     triggerTop: rect.top,
@@ -46,6 +63,7 @@ function place(trigger, panel) {
 function overlay(trigger, panel) {
   const native = typeof panel.showPopover === "function";
   let opened = false;
+  let changed = () => {};
   const dispose = [];
   function on(target, name, listener, options) {
     target.addEventListener(name, listener, options);
@@ -61,6 +79,7 @@ function overlay(trigger, panel) {
       opened = true;
       panel.hidden = false;
       panel.dataset.open = "";
+      changed();
     }
     place(trigger, panel);
   }
@@ -71,6 +90,7 @@ function overlay(trigger, panel) {
       opened = false;
       panel.hidden = true;
       delete panel.dataset.open;
+      changed();
     }
   }
   if (!native) {
@@ -78,7 +98,10 @@ function overlay(trigger, panel) {
     panel.hidden = true;
   }
   on(window, "resize", () => {
-    if (isOpen()) place(trigger, panel);
+    if (!isOpen()) return;
+    // A trigger that the new width's layout hides takes its panel with it.
+    if (trigger.getClientRects().length === 0) close();
+    else place(trigger, panel);
   });
   on(
     window,
@@ -97,6 +120,10 @@ function overlay(trigger, panel) {
     isOpen,
     open,
     close,
+    /** Without the Popover API no toggle event says the panel opened or closed; this does. */
+    onChange(listener) {
+      changed = listener;
+    },
     dispose: () => {
       close();
       dispose.forEach((fn) => fn());
@@ -173,17 +200,19 @@ export function connectPopover(trigger, panel) {
   else trigger.removeAttribute("popovertarget");
   trigger.setAttribute("aria-controls", panel.id);
   sync();
+  ui.onChange(sync);
+  // Focus goes to the first thing in the panel to act on: a control, or a link in a menu of places.
+  const first = () => panel.querySelector("a[href], input, select, button");
   ui.on(panel, "toggle", (event) => {
     sync();
-    if (event.newState === "open")
-      panel.querySelector("input, select, button")?.focus({ preventScroll: true });
+    if (event.newState === "open") first()?.focus({ preventScroll: true });
   });
   if (!ui.native) {
     ui.on(trigger, "click", () => {
       if (ui.isOpen()) ui.close();
       else {
         ui.open();
-        panel.querySelector("input, select, button")?.focus();
+        first()?.focus();
       }
       sync();
     });

@@ -7,7 +7,7 @@ framework. It is the root directory of the Weave Vercel project. Read the
 [app dialect](../design-system/dialects/app.md) before changing a screen.
 
 The route table in [src/routes.ts](src/routes.ts) owns pages and their section cues.
-Home, frame, lists, the three-step intake through Your initiative, Your initiatives,
+Home, frame, lists, the three-step intake through Your initiative, Your Initiatives,
 Funding and opportunity detail are built. Initiative details follow in later steps.
 Settings provides the private account connection. Development fixtures require an
 explicit `?fixture=draft` (or visitor, private, workspace, shared, published,

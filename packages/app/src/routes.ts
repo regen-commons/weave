@@ -63,7 +63,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "your-initiatives",
     path: "/your-initiatives",
-    title: "Your initiatives",
+    title: "Your Initiatives",
     form: false,
     section: "your-initiatives",
   },

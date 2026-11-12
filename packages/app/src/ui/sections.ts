@@ -10,5 +10,5 @@ export const SECTIONS: readonly { label: string; short?: string; route: Section;
   { label: "Home", route: "home", icon: "home", header: false },
   { label: "Initiatives", route: "initiatives", icon: "people" },
   { label: "Funding", route: "funding", icon: "funding" },
-  { label: "Your initiatives", short: "You", route: "your-initiatives", icon: "person" },
+  { label: "Your Initiatives", short: "You", route: "your-initiatives", icon: "person" },
 ];

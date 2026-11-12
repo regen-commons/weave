@@ -70,7 +70,7 @@ export function YourInitiatives() {
     return (
       <Doorway>
         <Heading level={1} size="page">
-          Your initiatives
+          Your Initiatives
         </Heading>
         {!live && <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>}
         {live && <PendingInvite />}
@@ -141,7 +141,7 @@ export function YourInitiatives() {
   return (
     <ListLayout>
       <Heading level={1} size="page">
-        Your initiatives
+        Your Initiatives
       </Heading>
       {live && <PendingInvite />}
       {social.loading && <p role="status">Checking your Certified projects</p>}

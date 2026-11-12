@@ -35,7 +35,7 @@ test("the frame has four tabs, detail sheets, the person's initiative pages and 
   assert.equal(matchRoute("/save"), undefined);
   assert.equal(matchRoute("/your-initiative")?.title, "Your initiative");
   assert.equal(matchRoute("/start/finish")?.name, "your-initiative");
-  assert.equal(matchRoute("/your-initiatives")?.title, "Your initiatives");
+  assert.equal(matchRoute("/your-initiatives")?.title, "Your Initiatives");
   assert.equal(matchRoute("/start/initiative/check")?.name, "check-card");
   assert.deepEqual(
     ROUTES.filter((route) => route.form).map((route) => route.name),
@@ -57,7 +57,7 @@ test("navigation names a page by its short label where the title is a sentence",
   assert.equal(navLabel("home"), "Home");
   assert.equal(navLabel("initiative"), "Describe your initiative");
   assert.equal(navLabel("funding"), "Funding");
-  assert.equal(navLabel("your-initiatives"), "Your initiatives");
+  assert.equal(navLabel("your-initiatives"), "Your Initiatives");
 });
 test("a history entry's visit is read only when it names a page inside the app", () => {
   assert.deepEqual(readVisit({ from: "/funding?q=water", hops: 2 }), { from: "/funding?q=water", hops: 2 });
@@ -109,7 +109,7 @@ test("the back link returns to where the person came from, otherwise one level u
   assert.equal(backTarget(undefined, null), null);
   // Opened from a link: one level up, as a new page.
   assert.deepEqual(backTarget(matchRoute("/settings"), null), {
-    label: "Your initiatives",
+    label: "Your Initiatives",
     href: "/your-initiatives",
     hops: 0,
   });

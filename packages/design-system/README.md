@@ -165,6 +165,18 @@ The tests check that generated files are current, the linter is clean, website v
   phone scrolling grows new tufts. The clearing mask is removed (DL-066).
 - Deprecate Account button. The Your initiatives section replaces it, and it can be
   removed after one build phase.
+- App header: the product name and the sections share a baseline in a new lead
+  (`rc-app-header-lead`), the far end's controls meet the page's edge, and the bar keeps one
+  height. Sign in is an outlined button. On a wide screen the gear gives way to the Account
+  button, back as a candidate, and its menu: Menu gains `rc-menu-head`, `rc-menu-item`
+  and `data-align="end"`, and `./overlays` places a menu by either edge of its trigger
+  (`inlinePlacement`). On a crowded phone header the Back link shows its arrow alone, and
+  it now carries its name as `aria-label` (DL-070).
+- Mycelium grows underneath the content: `./mycelium` no longer measures the page, seeds
+  the whole region, and draws the resting network whole in the margins and quieter under
+  the column of content (`restShare`). Its `avoid` option is now `within`, and
+  `occupancy` and `shows` are removed (DL-071).
+- A section's name is written as a name: Your Initiatives (DL-072).
 
 ### Unreleased, Step 8
 

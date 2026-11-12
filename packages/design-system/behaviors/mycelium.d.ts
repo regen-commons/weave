@@ -4,37 +4,28 @@ export interface Mycelium {
 }
 /**
  * Grows the website's mycelium on a decorative canvas behind a region or a whole page. It grows
- * around the content of `avoid` (the canvas's parent unless given), never behind it, then settles
- * and stops drawing. New tufts start bright and fade: a mouse grows them; without a mouse,
- * scrolling grows them beside the part in view, and one grows on its own every few seconds inside
- * the element marked `data-mycelium-own`. Reduced motion draws it at rest. Colours come from the
- * canvas's --mycelium-1 to --mycelium-6. Dispose on unmount.
+ * all over, underneath the content of `within` (the canvas's parent unless given), then settles
+ * and stops drawing; at rest it shows whole in the margins and quieter under that column. New
+ * tufts start bright and fade: a mouse grows them wherever it moves; without a mouse, scrolling
+ * grows them under the part in view, and one grows on its own every few seconds inside the element
+ * marked `data-mycelium-own`. Reduced motion draws it at rest. Colours come from the canvas's
+ * --mycelium-1 to --mycelium-6. Dispose on unmount.
  */
-export function growMycelium(canvas: HTMLCanvasElement, options?: { seed?: number; avoid?: Element }): Mycelium;
+export function growMycelium(canvas: HTMLCanvasElement, options?: { seed?: number; within?: Element }): Mycelium;
 
 export interface Density {
   readonly seeds: number;
   readonly reach: number;
   readonly forkRate: number;
   readonly limit: number;
-  /** How far in from each side a seed may start, as a share of the width. */
-  readonly edge: number;
-}
-/** Where content sits in a region. `isFree` is true wherever growth may go. */
-export interface Ground {
-  isFree(x: number, y: number): boolean;
-}
-export interface Box {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
 }
 /** A page must scroll this far, in CSS pixels, before it grows a new tuft where there is no mouse. */
 export const SCROLL_SPACING: number;
-export function occupancy(width: number, height: number, rects: readonly Box[], cell?: number): Ground;
-/** Whether a computed colour shows at all. */
-export function shows(colour: string): boolean;
+/**
+ * How strongly the resting network shows at a place across its region, as a share of its full
+ * strength: whole outside the column that holds the content, and quieter under it.
+ */
+export function restShare(x: number, column: { left: number; right: number }): number;
 /** Without a mouse, and with motion allowed, scrolling grows tufts. */
 export function growsFromScroll(finePointer: boolean, reducedMotion: boolean): boolean;
 /** Whether the page has scrolled far enough since the last tuft to grow another. */
@@ -51,9 +42,9 @@ export interface Branch {
 }
 export function seededRandom(seed: number): () => number;
 export function densityFor(width: number, height?: number): Density;
-export function seedNetwork(width: number, height: number, random: () => number, density?: Density, isFree?: Ground["isFree"]): Branch[];
-export function advance(branches: Branch[], width: number, height: number, random: () => number, density: Density, isFree?: Ground["isFree"]): boolean;
-export function settle(branches: Branch[], width: number, height: number, random: () => number, density: Density, isFree?: Ground["isFree"]): Branch[];
+export function seedNetwork(width: number, height: number, random: () => number, density?: Density): Branch[];
+export function advance(branches: Branch[], width: number, height: number, random: () => number, density: Density): boolean;
+export function settle(branches: Branch[], width: number, height: number, random: () => number, density: Density): Branch[];
 /** Only a mouse on a fine pointer, with motion allowed, grows a tuft. */
 export function growsFromPointer(pointerType: string, finePointer: boolean, reducedMotion: boolean): boolean;
 /** Without a mouse, and with motion allowed, tufts grow on their own. */

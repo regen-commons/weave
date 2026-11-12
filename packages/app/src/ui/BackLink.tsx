@@ -6,6 +6,7 @@ import { Icon } from "./Icon.tsx";
 /**
  * Back link molecule (`rc-back`): the one way back on a page that is not a tab. It names
  * the page it returns to and steps through history, so it does what the back gesture does.
+ * The link carries its whole name itself, because a crowded phone header shows the arrow alone.
  */
 export function BackLink({ target }: { target: BackTarget }) {
   function back(event: MouseEvent<HTMLAnchorElement>) {
@@ -16,12 +17,9 @@ export function BackLink({ target }: { target: BackTarget }) {
   }
   return (
     <nav className="rc-back" aria-label="Back">
-      <Link className="rc-back-link" href={target.href} onClick={back}>
+      <Link className="rc-back-link" href={target.href} onClick={back} aria-label={`Back to ${target.label}`}>
         <Icon name="back" size="sm" />
-        <span>
-          <span className="rc-visually-hidden">Back to </span>
-          {target.label}
-        </span>
+        <span>{target.label}</span>
       </Link>
     </nav>
   );
