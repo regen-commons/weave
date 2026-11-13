@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { beginConsentReturn, finishConsentReturn, takeConsentReturn } from "../src/initiative/consent-return.ts";
+import { beginConsentReturn, finishConsentReturn, recoverConsentReturn, takeConsentReturn } from "../src/initiative/consent-return.ts";
 import { startProjectConsent } from "../src/initiative/projects-client.ts";
 import { startTeamAccess } from "../src/partners/team-workspace.ts";
 
@@ -74,4 +74,40 @@ test("a receipt for another action cannot finish the reviewed task or perform an
     assert.equal(await finishConsentReturn({kind:"directory",action:"create-project",result:"ready"}),"/your-initiatives?access=failed");
     assert.equal(requests,1);
   } finally {globalThis.fetch=original;}
+});
+
+test("missing, expired, malformed and unavailable return tasks recover without promoting an unknown receipt", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("an unknown task cannot activate a receipt"));
+  const current = storage();
+  assert.equal(await recoverConsentReturn("ready", () => current), "/your-initiatives?access=failed");
+  assert.equal(await recoverConsentReturn("ready", () => { throw Error("storage unavailable"); }), "/your-initiatives?access=failed");
+  beginConsentReturn(current, { kind: "directory", action: "membership" });
+  const key = current.key(0)!;
+  current.setItem(key, JSON.stringify({ ...JSON.parse(current.getItem(key)!), until: Date.now() - 1 }));
+  assert.equal(await recoverConsentReturn("ready", () => current), "/your-initiatives?access=failed");
+  current.setItem(key, "invalid json");
+  assert.equal(await recoverConsentReturn("ready", () => current), "/your-initiatives?access=failed");
+  assert.equal(await recoverConsentReturn("unknown", () => current), "/your-initiatives?access=failed");
+});
+
+test("a reviewed return waits for promotion before handing off to the directory or workspace", async t => {
+  const current = storage(), actions: string[] = [];
+  let complete!: (response: Response) => void;
+  t.mock.method(globalThis, "fetch", async (path: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
+    assert.equal(path, "/api/certified-project-consent");
+    const { action } = JSON.parse(String(init?.body)); actions.push(action);
+    return new Promise<Response>(resolve => { complete = resolve; });
+  });
+  beginConsentReturn(current, { kind: "team", workspaceId });
+  let handedOff = false;
+  const team = recoverConsentReturn("ready", () => current).then(destination => { handedOff = true; return destination; });
+  await Promise.resolve();
+  assert.equal(handedOff, false);
+  complete(Response.json({ granted: "membership" }));
+  assert.equal(await team, `/workspaces/${workspaceId}`);
+  beginConsentReturn(current, { kind: "directory", action: "membership" });
+  const directory = recoverConsentReturn("ready", () => current);
+  complete(Response.json({ granted: "membership" }));
+  assert.equal(await directory, "/your-initiatives?access=ready");
+  assert.deepEqual(actions, ["finish", "finish"]);
 });

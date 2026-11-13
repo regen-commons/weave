@@ -160,6 +160,12 @@ Only the registered Supabase relying party and `openid` scope are allowed. Certi
 uses the AT `atproto` scope. After the AT client validates the session, the bridge
 checks issuer and DID again, issues subject-only identity claims and deletes its
 stored AT session. No persistent PDS write permission or email access is requested.
+
+Account switches use the OIDC provider's logout and resume flow. Grant revocation
+indexes only the provider's token models. A pending interaction may reference the
+old grant, but must survive its revocation so the new identity can finish. This
+does not retain the old tokens or change the new account's subject.
+
 The OIDC session/grant expires after one hour. Provider consent for this fixed
 identity-only relying party is completed by the bridge after Certified authorization.
 
@@ -512,6 +518,14 @@ Group registration and the signed-in person's group membership list go
 through the PDS service proxy. Group-scoped reads and writes use one-use
 service tokens. Prove both paths with the selected Certified environment
 before enabling project writes.
+
+The app finishes the one-use, session-bound project receipt before mounting its
+project loaders. React effect replay shares the same finish request. A missing,
+expired or unreadable browser task returns to Your Initiatives with a recovery
+message and leaves the unknown receipt inactive. Consent never resumes a write
+automatically. Local tests cover identity and replay checks; PostgreSQL tests cover
+durable receipt consumption. The browser timing proof uses synthetic services
+and still needs hosted QA.
 
 The bridge and project consent currently pin the existing production
 Certified identity issuer. The official Certified staging PDS uses a

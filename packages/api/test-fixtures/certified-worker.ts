@@ -15,8 +15,10 @@ const handler = await createBridge({ issuer: config.issuer, clientId: "weave-tes
   metadata: { scope: "atproto" }, jwks: { keys: [] },
   async authorize(state) { return new URL(`https://certified.example.test/authorize?state=${state}`); },
   async callback(params) {
-    if (params.get("code") !== "synthetic-code") throw Error("fixture_code_required");
-    return { state: params.get("state"), subject: identitySubject("https://certified.one", "did:plc:synthetic", { did: "did:plc:synthetic" }) };
+    const subjects: Record<string, string> = { "synthetic-code": "did:plc:synthetic", "synthetic-alice": "did:plc:alice", "synthetic-bob": "did:plc:bob" };
+    const did = subjects[params.get("code") ?? ""];
+    if (!did) throw Error("fixture_code_required");
+    return { state: params.get("state"), subject: identitySubject("https://certified.one", did, { did }) };
   },
 });
 const server = createServer(handler);
