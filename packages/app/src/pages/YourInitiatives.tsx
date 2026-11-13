@@ -39,6 +39,9 @@ export function YourInitiatives() {
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const [starting, setStarting] = useState(false);
+  const access = new URLSearchParams(routeSearch()).get("access");
+  const consentNotice = access === "failed" ? <p role="status">Certified access could not be confirmed. Try again.</p>
+    : access === "denied" ? <p role="status">Certified access was declined.</p> : null;
   if (!social) return null;
   const live = social.mode === "live";
   const { state, service, refresh } = social;
@@ -72,6 +75,7 @@ export function YourInitiatives() {
         <Heading level={1} size="page">
           Your Initiatives
         </Heading>
+        {consentNotice}
         {!live && <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>}
         {live && <PendingInvite />}
         {live && social.loading && <p role="status">Checking your account</p> }
@@ -143,6 +147,7 @@ export function YourInitiatives() {
       <Heading level={1} size="page">
         Your Initiatives
       </Heading>
+      {consentNotice}
       {live && <PendingInvite />}
       {social.loading && <p role="status">Checking your Certified projects</p>}
       {social.problem && <p role="status">{social.problem}</p>}

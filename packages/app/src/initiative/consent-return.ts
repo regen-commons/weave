@@ -40,6 +40,11 @@ export function takeConsentReturn(result: string | null, getStorage: () => Stora
   } catch { /* Storage failures leave permission inactive. */ }
   return null;
 }
+/** An unresumable callback must offer recovery without activating an unknown receipt. */
+export async function recoverConsentReturn(result: string | null, getStorage: () => Storage) {
+  const task = takeConsentReturn(result, getStorage);
+  return task ? finishConsentReturn(task) : "/your-initiatives?access=failed";
+}
 /** Consume the server's one-use receipt once, then return to the reviewed task without running its writes. */
 export async function finishConsentReturn(task: ConsentReturn) {
   const destination = task.kind === "team" ? teamWorkspacePath(task.workspaceId) : "/your-initiatives";
