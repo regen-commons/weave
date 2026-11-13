@@ -20,6 +20,14 @@ import { cipherFromSecret } from "./certified/crypto.ts";
 const membership = "app.certified.groups.membership.list";
 const groupMembers = "app.certified.group.member.list";
 
+/** Keep bounded SDK refresh/state cleanup alive after inner provider deadlines. */
+export async function withProjectAuthCleanup<T>(
+  auth: { settle(request: Request): Promise<void> }, request: Request, run: () => Promise<T>,
+): Promise<T> {
+  try { return await run(); }
+  finally { await auth.settle(request); }
+}
+
 async function createRuntime(env: NodeJS.ProcessEnv) {
   if (env.WEAVE_PROJECTS_ENABLED !== "true") return null;
   const access = createProjectAccess(env.WEAVE_PROJECT_ACCESS_MODE, env.WEAVE_PROJECT_PILOT_DIDS);
@@ -76,41 +84,45 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
     auth,
     origin: account.origin,
     async matching(request: Request, command: MatchingCommand) {
-      const actor = await allowedActor(request);
-      return createWorkspaceContent(providerFor(request), content, store).match(actor, command);
+      return withProjectAuthCleanup(auth, request, async () => {
+        const actor = await allowedActor(request);
+        return await createWorkspaceContent(providerFor(request), content, store).match(actor, command);
+      });
     },
     projects: createProjectHandler({
       origin: account.origin,
       resolveActor: allowedActor,
       async execute(request, actor, command) {
-        const provider = providerFor(request);
-        if (command.action === "claim_invite" || command.action === "create_invite" || command.action === "list_invites"
-            || command.action === "revoke_invite" || command.action === "approve_invite")
-          return createWorkspaceInvites(provider, invitations, { projects: store, content })(actor, command, request.signal);
-        if (command.action === "list_projects" || command.action === "list_project_groups" || command.action === "list_workspaces")
-          return createProjectDiscovery(provider, discovery, { projects: store, content })(actor, command, request.signal);
-        if (command.action === "support_state" || command.action === "support_review" || command.action === "support_publish"
-            || command.action === "support_withdraw" || command.action === "support_reconcile") {
-          const adapter = createSupportPublicationAdapter({
-            projectProvider: provider, groupServiceOrigin,
-            assertGrant: (did, methods) => auth.assertGrant(request, did, methods as CertifiedProjectRpc[]),
-            serviceAuth: (did, method, signal) => auth.mintServiceAuth(request, did, method as CertifiedProjectRpc, signal),
-            personalWrite: (did, operation, input, signal) => auth.writeSupportRecord(request, did, operation, input, signal),
-            groupConditionalDeleteVerified: env.WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED === "true",
-          });
-          return createSupportPublication(provider, publications, adapter).execute(actor, command);
-        }
-        if (command.action === "public_evidence")
-          return createWorkspaceContent(provider, content, store).publicEvidence(actor, command.workspaceId);
-        if (command.action === "team_load" || command.action === "team_save")
-          return createWorkspaceContent(provider, content, store).saveOrLoad(actor, command);
-        if (command.action === "create") await auth.assertGrant(request, actor.did, [
-          membership, "app.certified.group.register", "app.certified.group.repo.createRecord",
-        ]);
-        if (command.action === "add_member_and_grant") await auth.assertGrant(request, actor.did, [
-          membership, groupMembers, "app.certified.group.member.add",
-        ]);
-        return createProjectCommands(provider, store, groupPdsOrigin)(actor, command);
+        return withProjectAuthCleanup(auth, request, async () => {
+          const provider = providerFor(request);
+          if (command.action === "claim_invite" || command.action === "create_invite" || command.action === "list_invites"
+              || command.action === "revoke_invite" || command.action === "approve_invite")
+            return createWorkspaceInvites(provider, invitations, { projects: store, content })(actor, command, request.signal);
+          if (command.action === "list_projects" || command.action === "list_project_groups" || command.action === "list_workspaces")
+            return createProjectDiscovery(provider, discovery, { projects: store, content })(actor, command, request.signal);
+          if (command.action === "support_state" || command.action === "support_review" || command.action === "support_publish"
+              || command.action === "support_withdraw" || command.action === "support_reconcile") {
+            const adapter = createSupportPublicationAdapter({
+              projectProvider: provider, groupServiceOrigin,
+              assertGrant: (did, methods) => auth.assertGrant(request, did, methods as CertifiedProjectRpc[]),
+              serviceAuth: (did, method, signal) => auth.mintServiceAuth(request, did, method as CertifiedProjectRpc, signal),
+              personalWrite: (did, operation, input, signal) => auth.writeSupportRecord(request, did, operation, input, signal),
+              groupConditionalDeleteVerified: env.WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED === "true",
+            });
+            return createSupportPublication(provider, publications, adapter).execute(actor, command);
+          }
+          if (command.action === "public_evidence")
+            return createWorkspaceContent(provider, content, store).publicEvidence(actor, command.workspaceId);
+          if (command.action === "team_load" || command.action === "team_save")
+            return createWorkspaceContent(provider, content, store).saveOrLoad(actor, command);
+          if (command.action === "create") await auth.assertGrant(request, actor.did, [
+            membership, "app.certified.group.register", "app.certified.group.repo.createRecord",
+          ]);
+          if (command.action === "add_member_and_grant") await auth.assertGrant(request, actor.did, [
+            membership, groupMembers, "app.certified.group.member.add",
+          ]);
+          return createProjectCommands(provider, store, groupPdsOrigin)(actor, command);
+        });
       },
     }),
   };
