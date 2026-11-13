@@ -458,7 +458,24 @@ Keep the runtime roles' connection limits and monitor SQLSTATE `53300`; budget
 server-side pools across roles and the shared website before changing any limits.
 Do not raise the shared project's pool size as a shortcut.
 
-Project OAuth locks use a transaction-scoped advisory lock inside `sql.begin`.
+Project OAuth locks use the same hashed transaction-scoped advisory lock inside
+`sql.begin`, acquired with a nonblocking try. A busy attempt ends its transaction
+before bounded backoff; only that busy result retries. Protected callbacks, token
+refreshes, writes and uncertain commits are never replayed. One cancellation
+signal covers waiting and upstream calls, and rotated state still commits before
+an upstream error is surfaced.
+
+Project clients cap their local connection queue at ten seconds. Cancellation
+while queued is observed when a lease arrives or that queue ceiling rejects;
+it is not immediate cancellation or a strict ten-second whole-request deadline.
+An expired queued attempt cannot start protected work. Work already started must
+settle so token rotation and transaction cleanup are preserved.
+
+The loopback-only `WEAVE_PROJECT_LOCK_TEST_DATABASE_URL` regression uses the
+dedicated `weave_project_lock_test` database. It checks contention across clients,
+exclusive committed revisions, unrelated grants, cancellation before acquisition,
+queue removal, no callback replay and rollback. It never contacts Certified.
+
 Workspace commands establish and restore their request context within each SQL
 call. Neither relies on session state surviving between transactions. Local
 PostgreSQL tests prove the worker connection bound and the existing transaction

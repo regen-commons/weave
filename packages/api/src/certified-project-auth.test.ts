@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { NodeOAuthClient, type NodeSavedSession } from "@atproto/oauth-client-node";
+import { NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession } from "@atproto/oauth-client-node";
 import postgres from "postgres";
 import { certifiedProjectOAuthPaths as paths, createCertifiedProjectAuth, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
 import { createCipher } from "./certified/crypto.ts";
@@ -21,7 +21,7 @@ const requested = (...methods: string[]) => ["atproto", ...methods.map(method =>
 const binding = (response: Response) => response.headers.get("set-cookie")?.split(";")[0] ?? "";
 const projectStatus = (response: Response) => new URL(response.headers.get("location")!).searchParams.get("projectConsent");
 
-function memoryStore() {
+function memoryStore(transactionalLocks = false) {
   const rows = new Map<string, { value: unknown; ttl: number }>();
   const store: ProjectOAuthStore = {
     async put(kind, id, payload, ttl) { rows.set(`${kind}/${id}`, { value: structuredClone(payload), ttl }); },
@@ -32,7 +32,15 @@ function memoryStore() {
       return structuredClone(row?.value);
     },
     async remove(kind, id) { rows.delete(`${kind}/${id}`); },
-    async withLock(_, run) { return run(store); },
+    async withLock(_, run, signal) {
+      signal?.throwIfAborted();
+      const snapshot = transactionalLocks ? structuredClone(rows) : undefined;
+      try { return await run(store); }
+      catch (error) {
+        if (snapshot) { rows.clear(); for (const [key, value] of snapshot) rows.set(key, value); }
+        throw error;
+      }
+    },
   };
   return { store, rows };
 }
@@ -40,8 +48,8 @@ function memoryStore() {
 function jwt(claims: Record<string, unknown>) {
   return [Buffer.from('{"alg":"ES256"}').toString("base64url"), Buffer.from(JSON.stringify(claims)).toString("base64url"), "testsig"].join(".");
 }
-async function fixture() {
-  const { store, rows } = memoryStore();
+async function fixture(transactionalLocks = false) {
+  const { store, rows } = memoryStore(transactionalLocks);
   const fake = {
     allowed: true,
     actor: { did, sessionId: "weave-session" } as { did: string; sessionId: string } | null,
@@ -52,6 +60,7 @@ async function fixture() {
     exchangeCount: 0,
     actorsResolved: 0,
     scope: "",
+    onRestore: null as ((options: NodeOAuthClientOptions) => Promise<void>) | null,
     calls: [] as { path: string; init?: RequestInit }[],
   };
   const auth = await createCertifiedProjectAuth({
@@ -99,6 +108,7 @@ async function fixture() {
         async restore(restoredDid) {
           const saved = await options.sessionStore.get(restoredDid);
           assert.equal(saved?.tokenSet.refresh_token, "secret_refresh");
+          await fake.onRestore?.(options);
           return session;
         },
       };
@@ -297,6 +307,27 @@ test("a bound grant supports retry and mints or proxies only the right actor, sc
   f.fake.actor = { did, sessionId: "next-login" };
   assert.equal(await f.auth.mintServiceAuth(request, did, create), null);
   assert.equal(await f.auth.proxyServiceRequest(request, did, membership, { method: "GET" }), null);
+});
+
+test("canceled project access never runs the protected upstream operation", async () => {
+  const f = await fixture();
+  await f.approve("membership");
+  await assert.rejects(f.auth.proxyServiceRequest(f.cmd({}), did, membership, { method: "GET", signal: AbortSignal.abort() }),
+    error => error instanceof Error && error.name === "AbortError");
+  assert.equal(f.fake.calls.length, 0);
+});
+
+test("a rotated grant commits before a later upstream failure is surfaced", async () => {
+  const f = await fixture(true);
+  await f.approve("membership");
+  f.fake.onRestore = async options => {
+    const saved = await options.sessionStore.get(did);
+    await options.sessionStore.set(did, { ...saved!, tokenSet: { ...saved!.tokenSet, refresh_token: "rotated-fixture" } });
+    throw Error("upstream failure after rotation");
+  };
+  await assert.rejects(f.auth.proxyServiceRequest(f.cmd({}), did, membership, { method: "GET" }), /upstream failure after rotation/);
+  const grant = [...f.rows.entries()].find(([key]) => key.startsWith("grant/"))?.[1].value as { session: NodeSavedSession };
+  assert.equal(grant.session.tokenSet.refresh_token, "rotated-fixture");
 });
 
 const database = process.env.WEAVE_PROJECT_OAUTH_TEST_DATABASE_URL;

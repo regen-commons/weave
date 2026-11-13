@@ -11,6 +11,7 @@ test("explicit transaction mode selects Supabase's transaction endpoint and keep
     assert.deepEqual(sql.options.host, [host]);
     assert.deepEqual(sql.options.port, [6543]);
     assert.equal(sql.options.max_pipeline, 1);
+    assert.equal(sql.options.queue_timeout, 10);
     assert.equal(sql.options.prepare, false);
     assert.deepEqual(sql.options.ssl, { rejectUnauthorized: true, ca: "fixture-ca", servername: host });
   } finally { await sql.end({ timeout: 1 }); }
