@@ -14,12 +14,21 @@ const storageErrors: Record<string, [number, string]> = {
   PT429: [429, "rate_limited"],
 };
 
-export function projectDatabase(value: string, ca?: string) {
+export function projectDatabase(value: string, ca?: string, poolMode?: string) {
   const url = new URL(value);
   if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.username || !url.hostname ||
       url.searchParams.has("ssl") || url.searchParams.has("sslmode")) throw Error("invalid_project_database");
+  if (poolMode !== undefined) {
+    if (poolMode !== "supabase-transaction") throw Error("invalid_project_database_pool_mode");
+    if (!url.hostname.endsWith(".pooler.supabase.com") || !["", "5432", "6543"].includes(url.port))
+      throw Error("invalid_project_transaction_pooler");
+    // Reuse the write-only credential in place; only the shared pooler's mode changes.
+    url.port = "6543";
+  }
   return postgres(url.href, {
-    max: 3, connect_timeout: 5, idle_timeout: 10, onnotice: () => {},
+    // Each warm function has its own client. Server-side transaction pooling is
+    // still required to share the database's role budget across those functions.
+    max: 1, max_pipeline: 1, prepare: false, connect_timeout: 5, idle_timeout: 10, onnotice: () => {},
     ssl: ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) ? false : {
       rejectUnauthorized: true, ca, servername: url.hostname,
     },
