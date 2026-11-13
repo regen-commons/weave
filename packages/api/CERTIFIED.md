@@ -433,10 +433,39 @@ migration owner. Use the separate Weave Preview database for staging.
 | `WEAVE_PROJECT_PILOT_DIDS` | Exactly two comma-separated Certified DIDs in pilot mode. Leave absent in authenticated mode; conflicting configuration fails closed. |
 | `WEAVE_PROJECT_WORKSPACE_DATABASE_URL` | Dedicated login granted only `weave_workspace_runtime`. |
 | `WEAVE_PROJECT_OAUTH_DATABASE_URL` | Separate login granted only `weave_project_oauth_runtime`. |
+| `WEAVE_PROJECT_DATABASE_POOL_MODE` | Optional `supabase-transaction` selects port 6543 on the existing Supabase shared-pooler host for both project database clients. No credential or key changes. Leave absent for explicitly configured endpoints and local fixtures. Other values and incompatible hosts/ports fail closed. |
 | `WEAVE_PROJECT_OAUTH_ENCRYPTION_KEYS`, `WEAVE_PROJECT_OAUTH_SIGNING_KEYS` | Dedicated state cipher and ES256 private JWK array for the project OAuth client. Provision separately from identity bridge keys. |
 | `WEAVE_CERTIFIED_GROUP_ORIGIN`, `WEAVE_CERTIFIED_GROUP_PDS_ORIGIN` | Certified Group Service origin and the group's actual backing PDS. The PDS host determines the created group handle suffix. |
 | `WEAVE_CERTIFIED_PROJECT_PDS_ORIGINS` | Optional comma-separated allowlist of additional project repository PDS origins. |
 | `WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED` | Defaults to off. Set `true` only after the selected CGS and backing PDS prove scoped group create, read-back and conditional deletion. The adapter blocks both group writes while off. |
+
+### Serverless project database connections
+
+Each warm function keeps a separate project OAuth and workspace client. Each client
+uses one connection, one query in flight and no prepared statements. Supabase's
+shared transaction pooler does not support query pipelining; `max_pipeline: 1`
+serializes ordinary queries without disabling the driver's transaction support.
+For Vercel, enable the
+transaction-pooler option only after confirming that the configured host is the
+project's shared Supabase pooler. This changes the connection mode in memory while
+preserving the write-only database credentials and certificate validation. The
+existing identity bridge and its keys are separate and are not changed by this
+option.
+
+Supabase recommends [transaction pooling for serverless functions](https://supabase.com/docs/guides/database/connecting-to-postgres).
+The application's one-connection limit applies per warm function, not globally.
+Keep the runtime roles' connection limits and monitor SQLSTATE `53300`; budget
+server-side pools across roles and the shared website before changing any limits.
+Do not raise the shared project's pool size as a shortcut.
+
+Project OAuth locks use a transaction-scoped advisory lock inside `sql.begin`.
+Workspace commands establish and restore their request context within each SQL
+call. Neither relies on session state surviving between transactions. Local
+PostgreSQL tests prove the worker connection bound and the existing transaction
+behavior; they do not prove hosted Supavisor capacity or cold-start behavior.
+Retest concurrent workspace loading, sharing, edits and callbacks on the approved
+hosted release before accepting this rollout. Removing the option restores the
+configured endpoint; reverting the release does not remove saved work or keys.
 
 The client metadata, public keys and callback are served at
 `/api/certified-project-client`, `/api/certified-project-jwks` and

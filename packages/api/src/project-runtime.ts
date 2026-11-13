@@ -34,8 +34,8 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
   const workspaceUrl = required("WEAVE_PROJECT_WORKSPACE_DATABASE_URL");
   const oauthUrl = required("WEAVE_PROJECT_OAUTH_DATABASE_URL");
   if (new URL(workspaceUrl).username === new URL(oauthUrl).username) throw Error("distinct_project_roles_required");
-  const sql = projectDatabase(workspaceUrl, account.databaseCa);
-  const authSql = projectDatabase(oauthUrl, account.databaseCa);
+  const sql = projectDatabase(workspaceUrl, account.databaseCa, env.WEAVE_PROJECT_DATABASE_POOL_MODE);
+  const authSql = projectDatabase(oauthUrl, account.databaseCa, env.WEAVE_PROJECT_DATABASE_POOL_MODE);
   const resolveActor = createProjectActorResolver(
     createSupabaseAccountProvider(account.supabase, account.key), sql, account.secureCookies,
   );
