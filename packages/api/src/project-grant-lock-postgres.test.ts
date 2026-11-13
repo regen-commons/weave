@@ -38,7 +38,7 @@ before(async () => {
 });
 after(async () => { await Promise.all(clients.map(client => client.end({ timeout: 1 }))); await admin?.end({ timeout: 1 }); });
 
-test("contending grant users wait beyond two seconds without holding losing transactions or replaying work", {
+test("contending grant users wait beyond two seconds without blocked SQL waiters or replaying work", {
   skip: !database, timeout: 20000,
 }, async () => {
   let started!: () => void;
@@ -60,13 +60,22 @@ test("contending grant users wait beyond two seconds without holding losing tran
   });
   await entered;
   const waiting = stores.slice(1, 5).map(store => store.withLock("shared-grant", advance));
-  await delay(150);
-  const [row] = await admin`select count(*)::integer as count from pg_stat_activity
-    where usename='weave_grant_lock_fixture' and state='idle in transaction'`;
-  assert.equal(row!.count, 1);
-  assert.equal(await stores[5]!.withLock("unrelated-grant", async () => "available"), "available");
-  const results = await Promise.all([holder, ...waiting]);
-  assert.deepEqual(results.toSorted(), [1, 2, 3, 4, 5]);
+  const pending = Promise.allSettled([holder, ...waiting]);
+  let failure: unknown;
+  try {
+    await delay(150);
+    const [row] = await admin`select count(*) filter(where l.granted)::integer as held,
+      count(*) filter(where not l.granted)::integer as blocked from pg_locks l
+      join pg_stat_activity a on a.pid=l.pid where a.usename='weave_grant_lock_fixture' and l.locktype='advisory'`;
+    assert.equal(row!.held, 1);
+    assert.equal(row!.blocked, 0);
+    assert.equal(await stores[5]!.withLock("unrelated-grant", async () => "available"), "available");
+  } catch (error) { failure = error; }
+  const results = await pending;
+  const rejected = results.find(result => result.status === "rejected");
+  if (rejected?.status === "rejected") throw rejected.reason;
+  if (failure) throw failure;
+  assert.deepEqual(results.map(result => result.status === "fulfilled" ? result.value : null).toSorted(), [1, 2, 3, 4, 5]);
   assert.equal(calls, 5);
 });
 

@@ -461,9 +461,30 @@ Do not raise the shared project's pool size as a shortcut.
 Project OAuth locks use the same hashed transaction-scoped advisory lock inside
 `sql.begin`, acquired with a nonblocking try. A busy attempt ends its transaction
 before bounded backoff; only that busy result retries. Protected callbacks, token
-refreshes, writes and uncertain commits are never replayed. One cancellation
-signal covers waiting and upstream calls, and rotated state still commits before
-an upstream error is surfaced.
+refreshes, writes and uncertain commits are never replayed. Caller cancellation
+bounds waiting and ordinary upstream calls; critical refresh settlement has its
+own bounded budget below. Rotated state commits before an upstream error is
+surfaced.
+
+The pinned SDK's `requestLock` owns session read/refresh/store coordination.
+Ordinary Certified RPCs run after that short lock is released; they do not hold a
+database transaction while waiting for a remote response. Every SDK lock entry
+rechecks the same actor, Weave session, action and grant expiry. Invalidation
+outside the SDK lock reacquires it and compares the captured token/key/expiry
+version, so a late invalid-token reply cannot delete a newer grant.
+
+Once a refresh token is dispatched, caller cancellation cannot interrupt its
+settlement. One independent five-second transport budget covers the refresh and
+any DPoP nonce retry. The transaction is checked immediately before dispatch and
+has a transaction-local ten-second idle timeout. An uncertain exchange without a
+stored rotation withdraws that project grant rather than reusing a possibly
+consumed token; the account and saved initiatives remain available.
+
+The HTTP project and matching boundaries close the request and await registered
+SDK lock/refresh/state settlements before returning. Inner provider deadlines
+still bound ordinary or uncooperative adapters. Closed requests cannot start new
+SDK critical work; an already-started refresh may finish token persistence and
+transaction cleanup. Function execution must allow that bounded cleanup budget.
 
 Project clients cap their local connection queue at ten seconds. Cancellation
 while queued is observed when a lease arrives or that queue ceiling rejects;
