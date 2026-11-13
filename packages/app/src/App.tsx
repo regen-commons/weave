@@ -21,7 +21,7 @@ import { fundingBackHref, legacyFundingHref } from "./funding/catalog.ts";
 import { ListPage } from "./pages/ListPage.tsx";
 import { RecordDetail } from "./pages/RecordDetail.tsx";
 import { TeamWorkspace } from "./pages/TeamWorkspace.tsx";
-import { finishConsentReturn, takeConsentReturn } from "./initiative/consent-return.ts";
+import { recoverConsentReturn } from "./initiative/consent-return.ts";
 import { headerStatus } from "./initiative/header-status.ts";
 import { Settings } from "./pages/Settings.tsx";
 import { NotFound } from "./pages/NotFound.tsx";
@@ -48,6 +48,8 @@ import {
 import type { SheetState } from "./ui/DetailSheet.tsx";
 import { Page } from "./ui/Page.tsx";
 import { FixtureControls } from "./ui/FixtureControls.tsx";
+import { Heading } from "./ui/Heading.tsx";
+import { NarrowLayout } from "./ui/layouts.tsx";
 
 function content(route: Route, fixture?: FixtureContext) {
   switch (route.name) {
@@ -123,6 +125,9 @@ function sheetBody(shown: Shown, state: SheetState, fixture?: FixtureContext) {
 }
 export function App() {
   const location = usePathname();
+  const { pathname, search } = splitRoute(location);
+  const returning = pathname === "/" && new URLSearchParams(search).has("projectConsent");
+  const recovery = useRef<{ href: string; result: Promise<string> } | null>(null);
   useEffect(() => {
     if (routePath() !== "/") return;
     const target = legacyFundingHref(routeSearch());
@@ -131,16 +136,27 @@ export function App() {
   useEffect(() => {
     const callback = new URL(window.location.href);
     if (callback.pathname !== "/" || !callback.searchParams.has("projectConsent")) return;
-    const pending = takeConsentReturn(callback.searchParams.get("projectConsent"), () => window.sessionStorage);
-    if (!pending) return;
-    void finishConsentReturn(pending).then((destination) => {
-      if (window.location.href === callback.href) navigate(destination, true);
+    document.title = "Returning to Weave";
+    // Effect replay shares the one-use finish request. Mount project loaders only
+    // after promotion; an earlier consent-required response otherwise stays cached.
+    if (recovery.current?.href !== callback.href) recovery.current = {
+      href: callback.href,
+      result: recoverConsentReturn(callback.searchParams.get("projectConsent"), () => window.sessionStorage),
+    };
+    let active = true;
+    void recovery.current.result.then((destination) => {
+      if (active && window.location.href === callback.href) navigate(destination, true);
     });
+    return () => { active = false; };
   }, [location]);
   const fixture =
     import.meta.env.DEV && new URLSearchParams(routeSearch()).has("fixture")
       ? readFixtures(routeSearch())
       : undefined;
+  if (returning) return <div className="rc-page"><main className="rc-main" id="main" tabIndex={-1}>
+    <NarrowLayout><Heading level={1} size="page">Returning to Weave</Heading>
+      <p role="status">Finishing Certified permissions.</p></NarrowLayout>
+  </main></div>;
   return (
     <DraftProvider fixture={fixture}>
       <AccountProvider fixture={!!fixture}>

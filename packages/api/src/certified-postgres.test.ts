@@ -74,8 +74,17 @@ integration("encrypted persistence, expiry, atomic take and consume across separ
 });
 integration("grant revocation rejects stale writers and SQL locks serialize competing instances", async () => {
   await store.put("oidc:AccessToken", "token", { grantId: "grant-one" }, 60);
+  await store.put("oidc:Interaction", "switch-account", { grantId: "grant-one", result: { login: { accountId: "did:plc:bob" } } }, 60);
+  const indexed = await admin`select grant_hash from weave_auth.records
+    where namespace='oidc:Interaction' and key_hash=${cipher.index("oidc:Interaction", "switch-account")}`;
+  assert.equal(indexed[0]?.grant_hash, null);
+  // Model an interaction persisted by the old deployment before this repair.
+  await admin`update weave_auth.records set grant_hash=${cipher.index("grant", "grant-one")}
+    where namespace='oidc:Interaction' and key_hash=${cipher.index("oidc:Interaction", "switch-account")}`;
   await store.revokeGrant("grant-one");
   assert.equal(await store.find("oidc:AccessToken", "token"), undefined);
+  assert.ok(await store.find("oidc:Interaction", "switch-account"), "a legacy-indexed account-switch interaction must survive grant revocation");
+  await store.put("oidc:Interaction", "switch-account", { grantId: "grant-one", result: { login: { accountId: "did:plc:bob" } } }, 60);
   await assert.rejects(store.put("oidc:AccessToken", "late-token", { grantId: "grant-one" }, 60), /grant_revoked/);
   const otherSql = postgres(runtimeUrl, { max: 3 });
   try {
@@ -179,6 +188,51 @@ integration("real OIDC provider survives process restart mid-sign-in and permits
   assert.equal((await fetch(`${issuer}/api/account`)).status,404);
   assert.equal((await fetch(`${issuer}/at/callback?code=synthetic-code&state=${state}`)).status,400);
   await stop(child);
+});
+
+integration("real OIDC account switches survive logout and process restarts without sharing subjects or grants", async () => {
+  let child = await start();
+  const request = browser(), redirectUri = "http://127.0.0.1:1/callback";
+  async function follow(response: Response, destination: string): Promise<string> {
+    for (let n = 0; n < 20; n++) {
+      const location = response.headers.get("location");
+      if (location?.startsWith(destination)) return location;
+      if (location) { response = await request(new URL(location, issuer).href); continue; }
+      const html = await response.text();
+      const action = /<form method="post" action="([^"]+)"/.exec(html)?.[1];
+      assert.equal(action, `${issuer}/session/end/confirm`, `expected redirect or provider account-switch form, got ${response.status}`);
+      const body = new URLSearchParams([...html.matchAll(/<input type="hidden" name="([^"]+)" value="([^"]*)"/g)].map(match => [match[1]!, match[2]!]));
+      assert.equal(body.get("logout"), "yes"); assert.ok(body.get("xsrf"));
+      // Resume must work on another worker with the same encrypted state and keys.
+      await stop(child); child = await start();
+      response = await request(action!, { method: "POST", body });
+    }
+    throw Error("fixture_redirect_limit");
+  }
+  let revoked: URLSearchParams | undefined;
+  try {
+    for (const actor of ["alice", "bob", "alice", "alice"]) {
+      const verifier = randomBytes(32).toString("base64url");
+      const params = new URLSearchParams({ client_id: "weave-test", redirect_uri: redirectUri, response_type: "code", scope: "openid", prompt: "login", state: "fixture-state", nonce: "fixture-nonce", code_challenge_method: "S256", code_challenge: createHash("sha256").update(verifier).digest("base64url") });
+      const certified = await follow(await request(`${issuer}/auth?${params}`), "https://certified.example.test/");
+      const state = new URL(certified).searchParams.get("state")!;
+      const returned = await follow(await request(`${issuer}/at/callback?${new URLSearchParams({ state, code: `synthetic-${actor}` })}`), redirectUri);
+      const callback = new URL(returned);
+      assert.equal(callback.searchParams.get("error"), null);
+      const code = callback.searchParams.get("code"); assert.ok(code);
+      const body = new URLSearchParams({ client_id: "weave-test", client_secret: secret, grant_type: "authorization_code", redirect_uri: redirectUri, code, code_verifier: verifier });
+      // Keep the first account's code unused, then prove switching revokes it.
+      if (!revoked) { revoked = body; continue; }
+      assert.equal((await fetch(`${issuer}/token`, { method: "POST", body: revoked })).status, 400);
+      const response = await fetch(`${issuer}/token`, { method: "POST", body });
+      assert.equal(response.status, 200);
+      const token = await response.json() as { id_token: string };
+      const claims = JSON.parse(Buffer.from(token.id_token.split(".")[1]!, "base64url").toString());
+      assert.equal(claims.sub, `https://certified.one|did:plc:${actor}`);
+      assert.equal(Object.hasOwn(claims, "email"), false);
+      assert.equal((await fetch(`${issuer}/token`, { method: "POST", body })).status, 400);
+    }
+  } finally { await stop(child); }
 });
 
 integration("production entry requires a restricted role and trusted HTTPS ingress, retaining keys after restart", async () => {

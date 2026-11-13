@@ -5,6 +5,10 @@ import { parseSigningMaterial, type SigningMaterial } from "./keys.ts";
 
 type Database = postgres.Sql | postgres.TransactionSql;
 const MAX_TTL = 86400;
+// Match oidc-provider's grantable models. An Interaction can reference the old
+// grant while switching accounts; logout must revoke tokens without deleting it.
+const grantable = new Set(["AccessToken", "AuthorizationCode", "RefreshToken", "DeviceCode", "BackchannelAuthenticationRequest", "PreAuthorizedCode"]
+  .map(model => `oidc:${model}`));
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid_stored_state");
   return value as Record<string, unknown>;
@@ -35,7 +39,7 @@ export class AuthStore {
   async put(namespace: string, id: string, payload: unknown, ttl: number): Promise<void> {
     if (!Number.isInteger(ttl) || ttl < 1 || ttl > MAX_TTL) throw new Error("invalid_state_expiry");
     const key = this.key(namespace, id), value = object(payload);
-    const grant = typeof value.grantId === "string" ? this.cipher.index("grant", value.grantId) : null;
+    const grant = grantable.has(namespace) && typeof value.grantId === "string" ? this.cipher.index("grant", value.grantId) : null;
     const uid = typeof value.uid === "string" ? this.cipher.index("uid", value.uid) : null;
     const encrypted = this.cipher.seal(namespace, key, payload);
     await this.withLock(grant ? `grant:${grant}` : `record:${namespace}:${key}`, async () => {
@@ -91,7 +95,8 @@ export class AuthStore {
       const db = this.database();
       await db`insert into weave_auth.revoked_grants(grant_hash,expires_at) values(${hash},now()+interval '1 day')
         on conflict(grant_hash) do update set expires_at=excluded.expires_at`;
-      await db`delete from weave_auth.records where grant_hash=${hash}`;
+      // Old deployments also indexed Interaction rows. Preserve those at cutover.
+      await db`delete from weave_auth.records where grant_hash=${hash} and namespace=any(${[...grantable]}::text[])`;
     });
   }
   async signingMaterial(): Promise<SigningMaterial> {
