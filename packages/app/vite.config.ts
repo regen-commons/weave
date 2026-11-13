@@ -40,7 +40,7 @@ export function apiRoutes(): Plugin {
         let size = 0;
         for await (const chunk of request) { size += chunk.length; if (size > 1024) { response.statusCode = 413; response.end(); return; } body.push(chunk); }
         const fixture = await server.ssrLoadModule("/dev/fixture-control.ts");
-        const result: Response = await fixture.fixtureControl(new Request(`http://${request.headers.host}/__fixture`, {
+        const result: Response = await fixture.fixtureControl(new Request(`http://${request.headers.host}/__fixture${new URL(request.url ?? "/", "http://localhost").search}`, {
           method: request.method, headers: Object.fromEntries(Object.entries(request.headers).flatMap(([key, value]) => value === undefined ? [] : [[key, Array.isArray(value) ? value.join(", ") : value]])),
           ...(request.method === "POST" ? { body: Buffer.concat(body) } : {}),
         }));

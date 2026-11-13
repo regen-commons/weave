@@ -7,6 +7,7 @@ import { answerApiRequest } from "../dev/api-bridge.ts";
 import { isolateFixtureProjectOAuth } from "../dev/fixture-oauth-isolation.ts";
 import { apiRoutes } from "../vite.config.ts";
 import type { Connect, ViteDevServer } from "vite";
+import { fixtureControl } from "../dev/fixture-control.ts";
 
 const apiDir = fileURLToPath(new URL("../api/", import.meta.url));
 const oauthEntries = ["certified-project-consent", "certified-project-client", "certified-project-jwks", "certified-project-callback"];
@@ -113,5 +114,36 @@ test("the actual Vite development middleware blocks project OAuth before ssrLoad
     else process.env.WEAVE_ACCOUNT_FIXTURE = previousFixture;
     if (previousProjects === undefined) delete process.env.WEAVE_PROJECTS_ENABLED;
     else process.env.WEAVE_PROJECTS_ENABLED = previousProjects;
+  }
+});
+
+test("the Vite fixture bridge preserves the selected editor without forwarding draft data", async () => {
+  const previous = process.env.WEAVE_ACCOUNT_FIXTURE;
+  process.env.WEAVE_ACCOUNT_FIXTURE = "1";
+  let middleware: Connect.NextHandleFunction | undefined;
+  const hook = apiRoutes().configureServer;
+  const local = createServer((request, response) => {
+    assert.ok(middleware); middleware(request, response, () => { response.statusCode = 500; response.end(); });
+  });
+  const fake = {
+    config: { root: fileURLToPath(new URL("../", import.meta.url)) },
+    middlewares: { use(mount: string, handler: Connect.NextHandleFunction) { if (mount === "/__fixture") middleware = handler; } },
+    async ssrLoadModule(path: string) { assert.equal(path, "/dev/fixture-control.ts"); return { fixtureControl }; },
+  } as unknown as ViteDevServer;
+  try {
+    await (hook as (server: ViteDevServer) => unknown)(fake);
+    await new Promise<void>(resolve => local.listen(0, "127.0.0.1", resolve));
+    const origin = `http://127.0.0.1:${(local.address() as AddressInfo).port}`;
+    for (const editor of ["maearth", "certified"]) {
+      const response = await fetch(`${origin}/?editor=${editor}`);
+      assert.equal(response.status, 200);
+      assert.match(await response.text(), /External editor fixture/);
+    }
+    const invalid = await fetch(`${origin}/?editor=untrusted`);
+    assert.match(await invalid.text(), /Local fixture controls/);
+  } finally {
+    local.closeAllConnections(); local.close();
+    if (previous === undefined) delete process.env.WEAVE_ACCOUNT_FIXTURE;
+    else process.env.WEAVE_ACCOUNT_FIXTURE = previous;
   }
 });

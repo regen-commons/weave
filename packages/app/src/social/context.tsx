@@ -16,6 +16,8 @@ type SocialView = {
   problem?: string | null;
   consent?: boolean;
   reload?(): Promise<void>;
+  /** Development-only HTTP fixtures must not navigate to a real external editor. */
+  synthetic?: boolean;
 };
 const SocialContext = createContext<(SocialView & (
   { mode: "fixture"; service: SocialService } | { mode: "live"; service: LiveSocialService }
@@ -66,5 +68,6 @@ export function LiveSocialProvider({ children }: { children: ReactNode }) {
   }), [controller, service]);
   const current = view.state.identity === service.snapshot().identity ? view : { state: service.snapshot(), ...service.status() };
   return <SocialContext.Provider value={{ ...current, service, mode: "live", today: new Date().toISOString().slice(0, 10),
+    synthetic: import.meta.env.DEV && account.state?.fixture === true,
     refresh: () => setView({ state: service.snapshot(), ...service.status() }), reload: service.reload }}>{children}</SocialContext.Provider>;
 }

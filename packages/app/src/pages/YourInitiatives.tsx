@@ -24,6 +24,10 @@ import { Section } from "../ui/Section.tsx";
 import { Doorway, ListLayout } from "../ui/layouts.tsx";
 import { useSetAside } from "../account/set-aside.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
+import { ProjectAction } from "../social/Project.tsx";
+import { editorStorage, readEditorHandoff } from "../initiative/editor-handoff.ts";
+import { EXAMPLE_EDITOR_OWNER } from "../initiative/ProjectEditor.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
 
 /**
  * Everything a signed-in person can open: the card on this device, their private saves and
@@ -69,6 +73,7 @@ export function YourInitiatives() {
   // Another account's card stays on the device but out of this account's lists (DL-055).
   const setAside = useSetAside();
   const onDevice = hasDraft(draft) && !setAside;
+  const handoff = onDevice && state.identity && readEditorHandoff(editorStorage(() => window.sessionStorage), state.identity.id ?? EXAMPLE_EDITOR_OWNER, draft.id);
   if (!state.identity)
     return (
       <Doorway>
@@ -149,6 +154,7 @@ export function YourInitiatives() {
       </Heading>
       {consentNotice}
       {live && <PendingInvite />}
+      {handoff && <StatusLine actions={<ProjectAction variant="primary" />}>Your device draft is still here.</StatusLine>}
       {social.loading && <p role="status">Checking your Certified projects</p>}
       {social.problem && <p role="status">{social.problem}</p>}
       {social.consent ? <ConsentButton action="membership" /> : social.problem && <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try again</button>}

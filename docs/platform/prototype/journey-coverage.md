@@ -12,9 +12,11 @@ followed PR #38 is under [Design polish on develop](#design-polish-on-develop-11
 [public creation in Ma Earth or Certified, followed by linking in Weave](../08-accounts-and-saving.md#public-project-creation-and-return).
 Existing records are reused. The creation forms and fixture results documented
 below describe the implementation before that decision, not the new target.
-Design follow-up must cover draft preservation, external-editor choice, a possible
-second code/consent step, return/discovery, explicit selection, private upstream
-drafts and canceled or failed handoff. Do not claim prefill, automatic return or
+The [local handoff implementation](#external-editor-handoff-13-november-2026) covers
+draft preservation, external-editor choice, a possible second code/consent step,
+return/discovery, explicit selection, private upstream drafts and canceled or failed
+handoff. Real external publication and return still need hosted validation.
+Do not claim prefill, automatic return or
 Ma Earth adoption is available. The four account flows and all viewer/access,
 private-save, sharing and support-publication boundaries remain required.
 
@@ -306,3 +308,55 @@ Proof class: **fixture**, Chrome with DevTools emulation.
 >
 > Report which journeys run end to end live, what you verified at 360 and 1280 px in
 > both themes with the keyboard, and what still waits on Certified or the database.
+
+## External editor handoff, 13 November 2026
+
+The app replaces new inline public creation with a choice of Ma Earth or Certified.
+The project step reads existing authorized projects first. Leaving waits for a
+stored device draft, including source words and file bytes. A small session-storage
+hint is scoped to the same account and draft; no draft content or identity token
+is placed in the external URL. Your initiative and Your Initiatives offer Find my
+project on return. Discovery refreshes, and the person explicitly selects and links
+the canonical project through the existing server checks. Linking preserves need
+and offer identities and does not save to a team, share or publish entries.
+
+`src/initiative/editor-handoff.ts` owns navigation safety and return hints;
+`src/initiative/ProjectEditor.tsx` uses the existing choice and dialog patterns.
+The legacy creator only resumes a stored intent. The existing server create command
+remains for older clients; server retirement is a separate reviewed change.
+
+Local validation uses `app-fixture`, the creator account at `/__fixture`, and a
+synthetic external editor. That stand-in can return without publishing or expose a
+fictional group project, then run discovery, selection and workspace setup using
+the app's real adapter over synthetic handlers. It never contacts an external
+editor. Unit and fixture tests cover failed/conflicting storage, changed drafts,
+account isolation, cancellation, malformed return hints, legacy uncertain requests,
+repeated discovery without duplicate links and stale response suppression.
+
+**Fixture proof, Codex in-app browser:** checked the handoff and return at 360 px
+and 1280 px in light and dark themes, including keyboard radio selection, Tab,
+Enter, task focus and scroll access to the primary action. Both editor choices
+reached only the local editor stand-in. Returning without publication kept the
+device draft and offered discovery again. After synthetic publication, the project
+was not selected automatically. Explicit linking and reload retained the original
+private need and offer, and the team workspace still required its separate setup
+action. No horizontal page overflow or browser console errors were observed.
+This does not establish actual Ma Earth / Certified publication or discovery.
+
+Checks: `bun install --frozen-lockfile`, `bun run --filter @weave/app typecheck`,
+`bun run ci` and `git diff --check`. CI passed 711 tests, including all 273 app
+tests and the production-bundle fixture exclusion check. The existing 47 opt-in
+PostgreSQL tests were skipped; this slice changes no API handler or database schema.
+
+Independent review found and fixed an early task-unmount race and permissive editor
+hint parsing. The live service now completes durable device storage and hint cleanup
+before emitting a project selection. Delayed and failed writes, cancellation and
+concurrent edits have regression tests. A second fixture browser check linked from
+Your initiative, verified hint cleanup in Your Initiatives, and reloaded the original
+private need and offer. Re-review found no remaining behavioral issues.
+
+Hosted checks still need actual publication in each external editor, another
+code/consent step where required, enumeration after return, a second project under
+one existing organization and current group authority. Prefill, automatic callbacks,
+Ma Earth adoption of existing external projects and membership synchronization
+remain unverified. No deployment, migration or production setting is part of this slice.

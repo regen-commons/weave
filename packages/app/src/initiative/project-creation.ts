@@ -45,12 +45,14 @@ export function clearRejectedProjectCreate(error: unknown) {
 }
 
 /** One durable intent across both screen adapters. Uncertain outcomes always retry the same reviewed request. */
-export async function submitProjectCreate({ owner, draftId, groupLabel, profile, storage, save, request, signal }: {
+export async function submitProjectCreate({ owner, draftId, groupLabel, profile, storage, save, request, signal, resumeOnly = false }: {
   owner: string; draftId: string; groupLabel: string; profile: { title: string; description: string };
   storage: Pick<Storage, "getItem" | "setItem" | "removeItem">;
   save(): Promise<{ initiativeId: string; expectedRevision: number }>;
   request(command: PendingProjectCreate): Promise<Record<string, unknown>>;
   signal: AbortSignal;
+  /** The retired creator may only reconcile an intent that was already durably stored. */
+  resumeOnly?: boolean;
 }) {
   const key = projectCreationKey(owner, draftId);
   const raw = storage.getItem(key);
@@ -59,6 +61,7 @@ export async function submitProjectCreate({ owner, draftId, groupLabel, profile,
   catch { throw Error("The earlier creation request could not be read. Check your projects on Certified before starting another."); }
   if (raw !== null && !command) throw Error("The earlier creation request could not be read. Check your projects on Certified before starting another.");
   if (!command) {
+    if (resumeOnly) throw Error("No earlier creation request is available. Find your project or use its external editor.");
     if (!validProjectGroupLabel(groupLabel)) throw Error("Use a valid group name in the address before creating the project.");
     const publicProfile = publicProjectProfile(profile.title, profile.description);
     const saved = await save(); signal.throwIfAborted();

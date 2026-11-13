@@ -1,6 +1,6 @@
 # Saving initiatives and accounts
 
-Status: public project creation policy revised 12 November 2026; editor handoff implementation is pending. The earlier matching flows and their evidence remain below. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
+Status: public project creation policy revised 12 November 2026; the editor handoff was added locally on 13 November, with hosted validation pending. See [journey coverage](prototype/journey-coverage.md#external-editor-handoff-13-november-2026) for its proof and limits. The earlier matching flows and their evidence remain below. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
 Companions: [PRD](04-prd.md) · [technical spec](05-technical-spec.md#5-identity-and-access) · [decision register](open-decisions.md#certified-only-sign-in-and-private-saving) · [design spec](research/certified-hypercerts-2026-11-06/design-spec.md#one-sign-in-including-first-use).
 
 Certified is the only sign-in flow. Weave automatically creates or retrieves an
@@ -120,8 +120,9 @@ A person can manage several workspaces with the same Certified identity. See the
 The user [decided on 12 November](open-decisions.md#public-project-editors-decided-12-november-2026)
 that public organizations/projects are created in Ma Earth or Certified for the
 first release. Weave retains private drafting, saving, needs, offers, matching
-and workspace access. This replaces the target default of inline public group
-and project creation; it does not describe a completed UI change.
+and workspace access. This replaces the default of inline public group and
+project creation. The app implements the handoff locally; external publication
+and real editor-return discovery still require hosted checks.
 
 1. Check for an existing project first. Reuse its canonical AT URI and existing
    organization/group rather than creating another record with the same name.
@@ -152,8 +153,10 @@ its identity while the supported adoption path is resolved. Do not create a
 replacement organization/project there to compensate. Ma Earth listing,
 funding-round application and Weave entry sharing are separate actions.
 
-The current Weave creator and durable pending intents are implementation that
-must be reconciled before the new route replaces them. Existing created records
+The app's legacy creator can only resume a stored, frozen intent. An unresolved
+or unreadable intent blocks departure to another editor. The server's existing
+create command remains compatible with older clients; retiring it needs a separate
+review. Existing created records
 and saved work remain intact. This decision does not change support-listing
 publishing, teammate permissions or the rule requiring both current group
 membership and an explicit Weave grant for private team access. Ma Earth and
