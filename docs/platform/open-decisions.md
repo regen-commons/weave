@@ -115,6 +115,31 @@ The [build contract](05-technical-spec.md#51-first-build-certified-sign-in-and-p
 records the baseline, owning paths and tests. These roles are proposed responsibilities,
 not assignments to people or authorization to provision infrastructure.
 
+### Public project editors, decided 12 November 2026
+
+The user chose external public project editors for the first release. Guide a
+new initiative that aligns with Ma Earth and chooses its ecosystem to create
+its public organization/project in Ma Earth using Certified. Guide other new
+initiatives to Certified's group/project editor. Reuse existing organizations
+and projects before offering creation, then return to Weave and explicitly link
+the published project. This supersedes the earlier default of creating a new
+group and project inside Weave. It is a product decision; the current creator
+and its pending-operation recovery have not been replaced by this documentation.
+
+The [creation and return flow](08-accounts-and-saving.md#public-project-creation-and-return)
+owns the user journey. Certified remains the only Weave identity provider.
+Private Save/Load needs no public project. Public support listing publication,
+workspace grants and the reviewed teammate flow remain separate decisions.
+External navigation does not authorize sending the private draft, choosing a
+public audience or automatically linking a matching name. Preserve existing
+personal project URIs as solo links; guide new team-ready projects to groups.
+
+| Validation | Owner | Evidence still required |
+|---|---|---|
+| Ma Earth organization and group membership mapping | Integration maintainer with Ma Earth / Certified | Confirm which membership source its organization editor uses and whether invites, role changes and removals update the Certified group membership Weave verifies. Similar role names alone are insufficient. |
+| Externally created project adoption | Integration maintainer with Ma Earth | Determine whether completing standard public metadata is sufficient or platform registration is also required. Preserve an existing organization DID and project AT URI; never resolve an adoption failure by silently creating replacements. |
+| Editor handoff and return | App/API maintainers and designer | Preserve the draft and entry IDs, handle another code/consent prompt honestly, return to authorized discovery and require explicit project selection. Prefill and automatic return require a verified partner contract; neither is presumed available. |
+
 ### Project integration and support listing validation
 
 On 12 November 2026 the user chose to open project flows to verified Certified
@@ -131,7 +156,7 @@ These are the remaining decisions and evidence for the
 
 | Question | Working recommendation | What closes it |
 |---|---|---|
-| What can Weave verify and write through Certified? | Use the current sign-in for Weave identity. Request separate scoped consent when a project write requires it. | Verify project enumeration, current personal and group authority, write scopes and read-back with a real personal and group fixture. Prove one-owner group registration, project creation and adding a teammate using the same Certified identity. Prove the setup request and approval path for an existing group project. Exercise an occupied group handle, lost group or project create response, non-member grant denial, revoked authority and expired consent. |
+| What can Weave verify and write through Certified? | Use the current sign-in for Weave identity, external editors for new public projects, and separately scoped consent for Weave-owned support publication or approved group actions. | Verify enumeration and authority after creation in each external editor, including a second project under one organization, private upstream drafts that are not discoverable, setup requests and approval, non-member grant denial, revoked authority and expired consent. Preserve recovery of existing Weave create intents without duplicating their groups/projects. |
 | What does public listing interoperability require? | Prove a need and an offer in a disposable repository with an independent reader before asking partners to ingest the Lexicon. | Show discovery, project association, update and withdrawal. Verify consent, personal and group authorization, and hosted read-back before enabling first-release publishing. Prove that an editor can publish only when Certified authorizes the write, and document what downstream readers can retain. Certified display and indexing are separate integration work. |
 | Are capital suggestions helpful enough for most entries? | Start with the existing local keyword path, compare optional local extraction on real examples, and use editable multi-select. | Measure how often people keep suggestions or correct them, including mixed forms and unfamiliar language across art, software, research and place-based work. Prove a private unclassified save reloads and sharing rejects it until classified. |
 
@@ -224,12 +249,14 @@ keeps the two-account match and the external-evidence path as release checks.
 
 ### Certified project links and workspace access
 
-Each Certified project has one Weave workspace. The first release targets
-creating new projects in Certified groups, with the creator as the initial
-owner and the ability to add teammates later. The person reviews the group
-and public project fields and uses the same Certified identity. Certified
-documents one-owner group registration and adding members. Weave still
-needs to prove the combined flow. [Certified Group Service API](https://github.com/hypercerts-org/certified-group-service/blob/main/docs/api-reference.md#group-lifecycle)
+Each Certified project has one Weave workspace. New team-ready projects use
+shared groups, which can begin with one owner and support teammates later.
+The [chosen external editor](#public-project-editors-decided-12-november-2026)
+handles public creation using the person's Certified identity. Reuse an existing
+organization/group for another project where appropriate. Certified documents
+one-owner group registration and adding members; the combined editor-return,
+discovery and workspace access flow still needs verification.
+[Certified Group Service API](https://github.com/hypercerts-org/certified-group-service/blob/main/docs/api-reference.md#group-lifecycle)
 
 Weave can link existing personal and group projects when it verifies the
 actor's authority. Existing personal projects remain solo in Weave and keep

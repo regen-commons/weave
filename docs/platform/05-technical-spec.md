@@ -700,12 +700,19 @@ unclassified private entries and AT Protocol writes are implementation work.
 The [decision register](open-decisions.md#project-integration-and-support-listing-validation)
 tracks what still needs evidence or a decision.
 
+The user [decided on 12 November](open-decisions.md#public-project-editors-decided-12-november-2026)
+to use Ma Earth / Certified public project editors, then link the resulting
+record in Weave. This supersedes inline project creation as the first-release
+target. The existing creation command and durable intents are not removed by
+this specification update; their recovery and retirement need implementation
+review. Private saving and independent public support listings are unchanged.
+
 | Data or state | Authority and lifecycle | Module or API boundary |
 |---|---|---|
 | Person and session | Certified proves the person's DID. Platform issues the Weave session and retains the same internal account ID across sign-ins. | Keep the identity bridge, `/api/sign-in` and the existing account session flow. Project consent is scoped to the action that needs it and returns to the same Weave session. |
 | Working draft and suggestions | The browser keeps source text, files, pending edits and local AI suggestions. Suggestions remain editable until a person approves the entry for sharing. | Reuse `src/describe` for draft storage and `src/intake` for capital suggestions across extracted and typed entries. React holds the current editor and request state. |
 | Private workspace and entries | Platform holds the initiative UUID, stable need and offer IDs, reviewed revisions, workspace roles and saved leads. A private entry may have zero to eight distinct forms. | Extend `/api/account` for backward-compatible reads and saves. Test old documents and clients before accepting empty arrays on private saves. Keep authenticated records out of public caches. |
-| Certified project and verified link | The upstream repository owns the public project profile. Platform associates its DID-based AT URI with one workspace and records the verification evidence, observed CID and link state. | A proposed project API lists eligible projects and handles verify, link and create. Keep these commands outside the identity bridge. The browser sends the intended project reference, never the actor or their role. |
+| Certified project and verified link | The upstream repository owns the public project profile, created through the chosen external editor. Platform associates its DID-based AT URI with one workspace and records the verification evidence, observed CID and link state. | The project API lists eligible projects and verifies/links explicit selections after return. Keep editor handoff and project commands outside the identity bridge. The browser sends the intended project reference, never the actor or their role. |
 | Reviewed network sharing | Platform owns approved entry and summary revisions, audience, expiry and withdrawals. Each shared entry requires one to eight approved forms. | Extend the existing `/api/matching` review, share and search checks to enforce verified links, workspace roles, current revisions and active share state. |
 | Public support listing | Platform owns the editable entry. The AT repository holds the public fields explicitly published under the [draft Lexicon](../../packages/api/lexicons/README.md), with their own AT URI and CID. | The first release includes an explicit publish action after the pilot passes. Keep it separate from private Save and network sharing. Track the requested revision and publication outcome on the server. |
 | Public project evidence | The Platform index holds a rebuildable snapshot of permitted source passages, AT URI, CID and freshness. It never owns the project or confirms an inferred need or offer. | Keep ingestion and reindexing in bounded background jobs. Search a bounded API shortlist for network matching. The browser can refine it or use a bounded public snapshot for local previews. |
@@ -736,18 +743,24 @@ If another approved request already established the workspace, use its access
 process. Use Certified's read-only membership result to verify group roles.
 Its record-specific author check is internal to the write handler.
 
-**New projects.** Use the Certified Group Service to register a group with
-the signed-in person as its first owner, then publish the reviewed project
-record in the group's repository. Keep the person's DID, group DID, project
-AT URI and Weave workspace UUID distinct. Give the creator an explicit
-Weave admin grant when linking the verified new project. Group registration
-documents an optional recovery email. Keep email access optional for
-ordinary Weave sign-in and prove the registration consent and requirements
-in staging. [Certified Group Service API](https://github.com/hypercerts-org/certified-group-service/blob/main/docs/api-reference.md#group-lifecycle)
+**New projects.** Follow the [external editor and return contract](08-accounts-and-saving.md#public-project-creation-and-return).
+An aligned initiative that chooses Ma Earth creates its public organization and
+project there using Certified. Other new initiatives use Certified's group/project
+editor. Reuse an existing organization where possible; new team-ready projects
+start under a shared group, which may have one owner. Preserve device work before
+departure and resume authorized discovery on return. Private upstream drafts may
+not yet be discoverable. Never automatically link by name or create a replacement
+after a failed return. Keep person DID, organization/group DID, project AT URI and
+Weave workspace UUID distinct. Link only after the same authority and workspace
+grant checks used for existing projects. Ma Earth adoption of an already-existing
+external project, membership synchronization, prefill and prompt-free handoff
+remain unverified contracts. No token transfer or broader authentication scope
+is authorized by editor navigation.
 
 **Public profile changes.** After project creation or linking, teams edit
-the public title and description in Certified or another Certified project
-editor. Refresh Weave's view from the verified record at the same AT URI.
+the public title and description in Ma Earth for a profile managed there, or in
+Certified's project editor. Refresh Weave's view from the verified record at the
+same AT URI.
 Record the current CID and refresh time, and index changed public content
 under its new version. Refreshing public fields leaves the private workspace
 fields, entry revisions and approved share summaries intact.
@@ -810,19 +823,18 @@ and the link state for the active initiative. Setup requests accept the
 project URI and return a pending status. Approval accepts the request ID,
 rechecks group authority and returns the linked workspace or an existing
 workspace access result. Link accepts the chosen project URI and expected
-initiative revision. Create accepts the reviewed group
-handle and public project fields, the expected initiative revision and a
-request ID. Both return the existing or newly linked workspace
+initiative revision. Link returns the existing or newly linked workspace
 and confirmed project reference, or a recoverable result such as access
-required, project verification unavailable or creation pending. Recheck the
+required or project verification unavailable. Recheck the
 actor, grants and revision on the server before committing. Keep private
-Save/Load and the public index independent of these operations. Record group
-registration and project creation as separate steps of the same operation.
-If a response is lost, reconcile the exact group and verified owner before
-resuming. A handle match alone cannot establish ownership. After a confirmed
-group registration, resume project creation in that group. Verify the project
-at its intended AT URI before creating the link. Preserve private work while
-the operation is pending.
+Save/Load and the public index independent of these operations.
+
+The existing inline Create implementation accepts reviewed public fields, group
+handle, expected initiative revision and a request ID. Retain its frozen intent,
+separate group/project receipts and read-back recovery until a reviewed retirement
+handles every pending operation. An interrupted legacy creation is not a reason
+to create another group in an external editor. A handle match cannot establish
+ownership. Preserve the intended AT URI and private work while reconciling it.
 
 **State changes.** Treat the project link, entry sharing and public publication
 as separate states. A workspace can be unlinked, linked or paused pending
@@ -845,8 +857,10 @@ link in the first release. A replacement project has a different workspace.
 On initiative switch or sign-out, clear private network state and ignore
 responses from the previous workspace or session.
 
-**Project creation and public publishing.** Preview the exact public fields
-and destination before either write. Any workspace editor can publish a
+**Public support publishing.** Public project creation belongs to the selected
+external editor; it is separate from this Weave-owned listing command. Preview
+the exact public support fields and destination before a write. Any workspace
+editor can publish a
 listing with a verified right to make that write in the Certified repository.
 Check the scoped AT Protocol grant and the current reviewed revision before
 sending. Certified can distinguish creating a listing from updating one
@@ -874,15 +888,17 @@ Weave share. Independent readers can retain previously public records.
 in test projects first. Then implement links and workspace grants without
 replacing existing saves. Extend private entry validation and editable capital
 suggestions, then enforce project and entry eligibility in network matching.
-Test one-owner group registration, adding an existing group member, a
+Test creation in each external editor and return to verified discovery, a
+second project under one organization, private upstream drafts, canceled handoff
+and repeated returns without duplicate links. Test adding an existing group member, a
 new signup through a pending invite, and a group addition followed by a
 failed Weave grant. Prove a member can request setup but only a current
 Certified admin or owner can approve. Test competing approvals, authority
 lost before approval and an existing workspace that accepts only access
 requests. Test duplicate links, revocation, unclassified save and reload. Verify an external public profile update refreshes the displayed
-project and its index without changing private work or approved shares. Test lost responses at both
-group and project creation, an occupied group handle, and a confirmed group
-where project creation is still pending. Validate the
+project and its index without changing private work or approved shares. Preserve
+legacy create recovery for lost group/project responses, occupied handles and
+confirmed groups with a pending project. Validate the
 independent support listing in a disposable repository. The first-release
 publish action requires a successful independent read of both listing kinds,
 authorized personal and group writes, denial without consent or authority, and
@@ -1272,7 +1288,7 @@ establish a working service.
 | M2. Share and withdraw selected revisions | Add narrow preview/share/withdraw/renew commands in `packages/api/src/` with one-line app API entries; extend database authorization and the owner controls. Review the initiative summary plus exact entries, audience and expiry before sharing. Keep unselected entries private. | Two Certified-authorized accounts can read each other's shared projections, never each other's private documents. Save alone cannot publish. Changed shared content becomes ineligible until reviewed again; reorder/unrelated edits preserve sharing. Concurrent Save/Share, expiry, sign-out and direct Data API bypass attempts fail safely. |
 | M3. Index external project evidence | Add a bounded adapter and resumable job under `packages/api/` plus website-owned schema changes for source/evidence projections, index versions and checkpoints. Reuse public API contracts and the pinned embedding contract. Validate corpus permission, coverage, stable IDs, updates, deletions and model/runtime costs. Keep the auth bridge separate. | A real permitted sample across art, software, research and place-based work can be indexed and queried without a user login to the source. Before launch, prove enumeration, refresh and matching quality at the agreed coverage target. Restart/resume produces no duplicate evidence; a source update invalidates the right version. Source outages produce partial/stale status, not fabricated records. No inferred need or offer is written into owner tables. |
 | M4. Retrieve and explain both directions | Add the authenticated matcher in `packages/api/src/`, a browser-safe matching contract/rules module with no server imports, and update `packages/app/src/partners/`. Use one authoritative rule implementation for compatible server/local paths. Compare lexical and hybrid retrieval, apply eligibility rules, deduplicate, and return source-backed reasons and unknowns. | A shared need finds another owner's offer and a relevant external capability. A shared offer finds another owner's need and an external project's evidenced potential use. Missing reciprocal entries do not exclude a result. Explicit conflicts, negation, past work and identical unmet needs do not become direct matches. Withdrawal disappears on the next read. |
-| M5. Connect the complete app flow | Wire active initiative selection, intake, Finish and Partners to the real commands. Add private save/dismiss handling for leads keyed by initiative, query entry and candidate; persist references/feedback separately from the version-1 checked document. Add local worker/cache integration with baseline results first. Keep funding behavior unchanged. The [project integration target](#certified-project-integration-target) adds link and creation to the four flows in the accounts guide. | Authorized users can edit entries. Switching cancels stale requests; saved leads survive return and show current evidence status. Empty, partial, stale, expired-session, offline and model-unavailable states are functional. External leads offer a source link. |
+| M5. Connect the complete app flow | Wire active initiative selection, intake, Finish and Partners to the real commands. Add private save/dismiss handling for leads keyed by initiative, query entry and candidate; persist references/feedback separately from the version-1 checked document. Add local worker/cache integration with baseline results first. Keep funding behavior unchanged. The [project integration target](#certified-project-integration-target) adds the external editor handoff and verified linking to the four flows in the accounts guide. | Authorized users can edit entries. Switching cancels stale requests; saved leads survive return and show current evidence status. Empty, partial, stale, expired-session, offline and model-unavailable states are functional. External leads offer a source link. |
 | M6. Prove quality, performance and release readiness | Add evaluation fixtures and a reproducible benchmark beside package tests; run the acceptance checklist below. Record migration/application versions, rollback and index-rebuild procedures, restricted job credentials and operational ownership. Update this status table with evidence, then prepare the UI handoff. | Local and authorized hosted proofs pass; a fresh Certified signup, Save/Load and sign-in after redeploy retain initiative/entry IDs and state. Shared website/steward access still works. Evaluation and latency reports name corpus, versions, device/browser and limitations. Required package, guidance and CI checks pass; critical auth/RLS work has a second review before merge. |
 
 M2 depends on M1. M3's read-only source and corpus validation can begin while M1
