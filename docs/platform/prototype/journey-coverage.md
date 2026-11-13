@@ -8,6 +8,16 @@ followed PR #38 is under [Design polish on develop](#design-polish-on-develop-11
 
 ## One interface over real services
 
+**Target changed 12 November 2026:** the user chose
+[public creation in Ma Earth or Certified, followed by linking in Weave](../08-accounts-and-saving.md#public-project-creation-and-return).
+Existing records are reused. The creation forms and fixture results documented
+below describe the implementation before that decision, not the new target.
+Design follow-up must cover draft preservation, external-editor choice, a possible
+second code/consent step, return/discovery, explicit selection, private upstream
+drafts and canceled or failed handoff. Do not claim prefill, automatic return or
+Ma Earth adoption is available. The four account flows and all viewer/access,
+private-save, sharing and support-publication boundaries remain required.
+
 `LiveSocialProvider` supplies the agreed Your initiatives, Your initiative and
 project steps with the account and project APIs. The team route uses the same
 card and status-row patterns. Sharing and public publishing open focused dialogs
