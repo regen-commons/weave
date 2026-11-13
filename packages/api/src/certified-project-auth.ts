@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { setTimeout as delay } from "node:timers/promises";
 import { JoseKey, NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession, type NodeSavedState } from "@atproto/oauth-client-node";
 import type postgres from "postgres";
@@ -91,7 +92,8 @@ export function projectOAuthStore(sql: postgres.Sql, cipher: StateCipher): Proje
         deadline.throwIfAborted();
         const outcome = await sql.begin(async tx => {
           deadline.throwIfAborted();
-          const [row] = await tx`select pg_try_advisory_xact_lock(hashtextextended(${cipher.index("grant-lock", id)}, 0)) as acquired`;
+          const [row] = await tx`select pg_try_advisory_xact_lock(hashtextextended(${cipher.index("grant-lock", id)}, 0)) as acquired,
+            set_config('idle_in_transaction_session_timeout', '10s', true)`;
           if (!row?.acquired) return { acquired: false } as const;
           deadline.throwIfAborted();
           return { acquired: true, value: await run(records(tx)) } as const;
@@ -273,16 +275,25 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       get: async () => undefined,
       del: async () => {},
     },
+    implementation: Pick<NodeOAuthClientOptions, "requestLock" | "fetch"> = {},
   ) => (options.makeClient ?? (input => new NodeOAuthClient(input)))({
     clientMetadata, keyset, stateStore, sessionStore,
-    // A client lives for one attempt. Restoring and rotating a stored grant also holds the DB lock below.
+    // Initial consent uses one client per attempt; restored sessions override
+    // this with the SDK's durable session/refresh lock below.
     requestLock: async (_name, fn) => fn(),
     fetch: (input, init) => fetch(input, {
       ...init, redirect: "error",
       signal: AbortSignal.any([signal, ...(init?.signal ? [init.signal] : []), ...(input instanceof Request ? [input.signal] : [])]),
     }),
+    ...implementation,
   });
   const publicClient = makeClient();
+  const requests = new WeakMap<Request, { closing: boolean; pending: Set<Promise<void>> }>();
+  const requestState = (request: Request) => {
+    let state = requests.get(request);
+    if (!state) { state = { closing: false, pending: new Set() }; requests.set(request, state); }
+    return state;
+  };
   const grantKey = (a: Attempt) => JSON.stringify([origin, service, a.did, a.sessionId, a.action]);
   const getActor = async (request: Request) => {
     const actor = await options.resolveActor(request);
@@ -367,41 +378,127 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     if (!actor || actor.did !== expectedDid) return null;
     const selected = await selectGrant(actor, [method]);
     if (!selected) return null;
-    const outcome = await store.withLock(selected.key, async locked => {
-      const raw = await locked.find("grant", selected.key);
-      if (!raw) return { value: null } as const;
+    const state = requestState(request);
+    type SessionContext = { records: ProjectOAuthRecords; grant: Grant; changed: boolean; refresh?: AbortSignal };
+    const sessions = new AsyncLocalStorage<SessionContext>();
+    let observedVersion: string | undefined;
+    const version = (grant: Grant) => JSON.stringify([
+      grant.expiresAt, grant.session.tokenSet.access_token ?? null, grant.session.tokenSet.refresh_token ?? null, grant.session.dpopJwk,
+    ]);
+    const checkedGrant = (raw: unknown) => {
+      if (!raw) return undefined;
       const grant = savedGrant(raw);
-      if (!sameActor(grant, actor) || grant.action !== selected.action || grant.expiresAt <= Date.now())
-        return { value: null } as const;
+      return sameActor(grant, actor) && grant.action === selected.action && grant.expiresAt > Date.now() ? grant : undefined;
+    };
+    const open = () => {
       deadline.throwIfAborted();
-      const client = makeClient(deadline, undefined, {
-        get: async did => did === actor.did ? grant.session : undefined,
-        async set(did, session) {
-          if (did !== actor.did) throw Error("invalid_project_consent_identity");
-          checkScope(session, grant);
-          const ttl = Math.floor((grant.expiresAt - Date.now()) / 1000);
-          if (ttl < 1) throw denied();
-          await locked.put("grant", selected.key, { ...grant, session }, ttl);
-          grant.session = session;
-        },
-        del: async did => { if (did === actor.did) await locked.remove("grant", selected.key); },
-      });
+      if (state.closing) throw Error("project_request_closed");
+    };
+    async function sessionLock<T>(fn: () => T | PromiseLike<T>): Promise<T> {
+      if (sessions.getStore()) return fn();
+      open();
+      let settled!: () => void;
+      const completion = new Promise<void>(resolve => { settled = resolve; });
+      state.pending.add(completion);
       try {
-        const session = await client.restore(actor.did);
-        if (session.did !== actor.did || session.serverMetadata.issuer !== CERTIFIED_ISSUER)
-          throw Error("invalid_project_consent_identity");
-        return { value: await run(session, deadline) } as const;
-      } catch (error) {
-        // The SDK may have rotated or invalidated the upstream token before an RPC failed.
-        // Commit that storage update before surfacing the failure.
-        return { error } as const;
-      }
-    }, deadline);
-    if ("error" in outcome) throw outcome.error;
-    return outcome.value;
+        const outcome = await store.withLock(selected!.key, async records => {
+          open();
+          const grant = checkedGrant(await records.find("grant", selected!.key));
+          if (!grant) throw denied();
+          const context: SessionContext = { records, grant, changed: false };
+          return sessions.run(context, async () => {
+            try { return { value: await fn() } as const; }
+            catch (error) {
+              // A consumed refresh token cannot safely be reused after an uncertain
+              // exchange. Commit deletion or a completed rotation before failing.
+              if (context.refresh && !context.changed) await records.remove("grant", selected!.key);
+              return { error } as const;
+            }
+          });
+        }, deadline);
+        if ("error" in outcome) throw outcome.error;
+        return outcome.value;
+      } finally { settled(); state.pending.delete(completion); }
+    }
+    const client = makeClient(deadline, undefined, {
+      async get(did) {
+        if (did !== actor.did) return undefined;
+        const grant = sessions.getStore()?.grant ?? checkedGrant(await store.find("grant", selected.key));
+        if (grant) observedVersion = version(grant);
+        return grant?.session;
+      },
+      async set(did, session) {
+        if (did !== actor.did) throw Error("invalid_project_consent_identity");
+        await sessionLock(async () => {
+          const context = sessions.getStore()!;
+          if (observedVersion !== version(context.grant)) throw Error("project_session_changed");
+          checkScope(session, context.grant);
+          const ttl = Math.floor((context.grant.expiresAt - Date.now()) / 1000);
+          if (ttl < 1) throw denied();
+          await context.records.put("grant", selected.key, { ...context.grant, session }, ttl);
+          context.grant.session = session;
+          context.changed = true;
+          observedVersion = version(context.grant);
+        });
+      },
+      async del(did) {
+        if (did !== actor.did || !observedVersion) return;
+        await sessionLock(async () => {
+          const context = sessions.getStore()!;
+          // A delayed invalid-token reply must not delete a newer rotation or consent.
+          if (version(context.grant) === observedVersion) {
+            await context.records.remove("grant", selected.key);
+            context.changed = true;
+          }
+        });
+      },
+    }, {
+      async requestLock(name, fn) {
+        if (name !== `@atproto-oauth-client-${actor.did}`) throw Error("unexpected_project_session_lock");
+        return sessionLock(fn);
+      },
+      async fetch(input, init) {
+        const body = init?.body;
+        let form: URLSearchParams | undefined;
+        if (body instanceof URLSearchParams) form = body;
+        else if (typeof body === "string") form = new URLSearchParams(body);
+        else if (input instanceof Request && input.headers.get("content-type")?.startsWith("application/x-www-form-urlencoded"))
+          form = new URLSearchParams(await input.clone().text());
+        if (form?.get("grant_type") === "refresh_token") {
+          const context = sessions.getStore();
+          if (!context) throw Error("project_refresh_requires_lock");
+          if (!context.refresh) {
+            open();
+            // Verify transaction liveness and reset its idle timer before consuming
+            // the old token. One independent budget includes a DPoP nonce retry.
+            if (!checkedGrant(await context.records.find("grant", selected.key))) throw denied();
+            open();
+            context.refresh = AbortSignal.timeout(5000);
+          }
+          return fetch(input, { ...init, redirect: "error", signal: context.refresh });
+        }
+        open();
+        return fetch(input, { ...init, redirect: "error", signal: AbortSignal.any([
+          deadline, ...(init?.signal ? [init.signal] : []), ...(input instanceof Request ? [input.signal] : []),
+        ]) });
+      },
+    });
+    try {
+      open();
+      const session = await client.restore(actor.did);
+      if (session.did !== actor.did || session.serverMetadata.issuer !== CERTIFIED_ISSUER)
+        throw Error("invalid_project_consent_identity");
+      open();
+      return await run(session, deadline);
+    } finally { sessions.disable(); }
   }
 
   return {
+    async settle(request: Request) {
+      const state = requestState(request);
+      state.closing = true;
+      while (state.pending.size) await Promise.all([...state.pending]);
+    },
     metadata: () => response(publicClient.clientMetadata),
     jwks: () => response(publicClient.jwks),
     async consent(request: Request) {

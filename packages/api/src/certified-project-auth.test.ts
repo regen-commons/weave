@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash, generateKeyPairSync, randomBytes } from "node:crypto";
+import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession } from "@atproto/oauth-client-node";
@@ -7,6 +7,7 @@ import postgres from "postgres";
 import { certifiedProjectOAuthPaths as paths, createCertifiedProjectAuth, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
 import { createCipher } from "./certified/crypto.ts";
 import { record } from "./account-contract.ts";
+import { projectSdkFixture, sdkMembership } from "../test-fixtures/project-sdk.ts";
 
 const origin = "https://weave.example.test", issuer = "https://certified.one", cgsOrigin = "https://dev.groups.certified.app";
 const cgs = "did:web:dev.groups.certified.app#certified_group_service";
@@ -380,74 +381,8 @@ test("the private PostgreSQL store encrypts payloads, expires rows, and consumes
   });
 
 test("the pinned OAuth SDK performs PAR, PKCE, DID resolution and the scoped DPoP proxy exchange", async t => {
-  const actor = { did: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", sessionId: "oauth-sdk-fixture" };
-  const { store } = memoryStore();
-  let par: URLSearchParams | undefined, exchanges = 0, proxyCalls = 0;
-  t.mock.method(globalThis, "fetch", async (input: string | Request | URL, init?: RequestInit) => {
-    const request = new Request(input, init);
-    const { origin: host, pathname } = new URL(request.url);
-    if (host === "https://plc.directory" && decodeURIComponent(pathname) === "/" + actor.did) {
-      return Response.json({ id: actor.did, service: [
-        { id: "#atproto_pds", type: "AtprotoPersonalDataServer", serviceEndpoint: issuer },
-      ] });
-    }
-    assert.equal(host, issuer);
-    if (pathname === "/.well-known/oauth-protected-resource") return Response.json({
-      resource: issuer, authorization_servers: [issuer],
-    });
-    if (pathname === "/.well-known/oauth-authorization-server") return Response.json({
-      issuer, authorization_endpoint: "https://auth.certified.one/oauth/authorize", token_endpoint: issuer + "/oauth/token",
-      pushed_authorization_request_endpoint: issuer + "/oauth/par", client_id_metadata_document_supported: true,
-      token_endpoint_auth_methods_supported: ["private_key_jwt"],
-      token_endpoint_auth_signing_alg_values_supported: ["ES256"], dpop_signing_alg_values_supported: ["ES256"],
-      require_pushed_authorization_requests: true, authorization_response_iss_parameter_supported: true,
-      code_challenge_methods_supported: ["S256"],
-    });
-    if (pathname === "/oauth/par") {
-      assert.ok(request.headers.get("dpop"));
-      par = new URLSearchParams(await request.text());
-      assert.equal(par.get("scope"), requested(membership));
-      assert.equal(par.get("client_id"), origin + paths.metadata);
-      assert.equal(par.get("redirect_uri"), origin + paths.callback);
-      assert.equal(par.get("code_challenge_method"), "S256");
-      assert.ok(par.get("client_assertion"));
-      assert.ok(!par.toString().includes(actor.sessionId));
-      assert.ok(!par.toString().includes(encodeURIComponent(actor.did)));
-      return Response.json({ request_uri: "urn:ietf:params:oauth:request_uri:fixture", expires_in: 300 }, { status: 201 });
-    }
-    if (pathname === "/oauth/token") {
-      exchanges++;
-      const parameters = new URLSearchParams(await request.text());
-      assert.equal(parameters.get("code"), code);
-      assert.equal(parameters.get("grant_type"), "authorization_code");
-      assert.ok(request.headers.get("dpop"));
-      assert.equal(createHash("sha256").update(parameters.get("code_verifier")!).digest("base64url"), par?.get("code_challenge"));
-      return Response.json({ sub: actor.did, token_type: "DPoP", expires_in: 300, access_token: "access-fixture",
-        refresh_token: "refresh-fixture", scope: requested(membership) });
-    }
-    assert.equal(pathname, "/xrpc/" + membership);
-    assert.equal(request.headers.get("atproto-proxy"), cgs);
-    assert.equal(request.headers.get("authorization"), "DPoP access-fixture");
-    assert.ok(request.headers.get("dpop"));
-    proxyCalls++;
-    return Response.json({ groups: [] });
-  });
-  const auth = await createCertifiedProjectAuth({ origin, cgsOrigin, signingKeys: [key], store, allowsDid: () => true, async resolveActor() { return actor; } });
-  const command = (action: string, cookie = "") =>
-    new Request(origin + "/api/certified-project-consent", { method: "POST", body: JSON.stringify({ action }),
-      headers: { Origin: origin, "Content-Type": "application/json", Cookie: cookie } });
-  const started = await auth.consent(command("membership"));
-  assert.equal(started.status, 200);
-  assert.match(JSON.stringify(await started.json()), /urn%3Aietf%3Aparams%3Aoauth%3Arequest_uri%3Afixture/);
-  const callback = () => new Request(origin + paths.callback + "?" +
-    new URLSearchParams({ state: par!.get("state")!, code, iss: issuer }), { headers: { Cookie: binding(started) } });
-  const completed = await auth.callback(callback());
-  assert.equal(projectStatus(completed), "ready");
-  assert.equal(projectStatus(await auth.callback(callback())), "failed");
-  assert.equal(exchanges, 1);
-  const confirmation = await auth.consent(command("finish", binding(completed)));
-  assert.equal(confirmation.status, 200);
-  const result = await auth.proxyServiceRequest(command("unused"), actor.did, membership, { method: "GET" });
+  const f = await projectSdkFixture(t);
+  const result = await f.auth.proxyServiceRequest(f.command(), f.actor.did, sdkMembership, { method: "GET" });
   assert.deepEqual(await result?.json(), { groups: [] });
-  assert.equal(proxyCalls, 1);
+  assert.equal(f.control.proxyCalls, 1);
 });
