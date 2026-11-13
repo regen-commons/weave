@@ -28,7 +28,7 @@ export function projectDatabase(value: string, ca?: string, poolMode?: string) {
   return postgres(url.href, {
     // Each warm function has its own client. Server-side transaction pooling is
     // still required to share the database's role budget across those functions.
-    max: 1, max_pipeline: 1, prepare: false, connect_timeout: 5, idle_timeout: 10, onnotice: () => {},
+    max: 1, max_pipeline: 1, prepare: false, queue_timeout: 10, connect_timeout: 5, idle_timeout: 10, onnotice: () => {},
     ssl: ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) ? false : {
       rejectUnauthorized: true, ca, servername: url.hostname,
     },
