@@ -123,8 +123,9 @@ its public organization/project in Ma Earth using Certified. Guide other new
 initiatives to Certified's group/project editor. Reuse existing organizations
 and projects before offering creation, then return to Weave and explicitly link
 the published project. This supersedes the earlier default of creating a new
-group and project inside Weave. It is a product decision; the current creator
-and its pending-operation recovery have not been replaced by this documentation.
+group and project inside Weave. The app implements the editor handoff locally as
+of 13 November. It retains pending-operation recovery and does not remove the
+legacy server create command. Hosted editor-return validation remains open.
 
 The [creation and return flow](08-accounts-and-saving.md#public-project-creation-and-return)
 owns the user journey. Certified remains the only Weave identity provider.

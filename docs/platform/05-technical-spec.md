@@ -703,9 +703,24 @@ tracks what still needs evidence or a decision.
 The user [decided on 12 November](open-decisions.md#public-project-editors-decided-12-november-2026)
 to use Ma Earth / Certified public project editors, then link the resulting
 record in Weave. This supersedes inline project creation as the first-release
-target. The existing creation command and durable intents are not removed by
-this specification update; their recovery and retirement need implementation
-review. Private saving and independent public support listings are unchanged.
+target. The app now preserves the device draft, stores a minimal account/draft-bound
+return hint in session storage, and opens the chosen editor's public entry point.
+Your initiative and Your Initiatives offer Find my project on return. Opening that
+task refreshes authorized discovery; linking remains an explicit selection and
+server-verified lookup. The hint contains no public profile, need, offer, file or
+authority claim. Local fixtures stand in for external publication.
+
+The live adapter applies the verified public fields and waits for durable device
+storage before clearing the hint and publishing the selection to the interface.
+This lets an initiative page remove its completed link task safely. Failed writes,
+task cancellation and intervening edits retain the hint without publishing a new
+selection; linking still uploads no private entries.
+
+The app's legacy creator only resumes an existing frozen intent, and an unreadable
+intent blocks a new external handoff. The server's create command is retained for
+older clients; full retirement still needs review. Private saving and independent
+public support listings are unchanged. No hosted configuration is changed by this
+slice; real external publication and return remain release checks.
 
 | Data or state | Authority and lifecycle | Module or API boundary |
 |---|---|---|

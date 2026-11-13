@@ -11,7 +11,8 @@ import { draftWithRecord } from "../src/initiative/import.ts";
 import { likelyDuplicate } from "../src/initiative/duplicates.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { accountFixture, fixtureSession } from "../dev/account-fixture.ts";
-import { projectEvidenceFixture, FIXTURE_TEAM_ADMIN, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_TEAM_ID } from "../dev/matching-fixture.ts";
+import { projectEvidenceFixture, FIXTURE_TEAM_ADMIN, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_TEAM_ID, FIXTURE_PROJECT_STARTER, publishFixtureProject } from "../dev/matching-fixture.ts";
+import { editorHandoffKey, readEditorHandoff } from "../src/initiative/editor-handoff.ts";
 
 const origin = "http://localhost:5175";
 async function fixture(id = FIXTURE_TEAM_ADMIN) {
@@ -158,4 +159,142 @@ test("refreshing a full first page restores pagination and rejects an older in-f
   await assert.rejects(olderPage, /saved list changed/);
   assert.equal(service.snapshot().cards.length, 19, "a stale page never replaces a refreshed list");
   assert.deepEqual(offsets, [20, 20]);
+});
+
+test("an external publication is discovered on return, explicitly selected and reused without uploading or replacing private entries", async () => {
+  const { service, controller, repo, bodies, opened } = await fixture(FIXTURE_PROJECT_STARTER);
+  const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
+  const initial = loadedDraft({ id: crypto.randomUUID(), document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, FIXTURE_PROJECT_STARTER);
+  await controller.replace(revise(initial, { composer: "Private unfinished source", account: { saved: null, pending: null } }));
+  const before = controller.getSnapshot().draft;
+  await service.reload();
+  assert.equal(service.snapshot().records.length, 0, "an upstream private draft is not a published record");
+  assert.equal(service.snapshot().project, null);
+  publishFixtureProject(FIXTURE_PROJECT_STARTER);
+  await service.reload();
+  const project = service.snapshot().records[0]!;
+  assert.equal(project.name, "Editor return project (fixture)");
+  assert.equal(service.snapshot().project, null, "discovery and return do not link automatically");
+  assert.equal(controller.getSnapshot().draft, before);
+  await service.linkProject(project.uri);
+  const after = controller.getSnapshot().draft;
+  assert.equal(after.id, before.id);
+  assert.deepEqual(after.needs, before.needs); assert.deepEqual(after.offers, before.offers);
+  assert.equal(after.composer, before.composer); assert.equal(repo.value?.id, before.id);
+  await service.reload(); await service.reload();
+  assert.equal(service.snapshot().records.filter(item => item.uri === project.uri).length, 1);
+  assert.equal(service.snapshot().project?.uri, project.uri, "the canonical AT URI is retained");
+  assert.ok(bodies.every(body => ["list_project_groups", "list_projects", "list_workspaces", "lookup"].includes(String(body.action))));
+  assert.deepEqual(opened, []);
+  assert.equal(service.snapshot().shared, null); assert.equal(service.snapshot().published, null);
+  await service.requestWorkspace();
+  const id = service.snapshot().project?.workspaceId;
+  assert.ok(id); assert.deepEqual(opened, [id]);
+  await service.reload();
+  assert.equal(service.snapshot().workspaces?.find(item => item.uri === project.uri)?.workspaceId, id);
+  assert.equal(bodies.some(body => ["save", "team_save", "create", "share", "publish_support"].includes(String(body.action))), false);
+});
+
+test("an older project discovery response cannot erase the refreshed return list", async () => {
+  const { controller } = await fixture();
+  let release!: (value: Record<string, unknown>) => void, delayed = true;
+  const project = { uri: "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/returned", cid: "fixture",
+    repoDid: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", title: "Returned project" };
+  const service = createLiveSocialService({ controller, account: { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null }, items: [] },
+    refreshAccount: async () => { throw Error("unused"); }, async signIn() {}, signedOut() {}, openWorkspace() {},
+    request: async (_path, input) => {
+      const body = record(input);
+      if (body.action === "list_project_groups") return { groups: [] };
+      if (body.action === "list_workspaces") return { workspaces: [] };
+      if (delayed) { delayed = false; return new Promise(resolve => { release = resolve; }); }
+      return { projects: [project] };
+    } });
+  const earlier = service.reload();
+  await service.reload();
+  release({ projects: [] }); await earlier;
+  assert.equal(service.snapshot().records[0]?.uri, project.uri);
+  assert.equal(service.status().problem, null); assert.equal(service.status().loading, false);
+});
+
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return { promise, resolve };
+}
+async function linkingFixture(beforeWrite: () => Promise<void>) {
+  const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
+  const seed = revise(loadedDraft({ id: crypto.randomUUID(), document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, FIXTURE_TEAM_ADMIN),
+    { composer: "Private source words", account: { saved: null, pending: null } });
+  const repo = new MemoryDraftRepository(seed);
+  const controller = new DraftController({ load: () => repo.load(), async save(draft, revision) { await beforeWrite(); await repo.save(draft, revision); } });
+  await controller.initialize();
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); }, removeItem: (key: string) => { values.delete(key); } };
+  storage.setItem(editorHandoffKey(FIXTURE_TEAM_ADMIN, seed.id), JSON.stringify({ version: 1, editor: "certified", owner: FIXTURE_TEAM_ADMIN, draftId: seed.id }));
+  const project = { uri: "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/durable-link", cid: "fixture",
+    repoDid: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", title: "Published project", description: "Verified public words." };
+  const account: AccountState = { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null }, items: [] };
+  const service = createLiveSocialService({ controller, account, storage, refreshAccount: async () => account,
+    async signIn() {}, signedOut() {}, openWorkspace() {},
+    request: async (_path, input) => {
+      const body = record(input);
+      if (body.action === "list_project_groups") return { groups: [] };
+      if (body.action === "list_workspaces") return { workspaces: [] };
+      if (body.action === "list_projects") return { projects: [project] };
+      assert.equal(body.action, "lookup"); return { status: "unlinked", projectUri: project.uri };
+    } });
+  controller.subscribe(() => service.syncAccount(account));
+  await service.reload();
+  const hint = () => readEditorHandoff(storage, FIXTURE_TEAM_ADMIN, seed.id);
+  return { service, controller, repo, project, hint, seed };
+}
+
+test("linking finishes durable device work and hint cleanup before the initiative host can unmount its task", async () => {
+  const started = deferred(), finish = deferred(), task = new AbortController();
+  const { service, controller, repo, project, hint, seed } = await linkingFixture(async () => { started.resolve(); await finish.promise; });
+  // The initiative page removes its link task as soon as a selection is published.
+  service.subscribe(() => {
+    if (service.snapshot().project) {
+      assert.equal(controller.getSnapshot().storage, "saved");
+      assert.equal(hint(), null);
+      task.abort();
+    }
+  });
+  const linking = service.linkProject(project.uri, task.signal);
+  await Promise.race([started.promise, linking.then(() => assert.fail("selection must wait for device storage"))]);
+  assert.equal(service.snapshot().project, null); assert.ok(hint());
+  finish.resolve();
+  assert.equal((await linking).uri, project.uri);
+  assert.equal(task.signal.aborted, true, "host removal happens only after completion");
+  assert.equal(repo.value?.confirmed?.name, project.title);
+  assert.equal(repo.value?.id, seed.id); assert.deepEqual(repo.value?.needs, seed.needs); assert.deepEqual(repo.value?.offers, seed.offers);
+});
+
+test("a failed device write retains the handoff and does not publish a selection that would hide its error", async () => {
+  const { service, controller, project, hint, seed } = await linkingFixture(async () => { throw Error("quota"); });
+  await assert.rejects(service.linkProject(project.uri), /could not be stored/);
+  assert.equal(service.snapshot().project, null); assert.ok(hint());
+  assert.equal(controller.getSnapshot().storage, "memory");
+  assert.equal(controller.getSnapshot().draft.composer, seed.composer);
+});
+
+test("canceling a link during device persistence retains its return hint and publishes no selection", async () => {
+  const started = deferred(), finish = deferred(), task = new AbortController();
+  const { service, project, hint } = await linkingFixture(async () => { started.resolve(); await finish.promise; });
+  const linking = service.linkProject(project.uri, task.signal);
+  await Promise.race([started.promise, linking.then(() => assert.fail("link finished before storage"))]);
+  task.abort(); finish.resolve();
+  await assert.rejects(linking, { name: "AbortError" });
+  assert.equal(service.snapshot().project, null); assert.ok(hint());
+});
+
+test("an edit while a link is being stored preserves the newer words and requires another review", async () => {
+  const started = deferred(), finish = deferred();
+  const { service, controller, repo, project, hint } = await linkingFixture(async () => { started.resolve(); await finish.promise; });
+  const linking = service.linkProject(project.uri);
+  await Promise.race([started.promise, linking.then(() => assert.fail("link finished before storage"))]);
+  controller.change(draft => revise(draft, { composer: "Newer private words" }));
+  finish.resolve(); await assert.rejects(linking, /device card changed/);
+  assert.equal(repo.value?.composer, "Newer private words");
+  assert.equal(service.snapshot().project, null); assert.ok(hint());
 });

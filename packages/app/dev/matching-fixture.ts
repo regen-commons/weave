@@ -87,6 +87,7 @@ export const FIXTURE_SECOND_EDITOR = "31000000-0000-4000-8000-000000000004";
 export const FIXTURE_TEAM_ADMIN = "31000000-0000-4000-8000-000000000005";
 export const FIXTURE_GROUP_MEMBER = "31000000-0000-4000-8000-000000000006";
 export const FIXTURE_UNAVAILABLE = "31000000-0000-4000-8000-000000000007";
+export const FIXTURE_PROJECT_STARTER = "31000000-0000-4000-8000-000000000008";
 const teamRoles = new Map([[FIXTURE_ACCOUNT_ID, "viewer"], [FIXTURE_TEAM_EDITOR, "editor"], [FIXTURE_TEAM_ADMIN, "admin"]]);
 const groupDid = "did:plc:bbbbbbbbbbbbbbbbbbbbbbbb";
 const groupUri = `at://${groupDid}/org.hypercerts.collection/watershed`;
@@ -98,6 +99,15 @@ const project = (uri: string, title: string, group?: string) => ({ uri, cid: "ba
   ...(group ? { groupDid: group } : {}), title, description: "A fictional local project for learning and watershed monitoring.", createdAt: "2026-11-01T00:00:00Z" });
 const fixtureProjects = [project(groupUri, "Watershed Team (fixture)", groupDid),
   project(memberUri, "Seed library (fixture)", memberGroup), project(personalUri, "Water notes (fixture)")];
+const externalGroup = "did:plc:ffffffffffffffffffffffff";
+const externalProject = project(`at://${externalGroup}/org.hypercerts.collection/editor-return`, "Editor return project (fixture)", externalGroup);
+let externalPublished = false;
+let externalWorkspace: string | null = null;
+/** Explicit local editor stand-in. Never writes to Certified or Ma Earth. */
+export function publishFixtureProject(owner: string) {
+  if (owner !== FIXTURE_PROJECT_STARTER) throw new AccountError(403, "workspace_admin_required");
+  externalPublished = true;
+}
 const invitations = new Map<string, { inviteId: string; status: string; expiresAt: string; claimedDid?: string; claimedHandle?: string }>([
   ["41000000-0000-4000-8000-000000000001", { inviteId: "41000000-0000-4000-8000-000000000001", status: "pending", expiresAt: "2027-01-01T00:00:00Z" }],
   ["41000000-0000-4000-8000-000000000002", { inviteId: "41000000-0000-4000-8000-000000000002", status: "claimed", expiresAt: "2027-01-01T00:00:00Z", claimedDid: "did:plc:dddddddddddddddddddddddd", claimedHandle: "orchard.certified.one" }],
@@ -110,11 +120,13 @@ const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>(
 export function fixtureTeam(token: string, id: string) {
   const account = fixtureActor(token).userId;
   const accessRole = id === FIXTURE_TEAM_ID ? teamRoles.get(account)
-    : id === FIXTURE_SECOND_TEAM_ID && account === FIXTURE_SECOND_EDITOR ? "editor" : undefined;
+    : id === FIXTURE_SECOND_TEAM_ID && account === FIXTURE_SECOND_EDITOR ? "editor"
+    : id === externalWorkspace && account === FIXTURE_PROJECT_STARTER ? "admin" : undefined;
   if (!accessRole) throw new AccountError(404, "not_found");
   let saved = teamSaves.get(id);
   if (!saved) {
     saved = { id, revision: 1, updatedAt: new Date().toISOString(), document: structuredClone(teamDocument) };
+    if (id === externalWorkspace) saved.document.initiative.name = externalProject.title;
     teamSaves.set(id, saved);
   }
   return { account, saved, accessRole };
@@ -137,6 +149,18 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
   },
   async execute(request, actor, command) {
     if (actor.userId === FIXTURE_UNAVAILABLE) throw new AccountError(503, "project_workspace_unavailable");
+    if (actor.userId === FIXTURE_PROJECT_STARTER) {
+      if (command.action === "list_project_groups") return { groups: externalPublished ? [{ groupDid: externalGroup, role: "owner", displayName: "Editor return group (fixture)" }] : [] };
+      if (command.action === "list_projects") return { projects: externalPublished && command.target.kind === "group" && command.target.groupDid === externalGroup ? [externalProject] : [] };
+      if (command.action === "list_workspaces") return { workspaces: externalWorkspace ? [{ workspaceId: externalWorkspace,
+        projectUri: externalProject.uri, kind: "group", accessRole: "admin", project: externalProject }] : [], pendingSetups: [] };
+      if (command.action === "lookup" && command.projectUri === externalProject.uri && externalPublished)
+        return externalWorkspace ? { status: "linked", workspaceId: externalWorkspace, projectUri: externalProject.uri, accessRole: "admin" } : { status: "unlinked", projectUri: externalProject.uri };
+      if (command.action === "activate" && command.projectUri === externalProject.uri && externalPublished) {
+        externalWorkspace ??= crypto.randomUUID();
+        return { status: "linked", workspaceId: externalWorkspace, projectUri: externalProject.uri, accessRole: "admin" };
+      }
+    }
     if (command.action === "list_project_groups") return { groups: [
       { groupDid, role: actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member", handle: "watershed.certified.one", displayName: "Watershed team" },
       { groupDid: memberGroup, role: "member", handle: "seed-library.certified.one", displayName: "Valley seed keepers" },
@@ -185,11 +209,11 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     if (command.action !== "public_evidence" && command.action !== "team_load" && command.action !== "team_save")
       throw new AccountError(503, "project_workspace_unavailable");
     const now = new Date().toISOString();
-    const isTeam = [FIXTURE_TEAM_ID, FIXTURE_SECOND_TEAM_ID].includes(command.workspaceId);
+    const isTeam = [FIXTURE_TEAM_ID, FIXTURE_SECOND_TEAM_ID, externalWorkspace].includes(command.workspaceId);
     const team = isTeam ? fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId) : null;
     if (command.action === "team_load") {
       if (!team) throw new AccountError(404, "not_found");
-      return { saved: team.saved, accessRole: team.accessRole, projectTitle: null, projectUri: groupUri };
+      return { saved: team.saved, accessRole: team.accessRole, projectTitle: null, projectUri: command.workspaceId === externalWorkspace ? externalProject.uri : groupUri };
     }
     if (command.action === "team_save") {
       if (!team) throw new AccountError(404, "not_found");

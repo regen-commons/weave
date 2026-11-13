@@ -8,6 +8,8 @@ import { projectPage, setupPage, workspacePage, type PublicProject } from "../in
 import { saveForProject } from "../initiative/project-save.ts";
 import { projectChoiceKey } from "./project-choice.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
+import { draftWithRecord } from "../initiative/import.ts";
+import { finishEditorHandoff } from "../initiative/editor-handoff.ts";
 import type { CertifiedRecord, ProjectLink, SocialService, SocialState } from "./fixture.ts";
 
 export type LiveSocialService = Pick<SocialService,
@@ -38,6 +40,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   const listeners = new Set<() => void>();
   const lifetime = new AbortController();
   let loading = false, problem: string | null = null, consent = false;
+  let reloadGeneration = 0;
   let cardsKey = JSON.stringify(options.account.items), cardsGeneration = 0, nextCardOffset = options.account.items.length;
   let selected: { scope: string; uri: string } | null = null;
   const key = () => projectChoiceKey(owner ?? "", options.controller.getSnapshot().draft.id);
@@ -77,6 +80,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   }
   async function reload() {
     if (!owner || lifetime.signal.aborted) return;
+    const generation = ++reloadGeneration;
+    const current = () => generation === reloadGeneration && !lifetime.signal.aborted;
     loading = true; problem = null; consent = false; emit();
     try {
       const [groups, workspaces, personal] = await Promise.allSettled([
@@ -97,6 +102,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
           return { items: page.projects, cursor: page.cursor }; }),
       ]);
       checked();
+      if (!current()) return;
       const records: CertifiedRecord[] = personal.status === "fulfilled" ? personal.value.map(p => certifiedRecord(p)) : [];
       const failures: unknown[] = [groups, workspaces, personal].flatMap(result => result.status === "rejected" ? [result.reason] : []);
       const setupRequests: { requestId: string; projectUri: string; name: string }[] = [];
@@ -123,6 +129,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
             return { items: page.projects, cursor: page.cursor }; });
           return projects.map(project => certifiedRecord(project, group));
         }));
+        if (!current()) return;
         for (const page of pages) if (page.status === "fulfilled") records.push(...page.value); else failures.push(page.reason);
       }
       checked();
@@ -143,8 +150,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
         problem = consent ? "Allow Weave to check your Certified projects to continue."
           : "Some Certified projects could not be checked. Your private saves are still available.";
       }
-    } catch (error) { if (!lifetime.signal.aborted) problem = accountMessage(error); }
-    finally { loading = false; emit(); }
+    } catch (error) { if (current()) problem = accountMessage(error); }
+    finally { if (current()) { loading = false; emit(); } }
   }
   const find = (uri: string) => [...state.records, ...(state.workspaces ?? [])].find(p => p.uri === uri);
   const service: LiveSocialService = {
@@ -187,10 +194,12 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       const account = await options.refreshAccount(); checked();
       service.syncAccount(account);
     },
-    async linkProject(uri) {
+    async linkProject(uri, signal) {
+      signal?.throwIfAborted();
       const chosen = find(uri); if (!chosen) throw Error("Check your Certified projects again before linking.");
       const before = options.controller.getSnapshot().draft;
       const result = await post({ action: "lookup", projectUri: uri });
+      signal?.throwIfAborted();
       if (options.controller.getSnapshot().draft !== before) throw Error("Your device card changed. Review it before choosing this project again.");
       let link = linkOf(chosen);
       if (result.status === "linked") {
@@ -199,6 +208,14 @@ export function createLiveSocialService(options: Options): LiveSocialService {
           accessRole: result.accessRole === "viewer" ? "viewer" : result.accessRole === "editor" ? "editor" : "admin" };
       } else if (result.status === "access_required") throw Error("Ask a workspace admin for an invitation to this project.");
       else if (result.status !== "unlinked" && result.status !== "pending") throw Error("The project could not be linked.");
+      // Publish selection only after the reviewed device update is durable. Its host may
+      // remove the link task as soon as state.project appears.
+      const linkedDraft = options.controller.change(current => draftWithRecord(current, chosen));
+      await options.controller.settled(); checked(); signal?.throwIfAborted();
+      const current = options.controller.getSnapshot();
+      if (current.draft !== linkedDraft) throw Error("Your device card changed. Review it before choosing this project again.");
+      if (current.storage !== "saved") throw Error("The project could not be finished because the latest device changes could not be stored. Keep this tab open and try device storage again.");
+      finishEditorHandoff(options.storage, owner!, before.id);
       select(uri); state = { ...state, project: link }; emit(); return link;
     },
     async openWorkspace(uri) {
@@ -224,7 +241,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (!options.storage) throw Error("Device storage is needed to keep this creation request safe.");
       const { result } = await submitProjectCreate({ owner: owner!, draftId: options.controller.getSnapshot().draft.id, groupLabel,
         profile: { title: card.name, description: card.description }, storage: options.storage,
-        save: () => saveForProject(options.controller, owner!, lifetime.signal), request: post, signal: lifetime.signal });
+        save: () => saveForProject(options.controller, owner!, lifetime.signal), request: post, signal: lifetime.signal, resumeOnly: true });
       if (result.status !== "linked" || !uuid(result.workspaceId) || typeof result.projectUri !== "string")
         throw Error("Certified is still confirming creation. Check again with the same request.");
       select(result.projectUri);
