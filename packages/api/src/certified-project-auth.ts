@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 import { JoseKey, NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession, type NodeSavedState } from "@atproto/oauth-client-node";
 import type postgres from "postgres";
 import { boundedJson } from "./account-http.ts";
@@ -46,7 +47,7 @@ interface ProjectOAuthRecords {
   remove(kind: Kind, id: string): Promise<void>;
 }
 export interface ProjectOAuthStore extends ProjectOAuthRecords {
-  withLock<T>(id: string, run: (records: ProjectOAuthRecords) => Promise<T>): Promise<T>;
+  withLock<T>(id: string, run: (records: ProjectOAuthRecords) => Promise<T>, signal?: AbortSignal): Promise<T>;
 }
 
 /** Dedicated database role, private schema and project-specific encryption keys. */
@@ -83,12 +84,24 @@ export function projectOAuthStore(sql: postgres.Sql, cipher: StateCipher): Proje
   };
   return {
     ...records(sql),
-    async withLock<T>(id: string, run: (locked: ProjectOAuthRecords) => Promise<T>): Promise<T> {
-      return await sql.begin(async tx => {
-        await tx`set local lock_timeout = '2s'`;
-        await tx`select pg_advisory_xact_lock(hashtextextended(${cipher.index("grant-lock", id)}, 0))`;
-        return run(records(tx));
-      }) as T;
+    async withLock<T>(id: string, run: (locked: ProjectOAuthRecords) => Promise<T>, signal?: AbortSignal): Promise<T> {
+      const deadline = AbortSignal.any([AbortSignal.timeout(10000), ...(signal ? [signal] : [])]);
+      let backoff = 25;
+      while (true) {
+        deadline.throwIfAborted();
+        const outcome = await sql.begin(async tx => {
+          deadline.throwIfAborted();
+          const [row] = await tx`select pg_try_advisory_xact_lock(hashtextextended(${cipher.index("grant-lock", id)}, 0)) as acquired`;
+          if (!row?.acquired) return { acquired: false } as const;
+          deadline.throwIfAborted();
+          return { acquired: true, value: await run(records(tx)) } as const;
+        }) as { acquired: false } | { acquired: true; value: T };
+        if (outcome.acquired) return outcome.value;
+        // Only a busy lock retries. Never replay a callback, refresh, SQL error or
+        // uncertain commit. The losing transaction ends before the backoff.
+        await delay(backoff, undefined, { signal: deadline });
+        backoff = Math.min(backoff * 2, 250);
+      }
     },
   };
 }
@@ -332,7 +345,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       const ttl = Math.floor((grant.expiresAt - Date.now()) / 1000);
       if (grantKey(grant) !== key || ttl < 1) throw denied();
       await locked.put("grant", key, grant, ttl);
-    });
+    }, request.signal);
     return response({ granted: candidate.action }, 200, writeCookie());
   }
   async function selectGrant(actor: CertifiedProjectActor, methods: readonly string[]) {
@@ -349,6 +362,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
   }
   async function callAsActor<T>(request: Request, expectedDid: string, method: CertifiedProjectRpc,
     run: (session: ScopedSession, signal: AbortSignal) => Promise<T>, signal?: AbortSignal): Promise<T | null> {
+    const deadline = AbortSignal.any([request.signal, AbortSignal.timeout(10000), ...(signal ? [signal] : [])]);
     const actor = await getActor(request);
     if (!actor || actor.did !== expectedDid) return null;
     const selected = await selectGrant(actor, [method]);
@@ -359,7 +373,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       const grant = savedGrant(raw);
       if (!sameActor(grant, actor) || grant.action !== selected.action || grant.expiresAt <= Date.now())
         return { value: null } as const;
-      const deadline = AbortSignal.any([request.signal, AbortSignal.timeout(10000), ...(signal ? [signal] : [])]);
+      deadline.throwIfAborted();
       const client = makeClient(deadline, undefined, {
         get: async did => did === actor.did ? grant.session : undefined,
         async set(did, session) {
@@ -382,7 +396,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
         // Commit that storage update before surfacing the failure.
         return { error } as const;
       }
-    });
+    }, deadline);
     if ("error" in outcome) throw outcome.error;
     return outcome.value;
   }
