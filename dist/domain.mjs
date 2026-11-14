@@ -150,6 +150,8 @@ export function filterFunds(funds, state, savedIds = [], now = new Date()) {
     return words.every((w) => hay.includes(w));
   });
 }
+// Orders that rank funds for a project: next-step priority and thematic fit.
+export const PROJECT_SORTS = ["match", "fit"];
 // Project identity stays off shared URLs, so a URL without `profile` keeps the
 // current list. Resolve that list first: project-fit sorting needs a project.
 export function profileAndSortFromUrl(params, saved, currentProfile) {
@@ -158,12 +160,12 @@ export function profileAndSortFromUrl(params, saved, currentProfile) {
     : "all";
   if (!params.has("profile") && Object.hasOwn(saved.lists, currentProfile))
     profile = currentProfile;
-  let sort = ["match", "recommended", "name", "deadline"].includes(
+  let sort = [...PROJECT_SORTS, "recommended", "name", "deadline"].includes(
     params.get("sort"),
   )
     ? params.get("sort")
     : "recommended";
-  if (sort === "match" && !saved.projects.some((p) => p.id === profile))
+  if (PROJECT_SORTS.includes(sort) && !saved.projects.some((p) => p.id === profile))
     sort = "recommended";
   return { profile, sort };
 }

@@ -384,6 +384,13 @@ export const MATCH_GROUPS = {
   unverified: "Unverified funding offers",
   limited: "Limited relevance", outside: "Conflicts or funding preferences",
 };
+// A ranked project lists every record until someone picks a group to narrow it.
+export const matchViewFromUrl = (params) =>
+  Object.hasOwn(MATCH_GROUPS, params.get("matches")) ? params.get("matches") : "all";
+// The thematic-fit order: highest grade first and unassessed fit last. Equal grades
+// keep next-step priority order. Readiness and eligibility checks are unchanged.
+export const compareThematicFit = (a, b) =>
+  (b.thematicFit.score ?? -1) - (a.thematicFit.score ?? -1) || compareMatches(a, b);
 function matchGroup(match) {
   if (match.eligibility.status === "conflict" || match.instrument.status === "mismatch") return "outside";
   if (!match.program && !match.resourceOnly) return "unverified";

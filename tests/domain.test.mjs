@@ -420,3 +420,11 @@ test("project-fit sorting from a URL needs a current or named project", () => {
     { profile: "garden-1", sort: "recommended" },
   );
 });
+
+test("thematic-fit sorting from a URL keeps the project and needs one", () => {
+  const saved = upsertProject(emptySaved(), { id: "garden-1", name: "Garden" });
+  const fit = new URLSearchParams("?sort=fit");
+  assert.deepEqual(profileAndSortFromUrl(fit, saved, "garden-1"), { profile: "garden-1", sort: "fit" });
+  assert.deepEqual(profileAndSortFromUrl(fit, saved, "all"), { profile: "all", sort: "recommended" });
+  assert.deepEqual(profileAndSortFromUrl(fit, saved, "general"), { profile: "general", sort: "recommended" });
+});
