@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { rankFunds, createLexicalIndex, corpusDocuments, conditionKey, THEMATIC_SCORE_VERSION } from '../dist/matching.mjs';
+import { rankFunds, createLexicalIndex, corpusDocuments, conditionKey, compareThematicFit, matchViewFromUrl, THEMATIC_SCORE_VERSION } from '../dist/matching.mjs';
 import { normalizeProject, emptySaved, upsertProject } from '../dist/storage.mjs';
 import { favoritesCsv } from '../dist/domain.mjs';
 const json = path => JSON.parse(fs.readFileSync(new URL('../'+path,import.meta.url)));
@@ -73,6 +73,24 @@ test('all 699 records have bounded independent fit metrics and preserve conflict
   if(m.group==='lead')assert.ok(m.thematicFit.score>=60);
   if(m.eligibility.status==='conflict'){assert.equal(m.score,0);assert.equal(m.group,'outside');assert.equal(m.readiness.status,'conflict');}
  }
+});
+
+test('the thematic-fit order puts the highest fit first, unassessed fit last and ties in next-step order',()=>{
+ const ranked=rank(funds,solar,null),priority=new Map(ranked.map((m,i)=>[m.fund.id,i]));
+ const byFit=[...ranked].sort(compareThematicFit),grade=m=>m.thematicFit.score??-1;
+ assert.equal(byFit.length,699);assert.notDeepEqual(byFit.map(m=>m.fund.id),ranked.map(m=>m.fund.id));
+ assert.equal(grade(byFit[0]),Math.max(...ranked.map(grade)));assert.equal(byFit.at(-1).thematicFit.score,null);
+ for(const [i,m] of byFit.entries()) if(i){
+  assert.ok(grade(byFit[i-1])>=grade(m));
+  if(grade(byFit[i-1])===grade(m))assert.ok(priority.get(byFit[i-1].fund.id)<priority.get(m.fund.id));
+ }
+});
+
+test('a ranked project lists every record until someone picks a match group',()=>{
+ assert.equal(matchViewFromUrl(new URLSearchParams('')),'all');
+ assert.equal(matchViewFromUrl(new URLSearchParams('?matches=all')),'all');
+ assert.equal(matchViewFromUrl(new URLSearchParams('?matches=lead')),'lead');
+ assert.equal(matchViewFromUrl(new URLSearchParams('?matches=popular')),'all');
 });
 
 test('CSV distinguishes research priority, thematic fit and readiness and retains saved conflicts',()=>{
