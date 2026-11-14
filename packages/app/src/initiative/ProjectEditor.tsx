@@ -46,22 +46,23 @@ export function ProjectEditorStep({ onCancel, onCreated }: { onCancel(): void; o
     } finally { if (!signal.aborted) { running.current = false; setBusy(false); } }
   }
   return <section className="rc-stack" aria-busy={busy}>
-    <h3 className="rc-heading" data-size="section">Create your public project</h3>
     <fieldset className="rc-choice-group" disabled={busy}>
-      <legend>Where would you like to manage it?</legend>
+      <legend>Where do you want to create your public project?</legend>
       <label className="rc-choice"><input className="rc-check" type="radio" name={editorName} checked={editor === "certified"}
         onChange={() => setEditor("certified")} /><span className="rc-choice-text"><span className="rc-choice-title">Certified</span>
         <span className="rc-choice-note">For any initiative, including art, software and research.</span></span></label>
       <label className="rc-choice"><input className="rc-check" type="radio" name={editorName} checked={editor === "maearth"}
         onChange={() => setEditor("maearth")} /><span className="rc-choice-text"><span className="rc-choice-title">Ma Earth</span>
-        <span className="rc-choice-note">For nature and community initiatives that want to participate there.</span></span></label>
+        <span className="rc-choice-note">For nature and community initiatives that want to take part there.</span></span></label>
     </fieldset>
-    <p>Your work stays here. The editor may ask you to sign in. Publish there, then use Back to return and find your project.</p>
-    <details><summary className="rc-footer-link">Before you leave</summary>
-      <p>Choose or create a shared organization or group, even if you start alone. You can reuse it for several projects.</p>
-      <p>Weave sends none of your draft, files, needs or offers. A private draft in Ma Earth may not appear here until it is published. Creating a profile is separate from applying for funding.</p>
-    </details>
+    {/* What people need before leaving; the rest waits under Before you leave. */}
+    <p>Your draft stays in Weave. {PROJECT_EDITORS[editor].name} may ask you to sign in again. Publish your project there, then come back and choose Find my project.</p>
     {pending && <p className="rc-meta">Reuse any organization or project you already started there.</p>}
+    <details><summary className="rc-footer-link">Before you leave</summary>
+      <p>Reuse your organization or group if you have one. If not, create a shared one, even if you start alone. It can hold several projects.</p>
+      <p>Weave sends none of your draft, files, needs or offers, so nothing is filled in for you there. A private draft in Ma Earth may not appear here until it is published.</p>
+      <p>Creating a public profile is separate from applying for funding. To come back, use your browser's Back button or open Weave again.</p>
+    </details>
     <div className="rc-action-bar">
       <button className="rc-button" data-variant="primary" type="button" disabled={busy || social.loading || !!social.problem}
         onClick={() => void leave()}>Continue to {PROJECT_EDITORS[editor].name}</button>

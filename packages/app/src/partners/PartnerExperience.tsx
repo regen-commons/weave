@@ -76,7 +76,9 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
               <p className="rc-notice" data-tone="warning" role="alert">Your session ended. Sign in again to continue matching.</p>
             ) : (
               <p>{project?.group && !linkedId
-                ? "Your team workspace needs approval and an access grant before partner suggestions can open."
+                ? project.role === "member"
+                  ? "Your team workspace needs approval and an access grant before partner suggestions can open."
+                  : "Set up the team workspace to open partner suggestions."
                 : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
                   : "Link a Certified project to get partner suggestions for your private needs and offers."}</p>
             )}

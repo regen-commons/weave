@@ -34,6 +34,7 @@ export function Settings() {
   const status = useCardStatus();
   const openDoor = useAccountDoor();
   const information = useInformation();
+  const accountTask = !(import.meta.env.DEV && example) && hasDraft(draft);
   async function perform(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -69,7 +70,6 @@ export function Settings() {
             >
               <strong>{cardName(draft)}</strong>. {status.line}
             </StatusLine>
-            {!(import.meta.env.DEV && example) && <AccountSection showLeave={false} />}
           </>
         ) : (
           <>
@@ -108,18 +108,24 @@ export function Settings() {
           )
         ) : (
           <>
-            <p>
-              {account.state?.user
-                ? "Signed in with Certified."
-                : "Sign in with Certified when you want a private saved copy."}
-            </p>
+            {/* With a card on this device, the account's saved cards, saving and backups live here, once. */}
+            {accountTask ? (
+              <AccountSection showLeave={false} heading={false} />
+            ) : (
+              <p>
+                {account.state?.user
+                  ? "Signed in with Certified."
+                  : "Sign in with Certified when you want a private saved copy."}
+              </p>
+            )}
             <p className="rc-meta">
               Certified handles sign-in. Weave does not keep an email address from sign-in. Reminders and
               introductions will need separate contact details and permission.
             </p>
           </>
         )}
-        <AboutCertified />
+        {/* The sign-in offer already explains Certified, so the explanation shows once. */}
+        {!(accountTask && account.state?.available && !account.state.user) && <AboutCertified />}
       </SettingsSection>
       <SettingsSection title="Assistant">
         <p>

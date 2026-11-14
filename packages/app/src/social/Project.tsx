@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftWithRecord } from "../initiative/import.ts";
-import { publicCard } from "../initiative/status.ts";
+import { cardName, publicCard } from "../initiative/status.ts";
 import { Facts } from "../ui/Facts.tsx";
 import { keepFocusOnPage } from "../ui/focus.ts";
 import { StatusLine } from "../ui/StatusLine.tsx";
@@ -14,7 +14,7 @@ import { useAccountDoor } from "../account/door.tsx";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { ExampleDoor } from "./Door.tsx";
 import { type CertifiedRecord, type ProjectLink } from "./fixture.ts";
-import { linkEffect, projectLine, publicFacts, replacesCard, workspaceLine, workspaceOpenLine } from "./words.ts";
+import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, workspaceLine, workspaceOpenLine } from "./words.ts";
 
 /** The choice that opens the external editors after checking existing projects. */
 const NEW = "new";
@@ -23,16 +23,31 @@ const NEW = "new";
  * Ties the initiative to a selected Certified project, including one created in an external editor.
  * Returning never creates a record or links one automatically. The live adapter reads projects and membership; development examples
  * use the same choice with synthetic records.
+ *
+ * One line says what the check of existing projects found, with its one way to act. The list stays
+ * in view, and the chosen option opens below it: a project's review, or the choice of editor.
  */
-export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): void; onCancel(): void }) {
+export function ProjectStep({
+  onDone,
+  onCancel,
+  initial,
+  alternative,
+}: {
+  onDone(link: ProjectLink): void;
+  onCancel(): void;
+  /** A project the person already picked, such as from its card on Your Initiatives. */
+  initial?: string;
+  /** Shown in place of Not now while that project stays chosen, such as starting a separate card from it. */
+  alternative?: ReactNode;
+}) {
   const fixture = useSocial();
   const { draft, controller } = useDraft();
   const name = useId();
-  const [choice, setChoice] = useState<string | null>(null);
+  const reviewTitle = useId();
+  const [choice, setChoice] = useState<string | null>(initial ?? null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
-  const body = useRef<HTMLDivElement>(null);
   const lifetime = useRef<AbortController | null>(null);
   useEffect(() => {
     const current = new AbortController(); lifetime.current = current;
@@ -48,17 +63,22 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
   const storage = editorStorage(() => window.sessionStorage);
   const pending = readEditorHandoff(storage, owner, draft.id);
   const card = publicCard(draft);
-  const picked = records.length || pending ? choice : NEW;
+  // With nothing found, the only way on is an editor, so its choice shows at once.
+  const picked = records.length ? choice : NEW;
   const record = records.find((item) => item.uri === picked);
+  const discovery = discoveryLine({
+    loading: !!fixture.loading,
+    problem: fixture.problem ?? null,
+    consent: !!fixture.consent,
+    found: records.length,
+    editor: pending ? PROJECT_EDITORS[pending.editor].name : null,
+  });
   function choose(value: string) {
     setChoice(value);
     setMessage("");
     setFailed(false);
   }
-  function openEditor() {
-    flushSync(() => choose(NEW));
-    body.current?.querySelector<HTMLInputElement>('section input[type="radio"]:checked')?.focus();
-  }
+  const checkAgain = () => void (fixture.reload ? fixture.reload() : service.checkAgain().then(refresh));
   async function run(action: () => Promise<ProjectLink>) {
     const signal = lifetime.current?.signal;
     if (busy || !signal || signal.aborted) return;
@@ -93,100 +113,107 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
       return linked;
     });
   }
+  const status = (
+    <StatusLine
+      actions={
+        discovery.action === "consent" ? <ConsentButton action="membership" />
+          : discovery.action === "retry" ? (
+            <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={busy} onClick={checkAgain}>Try again</button>
+          ) : discovery.action === "check" ? (
+            <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy} onClick={checkAgain}>Check again</button>
+          ) : undefined
+      }
+    >
+      {discovery.line}
+    </StatusLine>
+  );
+  const notice = message && (
+    <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
+      {message}
+    </p>
+  );
   if (live && !records.length && (fixture.loading || fixture.problem)) return <div className="rc-stack">
-    <p role="status">{fixture.loading ? "Checking your Certified projects" : fixture.problem}</p>
-    {fixture.consent ? <ConsentButton action="membership" /> : fixture.problem && <button className="rc-button" data-variant="secondary" type="button" onClick={() => void fixture.reload?.()}>Try again</button>}
-    <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Not now</button>
+    {status}
+    <div className="rc-action-bar">
+      <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Not now</button>
+    </div>
   </div>;
-  if (picked === NEW) return <div className="rc-stack" ref={body}>
-    {fixture.problem && <p role="status">{fixture.problem}</p>}
-    {fixture.consent && <ConsentButton action="membership" />}
-    <button className="rc-button" data-variant="quiet" type="button" onClick={() => {
-      setChoice(null);
-      void (fixture.reload ? fixture.reload() : service.checkAgain().then(refresh));
-    }}>Check existing projects</button>
+  const editorStep = (
     <ProjectEditorStep key={`${owner}/${draft.id}`} onCancel={onCancel}
       onCreated={() => { void fixture.reload?.(); onCancel(); }} />
-  </div>;
+  );
+  if (!records.length) return <div className="rc-stack">{status}{editorStep}</div>;
   return (
-    <div className="rc-stack" aria-busy={busy} ref={body}>
-      {pending && <p role="status">Check for a published project from {PROJECT_EDITORS[pending.editor].name}. Your device work is still here.</p>}
-      {fixture.loading && <p role="status">Checking your Certified projects</p>}
-      {fixture.problem && <p role="status">{fixture.problem}</p>}
-      {fixture.consent && <ConsentButton action="membership" />}
-      {!fixture.loading && !fixture.consent && <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={() => void (fixture.reload ? fixture.reload() : service.checkAgain().then(refresh))}>Check projects again</button>}
-      {records.length > 0 ? (
-        <fieldset className="rc-choice-group">
-          <legend>Which project is this initiative?</legend>
-          {records.map((item) => (
-            <label className="rc-choice" key={item.uri}>
-              <input
-                className="rc-check"
-                type="radio"
-                name={name}
-                checked={choice === item.uri}
-                disabled={busy}
-                onChange={() => choose(item.uri)}
-              />
-              <span className="rc-choice-text">
-                <span className="rc-choice-title">{item.name}</span>
-                <span className="rc-choice-note">{projectLine(item)}</span>
-              </span>
-            </label>
-          ))}
-          <label className="rc-choice">
-            <input
-              className="rc-check"
-              type="radio"
-              name={name}
-              checked={choice === NEW}
-              disabled={busy}
-              onChange={openEditor}
-            />
+    <div className="rc-stack" aria-busy={busy}>
+      {status}
+      <fieldset className="rc-choice-group">
+        <legend>Which project is {cardName(draft)}?</legend>
+        {records.map((item) => (
+          <label className="rc-choice" key={item.uri}>
+            <input className="rc-check" type="radio" name={name} checked={choice === item.uri} disabled={busy}
+              onChange={() => choose(item.uri)} />
             <span className="rc-choice-text">
-              <span className="rc-choice-title">A new project</span>
-              <span className="rc-choice-note">Create it in Ma Earth or Certified, then return.</span>
+              <span className="rc-choice-title">{item.name}</span>
+              <span className="rc-choice-note">{projectLine(item)}</span>
             </span>
           </label>
-        </fieldset>
-      ) : (
-        <p>No published project was found yet. Private drafts in the other app may not appear here.</p>
-      )}
+        ))}
+        <label className="rc-choice">
+          <input className="rc-check" type="radio" name={name} checked={choice === NEW} disabled={busy}
+            onChange={() => choose(NEW)} />
+          <span className="rc-choice-text">
+            <span className="rc-choice-title">A new project</span>
+            <span className="rc-choice-note">Create it in Ma Earth or Certified, then come back to link it.</span>
+          </span>
+        </label>
+      </fieldset>
       {record && (
-        <section className="rc-section">
-          <h3 className="rc-heading" data-size="section">
+        <section className="rc-section" aria-labelledby={reviewTitle}>
+          <h3 className="rc-heading" data-size="section" id={reviewTitle}>
             Use {record.name}
           </h3>
-          <Facts items={publicFacts(record)} />
-          <p>{live ? "Linking keeps your needs and offers private. Saving to a team is a separate reviewed action." : linkEffect(record, !!state.saved)}</p>
-          <p>
-            {replacesCard(card, record)
-              ? live ? "The verified name and description replace those on your card. Your needs and offers stay as they are." : "These four details replace the ones on your card. Your needs and offers stay as they are."
-              : "Your needs and offers stay as they are."}
-          </p>
+          {/* Live projects supply only some fields; the rest of the card stays as it is. */}
+          <Facts items={publicFacts(record, live ? record.verifiedFields : undefined)} />
+          {live ? (
+            <>
+              <p>
+                {replacesCard(card, record) ? "Your card takes this name and description. " : ""}
+                Its needs and offers stay private and unchanged.
+              </p>
+              <p className="rc-meta">Saving to a team, sharing and publishing stay separate steps.</p>
+            </>
+          ) : (
+            <>
+              <p>{linkEffect(record, !!state.saved)}</p>
+              <p>
+                {replacesCard(card, record)
+                  ? "These four details replace the ones on your card. Your needs and offers stay as they are."
+                  : "Your needs and offers stay as they are."}
+              </p>
+            </>
+          )}
           <details>
             <summary className="rc-footer-link">Where these details come from</summary>
             <p>
-              {live ? "The name and description come from Certified. Other details stay on your card." : "After linking, the name, place, description and links come from Certified. Change them there and Weave shows the latest."}
+              {live
+                ? "The name and description come from Certified. Other details stay as they are on your card."
+                : "After linking, the name, place, description and links come from Certified. Change them there and Weave shows the latest."}
             </p>
           </details>
           <div className="rc-action-bar">
-            <button
-              className="rc-button"
-              data-variant="primary"
-              type="button"
-              disabled={busy}
-              onClick={() => void link(record)}
-            >
+            <button className="rc-button" data-variant="primary" type="button" disabled={busy}
+              onClick={() => void link(record)}>
               Link this project
             </button>
-            <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onCancel}>
-              Not now
-            </button>
+            {alternative && record.uri === initial ? alternative : (
+              <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onCancel}>
+                Not now
+              </button>
+            )}
           </div>
         </section>
       )}
-      {pending && !records.length && <button className="rc-button" data-variant="secondary" type="button" onClick={openEditor}>Open the editor again</button>}
+      {picked === NEW && editorStep}
       {!record && picked !== NEW && (
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>
@@ -194,16 +221,7 @@ export function ProjectStep({ onDone, onCancel }: { onDone(link: ProjectLink): v
           </button>
         </div>
       )}
-      {message &&
-        (failed ? (
-          <p className="rc-notice" data-tone="warning" role="alert">
-            {message}
-          </p>
-        ) : (
-          <p className="rc-notice" data-tone="info" role="status">
-            {message}
-          </p>
-        ))}
+      {notice}
       {live && record?.role === "owner" && failed && service.recoverWorkspace && <details>
         <summary className="rc-footer-link">Recover a workspace without an admin</summary>
         <p>A verified Certified group owner can recover an existing workspace only when it has no active admin. Saved team work is preserved.</p>
@@ -247,7 +265,8 @@ export function ProjectAction({
       >
         {pending ? "Find my project" : children}
       </button>
-      <TaskDialog title="Your Certified project" open={open} onClose={close}>
+      {/* Ma Earth and Certified projects are both Certified records, so the title names neither editor. */}
+      <TaskDialog title="Your project" open={open} onClose={close}>
         {fixture.state.identity ? (
           <ProjectStep key={`${owner}/${draft.id}`} onDone={close} onCancel={close} />
         ) : import.meta.env.DEV ? (
@@ -325,7 +344,8 @@ export function WorkspaceRow({ primary = false, focus = false }: { primary?: boo
       >
         {line ?? workspaceOpenLine(project)}
       </StatusLine>
-      {line && (
+      {/* Only a member waits on someone else; an admin or owner sets the workspace up directly. */}
+      {line && project.role === "member" && (
         <p className="rc-meta">A group admin or owner approves it. You can keep working privately.</p>
       )}
       {message && (

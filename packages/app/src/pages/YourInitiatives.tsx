@@ -24,8 +24,10 @@ import { Section } from "../ui/Section.tsx";
 import { Doorway, ListLayout } from "../ui/layouts.tsx";
 import { useSetAside } from "../account/set-aside.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
-import { ProjectAction } from "../social/Project.tsx";
-import { editorStorage, readEditorHandoff } from "../initiative/editor-handoff.ts";
+import { ProjectAction, ProjectStep } from "../social/Project.tsx";
+import { projectOpening } from "../social/project-open.ts";
+import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
+import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { EXAMPLE_EDITOR_OWNER } from "../initiative/ProjectEditor.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
 
@@ -43,6 +45,8 @@ export function YourInitiatives() {
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const [starting, setStarting] = useState(false);
+  /** A project opened from its card while an unlinked card is on this device: link that card, or start apart. */
+  const [choosing, setChoosing] = useState<CertifiedRecord | null>(null);
   const access = new URLSearchParams(routeSearch()).get("access");
   const consentNotice = access === "failed" ? <p role="status">Certified access could not be confirmed. Try again.</p>
     : access === "denied" ? <p role="status">Certified access was declined.</p> : null;
@@ -105,6 +109,7 @@ export function YourInitiatives() {
   const workspaces = state.workspaces ?? state.records.filter(record => record.workspace);
   const records = state.records.filter((record) => !record.workspace && record.uri !== project?.uri);
   const total = (onDevice ? 1 : 0) + cards.length + workspaces.length + records.length;
+  const empty = total === 0 && !social.loading && !social.problem;
   async function openCard(card: SavedCard) {
     if (live) { await service.openCard(card.id, null); go(pathTo("your-initiative")); return; }
     if (import.meta.env.DEV) {
@@ -121,12 +126,13 @@ export function YourInitiatives() {
     }
   }
   async function openRecord(record: CertifiedRecord) {
-    if (live && record.workspace) {
+    const opening = projectOpening(record, { card: onDevice, linked: !!project });
+    if (opening === "workspace" && live) {
       if (!record.group && record.workspaceId) { await service.openCard(record.workspaceId, null); go(pathTo("your-initiative")); }
       else await service.openWorkspace(record.uri, null);
       return;
     }
-    if (import.meta.env.DEV && record.workspace) {
+    if (opening === "workspace" && import.meta.env.DEV) {
       // The team workspace already holds this initiative's needs and offers.
       const next = draftWithRecord(intakeFixture("kept", pathTo("your-initiative")), record);
       await controller.replace(next);
@@ -134,7 +140,14 @@ export function YourInitiatives() {
       go(pathTo(cardRoute(next)));
       return;
     }
-    // No workspace to open: the project's four details start a card, and the rest is added here.
+    if (opening === "choose") {
+      setChoosing(record);
+      return;
+    }
+    await startFrom(record);
+  }
+  /** No workspace to open: the project's details start a card, and the rest is added here. */
+  async function startFrom(record: CertifiedRecord) {
     const next = draftWithRecord(newDraft(), record);
     await controller.replace(next);
     await service.clearCard();
@@ -154,10 +167,25 @@ export function YourInitiatives() {
       </Heading>
       {consentNotice}
       {live && <PendingInvite />}
-      {handoff && <StatusLine actions={<ProjectAction variant="primary" />}>Your device draft is still here.</StatusLine>}
+      {handoff && (
+        <StatusLine actions={<ProjectAction variant="primary" />}>
+          {`Back from ${PROJECT_EDITORS[handoff.editor].name}? Link the project you published.`}
+        </StatusLine>
+      )}
       {social.loading && <p role="status">Checking your Certified projects</p>}
-      {social.problem && <p role="status">{social.problem}</p>}
-      {social.consent ? <ConsentButton action="membership" /> : social.problem && <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try again</button>}
+      {/* A failed read is not an empty list, so it says so with its retry, and the lists below stay. */}
+      {social.problem && (
+        <section className="rc-notice" data-tone="warning" aria-label="Certified projects">
+          <div className="rc-notice-body">
+            <p role="status">{social.problem}</p>
+            <div className="rc-action-bar">
+              {social.consent ? <ConsentButton action="membership" /> : (
+                <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try again</button>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
       {!!state.setupRequests?.length && <Section id="setup-requests" title="Workspace requests">
         <ul className="rc-ask-summary">{state.setupRequests.map(request => <li key={request.requestId}><strong>{request.name}</strong>
           <p className="rc-meta">Approval sets up the team's workspace. The requester still needs an explicit access grant.</p>
@@ -165,7 +193,7 @@ export function YourInitiatives() {
             onClick={() => void run(async () => { await service.approveSetup?.(request.projectUri, request.requestId); })}>Approve workspace</button>
         </li>)}</ul>
       </Section>}
-      {total === 0 && !social.loading && !social.problem && (
+      {empty && (
         <EmptyState
           title="Nothing here yet"
           action={
@@ -268,15 +296,18 @@ export function YourInitiatives() {
         </section>
       ) : (
         <div className="rc-action-bar">
-          <button
-            className="rc-button"
-            data-variant="quiet"
-            type="button"
-            disabled={busy}
-            onClick={() => (onDevice ? setStarting(true) : void run(startNew))}
-          >
-            Start a new initiative
-          </button>
+          {/* An empty list already offers to describe one, so the page offers it once. */}
+          {!empty && (
+            <button
+              className="rc-button"
+              data-variant="quiet"
+              type="button"
+              disabled={busy}
+              onClick={() => (onDevice ? setStarting(true) : void run(startNew))}
+            >
+              Start a new initiative
+            </button>
+          )}
           <ButtonLink href={pathTo("settings")} variant="quiet">
             Settings
           </ButtonLink>
@@ -306,6 +337,26 @@ export function YourInitiatives() {
       </div>
       {busy && <p role="status">Opening</p>}
       {note}
+      <TaskDialog title="Your project" open={!!choosing} onClose={() => setChoosing(null)}>
+        {choosing && (
+          <ProjectStep
+            key={choosing.uri}
+            initial={choosing.uri}
+            onDone={() => setChoosing(null)}
+            onCancel={() => setChoosing(null)}
+            alternative={
+              <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                onClick={() => {
+                  const record = choosing;
+                  setChoosing(null);
+                  void run(() => startFrom(record));
+                }}>
+                Start a separate card
+              </button>
+            }
+          />
+        )}
+      </TaskDialog>
     </ListLayout>
   );
 }
