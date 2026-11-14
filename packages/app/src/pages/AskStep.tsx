@@ -516,9 +516,10 @@ function AskSection({
         const added = next.items.find((item) => !before.has(item.id));
         onWords("");
         setAddError("");
+        // Suggested kinds show dashed, and the line under the list already says to check them.
         setNotice(
           added?.value.capitalForms.length
-            ? `${one} added. Check its kinds of support.`
+            ? `${one} added.`
             : `${one} added. Add a kind of support when one fits.`,
         );
         if (activeItems(next).length >= ASK_LIMIT) target = part("status");

@@ -43,14 +43,45 @@ export function workspaceOpenLine(link: Pick<ProjectLink, "group" | "name">): st
   return `${link.group ?? link.name} has a team workspace in Weave now.`;
 }
 
-/** The four public details as a review lists them. */
-export function publicFacts(card: PublicCard): { term: string; value: string }[] {
-  return [
-    { term: "Name", value: card.name || "Not stated" },
-    { term: "Where", value: card.locations.join("; ") || "Not stated" },
-    { term: "About", value: card.description || "Not stated" },
-    { term: "Links", value: card.links.join(", ") || "None" },
+/**
+ * The public details as a review lists them. Given the fields a provider supplied, only those show:
+ * a field Certified did not send never replaces the card's own, so listing it as "Not stated" would mislead.
+ */
+export function publicFacts(card: PublicCard, supplied?: readonly (keyof PublicCard)[]): { term: string; value: string }[] {
+  const facts: { field: keyof PublicCard; term: string; value: string }[] = [
+    { field: "name", term: "Name", value: card.name || "Not stated" },
+    { field: "locations", term: "Where", value: card.locations.join("; ") || "Not stated" },
+    { field: "description", term: "About", value: card.description || "Not stated" },
+    { field: "links", term: "Links", value: card.links.join(", ") || "None" },
   ];
+  return facts.filter(({ field }) => !supplied || supplied.includes(field)).map(({ term, value }) => ({ term, value }));
+}
+
+/** What the project step says about discovery, and the one way to act on it. */
+export interface Discovery {
+  readonly line: string;
+  readonly action: "check" | "retry" | "consent" | null;
+}
+
+/**
+ * One line for the result of reading the person's projects. Existing projects are always checked
+ * before an editor is offered, so the line says what that check found. A failed read is never
+ * "no projects", and a return from an editor proves nothing about publication.
+ */
+export function discoveryLine({ loading, problem, consent, found, editor }: {
+  loading: boolean;
+  problem: string | null;
+  consent: boolean;
+  found: number;
+  /** The editor this account and draft left for, from the local return hint. */
+  editor: string | null;
+}): Discovery {
+  if (loading) return { line: "Checking your Certified projects", action: null };
+  if (problem) return { line: problem, action: consent ? "consent" : "retry" };
+  if (!found)
+    return { line: editor ? "No published project found yet." : "No Certified project found for your account.", action: "check" };
+  if (editor) return { line: `Back from ${editor}? Choose the project you published.`, action: "check" };
+  return { line: `${found} Certified ${found === 1 ? "project" : "projects"} found.`, action: "check" };
 }
 
 /** True when linking would change any of the card's four public details. */

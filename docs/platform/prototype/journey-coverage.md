@@ -360,3 +360,73 @@ code/consent step where required, enumeration after return, a second project und
 one existing organization and current group authority. Prefill, automatic callbacks,
 Ma Earth adoption of existing external projects and membership synchronization
 remain unverified. No deployment, migration or production setting is part of this slice.
+
+## UX polish on develop, 13 November 2026
+
+This round answers the maker's feedback that screens carried too much text, too many small
+actions and too much detail. It keeps the editor handoff contract above and changes no API
+handler, schema, Auth, gate or deployment setting. DL-074 records the choices.
+
+| Journey | What changed |
+|---|---|
+| First visit with a Certified project | Tapping a project on Your Initiatives while an unlinked card is on the device opens the link review with that project chosen, so the card's needs and offers are kept, or Start a separate card. The project step says how many projects the check found, names the card in its question, and lists only the fields Certified supplied. |
+| First visit without a project | The project step says "No Certified project found for your account." with Check again, then asks one question: where to create the project. Two sentences explain leaving; reuse, privacy, funding and how to come back sit under Before you leave. |
+| Returning with a project | A team workspace keeps its heading from loading to loaded, so focus stays on it. An empty workspace leads with saving the linked card there, and its review shows the card instead of raw fields. A card that belongs to another account on this device is not offered for a team save (DL-055). Owners and admins no longer read that someone else approves their workspace. A partner card says "Availability is unknown." once. |
+| Returning without a linked project | Your initiative shows a project row: "Not linked to a Certified project yet." or, after leaving for an editor, "Back from Ma Earth? Link your project once it is published." with Find my project. A return without publication reads "No published project found yet." and goes straight back to the editor chosen before. Your Initiatives shows a project outage as a warning notice with Try again. |
+
+Across flows, a status line takes the focus when its action disappears, so Save leaves the focus
+on "Saved privately in Weave. Only you can see it." The needs page confirms an add with "Need
+added." because the line under the list already explains dashed kinds. An empty Your Initiatives
+offers to describe an initiative once. Settings has one Account section, so "Signed in with
+Certified." and What is Certified? appear once.
+
+The development fixture's editor-return workspace now starts empty, as a real one does, carries
+its project title, and is known to the matching stand-in, so the separate team save and sharing
+state can be checked locally. Fixture code stays out of production bundles.
+
+### Proof
+
+Proof class: **fixture**, the Claude desktop browser pane (Chromium), with the `app-fixture`
+server on port 5173. Desktop emulation is not real-phone or hosted proof.
+
+- **Creator, 1280 px light.** Described a card, saved privately (focus moved to the outcome
+  line), opened the project step with no projects, chose Ma Earth, left for the local editor
+  stand-in and came back without publishing: the row offered Find my project and the step said
+  "No published project found yet." with Ma Earth still chosen. After synthetic publication the
+  project appeared under On Certified; tapping its name opened the chosen review instead of
+  replacing the card. Linking cleared the return hint and focused the heading; a full reload
+  kept the original need, both offers and the place. Setting up the workspace opened it empty
+  with the heading focused, and saving the card there showed the same need and offers.
+- **Member, 360 px dark.** The On Certified choice sheet with the tapped project chosen; Start a
+  separate card kept the earlier behaviour and focused the needs heading. Before the edits, at
+  1280 px light, a member's workspace request focused its outcome line and granted nothing; that
+  row now only hides its approval line from owners and admins.
+- **Unavailable, 360 px dark.** The outage notice with Try again on Your Initiatives.
+- **Keyboard, 1280 px light.** Enter opens the step; Tab reaches Close, Check again and the
+  radio group; arrow keys choose a project and open its review; Tab reaches Link this project;
+  Escape closes and returns the focus to the button, with nothing linked.
+- **Rechecked after the edits, 1280 px light.** The viewer's workspace has no mutation controls.
+  The admin's pending invitations show orchard.certified.one and the fallback "Certified account
+  ending eeeeee"; approval still sends the claimed identifier. At 360 px the sheet stops at two
+  thirds of the window and scrolls under its title row; no checked page scrolled sideways.
+
+The pane served stale development modules on a Back navigation once (navigation type
+`back_forward`); a plain reload showed the current code. Production assets are hashed, so this is
+a development caching effect. Reduced motion was not emulated in this round; no motion changed.
+
+Checks: `bun install --frozen-lockfile`, the app's typecheck and tests, `bun run guidance:check`,
+`bun run design:check`, the design-system tests, `git diff --check` and `bun run ci`. CI passed 716
+tests: 129 site and catalog, 197 API with the 47 opt-in PostgreSQL tests skipped, 278 app (five
+new), 34 design system and 78 harness. The build changed no tracked files, and no dependency or
+lockfile changed.
+
+### Still open
+
+UI gaps: Settings still repeats Your Initiatives' saved-card list and dates backups in the
+browser's own format. Two private saves can share a name and differ only by date. The tab title
+of a team workspace stays "Your initiative", as the route test decides. Kinds of support suggested
+for equipment needs can still miss Material.
+
+Integration questions are unchanged from the handoff section above: real publication and
+discovery in each editor, another code or consent prompt, private upstream drafts, a second
+project under one organization, Ma Earth adoption and membership synchronization.

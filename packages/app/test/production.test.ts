@@ -75,7 +75,7 @@ test("production bundles exclude the development fixture records and controls", 
     assert.ok(!bundle.includes(fixtureOnly), `${fixtureOnly} leaked into the production bundle`);
   }
   // These agreed screens now use real project discovery in production; only their synthetic data stays excluded.
-  for (const liveCopy of ["You have no project on Certified yet", "Which project is this initiative?"])
+  for (const liveCopy of ["You have no project on Certified yet", "Which project is ", "No Certified project found for your account."])
     assert.ok(bundle.includes(liveCopy), `${liveCopy} is missing from the live project screens`);
 });
 

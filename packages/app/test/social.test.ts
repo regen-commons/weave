@@ -10,7 +10,8 @@ import {
   WATER_NOTES_RECORD,
 } from "../src/social/fixture.ts";
 import { exposureLabel, shareGate } from "../src/social/gate.ts";
-import { linkEffect, projectLine, replacesCard, workspaceLine } from "../src/social/words.ts";
+import { projectOpening } from "../src/social/project-open.ts";
+import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, workspaceLine } from "../src/social/words.ts";
 
 const card = {
   name: "Orchard learning circle",
@@ -277,4 +278,39 @@ test("the words say who works on a project and where saved work goes before the 
   assert.equal(replacesCard(card, { ...card }), false);
   assert.equal(replacesCard(card, SEED_LIBRARY_RECORD), true);
   assert.equal(replacesCard({ ...card, name: " " }, SEED_LIBRARY_RECORD), false, "an empty card has nothing to replace");
+});
+
+test("the project step says what the check of existing projects found, and never reads a failure as none", () => {
+  const base = { loading: false, problem: null, consent: false, found: 0, editor: null };
+  assert.deepEqual(discoveryLine({ ...base, loading: true, found: 2 }), { line: "Checking your Certified projects", action: null });
+  assert.deepEqual(
+    discoveryLine({ ...base, problem: "Some Certified projects could not be checked. Your private saves are still available." }),
+    { line: "Some Certified projects could not be checked. Your private saves are still available.", action: "retry" },
+    "an outage keeps its own words and offers a retry, not an empty list",
+  );
+  assert.equal(discoveryLine({ ...base, problem: "Allow Weave to check your Certified projects to continue.", consent: true }).action, "consent");
+  assert.deepEqual(discoveryLine(base), { line: "No Certified project found for your account.", action: "check" });
+  assert.deepEqual(discoveryLine({ ...base, editor: "Ma Earth" }), { line: "No published project found yet.", action: "check" },
+    "a return from an editor proves no publication");
+  assert.deepEqual(discoveryLine({ ...base, found: 1 }), { line: "1 Certified project found.", action: "check" });
+  assert.deepEqual(discoveryLine({ ...base, found: 3 }), { line: "3 Certified projects found.", action: "check" });
+  assert.equal(discoveryLine({ ...base, found: 1, editor: "Certified" }).line, "Back from Certified? Choose the project you published.");
+});
+
+test("a link review lists only the details Certified supplied, so missing ones never read as erased", () => {
+  assert.deepEqual(publicFacts(SEED_LIBRARY_RECORD).map((fact) => fact.term), ["Name", "Where", "About", "Links"]);
+  const supplied = publicFacts({ ...SEED_LIBRARY_RECORD, locations: [], links: [] }, ["name", "description"]);
+  assert.deepEqual(supplied, [
+    { term: "Name", value: SEED_LIBRARY_RECORD.name },
+    { term: "About", value: SEED_LIBRARY_RECORD.description },
+  ]);
+});
+
+test("opening a project from Your Initiatives asks before an unlinked device card is set aside", () => {
+  assert.equal(projectOpening({ workspace: true }, { card: true, linked: false }), "workspace");
+  assert.equal(projectOpening({ workspace: false }, { card: true, linked: false }), "choose",
+    "the card on this device may be this project's work, such as one just published elsewhere");
+  assert.equal(projectOpening({ workspace: false }, { card: true, linked: true }), "start",
+    "a card already linked to another project stays with it, and the project starts its own");
+  assert.equal(projectOpening({ workspace: false }, { card: false, linked: false }), "start");
 });

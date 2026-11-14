@@ -132,6 +132,16 @@ export function unknownLine(unknowns: readonly string[]): string {
   return `Not known yet: ${list}.`;
 }
 
+/**
+ * Whether every fit on a card leaves availability unknown. The card then says so once, under its
+ * reasons, instead of after each one. A card whose fits differ keeps the note on the fits it concerns.
+ */
+export function availabilityUnknownForAll(
+  fits: readonly { readonly match: { readonly unknowns: readonly string[] } }[],
+): boolean {
+  return fits.length > 0 && fits.every(({ match }) => match.unknowns.includes("availability"));
+}
+
 /** At most this many shared topics on a card; more would be a list to read, not a reason. */
 export const FIT_TOPICS = 4;
 
