@@ -162,18 +162,7 @@ The project includes behavioral checks covering source coverage, generic profile
 
 Earlier milestone rendered proof: **Codex in-app Chromium, unauthenticated localhost sessions**. Browser checks covered profile creation and range errors, edits and reload persistence, shortlist CSV and JSON downloads, backup restoration, an isolated legacy-data migration with notes and an unavailable fund, all 30 pilot records, comparison, source-backed dialogs and a 390px mobile form/dialog without horizontal overflow. Proof images are in `proof/`; earlier images document the initial directory.
 
-The public site is the Vercel project `funding-commons` in the Greenpill Dev Guild team. Vercel serves `dist/` as built, with no build step. Run the build and tests first, then deploy from a copy so the Vercel CLI never writes into this folder:
-
-```sh
-DEPLOY_DIR="${TMPDIR:?}/funding-commons"
-rsync -a --delete dist/ "$DEPLOY_DIR/"
-cd "$DEPLOY_DIR"
-npx --yes vercel@62.1.0 link --yes --project funding-commons --scope greenpilldevguild
-npx --yes vercel@62.1.0 deploy --prod --yes --scope greenpilldevguild
-rm -f .env.local
-```
-
-Vercel rejects CLI versions older than 47.2.2. `vercel link` saves a short-lived `VERCEL_OIDC_TOKEN` in `.env.local`; Vercel does not upload that file, and the last command removes it. After deploying, compare every live file's SHA-256 hash with `dist/`. Share the production URL: per-deployment URLs sit behind Vercel Authentication. `.openai/hosting.json` still identifies the registered OpenAI Site, which was never deployed. No Green Goods package, lockfile or application code is changed by this standalone project.
+The public site is the Vercel project `funding-commons` in the Regen Commons team. It builds from Git with the root `vercel.json`, which installs from the lockfile, runs `bun run build && bun run test` and serves `dist/`. Production follows the `codex/funding-commons-demo` branch, and the project's Ignored Build Step cancels every other branch, `main` included. To publish a site or catalog change, merge it through `develop` and `main`, cherry-pick it onto `codex/funding-commons-demo`, run the build and tests on that branch, and push. After the deploy, compare every live file's SHA-256 hash with `dist/`. Share the production URL: per-deployment URLs sit behind Vercel Authentication. `.openai/hosting.json` still identifies the registered OpenAI Site, which was never deployed.
 
 Source attribution: https://www.fito.network/funders-database
 

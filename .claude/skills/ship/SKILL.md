@@ -61,8 +61,10 @@ for multiline text. Name each new dependency and why it is needed.
 
 Verify the published pull request's head SHA, then read CI for that exact revision.
 Report pending or failed CI, and skipped or failed preview deployments, separately
-from local checks. The live project's Ignored Build Step skips previews by design;
-record it as skipped and do not change deployment settings to clear it.
+from local checks. The live project's Ignored Build Step cancels every branch except
+`codex/funding-commons-demo`, `main` included, by design; record it as skipped and
+do not change deployment settings to clear it. A merge to `main` does not publish
+the live site, as the [root guide](../../../AGENTS.md#essential-rules) explains.
 
 Finish with the commit SHA, branch, scope, proof and the push or pull request
 result. Keep local commit success, CI status and deployment status distinct.
