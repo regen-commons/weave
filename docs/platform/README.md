@@ -27,7 +27,9 @@ For the next design pass, start with the [Weave Preview simplification handoff](
 Start design and implementation branches from `develop`. Open pull requests
 back into `develop` so the changes can be reviewed together. When the release
 checks are ready, open a release pull request from `develop` into `main`.
-`main` remains the production branch.
+`main` remains the production branch for Weave. The live Funding Commons site
+still deploys from `codex/funding-commons-demo`, as the
+[agent guide](../../AGENTS.md#essential-rules) explains.
 
 The plan has six milestones: preserve entry identity; share and withdraw reviewed
 entries; index external evidence; retrieve and explain both directions; connect
