@@ -16,6 +16,7 @@ import {
   localDate,
   filterFunds,
   sortFunds,
+  PROJECT_SORTS,
   profileAndSortFromUrl,
   emptySaved,
   readSaved,
@@ -32,6 +33,8 @@ import {
   corpusDocuments,
   validConditions,
   MATCH_GROUPS,
+  matchViewFromUrl,
+  compareThematicFit,
   THEMATIC_FIT_RUBRIC,
 } from "./matching.mjs";
 import { upcomingWindows, deadlineLabel } from "./deadlines.mjs";
@@ -104,7 +107,7 @@ const baseState = {
   depth: "",
   includeIncomplete: true,
   limit: 24,
-  matchGroup: "lead",
+  matchGroup: "all",
 };
 let state = { ...baseState },
   snapshot = null,
@@ -239,7 +242,7 @@ function collectState() {
   ].includes(p.get("depth"))
     ? p.get("depth")
     : "";
-  next.matchGroup = ["all", ...Object.keys(MATCH_GROUPS)].includes(p.get("matches")) ? p.get("matches") : "lead";
+  next.matchGroup = matchViewFromUrl(p);
   next.includeIncomplete = p.get("incomplete") !== "0";
   return next;
 }
@@ -264,7 +267,7 @@ function updateUrl() {
     if (state[k]) url.searchParams.set(k, state[k]);
   // Project identity and descriptions stay off shared URLs.
 
-  if (state.matchGroup !== "lead") url.searchParams.set("matches", state.matchGroup);
+  if (state.matchGroup !== "all") url.searchParams.set("matches", state.matchGroup);
   if (state.sort !== "recommended") url.searchParams.set("sort", state.sort);
   if (state.view !== "explore") url.searchParams.set("view", state.view);
   if (state.reviewed) url.searchParams.set("reviewed", "1");
@@ -280,6 +283,8 @@ function setState(patch, { scroll = false } = {}) {
   if (scroll)
     $("workspace-title").scrollIntoView({ block: "start", behavior: "auto" });
 }
+// Ranking starts at next-step priority and keeps a project order someone chose.
+const projectSort = () => (PROJECT_SORTS.includes(state.sort) ? state.sort : "match");
 function syncControls() {
   $("search-input").value = state.q;
   $("region-filter").value = state.region;
@@ -389,7 +394,8 @@ function card(f) {
 }
 function renderMatching(project) {
   $("matching-panel").hidden = !project || state.view === "saved";
-  $("sort-select").querySelector('[value="match"]').disabled = !project;
+  for (const sort of PROJECT_SORTS)
+    $("sort-select").querySelector(`[value="${sort}"]`).disabled = !project;
   if (!project) return;
   const hasText = Boolean(projectText(project).trim());
   $("matching-status").textContent = !hasText
@@ -412,7 +418,7 @@ function renderMatching(project) {
   );
   $("match-project-button").disabled = !hasText;
   $("match-project-button").textContent =
-    state.sort === "match"
+    PROJECT_SORTS.includes(state.sort)
       ? "View ranked funds"
       : "Rank for this project";
   $("eligibility-status").textContent = eligibilityAvailable
@@ -503,7 +509,7 @@ function render() {
   if (!profiles().some((p) => p.id === state.profile)) state.profile = "all";
   $("project-select").value = state.profile;
   const project = saved.projects.find((p) => p.id === state.profile);
-  if (!project && state.sort === "match") {
+  if (!project && PROJECT_SORTS.includes(state.sort)) {
     state.sort = "recommended";
     $("sort-select").value = state.sort;
     updateUrl();
@@ -544,7 +550,7 @@ function render() {
   if (project)
     $("project-summary").innerHTML =
       `<summary>Project details <span>${escape(projectGoal(project))}</span></summary>${project.description ? `<p>${escape(project.description)}</p>` : "<p>Add a description and funding goal to complete this migrated project.</p>"}<div class="tag-list">${project.tags.map((t) => `<span class="tag">${escape(t)}</span>`).join("")}</div><p class="description-note">Funding types: ${project.fundingInstruments.length ? escape(project.fundingInstruments.map((i) => FUNDING_INSTRUMENTS[i]).join(", ")) : "All types"}. ${project.usWorkStates.length ? "US work states: " + escape(project.usWorkStates.map((s) => US_STATES[s]).join(", ")) + ". " : ""}${project.usBenefitStates.length ? "US benefit states: " + escape(project.usBenefitStates.map((s) => US_STATES[s]).join(", ")) + ". " : ""}All funds remain available. ${project.benefitCountries.length ? "Benefit countries: " + escape(project.benefitCountries.map((c) => countryNames.of(c)).join(", ")) + ". " : "Benefit countries not specified. "}${project.workCountries.length ? "Funded work: " + escape(project.workCountries.map((c) => countryNames.of(c)).join(", ")) : "Add locations and applicant details for sourced eligibility checks."}</p>`;
-  const grouping = Boolean(project && state.sort === "match" && state.view === "explore");
+  const grouping = Boolean(project && PROJECT_SORTS.includes(state.sort) && state.view === "explore");
   $("match-view").hidden = !grouping;
   if (grouping) {
     const counts = Object.fromEntries(Object.keys(MATCH_GROUPS).map((g) => [g, [...matchResults.values()].filter((m) => m.group === g).length]));
@@ -555,6 +561,10 @@ function render() {
   if (state.sort === "match" && project)
     filtered.sort(
       (a, b) => matchResults.get(a.id).rank - matchResults.get(b.id).rank,
+    );
+  if (state.sort === "fit" && project)
+    filtered.sort((a, b) =>
+      compareThematicFit(matchResults.get(a.id), matchResults.get(b.id)),
     );
   const unavailable =
     state.view === "saved" &&
@@ -574,8 +584,8 @@ function render() {
       ? "Saved in this browser"
       : state.profile === "all"
         ? "for a world of good work"
-        : state.sort === "match"
-          ? `${matcher.state.scores ? "Local AI" : "Keyword"} · ${state.matchGroup === "all" ? "all match groups" : MATCH_GROUPS[state.matchGroup]} · sorted by next-step priority`
+        : PROJECT_SORTS.includes(state.sort)
+          ? `${matcher.state.scores ? "Local AI" : "Keyword"} · ${state.matchGroup === "all" ? "all match groups" : MATCH_GROUPS[state.matchGroup]} · sorted by ${state.sort === "fit" ? "thematic fit" : "next-step priority"}`
           : "for your project shortlist · all funds remain available";
   $("backup-button").hidden = state.view !== "saved";
   $("saved-guide").hidden = state.view !== "saved";
@@ -593,7 +603,7 @@ function render() {
         : "");
   } else {
     const isEmptySaved = state.view === "saved" && savedAll.length === 0;
-    if (grouping) {
+    if (grouping && state.matchGroup !== "all") {
       $("results").innerHTML = `<div class="empty-state"><h4>No funds in this match view.</h4><p>Try another match view or clear your search and filters. You can review candidates needing checks or explore all records.</p><button type="button" class="button button-primary" data-action="check-matches">Review candidates needing checks</button><button type="button" class="button button-secondary" data-action="all-matches">Show all match groups</button><button type="button" class="button button-text" data-action="clear-filters">Clear search &amp; filters</button></div>`;
     } else {
       $("results").innerHTML =
@@ -604,7 +614,7 @@ function render() {
   $("pagination").hidden = filtered.length <= state.limit;
   $("page-progress").textContent =
     `Showing ${visible.length} of ${filtered.length} funds`;
-  renderActiveFilters();
+  renderActiveFilters(grouping);
   renderTray();
   if (focusKey && focusId && !focused.isConnected) {
     const target = document.querySelector(
@@ -615,9 +625,15 @@ function render() {
   if (fundDialog.open && currentFund) openFund(currentFund.id, false, true);
   announce(`${total} fund${total === 1 ? "" : "s"} found`);
 }
-function renderActiveFilters() {
+function renderActiveFilters(matchView = false) {
   const chips = [];
   for (const [key, label] of [
+    [
+      "matchGroup",
+      matchView && state.matchGroup !== "all"
+        ? $("match-group").selectedOptions[0].textContent
+        : "",
+    ],
     ["q", state.q ? `Search: ${state.q}` : ""],
     ["region", state.region],
     ["theme", state.theme ? shortTheme(state.theme) : ""],
@@ -895,6 +911,7 @@ function clearFilters() {
     reviewed: false,
       depth: "",
     includeIncomplete: true,
+    matchGroup: "all",
   });
 }
 
@@ -949,7 +966,7 @@ $("project-select").addEventListener("change", (e) =>
   setState({
     profile: e.target.value,
     sort: saved.projects.some((p) => p.id === e.target.value)
-      ? "match"
+      ? projectSort()
       : "recommended",
   }),
 );
@@ -986,7 +1003,7 @@ $("project-form").addEventListener("submit", (event) => {
     saved = upsertProject(saved, project);
     const durable = persist();
     projectDialog.close();
-    setState({ profile: project.id, sort: "match" });
+    setState({ profile: project.id, sort: projectSort() });
     notify(
       durable
         ? "Project saved in this browser."
@@ -1054,7 +1071,7 @@ document.addEventListener("click", async (event) => {
       break;
     }
     case "match-project":
-      setState({ sort: "match" });
+      setState({ sort: projectSort() });
       $("results-title").scrollIntoView({ block: "start" });
       $("results-title").focus({ preventScroll: true });
       break;
@@ -1070,7 +1087,7 @@ document.addEventListener("click", async (event) => {
       }
       aiEnabled = true;
       matcher.match(projectText(project), modelCatalog.corpusHash);
-      setState({ sort: "match" });
+      setState({ sort: projectSort() });
       break;
     }
     case "stop-ai":
@@ -1168,11 +1185,9 @@ document.addEventListener("click", async (event) => {
     case "remove-filter":
       setState({
         [target.dataset.filter]:
-          target.dataset.filter === "includeIncomplete"
-            ? true
-            : ["reviewed"].includes(target.dataset.filter)
-              ? false
-              : "",
+          { includeIncomplete: true, reviewed: false, matchGroup: "all" }[
+            target.dataset.filter
+          ] ?? "",
       });
       break;
     case "explore":
