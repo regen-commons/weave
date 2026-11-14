@@ -96,13 +96,13 @@ export interface SocialService {
   signIn(): Promise<void>;
   signOut(): Promise<void>;
   save(name: string, place?: "private" | "workspace", key?: string | null): Promise<void>;
-  /** Uses one of the person's Certified projects for this card. A private save moves into an open workspace. */
-  linkProject(uri: string): Promise<ProjectLink>;
+  /** Selects an authorized project. The live adapter stores its reviewed public fields on the device; team Save stays separate. */
+  linkProject(uri: string, signal?: AbortSignal): Promise<ProjectLink>;
   /** Opens a project's team workspace that already exists and reads what the team saved there. */
   openWorkspace(uri: string, key: string | null): Promise<ProjectLink>;
   /** Loads a private save onto this device. Loading saves nothing new and links nothing. */
   openCard(id: string, key: string | null): Promise<void>;
-  /** Creates a project on Certified from the card, in a new group with this person as its one owner. */
+  /** Legacy creator recovery only in the live adapter. New public projects use the external editors. */
   createProject(card: PublicCard, groupLabel?: string): Promise<ProjectLink>;
   /** A member asks the group's admin or owner to set up the team workspace. */
   requestWorkspace(): Promise<void>;

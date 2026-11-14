@@ -18,6 +18,7 @@ import { pathTo } from "../routes.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
+import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
 import { ShareAction } from "../social/Share.tsx";
 import { useSocialFixture, useSocial } from "../social/context.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -55,6 +56,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const project = example?.identity ? example.project : liveSocial?.mode === "live" ? liveSocial.state.project : null;
   const active = activeInitiative(draft.account.saved, account.state?.user?.id);
   const save = status.save;
+  // A local hint that this account left for an editor with this card. It proves nothing was published.
+  const signedInId = liveSocial?.mode === "live" ? liveSocial.state.identity?.id : undefined;
+  const handoff = signedInId ? readEditorHandoff(editorStorage(() => window.sessionStorage), signedInId, draft.id) : null;
   // Only steps that are open get a row, and only the next one gets the filled button.
   const steps = openSteps(status, project?.workspace ?? null);
   return (
@@ -114,7 +118,13 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     </p>
                   )}
                   {/* Outside the example world the real project directory links or creates the project. */}
-                  {!example && !project && <ProjectAction />}
+                  {!example && !project && (
+                    <StatusLine actions={<ProjectAction variant={handoff && !save ? "primary" : "secondary"} size="sm" />}>
+                      {handoff
+                        ? `Back from ${PROJECT_EDITORS[handoff.editor].name}? Link your project once it is published.`
+                        : "Not linked to a Certified project yet."}
+                    </StatusLine>
+                  )}
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open team workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
                   {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open saved initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
                   {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}

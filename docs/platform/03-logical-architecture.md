@@ -31,7 +31,10 @@ flowchart TB
   api["Weave API: account, project and matching commands"]
   platform["Platform: workspaces, grants, needs, offers and share revisions"]
   groupService["Certified Group Service: group roles and scoped writes"]
+  editors["Ma Earth or Certified: public organization and project editors"]
   repo["AT repositories: public project records and support listings"]
+  app -->|"Chosen editor handoff, draft retained"| editors
+  editors -->|"Publish shared public profile/project"| repo
   app -->|"Sign in"| bridge
   bridge <-->|"Verify person's DID"| certified
   bridge -->|"Verified identity"| auth
@@ -55,17 +58,19 @@ uploads the selected initiative fields and entries to Platform.
 flowchart TB
   draft["Start a local draft and match for funding"] --> save["Sign in with Certified and save privately"]
   save --> select{"Which project?"}
-  select -->|"No project yet"| create["Review and create a group and project"]
+  select -->|"No project yet"| editor{"Choose public editor"}
+  editor -->|"Aligned with Ma Earth and chooses it"| ma["Reuse or create organization/project in Ma Earth"]
+  editor -->|"Other initiatives"| certifiedEditor["Reuse or create group/project in Certified"]
   select -->|"Existing personal project"| solo["Verify and link the solo project"]
   select -->|"Existing group project"| access{"Workspace already linked?"}
   access -->|"Yes"| grant["Check existing workspace grant"]
   access -->|"No"| request["Verified member requests setup"]
   request --> approve["Certified group admin or owner verifies and approves"]
-  create --> readback["Confirm group and project before linking"]
-  create -.->|"Interrupted response"| retry["Reconcile the operation before retrying"]
-  retry --> readback
-  readback --> workspace["Open the one linked workspace"]
-  solo --> workspace
+  ma --> readback["Return and discover the published project"]
+  certifiedEditor --> readback
+  readback -->|"Explicit selection and verification"| select
+  readback -.->|"Private upstream draft or unavailable discovery"| keepWorking["Keep private work and funding matching available"]
+  solo --> workspace["Open the one linked workspace"]
   grant --> workspace
   approve -->|"Activate workspace and apply explicit grants"| workspace
   workspace --> entry["Save a need or offer to the workspace"]
@@ -83,6 +88,13 @@ are independent actions. A person removed from the Certified group loses
 workspace access. Eligible team entries can stay live under the remaining
 authorized teammates. Confirmed project deletion or unlisting also requests
 withdrawal of public listings.
+
+The [12 November editor decision](open-decisions.md#public-project-editors-decided-12-november-2026)
+replaces inline public project creation in this target. The handoff may require
+another code or consent; prefill and automatic return are not established.
+Existing projects are reused, and pending operations from the current Weave
+creator must be reconciled before offering creation elsewhere. The diagram
+does not assert that Ma Earth and Certified group membership already synchronize.
 
 ### Matching and evidence
 

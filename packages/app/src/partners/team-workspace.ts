@@ -1,6 +1,8 @@
 import { parseTeamDocument, parseTeamSaved, parseTeamWorkspace, type AccountDocument, type SavedInitiative } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
 import { emptyFundingForm } from "../funding/contracts.ts";
+import { SuggestionSchema, type Initiative } from "../describe/contracts.ts";
+import { AskSuggestionSchema, type AskFields } from "../intake/contracts.ts";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { beginConsentReturn, cancelConsentReturn, currentConsentReturn, finishConsentReturn, takeConsentReturn } from "../initiative/consent-return.ts";
 
@@ -36,6 +38,22 @@ export function initialTeamDocument(name: string): AccountDocument {
       links: [], stage: null, lenses: [], themes: [], beneficiaries: [], languages: [] },
     needs: [], offers: [], funding: { form: emptyFundingForm(), programAnswers: {} },
   });
+}
+
+/**
+ * A saved document as the card shows it, so a review names the entries instead of listing raw fields.
+ * Null when the document cannot be shown as a card; the save itself still validates it.
+ */
+export function documentCard(document: AccountDocument): { fields: Initiative; needs: AskFields[]; offers: AskFields[] } | null {
+  try {
+    return {
+      fields: SuggestionSchema.parse({ ...document.initiative, confidence: 1 }),
+      needs: document.needs.map((entry) => AskSuggestionSchema.parse(entry.value)),
+      offers: document.offers.map((entry) => AskSuggestionSchema.parse(entry.value)),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function teamPartnerQueries(saved: SavedInitiative | null) {

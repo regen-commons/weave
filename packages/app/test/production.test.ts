@@ -26,6 +26,10 @@ test("production bundles exclude the development fixture records and controls", 
     "Fictional matching example",
     "Local fixture controls",
     "Open fixture account",
+    "External editor fixture",
+    "Publish synthetic project and return",
+    "/__fixture?editor=",
+    "10000000-0000-4000-8000-000000000099",
     "Synthetic accounts only.",
     "Step 4 examples seed",
     "Fictional funding examples",
@@ -71,7 +75,7 @@ test("production bundles exclude the development fixture records and controls", 
     assert.ok(!bundle.includes(fixtureOnly), `${fixtureOnly} leaked into the production bundle`);
   }
   // These agreed screens now use real project discovery in production; only their synthetic data stays excluded.
-  for (const liveCopy of ["You have no project on Certified yet", "Which project is this initiative?"])
+  for (const liveCopy of ["You have no project on Certified yet", "Which project is ", "No Certified project found for your account."])
     assert.ok(bundle.includes(liveCopy), `${liveCopy} is missing from the live project screens`);
 });
 

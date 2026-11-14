@@ -7,6 +7,7 @@ import type { AskKind } from "../src/intake/contracts.ts";
 import { PUBLIC_PARTNER_EVIDENCE } from "../src/partners/catalog.ts";
 import type { PartnerEvidence } from "../src/partners/evidence.ts";
 import {
+  availabilityUnknownForAll,
   FIT_BASIS,
   FIT_TOPICS,
   entryLine,
@@ -291,4 +292,12 @@ test("an example initiative that fits both ways is told apart from one that fits
   assert.equal(partners[0]?.id, "field-school");
   assert.equal(partners[0]?.reciprocal, true, "they offer what is needed and need what is offered");
   assert.equal(fitStrength(partners[0]!.kind, partners[0]!.reciprocal), "strong");
+});
+
+test("a partner card says availability is unknown once when every fit leaves it unknown", () => {
+  const fit = (unknowns: string[]) => ({ match: { unknowns } });
+  assert.equal(availabilityUnknownForAll([fit(["availability"]), fit(["availability", "timing"])]), true);
+  assert.equal(availabilityUnknownForAll([fit(["availability"]), fit([])]), false,
+    "a stated offer with known availability keeps the note on the other fit only");
+  assert.equal(availabilityUnknownForAll([]), false);
 });

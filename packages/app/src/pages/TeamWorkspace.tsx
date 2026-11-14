@@ -4,6 +4,9 @@ import { AccountFailure, accountRequest } from "../account/client.ts";
 import { useAccount } from "../account/context.tsx";
 import { continueToCertified } from "../account/sign-in.ts";
 import { useDraft } from "../describe/use-draft.ts";
+import { useSocial } from "../social/context.tsx";
+import { saveBlocker } from "../account/document.ts";
+import { useSetAside } from "../account/set-aside.ts";
 import { SaveDeviceToTeam } from "../partners/SaveDeviceToTeam.tsx";
 import { WorkspaceAccess } from "../initiative/WorkspaceAccess.tsx";
 import { TeamEntries } from "../partners/TeamEntries.tsx";
@@ -92,6 +95,10 @@ function WorkspaceSignIn({ workspaceId, available }: { workspaceId: string; avai
 
 function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   const { clear, state } = useAccount();
+  const social = useSocial();
+  const { draft } = useDraft();
+  // Another account's card stays on the device but is never copied into this account's team (DL-055).
+  const setAside = useSetAside();
   const online = useSyncExternalStore(subscribeOnline, isOnline);
   const [loaded, setLoaded] = useState<TeamWorkspaceState | undefined>();
   const [editing, setEditing] = useState(false);
@@ -162,22 +169,28 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   if (loaded === undefined) return <><WorkspaceHeading /><p role="status">Opening the team workspace</p></>;
   const saved = loaded.saved;
   const readOnly = loaded.accessRole === "viewer";
+  // Copying this device's checked card is offered while the team has nothing saved. When that card
+  // was linked to this project, saving it here is the next step.
+  const offerSave = !saved && !readOnly && online && !setAside && !saveBlocker(draft);
+  const ownCard = offerSave && social?.mode === "live" && social.state.project?.workspaceId === workspaceId;
   const owner = state!.user!.id;
   const fields = saved ? SuggestionSchema.parse({ ...saved.document.initiative, confidence: 1 }) : null;
   return (
     <>
-      {!online && <p role="status">You’re offline. Reconnect to save or change sharing.</p>}
+      {/* First, as while loading, so the heading that took the focus on arrival stays the same element. */}
       <WorkspaceHeading name={String(saved?.document.initiative.name ?? loaded.projectTitle ?? "Team initiative")}
         role={loaded.accessRole} />
+      {!online && <p role="status">You’re offline. Reconnect to save or change sharing.</p>}
       <StepLayout aside={<>
         <Section id="saving-sharing" title="Saving and sharing">
-          <StatusLine>{saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}</StatusLine>
-          {!saved && !readOnly && online && <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} />}
+          <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>
+            {saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}
+          </StatusLine>
           {saved && <LiveExposure saved={saved} owner={owner} team readOnly={readOnly || editing} online={online}
             onExpired={() => loseAccess("sign_in_required")} onChanged={() => setMatchVersion(v => v + 1)} />}
         </Section>
         {!readOnly && <Section id="change-team" title="Change it"><div className="rc-action-bar" data-layout="rows">
-          <button className="rc-button" data-variant={saved ? "quiet" : "primary"} type="button" disabled={!online}
+          <button className="rc-button" data-variant={saved || ownCard ? "quiet" : "primary"} type="button" disabled={!online}
             onClick={() => setPanel("entries")}>Change needs and offers</button>
           {loaded.accessRole === "admin" && loaded.projectUri && <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
             onClick={() => setPanel("teammates")}>Manage teammates</button>}
@@ -185,7 +198,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       </>}>
         {saved && fields ? <InitiativeRecord named={false} fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
           offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
-          : <p>No needs or offers saved yet. {readOnly ? "An editor can add them." : "Add them here or review a copy of this device's card."}</p>}
+          : <p>No needs or offers saved yet.{readOnly ? " An editor can add them." : ""}</p>}
       </StepLayout>
       <TaskDialog title={panel === "teammates" ? "Manage teammates" : "Needs and offers"} open={panel !== null} onClose={() => setPanel(null)}
         blockClose={editing} onCloseBlocked={() => setCloseNotice("Save or cancel your entry before closing. Your changes are still here.")}>

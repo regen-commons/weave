@@ -422,3 +422,14 @@ test("private suggestions understand related public wording without asserting of
   assert.ok(results.every(r=>r.evidence.passage==="Our ongoing work is cartography."));
   assert.deepEqual(rankCertifiedSuggestions(crypto.randomUUID(), queries, source.passages), []);
 });
+
+test("a team save review shows the card and its entries, never raw saved fields", async () => {
+  const { documentCard } = await import("../src/partners/team-workspace.ts");
+  const card = documentCard(base);
+  assert.ok(card);
+  assert.equal(card.fields.name, base.initiative.name);
+  assert.deepEqual(card.needs.map((need) => need.title), base.needs.map((need) => need.value.title));
+  assert.deepEqual(card.offers.map((offer) => offer.title), base.offers.map((offer) => offer.value.title));
+  const unreadable = { ...base, initiative: { ...base.initiative, name: 7 } } as unknown as AccountDocument;
+  assert.equal(documentCard(unreadable), null, "a document that cannot show as a card shows nothing rather than failing");
+});

@@ -1,6 +1,6 @@
 # Saving initiatives and accounts
 
-Status: matching flows revised 8 November 2026. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
+Status: public project creation policy revised 12 November 2026; the editor handoff was added locally on 13 November, with hosted validation pending. See [journey coverage](prototype/journey-coverage.md#external-editor-handoff-13-november-2026) for its proof and limits. The earlier matching flows and their evidence remain below. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
 Companions: [PRD](04-prd.md) · [technical spec](05-technical-spec.md#5-identity-and-access) · [decision register](open-decisions.md#certified-only-sign-in-and-private-saving) · [design spec](research/certified-hypercerts-2026-11-06/design-spec.md#one-sign-in-including-first-use).
 
 Certified is the only sign-in flow. Weave automatically creates or retrieves an
@@ -83,9 +83,9 @@ sign-in.
 | Person | Flow |
 |---|---|
 | First visit, has a Certified project | Start with the existing personal or group project. Sign in with Certified and choose the project. Weave opens an existing workspace according to its grants. If a group project has no workspace yet, a member can request setup and continue with a private draft while a verified group admin or owner approves. A group workspace requires current Certified group membership and a Weave grant. An existing personal project remains solo at the same address. Add needs and offers, then choose which to share for matching. |
-| First visit, has no Certified project | Describe the initiative and see funding matches locally. Sign in with Certified to save privately. When ready for network matching, review and create a Certified project from the draft. The project starts in a group with the creator as its only member and owner, so teammates can join later. Add or share the needs and offers from the linked workspace. |
+| First visit, has no Certified project | Describe the initiative and see funding matches locally. Sign in with Certified to save privately. When ready for network matching, follow the external editor route below: Ma Earth for aligned initiatives that choose it, Certified for others. Reuse or establish an organization/group, publish the project there, then return and explicitly select its verified record. New team-ready projects start in a shared group, which can have one owner. Link the workspace before sharing entries for matching. |
 | Returning, has a Certified project | Use the existing session or sign back in with the same identity. Open the workspace where saved entries, sharing state and leads are kept. If the project has never been linked, link it first. Review changed entries before sharing them again. |
-| Returning, has no Certified project | Resume the device draft or sign in to load the private save. Keep editing and matching for funding. Create or link a project when ready for network matching. Linking an eligible private save preserves the initiative and entry IDs. |
+| Returning, has no Certified project | Resume the device draft or sign in to load the private save. Keep editing and matching for funding. Resume the external editor handoff or refresh discovery to select a project already published there. Do not restart creation just because a return or discovery request failed. Linking an eligible private save preserves the initiative and entry IDs. |
 
 Workspace admins start teammate access in Weave. Someone without a Certified
 account can sign up from a pending invite. The admin confirms the teammate's
@@ -93,9 +93,9 @@ identity before granting access. If the teammate also needs to join the
 Certified group, Weave shows those broader permissions and asks an authorized
 admin to approve the group change.
 
-After linking, edit the public title and description in Certified or another
-Certified project editor. Weave shows the latest verified profile and keeps
-workspace details, needs and offers separate.
+After linking, edit the public title and description in Ma Earth for a profile
+managed there, or in Certified's project editor. Weave shows the latest verified
+profile and keeps workspace details, needs and offers separate.
 
 For a need, show current offers and relevant external capabilities. For an offer,
 show current needs, public requests and projects whose activities could use it.
@@ -114,6 +114,53 @@ published details requests withdrawal of the old listing. The new details
 stay private until republished. Sharing for matching does not publish.
 A person can manage several workspaces with the same Certified identity. See the
 [project integration contract](05-technical-spec.md#certified-project-integration-target).
+
+## Public project creation and return
+
+The user [decided on 12 November](open-decisions.md#public-project-editors-decided-12-november-2026)
+that public organizations/projects are created in Ma Earth or Certified for the
+first release. Weave retains private drafting, saving, needs, offers, matching
+and workspace access. This replaces the default of inline public group and
+project creation. The app implements the handoff locally; external publication
+and real editor-return discovery still require hosted checks.
+
+1. Check for an existing project first. Reuse its canonical AT URI and existing
+   organization/group rather than creating another record with the same name.
+2. Offer Ma Earth for initiatives aligned with its focus that want to participate
+   there. A place label alone is not eligibility. Other initiatives use Certified.
+   Both routes use the person's Certified identity; there is no separate Weave
+   registration. Explain that the other app may still request a code or consent.
+3. Preserve the draft before departure. External navigation alone sends no
+   private needs, offers, files or full draft. Do not invent prefill parameters,
+   transfer authentication tokens or promise an automatic callback. Any future
+   supported prefill needs explicit review of the fields being sent.
+4. In the external editor, reuse or establish the organization/group and publish
+   the selected project. One organization can have multiple projects. Guide new
+   team-ready projects to a shared group even with one owner; existing personal
+   projects remain solo at their current address.
+5. On return, refresh authorized discovery and let the person explicitly select
+   the published project. Verify its URI and current authority, then use the
+   existing workspace setup/grant path. Resume the original Weave task and retain
+   eligible initiative/entry IDs. A name match or editor return is not authority.
+
+Ma Earth's private application drafts are not yet public Certified records.
+Someone who has not published can return to private Weave saving and funding
+matching. A discovery outage is not evidence that no project exists. Keep retry
+and local work available without sending the person through creation again.
+
+For an existing Certified project that also wants a Ma Earth presence, preserve
+its identity while the supported adoption path is resolved. Do not create a
+replacement organization/project there to compensate. Ma Earth listing,
+funding-round application and Weave entry sharing are separate actions.
+
+The app's legacy creator can only resume a stored, frozen intent. An unresolved
+or unreadable intent blocks departure to another editor. The server's existing
+create command remains compatible with older clients; retiring it needs a separate
+review. Existing created records
+and saved work remain intact. This decision does not change support-listing
+publishing, teammate permissions or the rule requiring both current group
+membership and an explicit Weave grant for private team access. Ma Earth and
+Certified membership synchronization remains a validation item.
 
 ## Failures and recovery
 

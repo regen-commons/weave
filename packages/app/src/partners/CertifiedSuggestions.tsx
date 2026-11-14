@@ -3,7 +3,7 @@ import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
 import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
 import { AccountFailure } from "../account/client.ts";
 import { Card, CardGrid } from "../ui/Card.tsx";
-import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
+import { availabilityUnknownForAll, entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { MatchDetails } from "./NetworkResults.tsx";
@@ -139,6 +139,7 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
   const sources = [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
   const several = project.fits.length > 1;
   const strength = strongestFit(project.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));
+  const unknownForAll = availabilityUnknownForAll(project.fits);
   return (
     <Card>
       <Fit level={strength} explanation={FIT_BASIS[strength]} />
@@ -151,12 +152,13 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
               <Icon name={direction === "they-offer" ? "offer" : "need"} size="sm" />
               <span>
                 {lead}: <strong>{String(query.value.title)}</strong>
-                {match.unknowns.includes("availability") && ". Availability is unknown."}
+                {!unknownForAll && match.unknowns.includes("availability") && ". Availability is unknown."}
               </span>
             </li>
           );
         })}
       </ul>
+      {unknownForAll && <p className="rc-meta">Availability is unknown.</p>}
       {project.passages.map(({ text }) => <blockquote className="rc-prose" key={text}>{text}</blockquote>)}
       <details className="rc-stack">
         <summary>{several ? "Why these fit" : "Why this fits"}</summary>

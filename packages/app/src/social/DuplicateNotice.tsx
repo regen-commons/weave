@@ -38,7 +38,7 @@ export function DuplicateNotice() {
     try {
       await social.service.linkProject(match.uri);
       // The project's four public details become the card's. Needs and offers stay as they are.
-      controller.change((current) => draftWithRecord(current, match));
+      if (social.mode === "fixture") controller.change((current) => draftWithRecord(current, match));
       social.refresh();
       setMessage(`Your card now uses ${match.name} from Certified. Your needs and offers are unchanged.`);
     } catch (error) {
