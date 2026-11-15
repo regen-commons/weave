@@ -63,7 +63,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   failure must offer text recovery and must not claim the latest changes are saved.
 - Needs and offers share the five-card rule and all eight kinds. Keep and manual
   correction freeze a card; rebuilding preserves those choices and removed source
-  chunks. Empty steps may continue; unfinished or unreviewed steps may not. Keep
+  chunks. Linking a Certified project adds pencil entries from its description
+  (`src/intake/project-page.ts`), once per project; rebuilding keeps them, and
+  they wait without unchecking a list the person already checked. Empty steps may continue; unfinished or unreviewed steps may not. Keep
   the old Describe draft readable when extending its schema.
 - Local speech and the browser model require an already available capability and
   a tap. Downloaded models and cloud calls stay behind their unavailable adapters

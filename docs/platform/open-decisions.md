@@ -349,6 +349,29 @@ a separate public AT Protocol listing requires one or more owner-approved forms.
 uses the same eight values. The current typed editor still requires manual
 selection. Automatic suggestions there remain implementation work.
 
+### Suggestions from a linked project's page
+
+Decided by the user on 15 November 2026, after a linked project's card arrived
+with no needs or offers. When a Certified project is linked or imported, Weave
+reads the project's public description on the device and suggests up to three
+needs and three offers from the sentences that ask for or offer something. They
+show dashed, labelled "Suggested from your project page", after the card's own
+entries. Nothing is kept, saved or shared until the person keeps it: Continue on
+Needs and offers keeps what is left there, and Remove takes one away.
+
+A suggestion never replaces or repeats an entry on the card, never brings back
+one the person removed and stays within the five-entry limit. A card reads each
+project once, so linking it again adds nothing. A card the person already checked
+stays checked: the suggestions wait beside it, Your initiative says so and links
+to Needs and offers, and saving and sharing carry on with the kept entries only.
+Suggestions come from the keyword reader, not a model. If the description cannot
+be read, the link still goes ahead, with no suggestions.
+
+Known limits: removals are remembered on the device only, because a saved copy
+keeps only kept entries. Opening a team workspace links nothing, so it suggests
+nothing, and the team workspace's own editor does not suggest from the project
+page yet. This records the user's direction, not a council vote.
+
 ### Certified index coverage at launch
 
 First-release public-evidence suggestions use Certified projects. Coverage

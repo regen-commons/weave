@@ -1,4 +1,5 @@
 import { fullDate } from "../home.ts";
+import { entryCount } from "../initiative/status.ts";
 import type { CertifiedRecord, ProjectLink, ProjectRole, PublicCard } from "./fixture.ts";
 
 const MEMBERSHIP: Record<ProjectRole, (group: string) => string> = {
@@ -83,6 +84,34 @@ export function discoveryLine({ loading, problem, consent, found, editor }: {
   if (editor) return { line: `Back from ${editor}? Choose the project you published.`, action: "check" };
   return { line: `${found} Certified ${found === 1 ? "project" : "projects"} found.`, action: "check" };
 }
+
+type Suggested = readonly { readonly kind: "needs" | "offers" }[];
+
+/** What a link review adds, before the tap, when the project's page suggests needs or offers. Empty when it suggests none. */
+export function suggestionLine(suggested: Suggested): string {
+  return suggested.length ? `The project page also suggests ${entryCount(suggested)} for you to check.` : "";
+}
+
+/**
+ * Suggestions from the project page still in pencil, said where the card is. A checked card stays
+ * checked and they wait beside it; a card not checked yet is finished on Needs and offers.
+ * Empty when none wait.
+ */
+export function waitingLine(waiting: Suggested, checked: boolean): string {
+  if (!waiting.length) return "";
+  const count = entryCount(waiting);
+  if (waiting.length === 1)
+    return checked
+      ? `Your project page suggests ${count}. It is not on your card until you keep it.`
+      : `Your project page suggests ${count}. Check it to finish your card.`;
+  return checked
+    ? `Your project page suggests ${count}. They are not on your card until you keep them.`
+    : `Your project page suggests ${count}. Check them to finish your card.`;
+}
+
+/** The button beside the waiting line on a checked card. */
+export const waitingAction = (waiting: Suggested): string =>
+  waiting.length === 1 ? "Check the suggestion" : "Check the suggestions";
 
 /** True when linking would change any of the card's four public details. */
 export function replacesCard(card: PublicCard, record: PublicCard): boolean {

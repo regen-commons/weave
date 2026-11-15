@@ -3,7 +3,7 @@ import { editorStorage, finishEditorHandoff, PROJECT_EDITORS, readEditorHandoff 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useDraft } from "../describe/use-draft.ts";
-import { draftWithRecord } from "../initiative/import.ts";
+import { draftWithRecord, suggestionsOnLink } from "../initiative/import.ts";
 import { cardName, publicCard } from "../initiative/status.ts";
 import { Facts } from "../ui/Facts.tsx";
 import { keepFocusOnPage } from "../ui/focus.ts";
@@ -14,7 +14,7 @@ import { useAccountDoor } from "../account/door.tsx";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { ExampleDoor } from "./Door.tsx";
 import { type CertifiedRecord, type ProjectLink } from "./fixture.ts";
-import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, workspaceLine, workspaceOpenLine } from "./words.ts";
+import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, suggestionLine, workspaceLine, workspaceOpenLine } from "./words.ts";
 
 /** The choice that opens the external editors after checking existing projects. */
 const NEW = "new";
@@ -66,6 +66,8 @@ export function ProjectStep({
   // With nothing found, the only way on is an editor, so its choice shows at once.
   const picked = records.length ? choice : NEW;
   const record = records.find((item) => item.uri === picked);
+  // The same reading the link makes, so the review says what it will suggest before the tap.
+  const suggested = record ? suggestionsOnLink(draft, record) : [];
   const discovery = discoveryLine({
     loading: !!fixture.loading,
     problem: fixture.problem ?? null,
@@ -180,6 +182,7 @@ export function ProjectStep({
                 {replacesCard(card, record) ? "Your card takes this name and description. " : ""}
                 Its needs and offers stay private and unchanged.
               </p>
+              {suggested.length > 0 && <p>{suggestionLine(suggested)}</p>}
               <p className="rc-meta">Saving to a team, sharing and publishing stay separate steps.</p>
             </>
           ) : (
@@ -190,6 +193,7 @@ export function ProjectStep({
                   ? "These four details replace the ones on your card. Your needs and offers stay as they are."
                   : "Your needs and offers stay as they are."}
               </p>
+              {suggested.length > 0 && <p>{suggestionLine(suggested)}</p>}
             </>
           )}
           <details>
@@ -198,6 +202,7 @@ export function ProjectStep({
               {live
                 ? "The name and description come from Certified. Other details stay as they are on your card."
                 : "After linking, the name, place, description and links come from Certified. Change them there and Weave shows the latest."}
+              {suggested.length > 0 && " Suggested needs and offers are read from the description on this device."}
             </p>
           </details>
           <div className="rc-action-bar">
