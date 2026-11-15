@@ -328,6 +328,137 @@
               "Historical award and applicant restrictions not re-established in this pass",
               "Fiscal sponsorship not established"
             ]
+          },
+          {
+            "id": "nlnet-restack-call2-2027",
+            "name": "Restack: second call, January 2027",
+            "instrument": "grant",
+            "focus": [
+              "Open source",
+              "Digital public infrastructure"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [],
+              "applicantCountries": [],
+              "scope": "Strong European dimension required. The usual route is for team members from Horizon Europe-eligible countries to receive at least 60% of the funds; a project of exceptional quality whose proposer holds unique technical expertise can qualify otherwise. No exhaustive work-country list is published.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Individuals",
+                "Organizations"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Research and development as the primary objective, with open-access scientific outcomes and software or hardware published in its entirety under a recognised open source licence. Proposals are written in English.",
+                "Strong European dimension under the published funding-share or exceptional-expertise rules.",
+                "First proposals range from EUR 5,000 to EUR 50,000. Requests above EUR 50,000, up to EUR 150,000, must follow successfully concluded Restack or equivalent projects.",
+                "Generative AI policy 2.0: no generative AI in writing proposals except where needed for accessibility, which must be disclosed; project development may use generative AI only read-only."
+              ],
+              "exclusions": [
+                "Generative AI projects are out of scope unless already used by over one million active human users and directly relevant to the stack.",
+                "Consortium partners and their staff, companies NLnet has invested in, and review committee members with their employers, co-workers and relatives cannot apply."
+              ]
+            },
+            "award": {
+              "currency": "EUR",
+              "min": 5000,
+              "max": 50000,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "First proposals: EUR 5,000 to EUR 50,000. After successfully concluded projects, a proposal may request up to EUR 150,000; the lifetime cap is EUR 500,000 per person or organisation. EUR 7 million is the programme pool, not an award."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://nlnet.nl/restack/",
+              "opensOn": "2026-11-03",
+              "closesOn": "2027-01-03",
+              "deadlineInstant": "2027-01-03T11:00:00Z",
+              "note": "Second call deadline: January 3, 2027 at 12:00 (noon) CET. Submit through https://nlnet.nl/propose/. Proposals that miss the deadline go to the next call."
+            },
+            "costs": {
+              "supported": [
+                "Open source software and open hardware design and development, testing and continuous integration, security proofs and audits, documentation, usability and inclusive design, standardisation, project management, and out-of-pocket costs for essential infrastructure, when cost-effective and clearly linked to the project."
+              ],
+              "excluded": [
+                "Costs of AI usage are not reimbursed.",
+                "Facilities and administrative costs are generally ineligible; where allowed, they are capped at 25%."
+              ]
+            },
+            "evidence": [
+              {
+                "url": "https://nlnet.nl/restack/",
+                "fields": [
+                  "focus",
+                  "application",
+                  "award",
+                  "applicants"
+                ],
+                "note": "Second call opened November 3, 2026 and is listed as open; standard award range, programme pool and generative AI project scope.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nlnet.nl/news/2026/20261103-call.html",
+                "fields": [
+                  "application"
+                ],
+                "note": "Dated call announcement: deadline January 3, 2027 at 12:00 (noon) CET.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nlnet.nl/restack/eligibility/",
+                "fields": [
+                  "geography",
+                  "applicants",
+                  "costs"
+                ],
+                "note": "European dimension, the 60% funding-share route, the exceptional-expertise route and eligible activities.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nlnet.nl/restack/guideforapplicants/",
+                "fields": [
+                  "applicants",
+                  "award"
+                ],
+                "note": "English proposals, research and development objective, open outputs, follow-on award conditions, per-proposal and lifetime caps, and excluded parties.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nlnet.nl/foundation/policies/generativeAI/2.0/",
+                "fields": [
+                  "applicants",
+                  "costs"
+                ],
+                "note": "Generative AI policy 2.0: proposal writing, read-only use in development and ineligible AI costs.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+                "fields": [
+                  "applicants"
+                ],
+                "note": "Policy announcement: applies to calls whose deadline falls after October 20, 2026.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nlnet.nl/restack/faq/",
+                "fields": [
+                  "application",
+                  "award",
+                  "costs"
+                ],
+                "note": "First-proposal range, no deadline postponement, and the cap on facilities and administrative costs.",
+                "checkedOn": "2026-11-15"
+              }
+            ],
+            "unknowns": [
+              "Fiscal sponsorship terms.",
+              "Project duration is set per proposal; the FAQ's default expectation of completion within 12 months is not a fixed term.",
+              "How the exceptional-expertise route on the eligibility page and the FAQ's unique-contribution test apply to a specific project.",
+              "The FAQ's advice on disclosing AI-assisted proposal text is looser than policy 2.0; the policy is the stricter source."
+            ]
           }
         ],
         "sources": [
@@ -365,6 +496,26 @@
             "url": "https://nlnet.nl/commonsfund/",
             "title": "NGI Zero Commons Fund — final call closed",
             "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://nlnet.nl/news/2026/20261103-call.html",
+            "title": "Restack second call announcement, November 3, 2026",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "url": "https://nlnet.nl/restack/guideforapplicants/",
+            "title": "Restack guide for applicants",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "url": "https://nlnet.nl/foundation/policies/generativeAI/2.0/",
+            "title": "NLnet generative AI policy 2.0",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "url": "https://nlnet.nl/restack/faq/",
+            "title": "Restack frequently asked questions",
+            "checkedOn": "2026-11-15"
           }
         ],
         "researchNotes": "Official program terms checked October 29, 2026. Eligibility requires applicant-level review; closed and conditional future rounds remain labeled. Deadline timezone: CET (UTC+1). ",
@@ -18400,6 +18551,109 @@
               "Workshop date conflict (November 4/9); awards early 2027 versus spring 2027.",
               "Project-specific legal, permitting, indirect-cost and advance-payment terms."
             ]
+          },
+          {
+            "id": "cdfw-golden-mussel-delta-2026",
+            "name": "Delta golden mussel decontamination and control sites, 2026",
+            "instrument": "grant",
+            "focus": [
+              "Invasive species prevention",
+              "Waterways",
+              "Boating decontamination"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [
+                "US"
+              ],
+              "applicantCountries": [],
+              "scope": "Projects on or centrally located to Sacramento-San Joaquin Delta waterways that support the five Delta counties: Yolo, Sacramento, Solano, Contra Costa and San Joaquin, California. Applicant domicile is not established.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Boating facility owners or operators",
+                "State and local government agencies",
+                "California Native American Tribes",
+                "Public entities",
+                "Private entities",
+                "Nonprofit organizations"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Project must be on or centrally located to Delta waterways and support the five Delta counties.",
+                "Register in CDFW WebGrants and apply under Invasive Mussel Response.",
+                "Obtain required permits and site access permissions."
+              ],
+              "exclusions": []
+            },
+            "award": {
+              "currency": "USD",
+              "min": null,
+              "max": null,
+              "durationMonths": null,
+              "basis": "current_offer",
+              "note": "USD 6 million is the total programme funding; the amount per award depends on the proposal. Paid by reimbursement, with advances of up to 25% for qualified nonprofits and federally recognized Tribes when essential. Cost share is encouraged but not required."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel",
+              "opensOn": "2026-11-03",
+              "closesOn": "2026-12-15",
+              "deadlineInstant": null,
+              "note": "Due December 15, 2026 at 4 p.m. The guidelines say Pacific Time in the schedule and PDT elsewhere, and the state listing gives no timezone, so no exact cutoff is stored. Apply in CDFW WebGrants (watershedgrants.wildlife.ca.gov)."
+            },
+            "costs": {
+              "supported": [
+                "One-time start-up costs, including decontamination equipment and supplies, site development and installation, watercraft inspection training and equipment, staff training and outreach."
+              ],
+              "excluded": [
+                "Work before an executed agreement is not reimbursed."
+              ]
+            },
+            "evidence": [
+              {
+                "url": "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "award",
+                  "application",
+                  "costs"
+                ],
+                "note": "California Grants Portal listing, last updated November 5: open date November 3, deadline December 15, 2026 at 16:00 with no timezone, USD 6 million, advances and reimbursement, performance up to June 2029.",
+                "checkedOn": "2026-11-15"
+              },
+              {
+                "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "award",
+                  "application",
+                  "costs"
+                ],
+                "note": "November call guidelines: WebGrants route, permits, eligible costs and the Pacific Time and PDT wording. The schedule lists work and final invoice due March 15, 2029.",
+                "checkedOn": "2026-11-09"
+              },
+              {
+                "url": "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel",
+                "fields": [
+                  "focus",
+                  "application"
+                ],
+                "note": "CDFW golden mussel page linking the current call.",
+                "checkedOn": "2026-11-09"
+              }
+            ],
+            "unknowns": [
+              "Exact deadline timezone: Pacific Time versus PDT.",
+              "Individual award range and fiscal sponsorship.",
+              "Performance period: the state listing says up to June 2029, while the guidelines schedule says work and final invoice are due March 15, 2029.",
+              "The full grant agreement and the WebGrants form were not reviewed."
+            ]
           }
         ],
         "sources": [
@@ -18417,6 +18671,21 @@
             "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
             "title": "California Department of Fish and Wildlife — official terms",
             "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+            "title": "Delta golden mussel decontamination: California Grants Portal listing",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+            "title": "Delta golden mussel decontamination: CDFW call guidelines",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel",
+            "title": "CDFW golden mussel page",
+            "checkedOn": "2026-11-09"
           }
         ],
         "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
@@ -18557,6 +18826,78 @@
               "Regulation unavailable: full legal eligibility, fiscal sponsorship, award bounds, cost rules, duration and attachments need review.",
               "Authenticated application flow not tested."
             ]
+          },
+          {
+            "id": "funbio-articulacao-institucional-11-2026",
+            "name": "Articulação Institucional, Chamada 11/2026",
+            "instrument": "grant",
+            "focus": [
+              "Environmental governance",
+              "Institutional coordination"
+            ],
+            "beneficiaries": [],
+            "geography": {
+              "workCountries": [
+                "BR"
+              ],
+              "applicantCountries": [],
+              "scope": "Work on the Paraná coast (Litoral Paranaense), Brazil. Applicant registration jurisdiction is not established.",
+              "exclusions": []
+            },
+            "applicants": {
+              "types": [
+                "Civil society organizations",
+                "Research institutions",
+                "Universities",
+                "Foundations",
+                "Associations"
+              ],
+              "fiscalSponsorship": "unknown",
+              "requirements": [
+                "Provide a counterpart contribution of at least 10% of the proposal value.",
+                "The proposal must strengthen coordination and integration between institutions for environmental governance on the Paraná coast."
+              ],
+              "exclusions": []
+            },
+            "award": {
+              "currency": "BRL",
+              "min": null,
+              "max": 1000000,
+              "durationMonths": 24,
+              "basis": "current_offer",
+              "note": "Up to BRL 1,000,000 for one selected proposal, with a counterpart of at least 10%. Errata 01/2026 sets project duration at 24 months instead of 30."
+            },
+            "application": {
+              "route": "open",
+              "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+              "opensOn": null,
+              "closesOn": "2026-12-04",
+              "deadlineInstant": "2026-12-05T02:45:00Z",
+              "note": "Submit by December 4, 2026 at 23:45 Brasília time (UTC-3). Errata 01/2026 of November 6 moved the deadline from November 23 and the question deadline to November 27. Submit through the proposal portal linked from the call page."
+            },
+            "costs": {
+              "supported": [],
+              "excluded": []
+            },
+            "evidence": [
+              {
+                "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+                "fields": [
+                  "focus",
+                  "geography",
+                  "applicants",
+                  "award",
+                  "application"
+                ],
+                "note": "Official call page with Errata 01/2026 of November 6. The target-audience list is cut off on the page, and the regulation download returned no readable text.",
+                "checkedOn": "2026-11-15"
+              }
+            ],
+            "unknowns": [
+              "Regulation unreadable: the full applicant list, formal eligibility, fiscal sponsorship, eligible costs and required attachments need review.",
+              "Applicant registration jurisdiction.",
+              "The proposal portal requires a login and was not tested."
+            ]
           }
         ],
         "sources": [
@@ -18564,6 +18905,11 @@
             "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
             "title": "Fundo Brasileiro para a Biodiversidade (FUNBIO) — official terms",
             "checkedOn": "2026-10-29"
+          },
+          {
+            "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+            "title": "Articulação Institucional, Chamada 11/2026: call page and Errata 01/2026",
+            "checkedOn": "2026-11-15"
           }
         ],
         "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
