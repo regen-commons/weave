@@ -324,6 +324,20 @@ test("model extraction rejects invented or repeated sources and excessive counts
   assert.throws(() => parseExtraction({ ...result, heard: 99 }, chunks), /limit/);
   assert.throws(() => parseExtraction({ items: [], heard: 1 }, chunks), /limit/);
 });
+test("equipment needs keep the Material kind in plural, in Portuguese and by the name of the machine", () => {
+  for (const words of [
+    "Gardening equipments",
+    "Equipamentos de irrigação",
+    "A water pump",
+    "A tractor and other machinery",
+    "Shovels and wheelbarrows",
+    "Uma ferramenta para a horta",
+    "Two trucks for the harvest",
+    "A greenhouse for seedlings",
+  ])
+    assert.ok(suggestKinds(words).includes("material"), words);
+  assert.ok(!suggestKinds("We grow pumpkins").includes("material"), "a pumpkin is not a pump");
+});
 test("quick add keeps the person's words, suggests kinds in pencil and guards the list", () => {
   let step = addEntry(emptyAskStep(), "  Native seedlings and   fencing tools ");
   const entry = step.items[0]!;

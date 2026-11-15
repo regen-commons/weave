@@ -4,8 +4,9 @@ import fs from "node:fs";
 import { createHash } from "node:crypto";
 import { upcomingWindows } from "../dist/deadlines.mjs";
 import { priorFundingRecord } from "./helpers/prior-funding-record.mjs";
+import { catalogBefore } from "./helpers/reverification-2026-11-15.mjs";
 const read = (path) => JSON.parse(fs.readFileSync(new URL("../" + path, import.meta.url)));
-const data = read("dist/data/funders.json");
+const data = catalogBefore(read("dist/data/funders.json"));
 const baseline = read("research/history-import-baseline.json");
 const canonical = (value) => Array.isArray(value) ? value.map(canonical)
   : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])])) : value;

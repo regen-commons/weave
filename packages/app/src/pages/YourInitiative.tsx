@@ -9,6 +9,7 @@ import { teamWorkspacePath } from "../routes.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText, hasDraft } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
+import { waitingSuggestions } from "../initiative/import.ts";
 import { cardName, cardRoute, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
@@ -21,6 +22,7 @@ import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
 import { ShareAction } from "../social/Share.tsx";
 import { useSocialFixture, useSocial } from "../social/context.tsx";
+import { waitingAction, waitingLine } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
@@ -46,6 +48,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const [saveMessage, setSaveMessage] = useState("");
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
+  const waiting = waitingSuggestions(draft);
   const examples = import.meta.env.DEV && fixture;
   const example = examples && social ? social.state : null;
   const view = examples ? fixture.intake : "off";
@@ -80,7 +83,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
         <>
           <p>
             {hasDraft(draft)
-              ? "Check your initiative, needs and offers first. Your words are still on this device."
+              ? waitingLine(waiting, false) ||
+                "Check your initiative, needs and offers first. Your words are still on this device."
               : "Describe your initiative and your card appears here."}
           </p>
           <div className="rc-action-bar">
@@ -166,6 +170,18 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </>
             }
           >
+            {/* Suggestions from the project page wait off the card, which shows kept entries only. */}
+            {waiting.length > 0 && (
+              <StatusLine
+                actions={
+                  <ButtonLink href={pathTo("needs")} variant="secondary" size="sm">
+                    {waitingAction(waiting)}
+                  </ButtonLink>
+                }
+              >
+                {waitingLine(waiting, true)}
+              </StatusLine>
+            )}
             <InitiativeRecord named={false} fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
           </StepLayout>
           {(view === "offline" || !navigator.onLine) && (

@@ -143,7 +143,9 @@ export const SEED_LIBRARY_RECORD: CertifiedRecord = {
   uri: `${EXAMPLE_DID}/seed-library`,
   name: "Seed library of the upper valley",
   locations: ["Upper valley, Brazil"],
-  description: "A shared seed library with a seasonal exchange and a growing guide for the valley's schools.",
+  // Its description states needs and offers, so linking it shows the suggestions from a project page.
+  description:
+    "A shared seed library with a seasonal exchange and a growing guide for the valley's schools. We lend seeds to any family that asks and run a seed-saving workshop each spring. We need seed-cleaning tools and volunteers for the autumn exchange.",
   links: [],
   publishedOn: "2026-10-12",
   group: "Valley seed keepers",

@@ -12,10 +12,10 @@
   "fieldCoverage": {
     "focus": 687,
     "eligibility": 600,
-    "numericAward": 186,
-    "currentNumericAward": 85,
+    "numericAward": 187,
+    "currentNumericAward": 86,
     "datedDeadline": 195,
-    "upcomingDatedDeadline": 43,
+    "upcomingDatedDeadline": 21,
     "applicationRoute": 555
   },
   "sourceWarningCount": 5,
@@ -4104,7 +4104,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -7287,7 +7287,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -7959,7 +7959,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -8576,7 +8576,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -9560,7 +9560,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -10914,7 +10914,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -10980,7 +10980,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -11205,7 +11205,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -13131,7 +13131,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -15199,7 +15199,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -17114,7 +17114,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -18530,7 +18530,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -20395,7 +20395,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -20480,7 +20480,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -21206,8 +21206,8 @@
       "name": "NLnet Foundation",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-29",
-      "sourceCount": 7,
-      "programCount": 4,
+      "sourceCount": 11,
+      "programCount": 5,
       "fields": {
         "focus": true,
         "eligibility": true,
@@ -21224,7 +21224,11 @@
         "https://nlnet.nl/fediversity/",
         "https://nlnet.nl/taler/",
         "https://nlnet.nl/taler/faq/index.html",
-        "https://nlnet.nl/commonsfund/"
+        "https://nlnet.nl/commonsfund/",
+        "https://nlnet.nl/news/2026/20261103-call.html",
+        "https://nlnet.nl/restack/guideforapplicants/",
+        "https://nlnet.nl/foundation/policies/generativeAI/2.0/",
+        "https://nlnet.nl/restack/faq/"
       ],
       "retrievals": []
     },
@@ -21307,7 +21311,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -21924,7 +21928,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -22576,7 +22580,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -22949,7 +22953,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -22973,7 +22977,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -23169,7 +23173,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -23277,7 +23281,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -23430,7 +23434,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -23489,8 +23493,8 @@
       "name": "California Department of Fish and Wildlife",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-29",
-      "sourceCount": 3,
-      "programCount": 1,
+      "sourceCount": 6,
+      "programCount": 2,
       "fields": {
         "focus": true,
         "eligibility": true,
@@ -23503,7 +23507,10 @@
       "sources": [
         "https://wildlife.ca.gov/Grants/Restoration-Grants",
         "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
-        "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline="
+        "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+        "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+        "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+        "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel"
       ],
       "retrievals": []
     },
@@ -23512,25 +23519,26 @@
       "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-29",
-      "sourceCount": 1,
-      "programCount": 1,
+      "sourceCount": 2,
+      "programCount": 2,
       "fields": {
         "focus": true,
         "eligibility": true,
-        "numericAward": false,
-        "currentNumericAward": false,
+        "numericAward": true,
+        "currentNumericAward": true,
         "datedDeadline": true,
         "upcomingDatedDeadline": true,
         "applicationRoute": true
       },
       "sources": [
-        "https://chamadas.funbio.org.br/floresta-viva-sao-francisco"
+        "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "https://chamadas.funbio.org.br/articulacao-institucional"
       ],
       "retrievals": []
     }
   ],
   "notes": "All original and supplemental records have a research disposition. Source overviews, program terms and failed/unresolved checks are distinct. Unknown terms remain unknown. Retrieval entries describe collection, not a claim that terms were verified. Original30 pilot reviews were retained from October14; expanded research was checked October15.",
-  "compiledAt": "2026-10-30T05:14:23.839542+00:00",
+  "compiledAt": "2026-11-15T09:16:01.447556+00:00",
   "fieldDefinitions": {
     "currentNumericAward": "A numeric amount in published program terms, even if that intake is closed; not a promise of current availability.",
     "datedDeadline": "At least one source closing date, including historical or closed calls.",

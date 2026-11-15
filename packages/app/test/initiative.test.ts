@@ -369,6 +369,13 @@ test("linking reuses the project's verified details and keeps the needs, offers 
   assert.deepEqual(chosenEntries(linked, "all"), chosenEntries(complete, "all"));
   assert.equal(intakeComplete(linked), true, "nothing has to be checked again");
   assert.equal(cardRoute(linked), "your-initiative");
+  // The orchard's description offers what its families learn, so that offer waits in pencil (15 November 2026).
+  assert.deepEqual(
+    linked.offers.items.filter((item) => item.decision === "pencil").map((item) => item.value.title),
+    ["Families restore an old orchard and share what they learn about soil, water and seed saving"],
+  );
+  const quiet = draftWithRecord(complete, WATER_NOTES_RECORD);
+  assert.deepEqual([...quiet.needs.items, ...quiet.offers.items], [...complete.needs.items, ...complete.offers.items]);
 
   const fresh = draftWithRecord(newDraft(), ORCHARD_RECORD);
   assert.equal(fresh.confirmed?.name, ORCHARD_RECORD.name, "a complete project record is checked as it arrives");

@@ -35,7 +35,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/intake/` | Need/offer contracts, review rules, local extraction and checked-card text |
 | `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, and a card started from a Certified project |
 | `src/social/` | Shared initiative/project screens, the live account and project adapter, sharing/publication dialogs, and development-only example services. Reminders and account deletion remain examples. |
-| `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development |
+| `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development; and the public Certified project list on Initiatives and Home, with the starter sources as its fallback |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |
 | `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads that the dev server and the build add to `index.html`, and the link previews: one copy of `index.html` for each section, written by the build |
@@ -63,7 +63,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   failure must offer text recovery and must not claim the latest changes are saved.
 - Needs and offers share the five-card rule and all eight kinds. Keep and manual
   correction freeze a card; rebuilding preserves those choices and removed source
-  chunks. Empty steps may continue; unfinished or unreviewed steps may not. Keep
+  chunks. Linking a Certified project adds pencil entries from its description
+  (`src/intake/project-page.ts`), once per project; rebuilding keeps them, and
+  they wait without unchecking a list the person already checked. Empty steps may continue; unfinished or unreviewed steps may not. Keep
   the old Describe draft readable when extending its schema.
 - Local speech and the browser model require an already available capability and
   a tap. Downloaded models and cloud calls stay behind their unavailable adapters

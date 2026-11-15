@@ -35,7 +35,11 @@ Add a row here when a package or scoped guide arrives, not before.
   `DESIGN.md` through `bun run design:tokens`, and most of `dist/data/` comes from the
   importer and the build, as the catalog guide lists. Commit regenerated output with
   the inputs that changed it; CI fails when a build changes tracked files.
-- `main` deploys the live site through Vercel from the root `vercel.json`. Do not
+- The live site deploys from `codex/funding-commons-demo`, not `main`. The
+  `funding-commons` Vercel project builds that branch with the root `vercel.json`,
+  and its Ignored Build Step cancels every other branch. Land site and catalog
+  changes through `develop` and `main` as usual. Publishing one means cherry-picking
+  it onto `codex/funding-commons-demo`, which needs its own authorization. Do not
   change deployment configuration, the Ignored Build Step or DNS as part of other
   work.
 - When you use the Regen Commons website repository as a reference, read its

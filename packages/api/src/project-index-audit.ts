@@ -1,16 +1,15 @@
 import type { createHypercertsSource, ProjectManifest } from "./project-index-source.ts";
+import { traverseProjectNetwork } from "./project-index-traversal.ts";
 
 type Source = Pick<ReturnType<typeof createHypercertsSource>, "listProjects">;
 
-/** Read-only aggregate evidence. Public accessibility never creates a redisplay grant. */
+/** Read-only aggregate evidence. It reads and counts; it never changes what Weave shows. */
 export async function auditProjectNetwork(options: {
   source: Source;
   maxPages: number;
   manifest?: ProjectManifest;
   now?: () => number;
 }) {
-  if (!Number.isSafeInteger(options.maxPages) || options.maxPages < 1 || options.maxPages > 10_000)
-    throw Error("invalid_page_budget");
   const now = options.now ?? Date.now;
   const startedAt = new Date(now()).toISOString();
   const report = {
@@ -38,17 +37,9 @@ export async function auditProjectNetwork(options: {
     consistentSnapshot: false,
   };
   const permissions = new Map((options.manifest?.permissions ?? []).map(p => [p.uri, p.redisplayUntil]));
-  const seen = new Set<string>(), cursors = new Set<string>();
-  let cursor: string | undefined;
-  for (let page = 0; page < options.maxPages; page++) {
-    const result = await options.source.listProjects(cursor);
-    if (result.status !== "ok") {
-      report.status = "failed";
-      report.code = result.code;
-      break;
-    }
-    report.pages++;
-    for (const row of result.results) {
+  const seen = new Set<string>();
+  const traversal = await traverseProjectNetwork({ source: options.source, maxPages: options.maxPages, now, onPage(results) {
+    for (const row of results) {
       report.records++;
       if (row.uri && seen.has(row.uri)) { report.duplicateRecords++; continue; }
       if (row.uri) { seen.add(row.uri); report.uniqueProjects++; }
@@ -66,11 +57,10 @@ export async function auditProjectNetwork(options: {
         if (!report.newestIndexedAt || date > report.newestIndexedAt) report.newestIndexedAt = date;
       }
     }
-    if (!result.cursor) { report.status = "complete"; break; }
-    if (cursors.has(result.cursor)) { report.status = "failed"; report.code = "source_cursor_cycle"; break; }
-    cursors.add(result.cursor);
-    cursor = result.cursor;
-  }
+  } });
+  report.status = traversal.status;
+  report.code = traversal.code;
+  report.pages = traversal.pages;
   const finished = now();
   report.finishedAt = new Date(finished).toISOString();
   if (report.oldestIndexedAt && report.newestIndexedAt) report.indexAgeMs = {

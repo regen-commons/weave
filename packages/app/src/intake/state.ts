@@ -15,6 +15,17 @@ import {
 
 export const activeItems = (step: AskStep) => step.items.filter((item) => item.decision !== "removed");
 export const fingerprint = (text: string) => text.trim().toLocaleLowerCase().replace(/\s+/gu, " ");
+/** Suggestions from a linked Certified project's page carry this prefix in their source key. */
+export const PROJECT_PAGE_SOURCE = "project:";
+/** An entry suggested from a linked project's public description, not from the person's words. */
+export const fromProjectPage = (item: Pick<AskItem, "sourceKey">): boolean =>
+  item.sourceKey?.startsWith(PROJECT_PAGE_SOURCE) ?? false;
+/**
+ * Entries that making cards again keeps: every decided entry, every entry added by hand and
+ * every suggestion from a project page. None of them came from the words being read again.
+ */
+export const keptOnRebuild = (item: AskItem): boolean =>
+  item.decision !== "pencil" || item.sourceKey === null || fromProjectPage(item);
 export function question(step: AskStep, kind: AskKind): string {
   if (!step.turns.length)
     return kind === "needs" ? "What would help your initiative next?" : "What can you share with others?";
@@ -70,8 +81,7 @@ export function keepLink(step: AskStep): AskStep {
   return changeStep(step, { links: [...new Set([...step.links, link])], pendingLink: "" }, true);
 }
 export function reconcile(step: AskStep, result: AskExtraction): AskStep {
-  // Entries a person added by hand have no source chunk, so a rebuild never drops them.
-  const fixed = step.items.filter((item) => item.decision !== "pencil" || item.sourceKey === null);
+  const fixed = step.items.filter(keptOnRebuild);
   const keys = new Set(fixed.map((item) => item.sourceKey).filter(Boolean));
   const prints = new Set(fixed.map((item) => item.fingerprint));
   const candidates = result.items.filter(
@@ -192,10 +202,14 @@ export function keepEditor(step: AskStep, kind: AskKind): AskStep {
       : [...step.items, item],
   });
 }
+/**
+ * Checks a list. Suggestions from a project page that arrived after the person checked it wait in
+ * pencil without unchecking it: they leave nothing until kept, and Continue on the page keeps them.
+ */
 export function reviewStep(step: AskStep): AskStep {
   if (step.editor || Object.keys(step.answerEdits).length || step.composer.trim() || step.pendingLink.trim())
     throw new Error("Keep or cancel unfinished changes before continuing.");
-  if (step.items.some((item) => item.decision === "pencil"))
+  if (step.items.some((item) => item.decision === "pencil" && !fromProjectPage(item)))
     throw new Error("Keep, change or remove every card in pencil.");
   const hasSource = step.turns.length || step.attachments.length;
   if (step.mode === "conversation" && hasSource && step.builtVersion !== step.inputVersion)

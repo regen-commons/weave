@@ -35,6 +35,9 @@ The rest of `dist/data/` is generated. Change the inputs, then rerun the script.
   notes stay outside this public repository.
 - Routine catalog pull requests are drafts labeled `automated/codex`. Routines never
   merge, deploy, submit applications or contact funders.
+- Merging a catalog change into `main` does not publish it. The live site deploys
+  from `codex/funding-commons-demo`, as the [root guide](../AGENTS.md#essential-rules)
+  explains.
 
 ## Checks
 

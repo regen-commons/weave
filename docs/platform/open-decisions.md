@@ -172,9 +172,9 @@ and completion status. Responsibilities below are proposed roles.
 | Question | Working recommendation | Owner | Evidence still required |
 |---|---|---|---|
 | Who sees shared entries? | First audience: signed-in Weave users. Share only the reviewed entries and summary, and apply the network participation rules when matching. | Product owner and API maintainer | Verify audience comprehension and server enforcement. Test shares with and without an end date against the [decided lifecycle](#shared-entries-and-acting-on-matches). |
-| Can the Certified index support the launch coverage target? | Start validation with a varied sample, then enumerate all eligible public Certified projects the chosen index makes available. | Integration maintainer and source partners | Verify reuse and redisplay permission, pagination, rate limits, updates, deletions, unlisted handling, coverage and lag at launch volume. Confirm relevance and latency against the broader corpus. |
+| Can the Certified index support the launch coverage target? | Index every listed public Certified project the chosen index makes available, as [decided on 15 November](#all-listed-public-certified-projects-decided-15-november-2026). | Integration maintainer and source partners | A live traversal into local Supabase covered pagination, unlisted handling and the volume on 15 November ([evidence](../../packages/api/evidence/project-index-all-public-2026-11-15.md)). Still open: the first production refresh, observed updates and deletions over several days, rate limits, measured lag, and relevance and latency against the broader corpus. |
 | Which model and search settings meet the quality bar? | Compare the existing pinned embedding model plus full-text search against lexical-only retrieval; keep local refinement optional and no-model results usable. | Matching maintainer and domain reviewers | Held-out need/offer relevance and recall, evidence accuracy and language/domain breakdowns. The 80 percent relevance and 2-second p95 targets in section 7.6 are proposed test budgets, not achieved results. |
-| Where should the indexing job run at pilot scale? | Reuse the existing Platform database and a bounded resumable Node job; select the scheduler/runtime after measuring a batch. No additional host or paid model service is presumed. | API and infrastructure maintainers | Check runtime memory/duration, durable resume, model assets, concurrency and index/transfer cost at 1k/10k/100k passages. Any new spend, dependency or hosted rollout follows repository rules. |
+| Where should the indexing job run at pilot scale? | A daily Vercel Cron function in the Weave project, which Hobby allows once a day, writing to the existing Platform database. A GitHub Actions job would publish its logs from this public repository. No additional host or paid model service is presumed. | API and infrastructure maintainers | A full refresh of 1,123 projects took 24 to 25 seconds into local Supabase on 15 November, inside the 300-second Hobby limit; the hosted duration is unmeasured. Check memory, concurrency and transfer cost at 10k projects before that volume, and embeddings separately. Any new spend, dependency or hosted rollout follows repository rules. |
 
 The 8 November local build implements the two restricted jobs, versioned vector
 storage and default-off hybrid retrieval. Real PostgreSQL fixtures establish the
@@ -349,16 +349,77 @@ a separate public AT Protocol listing requires one or more owner-approved forms.
 uses the same eight values. The current typed editor still requires manual
 selection. Automatic suggestions there remain implementation work.
 
+### Suggestions from a linked project's page
+
+Decided by the user on 15 November 2026, after a linked project's card arrived
+with no needs or offers. When a Certified project is linked or imported, Weave
+reads the project's public description on the device and suggests up to three
+needs and three offers from the sentences that ask for or offer something. They
+show dashed, labelled "Suggested from your project page", after the card's own
+entries. Nothing is kept, saved or shared until the person keeps it: Continue on
+Needs and offers keeps what is left there, and Remove takes one away.
+
+A suggestion never replaces or repeats an entry on the card, never brings back
+one the person removed and stays within the five-entry limit. A card reads each
+project once, so linking it again adds nothing. A card the person already checked
+stays checked: the suggestions wait beside it, Your initiative says so and links
+to Needs and offers, and saving and sharing carry on with the kept entries only.
+Suggestions come from the keyword reader, not a model. If the description cannot
+be read, the link still goes ahead, with no suggestions.
+
+Known limits: removals are remembered on the device only, because a saved copy
+keeps only kept entries. Opening a team workspace links nothing, so it suggests
+nothing, and the team workspace's own editor does not suggest from the project
+page yet. This records the user's direction, not a council vote.
+
 ### Certified index coverage at launch
 
 First-release public-evidence suggestions use Certified projects. Coverage
 targets all eligible public Certified projects that the chosen index can
-enumerate. Eligibility requires permitted reuse and redisplay. Adapters for
-other public project sources follow after the first release.
+enumerate. Since 15 November, a project is eligible when it is listed as public;
+see the next section. Adapters for other public project sources follow after
+the first release.
 Validate the integration on a varied sample, then verify permissions,
 freshness and match quality across the launch corpus. Browser previews still
 use a bounded public snapshot. Report that coverage separately from the server
 index.
+
+### All listed public Certified projects, decided 15 November 2026
+
+Decided by the user on 15 November 2026: Weave indexes and shows every public
+Certified project the Hypercerts read API lists, Ma Earth's included. This
+replaces the earlier requirement for an approved per-project permission
+manifest. Publishing a project as public on Certified is the basis for showing
+it. A project whose organization asks to be unlisted (`visibility=unlisted`, or
+the older `unlisted=true`), or whose collection is not public, is not shown.
+Projects whose account lives on Certified's development or test servers
+(`dev.certified.app` and any `*.test.certified.app`) hold test data and are not
+shown either; on 15 November that was 110 of 1,068 accounts. Each refresh reads
+the account's server from its DID document through plc.directory. An account
+that no longer exists or names no server is left out, and a lookup that fails
+leaves the refresh unapplied.
+
+- A daily refresh traverses the whole listing. Only a complete traversal, with
+  every account looked up, replaces what Weave shows: a failed page, a repeated
+  cursor, a failed account lookup, the page budget or the time budget changes
+  nothing.
+- A project that disappears from the listing or becomes unlisted is withdrawn
+  by the next complete traversal, and its stored passages are deleted. A
+  listing that would withdraw more than half of the shown projects at once is
+  refused as a likely source fault.
+- A project stays shown for 72 hours without a complete traversal confirming
+  it, so a failing source cannot keep stale projects up for longer.
+- Weave shows the project's name, its own words from the public record and its
+  dates, and links to the record. Records that carry contact details or markup
+  in their title are skipped. Projects with no usable description text are
+  indexed but not listed.
+- The Initiatives page and Home's Recently shared read the index. When the
+  index is empty or does not answer, the Initiatives page shows the starter
+  list of public sources instead.
+
+The public list is an index of what Certified publishes, not an endorsement,
+and listing a project there sends it nothing. Matching on its evidence follows
+the sections above.
 
 ### Matching both shared entries and external evidence
 
