@@ -6,7 +6,8 @@ export const PUBLIC_PROJECT_PAGE_SIZE = 12;
 export const PUBLIC_PROJECT_PAGE_MAX = 24;
 const maxQuery = 100;
 const maxTerms = 6;
-const maxCursor = 512;
+/** Fits the longest project address `parseProjectUri` accepts, about 610 characters once encoded. */
+const maxCursor = 1024;
 const sharedAtPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/u;
 const controls = /[\p{Cc}\p{Cf}]/u;
 /** Search ignores case and combining marks, so "sao" finds "São". */

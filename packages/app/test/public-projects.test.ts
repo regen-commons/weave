@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  countLine, firstPage, indexLine, nextPage, publicProjectsPath, requestPublicProjects, sharedLabel, showsIndex,
+  countLine, firstPage, indexLine, listView, nextPage, publicProjectsPath, requestPublicProjects, sharedLabel, showsIndex,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:fixture${"a".repeat(13)}aaa${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -42,7 +42,12 @@ test("a page is read without credentials and refused unless it is valid", async 
 });
 
 test("the index shows while it has projects or a search runs, and the starter list otherwise", () => {
-  assert.equal(showsIndex({ status: "loading", q: "" }), true);
+  // Until a first page answers, only loading shows; a later search keeps the index on screen.
+  assert.equal(listView({ status: "loading", q: "" }, false), "loading");
+  assert.equal(listView({ status: "loading", q: "soil" }, true), "index");
+  assert.equal(listView({ status: "failed", q: "" }, false), "starter");
+  assert.equal(listView(firstPage("", page([card(1)], 1)), false), "index");
+  assert.equal(showsIndex({ status: "loading", q: "" }), false);
   assert.equal(showsIndex({ status: "failed", q: "soil" }), false);
   assert.equal(showsIndex(firstPage("", page([], 0))), false);
   assert.equal(showsIndex(firstPage("soil", page([], 0))), true);
@@ -50,6 +55,7 @@ test("the index shows while it has projects or a search runs, and the starter li
   // Before the list is switched on, a search still shows the starter list, not "no matches".
   const off: PublicProjectPage = { index: { status: "off", checkedAt: null, total: 0 }, projects: [], next: null };
   assert.equal(showsIndex(firstPage("soil", off)), false);
+  assert.equal(listView(firstPage("", off), false), "starter");
 });
 
 test("more pages add only projects not already shown", () => {

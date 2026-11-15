@@ -10,7 +10,7 @@ import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
   countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
-  showsIndex, type PublicProjectCard as Project, type PublicProjectList,
+  listView, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
 
 const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
@@ -84,6 +84,12 @@ export function PublicProjects() {
     replaceRouteQuietly(q ? `${routePath()}?${new URLSearchParams({ q })}` : routePath());
   }, [q]);
   const { list, more, retry } = usePublicProjects(q);
+  // Whether a page has shown the list is switched on, so later searches keep the index while they load.
+  const [indexSeen, setIndexSeen] = useState(false);
+  useEffect(() => {
+    if (list.status === "ready" && list.page.index.status !== "off") setIndexSeen(true);
+  }, [list]);
+  const view = listView(list, indexSeen);
   // Focus moves to the first project "Show more" added, so a keyboard user keeps their place.
   const [focusAt, setFocusAt] = useState<number | null>(null);
   const added = useRef<HTMLLIElement | null>(null);
@@ -109,7 +115,16 @@ export function PublicProjects() {
     more();
   }
 
-  if (!showsIndex(list)) {
+  if (view === "loading") {
+    return (
+      <div className="rc-stack" aria-busy="true">
+        <p className="rc-meta" role="status">Loading projects</p>
+        <div className="rc-skeleton" />
+        <div className="rc-skeleton" />
+      </div>
+    );
+  }
+  if (view === "starter") {
     return (
       <div className="rc-stack">
         {list.status === "failed" && (

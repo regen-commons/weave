@@ -92,7 +92,7 @@ type XrpcResult =
   // A list page can be retried with fewer records. A single stored record keeps its stored code.
   | { status: "failed"; code: "source_response_too_large" }
   // `retryAfterMs` is the stored backoff for per-project reads; `requestedWaitMs` is what the server asked.
-  | { status: "failed"; code: "source_rate_limited"; retryAfterMs: number; requestedWaitMs?: number }
+  | { status: "failed"; code: "source_rate_limited" | "source_unavailable"; retryAfterMs: number; requestedWaitMs?: number }
   | Extract<ProjectRead, { status: "failed" } | { status: "missing" | "restricted" }>;
 export function createHypercertsSource(options: {
   fetch?: typeof fetch;
@@ -125,7 +125,7 @@ export function createHypercertsSource(options: {
           await response.body?.cancel();
           const retryAfter = response.headers.get("Retry-After");
           if (retryAfter) return { status: "failed", code: "source_unavailable",
-            retryAfterMs: backoff(retryAfter, now(), 30_000) };
+            retryAfterMs: backoff(retryAfter, now(), 30_000), requestedWaitMs: backoff(retryAfter, now(), 0) };
           continue;
         }
         if (response.status === 401 || response.status === 403) {
@@ -207,7 +207,8 @@ export function createHypercertsSource(options: {
 }
 
 // Store only plain text from approved fields. Drop contact details and embedded markup.
-const unsafePassage = /[<>\p{Cc}\p{Cf}]|https?:|www\.|\bmailto:|[\p{L}\p{N}._+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}|(?:\+?\d[\s().-]*){8,}/iu;
+// A lone surrogate is not valid Unicode, and Postgres rejects it in jsonb.
+const unsafePassage = /[<>\p{Cc}\p{Cf}\p{Surrogate}]|https?:|www\.|\bmailto:|[\p{L}\p{N}._+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}|(?:\+?\d[\s().-]*){8,}/iu;
 function safePassages(value: string, max: number): string[] {
   const passages: string[] = [];
   const segmenter = new Intl.Segmenter("en", { granularity: "sentence" });

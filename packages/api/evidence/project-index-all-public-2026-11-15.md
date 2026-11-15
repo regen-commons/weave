@@ -14,7 +14,7 @@ It holds counts and timings only: no project names, addresses or text.
 | Production source, read only | Each listed account's DID document from plc.directory, six at a time | 1,068 accounts, all did:plc, in 14 seconds, every lookup answered. Hosts: certified.one 950, dev.certified.app 62, pds1.test.certified.app 48, four bsky.network hosts 4, climateai.org 2, two others 1 each. This matches the platform status session's own count. |
 | Production source into local Supabase | `--refresh-all-public` through a restricted login inheriting only `weave_index_job`, Postgres 17 in the Supabase image | Complete in 36 and 42 seconds on two runs. Of 1,131 records, 8 were skipped because their titles carry contact details or markup and 112 belong to accounts on Certified's development or test servers. 1,011 projects were committed; 13 have no usable description text, so 998 are shown. Before the test-server rule, the same refresh committed 1,123 projects in 24 seconds and an unchanged rerun took 25 seconds and withdrew none. |
 | Local Supabase | The public list's read of the 998 shown projects | 78 to 101 ms for the whole list, 1.3 MB. Each function instance reads it at most once a minute; searches and pages are then answered in memory in 0 to 2 ms. A search for "soil" matched 188 projects. |
-| Fixture, local Supabase | The integration suite `project-index-all-public-postgres.test.ts` | First refresh, cursor paging without gaps, unchanged refresh, unlisted flip, removal, a move to a test server, source outage, page budget, re-listing, expiry, stale reads, two concurrent runs, withdraw-all and the signed-in snapshot reading the same rows. |
+| Fixture, local Supabase | The integration suite `project-index-all-public-postgres.test.ts` | First refresh, cursor paging without gaps, unchanged refresh, unlisted flip, removal, a move to a test server, source outage, page budget, re-listing, expiry, stale reads, two concurrent runs, withdraw-all, a project whose data Postgres refuses, and the signed-in snapshot reading the same rows. |
 | Fixture | Unit suites for the traversal, refresh, account lookups, cron handler and public list | Retries and Retry-After, adaptive page size, cursor cycles, the shrink guard, dates Postgres cannot read, test-server and failed lookups, DID document parsing, time-budget resume, contention, the `off` page, the once-a-minute copy, secrets and log content. |
 | Fixture, local Supabase, in-app Chromium | Initiatives and Home with 30 fictional projects, at 360 and 1280 px in light and dark | Search, Clear search and Show more by keyboard; the empty index and an outage on both pages. No horizontal overflow or console errors. |
 
@@ -28,8 +28,11 @@ are not measured here.
   repeated cursor, the page budget or the time budget leaves every stored row as
   it was. The integration suite checks the outage and page-budget cases byte for
   byte; the unit suite covers the time budget.
-- A record whose dates Postgres cannot read (year 0000, or an offset beyond
-  15:59) is skipped as malformed, so one record cannot break the list.
+- A record whose dates or text Postgres cannot store (year 0000, an offset
+  beyond 15:59, a lone surrogate) is skipped as malformed. If Postgres still
+  refuses a project's data when it is committed, that one project is recorded
+  as malformed and the sweep goes on, so one record cannot break the list or
+  stall later refreshes.
 - Projects whose account's DID document names `dev.certified.app` or a
   `*.test.certified.app` server are left out, and withdrawn if shown. An account
   that plc.directory reports gone (404 or 410), or whose own document names no

@@ -20,12 +20,17 @@ test("the query accepts only a bounded search, an opaque cursor and a page size"
   const search = parsePublicProjectQuery(url("?q=%20S%C3%A3o%20%20Paulo%20soil%20soil&limit=3"));
   assert.deepEqual([search.q, search.terms, search.limit], ["São Paulo soil soil", ["sao", "paulo", "soil"], 3]);
   assert.deepEqual(searchTerms("a b c d e f g h"), ["a", "b", "c", "d", "e", "f"]);
+  // The longest address a project can have still makes a cursor the list accepts.
+  const longest = `at://did:web:${"a".repeat(253)}/org.hypercerts.collection/${"k".repeat(128)}`;
+  const far = encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: longest });
+  assert.ok(far.length > 512);
+  assert.equal(parsePublicProjectQuery(url(`?cursor=${far}`)).cursor?.uri, longest);
   const cursor = encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
   assert.deepEqual(parsePublicProjectQuery(url(`?cursor=${cursor}`)).cursor,
     { sharedAt: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
   for (const bad of [
     "?limit=0", "?limit=25", "?limit=2.5", "?limit=-1", "?other=1", "?q=a&q=b", `?q=${"x".repeat(101)}`, "?q=%00",
-    "?q=%E2%80%AE", "?cursor=", "?cursor=***", `?cursor=${"A".repeat(600)}`,
+    "?q=%E2%80%AE", "?cursor=", "?cursor=***", `?cursor=${"A".repeat(1100)}`,
     `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02", uri: projectUri(1) })}`,
     `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: "at://did:web:x/other/key" })}`,
     `?cursor=${Buffer.from(JSON.stringify({ sharedAt: "x" })).toString("base64url")}`,
@@ -115,6 +120,15 @@ test("before the list is switched on it answers an empty off page, and errors ar
     return { cards: [{ ...card(1), text: "" }], checkpoint: null };
   } }) });
   await expect(await flaky(new Request(url(""))), 503, "public_projects_unavailable");
+  // A database that stops answering gives a quick 503, and the next request reads again.
+  let hung = 0;
+  const stalled = createPublicProjectsHandler({ loadTimeoutMs: 20, reader: async () => ({ ...reader, load: () => {
+    hung++;
+    return new Promise<never>(() => undefined);
+  } }) });
+  await expect(await stalled(new Request(url(""))), 503, "public_projects_unavailable");
+  await expect(await stalled(new Request(url(""))), 503, "public_projects_unavailable");
+  assert.equal(hung, 2);
   const recovered = parsePublicProjectPage(await (await flaky(new Request(url("")))).json());
   assert.deepEqual([recovered.index.status, recovered.index.total, attempts], ["partial", 1, 2], "a failed read is not kept");
 });

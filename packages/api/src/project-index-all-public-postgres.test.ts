@@ -6,7 +6,8 @@ import postgres from "postgres";
 import { parsePublicEvidenceSnapshot } from "./matching-contract.ts";
 import { refreshAllPublicProjects, withdrawAllPublicProjects } from "./project-index-all-public.ts";
 import { connectProjectIndex } from "./project-index-postgres.ts";
-import { createHypercertsSource } from "./project-index-source.ts";
+import { createHypercertsSource, extractCollection } from "./project-index-source.ts";
+import { refreshProjectIndex } from "./project-index.ts";
 import { parsePublicProjectPage } from "./public-projects-contract.ts";
 import { createPublicProjectsHandler } from "./public-projects-http.ts";
 import { connectPublicProjectReader, type PublicProjectReader } from "./public-projects-store.ts";
@@ -206,4 +207,29 @@ integration("withdrawing everything empties the public list", async () => {
   assert.equal((await page()).total, 0);
   assert.equal(await admin<{ count: number }[]>`select count(*)::int as count from private.weave_project_index_evidence`
     .then(([row]) => row!.count), 0);
+});
+
+integration("a project whose data Postgres refuses is recorded as malformed and the sweep goes on", async () => {
+  const { generation } = await index.store.state();
+  const fetchedAt = new Date().toISOString();
+  const read = (n: number) => {
+    const result = extractCollection(projectView(n, { version: 9 }), projectUri(n), fetchedAt);
+    if (result.status !== "indexed") throw Error("expected an indexed fixture");
+    return result;
+  };
+  // Built by hand: extraction rejects a lone surrogate, but the store must still survive one.
+  const broken = read(51);
+  const poison = { ...broken, passages: broken.passages.map((passage) => ({ ...passage, passage: "Broken \ud800 text." })) };
+  const reads = new Map([[projectUri(51), poison], [projectUri(52), read(52)]]);
+  const redisplayUntil = new Date(Date.now() + 3_600_000).toISOString();
+  const report = await refreshProjectIndex({
+    manifest: { generation: generation + 1, permissions: [51, 52].map((n) => ({ uri: projectUri(n), redisplayUntil })) },
+    store: index.store, source: { get: async ({ uri }) => reads.get(uri)! }, batchSize: 5,
+  });
+  assert.deepEqual([report.indexed, report.failed, report.swept], [1, 1, true]);
+  const rows = await admin`select status, error_code from private.weave_project_index_source
+    where project_uri in (${projectUri(51)}, ${projectUri(52)}) order by project_uri`;
+  assert.deepEqual(rows.map(({ status, error_code }) => [status, error_code]), [["failed", "invalid_source_record"], ["indexed", null]]);
+  assert.equal(await evidenceCount(projectUri(51)), 0);
+  assert.ok(await evidenceCount(projectUri(52)) > 0);
 });

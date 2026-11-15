@@ -147,11 +147,11 @@ test("a temporary outage is retried with backoff, but a refusal is not", async (
   const limited = await traverseProjectNetwork({ source: throttled, maxPages: 5, limit: 25, attempts: 3,
     wait: async (ms) => { waits.push(ms); }, onPage: () => undefined });
   assert.deepEqual([limited.status, limited.code, waits], ["failed", "source_rate_limited", []]);
-  // A short Retry-After is honored, never undercut, and the page is read again.
-  for (const [retryAfter, expected] of [["1", [2000]], ["20", [20_000]]] as const) {
+  // A short Retry-After is honored, never undercut, and the page is read again, on a rate limit or an outage.
+  for (const [status, retryAfter, expected] of [[429, "1", [2000]], [429, "20", [20_000]], [503, "10", [10_000]]] as const) {
     let calls = 0;
     const brief = createHypercertsSource({ now: () => start, wait: noWait, fetch: projectListing({ views,
-      fail: () => ++calls === 1 ? Response.json({}, { status: 429, headers: { "Retry-After": retryAfter } }) : null }) });
+      fail: () => ++calls === 1 ? Response.json({}, { status, headers: { "Retry-After": retryAfter } }) : null }) });
     waits.length = 0;
     const retried = await traverseProjectNetwork({ source: brief, maxPages: 5, limit: 25, attempts: 3,
       wait: async (ms) => { waits.push(ms); }, onPage: () => undefined });
@@ -290,14 +290,16 @@ test("an account's server comes from its DID document, and only a definite answe
   assert.deepEqual(await web.resolve("did:web:dev.certified.app"), { status: "found", host: "dev.certified.app" });
 });
 
-test("a date Postgres cannot read makes the record invalid instead of reaching the index", async () => {
+test("a date or text Postgres cannot store makes the record or passage invalid instead of reaching the index", async () => {
   const views = [projectView(0), projectView(1, { createdAt: "2026-10-01T12:00:00+20:00" }),
     projectView(2, { createdAt: "0000-01-01T00:00:00Z" }), projectView(3, { indexedAt: "2026-11-14T00:00:00-16:00" }),
-    projectView(4, { createdAt: "2026-10-01T12:00:00+15:59" })];
+    projectView(4, { createdAt: "2026-10-01T12:00:00+15:59" }), projectView(5, { title: "Lone \ud800 surrogate" }),
+    projectView(6, { short: "A lone \udc00 surrogate is dropped. The rest of the description stays." })];
   const index = setup(views);
   const report = await index.run();
-  assert.deepEqual([report.status, report.invalid, report.listed], ["complete", 3, 2]);
-  assert.deepEqual([...index.data.sources.keys()].sort(), [0, 4].map(projectUri).sort());
+  assert.deepEqual([report.status, report.invalid, report.listed], ["complete", 4, 3]);
+  assert.deepEqual([...index.data.sources.keys()].sort(), [0, 4, 6].map(projectUri).sort());
+  assert.equal(index.data.sources.get(projectUri(6))?.passages, 1);
 });
 
 test("withdrawing everything empties the list in a new generation", async () => {

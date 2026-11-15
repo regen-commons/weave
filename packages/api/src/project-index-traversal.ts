@@ -56,9 +56,9 @@ export async function traverseProjectNetwork(options: {
         size = smaller;
         continue;
       }
-      // A rate limit waits at least as long as the server asked; an outage backs off on its own schedule.
-      const requested = listing.code === "source_rate_limited" && "requestedWaitMs" in listing
-        && typeof listing.requestedWaitMs === "number" ? listing.requestedWaitMs : 0;
+      // A retry waits at least as long as the server's Retry-After asked, on a rate limit or an outage.
+      const requested = "requestedWaitMs" in listing && typeof listing.requestedWaitMs === "number"
+        ? listing.requestedWaitMs : 0;
       const pause = Math.max(requested, 2000 * attempt);
       if (attempt >= attempts || (listing.code !== "source_unavailable" && listing.code !== "source_rate_limited")
         || pause > maxRetryWaitMs) return { status: "failed", code: listing.code, pages };

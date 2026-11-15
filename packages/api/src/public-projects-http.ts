@@ -12,6 +12,11 @@ const STALE_AFTER_MS = 26 * 60 * 60 * 1000;
  */
 const SNAPSHOT_MS = 60_000;
 /**
+ * The read has a 4 s statement timeout, but a database that stops answering never times a statement out.
+ * A read still running after this long fails, so requests get a quick 503 instead of hanging.
+ */
+const LOAD_TIMEOUT_MS = 6_000;
+/**
  * Browsers keep a page for a minute. The CDN keeps it for five and may serve it for ten more while it
  * refreshes. With the instance copy, a withdrawal reaches every reader within about seventeen minutes of
  * the refresh that made it.
@@ -62,12 +67,16 @@ export function createPublicProjectsHandler(options: {
   /** null while the list is not switched on. A connection failure rejects. */
   reader(): Promise<PublicProjectReader | null>;
   now?: () => number;
+  loadTimeoutMs?: number;
 }) {
   const now = options.now ?? Date.now;
+  const loadTimeoutMs = options.loadTimeoutMs ?? LOAD_TIMEOUT_MS;
   let copy: { at: number; prepared: Promise<Prepared> } | undefined;
   function snapshot(reader: PublicProjectReader): Promise<Prepared> {
     if (copy && now() - copy.at < SNAPSHOT_MS) return copy.prepared;
-    const current = { at: now(), prepared: reader.load().then(prepare) };
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error("load_timeout")), loadTimeoutMs); });
+    const current = { at: now(), prepared: Promise.race([reader.load(), late]).then(prepare).finally(() => clearTimeout(timer)) };
     copy = current;
     // A failed read is tried again by the next request instead of being kept for a minute.
     current.prepared.catch(() => { if (copy === current) copy = undefined; });

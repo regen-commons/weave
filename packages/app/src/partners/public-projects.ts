@@ -49,8 +49,17 @@ export function nextPage(list: PublicProjectList, page: PublicProjectPage): Publ
  * that is not switched on or one that did not answer falls back to the starter list of public sources.
  */
 export function showsIndex(list: PublicProjectList): boolean {
-  return list.status === "loading" || (list.status === "ready" && list.page.index.status !== "off"
-    && (list.page.index.total > 0 || list.q !== ""));
+  return list.status === "ready" && list.page.index.status !== "off" && (list.page.index.total > 0 || list.q !== "");
+}
+
+/**
+ * What the Initiatives page shows now. Until a first page says whether the list is switched on, it shows
+ * only that it is loading, so neither the search form nor the starter list flashes before the other.
+ * Once the list has answered, a later search keeps the index on screen while it loads.
+ */
+export function listView(list: PublicProjectList, indexSeen: boolean): "loading" | "index" | "starter" {
+  if (list.status === "loading") return indexSeen ? "index" : "loading";
+  return showsIndex(list) ? "index" : "starter";
 }
 
 const count = (total: number) => new Intl.NumberFormat("en-GB").format(total);

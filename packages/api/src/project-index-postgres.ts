@@ -1,3 +1,4 @@
+import postgres from "postgres";
 import { connectRestrictedIndexDatabase, shownProject } from "./project-index-db.ts";
 import { partnerLexicalText } from "./partner-matcher.ts";
 import { expandPartnerText } from "./partner-concepts.ts";
@@ -81,7 +82,20 @@ export async function connectProjectIndex(url: string, options: { ca?: string } 
         return next;
       });
     },
-    commit({ checkpoint, permission, read, embedding, nextOffset, completedAt, retryAfter, checkedAt }) {
+    async commit(input) {
+      try {
+        return await commitOnce(input);
+      } catch (error) {
+        // Postgres refuses data it cannot store (SQLSTATE class 22). Record that one project as malformed,
+        // so a single record cannot stop every later sweep at the same place. Any other error ends the run.
+        if (!(error instanceof postgres.PostgresError) || !error.code.startsWith("22") || input.read.status !== "indexed")
+          throw error;
+        return commitOnce({ ...input, read: { status: "failed", code: "invalid_source_record" }, embedding: undefined });
+      }
+    },
+  };
+  function commitOnce({ checkpoint, permission, read, embedding, nextOffset, completedAt, retryAfter, checkedAt }:
+    Parameters<ProjectIndexStore["commit"]>[0]) {
       return sql.begin(async (tx) => {
         const [next] = await tx<CheckpointRow[]>`
           update private.weave_project_index_checkpoint
@@ -185,7 +199,6 @@ export async function connectProjectIndex(url: string, options: { ca?: string } 
         }
         return committed;
       });
-    },
-  };
+  }
   return { store, close: () => sql.end({ timeout: 3 }) };
 }
