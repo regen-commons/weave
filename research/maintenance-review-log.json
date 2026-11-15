@@ -14626,6 +14626,467 @@
       "dueOnBefore": "2026-11-14",
       "nextReviewOn": "2026-11-12",
       "note": "Initial source excerpt reviewed; whole-record clock not advanced. Full conditions and additional sources remain outstanding. No catalog terms changed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-01",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.grants.gov/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Registry homepage reachable; followed grant search."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-02",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.grants.gov/search-grants"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Search returned Loading shell and zero placeholders; opportunities not enumerated. This is not evidence of no calls."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-03",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.grants.ca.gov/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Recent listings surfaced golden mussel and dam-safety calls. Followed golden mussel at its owner; dam safety deferred."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-04",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.terravivagrants.org/category/energy-climate-change/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Discovery only: followed MoveNow and EJN; IKI Medium, Keeling Curve and HCLTech were not verified at owners. First page only."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-05",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.fundsforngos.org/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "HTTP 403; no opportunity terms verified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-06",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://chamadas.funbio.org.br/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Two previously deferred calls recovered. Paraná now lists December 4; Porto Sul still November 9. São Francisco is already represented."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-07",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "focus",
+        "geography",
+        "applicants",
+        "award",
+        "application"
+      ],
+      "sourceUrls": [
+        "https://chamadas.funbio.org.br/articulacao-institucional"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "November 6 erratum extends November 23 to December 4 at 23:45 Brasília and changes 30 months to 24. One proposal up to BRL 1 million; 10% counterpart. Applicant text truncated; regulation unresolved. Proposed addition, not applied."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-08",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://chamadas.funbio.org.br/articulacao-institucional/download/regulamento?id=ce031820-df78-4b2e-8bd3-d8b0d3b108d4"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Retrieved tracking/iframe shell only; no readable regulation."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-09",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "focus",
+        "geography",
+        "applicants",
+        "award",
+        "application"
+      ],
+      "sourceUrls": [
+        "https://chamadas.funbio.org.br/tcsa-porto-sul"
+      ],
+      "nextReviewOn": "2026-11-10",
+      "note": "Nonprofit associations/foundations and cooperatives constituted for two years; named southern Bahia conservation areas; BRL 4 million pool. November 9 date only; exact cutoff unknown. Regulation changed October 29. Proposed addition, not applied."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-10",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://chamadas.funbio.org.br/tcsa-porto-sul/download/regulamento?id=6aca838c-dd29-4c68-9320-7a1ea7d8185d"
+      ],
+      "nextReviewOn": "2026-11-10",
+      "note": "Retrieved empty shell; revised full regulation unavailable."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-11",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "focus",
+        "application",
+        "award",
+        "applicants"
+      ],
+      "sourceUrls": [
+        "https://nlnet.nl/restack/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Second call opened November 3 and closes January 3, 2027 at noon CET. Standard EUR 5,000–50,000 proposals. New round proposed under existing NLnet; first round retained."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-12",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "geography",
+        "applicants",
+        "costs"
+      ],
+      "sourceUrls": [
+        "https://nlnet.nl/restack/eligibility/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "European dimension, 60% standard funding-share rule and exceptional expertise route reviewed, plus eligible activities."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-13",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "applicants",
+        "award"
+      ],
+      "sourceUrls": [
+        "https://nlnet.nl/restack/guideforapplicants/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "English/R&D/open-output requirements; first award ceiling EUR 50,000; qualified follow-on proposals up to EUR 150,000 and third-party lifetime cap EUR 500,000."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-14",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "application"
+      ],
+      "sourceUrls": [
+        "https://nlnet.nl/news/2026/20261103-call.html"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Dated new-call announcement corroborates January 3, 2027. CodeSupply listed but not separately reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-15",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "applicants"
+      ],
+      "sourceUrls": [
+        "https://nlnet.nl/news/2026/20261020-AI-policy.html"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Version 2.0 announcement: no GenAI proposal writing except accessibility support; project LLM/diffusion usage read-only."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-16",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "application",
+        "geography",
+        "applicants",
+        "award"
+      ],
+      "sourceUrls": [
+        "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "November 3 opening, December 15 at 16:00, USD 6 million pool, Delta location and applicant types corroborated. Registry performance period differs from owner schedule."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-17",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "focus",
+        "application"
+      ],
+      "sourceUrls": [
+        "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Owner links current decontamination call through December 15, 2026."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-18",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "focus",
+        "geography",
+        "applicants",
+        "award",
+        "application",
+        "costs"
+      ],
+      "sourceUrls": [
+        "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline="
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Call reviewed: pool, Delta counties, applicant types, WebGrants and cost rules. Schedule says Pacific Time but sections 1 and 6.1 say PDT in December. No UTC instant inferred. Work/final invoice March 15, 2029 conflicts with registry June wording."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-19",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.codevelop.fund/dpi-for-people-and-planet"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Five selected winners and partnerships; no new applicant-facing cash call established. history-lead-020 remains unresolved."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-20",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://vrbs.wtf/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "HTTP 403; targeted search did not recover usable official terms. history-lead-023 remains unresolved."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-21",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.ifc.org/en/what-we-do/products-and-services/how-to-apply-for-financing"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Generic investment route, not corroboration for SME Growth Accelerator. IFC says it does not lend directly to SMEs. history-lead-054 remains unresolved; no unaffiliated grant site imported."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-22",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "directory.application-status"
+      ],
+      "sourceUrls": [
+        "https://rea.gov.ng/apply"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Umbrella page marks GCIP, AMP and DARES not taking applications. Specific GCIP notice failed and DARES component intake was not resolved; no existing program closure applied."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-23",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.gcip.rea.gov.ng/eoi-advert.html"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Timeout; current call terms still unverified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-24",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "application"
+      ],
+      "sourceUrls": [
+        "https://www.nac.org.za/new-call-for-presidential-employment-stimulus-programme-pesp-7-applications/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Historical PESP7 closed May 29, 2026. Recovered full public call; no reopening established. Deferred lead disposition now reviewed-closed; no active call imported."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-25",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.nac.org.za/latest-funding-calls/"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Initial tool returned a page shell; retry returned HTTP 429. Current directory not successfully reviewed. This does not establish absence of new calls."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-26",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "focus",
+        "applicants",
+        "award",
+        "application"
+      ],
+      "sourceUrls": [
+        "https://www.socialshifters.co/allianz-movenow-social-innovation-challenge/?utm_campaign=movenow_2026&utm_medium=opportunity_listing&utm_source=terraviva_grants"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Owner states youth 18–30, USD 5,000/10,000 awards and December 18, 2026 at 17:00 UTC. Partial guideline review found additional ownership/team rules; full incorporation deferred."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-27",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-09",
+      "result": "partial",
+      "fields": [
+        "applicants",
+        "award"
+      ],
+      "sourceUrls": [
+        "https://www.socialshifters.co/wp-content/uploads/2026/10/Guidelines-Allianz-x-Social-Shifters-MoveNow-Social-Innovation-Challenge.pdf"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Partial guideline excerpts reviewed: youth majority stake, decision authority, one submission, USD 10,000 maximum, award restrictions. Remaining geographic and legal conditions not comprehensively reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-28",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.socialshifters.co/wp-content/uploads/2026/10/FAQS-Allianz-x-Social-Shifters-MoveNow-Social-Innovation-Challenge.pdf"
+      ],
+      "nextReviewOn": "2026-11-16",
+      "note": "Initial PDF extraction available, follow-up search timed out. No FAQ terms counted verified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-09",
+      "recordKey": "monday-discovery-2026-11-09::source-29",
+      "attemptedOn": "2026-11-09",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://earthjournalism.net/opportunities/text-and-video-reports-on-renewable-energy-in-india-0"
+      ],
+      "nextReviewOn": "2026-11-12",
+      "note": "HTTP 403 on owner call; aggregator November 15 lead remains unverified."
     }
   ],
   "runs": [
@@ -15726,6 +16187,697 @@
         "guidance": "passed",
         "harness": "interrupted after no progress; not passing",
         "diffCheck": "passed"
+      }
+    },
+    {
+      "id": "monday-discovery-2026-11-09",
+      "runType": "scheduled-discovery",
+      "localDate": "2026-11-09",
+      "timeZone": "America/Los_Angeles",
+      "baselineCommit": "42c084b766457ef885a86c6e42fe9cfa86aa559a",
+      "branch": "codex/funding-discovery-2026-11-09",
+      "repository": "regen-commons/weave",
+      "repositoryRedirect": "regen-commons/funding-commons redirects to the same repository ID 1438993576 at regen-commons/weave",
+      "inspectedPrUrls": [
+        "https://github.com/regen-commons/weave/pull/9",
+        "https://github.com/regen-commons/weave/pull/3"
+      ],
+      "pullRequestCheck": {
+        "searchResult": "empty for canonical repository; old-name search failed 422",
+        "listing": "GET /repos/regen-commons/weave/pulls?state=open&per_page=100",
+        "listingCount": 2,
+        "scopes": "PR #9 owns revision-import implementation; #3 historical QA only. Metadata and changed filenames inspected. Neither contains these discoveries."
+      },
+      "priorCoverage": {
+        "historyPending": 0,
+        "reviewedHistoricalLeads": 94,
+        "logEntries": 374,
+        "logRuns": 2,
+        "automationMemory": "missing at start",
+        "lastScheduledRunSupplied": "2026-11-02T23:52:40.055Z",
+        "limitation": "No November 2 run evidence in available memory or main review log; do not assume it completed."
+      },
+      "unresolvedHistoricalLeadsRevisited": [
+        "history-lead-020",
+        "history-lead-023",
+        "history-lead-054",
+        "history-lead-059"
+      ],
+      "historicalDispositionsChanged": 0,
+      "sourceCounts": {
+        "attempted": 29,
+        "retrieved": 24,
+        "retrievalFailed": 5,
+        "verified": 14,
+        "reviewedNoTerms": 6,
+        "failed": 9
+      },
+      "countDefinition": "Unique explicitly attempted URLs. Verified means only listed fields; partial guideline review is not full eligibility verification. Failed includes unusable shells and unsuccessful follow-up extraction. Search-only leads excluded. Repeated search batches are represented once per query.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.grants.gov/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Registry homepage reachable; followed grant search.",
+          "scope": [
+            "global",
+            "US federal"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-02",
+          "url": "https://www.grants.gov/search-grants",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Search returned Loading shell and zero placeholders; opportunities not enumerated. This is not evidence of no calls.",
+          "scope": [
+            "US federal"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-03",
+          "url": "https://www.grants.ca.gov/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Recent listings surfaced golden mussel and dam-safety calls. Followed golden mussel at its owner; dam safety deferred.",
+          "scope": [
+            "California",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-04",
+          "url": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Discovery only: followed MoveNow and EJN; IKI Medium, Keeling Curve and HCLTech were not verified at owners. First page only.",
+          "scope": [
+            "global",
+            "community energy",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-05",
+          "url": "https://www.fundsforngos.org/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403; no opportunity terms verified.",
+          "scope": [
+            "global"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-06",
+          "url": "https://chamadas.funbio.org.br/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Two previously deferred calls recovered. Paraná now lists December 4; Porto Sul still November 9. São Francisco is already represented.",
+          "scope": [
+            "Brazil",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-07",
+          "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "focus",
+            "geography",
+            "applicants",
+            "award",
+            "application"
+          ],
+          "finding": "November 6 erratum extends November 23 to December 4 at 23:45 Brasília and changes 30 months to 24. One proposal up to BRL 1 million; 10% counterpart. Applicant text truncated; regulation unresolved. Proposed addition, not applied.",
+          "scope": [
+            "Brazil",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-08",
+          "url": "https://chamadas.funbio.org.br/articulacao-institucional/download/regulamento?id=ce031820-df78-4b2e-8bd3-d8b0d3b108d4",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Retrieved tracking/iframe shell only; no readable regulation.",
+          "scope": [
+            "Brazil",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-09",
+          "url": "https://chamadas.funbio.org.br/tcsa-porto-sul",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "focus",
+            "geography",
+            "applicants",
+            "award",
+            "application"
+          ],
+          "finding": "Nonprofit associations/foundations and cooperatives constituted for two years; named southern Bahia conservation areas; BRL 4 million pool. November 9 date only; exact cutoff unknown. Regulation changed October 29. Proposed addition, not applied.",
+          "scope": [
+            "Brazil",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-10"
+        },
+        {
+          "id": "source-10",
+          "url": "https://chamadas.funbio.org.br/tcsa-porto-sul/download/regulamento?id=6aca838c-dd29-4c68-9320-7a1ea7d8185d",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Retrieved empty shell; revised full regulation unavailable.",
+          "scope": [
+            "Brazil",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-10"
+        },
+        {
+          "id": "source-11",
+          "url": "https://nlnet.nl/restack/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "focus",
+            "application",
+            "award",
+            "applicants"
+          ],
+          "finding": "Second call opened November 3 and closes January 3, 2027 at noon CET. Standard EUR 5,000–50,000 proposals. New round proposed under existing NLnet; first round retained.",
+          "scope": [
+            "global",
+            "open-source public goods"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-12",
+          "url": "https://nlnet.nl/restack/eligibility/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "geography",
+            "applicants",
+            "costs"
+          ],
+          "finding": "European dimension, 60% standard funding-share rule and exceptional expertise route reviewed, plus eligible activities.",
+          "scope": [
+            "global",
+            "open-source public goods"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-13",
+          "url": "https://nlnet.nl/restack/guideforapplicants/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "applicants",
+            "award"
+          ],
+          "finding": "English/R&D/open-output requirements; first award ceiling EUR 50,000; qualified follow-on proposals up to EUR 150,000 and third-party lifetime cap EUR 500,000.",
+          "scope": [
+            "global",
+            "open-source public goods"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-14",
+          "url": "https://nlnet.nl/news/2026/20261103-call.html",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "application"
+          ],
+          "finding": "Dated new-call announcement corroborates January 3, 2027. CodeSupply listed but not separately reviewed.",
+          "scope": [
+            "global",
+            "open-source public goods"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-15",
+          "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "applicants"
+          ],
+          "finding": "Version 2.0 announcement: no GenAI proposal writing except accessibility support; project LLM/diffusion usage read-only.",
+          "scope": [
+            "global",
+            "open-source public goods"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-16",
+          "url": "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "application",
+            "geography",
+            "applicants",
+            "award"
+          ],
+          "finding": "November 3 opening, December 15 at 16:00, USD 6 million pool, Delta location and applicant types corroborated. Registry performance period differs from owner schedule.",
+          "scope": [
+            "California",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-17",
+          "url": "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "focus",
+            "application"
+          ],
+          "finding": "Owner links current decontamination call through December 15, 2026.",
+          "scope": [
+            "California",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-18",
+          "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "focus",
+            "geography",
+            "applicants",
+            "award",
+            "application",
+            "costs"
+          ],
+          "finding": "Call reviewed: pool, Delta counties, applicant types, WebGrants and cost rules. Schedule says Pacific Time but sections 1 and 6.1 say PDT in December. No UTC instant inferred. Work/final invoice March 15, 2029 conflicts with registry June wording.",
+          "scope": [
+            "California",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-19",
+          "url": "https://www.codevelop.fund/dpi-for-people-and-planet",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Five selected winners and partnerships; no new applicant-facing cash call established. history-lead-020 remains unresolved.",
+          "scope": [
+            "global",
+            "digital inclusion",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-20",
+          "url": "https://vrbs.wtf/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403; targeted search did not recover usable official terms. history-lead-023 remains unresolved.",
+          "scope": [
+            "global",
+            "open-source public goods"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-21",
+          "url": "https://www.ifc.org/en/what-we-do/products-and-services/how-to-apply-for-financing",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Generic investment route, not corroboration for SME Growth Accelerator. IFC says it does not lend directly to SMEs. history-lead-054 remains unresolved; no unaffiliated grant site imported.",
+          "scope": [
+            "Nigeria",
+            "global"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-22",
+          "url": "https://rea.gov.ng/apply",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "directory.application-status"
+          ],
+          "finding": "Umbrella page marks GCIP, AMP and DARES not taking applications. Specific GCIP notice failed and DARES component intake was not resolved; no existing program closure applied.",
+          "scope": [
+            "Nigeria",
+            "community energy"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-23",
+          "url": "https://www.gcip.rea.gov.ng/eoi-advert.html",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Timeout; current call terms still unverified.",
+          "scope": [
+            "Nigeria",
+            "community energy"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-24",
+          "url": "https://www.nac.org.za/new-call-for-presidential-employment-stimulus-programme-pesp-7-applications/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "application"
+          ],
+          "finding": "Historical PESP7 closed May 29, 2026. Recovered full public call; no reopening established. Deferred lead disposition now reviewed-closed; no active call imported.",
+          "scope": [
+            "South Africa",
+            "cultural/community education"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-25",
+          "url": "https://www.nac.org.za/latest-funding-calls/",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Initial tool returned a page shell; retry returned HTTP 429. Current directory not successfully reviewed. This does not establish absence of new calls.",
+          "scope": [
+            "South Africa",
+            "cultural/community education"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-26",
+          "url": "https://www.socialshifters.co/allianz-movenow-social-innovation-challenge/?utm_campaign=movenow_2026&utm_medium=opportunity_listing&utm_source=terraviva_grants",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "focus",
+            "applicants",
+            "award",
+            "application"
+          ],
+          "finding": "Owner states youth 18–30, USD 5,000/10,000 awards and December 18, 2026 at 17:00 UTC. Partial guideline review found additional ownership/team rules; full incorporation deferred.",
+          "scope": [
+            "global",
+            "digital inclusion",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-27",
+          "url": "https://www.socialshifters.co/wp-content/uploads/2026/10/Guidelines-Allianz-x-Social-Shifters-MoveNow-Social-Innovation-Challenge.pdf",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-09",
+          "fields": [
+            "applicants",
+            "award"
+          ],
+          "finding": "Partial guideline excerpts reviewed: youth majority stake, decision authority, one submission, USD 10,000 maximum, award restrictions. Remaining geographic and legal conditions not comprehensively reviewed.",
+          "scope": [
+            "global",
+            "digital inclusion",
+            "restoration/climate"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-28",
+          "url": "https://www.socialshifters.co/wp-content/uploads/2026/10/FAQS-Allianz-x-Social-Shifters-MoveNow-Social-Innovation-Challenge.pdf",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Initial PDF extraction available, follow-up search timed out. No FAQ terms counted verified.",
+          "scope": [
+            "global"
+          ],
+          "nextReviewOn": "2026-11-16"
+        },
+        {
+          "id": "source-29",
+          "url": "https://earthjournalism.net/opportunities/text-and-video-reports-on-renewable-energy-in-india-0",
+          "attemptedOn": "2026-11-09",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403 on owner call; aggregator November 15 lead remains unverified.",
+          "scope": [
+            "global",
+            "community energy"
+          ],
+          "nextReviewOn": "2026-11-12"
+        }
+      ],
+      "searches": [
+        {
+          "query": "2026 November open source public goods grants applications [nlnet.nl, floss.fund, github.com]",
+          "outcome": "Found Restack second call; owner pages reviewed. IPFS and secondary registries not imported.",
+          "searchedOn": "2026-11-09"
+        },
+        {
+          "query": "2026 November community energy digital inclusion grants Nigeria [rea.gov.ng, undp.org]",
+          "outcome": "REA application index and GCIP followed; YAI result matches already reviewed non-cash lead.",
+          "searchedOn": "2026-11-09"
+        },
+        {
+          "query": "2026 November funding call community arts education [nac.org.za, nlcsa.org.za]",
+          "outcome": "Annual NAC results were historical; PESP7 and latest-call directory attempted. No current NLC call verified.",
+          "searchedOn": "2026-11-09"
+        },
+        {
+          "query": "2026 \"Green Finance Investment Facility\" [rea.gov.ng, fcmb.com]",
+          "outcome": "No named applicant-facing primary offer recovered.",
+          "searchedOn": "2026-11-09"
+        },
+        {
+          "query": "\"Green Finance Investment Facility\" [rea.gov.ng, fcmb.com]",
+          "outcome": "Follow-up also failed to corroborate the named offer; history-lead-059 unchanged.",
+          "searchedOn": "2026-11-09"
+        },
+        {
+          "query": "\"SME Growth Accelerator\" [ifc.org]",
+          "outcome": "Unrelated Baobab financing result, no official named accelerator corroboration. Generic financing page checked.",
+          "searchedOn": "2026-11-09"
+        },
+        {
+          "query": "grants apply [vrbs.wtf]",
+          "outcome": "No usable official terms recovered; failed site retrieval remains unresolved.",
+          "searchedOn": "2026-11-09"
+        }
+      ],
+      "proposedAdditions": [
+        {
+          "fundId": "local-nlnet",
+          "programId": "nlnet-restack-call2-2027"
+        },
+        {
+          "fundId": "local-funbio",
+          "programId": "funbio-articulacao-institucional-11-2026"
+        },
+        {
+          "fundId": "local-funbio",
+          "programId": "funbio-tcsa-porto-sul-10-2026"
+        },
+        {
+          "fundId": "local-cdfw",
+          "programId": "cdfw-golden-mussel-delta-2026"
+        }
+      ],
+      "appliedAdditions": [],
+      "appliedRevisions": [],
+      "proposalFile": "research/discovery-2026-11-09.json",
+      "revisionArchive": "research/maintenance-history/monday-discovery-2026-11-09/preservation.json",
+      "deferredLeads": [
+        {
+          "name": "Allianz / Social Shifters MoveNow 2026",
+          "status": "partial-verification",
+          "discoveryUrl": "https://www.socialshifters.co/allianz-movenow-social-innovation-challenge/",
+          "reason": "Official overview verified; complete guideline restrictions and legal/sponsorship treatment still need incorporation. Do not import overview-only eligibility."
+        },
+        {
+          "name": "Earth Journalism Network renewable energy India",
+          "status": "failed-verification",
+          "discoveryUrl": "https://earthjournalism.net/opportunities/text-and-video-reports-on-renewable-energy-in-india-0",
+          "reason": "Owner returned 403; aggregator November 15 deadline remains unverified."
+        },
+        {
+          "name": "NAC PESP7",
+          "status": "reviewed-closed",
+          "discoveryUrl": "https://www.nac.org.za/new-call-for-presidential-employment-stimulus-programme-pesp-7-applications/",
+          "reason": "Official historical call closed May 29; no new round established."
+        },
+        {
+          "name": "GCIP Nigeria",
+          "status": "failed-verification",
+          "discoveryUrl": "https://www.gcip.rea.gov.ng/eoi-advert.html",
+          "reason": "Notice timeout; umbrella index says not accepting. Specific round remains unresolved."
+        },
+        {
+          "name": "ICCA Nigeria catalytic NGO stream",
+          "status": "deferred-unreviewed",
+          "discoveryUrl": "https://www.undp.org/nigeria/news/call-proposals-indigenous-peoples-and-local-communities-conserved-areas-and-territories-global-support-initiative-icca-gsi-phase-2",
+          "reason": "Previous partial-review status retained; no fresh field verification in this run."
+        },
+        {
+          "name": "Young Africa Innovates cohort 2",
+          "status": "non-cash-program",
+          "discoveryUrl": "https://www.undp.org/nigeria/press-releases/mastercard-foundation-and-undp-launch-applications-cohort-2-young-africa-innovates-yai-programme",
+          "reason": "Search rediscovered same mentoring/incubation announcement. Prior non-cash disposition retained; no fresh full-page review."
+        },
+        {
+          "name": "IKI Medium Grants 2027",
+          "status": "discovery-only",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "reason": "Distinct from existing IKI Small Grants; official owner terms unreviewed."
+        },
+        {
+          "name": "Keeling Curve Prize 2027",
+          "status": "discovery-only",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "reason": "Existing Climate Curve identity/program; next-round dates require owner verification and previous-revision archive."
+        },
+        {
+          "name": "HCLTech climate awards 2027",
+          "status": "discovery-only",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "reason": "Aggregator lead only; no official country, award or deadline verification."
+        },
+        {
+          "name": "California dam safety and climate resilience local assistance",
+          "status": "unreviewed-call-terms",
+          "discoveryUrl": "https://www.grants.ca.gov/",
+          "reason": "New registry listing observed; individual guidelines not selected."
+        }
+      ],
+      "deduplication": {
+        "catalogRecordsCompared": 699,
+        "originalIdentitiesRetained": 593,
+        "comparison": "Compared names, aliases, domains, program IDs and source/application URLs across all current records and historical dispositions. NLnet second call shares local-nlnet; both FUNBIO calls share local-funbio; golden mussel shares local-cdfw. Previous round and call evidence retained. No new funder identity proposed."
+      },
+      "coverageLimitations": [
+        "All four registry sources attempted; Grants.gov search shell and FundsforNGOs 403 prevent full inventory coverage.",
+        "Bounded coverage across requested themes and regions; no exhaustive registry/catalog or 125-record freshness claim.",
+        "Current South African directory failed; Nigeria GCIP and Vrbs failed; FUNBIO regulations unreadable. Failed retrieval never treated as closure.",
+        "No new private Drive/Linear search; original 94-lead dispositions and empty pending queue preserved. Prior deferred leads revisited or explicitly carried forward.",
+        "Four schema-ready additions and eleven proposed screening conditions remain unapplied because the full local build was blocked. PR #9 remains the owner of general revision-import support.",
+        "No applications, authenticated form submissions, funder contact, merge, production deployment or deployment-configuration change."
+      ],
+      "validation": {
+        "importer": "Exploratory importer run passed: 699 identities; active outputs subsequently restored to base because full build was blocked.",
+        "build": "Blocked: Hugging Face network allowlist initially; existing local model weights passed integrity checks, then esbuild writes to browser bundle and legal-comment output failed with operation not permitted.",
+        "tests": "132 of 133 root tests passed. Only ai-assets failed: fund-vectors.json missing because the build stopped before vector generation. All four new proposal/preservation/coverage tests pass.",
+        "ci": "Not started: branch creation required approval, but automation approval policy is never. No PR or preview exists for this run.",
+        "preservation": "Final catalog and screening are byte-identical to base; candidate schema and preservation checks added.",
+        "guidance": "Passed: 73 Markdown files.",
+        "diffCheck": "Passed.",
+        "unimplemented": "Catalog and screening application of the four proposals remains unimplemented in this PR. No importer implementation duplicated from #9."
+      },
+      "result": "failed-publication-with-reviewable-local-proposals",
+      "publication": {
+        "status": "blocked",
+        "action": "Create branch codex/funding-discovery-2026-11-09",
+        "toolResult": "MCP tool call requires approval, but approval policy is never",
+        "pullRequest": null,
+        "unreferencedCommit": "010ab46208b11fee09476747e7f49a31c8369a9f",
+        "note": "GitHub tree and commit objects were created, but no branch ref was created and no PR was opened. Local final patch additionally records this block. No merge, deployment or configuration change."
       }
     }
   ]
