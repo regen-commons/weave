@@ -15475,6 +15475,99 @@
       ],
       "nextReviewOn": "2026-11-19",
       "note": "HTTP 403 for the fetcher; the browser stopped at a bot-verification page, which was not bypassed. The November 5 closure finding is not reconfirmed today."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-01",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-15",
+      "result": "verified",
+      "fields": [
+        "application",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.emergentfund.net/apply"
+      ],
+      "revisions": [
+        "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+      ],
+      "nextReviewOn": "2027-01-07",
+      "note": "Grant cycles are closed for the remainder of 2026 and resume January 1, 2027; no closing date or cutoff for that intake."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-02",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-15",
+      "result": "verified",
+      "fields": [
+        "application",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.emergentfund.net/faqs"
+      ],
+      "revisions": [
+        "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+      ],
+      "nextReviewOn": "2027-01-07",
+      "note": "No set grant size; past grants USD 10,000 to 30,000. Intake generally closes on the third Thursday of the month, which conflicts with some dated 2026 windows."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-03",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-15",
+      "result": "verified",
+      "fields": [
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.emergentfund.net/"
+      ],
+      "revisions": [
+        "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+      ],
+      "nextReviewOn": "2027-01-07",
+      "note": "Homepage still describes monthly, open-access grants and does not mention the 2026 closure."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-04",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://whitleyaward.org/apply-for-conservation-funding/"
+      ],
+      "revisions": [
+        "local-whitley::whitley-2027"
+      ],
+      "nextReviewOn": "2026-11-19",
+      "note": "HTTP 403. Not evidence of closure; no revision without a readable official source."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-05",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://whitleyaward.org/"
+      ],
+      "revisions": [
+        "local-whitley::whitley-2027"
+      ],
+      "nextReviewOn": "2026-11-19",
+      "note": "HTTP 403. The same host also blocked the application page earlier today."
     }
   ],
   "runs": [
@@ -17738,6 +17831,170 @@
       ],
       "result": "Applied three re-verified program rounds under existing funders and nine screening conditions; dropped one stale call; held three existing-term revisions for PR #9; superseded one duplicate proposal. No whole-record verification date advanced.",
       "publication": "Draft pull request into develop labeled automated/codex. No merge, deployment, application or funder contact."
+    },
+    {
+      "id": "revisions-2026-11-15",
+      "runType": "manual-revision",
+      "localDate": "2026-11-15",
+      "timeZone": "America/Los_Angeles",
+      "executionNote": "Requested in a Claude Code session: rebase PR #9 (revision-aware imports) onto the November 15 catalog pass and apply the held existing-term revisions through its journal. Not a scheduled routine run; no timer is claimed.",
+      "baselineCommit": "ef1990a6479d142ec4da2e21979317df63f515e2",
+      "branch": "codex/held-revisions-2026-11-15",
+      "repository": "regen-commons/weave",
+      "inspectedPrUrls": [
+        "https://github.com/regen-commons/weave/pull/70",
+        "https://github.com/regen-commons/weave/pull/69",
+        "https://github.com/regen-commons/weave/pull/9",
+        "https://github.com/regen-commons/weave/pull/3"
+      ],
+      "pullRequestCheck": {
+        "listing": "gh pr list --repo regen-commons/weave --state open",
+        "listingCount": 4,
+        "scopes": "#70 adds the three November 15 rounds; #9 adds the revision journal, stacked on #70; #69 agent documentation; #3 historical QA. None applies these revisions."
+      },
+      "sourceCounts": {
+        "attempted": 5,
+        "retrieved": 3,
+        "retrievalFailed": 2,
+        "verified": 3,
+        "reviewedNoTerms": 0,
+        "failed": 2
+      },
+      "countDefinition": "Unique URLs attempted in this pass. Buffett and Spencer reuse the same-day checks recorded in reverification-2026-11-15 rather than repeating them. Verified means only the listed fields.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.emergentfund.net/apply",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-15",
+          "fields": [
+            "application",
+            "unknowns"
+          ],
+          "revisions": [
+            "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+          ],
+          "finding": "Grant cycles are closed for the remainder of 2026 and resume January 1, 2027; no closing date or cutoff for that intake.",
+          "nextReviewOn": "2027-01-07"
+        },
+        {
+          "id": "source-02",
+          "url": "https://www.emergentfund.net/faqs",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-15",
+          "fields": [
+            "application",
+            "unknowns"
+          ],
+          "revisions": [
+            "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+          ],
+          "finding": "No set grant size; past grants USD 10,000 to 30,000. Intake generally closes on the third Thursday of the month, which conflicts with some dated 2026 windows.",
+          "nextReviewOn": "2027-01-07"
+        },
+        {
+          "id": "source-03",
+          "url": "https://www.emergentfund.net/",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-15",
+          "fields": [
+            "unknowns"
+          ],
+          "revisions": [
+            "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+          ],
+          "finding": "Homepage still describes monthly, open-access grants and does not mention the 2026 closure.",
+          "nextReviewOn": "2027-01-07"
+        },
+        {
+          "id": "source-04",
+          "url": "https://whitleyaward.org/apply-for-conservation-funding/",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "revisions": [
+            "local-whitley::whitley-2027"
+          ],
+          "finding": "HTTP 403. Not evidence of closure; no revision without a readable official source.",
+          "nextReviewOn": "2026-11-19"
+        },
+        {
+          "id": "source-05",
+          "url": "https://whitleyaward.org/",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "revisions": [
+            "local-whitley::whitley-2027"
+          ],
+          "finding": "HTTP 403. The same host also blocked the application page earlier today.",
+          "nextReviewOn": "2026-11-19"
+        }
+      ],
+      "reusedChecks": [
+        {
+          "runId": "reverification-2026-11-15",
+          "sourceIds": [
+            "source-17",
+            "source-18",
+            "source-19",
+            "source-20"
+          ]
+        }
+      ],
+      "revisionOutcomes": [
+        {
+          "proposalRunId": "thursday-2026-11-05",
+          "key": "recUfkfwM3ISTcnSH::susan-t-buffett-scholarship",
+          "outcome": "applied",
+          "revisionId": "2026-11-15-buffett-2027-dates",
+          "journal": "research/revisions/2026-11-15-buffett-2027-dates.json",
+          "reason": "Opens December 1 and is due March 1, 2027 before 5 p.m. CST, from the applicant page and FAQ checked November 15."
+        },
+        {
+          "proposalRunId": "thursday-2026-11-05",
+          "key": "recrvyr2BGCOy0NAI::spencer-small-research",
+          "outcome": "applied",
+          "revisionId": "2026-11-15-spencer-2027-pause",
+          "journal": "research/revisions/2026-11-15-spencer-2027-pause.json",
+          "reason": "No new competitions January to June 2027, from the program page checked November 15. The route stays closed."
+        },
+        {
+          "proposalRunId": "manual-thursday-2026-10-29",
+          "key": "recgDAwfqtJyo2MEx::rapid-response-organizing-grants",
+          "outcome": "applied",
+          "revisionId": "2026-11-15-emergent-2027-resumption",
+          "journal": "research/revisions/2026-11-15-emergent-2027-resumption.json",
+          "reason": "Intake resumes January 1, 2027, with no published closing date, from the application page checked November 15."
+        },
+        {
+          "proposalRunId": "thursday-2026-11-05",
+          "key": "local-whitley::whitley-2027",
+          "outcome": "held",
+          "reason": "Every official page tried on November 15 returned 403 or a bot check. The October 30 cutoff has passed, so the card already reads as closed; the closure note waits for a readable source."
+        }
+      ],
+      "appliedAdditions": [],
+      "appliedRevisions": [
+        "2026-11-15-buffett-2027-dates",
+        "2026-11-15-spencer-2027-pause",
+        "2026-11-15-emergent-2027-resumption"
+      ],
+      "notReviewed": [
+        "local-climate-curve::keeling-curve-prize: the October 29 proposal keeps its unresolved source conflict and was not re-checked in this pass."
+      ],
+      "result": "Applied three existing-term revisions through the revision journal; held Whitley for want of a readable official source. No whole-record verification date advanced.",
+      "publication": "Draft pull request stacked on PR #9, labeled automated/codex. No merge, deployment, application or funder contact."
     }
   ]
 }

@@ -1058,7 +1058,7 @@
           "opensOn": null,
           "closesOn": null,
           "deadlineInstant": null,
-          "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+          "note": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year."
         },
         "costs": {
           "supported": [
@@ -1086,10 +1086,19 @@
             "url": "https://www.spencer.org/grant_types/small-research-grant/",
             "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
             "checkedOn": "2026-10-14"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "note": "Program update: now closed; no new competitions January to June 2027; refreshed approach and schedules expected June 2027.",
+            "checkedOn": "2026-11-15"
           }
         ],
         "unknowns": [
-          "Next application date",
+          "Next application date: future schedules are expected in June 2027.",
           "Fiscal sponsor arrangements beyond administering-institution requirement"
         ]
       }
@@ -1099,6 +1108,11 @@
         "url": "https://www.spencer.org/grant_types/small-research-grant/",
         "title": "Small Research Grants on Education",
         "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "title": "Small Research Grants on Education: 2027 program update",
+        "checkedOn": "2026-11-15"
       }
     ],
     "researchNotes": "Pilot covers this program only; other funder programs may differ."
