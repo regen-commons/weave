@@ -1,7 +1,8 @@
 import { CAPITALS } from "../capitals.ts";
+import type { DeviceDraft } from "../describe/contracts.ts";
 import { ASK_LIMIT, type AskItem, type AskKind, type AskStep } from "./contracts.ts";
 import { keepPending, toggleKind } from "./entries.ts";
-import { activeItems, decide, reviewStep } from "./state.ts";
+import { activeItems, decide, fromProjectPage, reviewStep } from "./state.ts";
 
 /** One of the eight forms of capital, shown to people as a kind of support. */
 export type CapitalForm = AskItem["value"]["capitalForms"][number];
@@ -12,9 +13,23 @@ export const ASK_KINDS = ["needs", "offers"] as const satisfies readonly AskKind
 /** "2 of 5": how many entries a list holds against the limit, as one phrase. */
 export const sectionCount = (step: AskStep): string => `${activeItems(step).length} of ${ASK_LIMIT}`;
 
-/** An entry the app made from a conversation that no person has confirmed, so the whole card is pencil. */
+/**
+ * An entry the app made, from a conversation or a linked project's page, that no person has
+ * confirmed, so the whole card is pencil.
+ */
 export const suggestedEntry = (item: AskItem): boolean =>
   item.decision === "pencil" && item.sourceKey !== null;
+
+/** Where a suggested entry came from, as its card says. */
+export const suggestionSource = (item: AskItem): string =>
+  fromProjectPage(item) ? "Suggested from your project page" : "Suggested from your words";
+
+/**
+ * A list on a card made without the assistant starts by hand while the person has no words or
+ * entries there. Suggestions from a project page are not theirs, so they do not change it.
+ */
+export const startsByHand = (step: AskStep, assistant: DeviceDraft["assistant"]): boolean =>
+  assistant === "none" && step.mode !== "manual" && !step.turns.length && step.items.every(fromProjectPage);
 
 /** The element id of one part of an entry card, so focus can return to it after a change. */
 export const entryId = (id: string, part: string): string => `ask-${id}-${part}`;
