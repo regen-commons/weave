@@ -11,6 +11,7 @@ import {
 } from "./contracts.ts";
 import { hasDetail } from "./details.ts";
 import { formFrom, parseRecordForm } from "./forms.ts";
+import { offersSetup, type SpeechSetupState } from "./speech-setup.ts";
 import { previewFields } from "./view.ts";
 
 /** The two ways to describe an initiative: type the four fields, or talk it through and let the app build a card. */
@@ -48,22 +49,38 @@ export function fieldsForm(draft: DeviceDraft): RecordForm {
   return draft.form ?? formFrom(previewFields(draft));
 }
 
-/** How the four fields open: whether speaking is offered first, and which one action is filled. */
+/**
+ * How the four fields open: what sits above them, and which one action is filled. Above them sits
+ * Speak, the offer to set up speech, the language choice after a language without speech on this
+ * device, or nothing.
+ */
 export interface FieldsLead {
-  readonly voice: boolean;
+  readonly speech: "speak" | "setup" | "language" | null;
   readonly primary: "speak" | "continue";
 }
 
 /**
  * A new initiative is invited to speak first, because saying it aloud is the easier way in. The
  * invitation needs speech this device can transcribe, and it goes once the initiative has a card.
- * It stays while the person types, so the page does not jump, but then Continue is the filled
- * action: only one is filled at a time.
+ * Where the browser can set up speech first, the setup sits in its place, and the typed path and
+ * Talk it through instead stay as they are until Speak works. A language without speech keeps its
+ * language choice in the same place, so another can be picked. The invitation stays while the
+ * person types, so the page does not jump, but then Continue is the filled action: only one is
+ * filled at a time, and setting up speech is never it.
  */
-export function fieldsLead(draft: DeviceDraft, speechReady: boolean): FieldsLead {
-  const voice = speechReady && !draft.proposal && !draft.confirmed;
+export function fieldsLead(draft: DeviceDraft, speech: SpeechSetupState): FieldsLead {
+  const fresh = !draft.proposal && !draft.confirmed;
+  const lead = !fresh
+    ? null
+    : speech === "ready"
+      ? "speak"
+      : offersSetup(speech)
+        ? "setup"
+        : speech === "language"
+          ? "language"
+          : null;
   const typed = Object.values(fieldsForm(draft)).some((value) => value.trim());
-  return { voice, primary: voice && !typed ? "speak" : "continue" };
+  return { speech: lead, primary: lead === "speak" && !typed ? "speak" : "continue" };
 }
 
 const NAME_HELP = "Add a name for your initiative.";

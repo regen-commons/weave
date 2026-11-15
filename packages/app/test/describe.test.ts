@@ -430,21 +430,38 @@ const keywordBuild: NonNullable<DeviceDraft["lastBuild"]> = {
 
 test("a new initiative is invited to speak first, and only one action is filled", () => {
   const fresh = newDraft();
-  assert.deepEqual(fieldsLead(fresh, true), { voice: true, primary: "speak" });
-  assert.deepEqual(fieldsLead(fresh, false), { voice: false, primary: "continue" }, "no local speech");
+  assert.deepEqual(fieldsLead(fresh, "ready"), { speech: "speak", primary: "speak" });
+  assert.deepEqual(fieldsLead(fresh, "none"), { speech: null, primary: "continue" }, "no local speech");
   assert.deepEqual(
-    fieldsLead(typed(), true),
-    { voice: true, primary: "continue" },
+    fieldsLead(fresh, "checking"),
+    { speech: null, primary: "continue" },
+    "nothing about speech before the browser answers",
+  );
+  for (const state of ["offer", "installing", "slow", "failed"] as const)
+    assert.deepEqual(
+      fieldsLead(fresh, state),
+      { speech: "setup", primary: "continue" },
+      `setting up speech sits where Speak will be and never takes the primary (${state})`,
+    );
+  assert.deepEqual(
+    fieldsLead(fresh, "language"),
+    { speech: "language", primary: "continue" },
+    "a language without speech keeps the language choice where it was picked",
+  );
+  assert.deepEqual(
+    fieldsLead(typed(), "ready"),
+    { speech: "speak", primary: "continue" },
     "the invitation stays while typing, and Continue takes over",
   );
   assert.deepEqual(
-    fieldsLead(typed({ ...FORM, name: " ", where: "", about: "", links: "" }), true),
-    { voice: true, primary: "speak" },
+    fieldsLead(typed({ ...FORM, name: " ", where: "", about: "", links: "" }), "ready"),
+    { speech: "speak", primary: "speak" },
     "blank fields are not typing",
   );
   const kept = continueWithFields(typed());
   assert.ok(kept.proposal, "the typed card exists");
-  assert.deepEqual(fieldsLead(kept, true), { voice: false, primary: "continue" }, "an initiative with a card");
+  assert.deepEqual(fieldsLead(kept, "ready"), { speech: null, primary: "continue" }, "an initiative with a card");
+  assert.deepEqual(fieldsLead(kept, "offer"), { speech: null, primary: "continue" }, "and no setup offer");
 });
 
 test("describe opens on the four fields, and on the conversation only when chosen or already used", () => {

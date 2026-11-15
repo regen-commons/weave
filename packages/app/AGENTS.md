@@ -12,7 +12,9 @@ Funding and opportunity detail are built. Initiative details follow in later ste
 Settings provides the private account connection. Development fixtures require an
 explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
 returning); `view` selects Describe states; `intake` selects needs, offers and Your
-initiative examples; `projects=none` gives the example person no Certified project; and
+initiative examples; `projects=none` gives the example person no Certified project;
+`speech` makes the example browser offer speech setup (`setup`), stall in it (`slow`),
+fail it (`fail`) or have no speech on the device (`none`); and
 `certified=fail` makes the example Certified refuse to create a project or publish.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
 `docs/platform/prototype/preview`; that build alone sets `__WEAVE_PROTOTYPE__`, keeps routes in
@@ -65,8 +67,11 @@ production. Account saving uses the same-origin API and stays unavailable until 
   correction freeze a card; rebuilding preserves those choices and removed source
   chunks. Empty steps may continue; unfinished or unreviewed steps may not. Keep
   the old Describe draft readable when extending its schema.
-- Local speech and the browser model require an already available capability and
-  a tap. Downloaded models and cloud calls stay behind their unavailable adapters
+- The browser model requires an already available capability and a tap. Local
+  speech may also ask the browser to install its own speech pack, from a tap, and
+  starts only when the browser reports it available on the device: a
+  browser-managed pack is a local capability under D32. Audio stays on the device,
+  so app-downloaded models and cloud calls stay behind their unavailable adapters
   until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
   files and pages remain explicitly unread, with original bytes retained.
 - Server code belongs in `@weave/api`. A file in `api/` is a single re-export, and
