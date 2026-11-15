@@ -240,7 +240,7 @@ export function fixtureHref(href: string, search: string, enabled: boolean): str
   if (!enabled || !href.startsWith("/") || href.startsWith("//")) return href;
   const url = new URL(href, ROUTE_BASE);
   const source = new URLSearchParams(search);
-  for (const key of ["fixture", "state", "view", "intake", "certified", "projects"]) {
+  for (const key of ["fixture", "state", "view", "intake", "certified", "projects", "speech"]) {
     const value = source.get(key);
     if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
   }

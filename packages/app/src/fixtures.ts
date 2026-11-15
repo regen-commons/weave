@@ -8,6 +8,8 @@ import { chunksFrom, keywordExtraction } from "./intake/keywords.ts";
 import type { ListingRecord } from "./listing.ts";
 import { parseBundle } from "./funding/catalog.ts";
 import type { TeamAsk } from "./funding/team.ts";
+import type { LocalSpeechOptions, LocalSpeechSession, SpeechConstructor } from "./describe/speech.ts";
+import { speechSetupStore, type SpeechSetupStore } from "./describe/speech-setup.ts";
 /**
  * Where the example card stands: nothing yet, on this device, saved privately, saved in a
  * linked project's team workspace, shared for matching, published, or a signed-in return
@@ -67,9 +69,16 @@ export const DESCRIBE_VIEWS: readonly DescribeView[] = [
   "kept",
   "storage-error",
 ];
+/**
+ * How the example browser answers about speech on the device: already set up, set up after a tap,
+ * a setup that never finishes, a setup that fails, or no speech on the device at all.
+ */
+export type SpeechExample = "ready" | "setup" | "slow" | "fail" | "none";
+export const SPEECH_EXAMPLES: readonly SpeechExample[] = ["ready", "setup", "slow", "fail", "none"];
 export interface FixtureContext {
   intake: IntakeView;
   describe: DescribeView;
+  speech: SpeechExample;
   scenario: Scenario;
   /** How the example Certified page answers a publication. */
   certified: "ok" | "fail";
@@ -243,6 +252,10 @@ export function readFixtures(search: string): FixtureContext {
   const params = new URLSearchParams(search);
   const requested = params.get("fixture") as Scenario;
   const scenario: Scenario = SCENARIOS.includes(requested) ? requested : "visitor";
+  const describe = DESCRIBE_VIEWS.includes(params.get("view") as DescribeView)
+    ? (params.get("view") as DescribeView)
+    : "fresh";
+  const speech = params.get("speech") as SpeechExample;
   const stateValue = params.get("state");
   const state: ListState =
     stateValue === "empty" ||
@@ -304,9 +317,9 @@ export function readFixtures(search: string): FixtureContext {
     intake: INTAKE_VIEWS.includes(params.get("intake") as IntakeView)
       ? (params.get("intake") as IntakeView)
       : "off",
-    describe: DESCRIBE_VIEWS.includes(params.get("view") as DescribeView)
-      ? (params.get("view") as DescribeView)
-      : "fresh",
+    describe,
+    // The weak device has no speech, unless an example asks for another answer.
+    speech: SPEECH_EXAMPLES.includes(speech) ? speech : describe === "weak" ? "none" : "ready",
     state,
     asOf: "2026-11-04",
     initiatives: publicRecords,
@@ -380,6 +393,58 @@ export function describeFixture(view: DescribeView) {
       reviewEdits: { stage: { value: draft.proposal?.stage ?? "", lenses: [], wasKept: false } },
     });
   return draft;
+}
+
+/** The languages the example browser can recognize on the device. Swahili, Hindi, Arabic and Chinese are not among them. */
+const EXAMPLE_SPEECH_LANGUAGES: readonly string[] = ["en-US", "en-GB", "pt-BR", "es-ES", "fr-FR", "de-DE"];
+/** How long the example setup takes. Nothing is downloaded. */
+const EXAMPLE_SETUP_MS = 3000;
+
+/** An invented browser recognizer that answers like Chrome's on-device speech, for one example. */
+function exampleRecognizer(example: SpeechExample): SpeechConstructor {
+  const installed = new Set<string>(example === "ready" ? EXAMPLE_SPEECH_LANGUAGES : []);
+  const installing = new Set<string>();
+  const known = (language: string) => example !== "none" && EXAMPLE_SPEECH_LANGUAGES.includes(language);
+  class ExampleRecognizer implements LocalSpeechSession {
+    lang = "";
+    continuous = false;
+    interimResults = false;
+    onresult: LocalSpeechSession["onresult"] = null;
+    onerror: LocalSpeechSession["onerror"] = null;
+    onend: LocalSpeechSession["onend"] = null;
+    declare processLocally: boolean;
+    start() {}
+    stop() {}
+    abort() {}
+    static async available({ langs: [language = ""] }: LocalSpeechOptions) {
+      if (!known(language)) return "unavailable";
+      return installed.has(language) ? "available" : installing.has(language) ? "downloading" : "downloadable";
+    }
+    static install({ langs: [language = ""] }: LocalSpeechOptions): Promise<boolean> {
+      if (!known(language)) return Promise.resolve(false);
+      installing.add(language);
+      // The slow example never answers, like a browser that stalls.
+      if (example === "slow") return new Promise<boolean>(() => {});
+      return new Promise<boolean>((resolve) =>
+        setTimeout(() => {
+          installing.delete(language);
+          if (example !== "fail") installed.add(language);
+          resolve(example !== "fail");
+        }, EXAMPLE_SETUP_MS),
+      );
+    }
+  }
+  Object.defineProperty(ExampleRecognizer.prototype, "processLocally", { value: true, writable: true });
+  return ExampleRecognizer;
+}
+
+const exampleSpeechStores: Partial<Record<SpeechExample, SpeechSetupStore>> = {};
+/**
+ * Speech for the example world, one store per example so every page sees the same setup. The
+ * slow example says it is taking a while after five seconds rather than two minutes.
+ */
+export function exampleSpeech(example: SpeechExample): SpeechSetupStore {
+  return (exampleSpeechStores[example] ??= speechSetupStore({ speech: exampleRecognizer(example), slowAfter: 5000 }));
 }
 
 // Step 4 examples seed only an isolated in-memory draft, never IndexedDB.

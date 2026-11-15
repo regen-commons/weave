@@ -177,6 +177,11 @@ test("fixture navigation preserves only example controls on internal development
     fixtureHref("/your-initiatives", "?fixture=returning&projects=none", true),
     "/your-initiatives?fixture=returning&projects=none",
   );
+  assert.equal(
+    fixtureHref("/start/needs", "?fixture=returning&speech=setup", true),
+    "/start/needs?fixture=returning&speech=setup",
+    "the example browser's speech answer follows the person between pages",
+  );
   for (const href of ["https://example.org", "//example.org", "#main"])
     assert.equal(fixtureHref(href, "?fixture=shared", true), href);
   assert.equal(fixtureHref("/settings", "?fixture=shared", false), "/settings");

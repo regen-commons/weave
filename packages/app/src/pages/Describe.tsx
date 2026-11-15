@@ -12,7 +12,8 @@ import {
 import { useDraft } from "../describe/use-draft.ts";
 import { availableBrowser, browserExtract } from "../describe/engines.ts";
 import { keywordExtract } from "../describe/keyword-client.ts";
-import { availableSpeech, startSpeech } from "../describe/speech.ts";
+import { startSpeech } from "../describe/speech.ts";
+import { useSpeechSetup } from "../describe/use-speech.ts";
 import { editsFromForm } from "../describe/forms.ts";
 import {
   FieldsProblem,
@@ -26,7 +27,7 @@ import {
   type DescribeMode,
 } from "../describe/screen.ts";
 import { draftText, hasDraft, previewFields } from "../describe/view.ts";
-import type { FixtureContext } from "../fixtures.ts";
+import { exampleSpeech, type FixtureContext } from "../fixtures.ts";
 import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, INTAKE_STEPS, pathTo } from "../routes.ts";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
@@ -73,7 +74,8 @@ function FileField({
 
 /**
  * The describe step. It opens on the four fields with one Continue, and a new initiative is
- * invited to speak first where this device can transcribe speech. Talking it through is the other
+ * invited to speak first where this device can transcribe speech. Where the browser can set up
+ * speech on the device first, that offer sits in Speak's place. Talking it through is the other
  * way in, and that path ends at the check card because the app proposes the details.
  */
 export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
@@ -86,8 +88,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const form = fieldsForm(draft);
   const [problem, setProblem] = useState("");
   const [language, setLanguage] = useState(navigator.language || "en-US");
-  const [speechReady, setSpeechReady] = useState(false);
-  const lead = fieldsLead(draft, speechReady);
+  const speech = useSpeechSetup(language, import.meta.env.DEV && examples ? exampleSpeech(examples.speech) : undefined);
+  const lead = fieldsLead(draft, speech.state);
   const [modelReady, setModelReady] = useState(false);
   const [listening, setListening] = useState(false);
   const [spoke, setSpoke] = useState(false);
@@ -102,21 +104,15 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const view = examples?.describe;
   useEffect(() => {
     let active = true;
-    if (fixture) {
-      setSpeechReady(view !== "weak");
-      setModelReady(view === "browser");
-    } else {
-      void availableSpeech(language).then((value) => {
-        if (active) setSpeechReady(value);
-      });
+    if (fixture) setModelReady(view === "browser");
+    else
       void availableBrowser().then((value) => {
         if (active) setModelReady(value);
       });
-    }
     return () => {
       active = false;
     };
-  }, [language, fixture, view]);
+  }, [fixture, view]);
   useEffect(() => {
     setBusy(view === "building");
     setListening(view === "listening");
@@ -202,6 +198,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       if (!abort.signal.aborted)
         setNotice("Local speech is not ready. Your words are still here; you can type below.");
       setListening(false);
+      speech.check();
     }
   }
   function stopSpeech() {
@@ -474,23 +471,28 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             </p>
           )}
           {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
-          {lead.voice && (
+          {lead.speech && (
             <>
-              <p>Say it in your own words. Weave turns what you say into a card you can check.</p>
+              {lead.speech !== "language" && (
+                <p>Say it in your own words. Weave turns what you say into a card you can check.</p>
+              )}
               <VoiceInput
-                available
+                speech={speech.state}
+                setUpHere={speech.setUpHere}
+                asking={speech.asking}
                 listening={false}
                 transcript=""
                 language={language}
                 onLanguage={setLanguage}
                 onStart={talkAloud}
                 onStop={stopSpeech}
+                onSetUp={speech.setUp}
                 variant={lead.primary === "speak" ? "primary" : "secondary"}
               />
             </>
           )}
           <form className="rc-form" onSubmit={continueFields}>
-            {lead.voice && (
+            {lead.speech && (
               <Heading level={2} size="section">
                 Or type it
               </Heading>
@@ -509,7 +511,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               >
                 Continue
               </button>
-              {!lead.voice && (
+              {lead.speech !== "speak" && (
                 <button className="rc-button" data-variant="secondary" type="button" onClick={talk}>
                   Talk it through instead
                 </button>
@@ -594,13 +596,16 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               }}
             />
             <VoiceInput
-              available={speechReady}
+              speech={speech.state}
+              setUpHere={speech.setUpHere}
+              asking={speech.asking}
               listening={listening}
               transcript={transcript}
               language={language}
               onLanguage={setLanguage}
               onStart={() => void speak()}
               onStop={stopSpeech}
+              onSetUp={speech.setUp}
               focus={spoke}
             />
             <form className="rc-composer" onSubmit={add}>
