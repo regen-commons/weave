@@ -44,6 +44,13 @@ classes, kept apart:
 - No horizontal overflow at 360 px, 1280 px or a 180 px viewport, which is a
   360 px phone at 200 percent zoom.
 
+After `develop` merged in with the linked-project suggestions (#72), the needs page
+was checked again from Your Initiatives (`?fixture=returning&speech=setup`, then
+the keyboard on Seed library of the upper valley): the suggested need and two
+suggested offers stay, setup shows once in the needs list, and after setup both
+lists show Speak, at 360 px and 1280 px in both themes, in the Claude app's browser
+pane.
+
 Fixture links on the dev server: `/start/initiative?fixture=visitor&speech=setup`
 (also `slow`, `fail` and `none`) and `/start/needs?fixture=draft&intake=empty&speech=setup`.
 
