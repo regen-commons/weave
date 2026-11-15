@@ -58,9 +58,32 @@ repository.
 Several sessions and the catalog routines work in this repository. Inspect
 `git status` before editing and leave changes you did not make untouched. Stage only
 your task's paths; never `git add -A` or `git add .`. Do not stash, revert, switch
-branches or force-push in a shared checkout; ask for a separate worktree instead. Do
-not start a second server on a port another session owns, or stop one you did not
+branches or force-push in a shared checkout; ask for a separate worktree instead, and
+make it inside this repository with
+`git worktree add .claude/worktrees/<name> -b <branch> origin/main`, or in the Codex
+app's own worktree folder. Never put a worktree or clone of this repository in `/tmp`
+or `/private/tmp`: macOS deletes old files there, and the dev machine cannot open it.
+Do not start a second server on a port another session owns, or stop one you did not
 start.
+
+## Dev machine
+
+On the maintainer's Mac this repository runs in an isolated OrbStack machine named
+`weave`. `bun`, `bunx`, `node`, `npm` and `npx` started in the main checkout or in a
+worktree of it run inside the machine, so `node_modules`, `dist/assets`, `dist/models`
+and the packages' `dist/` folders live there and stay empty on the Mac. Editing, Git
+and `python3` stay on the Mac, and a local server still answers at
+`127.0.0.1:<port>` there. Other contributors have none of this.
+
+- The machine reaches only package and toolchain hosts and Hugging Face. The catalog
+  crawler reads funders' own sites, so run it on the Mac as
+  `python3 scripts/collect-sources.py`, not through `bun run research:collect`.
+- Inside the machine a command can change files but cannot create or remove folders
+  outside its dependency and build folders, so make a new folder on the Mac first.
+- If a command cannot reach the machine, do not override `PATH` or call a runtime by
+  its full path. Both run the code on the Mac. Report it instead.
+- A Codex chat reaches the machine only with **Custom (config.toml)** selected in the
+  permissions control, or with approval to run the command outside the sandbox.
 
 ## Domain language
 
