@@ -10,6 +10,12 @@
   "installCommand": "bun install --frozen-lockfile --filter @weave/app",
   "buildCommand": "bun run --filter '@weave/*' build && bun run --filter '@weave/*' test",
   "outputDirectory": "dist",
+  "functions": {
+    "api/project-index-refresh.ts": { "maxDuration": 300 }
+  },
+  "crons": [
+    { "path": "/api/project-index-refresh", "schedule": "0 4 * * *" }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],

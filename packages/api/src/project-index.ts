@@ -8,8 +8,15 @@ export type ProjectCheckpoint = {
   offset: number;
   retryAfter: number | null;
 };
+/** What an all-public refresh needs before it replaces the permission set. */
+export type ProjectIndexState = {
+  generation: number;
+  /** Every stored source row, with whether the public list shows it now. */
+  projects: { uri: string; checkedAt: string; shown: boolean }[];
+};
 export type ProjectIndexStore = {
   open(manifest: ProjectManifest, hash: string): Promise<ProjectCheckpoint>;
+  state?(): Promise<ProjectIndexState>;
   hasEmbedding?(uri: string, contentHash: string, modelVersion: string): Promise<boolean>;
   commit(input: {
     checkpoint: ProjectCheckpoint;
@@ -31,6 +38,8 @@ export async function refreshProjectIndex(input: {
   embedder?: ProjectEmbedder;
   now?: () => number;
   timeBudgetMs?: number;
+  /** The reads are already in hand, so a backoff that protects the source's per-project reads does not apply. */
+  readsInHand?: boolean;
 }) {
   if (!Number.isInteger(input.batchSize) || input.batchSize < 1 || input.batchSize > 25)
     throw Error("invalid_batch_size");
@@ -41,8 +50,10 @@ export async function refreshProjectIndex(input: {
   const hash = sha256(JSON.stringify([PROJECT_EXTRACTION_VERSION, input.manifest.permissions]));
   const permissions = input.manifest.permissions;
   let checkpoint = await input.store.open(input.manifest, hash);
-  const report = { indexed: 0, restricted: 0, missing: 0, failed: 0, scanned: 0, embedded: 0, embeddingFailures: 0, status: "bounded" };
-  if (checkpoint.retryAfter !== null && checkpoint.retryAfter > now())
+  // `swept` says this call reached the end of the permission list, so a caller can stop looping.
+  const report = { indexed: 0, restricted: 0, missing: 0, failed: 0, scanned: 0, embedded: 0, embeddingFailures: 0,
+    status: "bounded", swept: !permissions.length };
+  if (!input.readsInHand && checkpoint.retryAfter !== null && checkpoint.retryAfter > now())
     return { ...report, status: "backoff" };
 
   for (let count = 0; count < input.batchSize && now() < deadline; count++) {
@@ -85,7 +96,7 @@ export async function refreshProjectIndex(input: {
     report.scanned++;
     checkpoint = result;
     if (retryAfter) return { ...report, status: "backoff" };
-    if (endOfSweep) return { ...report, status: report.failed ? "partial" : "bounded" };
+    if (endOfSweep) return { ...report, status: report.failed ? "partial" : "bounded", swept: true };
   }
   return { ...report, status: permissions.length ? "partial" : "bounded" };
 }

@@ -1,6 +1,6 @@
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
-import { PartnerDiscovery } from "../partners/PartnerDiscovery.tsx";
 import { PartnerExperience } from "../partners/PartnerExperience.tsx";
+import { PublicProjects } from "../partners/PublicProjects.tsx";
 import { useState } from "react";
 import type { FixtureContext } from "../fixtures.ts";
 import { EMPTY_FILTERS, applyListFacet, listFacets, listSorts, selectRecords, type CapitalKey } from "../listing.ts";
@@ -45,7 +45,7 @@ export function ListPage({
     return (
       <ListLayout>
         <Heading level={1} size="page">{title}</Heading>
-        {partners ? <PartnerExperience mode="matches" /> : <PartnerDiscovery mode="browse" />}
+        {partners ? <PartnerExperience mode="matches" /> : <PublicProjects />}
       </ListLayout>
     );
   }

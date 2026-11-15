@@ -26,6 +26,8 @@ import { NumberedList } from "../ui/NumberedList.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { Section } from "../ui/Section.tsx";
 import { TileGrid } from "../ui/TileGrid.tsx";
+import { PublicProjectCard, usePublicProjects } from "../partners/PublicProjects.tsx";
+import { sharedLabel } from "../partners/public-projects.ts";
 
 /**
  * Home says what Weave is and where to start. Its hero has two doors: start an initiative, or
@@ -39,7 +41,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const account = useAccount();
   const social = useSocial();
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
-  const { recent, sharedCount } = homePreviews(fixture?.initiatives ?? [], asOf);
+  const previews = homePreviews(fixture?.initiatives ?? [], asOf);
+  // Without the example world, Recently shared lists the newest public Certified projects.
+  const { list: published, retry: retryPublished } = usePublicProjects("", 3, !fixture);
+  const publishedReady = published.status === "ready" ? published : null;
+  const recent = fixture ? previews.recent : [];
+  const sharedCount = fixture ? previews.sharedCount : publishedReady?.page.index.total ?? 0;
   // The live funding catalog, read once the page is idle and shared with Funding. The example
   // world brings its own, as Funding's does.
   const fundingExample = useMemo(
@@ -137,7 +144,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             <>
               {sharedCount > 0 && (
                 <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-                  {sharedCount} {sharedCount === 1 ? "initiative" : "initiatives"} shared
+                  {fixture ? `${sharedCount} ${sharedCount === 1 ? "initiative" : "initiatives"} shared` : sharedLabel(sharedCount)}
                 </ButtonLink>
               )}
               {/* Opens Funding on the same deadlines it counts, soonest first. */}
@@ -258,8 +265,16 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </ButtonLink>
         }
       >
-        {loading ? (
+        {loading || (!fixture && published.status === "loading") ? (
           skeleton
+        ) : publishedReady && publishedReady.projects.length ? (
+          <CardGrid>
+            {publishedReady.projects.map((project) => (
+              <li key={project.uri}>
+                <PublicProjectCard project={project} level={3} />
+              </li>
+            ))}
+          </CardGrid>
         ) : recent.length && !failed ? (
           <CardGrid>
             {recent.map((record) => (
@@ -268,6 +283,17 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
               </li>
             ))}
           </CardGrid>
+        ) : !fixture && published.status === "failed" ? (
+          <EmptyState
+            title="Shared initiatives did not load"
+            action={
+              <button className="rc-button" data-variant="secondary" type="button" onClick={retryPublished}>
+                Try again
+              </button>
+            }
+          >
+            Initiatives still lists a few public sources.
+          </EmptyState>
         ) : (
           <EmptyState
             title={failed ? "Shared initiatives did not load" : "No shared initiatives here yet"}

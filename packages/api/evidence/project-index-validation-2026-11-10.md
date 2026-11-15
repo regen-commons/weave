@@ -1,5 +1,11 @@
 # Certified index validation, 10 November 2026
 
+On 15 November the user decided that Weave indexes every listed public project,
+so the redisplay manifest below is no longer required. The all-public refresh
+and its measurements are in
+[the 15 November record](project-index-all-public-2026-11-15.md). This record is
+kept as written.
+
 Production browser reads enumerated 1,128 unique project records across 12 pages,
 with no final cursor. A second traversal checked the documented visibility field
 and found no explicitly unlisted records. The terminal indexing job still cannot

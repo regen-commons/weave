@@ -1,0 +1,120 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  encodePublicProjectCursor, parsePublicProjectPage, parsePublicProjectQuery, PUBLIC_PROJECT_PAGE_SIZE, searchTerms,
+  type PublicProjectCard,
+} from "./public-projects-contract.ts";
+import { createPublicProjectsHandler, indexStatus } from "./public-projects-http.ts";
+import type { PublicProjectReader, PublicProjectSnapshot } from "./public-projects-store.ts";
+import { projectUri } from "./test-data/public-projects.ts";
+
+const url = (search: string) => new URL(`https://weave.example/api/public-projects${search}`);
+const card = (n: number): PublicProjectCard => ({
+  uri: projectUri(n), name: `Watershed circle ${n}`, passages: ["We restore wetlands along the river."],
+  sharedAt: "2026-10-02T12:00:00.000000Z", checkedAt: "2026-11-15T04:01:00.000000Z",
+  sourceUrl: `https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=${encodeURIComponent(projectUri(n))}`,
+});
+
+test("the query accepts only a bounded search, an opaque cursor and a page size", () => {
+  assert.deepEqual(parsePublicProjectQuery(url("")), { q: "", terms: [], cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
+  const search = parsePublicProjectQuery(url("?q=%20S%C3%A3o%20%20Paulo%20soil%20soil&limit=3"));
+  assert.deepEqual([search.q, search.terms, search.limit], ["São Paulo soil soil", ["sao", "paulo", "soil"], 3]);
+  assert.deepEqual(searchTerms("a b c d e f g h"), ["a", "b", "c", "d", "e", "f"]);
+  const cursor = encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
+  assert.deepEqual(parsePublicProjectQuery(url(`?cursor=${cursor}`)).cursor,
+    { sharedAt: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
+  for (const bad of [
+    "?limit=0", "?limit=25", "?limit=2.5", "?limit=-1", "?other=1", "?q=a&q=b", `?q=${"x".repeat(101)}`, "?q=%00",
+    "?q=%E2%80%AE", "?cursor=", "?cursor=***", `?cursor=${"A".repeat(600)}`,
+    `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02", uri: projectUri(1) })}`,
+    `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: "at://did:web:x/other/key" })}`,
+    `?cursor=${Buffer.from(JSON.stringify({ sharedAt: "x" })).toString("base64url")}`,
+  ]) assert.throws(() => parsePublicProjectQuery(url(bad)), /invalid_project_query/u, bad);
+});
+
+test("the app accepts a page only from the expected source, with bounded cards", () => {
+  const page = { index: { status: "bounded", checkedAt: "2026-11-15T04:01:00.000000Z", total: 2 }, projects: [card(1), card(2)], next: "abc" };
+  assert.deepEqual(parsePublicProjectPage(page), page);
+  for (const broken of [
+    { ...page, projects: [{ ...card(1), sourceUrl: "https://elsewhere.example/x" }, card(2)] },
+    { ...page, projects: [{ ...card(1), sourceUrl: "http://api.hypercerts.dev/x" }, card(2)] },
+    { ...page, projects: [card(1), card(1)] },
+    { ...page, projects: [{ ...card(1), passages: ["one", "two", "three"] }] },
+    { ...page, projects: [{ ...card(1), name: "" }] },
+    { ...page, projects: [{ ...card(1), uri: "https://example.org" }] },
+    { ...page, index: { ...page.index, total: 1 } },
+    { ...page, index: { ...page.index, status: "current" } },
+    { ...page, next: 5 },
+  ]) assert.throws(() => parsePublicProjectPage(broken), /invalid_public_projects/u);
+});
+
+test("the list is overdue after 26 hours and partial while a sweep is unfinished", () => {
+  const now = Date.parse("2026-11-15T12:00:00Z");
+  assert.equal(indexStatus(null, now), "partial");
+  assert.equal(indexStatus({ completedAt: null, offset: 0 }, now), "partial");
+  assert.equal(indexStatus({ completedAt: "2026-11-15T04:00:00.000000Z", offset: 12 }, now), "partial");
+  assert.equal(indexStatus({ completedAt: "2026-11-15T04:00:00.000000Z", offset: 0 }, now), "bounded");
+  assert.equal(indexStatus({ completedAt: "2026-11-14T09:59:00.000000Z", offset: 0 }, now), "stale");
+});
+
+test("pages come from a copy read once a minute, are cacheable and link the next page", async () => {
+  let clock = Date.parse("2026-11-15T06:00:00Z");
+  const cards = [1, 2, 3, 4, 5].map((n) => ({ ...card(n), sharedAt: `2026-10-0${n}T12:00:00.000000Z`,
+    text: n === 2 ? "Guardamos sementes crioulas em São Paulo." : "We restore wetlands along the river." }));
+  const snapshot: PublicProjectSnapshot = { cards, checkpoint: { completedAt: "2026-11-15T04:01:00.000000Z", offset: 0 } };
+  let loads = 0;
+  const reader: PublicProjectReader = { load: async () => { loads++; return snapshot; }, close: async () => undefined };
+  const handler = createPublicProjectsHandler({ reader: async () => reader, now: () => clock });
+  const get = async (search: string) => {
+    const response = await handler(new Request(url(search)));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "public, max-age=60");
+    assert.equal(response.headers.get("cdn-cache-control"), "public, max-age=300, stale-while-revalidate=600");
+    assert.equal(response.headers.get("set-cookie"), null);
+    return parsePublicProjectPage(await response.json());
+  };
+  const first = await get("?limit=2");
+  assert.deepEqual(first.index, { status: "bounded", checkedAt: "2026-11-15T04:01:00.000000Z", total: 5 });
+  assert.deepEqual(first.projects.map(({ name }) => name), ["Watershed circle 5", "Watershed circle 4"]);
+  assert.ok(!("text" in first.projects[0]!) && !("search" in first.projects[0]!));
+  const second = await get(`?limit=2&cursor=${first.next}`);
+  assert.deepEqual(second.projects.map(({ name }) => name), ["Watershed circle 3", "Watershed circle 2"]);
+  const last = await get(`?limit=2&cursor=${second.next}`);
+  assert.deepEqual([last.projects.map(({ name }) => name), last.next], [["Watershed circle 1"], null]);
+  const found = await get("?q=SAO%20sementes");
+  assert.deepEqual([found.index.total, found.projects.map(({ name }) => name)], [1, ["Watershed circle 2"]]);
+  assert.equal((await get("?q=circle%205")).index.total, 1);
+  assert.equal((await get("?q=nothing%20like%20this")).index.total, 0);
+  assert.equal(loads, 1, "every search and page in the minute used one read");
+  clock += 61_000;
+  await get("");
+  assert.equal(loads, 2);
+});
+
+test("before the list is switched on it answers an empty off page, and errors are stable and never cached", async () => {
+  const off = await createPublicProjectsHandler({ reader: async () => null })(new Request(url("?q=soil")));
+  assert.equal(off.status, 200);
+  assert.equal(off.headers.get("cache-control"), "no-store");
+  assert.deepEqual(parsePublicProjectPage(await off.json()), { index: { status: "off", checkedAt: null, total: 0 }, projects: [], next: null });
+
+  const expect = async (response: Response, status: number, error: string) => {
+    assert.equal(response.status, status);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal(response.headers.get("cdn-cache-control"), null);
+    assert.deepEqual(await response.json(), { error });
+  };
+  const reader: PublicProjectReader = { load: async () => ({ cards: [], checkpoint: null }), close: async () => undefined };
+  const handler = createPublicProjectsHandler({ reader: async () => reader });
+  await expect(await handler(new Request(url(""), { method: "POST" })), 405, "method_not_allowed");
+  await expect(await handler(new Request(url("?limit=99"))), 400, "invalid_project_query");
+  await expect(await createPublicProjectsHandler({ reader: async () => { throw Error("connect ECONNREFUSED db.internal"); } })(
+    new Request(url(""))), 503, "public_projects_unavailable");
+  let attempts = 0;
+  const flaky = createPublicProjectsHandler({ reader: async () => ({ ...reader, load: async () => {
+    if (++attempts === 1) throw Error("relation private.weave_project_index_source permission denied");
+    return { cards: [{ ...card(1), text: "" }], checkpoint: null };
+  } }) });
+  await expect(await flaky(new Request(url(""))), 503, "public_projects_unavailable");
+  const recovered = parsePublicProjectPage(await (await flaky(new Request(url("")))).json());
+  assert.deepEqual([recovered.index.status, recovered.index.total, attempts], ["partial", 1, 2], "a failed read is not kept");
+});
