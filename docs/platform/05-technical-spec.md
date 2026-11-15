@@ -35,8 +35,8 @@ flowchart LR
     Static[Static app shell]
     API["Node functions<br/>account and matching commands<br/>consented AI, later publication and introductions"]
     Bridge[Certified identity bridge<br/>auth.regencommons.com]
-    Indexer[Resumable public project indexing job<br/>runtime validated before rollout]
-    Cron[Vercel Cron: catalog import, pulse fallback]
+    Indexer[All-public project index refresh<br/>daily, started by Vercel Cron]
+    Cron[Vercel Cron: project index refresh, later catalog import and pulse fallback]
   end
   subgraph Supabase["Shared Regen Commons Supabase project"]
     Auth[Supabase Auth: internal Weave session]
@@ -69,6 +69,7 @@ flowchart LR
   Desk --> Auth
   Auth -. website auth mail only .-> Edge
   PgCron --> Edge
+  Cron --> Indexer
   Cron --> API
   Catalog --> Cron
   Desk --> PG
@@ -1078,8 +1079,10 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
 #### Shared index and local work
 
 - Certified projects are the source of public project suggestions in the first
-  release. Add other source adapters later. A resumable job reads permitted
-  project collections from the public Hypercerts API. Start validation on a
+  release. Add other source adapters later. A resumable job reads every listed
+  public project collection from the public Hypercerts API (user decision,
+  15 November 2026; see [open decisions](open-decisions.md#all-listed-public-certified-projects-decided-15-november-2026)).
+  Start validation on a
   sample across art, software, research and
   place-based work. At launch, target all eligible public projects that the index
   can enumerate and report measured coverage and lag. The browser continues to
@@ -1091,9 +1094,10 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
 - Keep a durable cursor/checkpoint, bounded batches, retry/backoff, per-record
   failures and content hashes. Recompute derived facts/vectors only for changed
   content or a changed extraction/model contract. Handle deletion and discovery
-  restrictions; do not infer deletion from a failed page request. Prove the
-  upstream enumeration/change path and redisplay permission before claiming
-  full coverage. Hypercerts documents limited index coverage, not every project
+  restrictions; do not infer deletion from a failed page request. A complete
+  traversal of the listing is the permission set; a failed or partial one changes
+  nothing. Prove the upstream enumeration/change path before claiming full
+  coverage. Hypercerts documents limited index coverage, not every project
   on every PDS. [API and indexer](https://docs.hypercerts.org/reference/services/hypercerts-api).
 - The Weave API queries full-text and vector indexes in the existing Postgres
   database. Measure exact search first; introduce an HNSW index where measured
@@ -1323,7 +1327,7 @@ app uses them directly. No dependencies were added for this matching slice.
 | Milestone | Implemented locally | Acceptance still open |
 |---|---|---|
 | M1 and M2 | Version-1 Save/Load compatibility, stable entry reconciliation, selected revision review/share/renew/withdraw, expiry and private leads. Real PostgreSQL tests cover two synthetic account identities, grants/RLS, stale retries, removal/re-add and a two-connection Save/Share race. | Full Supabase Auth/PostgREST and hosted Certified acceptance on the final migration. |
-| M3 | Bounded public Hypercerts adapter, explicit permitted-project manifest, durable transactional checkpoints, restricted indexing role, source suppression and optional pinned passage embeddings. | A live permitted corpus across all four domains, deployed job credentials/scheduler and measured freshness. The live source probe was blocked by this environment's network access; fixture success is not live source proof. |
+| M3 | Bounded public Hypercerts adapter, durable transactional checkpoints, restricted indexing role, source suppression and optional pinned passage embeddings. Since 15 November an all-public mode replaces the explicit manifest: a complete traversal of the listing is the permission set, refreshed daily by Vercel Cron, and `GET /api/public-projects` serves the shown cards. The [15 November evidence](../../packages/api/evidence/project-index-all-public-2026-11-15.md) covers a live traversal into local Supabase. | The first production refresh, hosted cron runs and measured freshness; relevance across all four domains. |
 | M4 | Directional lexical matching, current shared projections, public evidence/provenance, unknowns, reciprocal fit, private leads and optional pgvector hybrid retrieval. A separate restricted worker embeds current shared query revisions. | Held-out relevance/recall and intended-host performance. The final evidence gate now also supports a bounded related-phrase vocabulary (see the local evaluation below). Hybrid candidate recall alone does not establish better final suggestions; semantic retrieval remains disabled pending validation. |
 | M5 | Functional Finish/Partners controls, explicit Save/Load binding, sharing review, renewal, withdrawal, private saved/hidden leads, cancellation on account/initiative changes and a device-only public text worker. | Hosted four-flow acceptance and a permitted refreshed browser corpus. The device fallback still uses the bounded starter collection. |
 | M6 | Package tests, real PostgreSQL/pgvector authorization and race fixtures, synthetic scale/model comparisons, Chrome fixture rendering and the authorized hosted preview rollout below. | Independent critical review before merge, real-user acceptance, held-out quality and hosted performance. |
@@ -1358,12 +1362,24 @@ hosted latency gates below. There is no claim of whole-network coverage.
   the existing Certified session. It never accepts arbitrary private draft text
   as a network query. Private Save, Share and public directory publication remain
   separate actions. Responses use `private, no-store`.
-- The public indexing job is
-  `node packages/api/scripts/project-index.ts --refresh /absolute/path/to/approved-manifest.json 10`.
-  Its manifest is `{version:1,generation,projects:[{uri,redisplayUntil}]}`.
-  `WEAVE_INDEX_DATABASE_URL` belongs to a restricted job login. Use
-  `--embeddings` only when preparing the optional local model index. Existing
-  pinned model assets are checked before inference; no paid model API is added.
+- The public indexing job runs daily as `GET /api/project-index-refresh`, a Vercel
+  Cron entry in `packages/app/vercel.json`. It acts only with `CRON_SECRET` and
+  `WEAVE_INDEX_REFRESH=all-public` set, reads every listed public project, leaves
+  out accounts on Certified's development and test servers (looked up through
+  plc.directory) and replaces the permission set only after a complete traversal
+  with every lookup answered. An operator can run
+  the same refresh with
+  `node packages/api/scripts/project-index.ts --refresh-all-public`.
+  `WEAVE_INDEX_DATABASE_URL` belongs to a restricted job login; hosted connections
+  verify the server against `WEAVE_DATABASE_CA_PEM`. `GET /api/public-projects`
+  reads the shown cards with the same login inside read-only transactions, once
+  `WEAVE_PUBLIC_PROJECTS_ENABLED=true`; each function instance reads the whole
+  list at most once a minute and answers searches from that copy. Before then
+  it answers an empty `off` page. The explicit manifest mode
+  (`--refresh <manifest> <batch>`, manifest `{version:1,generation,projects:[{uri,redisplayUntil}]}`)
+  remains for scoped runs. Use `--embeddings` only with the manifest mode when
+  preparing the optional local model index. Existing pinned model assets are
+  checked before inference; no paid model API is added.
 - The reviewed-query job is
   `node packages/api/scripts/partner-query-embeddings.mjs 10`, with
   `WEAVE_QUERY_EMBEDDING_DATABASE_URL` injected for its separate restricted login.
@@ -1382,9 +1398,11 @@ hosted latency gates below. There is no claim of whole-network coverage.
   saving must continue when the index or model is unavailable.
 - For rollback, disable hybrid retrieval and stop the new jobs first. Revert app/API
   to the previous compatible release if needed; retain saved initiative and entry
-  data. Do not drop owner tables to undo a derived index. A newer empty permission
-  manifest withdraws the public pilot. Rebuild only derived index data from the
-  approved manifest and current reviewed entries; recheck permissions and versions.
+  data. Do not drop owner tables to undo a derived index. To withdraw every public
+  project, unset `WEAVE_INDEX_REFRESH` so the daily refresh stops, redeploy, then
+  run `--withdraw-all`; unsetting `WEAVE_PUBLIC_PROJECTS_ENABLED` also hides the
+  list. Rebuild only derived index data from a complete traversal and current
+  reviewed entries; recheck permissions and versions.
 - The Platform baseline consists of
   `20261105082413_weave_private_accounts` and
   `20261108031732_weave_certified_private_access`. Their exact hosted statements
@@ -1564,8 +1582,9 @@ Earlier database and fixture evidence remains distinct from browser proof.
 **Local implementation, 11 November 2026.** The shared browser/API matcher now uses
 `partner-concepts-v2`: supported word overlap plus a bounded English vocabulary of
 related activities. Public index text includes these phrases while evidence remains
-verbatim. A versioned projection refresh requires a new manifest generation; neither
-production refresh nor semantic retrieval is enabled by this change. Private queries
+verbatim. A versioned projection is applied by the next refresh, since each daily
+all-public refresh is a new generation; neither production refresh nor semantic
+retrieval was enabled by this change. Private queries
 remain on-device, within the existing 80-project snapshot. Shared-entry SQL retrieval
 is unchanged. See the [evaluation protocol and recorded fixture results](../../packages/api/evaluation/README.md)
 for reproducible development/held-out runs, independent-review preparation and the

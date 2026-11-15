@@ -1,7 +1,16 @@
 import { open } from "node:fs/promises";
+import { refreshAllPublicProjects, withdrawAllPublicProjects } from "../src/project-index-all-public.ts";
 import { auditProjectNetwork } from "../src/project-index-audit.ts";
+import { createAccountHostResolver } from "../src/project-index-hosts.ts";
 import { createHypercertsSource, parseProjectPermissions } from "../src/project-index-source.ts";
 import { refreshProjectIndex } from "../src/project-index.ts";
+
+async function indexConnection() {
+  const url = process.env.WEAVE_INDEX_DATABASE_URL;
+  if (!url) throw Error("index_database_url_required");
+  const { connectProjectIndex } = await import("../src/project-index-postgres.ts");
+  return connectProjectIndex(url, { ca: process.env.WEAVE_DATABASE_CA_PEM });
+}
 
 async function manifestFile(path: string) {
   if (/(?:^|[\/\\])\.env(?:\.|$)/iu.test(path)) throw Error("invalid_manifest_path");
@@ -22,8 +31,28 @@ async function main() {
   const args = process.argv.slice(2);
   const embeddings = args.at(-1) === "--embeddings";
   if (embeddings) args.pop();
+  const allowShrink = args.at(-1) === "--allow-shrink";
+  if (allowShrink) args.pop();
   const [mode, value, batch, ...rest] = args;
   const source = createHypercertsSource();
+  if ((mode === "--refresh-all-public" && !batch) || (mode === "--withdraw-all" && !value && !allowShrink)) {
+    if (embeddings) throw Error("index_arguments_required");
+    const maxPages = value === undefined ? 400 : Number(value);
+    const start = performance.now();
+    const connection = await indexConnection();
+    try {
+      const report = mode === "--withdraw-all"
+        ? await withdrawAllPublicProjects({ store: connection.store })
+        : await refreshAllPublicProjects({ source, store: connection.store, hosts: createAccountHostResolver(),
+          maxPages, allowShrink, deadline: Date.now() + 15 * 60 * 1000 });
+      console.log(JSON.stringify({ ...report, durationMs: Math.round(performance.now() - start) }));
+      if (report.status !== "complete") process.exitCode = 1;
+    } finally {
+      await connection.close();
+    }
+    return;
+  }
+  if (allowShrink) throw Error("index_arguments_required");
   if (mode === "--probe-network" && !rest.length && !embeddings) {
     const manifest = batch ? await manifestFile(batch) : undefined;
     const report = await auditProjectNetwork({ source, maxPages: value === undefined ? 100 : Number(value), manifest });
@@ -54,11 +83,8 @@ async function main() {
   const batchSize = batch === undefined ? 10 : Number(batch);
   if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 25) throw Error("invalid_batch_size");
   const manifest = await manifestFile(value);
-  const url = process.env.WEAVE_INDEX_DATABASE_URL;
-  if (!url) throw Error("index_database_url_required");
   const start = performance.now();
-  const { connectProjectIndex } = await import("../src/project-index-postgres.ts");
-  const connection = await connectProjectIndex(url);
+  const connection = await indexConnection();
   try {
     const embedder = embeddings ? await import("./project-embedding.mjs")
       .then(({ createPinnedProjectEmbedder }) => createPinnedProjectEmbedder()).catch(() => undefined) : undefined;

@@ -45,6 +45,21 @@
       "source": "./src/projects.ts",
       "default": "./dist/projects.js"
     },
+    "./public-projects": {
+      "types": "./src/public-projects.ts",
+      "source": "./src/public-projects.ts",
+      "default": "./dist/public-projects.js"
+    },
+    "./public-projects-contract": {
+      "types": "./src/public-projects-contract.ts",
+      "source": "./src/public-projects-contract.ts",
+      "default": "./dist/public-projects-contract.js"
+    },
+    "./project-index-refresh": {
+      "types": "./src/project-index-refresh.ts",
+      "source": "./src/project-index-refresh.ts",
+      "default": "./dist/project-index-refresh.js"
+    },
     "./certified-project-client": {
       "types": "./src/certified-project-client.ts",
       "source": "./src/certified-project-client.ts",
