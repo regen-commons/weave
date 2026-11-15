@@ -338,6 +338,11 @@ test("equipment needs keep the Material kind in plural, in Portuguese and by the
     assert.ok(suggestKinds(words).includes("material"), words);
   assert.ok(!suggestKinds("We grow pumpkins").includes("material"), "a pumpkin is not a pump");
 });
+test("kinds come from whole words in any script, so água is water and careço is not care", () => {
+  for (const words of ["Precisamos de água para a horta", "Água da chuva", "Ajuda na plantação"])
+    assert.deepEqual(suggestKinds(words), ["living"], words);
+  assert.deepEqual(suggestKinds("Careço de ferramentas"), ["material"], "careço is not care");
+});
 test("quick add keeps the person's words, suggests kinds in pencil and guards the list", () => {
   let step = addEntry(emptyAskStep(), "  Native seedlings and   fencing tools ");
   const entry = step.items[0]!;
