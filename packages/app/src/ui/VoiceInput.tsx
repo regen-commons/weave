@@ -1,31 +1,42 @@
 import { useId } from "react";
+import { voiceControls, type SpeechSetupState } from "../describe/speech-setup.ts";
 import { Icon } from "./Icon.tsx";
 
 /**
- * Voice input molecule: the Speak button leads, and the language choice sits behind a small
- * disclosure under it. Speak is present only when local speech is usable.
+ * Voice input molecule: one button leads, and the language choice sits behind a small disclosure
+ * under it. The button is Speak where local speech is usable, and the offer to set it up where the
+ * browser can. The setup keeps the same button, so the focus stays on it until Speak appears. Where
+ * the browser cannot recognize speech on the device, nothing shows.
  */
 export function VoiceInput({
-  available,
+  speech,
+  setUpHere = false,
+  asking = false,
   listening,
   transcript,
   language,
   onLanguage,
   onStart,
   onStop,
+  onSetUp,
   variant = "primary",
   label = "Speak",
   focus = false,
   disabled = false,
 }: {
-  available: boolean;
+  speech: SpeechSetupState;
+  /** This page asked for the setup, so it says when speech is ready. */
+  setUpHere?: boolean;
+  /** The browser is answering for a newly chosen language: only the language choice shows. */
+  asking?: boolean;
   listening: boolean;
   transcript: string;
   language: string;
   onLanguage(value: string): void;
   onStart(): void;
   onStop(): void;
-  /** Secondary where the page already has its one primary action. */
+  onSetUp(): void;
+  /** Secondary where the page already has its one primary action. Setting up speech is always secondary. */
   variant?: "primary" | "secondary";
   /** What the button says before the person speaks. */
   label?: string;
@@ -35,6 +46,9 @@ export function VoiceInput({
   disabled?: boolean;
 }) {
   const id = useId();
+  const controls = voiceControls(speech, { listening, setUpHere, asking });
+  if (!controls.shown) return null;
+  const speak = controls.action === "speak";
   const languages = [
     ...new Set([
       "en-US",
@@ -53,26 +67,26 @@ export function VoiceInput({
   const names = new Intl.DisplayNames(["en"], { type: "language" });
   return (
     <div className="rc-voice-input">
-      {available || listening ? (
+      {controls.action && (
         <button
           className="rc-button"
-          data-variant={variant}
+          data-variant={speak ? variant : "secondary"}
           data-size="lg"
           type="button"
-          aria-pressed={listening}
+          aria-pressed={speak ? listening : undefined}
+          // Under way, the button keeps the focus, which a disabled button would drop.
+          aria-busy={controls.action === "setting-up" || undefined}
           autoFocus={focus}
-          disabled={disabled && !listening}
-          onClick={listening ? onStop : onStart}
+          disabled={speak && disabled && !listening}
+          onClick={speak ? (listening ? onStop : onStart) : controls.action === "set-up" ? onSetUp : undefined}
         >
           <Icon name="mic" />
-          {listening ? "Finish speaking" : label}
+          {listening ? "Finish speaking" : speak ? label : controls.label}
         </button>
-      ) : (
-        <p className="rc-meta">Local speech is not available for this language. You can type below.</p>
       )}
-      {listening && (
+      {controls.note && (
         <p className="rc-meta" role="status">
-          Listening on this device. Audio is not sent to a server.
+          {controls.note}
         </p>
       )}
       {transcript && (

@@ -13,10 +13,18 @@ export interface LocalSpeechSession {
   stop(): void;
   abort(): void;
 }
+/** Every question about speech names one language and asks for recognition on the device only. */
+export interface LocalSpeechOptions {
+  langs: string[];
+  processLocally: true;
+}
 export interface SpeechConstructor {
   new (): LocalSpeechSession;
   prototype: object;
-  available(options: { langs: string[]; processLocally: true }): Promise<string>;
+  /** The browser's answer is read as data: see `speechStatus`. */
+  available(options: LocalSpeechOptions): Promise<unknown>;
+  /** Asks the browser to set up its own speech pack. Absent where the browser cannot. */
+  install?(options: LocalSpeechOptions): Promise<unknown>;
 }
 export const speechConstructor = (): SpeechConstructor | undefined => {
   const scope = globalThis as unknown as {
@@ -25,17 +33,27 @@ export const speechConstructor = (): SpeechConstructor | undefined => {
   };
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition;
 };
-export async function availableSpeech(language: string, constructor = speechConstructor()): Promise<boolean> {
+/** The four answers of `SpeechRecognition.available()` in the Web Speech API. */
+export type SpeechStatus = "unavailable" | "downloadable" | "downloading" | "available";
+const STATUSES: readonly SpeechStatus[] = ["unavailable", "downloadable", "downloading", "available"];
+/**
+ * What the browser says about recognizing one language on the device. A browser without the
+ * question, one that fails to answer and any other answer all count as unavailable. Chrome tells a
+ * site that has not set up a language "downloadable" even when its pack is already on the device,
+ * so the answer does not promise a download.
+ */
+export async function speechStatus(language: string, constructor = speechConstructor()): Promise<SpeechStatus> {
   try {
-    return (
-      !!constructor &&
-      "processLocally" in constructor.prototype &&
-      typeof constructor.available === "function" &&
-      (await constructor.available({ langs: [language], processLocally: true })) === "available"
-    );
+    if (!constructor || !("processLocally" in constructor.prototype) || typeof constructor.available !== "function")
+      return "unavailable";
+    const answer = await constructor.available({ langs: [language], processLocally: true });
+    return STATUSES.find((status) => status === answer) ?? "unavailable";
   } catch {
-    return false;
+    return "unavailable";
   }
+}
+export async function availableSpeech(language: string, constructor = speechConstructor()): Promise<boolean> {
+  return (await speechStatus(language, constructor)) === "available";
 }
 export async function startSpeech(
   language: string,

@@ -3,10 +3,12 @@ import { flushSync } from "react-dom";
 import { typedCard } from "../describe/check.ts";
 import { revise } from "../describe/contracts.ts";
 import { MAX_FILE_BYTES, type Turn } from "../describe/source-contracts.ts";
-import { availableSpeech, startSpeech } from "../describe/speech.ts";
+import { startSpeech } from "../describe/speech.ts";
+import type { SpeechSetupStore } from "../describe/speech-setup.ts";
+import { useSpeechSetup } from "../describe/use-speech.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText } from "../describe/view.ts";
-import type { FixtureContext } from "../fixtures.ts";
+import { exampleSpeech, type FixtureContext } from "../fixtures.ts";
 import {
   ASK_KINDS,
   cardsNote,
@@ -14,8 +16,10 @@ import {
   continueBoth,
   entryId,
   kindFocus,
+  listVoice,
   pencilHint,
   sectionCount,
+  speechSetupList,
   startsByHand,
   talkWaiting,
   type Blocker,
@@ -74,6 +78,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   const [blocked, setBlocked] = useState<Blocked>({});
   const [working, setWorking] = useState<Record<AskKind, boolean>>({ needs: false, offers: false });
   const waiting = working.needs || working.offers;
+  const speech = import.meta.env.DEV && example ? exampleSpeech(example.speech) : undefined;
+  const setupList = speechSetupList(kind, draft);
   useEffect(() => setBlocked(unblock("needs")), [draft.needs, words.needs]);
   useEffect(() => setBlocked(unblock("offers")), [draft.offers, words.offers]);
   useEffect(() => {
@@ -136,6 +142,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                 words={words[entry]}
                 onWords={(value) => setWords((current) => ({ ...current, [entry]: value }))}
                 blocker={blocked[entry]}
+                speech={speech}
+                hostsSetup={entry === setupList}
                 onWorking={(value) =>
                   setWorking((current) => (current[entry] === value ? current : { ...current, [entry]: value }))
                 }
@@ -170,6 +178,8 @@ function AskSection({
   words,
   onWords,
   blocker,
+  speech: speechStore,
+  hostsSetup,
   onWorking,
 }: {
   kind: AskKind;
@@ -180,6 +190,10 @@ function AskSection({
   onWords(value: string): void;
   /** Why Continue stopped at this list. */
   blocker?: Blocker;
+  /** The example world's speech, or this browser's when it is not given. */
+  speech?: SpeechSetupStore;
+  /** This list is the one that offers to set up speech for the page. */
+  hostsSetup: boolean;
   /** True while this list is making cards or listening, so the page holds Continue. */
   onWorking(value: boolean): void;
 }) {
@@ -194,7 +208,7 @@ function AskSection({
   const [busy, setBusy] = useState(false);
   const [talk, setTalk] = useState(false);
   const [language, setLanguage] = useState(navigator.language || "en-US");
-  const [speechReady, setSpeechReady] = useState(false);
+  const speech = useSpeechSetup(language, speechStore);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const task = useRef<AbortController | null>(null);
@@ -210,7 +224,7 @@ function AskSection({
   const held = busy || listening;
   // Words that are being spoken or made into cards are not waiting on the person yet.
   const waiting = ready && !held && talkWaiting(step);
-  const voiceLead = listening || (speechReady && !full);
+  const voice = listVoice(speech.state, { full, hostsSetup, listening });
   useEffect(() => {
     setBusy(example?.intake === "loading");
     setNotice(
@@ -229,17 +243,6 @@ function AskSection({
         ),
       );
   }, [example?.intake, ready, storage]);
-  useEffect(() => {
-    let active = true;
-    if (fixture) setSpeechReady(true);
-    else
-      void availableSpeech(language).then((value) => {
-        if (active) setSpeechReady(value);
-      });
-    return () => {
-      active = false;
-    };
-  }, [language, fixture]);
   useEffect(
     () => () => {
       task.current?.abort();
@@ -433,6 +436,7 @@ function AskSection({
     } catch {
       setListening(false);
       if (!abort.signal.aborted) setNotice("Local speech is not ready. Type below or add a card by hand.");
+      speech.check();
     }
   }
   /** Speak from the top of the list. Spoken words become cards, so the list uses the assistant on this device. */
@@ -659,11 +663,14 @@ function AskSection({
           {blocker.message}
         </p>
       )}
-      {voiceLead && (
+      {voice === "top" && (
         <VoiceInput
           variant={activeItems(step).length ? "secondary" : "primary"}
           label={need ? "Say what you need" : "Say what you can offer"}
-          available={speechReady}
+          speech={speech.state}
+          setUpHere={speech.setUpHere}
+          asking={speech.asking}
+          onSetUp={speech.setUp}
           listening={listening}
           transcript={transcript}
           language={language}
@@ -815,11 +822,12 @@ function AskSection({
                 .
               </p>
               {conversation}
-              {/* Speaking leads the list above. Here the language choice stays reachable when it cannot. */}
-              {!voiceLead && !full && (
+              {/* Speaking leads the list above. Here the language choice stays reachable where another language may work. */}
+              {voice === "conversation" && (
                 <VoiceInput
                   variant="secondary"
-                  available={false}
+                  speech="language"
+                  onSetUp={speech.setUp}
                   listening={false}
                   transcript=""
                   language={language}

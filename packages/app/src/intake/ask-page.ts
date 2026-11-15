@@ -1,5 +1,6 @@
 import { CAPITALS } from "../capitals.ts";
 import type { DeviceDraft } from "../describe/contracts.ts";
+import { offersSetup, type SpeechSetupState } from "../describe/speech-setup.ts";
 import { ASK_LIMIT, type AskItem, type AskKind, type AskStep } from "./contracts.ts";
 import { keepPending, toggleKind } from "./entries.ts";
 import { activeItems, decide, fromProjectPage, reviewStep } from "./state.ts";
@@ -9,6 +10,32 @@ export type CapitalForm = AskItem["value"]["capitalForms"][number];
 
 /** The two lists on the needs and offers page, in the order they show. */
 export const ASK_KINDS = ["needs", "offers"] as const satisfies readonly AskKind[];
+
+/**
+ * The one list that offers to set up speech, so the page asks once: the list the route opened on,
+ * or the other when that one is full. Both lists get Speak once speech is ready.
+ */
+export function speechSetupList(opened: AskKind, steps: Readonly<Record<AskKind, AskStep>>): AskKind | undefined {
+  return [opened, ...ASK_KINDS.filter((kind) => kind !== opened)].find(
+    (kind) => activeItems(steps[kind]).length < ASK_LIMIT,
+  );
+}
+
+/**
+ * Where a list's Voice input sits: at the top while it leads, which is Speak, the page's one offer
+ * to set up speech, or the language choice after a language without speech was picked there; in
+ * the conversation where only the language choice can help; or nowhere, as in a full list or a
+ * browser without speech on the device.
+ */
+export function listVoice(
+  state: SpeechSetupState,
+  { full, hostsSetup, listening }: { full: boolean; hostsSetup: boolean; listening: boolean },
+): "top" | "conversation" | null {
+  if (listening) return "top";
+  if (full) return null;
+  if (state === "ready" || (hostsSetup && (offersSetup(state) || state === "language"))) return "top";
+  return state === "language" ? "conversation" : null;
+}
 
 /** "2 of 5": how many entries a list holds against the limit, as one phrase. */
 export const sectionCount = (step: AskStep): string => `${activeItems(step).length} of ${ASK_LIMIT}`;
