@@ -5,7 +5,8 @@ import fs from 'node:fs';
 // their screening conditions, and recompiled the catalog at the current date, which
 // reselected the displayed program for funders whose earlier program had closed.
 // These helpers undo exactly the archived changes, so older audits keep checking
-// their original hashes. Anything else that differs fails here.
+// their original hashes. Anything else that differs fails here. Audits use them
+// through audit-revisions.mjs, which first undoes any later journaled revision.
 const root = new URL('../../', import.meta.url);
 export const reverificationArchive = JSON.parse(fs.readFileSync(
   new URL('research/maintenance-history/reverification-2026-11-15/preservation.json', root)));
@@ -58,16 +59,4 @@ export function manifestBefore(manifest) {
 // research/program-conditions.json or its generated copy as it stood before the pass.
 export function conditionsBefore(file) {
   return {...file, conditions: dropTail(file.conditions, reverificationArchive.appendedConditionIds, 'id', 'appended conditions')};
-}
-
-// Exact bytes of a file the pass changed, rebuilt from the current file.
-export function fileBytesBefore(path) {
-  const current = fs.readFileSync(new URL(path, root));
-  const rebuild = {
-    'dist/data/funders.json': text => JSON.stringify(catalogBefore(JSON.parse(text))),
-    'research/supplemental-funders.json': text => JSON.stringify(manifestBefore(JSON.parse(text)), null, 2) + '\n',
-    'research/program-conditions.json': text => JSON.stringify(conditionsBefore(JSON.parse(text)), null, 2) + '\n',
-    'dist/data/program-conditions.json': text => JSON.stringify(conditionsBefore(JSON.parse(text)), null, 2) + '\n',
-  }[path];
-  return rebuild ? Buffer.from(rebuild(current.toString('utf8'))) : current;
 }
