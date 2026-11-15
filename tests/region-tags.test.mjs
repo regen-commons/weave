@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {filterFunds} from '../dist/domain.mjs';
+import {catalogBefore, manifestBefore, fileBytesBefore} from './helpers/reverification-2026-11-15.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = p => JSON.parse(fs.readFileSync(new URL(p, root)));
@@ -33,7 +34,7 @@ test('region corrections recover every prior full record and input without chang
   assert.equal(archive.baseCommit,'1c86877af0db2a7f0465412008ec067103b8dc39');
   assert.equal(funds.length,archive.catalogRecordCount);
   assert.deepEqual(archive.revisions.map(r=>r.fundId),['local-cdfw','local-funbio']);
-  const prior = funds.map(f => {
+  const prior = catalogBefore(catalog).funds.map(f => {
     const revision=archive.revisions.find(r=>r.fundId===f.id);
     if (!revision) return f;
     assert.equal(hash(revision.priorFundRecord),revision.priorFundSha256);
@@ -46,7 +47,7 @@ test('region corrections recover every prior full record and input without chang
     return restored;
   });
   assert.equal(hash(prior),archive.priorCatalogFundsSha256,'all 699 prior full records recover exactly');
-  const manifest=read('research/supplemental-funders.json');
+  const manifest=manifestBefore(read('research/supplemental-funders.json'));
   for(const revision of archive.revisions) {
     const index=manifest.funds.findIndex(r=>r.fund.id===revision.fundId);
     const restored=structuredClone(manifest.funds[index]);
@@ -56,7 +57,7 @@ test('region corrections recover every prior full record and input without chang
   }
   assert.equal(hash(manifest),archive.priorManifestSha256);
   for(const [path,expected] of Object.entries(archive.unchangedFilesSha256)) {
-    let contents=fs.readFileSync(new URL(path,root));
+    let contents=fileBytesBefore(path);
     if(path==='research/maintenance-review-log.json') {
       // This historical audit froze 374 entries and two runs. New maintenance
       // appends must retain that exact snapshot, not freeze the ledger forever.

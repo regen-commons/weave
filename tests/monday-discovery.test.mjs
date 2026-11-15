@@ -5,12 +5,13 @@ import {createHash} from 'node:crypto';
 import {validateResearch} from '../scripts/research-validation.mjs';
 import {validConditions, checkConditions} from '../dist/matching.mjs';
 import {upcomingWindows} from '../dist/deadlines.mjs';
+import {catalogBefore, manifestBefore} from './helpers/reverification-2026-11-15.mjs';
 
 const read = path => JSON.parse(fs.readFileSync(new URL('../'+path, import.meta.url)));
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object'
   ? Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])) : v;
 const hash = v => createHash('sha256').update(JSON.stringify(canonical(v))).digest('hex');
-const catalog=read('dist/data/funders.json');
+const catalog=catalogBefore(read('dist/data/funders.json'));
 const proposals=read('research/discovery-2026-11-09.json');
 const archive=read('research/maintenance-history/monday-discovery-2026-11-09/preservation.json');
 const schema=read('dist/data/enrichment.schema.json');
@@ -19,7 +20,7 @@ test('Monday research preserves all 699 full records and every prior program/sou
   assert.equal(proposals.status,'verified-proposals-not-applied');
   assert.deepEqual(catalog.funds.map(f=>f.id),Object.keys(archive.sha256ById));
   for(const fund of catalog.funds) assert.equal(hash(fund),archive.sha256ById[fund.id],fund.id);
-  assert.equal(hash(read('research/supplemental-funders.json')),archive.priorManifestSha256);
+  assert.equal(hash(manifestBefore(read('research/supplemental-funders.json'))),archive.priorManifestSha256);
   assert.deepEqual(catalog.funds.slice(0,593).map(f=>f.id),read('research/source-record-ids.json'));
   for(const [id,prior] of Object.entries(archive.priorRecords)) {
     assert.equal(hash(prior),archive.sha256ById[id]);

@@ -2899,6 +2899,96 @@
       "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
       "checkedOn": "2026-10-29",
       "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-nlnet",
+      "programId": "nlnet-restack-call2-2027",
+      "id": "nlnet-restack-call2-2027-requirement-1",
+      "category": "applicant_model",
+      "requirement": "Research and development as the primary objective, with open-access scientific outcomes and software or hardware published in its entirety under a recognised open source licence. Proposals are written in English.",
+      "sourceUrl": "https://nlnet.nl/restack/guideforapplicants/",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-nlnet",
+      "programId": "nlnet-restack-call2-2027",
+      "id": "nlnet-restack-call2-2027-requirement-2",
+      "category": "geography",
+      "requirement": "Strong European dimension under the published funding-share or exceptional-expertise rules.",
+      "sourceUrl": "https://nlnet.nl/restack/eligibility/",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-nlnet",
+      "programId": "nlnet-restack-call2-2027",
+      "id": "nlnet-restack-call2-2027-requirement-3",
+      "category": "other",
+      "requirement": "First proposals range from EUR 5,000 to EUR 50,000. Requests above EUR 50,000, up to EUR 150,000, must follow successfully concluded Restack or equivalent projects.",
+      "sourceUrl": "https://nlnet.nl/restack/guideforapplicants/",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-nlnet",
+      "programId": "nlnet-restack-call2-2027",
+      "id": "nlnet-restack-call2-2027-requirement-4",
+      "category": "applicant_model",
+      "requirement": "Generative AI policy 2.0: no generative AI in writing proposals except where needed for accessibility, which must be disclosed; project development may use generative AI only read-only.",
+      "sourceUrl": "https://nlnet.nl/foundation/policies/generativeAI/2.0/",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-funbio",
+      "programId": "funbio-articulacao-institucional-11-2026",
+      "id": "funbio-articulacao-institucional-11-2026-requirement-1",
+      "category": "other",
+      "requirement": "Provide a counterpart contribution of at least 10% of the proposal value.",
+      "sourceUrl": "https://chamadas.funbio.org.br/articulacao-institucional",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-funbio",
+      "programId": "funbio-articulacao-institucional-11-2026",
+      "id": "funbio-articulacao-institucional-11-2026-requirement-2",
+      "category": "other",
+      "requirement": "The proposal must strengthen coordination and integration between institutions for environmental governance on the Paraná coast.",
+      "sourceUrl": "https://chamadas.funbio.org.br/articulacao-institucional",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-cdfw",
+      "programId": "cdfw-golden-mussel-delta-2026",
+      "id": "cdfw-golden-mussel-delta-2026-requirement-1",
+      "category": "other",
+      "requirement": "Project must be on or centrally located to Delta waterways and support the five Delta counties.",
+      "sourceUrl": "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+      "checkedOn": "2026-11-15",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-cdfw",
+      "programId": "cdfw-golden-mussel-delta-2026",
+      "id": "cdfw-golden-mussel-delta-2026-requirement-2",
+      "category": "other",
+      "requirement": "Register in CDFW WebGrants and apply under Invasive Mussel Response.",
+      "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+      "checkedOn": "2026-11-09",
+      "kind": "prerequisite"
+    },
+    {
+      "fundId": "local-cdfw",
+      "programId": "cdfw-golden-mussel-delta-2026",
+      "id": "cdfw-golden-mussel-delta-2026-requirement-3",
+      "category": "other",
+      "requirement": "Obtain required permits and site access permissions.",
+      "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+      "checkedOn": "2026-11-09",
+      "kind": "prerequisite"
     }
   ]
 }
