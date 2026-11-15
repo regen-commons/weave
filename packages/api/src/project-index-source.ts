@@ -2,31 +2,32 @@ import { createHash } from "node:crypto";
 import { record } from "./account-contract.ts";
 import type { ProjectEvidence } from "./partner-matcher.ts";
 import { PARTNER_CONCEPT_VERSION } from "./partner-concepts.ts";
+import { parseProjectUri, PROJECT_COLLECTION as collection, PROJECT_DID as did } from "./project-uri.ts";
 
+export { parseProjectUri };
 const origin = "https://api.hypercerts.dev";
-const collection = "org.hypercerts.collection";
 const getCollection = `${collection}.getCollection`;
 const maxResponseBytes = 512 * 1024;
-const did = /^did:(?:plc:[a-z2-7]{24}|web:[A-Za-z0-9][A-Za-z0-9._:%-]{0,252})$/u;
+/**
+ * A list page carries up to `limit` full records. Twenty-five measured at most 300 KB on 15 November.
+ * A page of one record gets the most room, so a single large record can still be passed by its cursor.
+ */
+export const listPageBytes = (limit: number) => limit === 1 ? 4 * 1024 * 1024 : Math.max(maxResponseBytes, limit * 80 * 1024);
 const cidPattern = /^b[a-z2-7]{40,100}$/u;
-const recordKey = /^[A-Za-z0-9._:~-]{1,128}$/u;
 // The projection version also invalidates stored lexical text on the next permitted refresh.
 export const PROJECT_EXTRACTION_VERSION = `hypercerts-collection-v3-${PARTNER_CONCEPT_VERSION}`;
 
 export const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
-export function parseProjectUri(value: unknown): { uri: string; did: string } {
-  if (typeof value !== "string" || !value.startsWith("at://")) throw Error("invalid_project_uri");
-  const [actor, nsid, key, ...rest] = value.slice(5).split("/");
-  if (!actor || !did.test(actor) || nsid !== collection || !key || !recordKey.test(key)
-    || key === "." || key === ".." || rest.length) throw Error("invalid_project_uri");
-  return { uri: value, did: actor };
-}
-
+/**
+ * A date a publisher or the index wrote. It must also be one Postgres can read, since the index casts
+ * these values: Postgres has no year 0000 and no offsets beyond 15:59, which JavaScript accepts.
+ */
 function timestamp(value: unknown): string {
-  if (typeof value !== "string"
-    || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/u.test(value)
-    || !Number.isFinite(Date.parse(value))) throw Error("invalid_source_date");
+  const match = typeof value === "string"
+    ? /^(\d{4})-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-](\d{2}):\d{2})$/u.exec(value) : null;
+  if (!match || typeof value !== "string" || !Number.isFinite(Date.parse(value)) || Number(match[1]) < 1
+    || Number(match[2] ?? 0) > 15) throw Error("invalid_source_date");
   const day = value.slice(0, 10);
   if (!new Date(`${day}T00:00:00Z`).toISOString().startsWith(day)) throw Error("invalid_source_date");
   return value;
@@ -57,7 +58,8 @@ export type ProjectRead =
   | { status: "missing" | "restricted"; code: "record_not_found" | "not_discoverable" }
   | { status: "failed"; code: SourceError; retryAfterMs?: number };
 
-async function readBounded(response: Response): Promise<unknown> {
+/** Reads a JSON body of at most `maxBytes`, failing before the rest arrives. */
+export async function readBounded(response: Response, maxBytes: number): Promise<unknown> {
   const body = response.body;
   if (!body) throw Error("invalid_source_body");
   const reader = body.getReader();
@@ -69,7 +71,7 @@ async function readBounded(response: Response): Promise<unknown> {
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > maxResponseBytes) throw Error("source_response_too_large");
+      if (size > maxBytes) throw Error("source_response_too_large");
       text += decoder.decode(value, { stream: true });
     }
     return JSON.parse(text + decoder.decode());
@@ -87,6 +89,10 @@ function backoff(value: string | null, now: number, fallback: number) {
 
 type XrpcResult =
   | { status: "ok"; data: unknown }
+  // A list page can be retried with fewer records. A single stored record keeps its stored code.
+  | { status: "failed"; code: "source_response_too_large" }
+  // `retryAfterMs` is the stored backoff for per-project reads; `requestedWaitMs` is what the server asked.
+  | { status: "failed"; code: "source_rate_limited" | "source_unavailable"; retryAfterMs: number; requestedWaitMs?: number }
   | Extract<ProjectRead, { status: "failed" } | { status: "missing" | "restricted" }>;
 export function createHypercertsSource(options: {
   fetch?: typeof fetch;
@@ -97,7 +103,7 @@ export function createHypercertsSource(options: {
   const now = options.now ?? Date.now;
   const wait = options.wait ?? ((ms) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
 
-  async function xrpc(method: string, params: URLSearchParams): Promise<XrpcResult> {
+  async function xrpc(method: string, params: URLSearchParams, maxBytes = maxResponseBytes): Promise<XrpcResult> {
     let failure: XrpcResult = { status: "failed", code: "source_unavailable", retryAfterMs: 30_000 };
     for (const delay of [0, 250]) {
       if (delay) await wait(delay);
@@ -111,14 +117,15 @@ export function createHypercertsSource(options: {
         });
         if (response.status === 429) {
           await response.body?.cancel();
-          return { status: "failed", code: "source_rate_limited",
-            retryAfterMs: backoff(response.headers.get("Retry-After"), now(), 30_000) };
+          const header = response.headers.get("Retry-After");
+          return { status: "failed", code: "source_rate_limited", retryAfterMs: backoff(header, now(), 30_000),
+            ...(header ? { requestedWaitMs: backoff(header, now(), 0) } : {}) };
         }
         if (response.status >= 500) {
           await response.body?.cancel();
           const retryAfter = response.headers.get("Retry-After");
           if (retryAfter) return { status: "failed", code: "source_unavailable",
-            retryAfterMs: backoff(retryAfter, now(), 30_000) };
+            retryAfterMs: backoff(retryAfter, now(), 30_000), requestedWaitMs: backoff(retryAfter, now(), 0) };
           continue;
         }
         if (response.status === 401 || response.status === 403) {
@@ -127,10 +134,12 @@ export function createHypercertsSource(options: {
         }
         let body: unknown;
         try {
-          body = await readBounded(response);
-        } catch {
+          body = await readBounded(response, maxBytes);
+        } catch (error) {
           if (signal.aborted) continue;
           if (!response.ok) return failure;
+          if (error instanceof Error && error.message === "source_response_too_large")
+            return { status: "failed", code: "source_response_too_large" };
           return { status: "failed", code: "invalid_source_record" };
         }
         if (response.ok) return { status: "ok", data: body };
@@ -144,17 +153,18 @@ export function createHypercertsSource(options: {
     return failure;
   }
 
-  async function listProjects(actor: string | undefined, cursor?: string) {
-    if ((actor !== undefined && !did.test(actor)) || (cursor !== undefined && (!cursor || cursor.length > 1024)))
+  async function listProjects(actor: string | undefined, cursor?: string, limit = 5) {
+    if ((actor !== undefined && !did.test(actor)) || (cursor !== undefined && (!cursor || cursor.length > 1024))
+      || !Number.isInteger(limit) || limit < 1 || limit > 100)
       throw Error("invalid_source_query");
-    const params = new URLSearchParams({ types: "project", limit: "5", sortDirection: "asc" });
+    const params = new URLSearchParams({ types: "project", limit: String(limit), sortDirection: "asc" });
     if (actor) params.set("authors", actor);
     if (cursor) params.set("cursor", cursor);
-    const result = await xrpc(`${collection}.listCollections`, params);
+    const result = await xrpc(`${collection}.listCollections`, params, listPageBytes(limit));
     if (result.status !== "ok") return result;
     try {
       const page = record(result.data);
-      if (!Array.isArray(page.collections) || page.collections.length > 5
+      if (!Array.isArray(page.collections) || page.collections.length > limit
         || (page.cursor !== undefined && (typeof page.cursor !== "string" || !page.cursor || page.cursor.length > 1024
           || page.cursor === cursor))) throw Error("invalid_source_page");
       const results = page.collections.map((item: unknown) => {
@@ -178,6 +188,11 @@ export function createHypercertsSource(options: {
       if (Date.parse(permission.redisplayUntil) <= now())
         return { status: "restricted", code: "not_discoverable" };
       const result = await xrpc(getCollection, new URLSearchParams({ uri }));
+      if (result.status === "failed" && result.code === "source_response_too_large")
+        return { status: "failed", code: "invalid_source_record" };
+      if (result.status === "failed")
+        return result.retryAfterMs === undefined ? { status: "failed", code: result.code }
+          : { status: "failed", code: result.code, retryAfterMs: result.retryAfterMs };
       if (result.status !== "ok") return result;
       try {
         return extractCollection(record(result.data).collection, uri, new Date(now()).toISOString());
@@ -186,13 +201,14 @@ export function createHypercertsSource(options: {
       }
     },
     /** Enumerates the chosen index, not every repository on AT Protocol. */
-    listProjects: (cursor?: string) => listProjects(undefined, cursor),
+    listProjects: (cursor?: string, limit?: number) => listProjects(undefined, cursor, limit),
     listPublisherProjects: (actor: string, cursor?: string) => listProjects(actor, cursor),
   };
 }
 
 // Store only plain text from approved fields. Drop contact details and embedded markup.
-const unsafePassage = /[<>\p{Cc}\p{Cf}]|https?:|www\.|\bmailto:|[\p{L}\p{N}._+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}|(?:\+?\d[\s().-]*){8,}/iu;
+// A lone surrogate is not valid Unicode, and Postgres rejects it in jsonb.
+const unsafePassage = /[<>\p{Cc}\p{Cf}\p{Surrogate}]|https?:|www\.|\bmailto:|[\p{L}\p{N}._+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}|(?:\+?\d[\s().-]*){8,}/iu;
 function safePassages(value: string, max: number): string[] {
   const passages: string[] = [];
   const segmenter = new Intl.Segmenter("en", { granularity: "sentence" });

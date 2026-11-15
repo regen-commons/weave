@@ -20,6 +20,7 @@ import {
   pencilHint,
   sectionCount,
   speechSetupList,
+  startsByHand,
   talkWaiting,
   type Blocker,
 } from "../intake/ask-page.ts";
@@ -253,16 +254,10 @@ function AskSection({
   useEffect(() => {
     if (taskVersion.current !== step.inputVersion) task.current?.abort();
   }, [step.inputVersion]);
+  const byHand = startsByHand(step, draft.assistant);
   useEffect(() => {
-    if (
-      ready &&
-      draft.assistant === "none" &&
-      !step.turns.length &&
-      !step.items.length &&
-      step.mode !== "manual"
-    )
-      update((current) => changeStep(current, { mode: "manual" }));
-  }, [ready, draft.assistant, step.mode, step.turns.length, step.items.length]);
+    if (ready && byHand) update((current) => changeStep(current, { mode: "manual" }));
+  }, [ready, byHand]);
   useEffect(() => {
     if (focusIntent.current) {
       document.getElementById(focusIntent.current)?.focus();

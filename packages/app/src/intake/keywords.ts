@@ -6,10 +6,11 @@ import {
   type AskKind,
   type AskStep,
 } from "./contracts.ts";
-import { fingerprint } from "./state.ts";
+import { fingerprint, keptOnRebuild } from "./state.ts";
 const BANKS = {
   living: /\b(living|land|water|seed\w*|soil|tree\w*|plant\w*|nursery|terra|mudas|sementes|água)\b/iu,
-  material: /\b(tool\w*|equipment|fenc\w*|truck|building|venue|materials?|ferramentas|cerca\w*)\b/iu,
+  material:
+    /\b(tool\w*|equipment\w*|equipamento\w*|machine\w*|máquina\w*|tractor\w*|trator\w*|pumps?|shovel\w*|spade\w*|wheelbarrow\w*|greenhouse\w*|estufa\w*|irrigation|vehicle\w*|fenc\w*|trucks?|building|venue|materials?|ferramenta\w*|cerca\w*)\b/iu,
   intellectual:
     /\b(intellectual|map\w*|data|research|method\w*|template|review\w*|knowledge|pesquisa|dados)\b/iu,
   experiential:
@@ -40,7 +41,7 @@ export function chunksFrom(text: string, sourceId: string): AskChunk[] {
     .map((text, index) => ({ key: `${sourceId}:${index}`, text }));
 }
 export function candidateChunks(chunks: AskChunk[], step: AskStep): AskChunk[] {
-  const fixed = step.items.filter((item) => item.decision !== "pencil" || item.sourceKey === null);
+  const fixed = step.items.filter(keptOnRebuild);
   const keys = new Set(fixed.map((item) => item.sourceKey));
   const prints = new Set(fixed.map((item) => item.fingerprint));
   return chunks.filter((chunk) => {

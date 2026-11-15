@@ -1,0 +1,2636 @@
+{
+  "version": 1,
+  "runId": "reverification-2026-11-15",
+  "baseCommit": "f54bf29362fc05109aff9038d74b7808d2130c84",
+  "note": "Exact catalog, input and screening state before the November 15 re-verification pass applied three re-verified program rounds and recompiled the catalog at the current date. Every change is an append of programs and sources to an existing funder, or a displayed-program reselection caused by deadlines that passed since the October 30 compile. tests/helpers/reverification-2026-11-15.mjs reconstructs the prior state from the current files so that earlier audits keep checking their original hashes.",
+  "displayFields": [
+    "displayProgramId",
+    "program",
+    "access",
+    "accessDetail",
+    "amount",
+    "timing",
+    "deadlineDate",
+    "deadlineInstant"
+  ],
+  "priorTopLevel": {
+    "compiledAt": "2026-10-30T05:14:23.839542+00:00",
+    "fieldCoverage": {
+      "focus": 687,
+      "eligibility": 600,
+      "numericAward": 186,
+      "currentNumericAward": 85,
+      "datedDeadline": 195,
+      "upcomingDatedDeadline": 43,
+      "applicationRoute": 555
+    }
+  },
+  "priorCatalogFundsSha256": "a27d8bc8b31848620748c4c8a4c4947a9ec49b084b3cc90d99ba9f1af68a5212",
+  "priorManifestSha256": "123e240cbad4dddd6e95c98dd9b2f6ea665ff6431ceedcdca65fd73acd409a73",
+  "priorConditionCount": 292,
+  "appendedConditionIds": [
+    "nlnet-restack-call2-2027-requirement-1",
+    "nlnet-restack-call2-2027-requirement-2",
+    "nlnet-restack-call2-2027-requirement-3",
+    "nlnet-restack-call2-2027-requirement-4",
+    "funbio-articulacao-institucional-11-2026-requirement-1",
+    "funbio-articulacao-institucional-11-2026-requirement-2",
+    "cdfw-golden-mussel-delta-2026-requirement-1",
+    "cdfw-golden-mussel-delta-2026-requirement-2",
+    "cdfw-golden-mussel-delta-2026-requirement-3"
+  ],
+  "priorFileSha256": {
+    "dist/data/funders.json": "4e6c01ac7899f888c6100d4c7fb6477376742d2b60145b4639fcae0dc4a250c2",
+    "dist/data/research-coverage.json": "43b889ca2ecb99bbba09350d6cd930a5b9508a3fc54d879eede6d740af22593e",
+    "dist/data/program-conditions.json": "e102634bea2153982a432d433f7ebadb115ba6f3c14a93ed27ae4507c66b5781",
+    "research/supplemental-funders.json": "865292e928c61ba152ac00b53861d698481484df5fc0da358b181ea90f5bec5e",
+    "research/program-conditions.json": "e102634bea2153982a432d433f7ebadb115ba6f3c14a93ed27ae4507c66b5781"
+  },
+  "changes": [
+    {
+      "fundId": "recqd3f6mBVBdH2ID",
+      "catalogIndex": 521,
+      "manifestIndex": null,
+      "appendedProgramIds": [],
+      "appendedSourceUrls": [],
+      "displayReselected": true,
+      "priorDisplayProgramId": "seabury-community-grants-chicago",
+      "displayProgramId": "seabury-community-grants-benzie-county",
+      "priorFundSha256": "6db4aebad1d9376f1223a3a150e0a71d32842126b02256d5ce67cbc55cc0a9c5",
+      "priorFundRecord": {
+        "id": "recqd3f6mBVBdH2ID",
+        "name": "The Seabury Foundation",
+        "displayName": "The Seabury Foundation",
+        "program": "Seabury Community Grants — Chicago",
+        "description": "Seabury Foundation continues a family philanthropy tradition in community building, culture, conservation, healthcare, education and opportunities for young people.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Education & childhood development",
+          "Arts & culture",
+          "Climate & environment",
+          "Health & wellbeing",
+          "Children & youth"
+        ],
+        "regions": [
+          "North America"
+        ],
+        "approaches": [
+          "Trust",
+          "Relationships"
+        ],
+        "grantBands": [
+          "Small"
+        ],
+        "website": "https://seaburyfoundation.org",
+        "evidenceUrl": "https://seaburyfoundation.org/",
+        "additionalSources": [
+          "https://seaburyfoundation.org/applying-for-a-grant/"
+        ],
+        "sourceUrl": "https://www.fito.network/funders-database",
+        "access": "inquiry",
+        "accessDetail": "LOI November 6, 2026; invited proposal February 5, 2027. Normally one-year gap after prior LOI.",
+        "amount": "Generally 10% of expenses below USD 100k, then USD 10k/15k/20k/25k tiers. Express exceptions prevent a hard ceiling.",
+        "timing": "LOI November 6, 2026; invited proposal February 5, 2027. Normally one-year gap after prior LOI.",
+        "deadlineDate": "2026-11-06",
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-15",
+        "qualityFlags": [],
+        "fieldsFilled": 10,
+        "aliasNote": "",
+        "enrichment": {
+          "sourceRecordId": "recqd3f6mBVBdH2ID",
+          "researchedOn": "2026-10-15",
+          "name": "The Seabury Foundation",
+          "summary": "Seabury Foundation continues a family philanthropy tradition in community building, culture, conservation, healthcare, education and opportunities for young people.",
+          "themes": [],
+          "regions": [],
+          "focus": [
+            "Community building",
+            "Culture",
+            "Conservation",
+            "Healthcare",
+            "Youth education"
+          ],
+          "reviewStatus": "program_reviewed",
+          "programs": [
+            {
+              "id": "seabury-family-grants",
+              "name": "Seabury Family Grants",
+              "instrument": "grant",
+              "focus": [
+                "education",
+                "arts",
+                "environment",
+                "wellness"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "501(c)(3) organization invited by Seabury family sponsor.",
+                  "Above USD 2.5 million expenses, only project/program support."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": null,
+                "max": 25000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "Up to USD 25,000 general or project support, with expense conditions."
+              },
+              "application": {
+                "route": "restricted",
+                "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+                "opensOn": null,
+                "closesOn": "2027-02-05",
+                "deadlineInstant": null,
+                "note": "Invited password-protected proposals: next deadline February 5, 2027."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "programs.0.focus",
+                    "programs.0.beneficiaries",
+                    "programs.0.geography",
+                    "programs.0.applicants",
+                    "programs.0.award",
+                    "programs.0.application",
+                    "programs.0.costs"
+                  ],
+                  "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+                  "note": "The public source states the specific terms paraphrased in this program; empty fields remain unverified.",
+                  "checkedOn": "2026-10-15"
+                }
+              ],
+              "unknowns": [
+                "Fiscal-sponsorship eligibility and grant duration are not stated in the family-grant summary.",
+                "A family invitation remains necessary despite the published proposal date."
+              ]
+            },
+            {
+              "id": "seabury-community-grants-chicago",
+              "name": "Seabury Community Grants — Chicago",
+              "instrument": "grant",
+              "focus": [
+                "education",
+                "community wellbeing"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "Chicago headquarters.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "501(c)(3), normally yearly expenses under USD 2.5 million."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "Generally 10% of expenses below USD 100k, then USD 10k/15k/20k/25k tiers. Express exceptions prevent a hard ceiling."
+              },
+              "application": {
+                "route": "inquiry",
+                "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+                "opensOn": null,
+                "closesOn": "2026-11-06",
+                "deadlineInstant": null,
+                "note": "LOI November 6, 2026; invited proposal February 5, 2027. Normally one-year gap after prior LOI."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "programs.1.focus",
+                    "programs.1.beneficiaries",
+                    "programs.1.geography",
+                    "programs.1.applicants",
+                    "programs.1.award",
+                    "programs.1.application",
+                    "programs.1.costs"
+                  ],
+                  "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+                  "note": "The public source states the specific terms paraphrased in this program; empty fields remain unverified.",
+                  "checkedOn": "2026-10-15"
+                }
+              ],
+              "unknowns": [
+                "Fiscal-sponsorship eligibility and grant duration are not stated.",
+                "The expense-based award and any exception require foundation confirmation."
+              ]
+            },
+            {
+              "id": "seabury-community-grants-benzie-county",
+              "name": "Seabury Community Grants — Benzie County",
+              "instrument": "grant",
+              "focus": [
+                "education",
+                "community wellbeing"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "Benzie County, Michigan headquarters.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "501(c)(3), normally yearly expenses under USD 2.5 million."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "Same expense-based schedule; case-by-case exceptions may exceed or reduce listed amounts."
+              },
+              "application": {
+                "route": "inquiry",
+                "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+                "opensOn": null,
+                "closesOn": "2027-02-05",
+                "deadlineInstant": null,
+                "note": "LOI February 5, 2027; invited proposal May 7, 2027."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "programs.2.focus",
+                    "programs.2.beneficiaries",
+                    "programs.2.geography",
+                    "programs.2.applicants",
+                    "programs.2.award",
+                    "programs.2.application",
+                    "programs.2.costs"
+                  ],
+                  "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+                  "note": "The public source states the specific terms paraphrased in this program; empty fields remain unverified.",
+                  "checkedOn": "2026-10-15"
+                }
+              ],
+              "unknowns": [
+                "Fiscal-sponsorship eligibility and grant duration are not stated.",
+                "The expense-based award and any exception require foundation confirmation."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://seaburyfoundation.org/",
+              "title": "The Seabury Foundation — official source",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+              "title": "Seabury Family Grants — official policy",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus"
+              ],
+              "url": "https://seaburyfoundation.org/",
+              "note": "Seabury Foundation continues a family philanthropy tradition in community building, culture, conservation, healthcare, education and opportunities for young people.",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "researchNotes": "Read full current Giving policy and questions. Kept family invitation, Chicago and Benzie schedules separate; formula/exception terms prevent fabricated uniform range. LOIs distinguished from full proposals."
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "seabury-community-grants-chicago",
+        "followUp": {
+          "checkedOn": "2026-10-15",
+          "sourceRecordId": "recqd3f6mBVBdH2ID",
+          "previousStatus": "source_reviewed",
+          "outcome": "program_terms_added",
+          "sources": [
+            {
+              "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+              "title": "Seabury Family Grants",
+              "outcome": "policy"
+            },
+            {
+              "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+              "title": "Seabury Community Grants — Chicago",
+              "outcome": "policy"
+            },
+            {
+              "url": "https://seaburyfoundation.org/applying-for-a-grant/",
+              "title": "Seabury Community Grants — Benzie County",
+              "outcome": "policy"
+            }
+          ],
+          "notes": "Read full current Giving policy and questions. Kept family invitation, Chicago and Benzie schedules separate; formula/exception terms prevent fabricated uniform range. LOIs distinguished from full proposals.",
+          "remainingGaps": [
+            "award"
+          ]
+        }
+      },
+      "priorInputEntry": null
+    },
+    {
+      "fundId": "local-nlnet",
+      "catalogIndex": 593,
+      "manifestIndex": 0,
+      "appendedProgramIds": [
+        "nlnet-restack-call2-2027"
+      ],
+      "appendedSourceUrls": [
+        "https://nlnet.nl/news/2026/20261103-call.html",
+        "https://nlnet.nl/restack/guideforapplicants/",
+        "https://nlnet.nl/foundation/policies/generativeAI/2.0/",
+        "https://nlnet.nl/restack/faq/"
+      ],
+      "displayReselected": true,
+      "priorDisplayProgramId": "nlnet-restack",
+      "displayProgramId": "nlnet-restack-call2-2027",
+      "priorFundSha256": "8e8f5e7911b5e025ba39ba78f871281770c4fc50a6373bda10bf7f27c3a4514e",
+      "priorFundRecord": {
+        "id": "local-nlnet",
+        "name": "NLnet Foundation",
+        "displayName": "NLnet Foundation",
+        "program": "Restack — first call 2026",
+        "description": "Open internet infrastructure development with open outputs and a European dimension.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Open source",
+          "Digital public infrastructure"
+        ],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://nlnet.nl/restack/",
+        "evidenceUrl": "https://nlnet.nl/restack/",
+        "additionalSources": [
+          "https://nlnet.nl/restack/eligibility/",
+          "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+          "https://nlnet.nl/fediversity/",
+          "https://nlnet.nl/taler/",
+          "https://nlnet.nl/taler/faq/index.html",
+          "https://nlnet.nl/commonsfund/"
+        ],
+        "sourceUrl": "https://nlnet.nl/restack/",
+        "access": "open",
+        "accessDetail": "Deadline noon CET. Submit through https://nlnet.nl/propose/.",
+        "amount": "Per proposal; EUR 7 million is the programme pool, not an award.",
+        "timing": "Deadline noon CET. Submit through https://nlnet.nl/propose/.",
+        "deadlineDate": "2026-11-03",
+        "deadlineInstant": "2026-11-03T11:00:00Z",
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "priority-2026-10-29",
+          "candidateId": "nlnet-restack",
+          "upstreamRecordId": null,
+          "aliases": "NLnet, NGI Zero"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-nlnet",
+          "researchedOn": "2026-10-29",
+          "name": "NLnet Foundation",
+          "summary": "Open internet infrastructure development with open outputs and a European dimension.",
+          "themes": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "nlnet-restack",
+              "name": "Restack — first call 2026",
+              "instrument": "grant",
+              "focus": [
+                "Open source",
+                "Digital public infrastructure"
+              ],
+              "beneficiaries": [
+                "Users and developers of open internet infrastructure"
+              ],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "European dimension required; exceptional quality plus unique expertise can justify proposals outside eligible countries. Named countries are verified examples, not exhaustive eligibility lists.  Applicant scope: Any person category, subject to a strong European dimension and stated funding-share/exception rules. Work scope: Open internet infrastructure with a European dimension; no exhaustive work-country list captured.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Individuals",
+                  "Organizations"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Open outputs; strong European dimension. Standard route: Horizon Europe-eligible team members receive at least 60% of funds.",
+                  "October 20 AI policy: no generative-AI proposal writing except accessibility support; project-development LLM/diffusion use limited to read-only."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "Per proposal; EUR 7 million is the programme pool, not an award."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://nlnet.nl/restack/",
+                "opensOn": "2026-09-03",
+                "closesOn": "2026-11-03",
+                "deadlineInstant": "2026-11-03T11:00:00Z",
+                "note": "Deadline noon CET. Submit through https://nlnet.nl/propose/."
+              },
+              "costs": {
+                "supported": [
+                  "Development, testing, security, documentation, accessibility and essential infrastructure"
+                ],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "beneficiaries",
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award",
+                    "costs"
+                  ],
+                  "url": "https://nlnet.nl/restack/",
+                  "note": "Official program overview; supports stated terms only, with missing terms and source conflicts retained below. Supplementary evidence narrows particular fields.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants",
+                    "geography",
+                    "costs"
+                  ],
+                  "url": "https://nlnet.nl/restack/eligibility/",
+                  "note": "Geographic conditions and eligible work.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants"
+                  ],
+                  "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+                  "note": "Read current AI and code-provenance conditions before applying.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Fiscal sponsorship terms",
+                "Project-specific geographic exception"
+              ]
+            },
+            {
+              "id": "nlnet-fediversity-final",
+              "name": "NGI Fediversity — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Reproducible hosting",
+                "Fediverse"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Open-source results advancing the Fediversity hosting stack"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/fediversity/",
+                "opensOn": null,
+                "closesOn": "2026-08-01",
+                "deadlineInstant": null,
+                "note": "Final call closed August 1, 2026; project delivery continuing into 2027 does not mean applications remain open."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "award"
+                  ],
+                  "url": "https://nlnet.nl/fediversity/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Any successor intake and applicant-specific geographic restrictions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "nlnet-taler-final",
+              "name": "NGI TALER — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Privacy-preserving payments",
+                "GNU Taler"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Free and open-source results advancing GNU Taler; cumulative applicant ceiling EUR 60,000"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/taler/",
+                "opensOn": null,
+                "closesOn": "2026-08-01",
+                "deadlineInstant": null,
+                "note": "Final call closed August 1, 2026. Delivery schedule extension is not an intake extension."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "award"
+                  ],
+                  "url": "https://nlnet.nl/taler/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://nlnet.nl/taler/faq/index.html",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Successor intake and applicant-specific geographic restrictions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "nlnet-commons-final",
+              "name": "NGI Zero Commons Fund — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Open internet",
+                "Digital commons"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/commonsfund/",
+                "opensOn": null,
+                "closesOn": "2026-06-01",
+                "deadlineInstant": null,
+                "note": "Thirteenth and final call closed June 1, 2026. Existing Restack record is a different program."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application"
+                  ],
+                  "url": "https://nlnet.nl/commonsfund/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Historical award and applicant restrictions not re-established in this pass",
+                "Fiscal sponsorship not established"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://nlnet.nl/restack/",
+              "title": "Restack — first call 2026",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/restack/eligibility/",
+              "title": "Restack eligibility",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+              "title": "NLnet generative AI policy update",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/fediversity/",
+              "title": "NGI Fediversity — final call closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/taler/",
+              "title": "NGI TALER — final call closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/taler/faq/index.html",
+              "title": "NGI TALER — final call closed — supplementary official evidence",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/commonsfund/",
+              "title": "NGI Zero Commons Fund — final call closed",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Official program terms checked October 29, 2026. Eligibility requires applicant-level review; closed and conditional future rounds remain labeled. Deadline timezone: CET (UTC+1). ",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://nlnet.nl/restack/",
+              "note": "Official program focus.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "nlnet-restack"
+      },
+      "priorInputEntry": {
+        "fund": {
+          "id": "local-nlnet",
+          "name": "NLnet Foundation",
+          "displayName": "NLnet Foundation",
+          "program": "",
+          "description": "Open internet infrastructure development with open outputs and a European dimension.",
+          "descriptionBasis": "primary",
+          "sectors": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "regions": [],
+          "approaches": [],
+          "grantBands": [],
+          "website": "https://nlnet.nl/restack/",
+          "evidenceUrl": "https://nlnet.nl/restack/",
+          "additionalSources": [],
+          "sourceUrl": "https://nlnet.nl/restack/",
+          "access": "unconfirmed",
+          "accessDetail": "",
+          "amount": "",
+          "timing": "",
+          "deadlineDate": null,
+          "deadlineInstant": null,
+          "verifiedOn": "2026-10-29",
+          "qualityFlags": [],
+          "fieldsFilled": 0,
+          "aliasNote": "",
+          "origin": {
+            "kind": "supplemental-research",
+            "batchId": "priority-2026-10-29",
+            "candidateId": "nlnet-restack",
+            "upstreamRecordId": null,
+            "aliases": "NLnet, NGI Zero"
+          }
+        },
+        "enrichment": {
+          "sourceRecordId": "local-nlnet",
+          "researchedOn": "2026-10-29",
+          "name": "NLnet Foundation",
+          "summary": "Open internet infrastructure development with open outputs and a European dimension.",
+          "themes": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "nlnet-restack",
+              "name": "Restack — first call 2026",
+              "instrument": "grant",
+              "focus": [
+                "Open source",
+                "Digital public infrastructure"
+              ],
+              "beneficiaries": [
+                "Users and developers of open internet infrastructure"
+              ],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "European dimension required; exceptional quality plus unique expertise can justify proposals outside eligible countries. Named countries are verified examples, not exhaustive eligibility lists.  Applicant scope: Any person category, subject to a strong European dimension and stated funding-share/exception rules. Work scope: Open internet infrastructure with a European dimension; no exhaustive work-country list captured.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Individuals",
+                  "Organizations"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Open outputs; strong European dimension. Standard route: Horizon Europe-eligible team members receive at least 60% of funds.",
+                  "October 20 AI policy: no generative-AI proposal writing except accessibility support; project-development LLM/diffusion use limited to read-only."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "Per proposal; EUR 7 million is the programme pool, not an award."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://nlnet.nl/restack/",
+                "opensOn": "2026-09-03",
+                "closesOn": "2026-11-03",
+                "deadlineInstant": "2026-11-03T11:00:00Z",
+                "note": "Deadline noon CET. Submit through https://nlnet.nl/propose/."
+              },
+              "costs": {
+                "supported": [
+                  "Development, testing, security, documentation, accessibility and essential infrastructure"
+                ],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "beneficiaries",
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award",
+                    "costs"
+                  ],
+                  "url": "https://nlnet.nl/restack/",
+                  "note": "Official program overview; supports stated terms only, with missing terms and source conflicts retained below. Supplementary evidence narrows particular fields.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants",
+                    "geography",
+                    "costs"
+                  ],
+                  "url": "https://nlnet.nl/restack/eligibility/",
+                  "note": "Geographic conditions and eligible work.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants"
+                  ],
+                  "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+                  "note": "Read current AI and code-provenance conditions before applying.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Fiscal sponsorship terms",
+                "Project-specific geographic exception"
+              ]
+            },
+            {
+              "id": "nlnet-fediversity-final",
+              "name": "NGI Fediversity — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Reproducible hosting",
+                "Fediverse"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Open-source results advancing the Fediversity hosting stack"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/fediversity/",
+                "opensOn": null,
+                "closesOn": "2026-08-01",
+                "deadlineInstant": null,
+                "note": "Final call closed August 1, 2026; project delivery continuing into 2027 does not mean applications remain open."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "award"
+                  ],
+                  "url": "https://nlnet.nl/fediversity/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Any successor intake and applicant-specific geographic restrictions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "nlnet-taler-final",
+              "name": "NGI TALER — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Privacy-preserving payments",
+                "GNU Taler"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Free and open-source results advancing GNU Taler; cumulative applicant ceiling EUR 60,000"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/taler/",
+                "opensOn": null,
+                "closesOn": "2026-08-01",
+                "deadlineInstant": null,
+                "note": "Final call closed August 1, 2026. Delivery schedule extension is not an intake extension."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "award"
+                  ],
+                  "url": "https://nlnet.nl/taler/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://nlnet.nl/taler/faq/index.html",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Successor intake and applicant-specific geographic restrictions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "nlnet-commons-final",
+              "name": "NGI Zero Commons Fund — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Open internet",
+                "Digital commons"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/commonsfund/",
+                "opensOn": null,
+                "closesOn": "2026-06-01",
+                "deadlineInstant": null,
+                "note": "Thirteenth and final call closed June 1, 2026. Existing Restack record is a different program."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application"
+                  ],
+                  "url": "https://nlnet.nl/commonsfund/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Historical award and applicant restrictions not re-established in this pass",
+                "Fiscal sponsorship not established"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://nlnet.nl/restack/",
+              "title": "Restack — first call 2026",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/restack/eligibility/",
+              "title": "Restack eligibility",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+              "title": "NLnet generative AI policy update",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/fediversity/",
+              "title": "NGI Fediversity — final call closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/taler/",
+              "title": "NGI TALER — final call closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/taler/faq/index.html",
+              "title": "NGI TALER — final call closed — supplementary official evidence",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/commonsfund/",
+              "title": "NGI Zero Commons Fund — final call closed",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Official program terms checked October 29, 2026. Eligibility requires applicant-level review; closed and conditional future rounds remain labeled. Deadline timezone: CET (UTC+1). ",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://nlnet.nl/restack/",
+              "note": "Official program focus.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "researchContext": {
+          "geography": {
+            "workScope": "Open internet infrastructure with a European dimension; no exhaustive work-country list captured.",
+            "applicantScope": "Any person category, subject to a strong European dimension and stated funding-share/exception rules.",
+            "beneficiaryScope": "Users and developers of open internet infrastructure",
+            "beneficiaryCountries": null,
+            "countryArraysAreExhaustive": false,
+            "note": "Listed ISO countries are verified examples or a stated single-country scope, not an inferred worldwide permission. Empty arrays mean no enumerated list captured."
+          },
+          "deadline": {
+            "timezone": "CET (UTC+1)",
+            "dateBasis": "explicit"
+          }
+        }
+      }
+    },
+    {
+      "fundId": "local-la-city-cultural-affairs",
+      "catalogIndex": 672,
+      "manifestIndex": 79,
+      "appendedProgramIds": [],
+      "appendedSourceUrls": [],
+      "displayReselected": true,
+      "priorDisplayProgramId": "la-near-2027-28",
+      "displayProgramId": "la-public-space-activation",
+      "priorFundSha256": "08befb91d55ce9150b9b1aba859a7de2c38719aeed1d595e993ac0849245495f",
+      "priorFundRecord": {
+        "id": "local-la-city-cultural-affairs",
+        "name": "Los Angeles Department of Cultural Affairs",
+        "displayName": "Los Angeles Department of Cultural Affairs",
+        "program": "NEAR artist residency — 2027–28",
+        "description": "Funding and support for Participatory community arts. See each program for availability, conditions and unresolved terms.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Participatory community arts"
+        ],
+        "regions": [
+          "North America"
+        ],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://culture.lacity.gov/grants/near-co-op",
+        "evidenceUrl": "https://culture.lacity.gov/grants/near-co-op",
+        "additionalSources": [
+          "https://culture.lacity.gov/grants/cultural-grant-program-org",
+          "https://culture.lacity.gov/grants",
+          "https://dcaredesign.org/artsactivate/"
+        ],
+        "sourceUrl": "https://culture.lacity.gov/grants/near-co-op",
+        "access": "open",
+        "accessDetail": "October 30, 11:59 pm; timezone not explicit. Reimbursement contract, subject to city budget.",
+        "amount": "USD 12000",
+        "timing": "October 30, 11:59 pm; timezone not explicit. Reimbursement contract, subject to city budget.",
+        "deadlineDate": "2026-10-30",
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "history-verification-2026-10-29",
+          "candidateId": "history-lead-071",
+          "upstreamRecordId": null,
+          "aliases": "Los Angeles Department of Cultural Affairs"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-la-city-cultural-affairs",
+          "researchedOn": "2026-10-29",
+          "name": "Los Angeles Department of Cultural Affairs",
+          "summary": "Funding and support for Participatory community arts. See each program for availability, conditions and unresolved terms.",
+          "themes": [
+            "Participatory community arts"
+          ],
+          "regions": [
+            "North America"
+          ],
+          "programs": [
+            {
+              "id": "la-near-2027-28",
+              "name": "NEAR artist residency — 2027–28",
+              "instrument": "grant",
+              "focus": [
+                "Participatory community arts"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Los Angeles County artists; projects inside the City of Los Angeles.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Independent LA County artist; not enrolled in a degree/certificate program during the grant cycle",
+                  "200 hours, 11 workshops and public finale; host letters and eligible non-arts venue",
+                  "Lead artist named once across NEAR/CO-UP; prior DCA contracts in good standing"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": 12000,
+                "max": 12000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": ""
+              },
+              "application": {
+                "route": "open",
+                "url": "https://culture.lacity.gov/grants/near-co-op",
+                "opensOn": null,
+                "closesOn": "2026-10-30",
+                "deadlineInstant": null,
+                "note": "October 30, 11:59 pm; timezone not explicit. Reimbursement contract, subject to city budget."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://culture.lacity.gov/grants/near-co-op",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Cutoff timezone; venue exceptions and complete contract exclusions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "la-co-up-2027-28",
+              "name": "CO-UP social justice residency — 2027–28",
+              "instrument": "grant",
+              "focus": [
+                "Social justice arts"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "LA County nonprofit; City of LA project. FAQ separately says City headquarters—confirm.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Social justice nonprofit with at least $100,000 operating budget and 20% advocacy resources; arts nonprofits cannot lead",
+                  "New independent teaching-artist collaboration; 200 hours, 11 workshops, finale and host letters"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": 15000,
+                "max": 15000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": ""
+              },
+              "application": {
+                "route": "open",
+                "url": "https://culture.lacity.gov/grants/near-co-op",
+                "opensOn": null,
+                "closesOn": "2026-10-30",
+                "deadlineInstant": null,
+                "note": "October 30, 11:59 pm; timezone unstated. Reimbursement: $12,000 artist/$3,000 administration; budget contingent."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://culture.lacity.gov/grants/near-co-op",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "County versus City headquarters conflict, cutoff timezone and contract exclusions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "la-outdoor-festivals-2027-28",
+              "name": "Outdoor Festivals and Parades — 2027–28, closed",
+              "instrument": "grant",
+              "focus": [
+                "Outdoor cultural festivals"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "LA County headquarters; public events within the City of LA.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Eligible nonprofit or charitable organization partnering with arts expertise",
+                  "At least one year of the proposed event and evidence of prior audiences",
+                  "1:1 matching support and category-specific qualifications"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": null,
+                "max": 40000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": "Caps by prior attendance: below 500, $6,000; 500–2,000, $15,000; above 2,000, $40,000."
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://culture.lacity.gov/grants/cultural-grant-program-org",
+                "opensOn": null,
+                "closesOn": "2026-08-28",
+                "deadlineInstant": null,
+                "note": "2027–28 program intake closed August 28, 2026; project-year label is not a future application date."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://culture.lacity.gov/grants/cultural-grant-program-org",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://culture.lacity.gov/grants",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Next intake and category-specific documentation",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "la-public-space-activation",
+              "name": "Public-Space Activation Fund — intake unconfirmed",
+              "instrument": "grant",
+              "focus": [
+                "Community arts",
+                "Public space"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Publicly accessible outdoor spaces in arts-underserved City of LA neighborhoods.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "LA community entrepreneur or organization connected to the site, with venue support letter",
+                  "Allow 3–5 months for event planning"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "not_stated",
+                "note": "Redesigned page lists $600–20,000; city archive lists $600–45,000. Current ceiling unresolved."
+              },
+              "application": {
+                "route": "unconfirmed",
+                "url": "https://dcaredesign.org/artsactivate/",
+                "opensOn": null,
+                "closesOn": null,
+                "deadlineInstant": null,
+                "note": "Conflicting official pages: redesigned page says preparing to reopen for 2025–26 while also saying open; city index retains a July 2024 deadline. No current intake confirmed."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://dcaredesign.org/artsactivate/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://culture.lacity.gov/grants",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Current intake, current ceiling, exact eligibility and sponsorship terms",
+                "Fiscal sponsorship not established"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://culture.lacity.gov/grants/near-co-op",
+              "title": "NEAR artist residency — 2027–28",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://culture.lacity.gov/grants/cultural-grant-program-org",
+              "title": "Outdoor Festivals and Parades — 2027–28, closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://culture.lacity.gov/grants",
+              "title": "Outdoor Festivals and Parades — 2027–28, closed — supplementary official evidence",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://dcaredesign.org/artsactivate/",
+              "title": "Public-Space Activation Fund — intake unconfirmed",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Public official-source review of historical leads. This records the named programs only; closed rounds and unresolved terms remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Participatory community arts"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://culture.lacity.gov/grants/near-co-op",
+              "note": "Official program scope; detailed terms are attached to each program.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "la-near-2027-28"
+      },
+      "priorInputEntry": {
+        "fund": {
+          "id": "local-la-city-cultural-affairs",
+          "name": "Los Angeles Department of Cultural Affairs",
+          "displayName": "Los Angeles Department of Cultural Affairs",
+          "program": "",
+          "description": "Funding and support for Participatory community arts. See each program for availability, conditions and unresolved terms.",
+          "descriptionBasis": "primary",
+          "sectors": [
+            "Participatory community arts"
+          ],
+          "regions": [
+            "North America"
+          ],
+          "approaches": [],
+          "grantBands": [],
+          "website": "https://culture.lacity.gov/grants/near-co-op",
+          "evidenceUrl": "https://culture.lacity.gov/grants/near-co-op",
+          "additionalSources": [],
+          "sourceUrl": "https://culture.lacity.gov/grants/near-co-op",
+          "access": "unconfirmed",
+          "accessDetail": "",
+          "amount": "",
+          "timing": "",
+          "deadlineDate": null,
+          "deadlineInstant": null,
+          "verifiedOn": "2026-10-29",
+          "qualityFlags": [],
+          "fieldsFilled": 0,
+          "aliasNote": "",
+          "origin": {
+            "kind": "supplemental-research",
+            "batchId": "history-verification-2026-10-29",
+            "candidateId": "history-lead-071",
+            "upstreamRecordId": null,
+            "aliases": "Los Angeles Department of Cultural Affairs"
+          }
+        },
+        "enrichment": {
+          "sourceRecordId": "local-la-city-cultural-affairs",
+          "researchedOn": "2026-10-29",
+          "name": "Los Angeles Department of Cultural Affairs",
+          "summary": "Funding and support for Participatory community arts. See each program for availability, conditions and unresolved terms.",
+          "themes": [
+            "Participatory community arts"
+          ],
+          "regions": [
+            "North America"
+          ],
+          "programs": [
+            {
+              "id": "la-near-2027-28",
+              "name": "NEAR artist residency — 2027–28",
+              "instrument": "grant",
+              "focus": [
+                "Participatory community arts"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Los Angeles County artists; projects inside the City of Los Angeles.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Independent LA County artist; not enrolled in a degree/certificate program during the grant cycle",
+                  "200 hours, 11 workshops and public finale; host letters and eligible non-arts venue",
+                  "Lead artist named once across NEAR/CO-UP; prior DCA contracts in good standing"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": 12000,
+                "max": 12000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": ""
+              },
+              "application": {
+                "route": "open",
+                "url": "https://culture.lacity.gov/grants/near-co-op",
+                "opensOn": null,
+                "closesOn": "2026-10-30",
+                "deadlineInstant": null,
+                "note": "October 30, 11:59 pm; timezone not explicit. Reimbursement contract, subject to city budget."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://culture.lacity.gov/grants/near-co-op",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Cutoff timezone; venue exceptions and complete contract exclusions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "la-co-up-2027-28",
+              "name": "CO-UP social justice residency — 2027–28",
+              "instrument": "grant",
+              "focus": [
+                "Social justice arts"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "LA County nonprofit; City of LA project. FAQ separately says City headquarters—confirm.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Social justice nonprofit with at least $100,000 operating budget and 20% advocacy resources; arts nonprofits cannot lead",
+                  "New independent teaching-artist collaboration; 200 hours, 11 workshops, finale and host letters"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": 15000,
+                "max": 15000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": ""
+              },
+              "application": {
+                "route": "open",
+                "url": "https://culture.lacity.gov/grants/near-co-op",
+                "opensOn": null,
+                "closesOn": "2026-10-30",
+                "deadlineInstant": null,
+                "note": "October 30, 11:59 pm; timezone unstated. Reimbursement: $12,000 artist/$3,000 administration; budget contingent."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://culture.lacity.gov/grants/near-co-op",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "County versus City headquarters conflict, cutoff timezone and contract exclusions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "la-outdoor-festivals-2027-28",
+              "name": "Outdoor Festivals and Parades — 2027–28, closed",
+              "instrument": "grant",
+              "focus": [
+                "Outdoor cultural festivals"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "LA County headquarters; public events within the City of LA.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Eligible nonprofit or charitable organization partnering with arts expertise",
+                  "At least one year of the proposed event and evidence of prior audiences",
+                  "1:1 matching support and category-specific qualifications"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "USD",
+                "min": null,
+                "max": 40000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": "Caps by prior attendance: below 500, $6,000; 500–2,000, $15,000; above 2,000, $40,000."
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://culture.lacity.gov/grants/cultural-grant-program-org",
+                "opensOn": null,
+                "closesOn": "2026-08-28",
+                "deadlineInstant": null,
+                "note": "2027–28 program intake closed August 28, 2026; project-year label is not a future application date."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://culture.lacity.gov/grants/cultural-grant-program-org",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://culture.lacity.gov/grants",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Next intake and category-specific documentation",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "la-public-space-activation",
+              "name": "Public-Space Activation Fund — intake unconfirmed",
+              "instrument": "grant",
+              "focus": [
+                "Community arts",
+                "Public space"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Publicly accessible outdoor spaces in arts-underserved City of LA neighborhoods.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "LA community entrepreneur or organization connected to the site, with venue support letter",
+                  "Allow 3–5 months for event planning"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "not_stated",
+                "note": "Redesigned page lists $600–20,000; city archive lists $600–45,000. Current ceiling unresolved."
+              },
+              "application": {
+                "route": "unconfirmed",
+                "url": "https://dcaredesign.org/artsactivate/",
+                "opensOn": null,
+                "closesOn": null,
+                "deadlineInstant": null,
+                "note": "Conflicting official pages: redesigned page says preparing to reopen for 2025–26 while also saying open; city index retains a July 2024 deadline. No current intake confirmed."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "geography",
+                    "award"
+                  ],
+                  "url": "https://dcaredesign.org/artsactivate/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://culture.lacity.gov/grants",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Current intake, current ceiling, exact eligibility and sponsorship terms",
+                "Fiscal sponsorship not established"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://culture.lacity.gov/grants/near-co-op",
+              "title": "NEAR artist residency — 2027–28",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://culture.lacity.gov/grants/cultural-grant-program-org",
+              "title": "Outdoor Festivals and Parades — 2027–28, closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://culture.lacity.gov/grants",
+              "title": "Outdoor Festivals and Parades — 2027–28, closed — supplementary official evidence",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://dcaredesign.org/artsactivate/",
+              "title": "Public-Space Activation Fund — intake unconfirmed",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Public official-source review of historical leads. This records the named programs only; closed rounds and unresolved terms remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Participatory community arts"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://culture.lacity.gov/grants/near-co-op",
+              "note": "Official program scope; detailed terms are attached to each program.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fundId": "local-cdfw",
+      "catalogIndex": 697,
+      "manifestIndex": 104,
+      "appendedProgramIds": [
+        "cdfw-golden-mussel-delta-2026"
+      ],
+      "appendedSourceUrls": [
+        "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+        "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+        "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel"
+      ],
+      "displayReselected": false,
+      "priorDisplayProgramId": "cdfw-mojave-tortoise-2026",
+      "displayProgramId": "cdfw-mojave-tortoise-2026",
+      "priorFundSha256": "eac6ef0325f5a55d21f0297b7279a807e3a373ed78098a34ed36dc45c042cc6e",
+      "priorFundRecord": {
+        "id": "local-cdfw",
+        "name": "California Department of Fish and Wildlife",
+        "displayName": "California Department of Fish and Wildlife",
+        "program": "Mojave Desert Tortoise Recovery — 2026 call",
+        "description": "State support for habitat restoration and species recovery in California.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [
+          "North America"
+        ],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "evidenceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "additionalSources": [
+          "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+          "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline="
+        ],
+        "sourceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+        "access": "open",
+        "accessDetail": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections.",
+        "amount": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances.",
+        "timing": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections.",
+        "deadlineDate": "2026-12-03",
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "cdfw",
+          "upstreamRecordId": null,
+          "aliases": "CDFW; California Department of Fish and Wildlife; wildlife.ca.gov"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-cdfw",
+          "researchedOn": "2026-10-29",
+          "name": "California Department of Fish and Wildlife",
+          "summary": "State support for habitat restoration and species recovery in California.",
+          "themes": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "regions": [
+            "North America"
+          ],
+          "programs": [
+            {
+              "id": "cdfw-mojave-tortoise-2026",
+              "name": "Mojave Desert Tortoise Recovery — 2026 call",
+              "instrument": "grant",
+              "focus": [
+                "Habitat restoration",
+                "Biodiversity",
+                "Wildlife connectivity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in Mojave Desert tortoise range/recovery units in California; listed counties are examples, not an exhaustive list. Applicant domicile is not established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Public agencies",
+                  "Special districts",
+                  "California Native American Tribes",
+                  "Private entities",
+                  "Nonprofits",
+                  "Land trusts"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Project must operate within the California priority area and demonstrate measurable tortoise recovery outcomes.",
+                  "Secure required permits and site access; all work and final invoices are due March 15, 2029.",
+                  "Submit complete forms and supporting documents through CDFW WebGrants and comply with grant agreement requirements."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                "opensOn": "2026-10-21",
+                "closesOn": "2026-12-03",
+                "deadlineInstant": null,
+                "note": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections."
+              },
+              "costs": {
+                "supported": [
+                  "Habitat restoration, connectivity, population recovery, monitoring and coordination"
+                ],
+                "excluded": [
+                  "Work before the signed agreement is not reimbursed."
+                ]
+              },
+              "evidence": [
+                {
+                  "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                  "fields": [
+                    "focus",
+                    "application",
+                    "award"
+                  ],
+                  "note": "Official owner announcement and application link.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award"
+                  ],
+                  "note": "State listing: applicant categories and date; displayed time has no timezone.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "costs"
+                  ],
+                  "note": "October 2026 PDF body reviewed, including sections 3–10; stale PDF metadata title is not the document title.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Exact cutoff time and timezone; fiscal sponsorship.",
+                "Per-award bounds and explicit currency.",
+                "Workshop date conflict (November 4/9); awards early 2027 versus spring 2027.",
+                "Project-specific legal, permitting, indirect-cost and advance-payment terms."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "evidence": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "cdfw-mojave-tortoise-2026"
+      },
+      "priorInputEntry": {
+        "fund": {
+          "id": "local-cdfw",
+          "name": "California Department of Fish and Wildlife",
+          "displayName": "California Department of Fish and Wildlife",
+          "program": "",
+          "description": "State support for habitat restoration and species recovery in California.",
+          "descriptionBasis": "primary",
+          "sectors": [],
+          "regions": [],
+          "approaches": [],
+          "grantBands": [],
+          "website": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+          "evidenceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+          "additionalSources": [],
+          "sourceUrl": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+          "access": "unconfirmed",
+          "accessDetail": "",
+          "amount": "",
+          "timing": "",
+          "deadlineDate": null,
+          "deadlineInstant": null,
+          "verifiedOn": "2026-10-29",
+          "qualityFlags": [],
+          "fieldsFilled": 0,
+          "aliasNote": "",
+          "origin": {
+            "kind": "supplemental-research",
+            "batchId": "manual-monday-discovery-2026-10-29",
+            "candidateId": "cdfw",
+            "upstreamRecordId": null,
+            "aliases": "CDFW; California Department of Fish and Wildlife; wildlife.ca.gov"
+          }
+        },
+        "enrichment": {
+          "sourceRecordId": "local-cdfw",
+          "researchedOn": "2026-10-29",
+          "name": "California Department of Fish and Wildlife",
+          "summary": "State support for habitat restoration and species recovery in California.",
+          "themes": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "regions": [
+            "North America"
+          ],
+          "programs": [
+            {
+              "id": "cdfw-mojave-tortoise-2026",
+              "name": "Mojave Desert Tortoise Recovery — 2026 call",
+              "instrument": "grant",
+              "focus": [
+                "Habitat restoration",
+                "Biodiversity",
+                "Wildlife connectivity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "US"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in Mojave Desert tortoise range/recovery units in California; listed counties are examples, not an exhaustive list. Applicant domicile is not established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Public agencies",
+                  "Special districts",
+                  "California Native American Tribes",
+                  "Private entities",
+                  "Nonprofits",
+                  "Land trusts"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Project must operate within the California priority area and demonstrate measurable tortoise recovery outcomes.",
+                  "Secure required permits and site access; all work and final invoices are due March 15, 2029.",
+                  "Submit complete forms and supporting documents through CDFW WebGrants and comply with grant agreement requirements."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "The $2 million allocation is a program pool. Per-award amount and explicit currency denomination are not established. Generally reimbursed; qualifying nonprofits and federally recognized Tribes may request conditional advances."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                "opensOn": "2026-10-21",
+                "closesOn": "2026-12-03",
+                "deadlineInstant": null,
+                "note": "Official call and guidelines agree on December 3. Portal displays 04:00 without a timezone; exact cutoff remains unverified. Award and workshop schedules differ across source sections."
+              },
+              "costs": {
+                "supported": [
+                  "Habitat restoration, connectivity, population recovery, monitoring and coordination"
+                ],
+                "excluded": [
+                  "Work before the signed agreement is not reimbursed."
+                ]
+              },
+              "evidence": [
+                {
+                  "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+                  "fields": [
+                    "focus",
+                    "application",
+                    "award"
+                  ],
+                  "note": "Official owner announcement and application link.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award"
+                  ],
+                  "note": "State listing: applicant categories and date; displayed time has no timezone.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+                  "fields": [
+                    "geography",
+                    "applicants",
+                    "application",
+                    "costs"
+                  ],
+                  "note": "October 2026 PDF body reviewed, including sections 3–10; stale PDF metadata title is not the document title.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Exact cutoff time and timezone; fiscal sponsorship.",
+                "Per-award bounds and explicit currency.",
+                "Workshop date conflict (November 4/9); awards early 2027 versus spring 2027.",
+                "Project-specific legal, permitting, indirect-cost and advance-payment terms."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://www.grants.ca.gov/grants/mojave-desert-tortoise-recovery/",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247793&inline=",
+              "title": "California Department of Fish and Wildlife — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Habitat restoration",
+            "Biodiversity",
+            "Wildlife connectivity"
+          ],
+          "evidence": [
+            {
+              "url": "https://wildlife.ca.gov/Grants/Restoration-Grants",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fundId": "local-funbio",
+      "catalogIndex": 698,
+      "manifestIndex": 105,
+      "appendedProgramIds": [
+        "funbio-articulacao-institucional-11-2026"
+      ],
+      "appendedSourceUrls": [
+        "https://chamadas.funbio.org.br/articulacao-institucional"
+      ],
+      "displayReselected": false,
+      "priorDisplayProgramId": "funbio-floresta-viva-sao-francisco-2026",
+      "displayProgramId": "funbio-floresta-viva-sao-francisco-2026",
+      "priorFundSha256": "8f258c56080e9a8a780dd8feb86502412a8a9e7a00768839065cfe7ba0865e68",
+      "priorFundRecord": {
+        "id": "local-funbio",
+        "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "displayName": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+        "program": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+        "description": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+        "descriptionBasis": "primary",
+        "sectors": [],
+        "regions": [
+          "Latin America & Caribbean"
+        ],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "evidenceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "additionalSources": [],
+        "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+        "access": "open",
+        "accessDetail": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval.",
+        "amount": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified.",
+        "timing": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval.",
+        "deadlineDate": "2026-12-02",
+        "deadlineInstant": "2026-12-02T22:00:00Z",
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "manual-monday-discovery-2026-10-29",
+          "candidateId": "funbio",
+          "upstreamRecordId": null,
+          "aliases": "FUNBIO; Fundo Brasileiro para a Biodiversidade"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-funbio",
+          "researchedOn": "2026-10-29",
+          "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "summary": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+          "themes": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "regions": [
+            "Latin America & Caribbean"
+          ],
+          "programs": [
+            {
+              "id": "funbio-floresta-viva-sao-francisco-2026",
+              "name": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+              "instrument": "grant",
+              "focus": [
+                "Ecological restoration",
+                "Water resources",
+                "Community capacity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "BR"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in the watershed influence areas of Sobradinho and Itaparica reservoirs, Brazil. Full applicant-registration jurisdiction rules require the regulation.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Nonprofit civil associations",
+                  "Private foundations",
+                  "Cooperatives"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Proponent must have been legally constituted for at least two years.",
+                  "Use the nine required proposal objectives and the official electronic submission route."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "BRL",
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                "opensOn": "2026-10-01",
+                "closesOn": "2026-12-02",
+                "deadlineInstant": "2026-12-02T22:00:00Z",
+                "note": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                  "fields": [
+                    "focus",
+                    "geography",
+                    "applicants",
+                    "award",
+                    "application"
+                  ],
+                  "note": "Production call overview reviewed; regulation endpoint returned no readable terms.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Regulation unavailable: full legal eligibility, fiscal sponsorship, award bounds, cost rules, duration and attachments need review.",
+                "Authenticated application flow not tested."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "title": "Fundo Brasileiro para a Biodiversidade (FUNBIO) — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "evidence": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "funbio-floresta-viva-sao-francisco-2026"
+      },
+      "priorInputEntry": {
+        "fund": {
+          "id": "local-funbio",
+          "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "displayName": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "program": "",
+          "description": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+          "descriptionBasis": "primary",
+          "sectors": [],
+          "regions": [],
+          "approaches": [],
+          "grantBands": [],
+          "website": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+          "evidenceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+          "additionalSources": [],
+          "sourceUrl": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+          "access": "unconfirmed",
+          "accessDetail": "",
+          "amount": "",
+          "timing": "",
+          "deadlineDate": null,
+          "deadlineInstant": null,
+          "verifiedOn": "2026-10-29",
+          "qualityFlags": [],
+          "fieldsFilled": 0,
+          "aliasNote": "",
+          "origin": {
+            "kind": "supplemental-research",
+            "batchId": "manual-monday-discovery-2026-10-29",
+            "candidateId": "funbio",
+            "upstreamRecordId": null,
+            "aliases": "FUNBIO; Fundo Brasileiro para a Biodiversidade"
+          }
+        },
+        "enrichment": {
+          "sourceRecordId": "local-funbio",
+          "researchedOn": "2026-10-29",
+          "name": "Fundo Brasileiro para a Biodiversidade (FUNBIO)",
+          "summary": "Operational manager of biodiversity and restoration funding calls in Brazil.",
+          "themes": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "regions": [
+            "Latin America & Caribbean"
+          ],
+          "programs": [
+            {
+              "id": "funbio-floresta-viva-sao-francisco-2026",
+              "name": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+              "instrument": "grant",
+              "focus": [
+                "Ecological restoration",
+                "Water resources",
+                "Community capacity"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [
+                  "BR"
+                ],
+                "applicantCountries": [],
+                "scope": "Work in the watershed influence areas of Sobradinho and Itaparica reservoirs, Brazil. Full applicant-registration jurisdiction rules require the regulation.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Nonprofit civil associations",
+                  "Private foundations",
+                  "Cooperatives"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Proponent must have been legally constituted for at least two years.",
+                  "Use the nine required proposal objectives and the official electronic submission route."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "BRL",
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "BRL 17,760,000 is the total call pool, expected to support up to seven projects; no individual award range verified."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                "opensOn": "2026-10-01",
+                "closesOn": "2026-12-02",
+                "deadlineInstant": "2026-12-02T22:00:00Z",
+                "note": "Deadline December 2, 19:00 Brasília (UTC−3). Opened October 1. Use the official page submission button; its inline plural-path URL and directory link failed retrieval."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+                  "fields": [
+                    "focus",
+                    "geography",
+                    "applicants",
+                    "award",
+                    "application"
+                  ],
+                  "note": "Production call overview reviewed; regulation endpoint returned no readable terms.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Regulation unavailable: full legal eligibility, fiscal sponsorship, award bounds, cost rules, duration and attachments need review.",
+                "Authenticated application flow not tested."
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "title": "Fundo Brasileiro para a Biodiversidade (FUNBIO) — official terms",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Manual discovery test; only cited fields reviewed. Unknowns and source conflicts remain explicit.",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Ecological restoration",
+            "Water resources",
+            "Community capacity"
+          ],
+          "evidence": [
+            {
+              "url": "https://chamadas.funbio.org.br/floresta-viva-sao-francisco",
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "note": "Official program scope.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

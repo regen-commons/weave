@@ -1,0 +1,545 @@
+{
+  "version": 1,
+  "runId": "monday-discovery-2026-11-09",
+  "checkedOn": "2026-11-09",
+  "baseCommit": "42c084b766457ef885a86c6e42fe9cfa86aa559a",
+  "status": "verified-proposals-not-applied",
+  "applicationBlocker": "Local build failed: esbuild could not write dist/assets/embedding-runtime.js and its legal-comment file (operation not permitted). No active catalog terms or screening inputs changed. Apply these append-only additions and conditions after a complete build and test pass in an authorized environment.",
+  "programAdditions": [
+    {
+      "sourceRecordId": "local-nlnet",
+      "program": {
+        "id": "nlnet-restack-call2-2027",
+        "name": "Restack, second call: January 2027",
+        "instrument": "grant",
+        "focus": [
+          "Open source",
+          "Digital public infrastructure"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [],
+          "applicantCountries": [],
+          "scope": "Strong European dimension required. The standard route allocates at least 60% of funds to team members from Horizon Europe-eligible countries; exceptional quality and unique expertise can justify consideration outside those countries.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Individuals",
+            "Organizations"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Research and development with open-access scientific results and fully open-source software/hardware; submit in English.",
+            "Strong European dimension under the published funding-share or exceptional-expertise rules.",
+            "First proposals cannot exceed EUR 50,000. Larger proposals require successfully completed Restack or equivalent projects.",
+            "Generative AI cannot write proposals except for accessibility support; LLM and diffusion-model use in project development is limited to read-only."
+          ],
+          "exclusions": [
+            "GenAI projects are outside scope unless already used by over one million active human users and directly relevant to the stack."
+          ]
+        },
+        "award": {
+          "currency": "EUR",
+          "min": 5000,
+          "max": 50000,
+          "durationMonths": null,
+          "basis": "current_offer",
+          "note": "Standard proposal range; first-proposal ceiling EUR 50,000. Qualified follow-on proposals may reach EUR 150,000; lifetime third-party cap EUR 500,000. EUR 7 million is the programme pool."
+        },
+        "application": {
+          "route": "open",
+          "url": "https://nlnet.nl/restack/",
+          "opensOn": "2026-11-03",
+          "closesOn": "2027-01-03",
+          "deadlineInstant": "2027-01-03T11:00:00Z",
+          "note": "Second call: January 3, 2027 at 12:00 CET (UTC+1). Submit via the official proposal form linked from the call."
+        },
+        "costs": {
+          "supported": [
+            "Development, testing, security, documentation, accessibility, standardisation, project management and essential infrastructure costs."
+          ],
+          "excluded": []
+        },
+        "evidence": [
+          {
+            "url": "https://nlnet.nl/restack/",
+            "fields": [
+              "focus",
+              "application",
+              "award",
+              "applicants"
+            ],
+            "note": "Second-call dates, standard award range and GenAI scope.",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://nlnet.nl/restack/eligibility/",
+            "fields": [
+              "geography",
+              "applicants",
+              "costs"
+            ],
+            "note": "European dimension, applicant categories and eligible activities.",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://nlnet.nl/restack/guideforapplicants/",
+            "fields": [
+              "applicants",
+              "award"
+            ],
+            "note": "English proposals, R&D, open outputs and conditional larger awards.",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+            "fields": [
+              "applicants"
+            ],
+            "note": "Published version 2.0 restrictions.",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://nlnet.nl/news/2026/20261103-call.html",
+            "fields": [
+              "application"
+            ],
+            "note": "Dated announcement corroborates January 3 deadline.",
+            "checkedOn": "2026-11-09"
+          }
+        ],
+        "unknowns": [
+          "Fiscal sponsorship terms; project-specific geographic exception; project duration.",
+          "Larger follow-on awards require prior qualifying work and review; they are not the standard first award."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://nlnet.nl/restack/",
+          "title": "Restack, second call: January 2027 — official evidence",
+          "checkedOn": "2026-11-09"
+        },
+        {
+          "url": "https://nlnet.nl/restack/eligibility/",
+          "title": "Restack, second call: January 2027 — official evidence",
+          "checkedOn": "2026-11-09"
+        },
+        {
+          "url": "https://nlnet.nl/restack/guideforapplicants/",
+          "title": "Restack, second call: January 2027 — official evidence",
+          "checkedOn": "2026-11-09"
+        },
+        {
+          "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+          "title": "Restack, second call: January 2027 — official evidence",
+          "checkedOn": "2026-11-09"
+        },
+        {
+          "url": "https://nlnet.nl/news/2026/20261103-call.html",
+          "title": "Restack, second call: January 2027 — official evidence",
+          "checkedOn": "2026-11-09"
+        }
+      ],
+      "proposedConditions": [
+        {
+          "fundId": "local-nlnet",
+          "programId": "nlnet-restack-call2-2027",
+          "id": "nlnet-restack-call2-2027-requirement-1",
+          "category": "other",
+          "requirement": "Research and development with open-access scientific results and fully open-source software/hardware; submit in English.",
+          "sourceUrl": "https://nlnet.nl/restack/guideforapplicants/",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-nlnet",
+          "programId": "nlnet-restack-call2-2027",
+          "id": "nlnet-restack-call2-2027-requirement-2",
+          "category": "other",
+          "requirement": "Strong European dimension under the published funding-share or exceptional-expertise rules.",
+          "sourceUrl": "https://nlnet.nl/restack/eligibility/",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-nlnet",
+          "programId": "nlnet-restack-call2-2027",
+          "id": "nlnet-restack-call2-2027-requirement-3",
+          "category": "other",
+          "requirement": "First proposals cannot exceed EUR 50,000. Larger proposals require successfully completed Restack or equivalent projects.",
+          "sourceUrl": "https://nlnet.nl/restack/guideforapplicants/",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-nlnet",
+          "programId": "nlnet-restack-call2-2027",
+          "id": "nlnet-restack-call2-2027-requirement-4",
+          "category": "other",
+          "requirement": "Generative AI cannot write proposals except for accessibility support; LLM and diffusion-model use in project development is limited to read-only.",
+          "sourceUrl": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        }
+      ]
+    },
+    {
+      "sourceRecordId": "local-funbio",
+      "program": {
+        "id": "funbio-articulacao-institucional-11-2026",
+        "name": "Articulação Institucional, Chamada 11/2026",
+        "instrument": "grant",
+        "focus": [
+          "Biodiversity conservation",
+          "Environmental governance",
+          "Institutional cooperation"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [
+            "BR"
+          ],
+          "applicantCountries": [],
+          "scope": "Work supports biodiversity governance on the Paraná coast, Brazil. Applicant registration jurisdiction was not established.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Civil society organizations",
+            "Research institutions",
+            "Universities",
+            "Foundations",
+            "Associations"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Provide at least 10% counterpart contribution relative to the proposal value.",
+            "Proposal must strengthen institutional coordination and environmental governance on the Paraná coast."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": "BRL",
+          "min": null,
+          "max": 1000000,
+          "durationMonths": 24,
+          "basis": "current_offer",
+          "note": "Up to BRL 1 million for one selected proposal; at least 10% counterpart contribution. November 6 erratum changes duration from 30 to 24 months."
+        },
+        "application": {
+          "route": "open",
+          "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+          "opensOn": null,
+          "closesOn": "2026-12-04",
+          "deadlineInstant": "2026-12-05T02:45:00Z",
+          "note": "November 6 erratum extends November 23 to December 4, 2026 at 23:45 Brasília (UTC−3). Questions until November 27. Submit through the call portal."
+        },
+        "costs": {
+          "supported": [],
+          "excluded": []
+        },
+        "evidence": [
+          {
+            "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+            "fields": [
+              "focus",
+              "geography",
+              "applicants",
+              "award",
+              "application"
+            ],
+            "note": "Official overview and dated erratum. Target-audience text is truncated; regulation download produced an unreadable shell.",
+            "checkedOn": "2026-11-09"
+          }
+        ],
+        "unknowns": [
+          "Full eligibility, fiscal sponsorship, allowed costs, required attachments and applicant jurisdiction need the regulation.",
+          "Application form requires authentication and was not tested."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://chamadas.funbio.org.br/articulacao-institucional",
+          "title": "Articulação Institucional, Chamada 11/2026 — official evidence",
+          "checkedOn": "2026-11-09"
+        }
+      ],
+      "proposedConditions": [
+        {
+          "fundId": "local-funbio",
+          "programId": "funbio-articulacao-institucional-11-2026",
+          "id": "funbio-articulacao-institucional-11-2026-requirement-1",
+          "category": "other",
+          "requirement": "Provide at least 10% counterpart contribution relative to the proposal value.",
+          "sourceUrl": "https://chamadas.funbio.org.br/articulacao-institucional",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-funbio",
+          "programId": "funbio-articulacao-institucional-11-2026",
+          "id": "funbio-articulacao-institucional-11-2026-requirement-2",
+          "category": "other",
+          "requirement": "Proposal must strengthen institutional coordination and environmental governance on the Paraná coast.",
+          "sourceUrl": "https://chamadas.funbio.org.br/articulacao-institucional",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        }
+      ]
+    },
+    {
+      "sourceRecordId": "local-funbio",
+      "program": {
+        "id": "funbio-tcsa-porto-sul-10-2026",
+        "name": "TCSA Porto Sul, Chamada 10/2026",
+        "instrument": "grant",
+        "focus": [
+          "Ecological restoration",
+          "Native vegetation",
+          "Restoration supply chains"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [
+            "BR"
+          ],
+          "applicantCountries": [],
+          "scope": "Southern Bahia: APA Lagoa Encantada e Rio Almada, APA Itacaré-Serra Grande, PE Serra do Conduru and PE Ponta da Tulha. Applicant registration jurisdiction not established.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Nonprofit civil associations",
+            "Private foundations",
+            "Cooperatives"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Applicant legally constituted for at least two years.",
+            "Restore native vegetation to connect fragments and ecological corridors in the named conservation areas."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": "BRL",
+          "min": null,
+          "max": null,
+          "durationMonths": null,
+          "basis": "current_offer",
+          "note": "BRL 4 million is the total pool across approved proposals; individual award limits are unknown. Call targets at least 150 hectares overall."
+        },
+        "application": {
+          "route": "open",
+          "url": "https://chamadas.funbio.org.br/tcsa-porto-sul",
+          "opensOn": "2026-09-10",
+          "closesOn": "2026-11-09",
+          "deadlineInstant": null,
+          "note": "Published deadline November 9, 2026; cutoff time and timezone not established. Submit through the FUNBIO portal. Same-day availability must be confirmed there."
+        },
+        "costs": {
+          "supported": [],
+          "excluded": []
+        },
+        "evidence": [
+          {
+            "url": "https://chamadas.funbio.org.br/tcsa-porto-sul",
+            "fields": [
+              "focus",
+              "geography",
+              "applicants",
+              "award",
+              "application"
+            ],
+            "note": "Official overview; regulation revised October 29, but download was an unreadable shell.",
+            "checkedOn": "2026-11-09"
+          }
+        ],
+        "unknowns": [
+          "Deadline time/timezone, individual award range, duration, fiscal sponsorship, costs and full revised regulation.",
+          "Authenticated application flow not tested."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://chamadas.funbio.org.br/tcsa-porto-sul",
+          "title": "TCSA Porto Sul, Chamada 10/2026 — official evidence",
+          "checkedOn": "2026-11-09"
+        }
+      ],
+      "proposedConditions": [
+        {
+          "fundId": "local-funbio",
+          "programId": "funbio-tcsa-porto-sul-10-2026",
+          "id": "funbio-tcsa-porto-sul-10-2026-requirement-1",
+          "category": "other",
+          "requirement": "Applicant legally constituted for at least two years.",
+          "sourceUrl": "https://chamadas.funbio.org.br/tcsa-porto-sul",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-funbio",
+          "programId": "funbio-tcsa-porto-sul-10-2026",
+          "id": "funbio-tcsa-porto-sul-10-2026-requirement-2",
+          "category": "other",
+          "requirement": "Restore native vegetation to connect fragments and ecological corridors in the named conservation areas.",
+          "sourceUrl": "https://chamadas.funbio.org.br/tcsa-porto-sul",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        }
+      ]
+    },
+    {
+      "sourceRecordId": "local-cdfw",
+      "program": {
+        "id": "cdfw-golden-mussel-delta-2026",
+        "name": "Delta-based golden mussel decontamination, 2026",
+        "instrument": "grant",
+        "focus": [
+          "Invasive species prevention",
+          "Waterways",
+          "Boating decontamination"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [
+            "US"
+          ],
+          "applicantCountries": [],
+          "scope": "Projects on or centrally located to Sacramento–San Joaquin Delta waterways, serving Yolo, Sacramento, Solano, Contra Costa and San Joaquin counties, California.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Boating facility owners or operators",
+            "State and local agencies",
+            "California Native American Tribes",
+            "Public entities",
+            "Private entities",
+            "Nonprofits"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Meet the Delta location and five-county service requirements.",
+            "Register in CDFW WebGrants and submit under Invasive Mussel Response.",
+            "Obtain required permits and site access permissions; cost share is encouraged but not required."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": "USD",
+          "min": null,
+          "max": null,
+          "durationMonths": null,
+          "basis": "current_offer",
+          "note": "USD 6 million total programme funding; individual award bounds not established. Reimbursement, with conditional advances for qualified nonprofits and federally recognized Tribes."
+        },
+        "application": {
+          "route": "open",
+          "url": "https://watershedgrants.wildlife.ca.gov/",
+          "opensOn": "2026-11-03",
+          "closesOn": "2026-12-15",
+          "deadlineInstant": null,
+          "note": "December 15, 2026 at 4 p.m.; schedule says Pacific Time, while sections 1 and 6.1 say PDT despite the winter date. Exact UTC cutoff remains unresolved. Apply in WebGrants."
+        },
+        "costs": {
+          "supported": [
+            "One-time decontamination equipment, site improvements, staff training and outreach."
+          ],
+          "excluded": [
+            "Work before an executed agreement is not reimbursed."
+          ]
+        },
+        "evidence": [
+          {
+            "url": "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel",
+            "fields": [
+              "focus",
+              "application"
+            ],
+            "note": "Owner page links current call.",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+            "fields": [
+              "focus",
+              "geography",
+              "applicants",
+              "award",
+              "application",
+              "costs"
+            ],
+            "note": "November call guidelines; timing conflict retained. Schedule lists work completion March 15, 2029.",
+            "checkedOn": "2026-11-09"
+          },
+          {
+            "url": "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+            "fields": [
+              "application",
+              "award",
+              "geography"
+            ],
+            "note": "Official registry corroborates date and pool; performance wording differs from call schedule.",
+            "checkedOn": "2026-11-09"
+          }
+        ],
+        "unknowns": [
+          "Exact deadline timezone; individual award range; fiscal sponsorship.",
+          "Registry performance period says up to June 2029; call schedule says work and final invoice due March 15, 2029. Confirm applicable agreement.",
+          "Full grant agreement and authenticated form were not reviewed."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://wildlife.ca.gov/Conservation/Invasives/Species/Golden-Mussel",
+          "title": "Delta-based golden mussel decontamination, 2026 — official evidence",
+          "checkedOn": "2026-11-09"
+        },
+        {
+          "url": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+          "title": "Delta-based golden mussel decontamination, 2026 — official evidence",
+          "checkedOn": "2026-11-09"
+        },
+        {
+          "url": "https://www.grants.ca.gov/grants/delta-based-decontamination-control-sites-to-prevent-the-spread-of-golden-mussel/",
+          "title": "Delta-based golden mussel decontamination, 2026 — official evidence",
+          "checkedOn": "2026-11-09"
+        }
+      ],
+      "proposedConditions": [
+        {
+          "fundId": "local-cdfw",
+          "programId": "cdfw-golden-mussel-delta-2026",
+          "id": "cdfw-golden-mussel-delta-2026-requirement-1",
+          "category": "other",
+          "requirement": "Meet the Delta location and five-county service requirements.",
+          "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-cdfw",
+          "programId": "cdfw-golden-mussel-delta-2026",
+          "id": "cdfw-golden-mussel-delta-2026-requirement-2",
+          "category": "other",
+          "requirement": "Register in CDFW WebGrants and submit under Invasive Mussel Response.",
+          "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        },
+        {
+          "fundId": "local-cdfw",
+          "programId": "cdfw-golden-mussel-delta-2026",
+          "id": "cdfw-golden-mussel-delta-2026-requirement-3",
+          "category": "other",
+          "requirement": "Obtain required permits and site access permissions; cost share is encouraged but not required.",
+          "sourceUrl": "https://nrm.dfg.ca.gov/FileHandler.ashx?DocumentID=247941&inline=",
+          "checkedOn": "2026-11-09",
+          "kind": "prerequisite"
+        }
+      ]
+    }
+  ]
+}

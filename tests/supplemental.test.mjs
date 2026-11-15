@@ -86,7 +86,7 @@ test('additional tracks share funder identities without replacing prior program 
  assert.equal(get('local-mozilla').find(p=>p.id==='mozilla-independent-fellow-2027').instrument,'fellowship');
  assert.equal(get('local-la-county-arts').length,2);
  assert.equal(manifest.programAdditions.length,4);
- assert.equal(manifest.funds.reduce((n,row)=>n+row.enrichment.programs.length,0)+manifest.programAdditions.length,135);
+ assert.equal(manifest.funds.reduce((n,row)=>n+row.enrichment.programs.length,0)+manifest.programAdditions.length,138);
 });
 
 test('unknown currency, award terms and intake dates never become invented bounds or rolling access',()=>{

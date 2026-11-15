@@ -1,4 +1,5 @@
-import { connectRestrictedIndexDatabase } from "./project-index-db.ts";
+import postgres from "postgres";
+import { connectRestrictedIndexDatabase, shownProject } from "./project-index-db.ts";
 import { partnerLexicalText } from "./partner-matcher.ts";
 import { expandPartnerText } from "./partner-concepts.ts";
 import { PROJECT_EXTRACTION_VERSION } from "./project-index-source.ts";
@@ -12,10 +13,22 @@ type CheckpointRow = {
   hash: string;
 };
 
-export async function connectProjectIndex(url: string): Promise<{ store: ProjectIndexStore; close(): Promise<void> }> {
-  const sql = await connectRestrictedIndexDatabase(url, "weave_index_job");
+export async function connectProjectIndex(url: string, options: { ca?: string } = {}): Promise<{
+  store: ProjectIndexStore & Required<Pick<ProjectIndexStore, "state">>; close(): Promise<void>;
+}> {
+  const sql = await connectRestrictedIndexDatabase(url, "weave_index_job", options);
 
-  const store: ProjectIndexStore = {
+  const store: ProjectIndexStore & Required<Pick<ProjectIndexStore, "state">> = {
+    async state() {
+      const [checkpoint] = await sql<{ generation: number }[]>`
+        select manifest_generation as generation from private.weave_project_index_checkpoint where singleton
+      `;
+      const projects = await sql<{ uri: string; checkedAt: string; shown: boolean }[]>`
+        select s.project_uri as uri, s.checked_at::text as "checkedAt", (${shownProject(sql)}) as shown
+        from private.weave_project_index_source s
+      `;
+      return { generation: checkpoint?.generation ?? 0, projects: [...projects] };
+    },
     async hasEmbedding(uri, contentHash, modelVersion) {
       const [result] = await sql<{ current: boolean }[]>`
         select exists (select 1 from private.weave_project_index_source
@@ -69,7 +82,20 @@ export async function connectProjectIndex(url: string): Promise<{ store: Project
         return next;
       });
     },
-    commit({ checkpoint, permission, read, embedding, nextOffset, completedAt, retryAfter, checkedAt }) {
+    async commit(input) {
+      try {
+        return await commitOnce(input);
+      } catch (error) {
+        // Postgres refuses data it cannot store (SQLSTATE class 22). Record that one project as malformed,
+        // so a single record cannot stop every later sweep at the same place. Any other error ends the run.
+        if (!(error instanceof postgres.PostgresError) || !error.code.startsWith("22") || input.read.status !== "indexed")
+          throw error;
+        return commitOnce({ ...input, read: { status: "failed", code: "invalid_source_record" }, embedding: undefined });
+      }
+    },
+  };
+  function commitOnce({ checkpoint, permission, read, embedding, nextOffset, completedAt, retryAfter, checkedAt }:
+    Parameters<ProjectIndexStore["commit"]>[0]) {
       return sql.begin(async (tx) => {
         const [next] = await tx<CheckpointRow[]>`
           update private.weave_project_index_checkpoint
@@ -164,7 +190,8 @@ export async function connectProjectIndex(url: string): Promise<{ store: Project
             id: evidence.id,
             project_uri: permission.uri,
             lexical_text: partnerLexicalText(expandPartnerText(evidence.passage)),
-            evidence: tx.json(evidence),
+            // `position` keeps the source's reading order for the public list; evidence readers ignore it.
+            evidence: tx.json({ ...evidence, position: index }),
             embedding: embedding ? JSON.stringify(embedding.vectors[index]) : null,
             embedding_model: embedding?.modelVersion ?? null,
           }));
@@ -172,7 +199,6 @@ export async function connectProjectIndex(url: string): Promise<{ store: Project
         }
         return committed;
       });
-    },
-  };
+  }
   return { store, close: () => sql.end({ timeout: 3 }) };
 }

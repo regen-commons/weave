@@ -1,0 +1,1120 @@
+{
+  "version": 1,
+  "runId": "thursday-2026-11-05",
+  "baselineCommit": "5fd72bb78afa970d44676aa688b1aaaf650c0154",
+  "applied": false,
+  "proposals": [
+    {
+      "id": "susan-t-buffett-scholarship-2026-11-05",
+      "kind": "revise-existing",
+      "status": "proposed-not-applied",
+      "fundId": "recUfkfwM3ISTcnSH",
+      "programId": "susan-t-buffett-scholarship",
+      "proposedProgramId": "susan-t-buffett-scholarship",
+      "priorFundSha256": "974c791d1dc3dc8414e9437817c416091862b564ca38b17c47d8182454174535",
+      "priorFundRecord": {
+        "id": "recUfkfwM3ISTcnSH",
+        "name": "Susan Thompson Buffett Foundation (STBF)",
+        "displayName": "Susan Thompson Buffett Foundation (STBF)",
+        "program": "Susan T. Buffett Scholarship",
+        "description": "Provides need-based scholarships for first-time college students living in Nebraska and entering eligible Nebraska public colleges.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Health & wellbeing",
+          "Gender & racial equity",
+          "Education & childhood development"
+        ],
+        "regions": [
+          "North America",
+          "Africa",
+          "Asia",
+          "Latin America & Caribbean"
+        ],
+        "approaches": [
+          "Rights",
+          "Justice",
+          "Equity",
+          "Grassroots organizing",
+          "Movements",
+          "Trust"
+        ],
+        "grantBands": [
+          "Very large"
+        ],
+        "website": "https://www.buffettscholarships.org/applicants",
+        "evidenceUrl": "https://www.buffettscholarships.org/applicants",
+        "additionalSources": [
+          "https://www.buffettscholarships.org/eligibility-selection",
+          "https://www.buffettscholarships.org/applicant-faq"
+        ],
+        "sourceUrl": "https://www.fito.network/funders-database",
+        "access": "future",
+        "accessDetail": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred.",
+        "amount": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions.",
+        "timing": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred.",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-15",
+        "qualityFlags": [
+          "Website is not a valid web URL"
+        ],
+        "fieldsFilled": 10,
+        "aliasNote": "",
+        "enrichment": {
+          "sourceRecordId": "recUfkfwM3ISTcnSH",
+          "researchedOn": "2026-10-15",
+          "name": "Susan Thompson Buffett Foundation (STBF)",
+          "summary": "Provides need-based scholarships for first-time college students living in Nebraska and entering eligible Nebraska public colleges.",
+          "themes": [
+            "Higher education",
+            "Financial access"
+          ],
+          "regions": [
+            "North America",
+            "Africa",
+            "Asia",
+            "Latin America & Caribbean"
+          ],
+          "focus": [
+            "Higher education",
+            "Financial access"
+          ],
+          "reviewStatus": "program_reviewed",
+          "programs": [
+            {
+              "id": "susan-t-buffett-scholarship",
+              "name": "Susan T. Buffett Scholarship",
+              "instrument": "scholarship",
+              "focus": [
+                "Higher education",
+                "Financial access"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [
+                  "US"
+                ],
+                "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Individual student"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Nebraska resident; Nebraska high-school graduate or GED.",
+                  "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+                  "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "not_stated",
+                "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+              },
+              "application": {
+                "route": "future",
+                "url": "https://www.buffettscholarships.org/applicants",
+                "opensOn": null,
+                "closesOn": null,
+                "deadlineInstant": null,
+                "note": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred."
+              },
+              "costs": {
+                "supported": [
+                  "Eligible college cost of attendance"
+                ],
+                "excluded": [
+                  "Private or out-of-state colleges"
+                ]
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "programs.0.name",
+                    "programs.0.instrument",
+                    "programs.0.applicants",
+                    "programs.0.geography",
+                    "programs.0.application",
+                    "programs.0.award",
+                    "programs.0.costs"
+                  ],
+                  "url": "https://www.buffettscholarships.org/applicant-faq",
+                  "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+                  "checkedOn": "2026-10-15"
+                }
+              ],
+              "unknowns": [
+                "Fiscal sponsorship unless explicitly described",
+                "Unstated award terms and cost restrictions require confirmation"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://www.buffettscholarships.org/applicants",
+              "title": "Applicants - The Susan Thompson Buffett Foundation",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "url": "https://www.buffettscholarships.org/eligibility-selection",
+              "title": "Eligibility & Selection - The Susan Thompson Buffett Foundation",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "url": "https://www.buffettscholarships.org/applicant-faq",
+              "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "researchNotes": "Scholarship, not organisation project funding. Per-term tables and recipient-specific adjustments do not form a universal award range; listed conflicting scholarships require review.",
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://www.buffettscholarships.org/applicants",
+              "note": "Official source describes the mission and activities summarised here.",
+              "checkedOn": "2026-10-15"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "susan-t-buffett-scholarship"
+      },
+      "before": {
+        "route": "future",
+        "url": "https://www.buffettscholarships.org/applicants",
+        "opensOn": null,
+        "closesOn": null,
+        "deadlineInstant": null,
+        "note": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred."
+      },
+      "after": {
+        "route": "future",
+        "url": "https://www.buffettscholarships.org/applicants",
+        "opensOn": "2026-12-01",
+        "closesOn": "2027-03-01",
+        "deadlineInstant": "2027-03-01T23:00:00Z",
+        "note": "2027 application opens December 1; submit before March 1, 2027 at 17:00 CST / 16:00 MST. December opening year follows the upcoming application cycle. Eligibility and award terms require separate review."
+      },
+      "officialEvidence": {
+        "url": "https://www.buffettscholarships.org/applicants",
+        "checkedOn": "2026-11-05",
+        "fields": [
+          "opensOn",
+          "closesOn",
+          "deadlineInstant",
+          "note"
+        ],
+        "finding": "Published 2027 cycle replaces the prior November 1 opening note and supplies a dated cutoff."
+      },
+      "unresolved": [
+        "Fiscal sponsorship unless explicitly described",
+        "Unstated award terms and cost restrictions require confirmation"
+      ],
+      "implementation": "Not applied. Existing-term importer support is unmerged in PR #9. Archive is a review proposal, not an executable import. New round must use a separate program identity and complete evidence."
+    },
+    {
+      "id": "spencer-small-research-2026-11-05",
+      "kind": "revise-existing",
+      "status": "proposed-not-applied",
+      "fundId": "recrvyr2BGCOy0NAI",
+      "programId": "spencer-small-research",
+      "proposedProgramId": "spencer-small-research",
+      "priorFundSha256": "cce4d073e9711e423eed322dbeeb532cef7ef9400765bf033c128bc9bcc13dcc",
+      "priorFundRecord": {
+        "id": "recrvyr2BGCOy0NAI",
+        "name": "Spencer Foundation",
+        "displayName": "Spencer Foundation",
+        "program": "Small Research Grants on Education",
+        "description": "Funds rigorous education research worldwide through institutional grants led by doctoral investigators. The Small Research program excludes service delivery or software projects without a significant research component. Its current application window is closed.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Education & childhood development"
+        ],
+        "regions": [
+          "North America",
+          "Africa",
+          "Asia",
+          "Europe",
+          "Latin America & Caribbean",
+          "Middle East",
+          "Oceania"
+        ],
+        "approaches": [
+          "Collaboration",
+          "Communities of practice",
+          "Inclusion",
+          "Field-building",
+          "Equity",
+          "Peer learning"
+        ],
+        "grantBands": [
+          "Medium",
+          "Large",
+          "Very large"
+        ],
+        "website": "https://www.spencer.org",
+        "evidenceUrl": "https://www.spencer.org/grant_types/small-research-grant/",
+        "additionalSources": [],
+        "sourceUrl": "https://www.fito.network/funders-database",
+        "access": "closed",
+        "accessDetail": "Page says now closed and normally accepts twice yearly; no next deadline confirmed.",
+        "amount": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal.",
+        "timing": "Page says now closed and normally accepts twice yearly; no next deadline confirmed.",
+        "deadlineDate": null,
+        "deadlineInstant": null,
+        "verifiedOn": "2026-10-14",
+        "qualityFlags": [],
+        "fieldsFilled": 10,
+        "aliasNote": "",
+        "enrichment": {
+          "sourceRecordId": "recrvyr2BGCOy0NAI",
+          "researchedOn": "2026-10-14",
+          "name": "Spencer Foundation",
+          "summary": "Funds rigorous education research worldwide through institutional grants led by doctoral investigators. The Small Research program excludes service delivery or software projects without a significant research component. Its current application window is closed.",
+          "themes": [
+            "Education & childhood development",
+            "Research"
+          ],
+          "regions": [
+            "Africa",
+            "Asia",
+            "Europe",
+            "North America",
+            "Latin America & Caribbean",
+            "Middle East",
+            "Oceania"
+          ],
+          "programs": [
+            {
+              "id": "spencer-small-research",
+              "name": "Small Research Grants on Education",
+              "instrument": "grant",
+              "focus": [
+                "education research",
+                "foundational knowledge about learning"
+              ],
+              "beneficiaries": [
+                "education research communities",
+                "learners"
+              ],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "nonprofit institutions",
+                  "public institutions",
+                  "universities",
+                  "research organizations"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "PI and co-PIs hold earned doctorates",
+                  "PI affiliated with an eligible administering institution",
+                  "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+                ],
+                "exclusions": [
+                  "Direct grants to individuals"
+                ]
+              },
+              "award": {
+                "currency": "USD",
+                "min": null,
+                "max": 50000,
+                "durationMonths": 60,
+                "basis": "current_offer",
+                "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://www.spencer.org/grant_types/small-research-grant/",
+                "opensOn": null,
+                "closesOn": null,
+                "deadlineInstant": null,
+                "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+              },
+              "costs": {
+                "supported": [
+                  "research personnel",
+                  "research travel",
+                  "research equipment and software"
+                ],
+                "excluded": [
+                  "indirect costs",
+                  "activities without significant education research",
+                  "capital projects",
+                  "standalone software development"
+                ]
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "geography",
+                    "applicants",
+                    "award",
+                    "application",
+                    "costs"
+                  ],
+                  "url": "https://www.spencer.org/grant_types/small-research-grant/",
+                  "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+                  "checkedOn": "2026-10-14"
+                }
+              ],
+              "unknowns": [
+                "Next application date",
+                "Fiscal sponsor arrangements beyond administering-institution requirement"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://www.spencer.org/grant_types/small-research-grant/",
+              "title": "Small Research Grants on Education",
+              "checkedOn": "2026-10-14"
+            }
+          ],
+          "researchNotes": "Pilot covers this program only; other funder programs may differ.",
+          "reviewStatus": "program_reviewed",
+          "focus": [],
+          "evidence": []
+        },
+        "sourceWarnings": [],
+        "isPilot": true,
+        "displayProgramId": "spencer-small-research"
+      },
+      "before": {
+        "route": "closed",
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "opensOn": null,
+        "closesOn": null,
+        "deadlineInstant": null,
+        "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+      },
+      "after": {
+        "route": "closed",
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "opensOn": null,
+        "closesOn": null,
+        "deadlineInstant": null,
+        "note": "No applications currently accepted; no new competitions January–June 2027. Refreshed approach and schedules expected June 2027. This is not a dated reopening."
+      },
+      "officialEvidence": {
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "checkedOn": "2026-11-05",
+        "fields": [
+          "note"
+        ],
+        "finding": "New strategic-refresh notice qualifies generic twice-yearly wording."
+      },
+      "unresolved": [
+        "Next application date",
+        "Fiscal sponsor arrangements beyond administering-institution requirement"
+      ],
+      "implementation": "Not applied. Existing-term importer support is unmerged in PR #9. Archive is a review proposal, not an executable import. New round must use a separate program identity and complete evidence."
+    },
+    {
+      "id": "whitley-2027-2026-11-05",
+      "kind": "revise-existing",
+      "status": "proposed-not-applied",
+      "fundId": "local-whitley",
+      "programId": "whitley-2027",
+      "proposedProgramId": "whitley-2027",
+      "priorFundSha256": "903184c87b9cc1137ba28a58eaec6e32c8b409800b81a76fad018fb15e5f7659",
+      "priorFundRecord": {
+        "id": "local-whitley",
+        "name": "Whitley Fund for Nature",
+        "displayName": "Whitley Fund for Nature",
+        "program": "Whitley Awards 2027",
+        "description": "Project funding for established local conservation leaders.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Biodiversity",
+          "Community conservation"
+        ],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+        "evidenceUrl": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+        "additionalSources": [
+          "https://whitleyaward.org/apply-for-conservation-funding/eligibility/",
+          "https://whitleyaward.org/2026/10/07/a-guide-to-applying-for-a-whitley-award/",
+          "https://d2pmqwflrfqd3y.cloudfront.net/content/uploads/2026/07/30161009/2027-WhitleyAward_EligibleCountries.pdf"
+        ],
+        "sourceUrl": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+        "access": "open",
+        "accessDetail": "Application and three references due at 23:59 GMT.",
+        "amount": "Fixed project award, not unrestricted personal income.",
+        "timing": "Application and three references due at 23:59 GMT.",
+        "deadlineDate": "2026-10-30",
+        "deadlineInstant": "2026-10-30T23:59:00Z",
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "priority-2026-10-29",
+          "candidateId": "whitley-2027",
+          "upstreamRecordId": null,
+          "aliases": ""
+        },
+        "enrichment": {
+          "sourceRecordId": "local-whitley",
+          "researchedOn": "2026-10-29",
+          "name": "Whitley Fund for Nature",
+          "summary": "Project funding for established local conservation leaders.",
+          "themes": [
+            "Biodiversity",
+            "Community conservation"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "whitley-2027",
+              "name": "Whitley Awards 2027",
+              "instrument": "prize",
+              "focus": [
+                "Biodiversity",
+                "Community conservation"
+              ],
+              "beneficiaries": [
+                "Local communities and biodiversity in eligible countries"
+              ],
+              "geography": {
+                "workCountries": [
+                  "NG",
+                  "BR",
+                  "ZA"
+                ],
+                "applicantCountries": [
+                  "NG",
+                  "BR",
+                  "ZA"
+                ],
+                "scope": "Eligible-country list includes Nigeria, Brazil and South Africa. Normally nationals working in their country; October guidance allows exceptional long-term residents at discretion. Named countries are verified examples, not exhaustive eligibility lists.  Applicant scope: Normally nationals working in their eligible home country; exceptional long-term residents may be considered. Work scope: Listed eligible countries, including Nigeria, Brazil and South Africa.",
+                "exclusions": [
+                  "United States is not an eligible project country"
+                ]
+              },
+              "applicants": {
+                "types": [
+                  "Individual conservation leaders backed by local nonprofit teams"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Established conservation record; local registered organization or formal university arrangement",
+                  "English application and communication"
+                ],
+                "exclusions": [
+                  "Start-ups",
+                  "Pure academic research"
+                ]
+              },
+              "award": {
+                "currency": "GBP",
+                "min": 50000,
+                "max": 50000,
+                "durationMonths": 12,
+                "basis": "current_offer",
+                "note": "Fixed project award, not unrestricted personal income."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+                "opensOn": null,
+                "closesOn": "2026-10-30",
+                "deadlineInstant": "2026-10-30T23:59:00Z",
+                "note": "Application and three references due at 23:59 GMT."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": [
+                  "Land purchase and major capital construction"
+                ]
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "beneficiaries",
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award",
+                    "costs"
+                  ],
+                  "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+                  "note": "Official program overview; supports stated terms only, with missing terms and source conflicts retained below. Supplementary evidence narrows particular fields.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants",
+                    "costs"
+                  ],
+                  "url": "https://whitleyaward.org/apply-for-conservation-funding/eligibility/",
+                  "note": "Leader and institutional requirements.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants",
+                    "application"
+                  ],
+                  "url": "https://whitleyaward.org/2026/10/07/a-guide-to-applying-for-a-whitley-award/",
+                  "note": "Current guidance includes residency discretion.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "geography"
+                  ],
+                  "url": "https://d2pmqwflrfqd3y.cloudfront.net/content/uploads/2026/07/30161009/2027-WhitleyAward_EligibleCountries.pdf",
+                  "note": "Country list includes Nigeria, Brazil and South Africa.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Fiscal sponsorship beyond specified institutional backing"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+              "title": "Whitley Awards 2027",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://whitleyaward.org/apply-for-conservation-funding/eligibility/",
+              "title": "Whitley eligibility",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://whitleyaward.org/2026/10/07/a-guide-to-applying-for-a-whitley-award/",
+              "title": "2027 application guide",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://d2pmqwflrfqd3y.cloudfront.net/content/uploads/2026/07/30161009/2027-WhitleyAward_EligibleCountries.pdf",
+              "title": "Eligible-country list",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Official program terms checked October 29, 2026. Eligibility requires applicant-level review; closed and conditional future rounds remain labeled. Deadline timezone: GMT (UTC+0). ",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Biodiversity",
+            "Community conservation"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+              "note": "Official program focus.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "whitley-2027"
+      },
+      "before": {
+        "route": "open",
+        "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+        "opensOn": null,
+        "closesOn": "2026-10-30",
+        "deadlineInstant": "2026-10-30T23:59:00Z",
+        "note": "Application and three references due at 23:59 GMT."
+      },
+      "after": {
+        "route": "closed",
+        "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+        "opensOn": null,
+        "closesOn": "2026-10-30",
+        "deadlineInstant": "2026-10-30T23:59:00Z",
+        "note": "Official 2027 application page explicitly reports closed; prior cutoff retained. April 2027 ceremony is not an application date."
+      },
+      "officialEvidence": {
+        "url": "https://whitleyaward.org/apply-for-conservation-funding/apply-for-a-whitley-award/",
+        "checkedOn": "2026-11-05",
+        "fields": [
+          "route",
+          "note"
+        ],
+        "finding": "Explicit closure notice supports changing route from open to closed."
+      },
+      "unresolved": [
+        "Fiscal sponsorship beyond specified institutional backing"
+      ],
+      "implementation": "Not applied. Existing-term importer support is unmerged in PR #9. Archive is a review proposal, not an executable import. New round must use a separate program identity and complete evidence."
+    },
+    {
+      "id": "nlnet-restack-2026-11-05",
+      "kind": "add-distinct-round",
+      "status": "proposed-not-applied",
+      "fundId": "local-nlnet",
+      "programId": "nlnet-restack",
+      "proposedProgramId": "nlnet-restack-call2-2026",
+      "priorFundSha256": "8e8f5e7911b5e025ba39ba78f871281770c4fc50a6373bda10bf7f27c3a4514e",
+      "priorFundRecord": {
+        "id": "local-nlnet",
+        "name": "NLnet Foundation",
+        "displayName": "NLnet Foundation",
+        "program": "Restack — first call 2026",
+        "description": "Open internet infrastructure development with open outputs and a European dimension.",
+        "descriptionBasis": "primary",
+        "sectors": [
+          "Open source",
+          "Digital public infrastructure"
+        ],
+        "regions": [],
+        "approaches": [],
+        "grantBands": [],
+        "website": "https://nlnet.nl/restack/",
+        "evidenceUrl": "https://nlnet.nl/restack/",
+        "additionalSources": [
+          "https://nlnet.nl/restack/eligibility/",
+          "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+          "https://nlnet.nl/fediversity/",
+          "https://nlnet.nl/taler/",
+          "https://nlnet.nl/taler/faq/index.html",
+          "https://nlnet.nl/commonsfund/"
+        ],
+        "sourceUrl": "https://nlnet.nl/restack/",
+        "access": "open",
+        "accessDetail": "Deadline noon CET. Submit through https://nlnet.nl/propose/.",
+        "amount": "Per proposal; EUR 7 million is the programme pool, not an award.",
+        "timing": "Deadline noon CET. Submit through https://nlnet.nl/propose/.",
+        "deadlineDate": "2026-11-03",
+        "deadlineInstant": "2026-11-03T11:00:00Z",
+        "verifiedOn": "2026-10-29",
+        "qualityFlags": [],
+        "fieldsFilled": 0,
+        "aliasNote": "",
+        "origin": {
+          "kind": "supplemental-research",
+          "batchId": "priority-2026-10-29",
+          "candidateId": "nlnet-restack",
+          "upstreamRecordId": null,
+          "aliases": "NLnet, NGI Zero"
+        },
+        "enrichment": {
+          "sourceRecordId": "local-nlnet",
+          "researchedOn": "2026-10-29",
+          "name": "NLnet Foundation",
+          "summary": "Open internet infrastructure development with open outputs and a European dimension.",
+          "themes": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "regions": [],
+          "programs": [
+            {
+              "id": "nlnet-restack",
+              "name": "Restack — first call 2026",
+              "instrument": "grant",
+              "focus": [
+                "Open source",
+                "Digital public infrastructure"
+              ],
+              "beneficiaries": [
+                "Users and developers of open internet infrastructure"
+              ],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "European dimension required; exceptional quality plus unique expertise can justify proposals outside eligible countries. Named countries are verified examples, not exhaustive eligibility lists.  Applicant scope: Any person category, subject to a strong European dimension and stated funding-share/exception rules. Work scope: Open internet infrastructure with a European dimension; no exhaustive work-country list captured.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [
+                  "Individuals",
+                  "Organizations"
+                ],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Open outputs; strong European dimension. Standard route: Horizon Europe-eligible team members receive at least 60% of funds.",
+                  "October 20 AI policy: no generative-AI proposal writing except accessibility support; project-development LLM/diffusion use limited to read-only."
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "current_offer",
+                "note": "Per proposal; EUR 7 million is the programme pool, not an award."
+              },
+              "application": {
+                "route": "open",
+                "url": "https://nlnet.nl/restack/",
+                "opensOn": "2026-09-03",
+                "closesOn": "2026-11-03",
+                "deadlineInstant": "2026-11-03T11:00:00Z",
+                "note": "Deadline noon CET. Submit through https://nlnet.nl/propose/."
+              },
+              "costs": {
+                "supported": [
+                  "Development, testing, security, documentation, accessibility and essential infrastructure"
+                ],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "beneficiaries",
+                    "geography",
+                    "applicants",
+                    "application",
+                    "award",
+                    "costs"
+                  ],
+                  "url": "https://nlnet.nl/restack/",
+                  "note": "Official program overview; supports stated terms only, with missing terms and source conflicts retained below. Supplementary evidence narrows particular fields.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants",
+                    "geography",
+                    "costs"
+                  ],
+                  "url": "https://nlnet.nl/restack/eligibility/",
+                  "note": "Geographic conditions and eligible work.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "applicants"
+                  ],
+                  "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+                  "note": "Read current AI and code-provenance conditions before applying.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Fiscal sponsorship terms",
+                "Project-specific geographic exception"
+              ]
+            },
+            {
+              "id": "nlnet-fediversity-final",
+              "name": "NGI Fediversity — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Reproducible hosting",
+                "Fediverse"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Open-source results advancing the Fediversity hosting stack"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/fediversity/",
+                "opensOn": null,
+                "closesOn": "2026-08-01",
+                "deadlineInstant": null,
+                "note": "Final call closed August 1, 2026; project delivery continuing into 2027 does not mean applications remain open."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "award"
+                  ],
+                  "url": "https://nlnet.nl/fediversity/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Any successor intake and applicant-specific geographic restrictions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "nlnet-taler-final",
+              "name": "NGI TALER — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Privacy-preserving payments",
+                "GNU Taler"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [
+                  "Free and open-source results advancing GNU Taler; cumulative applicant ceiling EUR 60,000"
+                ],
+                "exclusions": []
+              },
+              "award": {
+                "currency": "EUR",
+                "min": 5000,
+                "max": 50000,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/taler/",
+                "opensOn": null,
+                "closesOn": "2026-08-01",
+                "deadlineInstant": null,
+                "note": "Final call closed August 1, 2026. Delivery schedule extension is not an intake extension."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application",
+                    "applicants",
+                    "award"
+                  ],
+                  "url": "https://nlnet.nl/taler/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                },
+                {
+                  "fields": [
+                    "application"
+                  ],
+                  "url": "https://nlnet.nl/taler/faq/index.html",
+                  "note": "Supplementary official context; see application notes for the source comparison.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Successor intake and applicant-specific geographic restrictions",
+                "Fiscal sponsorship not established"
+              ]
+            },
+            {
+              "id": "nlnet-commons-final",
+              "name": "NGI Zero Commons Fund — final call closed",
+              "instrument": "grant",
+              "focus": [
+                "Open internet",
+                "Digital commons"
+              ],
+              "beneficiaries": [],
+              "geography": {
+                "workCountries": [],
+                "applicantCountries": [],
+                "scope": "No exhaustive applicant or work-country eligibility list established.",
+                "exclusions": []
+              },
+              "applicants": {
+                "types": [],
+                "fiscalSponsorship": "unknown",
+                "requirements": [],
+                "exclusions": []
+              },
+              "award": {
+                "currency": null,
+                "min": null,
+                "max": null,
+                "durationMonths": null,
+                "basis": "historical",
+                "note": ""
+              },
+              "application": {
+                "route": "closed",
+                "url": "https://nlnet.nl/commonsfund/",
+                "opensOn": null,
+                "closesOn": "2026-06-01",
+                "deadlineInstant": null,
+                "note": "Thirteenth and final call closed June 1, 2026. Existing Restack record is a different program."
+              },
+              "costs": {
+                "supported": [],
+                "excluded": []
+              },
+              "evidence": [
+                {
+                  "fields": [
+                    "focus",
+                    "application"
+                  ],
+                  "url": "https://nlnet.nl/commonsfund/",
+                  "note": "Official program evidence for the stated terms; limits and source conflicts remain in application notes and unknowns.",
+                  "checkedOn": "2026-10-29"
+                }
+              ],
+              "unknowns": [
+                "Historical award and applicant restrictions not re-established in this pass",
+                "Fiscal sponsorship not established"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://nlnet.nl/restack/",
+              "title": "Restack — first call 2026",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/restack/eligibility/",
+              "title": "Restack eligibility",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/news/2026/20261020-AI-policy.html",
+              "title": "NLnet generative AI policy update",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/fediversity/",
+              "title": "NGI Fediversity — final call closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/taler/",
+              "title": "NGI TALER — final call closed",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/taler/faq/index.html",
+              "title": "NGI TALER — final call closed — supplementary official evidence",
+              "checkedOn": "2026-10-29"
+            },
+            {
+              "url": "https://nlnet.nl/commonsfund/",
+              "title": "NGI Zero Commons Fund — final call closed",
+              "checkedOn": "2026-10-29"
+            }
+          ],
+          "researchNotes": "Official program terms checked October 29, 2026. Eligibility requires applicant-level review; closed and conditional future rounds remain labeled. Deadline timezone: CET (UTC+1). ",
+          "reviewStatus": "program_reviewed",
+          "focus": [
+            "Open source",
+            "Digital public infrastructure"
+          ],
+          "evidence": [
+            {
+              "fields": [
+                "summary",
+                "focus",
+                "themes"
+              ],
+              "url": "https://nlnet.nl/restack/",
+              "note": "Official program focus.",
+              "checkedOn": "2026-10-29"
+            }
+          ]
+        },
+        "sourceWarnings": [],
+        "isPilot": false,
+        "displayProgramId": "nlnet-restack"
+      },
+      "before": {
+        "route": "open",
+        "url": "https://nlnet.nl/restack/",
+        "opensOn": "2026-09-03",
+        "closesOn": "2026-11-03",
+        "deadlineInstant": "2026-11-03T11:00:00Z",
+        "note": "Deadline noon CET. Submit through https://nlnet.nl/propose/."
+      },
+      "after": {
+        "route": "open",
+        "url": "https://nlnet.nl/restack/",
+        "opensOn": "2026-11-03",
+        "closesOn": "2027-01-03",
+        "deadlineInstant": "2027-01-03T11:00:00Z",
+        "note": "Second Restack call; exact deadline noon CET. Reverify all non-date terms before import; do not overwrite first-call identity or dates."
+      },
+      "officialEvidence": {
+        "url": "https://nlnet.nl/restack/",
+        "checkedOn": "2026-11-05",
+        "fields": [
+          "route",
+          "opensOn",
+          "closesOn",
+          "deadlineInstant",
+          "note"
+        ],
+        "finding": "Second call is a distinct round, not an extension of the first call."
+      },
+      "unresolved": [
+        "All existing program unknowns retained.",
+        "Non-date terms of the second call must be verified independently."
+      ],
+      "implementation": "Not applied. Existing-term importer support is unmerged in PR #9. Archive is a review proposal, not an executable import. New round must use a separate program identity and complete evidence."
+    }
+  ],
+  "priorProposalReferences": [
+    {
+      "path": "research/maintenance-history/manual-thursday-2026-10-29/proposals.json",
+      "id": "emergent-2027-reopening",
+      "finding": "Reverified closure for remainder of 2026 and January 1, 2027 resumption; existing proposal retained, not duplicated."
+    },
+    {
+      "path": "research/maintenance-history/manual-thursday-2026-10-29/proposals.json",
+      "id": "keeling-2027-portal-conflict",
+      "finding": "Closed landing page rechecked; separate portal conflict unresolved."
+    }
+  ]
+}

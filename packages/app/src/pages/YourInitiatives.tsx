@@ -5,7 +5,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import { hasDraft } from "../describe/view.ts";
 import { intakeFixture } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
-import { draftWithRecord } from "../initiative/import.ts";
+import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
 import { cardName, cardRoute, publicKey } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -133,8 +133,9 @@ export function YourInitiatives() {
       return;
     }
     if (opening === "workspace" && import.meta.env.DEV) {
-      // The team workspace already holds this initiative's needs and offers.
-      const next = draftWithRecord(intakeFixture("kept", pathTo("your-initiative")), record);
+      // The team workspace already holds this initiative's needs and offers. Opening it links
+      // nothing, so nothing is suggested from the project page, as with a live workspace.
+      const next = withProjectDetails(intakeFixture("kept", pathTo("your-initiative")), record);
       await controller.replace(next);
       await service.openWorkspace(record.uri, publicKey(next));
       go(pathTo(cardRoute(next)));

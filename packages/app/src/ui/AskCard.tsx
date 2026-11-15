@@ -1,5 +1,5 @@
 import { CAPITALS } from "../capitals.ts";
-import { entryId, suggestedEntry, type CapitalForm } from "../intake/ask-page.ts";
+import { entryId, suggestedEntry, suggestionSource, type CapitalForm } from "../intake/ask-page.ts";
 import type { AskItem, AskKind } from "../intake/contracts.ts";
 import { askExtras } from "../intake/presentation.ts";
 import { Icon } from "./Icon.tsx";
@@ -120,7 +120,7 @@ export function AskCard({
       {item.value.purpose && kind === "needs" && <p className="rc-meta">{item.value.purpose}</p>}
       {item.value.audience && kind === "offers" && <p className="rc-meta">For {item.value.audience}</p>}
       <div className="rc-ask-foot">
-        {suggested && <p className="rc-proposal-source">Suggested from your words</p>}
+        {suggested && <p className="rc-proposal-source">{suggestionSource(item)}</p>}
         <div className="rc-action-bar">
           <button
             className="rc-button"
