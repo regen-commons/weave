@@ -67,12 +67,28 @@ shared, so withdrawals needed are zero.
 Reproduce with disposable synthetic saves and a device draft with two backups.
 Preserve real data, older QA, workspaces and withdrawn entries. No whole-account
 deletion, browser-wide clearing or arbitrary IndexedDB mutation is an acceptable
-substitute for a supported selective operation.
+substitute for a supported selective operation. A later read-only schema
+assessment of the correct Platform PostgreSQL 17.11 database found eight inbound
+foreign keys relevant to cleanup and no non-internal DELETE triggers/rules on `initiatives` or
+`save_requests`. It read no user rows and prepared no executable deletion SQL.
+A guarded maintenance path is feasible, but exact private owner-bound selectors
+and complete synthetic documents remain unestablished. No deletion ran; the
+retained counts are unchanged.
 
 Acceptance criteria:
 
 - Cloud deletion checks owner, exact initiative UUID and expected revision, and
   rejects unsafe workspace/publication references before any cascading removal.
+  A one-off maintenance cleanup must match both complete synthetic documents,
+  owners, UUIDs, revisions and timestamps, with private/null team-workspace state
+  and zero entries, matching, create-intent, project, workspace or publication
+  references before changing either card.
+- A maintenance manifest pins receipt counts and verifies that every receipt
+  carries the same reviewed synthetic document. A serializable guarded
+  transaction rechecks the manifest, deletes exactly two cards with only the
+  expected receipt cascade, and proves preservation of unrelated data. Quiesce
+  saves/retries before the operation; this is a contract, not prepared SQL or a
+  completed cleanup.
 - Local deletion uses exact keys/draft IDs/revisions and compare-before-delete.
   Displayed time is `draft.updatedAt`, not the backup key timestamp; title/time
   alone cannot identify the target safely.

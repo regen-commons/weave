@@ -85,7 +85,7 @@ uncovered work. No issue was created and no repository setting was changed.
 | Priority | Finding | Tracking / boundary |
 |---|---|---|
 | Blocks launch | Explicitly denied money suggests Financial. | [Draft #80](https://github.com/regen-commons/weave/pull/80). No duplicate issue. Not deployed. |
-| Blocks launch | Cross-tab sign-out leaves cached private UI and signed-in controls. | [Draft #81](https://github.com/regen-commons/weave/pull/81), independently reviewed; browser fixture proof pending. No production fix claimed. |
+| Blocks launch | Cross-tab sign-out leaves cached private UI and signed-in controls. | [Draft #81](https://github.com/regen-commons/weave/pull/81), independently reviewed; partial fixture sign-out/retention proof below. Reentry/focus and responsive proof pending. No production fix claimed. |
 | Fix this week | Certified link/import loses source place and links. | [Source-field finding](findings.md#certified-source-place-and-links). Covers explicit fields, not the already-shortened description. |
 | Fix this week | Soil research/test data adds Living unnecessarily. | [Soil-data finding](findings.md#soil-research-and-test-data). Outside #80's patch. |
 | Fix this week | Selective cloud-card and local draft/backup deletion is absent. | [Deletion finding](findings.md#selective-deletion-and-qa-cleanup); retained scope below. No broad deletion or account removal. |
@@ -126,9 +126,9 @@ The independently reviewed v2 patch SHA-256 is
 based on `187f331`, across 15 paths. Independent review is clear; 54 focused
 tests passed with zero skips. Full CI passed: root 147, design system 34, app
 338, API 217 plus 56 conditional skips, harness 78 and type checks. The earlier
-v1 candidate is superseded. Browser fixture proof remains pending. The fix is a
-draft, not a production release; no production repair is claimed. Four GitHub
-workflows passed on its exact head. The Weave preview deployment has completed.
+v1 candidate is superseded. The fix is a draft, not a production release; no
+production repair is claimed. Four GitHub workflows passed on its exact head.
+The Weave preview deployment has completed.
 
 For both #80 and #81, the Funding Commons Vercel status is `success` with
 description `Canceled by Ignored Build Step`: **skipped as configured**, not a
@@ -136,6 +136,21 @@ Funding Commons deployment. The Weave statuses separately say `Deployment has
 completed` ([#80 preview](https://vercel.com/regen-commons/weave/9zcBhFGHmgp1CeGFur7sq6HJXqYz),
 [#81 preview](https://vercel.com/regen-commons/weave/DfhiucgbyEQc9gkahRyPM29K8e1Y)).
 Those deployment statuses do not prove browser acceptance or production repair.
+
+**Partial fixture, Brave:** the sole QA owner used keyboard sign-out. The
+second already-open tab removed the synthetic viewer's cloud card
+(`Cross-tab fixture cloud A`) and Account control and
+showed Sign in without a reload. The local description, unfinished sentence,
+attached synthetic `cross-tab-local-note.txt` and backup list compared equal
+before/after. The orchestrator inspected the actual browser-tool results; this
+consolidation session did not operate the browser.
+
+Two-account reentry/focus and responsive captures are still pending. The fixture
+selector did not carry the normal return marker, and the available browser
+control could not explicitly activate tabs, so those paths must not be claimed
+from this partial check. No new capture is included for this supplement. The
+observed sign-out/retention result is fixture proof only, not clearance to release
+or evidence that production `21a0900` is repaired.
 
 ## Cleanup retained, not completed
 
@@ -159,9 +174,16 @@ Backup display times are `draft.updatedAt`, not backup key timestamps, and are
 insufficient deletion selectors. A future supported operator cleanup needs exact
 initiative UUID/owner/revision and proof of no workspace/publication references
 before any cascading deletion. Local cleanup needs exact keys/draft IDs/revisions,
-compare-before-delete and preservation checks. None of those identifiers belongs
-in public evidence. No browser/IndexedDB mutation, whole-account deletion or
-browser-wide clearing was attempted. Real data, older QA, workspaces, withdrawn
+compare-before-delete and preservation checks. The read-only assessment of the
+correct Platform database (PostgreSQL 17.11) found eight inbound foreign keys relevant to cleanup
+and no non-internal DELETE triggers/rules on `initiatives` or `save_requests`.
+It read no user rows and prepared no executable deletion SQL. A guarded operator
+path is feasible only after an exact owner-bound manifest is available; that
+identity/content proof remains absent. The [deletion finding](findings.md#selective-deletion-and-qa-cleanup)
+records the required reference, receipt, concurrency and preservation checks.
+No deletion ran and the retained counts are unchanged. None of those private
+selectors belongs in public evidence. No browser/IndexedDB mutation,
+whole-account deletion or browser-wide clearing was attempted. Real data, older QA, workspaces, withdrawn
 entries and the real-data backup created while opening an older card were
 preserved. Cleanup remains pending a supported path.
 
@@ -229,8 +251,8 @@ Consolidation checks ran in an isolated branch from `origin/develop` at
   em dash in the new evidence, decision diff or issue drafts. Four image widths
   were confirmed as 375/1280 and visually inspected.
 
-Cross-tab browser fixture evidence remains pending. The six uncovered
-findings are tracked in this evidence draft PR because repository Issues is
+Cross-tab fixture sign-out/retention is partially observed; reentry/focus and
+responsive captures remain pending. The six uncovered findings are tracked in this evidence draft PR because repository Issues is
 disabled. Nothing here authorizes a merge, release or production mutation.
 
 ## Follow-up phone and release checklist
