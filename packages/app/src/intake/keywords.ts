@@ -33,7 +33,7 @@ const BANKS = {
     /financial|money|funding|grant\w*|cash|budget|donat\w*|usd|eur|brl|dinheiro|reais/,
     /R\$|[$€£]/,
   ),
-  cultural: wholeWords(/cultural|story|stories|art|artists?|culture|music|language|histórias|cultura/),
+  cultural: wholeWords(/cultural|story|stories|art|artists?|culture|music|language|histórias|cultura|artístic\w*/),
   spiritual: wholeWords(/ceremony|ritual|care|spirit\w*|listening|cerimônia|cuidado/),
 } as const;
 /** Kinds of support the words point at: a keyword suggestion for a person to check, never a classification. */

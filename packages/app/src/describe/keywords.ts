@@ -9,10 +9,12 @@ import {
 } from "./contracts.ts";
 
 const LENSES = {
-  art_culture: wholeWords(/art|artists|stories|music|culture|cultura|arte|histórias/),
+  art_culture: wholeWords(/art|artists|stories|music|culture|cultura|arte|artístic\w*|histórias/),
   research: wholeWords(/research|researchers|mapping|data|pesquisa|ciência/),
   technology: wholeWords(/software|technology|tools|tecnologia|digital/),
-  place_based: wholeWords(/community|families|garden|land|river|water|comunidade|famílias|horta|terra|rio|água/),
+  place_based: wholeWords(
+    /community|families|garden|land|river|water|comunidade|comunitári\w*|famílias|horta|terra|territóri\w*|agrári\w*|fundiári\w*|rio|água/,
+  ),
   learning: wholeWords(
     /learning|education|school|schools|teach|teaching|teachers|training|courses?|workshops?|educação|escolas?|ensino|cursos?|oficinas?|aprendizagem/,
   ),
