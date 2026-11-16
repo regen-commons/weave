@@ -347,6 +347,88 @@ test("Portuguese art words keep the Cultural kind as whole words", () => {
   for (const words of ["Um projeto artístico", "Oficinas artísticas para jovens"])
     assert.ok(suggestKinds(words).includes("cultural"), words);
 });
+test("explicitly denied support is not suggested for needs or offers", () => {
+  for (const words of [
+    "We don't need money",
+    "We don't offer money",
+    "We don’t need money",
+    "We do not offer funding",
+    "We no longer offer grants",
+    "We never offer money",
+    "Money is not needed",
+    "Money isn’t needed",
+    "No tools or seeds",
+    "We need neither tools nor seeds",
+    "We don't need rainwater",
+    "We don't offer tools at no cost",
+    "We do not offer no-fee training",
+  ])
+    assert.deepEqual(suggestKinds(words), [], words);
+});
+test("positive assertions keep their kinds beside a denied need or offer", () => {
+  for (const words of [
+    "We don't need money. We need rainwater for the garden.",
+    "We don't offer money. We offer seeds for the garden.",
+    "We don't need money; we need seeds.",
+    "We don’t need money! We need seeds.",
+    "We don't need money\nWe need seeds",
+    "We don't need money, but we need seeds.",
+    "We don't offer money but offer seeds.",
+    "We don't need money, we need seeds.",
+    "We need seeds and we don't need money.",
+    "We need seeds, not money.",
+    "We need seeds and not money.",
+  ])
+    assert.deepEqual(suggestKinds(words), ["living"], words);
+  assert.deepEqual(suggestKinds("We don't need anything but money"), [], "but does not assert a new need");
+  assert.deepEqual(suggestKinds("We don't offer money, tools or seeds"), [], "a denied list stays denied");
+  assert.deepEqual(suggestKinds("We don't need money or offer tools"), [], "or does not assert a new offer");
+  assert.deepEqual(suggestKinds("We don't need money. We offer money."), ["financial"]);
+  assert.deepEqual(suggestKinds("We need tools but don't need money"), ["material"]);
+  assert.deepEqual(suggestKinds("We offer seeds but no money"), ["living"]);
+  assert.deepEqual(suggestKinds("We need money and no tools"), ["financial"]);
+});
+test("positive wording, additive not only and amount punctuation retain support suggestions", () => {
+  assert.deepEqual(suggestKinds("We need not only tools but also seeds"), ["living", "material"]);
+  assert.deepEqual(suggestKinds("We don't just need money, we need tools too"), ["material", "financial"]);
+  assert.deepEqual(suggestKinds("We can't just offer seeds"), ["living"]);
+  assert.deepEqual(suggestKinds("We cannot only offer seeds"), ["living"]);
+  assert.deepEqual(suggestKinds("We need tools for a no-till garden"), ["material"]);
+  for (const words of [
+    "We offer tools at no cost",
+    "We offer no-cost tools",
+    "We offer tools with no fee",
+    "We offer no-fee tools",
+    "We offer tools without cost",
+    "We need tools at no cost",
+  ])
+    assert.deepEqual(suggestKinds(words), ["material"], words);
+  assert.deepEqual(suggestKinds("We can share seeds with no charge"), ["living"]);
+  assert.deepEqual(suggestKinds("We need USD 5,000.50 for tools"), ["material", "financial"]);
+  assert.deepEqual(suggestKinds("We need money no later than June"), ["financial"]);
+  assert.deepEqual(suggestKinds("Precisamos de água para a horta"), ["living"]);
+  assert.deepEqual(suggestKinds("We can share rainwater for the garden"), ["living"]);
+  assert.deepEqual(suggestKinds("Rainwaterproof covers"), [], "rainwater remains a whole word");
+});
+test("denied support stays in the person's words and manual kinds survive Keep and rebuilding", () => {
+  for (const kind of ASK_KINDS) {
+    const words = `We don't ${kind === "needs" ? "need" : "offer"} money`;
+    let step = addEntry(emptyAskStep(), words);
+    const item = step.items[0]!;
+    assert.equal(item.value.title, words);
+    assert.deepEqual(item.value.capitalForms, []);
+    assert.equal(item.value.amount, null);
+    assert.equal(item.value.timeframe, null);
+    assert.equal(item.value.placeScope, "anywhere");
+    step = keepPending(toggleKind(step, item.id, "financial"));
+    const rebuilt = reconcile(step, keywordExtraction([], kind));
+    assert.deepEqual(rebuilt.items[0]!.value.capitalForms, ["financial"]);
+    assert.equal(rebuilt.items[0]!.decision, "kept");
+    const extracted = keywordExtraction([{ key: "negated", text: words }], kind).items[0]!;
+    assert.deepEqual(extracted.value.capitalForms, []);
+    assert.equal(extracted.value.amount, null);
+  }
+});
 test("quick add keeps the person's words, suggests kinds in pencil and guards the list", () => {
   let step = addEntry(emptyAskStep(), "  Native seedlings and   fencing tools ");
   const entry = step.items[0]!;
