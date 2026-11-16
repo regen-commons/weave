@@ -12,7 +12,8 @@ export interface DraftBackup {
 export interface DraftRepository {
   load(): Promise<DeviceDraft | null>;
   backups?(): Promise<DraftBackup[]>;
-  replace?(draft: DeviceDraft, expectedRevision: number | null): Promise<void>;
+  /** Cancellation applies until the atomic draft-and-backup commit, never by undoing a completed commit. */
+  replace?(draft: DeviceDraft, expectedRevision: number | null, signal?: AbortSignal): Promise<void>;
   save(draft: DeviceDraft, expectedRevision: number | null): Promise<void>;
 }
 export class MemoryDraftRepository implements DraftRepository {
@@ -24,16 +25,21 @@ export class MemoryDraftRepository implements DraftRepository {
   async backups() {
     return this.history;
   }
-  async replace(draft: DeviceDraft, expectedRevision: number | null) {
+  async replace(draft: DeviceDraft, expectedRevision: number | null, signal?: AbortSignal) {
+    signal?.throwIfAborted();
+    const validated = this.validateWrite(draft, expectedRevision);
     const previous = this.value;
-    await this.save(draft, expectedRevision);
+    this.value = validated;
     if (previous) this.history.unshift({ key: crypto.randomUUID(), draft: previous });
   }
   async load() {
     return this.value;
   }
   async save(draft: DeviceDraft, expectedRevision: number | null) {
+    this.value = this.validateWrite(draft, expectedRevision);
+  }
+  private validateWrite(draft: DeviceDraft, expectedRevision: number | null) {
     if ((this.value?.revision ?? null) !== expectedRevision) throw new DraftConflict();
-    this.value = DeviceDraftSchema.parse(draft);
+    return DeviceDraftSchema.parse(draft);
   }
 }
