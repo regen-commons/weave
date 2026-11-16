@@ -1,5 +1,7 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import { accountRequest, accountState, AccountFailure, type AccountState } from "./client.ts";
+import { createContext, useContext, useEffect, useState, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { type AccountState } from "./client.ts";
+import { AccountSession } from "./session.ts";
+import { browserSessionEvents } from "./session-events.ts";
 import { checkSavedPresence, type SavedPresence } from "./saved-presence.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { revise } from "../describe/contracts.ts";
@@ -14,7 +16,8 @@ const AccountContext = createContext<{
 } | null>(null);
 const unavailable: AccountState = { available: false, fixture: false, user: null, items: [] };
 export function AccountProvider({ children, fixture = false }: { children: ReactNode; fixture?: boolean }) {
-  const [state, setState] = useState<AccountState | null>(null);
+  const session = useMemo(() => new AccountSession(), [fixture]);
+  const state = useSyncExternalStore(session.subscribe, session.getSnapshot);
   const { controller, draft } = useDraft();
   const [missingDraft, setMissingDraft] = useState<string | null>(null);
   const missingRecord = missingDraft === draft.id;
@@ -45,31 +48,20 @@ export function AccountProvider({ children, fixture = false }: { children: React
     : null;
   // Capture before the address bar is cleaned; the draft may finish loading later.
   const [returnResult, setReturnResult] = useState(() => new URLSearchParams(window.location.search).get("account"));
-  const refresh = useCallback(async () => {
-    if (fixture) {
-      setState(unavailable);
-      return unavailable;
-    }
-    try {
-      const next = accountState(await accountRequest());
-      setState(next);
-      return next;
-    } catch (error) {
-      if (error instanceof AccountFailure && error.code === "sign_in_required")
-        setState((current) => (current ? { ...current, user: null, items: [] } : null));
-      throw error;
-    }
-  }, [fixture]);
-  const clear = useCallback(() => setState(current => current?.user ? { ...current, user: null, items: [] } : current), []);
+  const announced = useRef(false);
   useEffect(() => {
-    void refresh().catch(() => {});
-  }, [fixture]);
+    if (fixture) return;
+    const disconnect = session.connect(browserSessionEvents());
+    if (returnResult === "signed-in" && !announced.current) { announced.current = true; session.changed(); }
+    void session.refresh().catch(() => {});
+    return disconnect;
+  }, [session, fixture]);
   return (
     <AccountContext.Provider
       value={{
         state: fixture ? unavailable : state,
-        refresh,
-        clear,
+        refresh: fixture ? async () => unavailable : session.refresh,
+        clear: session.clear,
         returnResult,
         acknowledgeReturn: () => setReturnResult(null),
         missingRecord, savedCheck,
