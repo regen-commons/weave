@@ -1,16 +1,18 @@
 # Uncovered go-live findings
 
-These six findings are tracked in the consolidated evidence draft PR because
+These six findings are tracked in the consolidated evidence PR because
 GitHub returned **410: Issues has been disabled in this repository**. No issue
 was created, repository settings were not changed, and no empty fix PRs were
 opened. Each section is a separate follow-up with reproduction, triage and
-acceptance criteria. The two user-designated launch blockers have their own fix
-drafts, linked from the [evidence record](README.md#findings-and-tracking).
+acceptance criteria. The two user-designated launch blockers were released through #83 and passed
+bounded production retests, linked from the
+[evidence record](README.md#findings-and-tracking).
 
 "Fix this week" and "later" are triage recommendations, not additional launch
 blockers. Evidence is **production, Brave**, on 15 to 16 November 2026 Pacific at
-`21a0900`, except the explicitly handover-only localhost finding. No implementation
-or production change is included here.
+`21a0900`, except the explicitly handover-only localhost finding. The initial failures
+remain dated evidence. The later approved release is recorded separately;
+this PR itself changes documentation and proof only.
 
 ## Certified source place and links
 
@@ -41,7 +43,8 @@ Acceptance criteria:
 and offer `We offer open research and soil test data.` both suggested Intellectual
 and Living. Expected: Intellectual only. These are two of the four failures in
 the [20-sample production check](quality-results.json). The other two failures,
-explicit negation, are covered by [draft #80](https://github.com/regen-commons/weave/pull/80).
+explicit negation, are covered by [PR #80](https://github.com/regen-commons/weave/pull/80), now released.
+The full 20-case sample was not rerun in the post-release browser pass.
 
 Reproduce in keyword mode on Needs and offers before manual correction. This
 finding is outside the negation patch.
@@ -77,7 +80,8 @@ and constraints were independently checked, followed by an exact owner-bound
 manifest, guarded rollback dry run, reviewed commit and separate read-only
 postflight. Full identity/content/revision/timestamp and receipt guards passed;
 non-target account A/B record counts were unchanged. Self-service deletion and
-selective local cleanup remain missing even though the cloud QA task is complete.
+selective local cleanup remain missing. The later private cloud QA card was removed,
+but two post-release private workspace QA needs remain pending exact-row cleanup.
 
 Acceptance criteria:
 

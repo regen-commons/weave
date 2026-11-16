@@ -1,18 +1,88 @@
 # Production go-live evidence, 16 November 2026
 
-Weave is enabled in production, but launch QA is blocked. The user designated
-negated-money classification and stale private UI after cross-tab sign-out as
-launch blockers. No current-task support entry was shared. Reviewed fixture fixes
-do not establish production repair or permission to release.
+Weave is live at `ea2b810`. Both previously designated launch-blocker gates passed
+on the verified new production client: negation classification and real A/B
+cross-tab session changes. Sharing remains stopped by the user's direction after
+browser-control timeouts. Matching and its dependent acceptance checks remain
+unproven; those timeouts do not establish an application regression.
 
 QA took place on 15 to 16 November 2026, Pacific time. Production proof used the
 user's existing Brave profile. Chromium 156 was reported by the user; the version
-page was blocked, so the exact version was not independently verified. This
-documentation session operated no browser or database and changed no Auth,
-deployment or catalog settings. The approved production cloud QA cleanup is
+page was blocked, so the exact version was not independently verified. These evidence changes alter no Auth, deployment or catalog settings. The approved production cloud QA cleanup is
 recorded below. Public evidence uses account A and account B only.
 
-## Production state and rollback
+## Released fixes and post-release production verification
+
+The user approved the full `develop` release, including its previously excluded
+catalog revisions #9/#71 and keyword change #79. Negation [PR #80](https://github.com/regen-commons/weave/pull/80)
+merged into `develop` at `dfc391b12ca9a2aea8670b96a395cb7672dbde83`; cross-tab
+[PR #81](https://github.com/regen-commons/weave/pull/81) merged at
+`bd22bf319400c19c2d3b13abe0ed6cf83147f025`. All four workflows passed on that
+combined `develop` head. [Release PR #83](https://github.com/regen-commons/weave/pull/83)
+merged into `main` as `ea2b810abcbb31e93d296ac97e4995a8ba9f4e5d`; its tree matches
+the released `develop` tree. The user subsequently authorized finishing and merging the evidence PR.
+
+| Release evidence | Verified result |
+|---|---|
+| Production | `dpl_EhutxeLrqhFiTTG13993Cbbrc8TP`, [deployment](https://weave-gchizzkmm-regen-commons.vercel.app), serving [Weave](https://weave.regencommons.com). Root verified health HTTP 200, status ok, commit `ea2b810` at 20:08 UTC on 16 November (12:08 p.m. Pacific). |
+| Immediate rollback | `dpl_EMW6rhioSLdBxrR5pqTvpFBpNTkA` at `21a0900`, the deployment immediately preceding this release. No rollback was performed. |
+| Settings boundary | No environment, deployment-configuration or shared Auth change accompanied this release. Certified group publication remains off. |
+| Public smoke | `/api/public-projects` HTTP 200, bounded index, 998 total, `checkedAt=2026-11-16T04:19:06.910000Z`; same timestamp is not proof of scheduled cron firing. CLI POST `/api/projects` with same-origin `Origin`, JSON and `{}` returned HTTP 400 `invalid_project_command`. |
+| Funding Commons | Its Vercel status says `Canceled by Ignored Build Step`: skipped as configured. The Funding Commons site was not published by this release. |
+
+All browser results in this section are **production, Brave (Chromium 156)**.
+Version 156 remains user-reported and independently unverified.
+
+The preserved visitor retained `/assets/index-Ban3tKqn.js` through deployment and
+the first ordinary reload. A second ordinary later load picked up
+`/assets/index-CBKRrTXE.js`, matching the server HTML. Both QA tabs loaded that new
+bundle before the blocker tests. No cache, service-worker, cookie or storage
+mutation was used to force the update. Immediate in-place replacement was not
+observed; the later-load transition passed.
+
+| Production negation gate | Observed kind before manual correction |
+|---|---|
+| Need: We don't need money. We need rainwater for the garden. | Living only |
+| Offer: We don't offer money. We offer seeds for the garden. | Living only |
+| Need: We need tools but don't need money | Material only |
+| Offer: We offer tools at no cost | Material only |
+
+All four passed with no Financial tag, and Continue retained the correct kinds.
+This was a four-case regression check, not a rerun of the initial 20-case sample.
+
+Real OAuth returns completed in 47 seconds for A and 40 seconds for B; a later A
+return took 34 seconds. The observer updated without reload to A's three older
+cloud cards or B's two, with no card from the other account. Keyboard sign-out
+removed that account's cloud cards and Account controls and showed Sign in,
+without observer reload. B's list appeared before its Account control settled;
+the gate result uses the settled state. No localhost return occurred.
+
+After each sign-out, local words and the visible PDF attachment remained. All
+19 pre-test backup names and timestamps compared equal; seven are the older
+QA 15 Nov task backups. The retained source sentence was later committed into
+the local conversation through the normal Build flow. Attachment proof is its
+visible listing, not exported-byte equivalence.
+
+Sharing remains **stopped and unproven**. A saved one new private, unlinked QA
+card and two new private needs in its existing workspace. Workspace metadata
+and older withdrawn entries matched their baseline. One intended private need
+was deselected from sharing. Two browser-control timeouts interrupted the
+sharing review; no final Share, Renew or Withdraw confirmation was submitted,
+and B's fitting offer was not created. A review request may have been dispatched,
+so cleanup must check its references. The user directed that sharing stay stopped.
+These failures were browser-control/locator limitations, not proven app defects.
+Positive A/B pairing, reasons, edit propagation, withdrawal propagation and
+private-entry exclusion in matching views remain unproven. Fresh private
+account-list isolation passed separately above.
+
+Post-release Funding checks passed at 360, 375 and 1280 in Light/Dark with no
+horizontal overflow. NLnet search survived ordinary reload; keyboard Tab reached
+Search and Enter submitted it. This rendered proof covers Funding, not every
+screen. The original 13 official deadline checks were not repeated after release.
+
+## Initial production state and rollback
+
+The following table records the earlier `21a0900` rollout, before release #83.
 
 | Component | Observed state | Rollback or limit |
 |---|---|---|
@@ -39,7 +109,10 @@ Bridge archive SHA-256 values:
 - Deployed upload: `2aa8ecbad6fc6e70f947f28ffe046382f0ef0295bf458383a0e7ab939c85b604`.
 - Verification with unchanged fixture schema: `ae49eb156bd15876ed981037f73df850290152b143d722004fab07b24a35683b`.
 
-## Eight-block acceptance matrix
+## Initial eight-block acceptance matrix
+
+This is the initial pass on `21a0900`. It preserves the original failures; the
+later production gate results above supersede those two blocker outcomes only.
 
 All rows below are **production, Brave (Chromium 156)** unless explicitly
 labelled fixture.
@@ -79,15 +152,16 @@ place and business links were observed separately.
 
 ## Findings and tracking
 
-The two launch blockers are user decisions. "Fix this week" and "later" below are
-triage recommendations, not new launch policy. GitHub Issues is disabled (HTTP
-410), so [six separate finding records](findings.md) in this draft PR track the
+The initial launch blockers were user decisions; both bounded production gates
+now pass after the approved release. "Fix this week" and "later" below are triage
+recommendations, not new launch policy. GitHub Issues is disabled (HTTP
+410), so [six separate finding records](findings.md) in this evidence PR track the
 uncovered work. No issue was created and no repository setting was changed.
 
 | Priority | Finding | Tracking / boundary |
 |---|---|---|
-| Blocks launch | Explicitly denied money suggests Financial. | [Draft #80](https://github.com/regen-commons/weave/pull/80). No duplicate issue. Not deployed. |
-| Blocks launch | Cross-tab sign-out leaves cached private UI and signed-in controls. | [Draft #81](https://github.com/regen-commons/weave/pull/81), independently reviewed; supported fixture cases passed below. Focus timing, browser race timing and export bytes remain unproven. No production repair claimed. |
+| Former launch blocker, production gate passed | Explicitly denied money suggested Financial on `21a0900`. | [PR #80](https://github.com/regen-commons/weave/pull/80) released through #83; four production regression cases passed on the new client. The full 20-case sample was not rerun. |
+| Former launch blocker, production gate passed | Cross-tab sign-out retained cached private UI on `21a0900`. | [PR #81](https://github.com/regen-commons/weave/pull/81) released through #83; real A/B OAuth and observer sign-out passed without reload. Focus timing, browser race timing and export bytes remain unproven. |
 | Fix this week | Certified link/import loses source place and links. | [Source-field finding](findings.md#certified-source-place-and-links). Covers explicit fields, not the already-shortened description. |
 | Fix this week | Soil research/test data adds Living unnecessarily. | [Soil-data finding](findings.md#soil-research-and-test-data). Outside #80's patch. |
 | Fix this week | Selective cloud-card and local draft/backup deletion is absent. | [Deletion finding](findings.md#selective-deletion-and-qa-cleanup). Cloud QA removed by reviewed maintenance; self-service/local deletion remains absent. |
@@ -98,12 +172,14 @@ uncovered work. No issue was created and no repository setting was changed.
 Expected limits, not new defect claims: only the configured production PDS is
 supported; Certified group lifecycle publication stays intentionally off; the 13
 description-free indexed projects stay hidden. Zero new suggestions cannot prove
-suggestion-removal persistence. PRs #9, #71, #69 and #3 were untouched.
+suggestion-removal persistence. PRs #9/#71/#79 were included in the later release
+only after the user's explicit full-release approval. PRs #69 and #3 remain
+outside this work.
 
-### Negation fix: fixture only
+### Negation fix: historical fixture proof
 
-[Draft #80](https://github.com/regen-commons/weave/pull/80), commit
-`d343dd4ed00642afe6486178465f465c63322134`, targets `develop`. The independently
+[PR #80](https://github.com/regen-commons/weave/pull/80), original commit
+`d343dd4ed00642afe6486178465f465c63322134`, was later released through #83. The independently
 reviewed two-file patch SHA-256 is
 `4ff6d32b95650ca0bd9bffb1697d381f008bc82f7ff5c7d387aa471163f995ff`.
 Forty independent probes passed. Full CI passed: root 147, design system 34,
@@ -121,15 +197,22 @@ over-tagging is unchanged. Fixture server 5173 was stopped after proof.
 
 ### Cross-tab fix
 
-[Draft #81](https://github.com/regen-commons/weave/pull/81), commit
-`6bfc1d26fa9074d1d70501180e87350811d1e39f`, targets `develop`.
-The independently reviewed v2 patch SHA-256 is
-`d9ddc777c1a86d5a4680e4632f3c15d724117428626b2e99af34eff4f1af7f31`,
-based on `187f331`, across 15 paths. Independent review is clear; 54 focused
-tests passed with zero skips. Full CI passed: root 147, design system 34, app
+[PR #81](https://github.com/regen-commons/weave/pull/81), original commit
+`6bfc1d26fa9074d1d70501180e87350811d1e39f`, was later released through #83.
+The canonical full `git diff --binary` from base `187f331` to that commit has
+SHA-256 `e64129e75578845463e7741cd20b4205932383a9c35c301c92ea4e4408a01dfd`.
+It contains 15 paths, including seven new files. Independent full-commit review
+found no blocker; 54 focused tests passed with zero skips before merge #81.
+
+The earlier frozen v2 artifact has SHA-256
+`d9ddc777c1a86d5a4680e4632f3c15d724117428626b2e99af34eff4f1af7f31`.
+Both artifacts contain the same 15 byte-identical per-file chunks and 65,202
+bytes. Sorting the frozen chunks by path reproduces the canonical diff exactly:
+the difference is ordering only, not omitted files or changed code.
+
+On the original fix branch, full CI passed: root 147, design system 34, app
 338, API 217 plus 56 conditional skips, harness 78 and type checks. The earlier
-v1 candidate is superseded. The fix is a draft, not a production release; no
-production repair is claimed. Four GitHub workflows passed on its exact head.
+v1 candidate is superseded. Four GitHub workflows passed on its exact head.
 The Weave preview deployment has completed.
 
 For both #80 and #81, the Funding Commons Vercel status is `success` with
@@ -166,11 +249,14 @@ is unproven. The supported retention claim is visible text/backup equality and
 attachment listing. The existing real Brave tabs were rebound after reset;
 appearance returned to System and the viewport override was cleared. This
 consolidation session only inspected the supplied artifacts and images.
-Production `21a0900` is unchanged; the fixture pass is not clearance to release.
+These fixture checks predated release #83 and did not by themselves prove a
+production repair. The later real production gate results are recorded above.
 
 ## Cleanup retained, not completed
 
-**Production cloud QA cleanup completed on 16 November 2026.** After independent
+### Before-release cloud cleanup
+
+**The first production cloud QA cleanup completed on 16 November 2026.** After independent
 review and a successful `ROLLBACK` dry run, the orchestrator committed a guarded
 transaction deleting exactly **two private, unlinked, zero-entry QA initiatives
 and their two matching idempotency save receipts**. The guards checked exact
@@ -195,9 +281,9 @@ the first page. Its `checkedAt` remained `2026-11-16T04:19:06.910000Z`, which
 still does not prove a scheduled cron firing. Fresh remote verification kept
 `origin/main` at `21a090098b166c403b6ee4cdda772bf8489fb92a`. No release occurred.
 
-No current-task support entry was shared: withdrawal count **0**. Remaining
-**production-origin** scope is **zero cloud QA cards, one device draft and seven
-backups**. The separate local fixture also retains one synthetic draft, one
+At that point no current-task support entry had been shared: withdrawal count
+**0**. The **production-origin task** scope then contained **zero cloud QA cards,
+one device draft and seven backups**. The separate local fixture retained one synthetic draft, one
 backup and one listed attachment. No selective local removal path is supported.
 
 | Storage | Exact synthetic title | Final status / identifying UI detail |
@@ -227,6 +313,26 @@ selectors, full cloud documents and executable deletion SQL are excluded from
 this public evidence. The private identification manifest was removed after
 verification and its absence independently confirmed. No forensic erasure is claimed.
 
+### Post-release cleanup
+
+The post-release QA created a different A private card with four needs and two
+offers in its document, plus two private workspace needs. Those records are
+separate from the already removed QA 15 Nov A/B cards. Root confirmed a reviewed
+transaction and successful rollback dry run for the new private card and its one
+matching receipt; the separate postflight found no target remaining. The two
+workspace needs remain private and retained. Their exact server binding was not
+completed: automatic approval rejected the delegated lookup, and the delegated
+session then stopped at the workspace credit limit. Root verified the Platform
+destination, but did not delete entries without the remaining exact-row checks.
+The real workspace parent, older entries and mixed save history were preserved.
+No final post-cleanup browser check of this continuation was completed.
+
+Remaining production state: one device draft with the PDF and 19 original
+backups (seven earlier task backups), plus the two private workspace QA needs.
+The separate local fixture retains one draft, one backup and one attachment.
+Private identification files remain local for a later exact cleanup; they are
+excluded from Git. This is partial cleanup, with no forensic-erasure claim.
+
 ## Rendered proof
 
 The following existing captures were visually inspected before inclusion. They
@@ -242,6 +348,8 @@ the overlap is a capture artifact, not a removed input.
 | ![Synthetic negation examples at 375 px in Light](fixture-brave-negation-375-light.jpg) | ![Synthetic negation examples at 1280 px in Dark](fixture-brave-negation-1280-dark.jpg) |
 | fixture, Brave (Chromium 156, user-reported), 375 px, Dark, synthetic viewer return | fixture, Brave (Chromium 156, user-reported), 1280 px, Light, synthetic editor return |
 | ![Synthetic viewer card and view-only workspace at 375 px in Dark](fixture-brave-cross-tab-viewer-return-375-dark.jpg) | ![Synthetic editor card and editable workspace at 1280 px in Light](fixture-brave-cross-tab-editor-return-1280-light.jpg) |
+| production, Brave (Chromium 156), released client, 375 px, Light | production, Brave (Chromium 156), released client, 1280 px, Dark |
+| ![Public Funding search after release at 375 px in Light](production-brave-postrelease-funding-375-light.jpg) | ![Public Funding search after release at 1280 px in Dark](production-brave-postrelease-funding-1280-dark.jpg) |
 
 The separate **production, Brave (Chromium 156)** stale-tab capture is
 **1460 px**, not 1280. It is retained locally,
@@ -273,6 +381,7 @@ allow the retained artifacts to be checked without publishing their full content
 | `fixture-negation-results.json` | `34b8c16267fd1b3288c2e3ced30f74c965e00a0c742f1eeee012a2bb0c7bda28` |
 | `fixture-cross-tab-review.md` | `6a90fe5c06997f279369a50cc7827ee63e7491d9060527b3f9a5adf27db177b7` |
 | `fixture-cross-tab-results.json` | `5e2ab9ab6063623687e7c888c383321855279494b2626a5342db22e0d6bbeccf` |
+| `postrelease-results.md` | `3128157bcacf1b2e0c526fd91975f69cb5ff46887098431bfb0e7072d792401f` |
 
 Bridge `verification-status.json`, `test.log` and `test-auth-db.log` were inspected
 in the retained bridge artifact directory. Configuration, index refresh and
@@ -281,30 +390,35 @@ workstreams; this documentation session did not rerun them. QA used no new
 dependencies. Its online modern-web-guidance refresh was blocked by the sandbox
 registry restriction, so repository standards were used.
 
-Consolidation checks ran in an isolated branch from `origin/develop` at
-`187f331db97ef367fc7e288bdabb44ff04bc71be`, separate from the dirty source checkout:
+The evidence branch began at `187f331` and later integrated the already released
+`develop` head `bd22bf319400c19c2d3b13abe0ed6cf83147f025` in local merge
+`9ce63df32e82059fba0552934ad148cfe43b6492`. All 11 existing PR paths were preserved
+byte for byte during that base update; the rest of the tree matched the release.
+The dirty source checkout was not edited. Checks on the released base:
 
-- `bun install --frozen-lockfile`: 574 packages installed; no lockfile or
-  dependency change, Bun 1.4.2 and Node 24.20.0.
+- `bun install --frozen-lockfile`: passed with no lockfile or dependency change,
+  Bun 1.4.2 and Node 24.20.0.
 - `bun run ci`: passed. Root 147, design system 34, API 217 passed with 56
-  configuration-dependent skips, app 319, harness 78; design/type builds and
+  configuration-dependent skips, app 342, harness 78; design/type builds and
   guidance checks passed. The initial sandbox attempt stopped at the pinned model
   download; the approved network-enabled run completed.
 - `bun run guidance:check`: 98 Markdown files passed.
 - `git diff --check`, local Markdown links and JSON/sample counts passed.
   Text checks found no email, DID, AT-URI, database URL, private-key marker or
-  em dash in the new evidence, decision diff or issue drafts. Six selected image widths
+  em dash in the new evidence, decision diff or issue drafts. Eight selected image widths
   were confirmed as 375/1280 and visually inspected.
 
-Supported cross-tab fixture cases and responsive captures passed; focus timing,
-browser race timing and exported-file bytes remain unproven. The six uncovered
-findings are tracked in this evidence draft PR because repository Issues is
-disabled. Nothing here authorizes a merge, release or production mutation.
+Supported fixture cases and the two real production gates passed. Actual focus
+and asynchronous race timing and exported-file bytes remain unproven. Sharing
+remains stopped and matching unproven by user direction. The six follow-ups are
+tracked in this evidence PR because repository Issues is disabled. The user
+subsequently requested that these sessions finish and their PRs be merged.
 
 ## Follow-up phone and release checklist
 
-These are **unrun acceptance steps**, not passes. Sharing and returning-visitor
-release/update checks wait for an approved release of the blocker fixes.
+These are **unrun acceptance steps**, not passes. The production blocker and
+later-load update checks passed after the approved release. Sharing and matching
+remain stopped and unproven; restarting them needs the user's direction.
 
 - iPhone Safari: sign in, describe, type needs and offers, then share. Speak should
   stay hidden.
@@ -316,6 +430,7 @@ release/update checks wait for an approved release of the blocker fixes.
 - Desktop Chrome: complete real local speech setup and Speak; Brave cannot prove
   that flow.
 - Add to the home screen, reopen offline, and try 200% text zoom.
-- After the approved fixes are released: repeat production negation and two-tab
-  sign-out, complete sharing/matching and withdrawal checks, observe the
-  returning-visitor release transition, and finish supported selective local cleanup when available.
+- When the user authorizes resumed sharing QA: complete A/B matching, reasons,
+  private-entry exclusion and edit/withdrawal propagation. Keep the earlier
+  production gate/update passes distinct from those unproven steps.
+- Finish supported selective local cleanup when it becomes available.

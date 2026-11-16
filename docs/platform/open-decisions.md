@@ -447,11 +447,16 @@ and PDS origins, and database CA were preserved. No pilot identity list was adde
 Certified group publication remains off, and no custom project PDS origins were
 enabled.
 
-Production access is enabled, but launch QA is not approved. The user designated
-explicit-negation classification and stale private UI after cross-tab sign-out as
-launch blockers. Sharing and matching acceptance checks stopped pending reviewed
-fixes and an approved release. The [16 November evidence](prototype/proof/go-live-2026-11-16/README.md)
-separates the observed production behavior from fixture fixes and unproven flows.
+The user approved the full `develop` release on 16 November, including fixes
+#80/#81 and the already present catalog revisions #9/#71 and keyword change #79.
+Release #83 reached production as `ea2b810`. Both initially designated launch
+blockers passed on the verified new client: negation classification and real A/B
+cross-tab session changes. The user then stopped sharing after browser-control
+timeouts and directed that matching remain unproven; no app failure was established
+by those timeouts. This is not a blanket launch-QA approval. The
+[16 November evidence](prototype/proof/go-live-2026-11-16/README.md)
+preserves the initial failures, fixture proof, production retests and remaining
+limits. The user subsequently authorized finishing and merging the evidence PR.
 
 ### Catalog routine draft pull requests, decided 15 November 2026
 
