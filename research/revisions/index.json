@@ -1,4 +1,20 @@
 {
   "version": 1,
-  "revisions": []
+  "revisions": [
+    {
+      "id": "2026-11-15-buffett-2027-dates",
+      "path": "research/revisions/2026-11-15-buffett-2027-dates.json",
+      "sha256": "931685440cd9ec7653056338c1322d73ed1753ef86b72939c7fa3a2c5b52c3b8"
+    },
+    {
+      "id": "2026-11-15-spencer-2027-pause",
+      "path": "research/revisions/2026-11-15-spencer-2027-pause.json",
+      "sha256": "eee9c65dd7c0c3dfab8ed13bfaef57604496a42964b982c23a4f9d39657b1d8c"
+    },
+    {
+      "id": "2026-11-15-emergent-2027-resumption",
+      "path": "research/revisions/2026-11-15-emergent-2027-resumption.json",
+      "sha256": "622a72a468db062e9d26a5db500166709d77d0cf9f1942da0fac3c044a8bdeb3"
+    }
+  ]
 }

@@ -5971,12 +5971,12 @@
           "note": "No verified per-grant amount is stated in the reviewed source."
         },
         "application": {
-          "route": "open",
+          "route": "future",
           "url": "https://www.emergentfund.net/apply",
-          "opensOn": "2026-10-01",
-          "closesOn": "2026-10-22",
+          "opensOn": "2027-01-01",
+          "closesOn": null,
           "deadlineInstant": null,
-          "note": "Dated October 2026 cycle: October 1–22. The same page also says third Thursday monthly, which conflicts with the October date. Confirm the closing date/time in the application portal; no exact instant assumed."
+          "note": "Grant cycles are closed for the rest of 2026 and resume January 1, 2027. No closing date or cutoff time is published for that intake. The FAQ's general rule, closing on the third Thursday of the month, conflicts with some dated 2026 windows, so no 2027 date is inferred."
         },
         "costs": {
           "supported": [],
@@ -6026,11 +6026,38 @@
             "url": "https://www.emergentfund.net/apply",
             "note": "Official application page lists US/territory scope, exclusions and dated 2026 cycles; generic monthly deadline language conflicts with October 22.",
             "checkedOn": "2026-10-16"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.emergentfund.net/apply",
+            "note": "Application page: cycles closed for the remainder of 2026, resuming January 1, 2027; no closing date for that intake.",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.emergentfund.net/faqs",
+            "note": "FAQ: no set grant size, past grants USD 10,000 to 30,000; intake generally closes on the third Thursday of the month.",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "fields": [
+              "unknowns"
+            ],
+            "url": "https://www.emergentfund.net/",
+            "note": "Homepage still describes monthly, open-access grants and does not mention the closure.",
+            "checkedOn": "2026-11-15"
           }
         ],
         "unknowns": [
-          "Per-grant range is not published in the reviewed source.",
-          "Confirm October deadline/time because the dated cycle conflicts with generic third-Thursday language."
+          "January 2027 closing date and time are not published.",
+          "Per-grant range: the FAQ says there is no set grant size; past grants ranged from USD 10,000 to 30,000, which is not an offer.",
+          "The homepage still describes monthly open-access grants while the application page announces the 2026 closure; both evidence versions are retained."
         ]
       }
     ],
@@ -6044,6 +6071,21 @@
         "url": "https://www.emergentfund.net/apply",
         "title": "Official programme eligibility and selection criteria",
         "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.emergentfund.net/apply",
+        "title": "Apply: 2026 closure and January 2027 resumption",
+        "checkedOn": "2026-11-15"
+      },
+      {
+        "url": "https://www.emergentfund.net/faqs",
+        "title": "Emergent Fund FAQ",
+        "checkedOn": "2026-11-15"
+      },
+      {
+        "url": "https://www.emergentfund.net/",
+        "title": "Emergent Fund homepage",
+        "checkedOn": "2026-11-15"
       }
     ],
     "evidence": [

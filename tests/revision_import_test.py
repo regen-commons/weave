@@ -14,20 +14,63 @@ from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / 'scripts'))
-from revision_import import INDEX, digest, encoded, load_history, read
+from revision_import import INDEX, digest, encoded, load_history, read, replace
 from importlib.util import spec_from_file_location, module_from_spec
 spec = spec_from_file_location('revise_program', REPO / 'scripts/revise-program.py')
 cli = module_from_spec(spec)
 spec.loader.exec_module(cli)
 
 
+def rewind_journal(root):
+    """Return a copy to the empty journal the synthetic replays start from.
+
+    Undo the repository's real revisions newest first, check each input against the hash
+    its archive recorded before that revision, and regenerate the catalog from the
+    restored inputs. Restored records keep their displayed program.
+    """
+    _, history = load_history(root)
+    if not history:
+        return
+    catalog = read(root, 'dist/data/funders.json')
+    for revision in reversed(history):
+        for edit in reversed(revision['edits']):
+            document = read(root, edit['path'])
+            replace(document, edit['keys'], edit['before'])
+            (root / edit['path']).write_bytes(encoded(document))
+        for path, expected in revision['beforeFileSha256'].items():
+            if hashlib.sha256((root / path).read_bytes()).hexdigest() != expected:
+                raise AssertionError('Rewound input differs from its archived hash: ' + path)
+        position = next(i for i, f in enumerate(catalog['funds']) if f['id'] == revision['fundId'])
+        catalog['funds'][position] = revision['priorFundRecord']
+        (root / 'research/revisions' / (revision['id'] + '.json')).unlink()
+    (root / INDEX).write_bytes(encoded({'version': 1, 'revisions': []}))
+    (root / 'dist/data/funders.json').write_text(json.dumps(catalog, ensure_ascii=False, separators=(',', ':')))
+    subprocess.run(['python3', 'scripts/import-data.py'], cwd=root, check=True, capture_output=True)
+    funds = {f['id']: f for f in read(root, 'dist/data/funders.json')['funds']}
+    for revision in history:
+        if funds[revision['fundId']] != revision['priorFundRecord']:
+            raise AssertionError('Rewound record differs from its archive: ' + revision['fundId'])
+
+
 class Revisions(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.template = tempfile.TemporaryDirectory(prefix='funding-revision-template-')
+        for path in ['research', 'scripts', 'dist']:
+            shutil.copytree(REPO / path, Path(cls.template.name) / path,
+                            ignore=shutil.ignore_patterns('models', 'assets', 'fund-vectors.*', '__pycache__'))
+        rewind_journal(Path(cls.template.name))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.template.cleanup()
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix='funding-revision-test-')
         self.root = Path(self.directory.name)
         for path in ['research', 'scripts', 'dist']:
-            shutil.copytree(REPO / path, self.root / path,
-                            ignore=shutil.ignore_patterns('models', 'assets', 'fund-vectors.*', '__pycache__'))
+            shutil.copytree(Path(self.template.name) / path, self.root / path,
+                            ignore=shutil.ignore_patterns('__pycache__'))
 
     def tearDown(self):
         self.directory.cleanup()

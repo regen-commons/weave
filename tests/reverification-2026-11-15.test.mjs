@@ -127,7 +127,8 @@ test('the review log keeps attempts, field checks and proposal outcomes apart', 
   assert.deepEqual(run.appliedAdditions.map(a => [a.fundId, a.programId]), applied);
   assert.deepEqual(run.appliedRevisions, []);
   assert.deepEqual(run.conditionsAdded, archive.appendedConditionIds);
-  assert.equal(run.catalogCompile.compiledAt, catalog.compiledAt);
+  // Later imports, such as journaled revisions, recompile the catalog after this pass.
+  assert.ok(run.catalogCompile.priorCompiledAt < run.catalogCompile.compiledAt && run.catalogCompile.compiledAt <= catalog.compiledAt);
   assert.deepEqual(run.catalogCompile.displayReselections.map(r => r.fundId),
     archive.changes.filter(c => c.displayReselected).map(c => c.fundId));
 });
