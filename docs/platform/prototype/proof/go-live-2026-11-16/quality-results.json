@@ -1,0 +1,229 @@
+[
+  {
+    "type": "need",
+    "text": "We need watering cans and wheelbarrows.",
+    "expected": [
+      "Material"
+    ],
+    "observed": [
+      "Material"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We need USD 500 for our community work.",
+    "expected": [
+      "Financial"
+    ],
+    "observed": [
+      "Financial"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "Precisamos de água para a horta",
+    "expected": [
+      "Living"
+    ],
+    "observed": [
+      "Living"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We need composting training from an experienced gardener.",
+    "expected": [
+      "Experiential"
+    ],
+    "observed": [
+      "Experiential"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We need open research and soil test data.",
+    "expected": [
+      "Intellectual"
+    ],
+    "observed": [
+      "Intellectual",
+      "Living"
+    ],
+    "match": false
+  },
+  {
+    "type": "offer",
+    "text": "We can lend shovels and watering cans.",
+    "expected": [
+      "Material"
+    ],
+    "observed": [
+      "Material"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We can offer USD 200 for community work.",
+    "expected": [
+      "Financial"
+    ],
+    "observed": [
+      "Financial"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We can share seeds and rainwater for the garden.",
+    "expected": [
+      "Living"
+    ],
+    "observed": [
+      "Living"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We offer hands-on composting training.",
+    "expected": [
+      "Experiential"
+    ],
+    "observed": [
+      "Experiential"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We offer open research and soil test data.",
+    "expected": [
+      "Intellectual"
+    ],
+    "observed": [
+      "Intellectual",
+      "Living"
+    ],
+    "match": false
+  },
+  {
+    "type": "need",
+    "text": "We need introductions to community garden partners.",
+    "expected": [
+      "Social"
+    ],
+    "observed": [
+      "Social"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We need local songs and cultural stories for our gathering.",
+    "expected": [
+      "Cultural"
+    ],
+    "observed": [
+      "Cultural"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We need a meditation and spiritual care circle.",
+    "expected": [
+      "Spiritual"
+    ],
+    "observed": [
+      "Spiritual"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We need hand tools and composting training.",
+    "expected": [
+      "Material",
+      "Experiential"
+    ],
+    "observed": [
+      "Experiential",
+      "Material"
+    ],
+    "match": true
+  },
+  {
+    "type": "need",
+    "text": "We don't need money. We need rainwater for the garden.",
+    "expected": [
+      "Living"
+    ],
+    "observed": [
+      "Financial"
+    ],
+    "match": false
+  },
+  {
+    "type": "offer",
+    "text": "We can introduce groups to local garden partners.",
+    "expected": [
+      "Social"
+    ],
+    "observed": [
+      "Social"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We can share local songs and cultural stories.",
+    "expected": [
+      "Cultural"
+    ],
+    "observed": [
+      "Cultural"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We offer meditation and spiritual care circles.",
+    "expected": [
+      "Spiritual"
+    ],
+    "observed": [
+      "Spiritual"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We offer hand tools and composting training.",
+    "expected": [
+      "Material",
+      "Experiential"
+    ],
+    "observed": [
+      "Experiential",
+      "Material"
+    ],
+    "match": true
+  },
+  {
+    "type": "offer",
+    "text": "We don't offer money. We offer seeds for the garden.",
+    "expected": [
+      "Living"
+    ],
+    "observed": [
+      "Financial",
+      "Living"
+    ],
+    "match": false
+  }
+]
