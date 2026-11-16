@@ -106,7 +106,7 @@ reviewed two-file patch SHA-256 is
 `4ff6d32b95650ca0bd9bffb1697d381f008bc82f7ff5c7d387aa471163f995ff`.
 Forty independent probes passed. Full CI passed: root 147, design system 34,
 API 217 plus 56 conditional skips, app 323, harness 78, guidance 95 and
-type/design checks. Four GitHub workflows and two Vercel statuses succeeded.
+type/design checks. Four GitHub workflows passed on the exact fix head.
 
 **Fixture, Brave:** both negated-money inputs suggested Living only; tools with
 negated money and tools at no cost suggested Material only, 4/4. Keyboard manual
@@ -127,7 +127,15 @@ based on `187f331`, across 15 paths. Independent review is clear; 54 focused
 tests passed with zero skips. Full CI passed: root 147, design system 34, app
 338, API 217 plus 56 conditional skips, harness 78 and type checks. The earlier
 v1 candidate is superseded. Browser fixture proof remains pending. The fix is a
-draft, not a production release; no production repair is claimed.
+draft, not a production release; no production repair is claimed. Four GitHub
+workflows passed on its exact head. The Weave preview deployment has completed.
+
+For both #80 and #81, the Funding Commons Vercel status is `success` with
+description `Canceled by Ignored Build Step`: **skipped as configured**, not a
+Funding Commons deployment. The Weave statuses separately say `Deployment has
+completed` ([#80 preview](https://vercel.com/regen-commons/weave/9zcBhFGHmgp1CeGFur7sq6HJXqYz),
+[#81 preview](https://vercel.com/regen-commons/weave/DfhiucgbyEQc9gkahRyPM29K8e1Y)).
+Those deployment statuses do not prove browser acceptance or production repair.
 
 ## Cleanup retained, not completed
 
