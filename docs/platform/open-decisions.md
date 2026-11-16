@@ -188,9 +188,9 @@ and completion status. Responsibilities below are proposed roles.
 | Question | Working recommendation | Owner | Evidence still required |
 |---|---|---|---|
 | Who sees shared entries? | First audience: signed-in Weave users. Share only the reviewed entries and summary, and apply the network participation rules when matching. | Product owner and API maintainer | Verify audience comprehension and server enforcement. Test shares with and without an end date against the [decided lifecycle](#shared-entries-and-acting-on-matches). |
-| Can the Certified index support the launch coverage target? | Index every listed public Certified project the chosen index makes available, as [decided on 15 November](#all-listed-public-certified-projects-decided-15-november-2026). | Integration maintainer and source partners | A live traversal into local Supabase covered pagination, unlisted handling and the volume on 15 November ([evidence](../../packages/api/evidence/project-index-all-public-2026-11-15.md)). Still open: the first production refresh, observed updates and deletions over several days, rate limits, measured lag, and relevance and latency against the broader corpus. |
+| Can the Certified index support the launch coverage target? | Index every listed public Certified project the chosen index makes available, as [decided on 15 November](#all-listed-public-certified-projects-decided-15-november-2026). | Integration maintainer and source partners | A live traversal into local Supabase covered pagination, unlisted handling and the volume on 15 November ([evidence](../../packages/api/evidence/project-index-all-public-2026-11-15.md)). The first production refresh is now observed ([16 November evidence](prototype/proof/go-live-2026-11-16/README.md)); scheduled firing, updates and deletions over several days, rate limits, measured lag, and relevance and latency against the broader corpus remain open. |
 | Which model and search settings meet the quality bar? | Compare the existing pinned embedding model plus full-text search against lexical-only retrieval; keep local refinement optional and no-model results usable. | Matching maintainer and domain reviewers | Held-out need/offer relevance and recall, evidence accuracy and language/domain breakdowns. The 80 percent relevance and 2-second p95 targets in section 7.6 are proposed test budgets, not achieved results. |
-| Where should the indexing job run at pilot scale? | A daily Vercel Cron function in the Weave project, which Hobby allows once a day, writing to the existing Platform database. A GitHub Actions job would publish its logs from this public repository. No additional host or paid model service is presumed. | API and infrastructure maintainers | A full refresh of 1,123 projects took 24 to 25 seconds into local Supabase on 15 November, inside the 300-second Hobby limit; the hosted duration is unmeasured. Check memory, concurrency and transfer cost at 10k projects before that volume, and embeddings separately. Any new spend, dependency or hosted rollout follows repository rules. |
+| Where should the indexing job run at pilot scale? | A daily Vercel Cron function in the Weave project, which Hobby allows once a day, writing to the existing Platform database. A GitHub Actions job would publish its logs from this public repository. No additional host or paid model service is presumed. | API and infrastructure maintainers | A full refresh of 1,123 projects took 24 to 25 seconds into local Supabase on 15 November, inside the 300-second Hobby limit; the first hosted refresh took 63.2 seconds ([16 November evidence](prototype/proof/go-live-2026-11-16/README.md)). Check memory, concurrency and transfer cost at 10k projects before that volume, and embeddings separately. Any new spend, dependency or hosted rollout follows repository rules. |
 
 The 8 November local build implements the two restricted jobs, versioned vector
 storage and default-off hybrid retrieval. Real PostgreSQL fixtures establish the
@@ -436,6 +436,30 @@ leaves the refresh unapplied.
 The public list is an index of what Certified publishes, not an endorsement,
 and listing a project there sends it nothing. Matching on its evidence follows
 the sections above.
+
+### Production project access, recorded 16 November 2026
+
+The user authorized production project access for any verified Certified identity
+on 15 November 2026. The production audit found `WEAVE_PROJECTS_ENABLED=true`
+and `WEAVE_PROJECT_ACCESS_MODE=authenticated` already set before this task;
+neither was newly switched on. The existing credentials, production Group Service
+and PDS origins, and database CA were preserved. No pilot identity list was added.
+Certified group publication remains off, and no custom project PDS origins were
+enabled.
+
+Production access is enabled, but launch QA is not approved. The user designated
+explicit-negation classification and stale private UI after cross-tab sign-out as
+launch blockers. Sharing and matching acceptance checks stopped pending reviewed
+fixes and an approved release. The [16 November evidence](prototype/proof/go-live-2026-11-16/README.md)
+separates the observed production behavior from fixture fixes and unproven flows.
+
+### Catalog routine draft pull requests, decided 15 November 2026
+
+The user authorized catalog routines to create their own branches and open draft
+pull requests. Routine changes target `develop` and follow the catalog guide,
+committed lockfile and required checks. This permission does not authorize merging,
+releasing or publishing to Funding Commons. Publication from
+`codex/funding-commons-demo` still needs its own authorization.
 
 ### Matching both shared entries and external evidence
 
