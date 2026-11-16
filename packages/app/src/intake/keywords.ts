@@ -10,26 +10,31 @@ import { fingerprint, keptOnRebuild } from "./state.ts";
 /** `\w` in any script: a letter, mark, digit or underscore. JavaScript's `\w` and `\b` know only ASCII ones. */
 const WORD = String.raw`[\p{L}\p{M}\p{Nd}_]`;
 /**
- * The keywords as whole words in any script, ignoring case, so "água" counts and "careço" is not "care".
+ * Keywords as whole words in any script, ignoring case, so "água" counts and "careço" is not "care".
  * A stem's `\w*` runs to the end of its word, accents included; symbols such as R$ count anywhere.
  */
-function bank(keywords: RegExp, symbols?: RegExp): RegExp {
+export function wholeWords(keywords: RegExp, symbols?: RegExp): RegExp {
   const words = `(?<!${WORD})(?:${keywords.source.replaceAll(String.raw`\w`, WORD)})(?!${WORD})`;
   return new RegExp(symbols ? `${words}|${symbols.source}` : words, "iu");
 }
 const BANKS = {
-  living: bank(/living|land|water|seed\w*|soil|tree\w*|plant\w*|nursery|terra|mudas|sementes|água/),
-  material: bank(
+  living: wholeWords(/living|land|water|seed\w*|soil|tree\w*|plant\w*|nursery|terra|mudas|sementes|água/),
+  material: wholeWords(
     /tool\w*|equipment\w*|equipamento\w*|machine\w*|máquina\w*|tractor\w*|trator\w*|pumps?|shovel\w*|spade\w*|wheelbarrow\w*|greenhouse\w*|estufa\w*|irrigation|vehicle\w*|fenc\w*|trucks?|building|venue|materials?|ferramenta\w*|cerca\w*/,
   ),
-  intellectual: bank(/intellectual|map\w*|data|research|method\w*|template|review\w*|knowledge|pesquisa|dados/),
-  experiential: bank(/experiential|teach\w*|train\w*|workshop\w*|skills?|know-how|experience|learn\w*|oficina\w*/),
-  social: bank(
+  intellectual: wholeWords(/intellectual|map\w*|data|research|method\w*|template|review\w*|knowledge|pesquisa|dados/),
+  experiential: wholeWords(
+    /experiential|teach\w*|train\w*|workshop\w*|skills?|know-how|experience|learn\w*|oficina\w*/,
+  ),
+  social: wholeWords(
     /social|introduction\w*|connect\w*|partner\w*|co-applicant|volunteer\w*|fiscal host|network\w*|parceir\w*|voluntári\w*/,
   ),
-  financial: bank(/financial|money|funding|grant\w*|cash|budget|donat\w*|usd|eur|brl|dinheiro|reais/, /R\$|[$€£]/),
-  cultural: bank(/cultural|story|stories|art|artists?|culture|music|language|histórias|cultura/),
-  spiritual: bank(/ceremony|ritual|care|spirit\w*|listening|cerimônia|cuidado/),
+  financial: wholeWords(
+    /financial|money|funding|grant\w*|cash|budget|donat\w*|usd|eur|brl|dinheiro|reais/,
+    /R\$|[$€£]/,
+  ),
+  cultural: wholeWords(/cultural|story|stories|art|artists?|culture|music|language|histórias|cultura|artístic\w*/),
+  spiritual: wholeWords(/ceremony|ritual|care|spirit\w*|listening|cerimônia|cuidado/),
 } as const;
 /** Kinds of support the words point at: a keyword suggestion for a person to check, never a classification. */
 export function suggestKinds(text: string): (keyof typeof BANKS)[] {

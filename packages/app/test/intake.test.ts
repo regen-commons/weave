@@ -343,6 +343,10 @@ test("kinds come from whole words in any script, so água is water and careço i
     assert.deepEqual(suggestKinds(words), ["living"], words);
   assert.deepEqual(suggestKinds("Careço de ferramentas"), ["material"], "careço is not care");
 });
+test("Portuguese art words keep the Cultural kind as whole words", () => {
+  for (const words of ["Um projeto artístico", "Oficinas artísticas para jovens"])
+    assert.ok(suggestKinds(words).includes("cultural"), words);
+});
 test("quick add keeps the person's words, suggests kinds in pencil and guards the list", () => {
   let step = addEntry(emptyAskStep(), "  Native seedlings and   fencing tools ");
   const entry = step.items[0]!;

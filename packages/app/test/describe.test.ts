@@ -621,3 +621,15 @@ test("keyword rules suggest learning and education from school and workshop word
   assert.ok(lenses("Uma escola de agroecologia com oficinas para jovens.").includes("learning"));
   assert.ok(!lenses("We restore the river with families.").includes("learning"));
 });
+test("lenses come from whole words in any script, so água is place-based and relatório is not a river", () => {
+  const lenses = (text: string) => keywordSuggestion(newDraft(), text).lenses;
+  assert.deepEqual(lenses("Cuidamos da água da chuva."), ["place_based"]);
+  assert.deepEqual(lenses("Água limpa para beber."), ["place_based"]);
+  assert.deepEqual(lenses("O relatório necessário para o edital."), [], "rio is a whole word");
+});
+test("Portuguese words for territory, community, land and art reach their lenses", () => {
+  const lenses = (text: string) => keywordSuggestion(newDraft(), text).lenses;
+  for (const text of ["Cuidamos do território.", "Um trabalho comunitário.", "Pela reforma agrária.", "Regularização fundiária."])
+    assert.deepEqual(lenses(text), ["place_based"], text);
+  assert.deepEqual(lenses("Um projeto artístico."), ["art_culture"]);
+});
