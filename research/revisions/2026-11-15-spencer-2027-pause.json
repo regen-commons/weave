@@ -1,0 +1,778 @@
+{
+  "version": 1,
+  "id": "2026-11-15-spencer-2027-pause",
+  "fundId": "recrvyr2BGCOy0NAI",
+  "programId": "spencer-small-research",
+  "expectedFundSha256": "cce4d073e9711e423eed322dbeeb532cef7ef9400765bf033c128bc9bcc13dcc",
+  "reviewedOn": "2026-11-15",
+  "reason": "The program page now says Spencer is not accepting new applications, will not open new Small Research Grant competitions between January and June 2027, and expects to announce future schedules in June 2027. Proposed by the November 5 Thursday run and reconfirmed November 15.",
+  "afterProgram": {
+    "id": "spencer-small-research",
+    "name": "Small Research Grants on Education",
+    "instrument": "grant",
+    "focus": [
+      "education research",
+      "foundational knowledge about learning"
+    ],
+    "beneficiaries": [
+      "education research communities",
+      "learners"
+    ],
+    "geography": {
+      "workCountries": [],
+      "applicantCountries": [],
+      "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+      "exclusions": []
+    },
+    "applicants": {
+      "types": [
+        "nonprofit institutions",
+        "public institutions",
+        "universities",
+        "research organizations"
+      ],
+      "fiscalSponsorship": "unknown",
+      "requirements": [
+        "PI and co-PIs hold earned doctorates",
+        "PI affiliated with an eligible administering institution",
+        "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+      ],
+      "exclusions": [
+        "Direct grants to individuals"
+      ]
+    },
+    "award": {
+      "currency": "USD",
+      "min": null,
+      "max": 50000,
+      "durationMonths": 60,
+      "basis": "current_offer",
+      "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+    },
+    "application": {
+      "route": "closed",
+      "url": "https://www.spencer.org/grant_types/small-research-grant/",
+      "opensOn": null,
+      "closesOn": null,
+      "deadlineInstant": null,
+      "note": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year."
+    },
+    "costs": {
+      "supported": [
+        "research personnel",
+        "research travel",
+        "research equipment and software"
+      ],
+      "excluded": [
+        "indirect costs",
+        "activities without significant education research",
+        "capital projects",
+        "standalone software development"
+      ]
+    },
+    "evidence": [
+      {
+        "fields": [
+          "focus",
+          "geography",
+          "applicants",
+          "award",
+          "application",
+          "costs"
+        ],
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "fields": [
+          "application",
+          "unknowns"
+        ],
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "note": "Program update: now closed; no new competitions January to June 2027; refreshed approach and schedules expected June 2027.",
+        "checkedOn": "2026-11-15"
+      }
+    ],
+    "unknowns": [
+      "Next application date: future schedules are expected in June 2027.",
+      "Fiscal sponsor arrangements beyond administering-institution requirement"
+    ]
+  },
+  "sources": [
+    {
+      "url": "https://www.spencer.org/grant_types/small-research-grant/",
+      "title": "Small Research Grants on Education: 2027 program update",
+      "checkedOn": "2026-11-15"
+    }
+  ],
+  "beforeProgram": {
+    "id": "spencer-small-research",
+    "name": "Small Research Grants on Education",
+    "instrument": "grant",
+    "focus": [
+      "education research",
+      "foundational knowledge about learning"
+    ],
+    "beneficiaries": [
+      "education research communities",
+      "learners"
+    ],
+    "geography": {
+      "workCountries": [],
+      "applicantCountries": [],
+      "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+      "exclusions": []
+    },
+    "applicants": {
+      "types": [
+        "nonprofit institutions",
+        "public institutions",
+        "universities",
+        "research organizations"
+      ],
+      "fiscalSponsorship": "unknown",
+      "requirements": [
+        "PI and co-PIs hold earned doctorates",
+        "PI affiliated with an eligible administering institution",
+        "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+      ],
+      "exclusions": [
+        "Direct grants to individuals"
+      ]
+    },
+    "award": {
+      "currency": "USD",
+      "min": null,
+      "max": 50000,
+      "durationMonths": 60,
+      "basis": "current_offer",
+      "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+    },
+    "application": {
+      "route": "closed",
+      "url": "https://www.spencer.org/grant_types/small-research-grant/",
+      "opensOn": null,
+      "closesOn": null,
+      "deadlineInstant": null,
+      "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+    },
+    "costs": {
+      "supported": [
+        "research personnel",
+        "research travel",
+        "research equipment and software"
+      ],
+      "excluded": [
+        "indirect costs",
+        "activities without significant education research",
+        "capital projects",
+        "standalone software development"
+      ]
+    },
+    "evidence": [
+      {
+        "fields": [
+          "focus",
+          "geography",
+          "applicants",
+          "award",
+          "application",
+          "costs"
+        ],
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+        "checkedOn": "2026-10-14"
+      }
+    ],
+    "unknowns": [
+      "Next application date",
+      "Fiscal sponsor arrangements beyond administering-institution requirement"
+    ]
+  },
+  "priorFundRecord": {
+    "id": "recrvyr2BGCOy0NAI",
+    "name": "Spencer Foundation",
+    "displayName": "Spencer Foundation",
+    "program": "Small Research Grants on Education",
+    "description": "Funds rigorous education research worldwide through institutional grants led by doctoral investigators. The Small Research program excludes service delivery or software projects without a significant research component. Its current application window is closed.",
+    "descriptionBasis": "primary",
+    "sectors": [
+      "Education & childhood development"
+    ],
+    "regions": [
+      "North America",
+      "Africa",
+      "Asia",
+      "Europe",
+      "Latin America & Caribbean",
+      "Middle East",
+      "Oceania"
+    ],
+    "approaches": [
+      "Collaboration",
+      "Communities of practice",
+      "Inclusion",
+      "Field-building",
+      "Equity",
+      "Peer learning"
+    ],
+    "grantBands": [
+      "Medium",
+      "Large",
+      "Very large"
+    ],
+    "website": "https://www.spencer.org",
+    "evidenceUrl": "https://www.spencer.org/grant_types/small-research-grant/",
+    "additionalSources": [],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "closed",
+    "accessDetail": "Page says now closed and normally accepts twice yearly; no next deadline confirmed.",
+    "amount": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal.",
+    "timing": "Page says now closed and normally accepts twice yearly; no next deadline confirmed.",
+    "deadlineDate": null,
+    "deadlineInstant": null,
+    "verifiedOn": "2026-10-14",
+    "qualityFlags": [],
+    "fieldsFilled": 10,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recrvyr2BGCOy0NAI",
+      "researchedOn": "2026-10-14",
+      "name": "Spencer Foundation",
+      "summary": "Funds rigorous education research worldwide through institutional grants led by doctoral investigators. The Small Research program excludes service delivery or software projects without a significant research component. Its current application window is closed.",
+      "themes": [
+        "Education & childhood development",
+        "Research"
+      ],
+      "regions": [
+        "Africa",
+        "Asia",
+        "Europe",
+        "North America",
+        "Latin America & Caribbean",
+        "Middle East",
+        "Oceania"
+      ],
+      "programs": [
+        {
+          "id": "spencer-small-research",
+          "name": "Small Research Grants on Education",
+          "instrument": "grant",
+          "focus": [
+            "education research",
+            "foundational knowledge about learning"
+          ],
+          "beneficiaries": [
+            "education research communities",
+            "learners"
+          ],
+          "geography": {
+            "workCountries": [],
+            "applicantCountries": [],
+            "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "nonprofit institutions",
+              "public institutions",
+              "universities",
+              "research organizations"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "PI and co-PIs hold earned doctorates",
+              "PI affiliated with an eligible administering institution",
+              "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+            ],
+            "exclusions": [
+              "Direct grants to individuals"
+            ]
+          },
+          "award": {
+            "currency": "USD",
+            "min": null,
+            "max": 50000,
+            "durationMonths": 60,
+            "basis": "current_offer",
+            "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+          },
+          "application": {
+            "route": "closed",
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "opensOn": null,
+            "closesOn": null,
+            "deadlineInstant": null,
+            "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+          },
+          "costs": {
+            "supported": [
+              "research personnel",
+              "research travel",
+              "research equipment and software"
+            ],
+            "excluded": [
+              "indirect costs",
+              "activities without significant education research",
+              "capital projects",
+              "standalone software development"
+            ]
+          },
+          "evidence": [
+            {
+              "fields": [
+                "focus",
+                "geography",
+                "applicants",
+                "award",
+                "application",
+                "costs"
+              ],
+              "url": "https://www.spencer.org/grant_types/small-research-grant/",
+              "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+              "checkedOn": "2026-10-14"
+            }
+          ],
+          "unknowns": [
+            "Next application date",
+            "Fiscal sponsor arrangements beyond administering-institution requirement"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "title": "Small Research Grants on Education",
+          "checkedOn": "2026-10-14"
+        }
+      ],
+      "researchNotes": "Pilot covers this program only; other funder programs may differ.",
+      "reviewStatus": "program_reviewed",
+      "focus": [],
+      "evidence": []
+    },
+    "sourceWarnings": [],
+    "isPilot": true,
+    "displayProgramId": "spencer-small-research"
+  },
+  "retainedSources": [
+    {
+      "url": "https://www.spencer.org/grant_types/small-research-grant/",
+      "title": "Small Research Grants on Education",
+      "checkedOn": "2026-10-14"
+    },
+    {
+      "url": "https://www.spencer.org/grant_types/small-research-grant/",
+      "title": "Small Research Grants on Education: 2027 program update",
+      "checkedOn": "2026-11-15"
+    }
+  ],
+  "changedFields": [
+    "application",
+    "evidence",
+    "unknowns"
+  ],
+  "changedPaths": [
+    "application.note",
+    "unknowns"
+  ],
+  "edits": [
+    {
+      "path": "research/pilot-americas-europe.json",
+      "keys": [
+        8,
+        "programs",
+        0
+      ],
+      "before": {
+        "id": "spencer-small-research",
+        "name": "Small Research Grants on Education",
+        "instrument": "grant",
+        "focus": [
+          "education research",
+          "foundational knowledge about learning"
+        ],
+        "beneficiaries": [
+          "education research communities",
+          "learners"
+        ],
+        "geography": {
+          "workCountries": [],
+          "applicantCountries": [],
+          "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "nonprofit institutions",
+            "public institutions",
+            "universities",
+            "research organizations"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "PI and co-PIs hold earned doctorates",
+            "PI affiliated with an eligible administering institution",
+            "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+          ],
+          "exclusions": [
+            "Direct grants to individuals"
+          ]
+        },
+        "award": {
+          "currency": "USD",
+          "min": null,
+          "max": 50000,
+          "durationMonths": 60,
+          "basis": "current_offer",
+          "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+        },
+        "application": {
+          "route": "closed",
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "opensOn": null,
+          "closesOn": null,
+          "deadlineInstant": null,
+          "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+        },
+        "costs": {
+          "supported": [
+            "research personnel",
+            "research travel",
+            "research equipment and software"
+          ],
+          "excluded": [
+            "indirect costs",
+            "activities without significant education research",
+            "capital projects",
+            "standalone software development"
+          ]
+        },
+        "evidence": [
+          {
+            "fields": [
+              "focus",
+              "geography",
+              "applicants",
+              "award",
+              "application",
+              "costs"
+            ],
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+            "checkedOn": "2026-10-14"
+          }
+        ],
+        "unknowns": [
+          "Next application date",
+          "Fiscal sponsor arrangements beyond administering-institution requirement"
+        ]
+      },
+      "after": {
+        "id": "spencer-small-research",
+        "name": "Small Research Grants on Education",
+        "instrument": "grant",
+        "focus": [
+          "education research",
+          "foundational knowledge about learning"
+        ],
+        "beneficiaries": [
+          "education research communities",
+          "learners"
+        ],
+        "geography": {
+          "workCountries": [],
+          "applicantCountries": [],
+          "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "nonprofit institutions",
+            "public institutions",
+            "universities",
+            "research organizations"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "PI and co-PIs hold earned doctorates",
+            "PI affiliated with an eligible administering institution",
+            "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+          ],
+          "exclusions": [
+            "Direct grants to individuals"
+          ]
+        },
+        "award": {
+          "currency": "USD",
+          "min": null,
+          "max": 50000,
+          "durationMonths": 60,
+          "basis": "current_offer",
+          "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+        },
+        "application": {
+          "route": "closed",
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "opensOn": null,
+          "closesOn": null,
+          "deadlineInstant": null,
+          "note": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year."
+        },
+        "costs": {
+          "supported": [
+            "research personnel",
+            "research travel",
+            "research equipment and software"
+          ],
+          "excluded": [
+            "indirect costs",
+            "activities without significant education research",
+            "capital projects",
+            "standalone software development"
+          ]
+        },
+        "evidence": [
+          {
+            "fields": [
+              "focus",
+              "geography",
+              "applicants",
+              "award",
+              "application",
+              "costs"
+            ],
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+            "checkedOn": "2026-10-14"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "note": "Program update: now closed; no new competitions January to June 2027; refreshed approach and schedules expected June 2027.",
+            "checkedOn": "2026-11-15"
+          }
+        ],
+        "unknowns": [
+          "Next application date: future schedules are expected in June 2027.",
+          "Fiscal sponsor arrangements beyond administering-institution requirement"
+        ]
+      }
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "keys": [
+        8,
+        "sources"
+      ],
+      "before": [
+        {
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "title": "Small Research Grants on Education",
+          "checkedOn": "2026-10-14"
+        }
+      ],
+      "after": [
+        {
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "title": "Small Research Grants on Education",
+          "checkedOn": "2026-10-14"
+        },
+        {
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "title": "Small Research Grants on Education: 2027 program update",
+          "checkedOn": "2026-11-15"
+        }
+      ]
+    }
+  ],
+  "beforeFileSha256": {
+    "research/pilot-americas-europe.json": "22184683b5502c448e1484737570aded723ed53793bcd2a516916f943a3d244f"
+  },
+  "resultFundRecord": {
+    "id": "recrvyr2BGCOy0NAI",
+    "name": "Spencer Foundation",
+    "displayName": "Spencer Foundation",
+    "program": "Small Research Grants on Education",
+    "description": "Funds rigorous education research worldwide through institutional grants led by doctoral investigators. The Small Research program excludes service delivery or software projects without a significant research component. Its current application window is closed.",
+    "descriptionBasis": "primary",
+    "sectors": [
+      "Education & childhood development"
+    ],
+    "regions": [
+      "North America",
+      "Africa",
+      "Asia",
+      "Europe",
+      "Latin America & Caribbean",
+      "Middle East",
+      "Oceania"
+    ],
+    "approaches": [
+      "Collaboration",
+      "Communities of practice",
+      "Inclusion",
+      "Field-building",
+      "Equity",
+      "Peer learning"
+    ],
+    "grantBands": [
+      "Medium",
+      "Large",
+      "Very large"
+    ],
+    "website": "https://www.spencer.org",
+    "evidenceUrl": "https://www.spencer.org/grant_types/small-research-grant/",
+    "additionalSources": [
+      "https://www.spencer.org/grant_types/small-research-grant/"
+    ],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "closed",
+    "accessDetail": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year.",
+    "amount": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal.",
+    "timing": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year.",
+    "deadlineDate": null,
+    "deadlineInstant": null,
+    "verifiedOn": "2026-10-14",
+    "qualityFlags": [],
+    "fieldsFilled": 10,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recrvyr2BGCOy0NAI",
+      "researchedOn": "2026-10-14",
+      "name": "Spencer Foundation",
+      "summary": "Funds rigorous education research worldwide through institutional grants led by doctoral investigators. The Small Research program excludes service delivery or software projects without a significant research component. Its current application window is closed.",
+      "themes": [
+        "Education & childhood development",
+        "Research"
+      ],
+      "regions": [
+        "Africa",
+        "Asia",
+        "Europe",
+        "North America",
+        "Latin America & Caribbean",
+        "Middle East",
+        "Oceania"
+      ],
+      "programs": [
+        {
+          "id": "spencer-small-research",
+          "name": "Small Research Grants on Education",
+          "instrument": "grant",
+          "focus": [
+            "education research",
+            "foundational knowledge about learning"
+          ],
+          "beneficiaries": [
+            "education research communities",
+            "learners"
+          ],
+          "geography": {
+            "workCountries": [],
+            "applicantCountries": [],
+            "scope": "U.S. and international proposals accepted; submissions in English with USD budgets.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "nonprofit institutions",
+              "public institutions",
+              "universities",
+              "research organizations"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "PI and co-PIs hold earned doctorates",
+              "PI affiliated with an eligible administering institution",
+              "One active Spencer research grant/proposal per PI at a time, subject to exceptions"
+            ],
+            "exclusions": [
+              "Direct grants to individuals"
+            ]
+          },
+          "award": {
+            "currency": "USD",
+            "min": null,
+            "max": 50000,
+            "durationMonths": 60,
+            "basis": "current_offer",
+            "note": "Base award up to USD50,000 over one to five years. Eligible scholars may request an additional USD10,000 course release; the base cap is not universal."
+          },
+          "application": {
+            "route": "closed",
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "opensOn": null,
+            "closesOn": null,
+            "deadlineInstant": null,
+            "note": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year."
+          },
+          "costs": {
+            "supported": [
+              "research personnel",
+              "research travel",
+              "research equipment and software"
+            ],
+            "excluded": [
+              "indirect costs",
+              "activities without significant education research",
+              "capital projects",
+              "standalone software development"
+            ]
+          },
+          "evidence": [
+            {
+              "fields": [
+                "focus",
+                "geography",
+                "applicants",
+                "award",
+                "application",
+                "costs"
+              ],
+              "url": "https://www.spencer.org/grant_types/small-research-grant/",
+              "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
+              "checkedOn": "2026-10-14"
+            },
+            {
+              "fields": [
+                "application",
+                "unknowns"
+              ],
+              "url": "https://www.spencer.org/grant_types/small-research-grant/",
+              "note": "Program update: now closed; no new competitions January to June 2027; refreshed approach and schedules expected June 2027.",
+              "checkedOn": "2026-11-15"
+            }
+          ],
+          "unknowns": [
+            "Next application date: future schedules are expected in June 2027.",
+            "Fiscal sponsor arrangements beyond administering-institution requirement"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "title": "Small Research Grants on Education",
+          "checkedOn": "2026-10-14"
+        },
+        {
+          "url": "https://www.spencer.org/grant_types/small-research-grant/",
+          "title": "Small Research Grants on Education: 2027 program update",
+          "checkedOn": "2026-11-15"
+        }
+      ],
+      "researchNotes": "Pilot covers this program only; other funder programs may differ.",
+      "reviewStatus": "program_reviewed",
+      "focus": [],
+      "evidence": []
+    },
+    "sourceWarnings": [],
+    "isPilot": true,
+    "displayProgramId": "spencer-small-research"
+  }
+}

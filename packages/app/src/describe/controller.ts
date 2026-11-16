@@ -104,9 +104,11 @@ export class DraftController {
   backups() {
     return this.repository.backups?.() ?? Promise.resolve([]);
   }
-  async replace(next: DeviceDraft): Promise<void> {
+  async replace(next: DeviceDraft, signal?: AbortSignal): Promise<void> {
+    signal?.throwIfAborted();
     const previous = this.snapshot.draft;
     await this.settled();
+    signal?.throwIfAborted();
     if (!this.writable || this.dirty || this.snapshot.draft !== previous || !this.repository.replace)
       throw new Error(
         "The device draft changed or could not be backed up. Keep this tab open and try again.",
@@ -116,7 +118,8 @@ export class DraftController {
       revision: previous.revision + 1,
       updatedAt: new Date().toISOString(),
     });
-    await this.repository.replace(validated, this.expected);
+    // The repository checks cancellation until its atomic commit. A completed commit is device work.
+    await this.repository.replace(validated, this.expected, signal);
     // Another edit during the transaction remains visible and will conflict safely on its next write.
     if (this.snapshot.draft !== previous) {
       this.writable = false;

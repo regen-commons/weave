@@ -2,12 +2,13 @@ import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
 import { useDraft } from "../describe/use-draft.ts";
-import { newDraft, revise } from "../describe/contracts.ts";
+import { newDraft } from "../describe/contracts.ts";
 import { navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import type { DraftBackup } from "../describe/repository.ts";
-import { accountKey, loadedDraft, saveBlocker, saveCommand } from "./document.ts";
-import { accountMessage, accountRequest, parseSaved, assertAccount, AccountFailure } from "./client.ts";
+import { accountKey, saveBlocker } from "./document.ts";
+import { accountMessage, accountRequest, assertAccount, AccountFailure } from "./client.ts";
+import { loadAccountCard, saveAccountCard } from "./actions.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
@@ -34,11 +35,20 @@ export function AccountSection({
   const [failed, setFailed] = useState(() => ["failed", "cancelled"].includes(returnResult ?? ""));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
   const [startingCard, setStartingCard] = useState(false);
-  const [selected, setSelected] = useState<InitiativeSummary | null>(null);
+  const owner = state?.user?.id;
+  const [selection, setSelection] = useState<{ owner: string; item: InitiativeSummary } | null>(null);
+  const selected = selection && selection.owner === owner ? selection.item : null;
   const [backups, setBackups] = useState<DraftBackup[]>([]);
   const [backup, setBackup] = useState<DraftBackup | null>(null);
-  const [extra, setExtra] = useState<InitiativeSummary[]>([]);
+  const [page, setPage] = useState<{ owner: string; items: InitiativeSummary[] } | null>(null);
+  const extra = page && page.owner === owner ? page.items : [];
   const [more, setMore] = useState(true);
+  useEffect(() => {
+    setSelection(null);
+    setPage(null);
+    setMore(true);
+    setStartingCard(false);
+  }, [owner]);
   const key = accountKey(draft),
     saved = draft.account.saved;
   const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key && savedCheck === "present";
@@ -57,9 +67,9 @@ export function AccountSection({
         } catch {
           clear();
         }
-        setSelected(null);
+        setSelection(null);
         setStartingCard(false);
-        setExtra([]);
+        setPage(null);
       }
       setMessage(accountMessage(error));
       setFailed(true);
@@ -76,34 +86,11 @@ export function AccountSection({
   async function save() {
     const user = state?.user;
     if (!user) throw new Error("Sign in before saving.");
-    const { binding, command } = saveCommand(controller.getSnapshot().draft, user.id);
-    controller.change((current) => revise(current, { account: { ...current.account, pending: binding } }));
-    await controller.settled();
-    if (controller.getSnapshot().storage !== "saved")
-      throw new Error(
-        "Your save request could not be kept safely on this device. Copy your words and try device storage again first.",
-      );
-    const receipt = parseSaved((await accountRequest("", { action: "save", ...command })).saved);
-    if (receipt.id !== command.id || JSON.stringify(receipt.document) !== binding.contentKey)
-      throw new AccountFailure("account_unavailable");
-    controller.change((current) =>
-      revise(current, {
-        account: {
-          saved: {
-            id: receipt.id,
-            owner: user.id,
-            revision: receipt.revision,
-            contentKey: binding.contentKey,
-          },
-          pending: null,
-        },
-      }),
-    );
-    await refresh();
-    setExtra([]);
+    const contentKey = await saveAccountCard(controller, user.id, refresh);
+    setPage(null);
     setMore(true);
     setMessage(
-      accountKey(controller.getSnapshot().draft) === binding.contentKey
+      accountKey(controller.getSnapshot().draft) === contentKey
         ? "Saved privately in Weave. Review any entries you want to share in Partners."
         : "The earlier checked card was saved. Your latest changes are still on this device; save again when ready.",
     );
@@ -116,13 +103,8 @@ export function AccountSection({
   }
   async function load() {
     if (!selected || !state?.user) return;
-    const user = state.user;
-    const result = await accountRequest(`?id=${encodeURIComponent(selected.id)}`);
-    assertAccount(result, user.id);
-    const saved = parseSaved(result.saved);
-    await controller.replace(loadedDraft(saved, user.id));
-    setBackups(await controller.backups());
-    setSelected(null);
+    setBackups(await loadAccountCard(controller, state.user.id, selected.id));
+    setSelection(null);
     setMessage("Your saved card is loaded. The previous device draft is kept in Device backups in Settings.");
   }
   return (
@@ -241,9 +223,9 @@ export function AccountSection({
                   setMessage(text);
                   setFailed(failed);
                   if (!failed) {
-                    setSelected(null);
+                    setSelection(null);
                     setStartingCard(false);
-                    setExtra([]);
+                    setPage(null);
                   }
                 }}
               />
@@ -255,7 +237,7 @@ export function AccountSection({
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="quiet" type="button" disabled={busy || !ready}
               onClick={() => {
-                setSelected(null);
+                setSelection(null);
                 setBackup(null);
                 setStartingCard(true);
               }}>
@@ -292,7 +274,7 @@ export function AccountSection({
                     type="button"
                     disabled={busy}
                     onClick={() => {
-                      setSelected(item);
+                      setSelection({ owner: state.user!.id, item });
                       setBackup(null);
                       setStartingCard(false);
                     }}
@@ -313,12 +295,13 @@ export function AccountSection({
                 void run(async () => {
                   const result = await accountRequest(`?offset=${state.items.length + extra.length}`);
                   assertAccount(result, state.user!.id);
-                  const page = parseSummaries(result.items);
-                  setExtra((current) => [
-                    ...current,
-                    ...page.filter((item) => ![...state.items, ...current].some((old) => old.id === item.id)),
-                  ]);
-                  setMore(page.length === 20);
+                  const items = parseSummaries(result.items), owner = state.user!.id;
+                  setPage((current) => {
+                    const previous = current?.owner === owner ? current.items : [];
+                    return { owner, items: [...previous,
+                      ...items.filter((item) => ![...state.items, ...previous].some((old) => old.id === item.id))] };
+                  });
+                  setMore(items.length === 20);
                 })
               }
             >
@@ -333,7 +316,7 @@ export function AccountSection({
             onClick={() =>
               void run(async () => {
                 await refresh();
-                setExtra([]);
+                setPage(null);
                 setMore(true);
                 setMessage("Saved cards refreshed.");
               })
@@ -365,7 +348,7 @@ export function AccountSection({
                 data-variant="quiet"
                 type="button"
                 disabled={busy}
-                onClick={() => setSelected(null)}
+                onClick={() => setSelection(null)}
               >
                 Cancel loading
               </button>
@@ -392,7 +375,7 @@ export function AccountSection({
                   disabled={busy}
                   onClick={() => {
                     setBackup(item);
-                    setSelected(null);
+                    setSelection(null);
                     setStartingCard(false);
                   }}
                 >

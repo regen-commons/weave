@@ -1,3 +1,4 @@
+import {auditCatalog,auditInput} from './helpers/audit-revisions.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,7 +9,6 @@ import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {validateSnapshot} from '../scripts/research-validation.mjs';
 import {upcomingWindows} from '../dist/deadlines.mjs';
-import {catalogBefore, manifestBefore} from './helpers/reverification-2026-11-15.mjs';
 const root = new URL('../', import.meta.url);
 const read = p => JSON.parse(fs.readFileSync(new URL(p, root)));
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object'
@@ -16,7 +16,7 @@ const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === '
 const hash = v => createHash('sha256').update(JSON.stringify(canonical(v))).digest('hex');
 const bytesHash = v => createHash('sha256').update(v).digest('hex');
 const baseline = read('research/manual-discovery-baseline-2026-10-29.json');
-const data = catalogBefore(read('dist/data/funders.json'));
+const data = auditCatalog(read('dist/data/funders.json'));
 const log = read('research/maintenance-review-log.json');
 const run = log.runs.find(r => r.id === 'manual-monday-discovery-2026-10-29');
 
@@ -33,7 +33,7 @@ test('manual discovery preserves all 694 full prior records, 721 programs and 18
   for (const [path,expected] of Object.entries(baseline.preservedFiles))
     assert.equal(bytesHash(fs.readFileSync(new URL(path,root))), expected, path);
   assert.equal(hash(log.entries.slice(0,112)), baseline.reviewEntriesSha256);
-  const manifest = manifestBefore(read('research/supplemental-funders.json'));
+  const manifest = auditInput('research/supplemental-funders.json');
   const original = {...manifest, funds: manifest.funds.slice(0,101)};
   assert.equal(hash(original), baseline.manifestSha256, 'all previous input terms and metadata retained');
 });

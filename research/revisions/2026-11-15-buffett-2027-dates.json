@@ -1,0 +1,836 @@
+{
+  "version": 1,
+  "id": "2026-11-15-buffett-2027-dates",
+  "fundId": "recUfkfwM3ISTcnSH",
+  "programId": "susan-t-buffett-scholarship",
+  "expectedFundSha256": "974c791d1dc3dc8414e9437817c416091862b564ca38b17c47d8182454174535",
+  "reviewedOn": "2026-11-15",
+  "reason": "The applicant page and FAQ give the 2027 cycle: the application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The catalog note still gave a November 1 opening. Proposed by the November 5 Thursday run and reconfirmed November 15.",
+  "afterProgram": {
+    "id": "susan-t-buffett-scholarship",
+    "name": "Susan T. Buffett Scholarship",
+    "instrument": "scholarship",
+    "focus": [
+      "Higher education",
+      "Financial access"
+    ],
+    "beneficiaries": [],
+    "geography": {
+      "workCountries": [],
+      "applicantCountries": [
+        "US"
+      ],
+      "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+      "exclusions": []
+    },
+    "applicants": {
+      "types": [
+        "Individual student"
+      ],
+      "fiscalSponsorship": "unknown",
+      "requirements": [
+        "Nebraska resident; Nebraska high-school graduate or GED.",
+        "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+        "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+      ],
+      "exclusions": []
+    },
+    "award": {
+      "currency": null,
+      "min": null,
+      "max": null,
+      "durationMonths": null,
+      "basis": "not_stated",
+      "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+    },
+    "application": {
+      "route": "future",
+      "url": "https://www.buffettscholarships.org/applicants",
+      "opensOn": "2026-12-01",
+      "closesOn": "2027-03-01",
+      "deadlineInstant": "2027-03-01T23:00:00Z",
+      "note": "The 2027 application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The pages give December 1 without a year; it opens the cycle due March 1, 2027. Award notices are sent before May 1."
+    },
+    "costs": {
+      "supported": [
+        "Eligible college cost of attendance"
+      ],
+      "excluded": [
+        "Private or out-of-state colleges"
+      ]
+    },
+    "evidence": [
+      {
+        "fields": [
+          "programs.0.name",
+          "programs.0.instrument",
+          "programs.0.applicants",
+          "programs.0.geography",
+          "programs.0.application",
+          "programs.0.award",
+          "programs.0.costs"
+        ],
+        "url": "https://www.buffettscholarships.org/applicant-faq",
+        "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "fields": [
+          "application"
+        ],
+        "url": "https://www.buffettscholarships.org/applicants",
+        "note": "Applicant page: the 2027 application opens December 1; deadline March 1, 2027 before 5 p.m. CST / 4 p.m. MST.",
+        "checkedOn": "2026-11-15"
+      },
+      {
+        "fields": [
+          "application"
+        ],
+        "url": "https://www.buffettscholarships.org/applicant-faq",
+        "note": "FAQ: the 2027 online application is available December 1 and due March 1 before 5 p.m. CT / 4 p.m. MT; award notices before May 1.",
+        "checkedOn": "2026-11-15"
+      }
+    ],
+    "unknowns": [
+      "Fiscal sponsorship unless explicitly described",
+      "Unstated award terms and cost restrictions require confirmation"
+    ]
+  },
+  "sources": [
+    {
+      "url": "https://www.buffettscholarships.org/applicants",
+      "title": "Applicants: 2027 application dates",
+      "checkedOn": "2026-11-15"
+    },
+    {
+      "url": "https://www.buffettscholarships.org/applicant-faq",
+      "title": "Applicant FAQ: 2027 application dates",
+      "checkedOn": "2026-11-15"
+    }
+  ],
+  "beforeProgram": {
+    "id": "susan-t-buffett-scholarship",
+    "name": "Susan T. Buffett Scholarship",
+    "instrument": "scholarship",
+    "focus": [
+      "Higher education",
+      "Financial access"
+    ],
+    "beneficiaries": [],
+    "geography": {
+      "workCountries": [],
+      "applicantCountries": [
+        "US"
+      ],
+      "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+      "exclusions": []
+    },
+    "applicants": {
+      "types": [
+        "Individual student"
+      ],
+      "fiscalSponsorship": "unknown",
+      "requirements": [
+        "Nebraska resident; Nebraska high-school graduate or GED.",
+        "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+        "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+      ],
+      "exclusions": []
+    },
+    "award": {
+      "currency": null,
+      "min": null,
+      "max": null,
+      "durationMonths": null,
+      "basis": "not_stated",
+      "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+    },
+    "application": {
+      "route": "future",
+      "url": "https://www.buffettscholarships.org/applicants",
+      "opensOn": null,
+      "closesOn": null,
+      "deadlineInstant": null,
+      "note": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred."
+    },
+    "costs": {
+      "supported": [
+        "Eligible college cost of attendance"
+      ],
+      "excluded": [
+        "Private or out-of-state colleges"
+      ]
+    },
+    "evidence": [
+      {
+        "fields": [
+          "programs.0.name",
+          "programs.0.instrument",
+          "programs.0.applicants",
+          "programs.0.geography",
+          "programs.0.application",
+          "programs.0.award",
+          "programs.0.costs"
+        ],
+        "url": "https://www.buffettscholarships.org/applicant-faq",
+        "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+        "checkedOn": "2026-10-15"
+      }
+    ],
+    "unknowns": [
+      "Fiscal sponsorship unless explicitly described",
+      "Unstated award terms and cost restrictions require confirmation"
+    ]
+  },
+  "priorFundRecord": {
+    "id": "recUfkfwM3ISTcnSH",
+    "name": "Susan Thompson Buffett Foundation (STBF)",
+    "displayName": "Susan Thompson Buffett Foundation (STBF)",
+    "program": "Susan T. Buffett Scholarship",
+    "description": "Provides need-based scholarships for first-time college students living in Nebraska and entering eligible Nebraska public colleges.",
+    "descriptionBasis": "primary",
+    "sectors": [
+      "Health & wellbeing",
+      "Gender & racial equity",
+      "Education & childhood development"
+    ],
+    "regions": [
+      "North America",
+      "Africa",
+      "Asia",
+      "Latin America & Caribbean"
+    ],
+    "approaches": [
+      "Rights",
+      "Justice",
+      "Equity",
+      "Grassroots organizing",
+      "Movements",
+      "Trust"
+    ],
+    "grantBands": [
+      "Very large"
+    ],
+    "website": "https://www.buffettscholarships.org/applicants",
+    "evidenceUrl": "https://www.buffettscholarships.org/applicants",
+    "additionalSources": [
+      "https://www.buffettscholarships.org/eligibility-selection",
+      "https://www.buffettscholarships.org/applicant-faq"
+    ],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "future",
+    "accessDetail": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred.",
+    "amount": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions.",
+    "timing": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred.",
+    "deadlineDate": null,
+    "deadlineInstant": null,
+    "verifiedOn": "2026-10-15",
+    "qualityFlags": [
+      "Website is not a valid web URL"
+    ],
+    "fieldsFilled": 10,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recUfkfwM3ISTcnSH",
+      "researchedOn": "2026-10-15",
+      "name": "Susan Thompson Buffett Foundation (STBF)",
+      "summary": "Provides need-based scholarships for first-time college students living in Nebraska and entering eligible Nebraska public colleges.",
+      "themes": [
+        "Higher education",
+        "Financial access"
+      ],
+      "regions": [
+        "North America",
+        "Africa",
+        "Asia",
+        "Latin America & Caribbean"
+      ],
+      "focus": [
+        "Higher education",
+        "Financial access"
+      ],
+      "reviewStatus": "program_reviewed",
+      "programs": [
+        {
+          "id": "susan-t-buffett-scholarship",
+          "name": "Susan T. Buffett Scholarship",
+          "instrument": "scholarship",
+          "focus": [
+            "Higher education",
+            "Financial access"
+          ],
+          "beneficiaries": [],
+          "geography": {
+            "workCountries": [],
+            "applicantCountries": [
+              "US"
+            ],
+            "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "Individual student"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "Nebraska resident; Nebraska high-school graduate or GED.",
+              "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+              "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+            ],
+            "exclusions": []
+          },
+          "award": {
+            "currency": null,
+            "min": null,
+            "max": null,
+            "durationMonths": null,
+            "basis": "not_stated",
+            "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+          },
+          "application": {
+            "route": "future",
+            "url": "https://www.buffettscholarships.org/applicants",
+            "opensOn": null,
+            "closesOn": null,
+            "deadlineInstant": null,
+            "note": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred."
+          },
+          "costs": {
+            "supported": [
+              "Eligible college cost of attendance"
+            ],
+            "excluded": [
+              "Private or out-of-state colleges"
+            ]
+          },
+          "evidence": [
+            {
+              "fields": [
+                "programs.0.name",
+                "programs.0.instrument",
+                "programs.0.applicants",
+                "programs.0.geography",
+                "programs.0.application",
+                "programs.0.award",
+                "programs.0.costs"
+              ],
+              "url": "https://www.buffettscholarships.org/applicant-faq",
+              "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "unknowns": [
+            "Fiscal sponsorship unless explicitly described",
+            "Unstated award terms and cost restrictions require confirmation"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.buffettscholarships.org/applicants",
+          "title": "Applicants - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/eligibility-selection",
+          "title": "Eligibility & Selection - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicant-faq",
+          "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        }
+      ],
+      "researchNotes": "Scholarship, not organisation project funding. Per-term tables and recipient-specific adjustments do not form a universal award range; listed conflicting scholarships require review.",
+      "evidence": [
+        {
+          "fields": [
+            "summary",
+            "focus",
+            "themes"
+          ],
+          "url": "https://www.buffettscholarships.org/applicants",
+          "note": "Official source describes the mission and activities summarised here.",
+          "checkedOn": "2026-10-15"
+        }
+      ]
+    },
+    "sourceWarnings": [],
+    "isPilot": false,
+    "displayProgramId": "susan-t-buffett-scholarship"
+  },
+  "retainedSources": [
+    {
+      "url": "https://www.buffettscholarships.org/applicants",
+      "title": "Applicants - The Susan Thompson Buffett Foundation",
+      "checkedOn": "2026-10-15"
+    },
+    {
+      "url": "https://www.buffettscholarships.org/eligibility-selection",
+      "title": "Eligibility & Selection - The Susan Thompson Buffett Foundation",
+      "checkedOn": "2026-10-15"
+    },
+    {
+      "url": "https://www.buffettscholarships.org/applicant-faq",
+      "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
+      "checkedOn": "2026-10-15"
+    },
+    {
+      "url": "https://www.buffettscholarships.org/applicants",
+      "title": "Applicants: 2027 application dates",
+      "checkedOn": "2026-11-15"
+    },
+    {
+      "url": "https://www.buffettscholarships.org/applicant-faq",
+      "title": "Applicant FAQ: 2027 application dates",
+      "checkedOn": "2026-11-15"
+    }
+  ],
+  "changedFields": [
+    "application",
+    "evidence"
+  ],
+  "changedPaths": [
+    "application.closesOn",
+    "application.deadlineInstant",
+    "application.note",
+    "application.opensOn"
+  ],
+  "edits": [
+    {
+      "path": "research/expanded-0.json",
+      "keys": [
+        158,
+        "programs",
+        0
+      ],
+      "before": {
+        "id": "susan-t-buffett-scholarship",
+        "name": "Susan T. Buffett Scholarship",
+        "instrument": "scholarship",
+        "focus": [
+          "Higher education",
+          "Financial access"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [],
+          "applicantCountries": [
+            "US"
+          ],
+          "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Individual student"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Nebraska resident; Nebraska high-school graduate or GED.",
+            "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+            "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": null,
+          "min": null,
+          "max": null,
+          "durationMonths": null,
+          "basis": "not_stated",
+          "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+        },
+        "application": {
+          "route": "future",
+          "url": "https://www.buffettscholarships.org/applicants",
+          "opensOn": null,
+          "closesOn": null,
+          "deadlineInstant": null,
+          "note": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred."
+        },
+        "costs": {
+          "supported": [
+            "Eligible college cost of attendance"
+          ],
+          "excluded": [
+            "Private or out-of-state colleges"
+          ]
+        },
+        "evidence": [
+          {
+            "fields": [
+              "programs.0.name",
+              "programs.0.instrument",
+              "programs.0.applicants",
+              "programs.0.geography",
+              "programs.0.application",
+              "programs.0.award",
+              "programs.0.costs"
+            ],
+            "url": "https://www.buffettscholarships.org/applicant-faq",
+            "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+            "checkedOn": "2026-10-15"
+          }
+        ],
+        "unknowns": [
+          "Fiscal sponsorship unless explicitly described",
+          "Unstated award terms and cost restrictions require confirmation"
+        ]
+      },
+      "after": {
+        "id": "susan-t-buffett-scholarship",
+        "name": "Susan T. Buffett Scholarship",
+        "instrument": "scholarship",
+        "focus": [
+          "Higher education",
+          "Financial access"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [],
+          "applicantCountries": [
+            "US"
+          ],
+          "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Individual student"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Nebraska resident; Nebraska high-school graduate or GED.",
+            "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+            "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": null,
+          "min": null,
+          "max": null,
+          "durationMonths": null,
+          "basis": "not_stated",
+          "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+        },
+        "application": {
+          "route": "future",
+          "url": "https://www.buffettscholarships.org/applicants",
+          "opensOn": "2026-12-01",
+          "closesOn": "2027-03-01",
+          "deadlineInstant": "2027-03-01T23:00:00Z",
+          "note": "The 2027 application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The pages give December 1 without a year; it opens the cycle due March 1, 2027. Award notices are sent before May 1."
+        },
+        "costs": {
+          "supported": [
+            "Eligible college cost of attendance"
+          ],
+          "excluded": [
+            "Private or out-of-state colleges"
+          ]
+        },
+        "evidence": [
+          {
+            "fields": [
+              "programs.0.name",
+              "programs.0.instrument",
+              "programs.0.applicants",
+              "programs.0.geography",
+              "programs.0.application",
+              "programs.0.award",
+              "programs.0.costs"
+            ],
+            "url": "https://www.buffettscholarships.org/applicant-faq",
+            "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+            "checkedOn": "2026-10-15"
+          },
+          {
+            "fields": [
+              "application"
+            ],
+            "url": "https://www.buffettscholarships.org/applicants",
+            "note": "Applicant page: the 2027 application opens December 1; deadline March 1, 2027 before 5 p.m. CST / 4 p.m. MST.",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "fields": [
+              "application"
+            ],
+            "url": "https://www.buffettscholarships.org/applicant-faq",
+            "note": "FAQ: the 2027 online application is available December 1 and due March 1 before 5 p.m. CT / 4 p.m. MT; award notices before May 1.",
+            "checkedOn": "2026-11-15"
+          }
+        ],
+        "unknowns": [
+          "Fiscal sponsorship unless explicitly described",
+          "Unstated award terms and cost restrictions require confirmation"
+        ]
+      }
+    },
+    {
+      "path": "research/expanded-0.json",
+      "keys": [
+        158,
+        "sources"
+      ],
+      "before": [
+        {
+          "url": "https://www.buffettscholarships.org/applicants",
+          "title": "Applicants - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/eligibility-selection",
+          "title": "Eligibility & Selection - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicant-faq",
+          "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        }
+      ],
+      "after": [
+        {
+          "url": "https://www.buffettscholarships.org/applicants",
+          "title": "Applicants - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/eligibility-selection",
+          "title": "Eligibility & Selection - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicant-faq",
+          "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicants",
+          "title": "Applicants: 2027 application dates",
+          "checkedOn": "2026-11-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicant-faq",
+          "title": "Applicant FAQ: 2027 application dates",
+          "checkedOn": "2026-11-15"
+        }
+      ]
+    }
+  ],
+  "beforeFileSha256": {
+    "research/expanded-0.json": "b733eec6d687e7a4226c7faa9432e8f021b02a6984c8f941866bf562e5fac9d6"
+  },
+  "resultFundRecord": {
+    "id": "recUfkfwM3ISTcnSH",
+    "name": "Susan Thompson Buffett Foundation (STBF)",
+    "displayName": "Susan Thompson Buffett Foundation (STBF)",
+    "program": "Susan T. Buffett Scholarship",
+    "description": "Provides need-based scholarships for first-time college students living in Nebraska and entering eligible Nebraska public colleges.",
+    "descriptionBasis": "primary",
+    "sectors": [
+      "Health & wellbeing",
+      "Gender & racial equity",
+      "Education & childhood development"
+    ],
+    "regions": [
+      "North America",
+      "Africa",
+      "Asia",
+      "Latin America & Caribbean"
+    ],
+    "approaches": [
+      "Rights",
+      "Justice",
+      "Equity",
+      "Grassroots organizing",
+      "Movements",
+      "Trust"
+    ],
+    "grantBands": [
+      "Very large"
+    ],
+    "website": "https://www.buffettscholarships.org/applicants",
+    "evidenceUrl": "https://www.buffettscholarships.org/applicants",
+    "additionalSources": [
+      "https://www.buffettscholarships.org/eligibility-selection",
+      "https://www.buffettscholarships.org/applicant-faq",
+      "https://www.buffettscholarships.org/applicants",
+      "https://www.buffettscholarships.org/applicant-faq"
+    ],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "future",
+    "accessDetail": "The 2027 application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The pages give December 1 without a year; it opens the cycle due March 1, 2027. Award notices are sent before May 1.",
+    "amount": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions.",
+    "timing": "The 2027 application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The pages give December 1 without a year; it opens the cycle due March 1, 2027. Award notices are sent before May 1.",
+    "deadlineDate": "2027-03-01",
+    "deadlineInstant": "2027-03-01T23:00:00Z",
+    "verifiedOn": "2026-10-15",
+    "qualityFlags": [
+      "Website is not a valid web URL"
+    ],
+    "fieldsFilled": 10,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recUfkfwM3ISTcnSH",
+      "researchedOn": "2026-10-15",
+      "name": "Susan Thompson Buffett Foundation (STBF)",
+      "summary": "Provides need-based scholarships for first-time college students living in Nebraska and entering eligible Nebraska public colleges.",
+      "themes": [
+        "Higher education",
+        "Financial access"
+      ],
+      "regions": [
+        "North America",
+        "Africa",
+        "Asia",
+        "Latin America & Caribbean"
+      ],
+      "focus": [
+        "Higher education",
+        "Financial access"
+      ],
+      "reviewStatus": "program_reviewed",
+      "programs": [
+        {
+          "id": "susan-t-buffett-scholarship",
+          "name": "Susan T. Buffett Scholarship",
+          "instrument": "scholarship",
+          "focus": [
+            "Higher education",
+            "Financial access"
+          ],
+          "beneficiaries": [],
+          "geography": {
+            "workCountries": [],
+            "applicantCountries": [
+              "US"
+            ],
+            "scope": "Nebraska residence, secondary qualification and eligible Nebraska public college are all required.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "Individual student"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "Nebraska resident; Nebraska high-school graduate or GED.",
+              "First-time college freshman; minimum 2.0 unweighted GPA; Student Aid Index below 10,000.",
+              "Attend an eligible Nebraska public college; no repeat application after a completed unsuccessful application."
+            ],
+            "exclusions": []
+          },
+          "award": {
+            "currency": null,
+            "min": null,
+            "max": null,
+            "durationMonths": null,
+            "basis": "not_stated",
+            "note": "Term-based tuition/fees and cost-of-attendance support; renewable up to five years at four-year or three years at two-year colleges, subject to conditions."
+          },
+          "application": {
+            "route": "future",
+            "url": "https://www.buffettscholarships.org/applicants",
+            "opensOn": "2026-12-01",
+            "closesOn": "2027-03-01",
+            "deadlineInstant": "2027-03-01T23:00:00Z",
+            "note": "The 2027 application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The pages give December 1 without a year; it opens the cycle due March 1, 2027. Award notices are sent before May 1."
+          },
+          "costs": {
+            "supported": [
+              "Eligible college cost of attendance"
+            ],
+            "excluded": [
+              "Private or out-of-state colleges"
+            ]
+          },
+          "evidence": [
+            {
+              "fields": [
+                "programs.0.name",
+                "programs.0.instrument",
+                "programs.0.applicants",
+                "programs.0.geography",
+                "programs.0.application",
+                "programs.0.award",
+                "programs.0.costs"
+              ],
+              "url": "https://www.buffettscholarships.org/applicant-faq",
+              "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "fields": [
+                "application"
+              ],
+              "url": "https://www.buffettscholarships.org/applicants",
+              "note": "Applicant page: the 2027 application opens December 1; deadline March 1, 2027 before 5 p.m. CST / 4 p.m. MST.",
+              "checkedOn": "2026-11-15"
+            },
+            {
+              "fields": [
+                "application"
+              ],
+              "url": "https://www.buffettscholarships.org/applicant-faq",
+              "note": "FAQ: the 2027 online application is available December 1 and due March 1 before 5 p.m. CT / 4 p.m. MT; award notices before May 1.",
+              "checkedOn": "2026-11-15"
+            }
+          ],
+          "unknowns": [
+            "Fiscal sponsorship unless explicitly described",
+            "Unstated award terms and cost restrictions require confirmation"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.buffettscholarships.org/applicants",
+          "title": "Applicants - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/eligibility-selection",
+          "title": "Eligibility & Selection - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicant-faq",
+          "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicants",
+          "title": "Applicants: 2027 application dates",
+          "checkedOn": "2026-11-15"
+        },
+        {
+          "url": "https://www.buffettscholarships.org/applicant-faq",
+          "title": "Applicant FAQ: 2027 application dates",
+          "checkedOn": "2026-11-15"
+        }
+      ],
+      "researchNotes": "Scholarship, not organisation project funding. Per-term tables and recipient-specific adjustments do not form a universal award range; listed conflicting scholarships require review.",
+      "evidence": [
+        {
+          "fields": [
+            "summary",
+            "focus",
+            "themes"
+          ],
+          "url": "https://www.buffettscholarships.org/applicants",
+          "note": "Official source describes the mission and activities summarised here.",
+          "checkedOn": "2026-10-15"
+        }
+      ]
+    },
+    "sourceWarnings": [],
+    "isPilot": false,
+    "displayProgramId": "susan-t-buffett-scholarship"
+  }
+}

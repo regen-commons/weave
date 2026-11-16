@@ -6,6 +6,14 @@ import {
   type AccountUser,
   type InitiativeSummary,
 } from "@weave/api/account-contract";
+let requests = new AbortController();
+/** Capture before an account operation's first await, including waits for device storage. */
+export const accountSessionSignal = () => requests.signal;
+/** Account-backed reads and writes from an earlier session cannot publish their responses. */
+export function invalidateAccountRequests() {
+  requests.abort(new AccountFailure("account_changed"));
+  requests = new AbortController();
+}
 export class AccountFailure extends Error {
   code: string;
   constructor(code: string) {
@@ -20,6 +28,8 @@ export async function accountRequest(
   signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
   const timeout = AbortSignal.timeout(15000);
+  const session = requests.signal;
+  const checkSession = () => { if (session.aborted) throw new AccountFailure("account_changed"); };
   let response: Response;
   try {
     response = await fetch(`${endpoint}${path}`, {
@@ -28,18 +38,21 @@ export async function accountRequest(
       cache: "no-store",
       headers: { "Content-Type": "application/json" },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+      signal: AbortSignal.any([session, timeout, ...(signal ? [signal] : [])]),
     });
   } catch {
+    checkSession();
     throw new AccountFailure("connection_failed");
   }
   let data: Record<string, unknown>;
   try {
     data = record(await response.json());
   } catch {
+    checkSession();
     if (timeout.aborted) throw new AccountFailure("connection_failed");
     throw new AccountFailure("account_unavailable");
   }
+  checkSession();
   if (!response.ok)
     throw new AccountFailure(typeof data.error === "string" ? data.error : "account_unavailable");
   return data;

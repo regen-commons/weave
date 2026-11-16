@@ -18661,10 +18661,10 @@
         "application": {
           "route": "future",
           "url": "https://www.buffettscholarships.org/applicants",
-          "opensOn": null,
-          "closesOn": null,
-          "deadlineInstant": null,
-          "note": "2026 applications closed; page says 2027 application opens November 1. FAQ still gives the 2026 February deadline, so no 2027 closing date inferred."
+          "opensOn": "2026-12-01",
+          "closesOn": "2027-03-01",
+          "deadlineInstant": "2027-03-01T23:00:00Z",
+          "note": "The 2027 application opens December 1 and is due March 1, 2027 before 5 p.m. CST (4 p.m. MST). The pages give December 1 without a year; it opens the cycle due March 1, 2027. Award notices are sent before May 1."
         },
         "costs": {
           "supported": [
@@ -18688,6 +18688,22 @@
             "url": "https://www.buffettscholarships.org/applicant-faq",
             "note": "Program or grantmaking policy provides the stated terms; missing fields remain unknown.",
             "checkedOn": "2026-10-15"
+          },
+          {
+            "fields": [
+              "application"
+            ],
+            "url": "https://www.buffettscholarships.org/applicants",
+            "note": "Applicant page: the 2027 application opens December 1; deadline March 1, 2027 before 5 p.m. CST / 4 p.m. MST.",
+            "checkedOn": "2026-11-15"
+          },
+          {
+            "fields": [
+              "application"
+            ],
+            "url": "https://www.buffettscholarships.org/applicant-faq",
+            "note": "FAQ: the 2027 online application is available December 1 and due March 1 before 5 p.m. CT / 4 p.m. MT; award notices before May 1.",
+            "checkedOn": "2026-11-15"
           }
         ],
         "unknowns": [
@@ -18711,6 +18727,16 @@
         "url": "https://www.buffettscholarships.org/applicant-faq",
         "title": "Applicant FAQ - The Susan Thompson Buffett Foundation",
         "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://www.buffettscholarships.org/applicants",
+        "title": "Applicants: 2027 application dates",
+        "checkedOn": "2026-11-15"
+      },
+      {
+        "url": "https://www.buffettscholarships.org/applicant-faq",
+        "title": "Applicant FAQ: 2027 application dates",
+        "checkedOn": "2026-11-15"
       }
     ],
     "researchNotes": "Scholarship, not organisation project funding. Per-term tables and recipient-specific adjustments do not form a universal award range; listed conflicting scholarships require review.",

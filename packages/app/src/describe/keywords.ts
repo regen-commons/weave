@@ -1,4 +1,5 @@
 import { z } from "../validation.ts";
+import { wholeWords } from "../intake/keywords.ts";
 import {
   FileReadSchema,
   SuggestionSchema,
@@ -8,13 +9,16 @@ import {
 } from "./contracts.ts";
 
 const LENSES = {
-  art_culture: /\b(art|artists|stories|music|culture|cultura|arte|histórias)\b/iu,
-  research: /\b(research|researchers|mapping|data|pesquisa|ciência)\b/iu,
-  technology: /\b(software|technology|tools|tecnologia|digital)\b/iu,
-  place_based: /\b(community|families|garden|land|river|water|comunidade|famílias|horta|terra|rio|água)\b/iu,
-  learning:
-    /\b(learning|education|school|schools|teach|teaching|teachers|training|courses?|workshops?|educação|escolas?|ensino|cursos?|oficinas?|aprendizagem)\b/iu,
-  funders: /\b(funder|grants|grantmaking|financiador|doações)\b/iu,
+  art_culture: wholeWords(/art|artists|stories|music|culture|cultura|arte|artístic\w*|histórias/),
+  research: wholeWords(/research|researchers|mapping|data|pesquisa|ciência/),
+  technology: wholeWords(/software|technology|tools|tecnologia|digital/),
+  place_based: wholeWords(
+    /community|families|garden|land|river|water|comunidade|comunitári\w*|famílias|horta|terra|territóri\w*|agrári\w*|fundiári\w*|rio|água/,
+  ),
+  learning: wholeWords(
+    /learning|education|school|schools|teach|teaching|teachers|training|courses?|workshops?|educação|escolas?|ensino|cursos?|oficinas?|aprendizagem/,
+  ),
+  funders: wholeWords(/funder|grants|grantmaking|financiador|doações/),
 } as const;
 const THEMES = [
   "water",

@@ -77,21 +77,29 @@ export class IndexedDraftRepository implements DraftRepository {
       tx.onerror = tx.onabort = () => reject(new Error("Device backups could not be read."));
     });
   }
-  async replace(draft: DeviceDraft, expectedRevision: number | null): Promise<void> {
-    return this.write(draft, expectedRevision, true);
+  async replace(draft: DeviceDraft, expectedRevision: number | null, signal?: AbortSignal): Promise<void> {
+    return this.write(draft, expectedRevision, true, signal);
   }
   async save(draft: DeviceDraft, expectedRevision: number | null): Promise<void> {
     return this.write(draft, expectedRevision, false);
   }
-  private async write(draft: DeviceDraft, expectedRevision: number | null, backup: boolean): Promise<void> {
+  private async write(draft: DeviceDraft, expectedRevision: number | null, backup: boolean, signal?: AbortSignal): Promise<void> {
+    signal?.throwIfAborted();
     const validated = DeviceDraftSchema.parse(draft);
     const db = await this.open();
+    signal?.throwIfAborted();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(backup ? ["drafts", "backups"] : ["drafts"], "readwrite");
       const store = transaction.objectStore("drafts");
       const request = store.get("current");
       let conflict = false;
+      const cancel = () => {
+        try { transaction.abort(); } catch { /* An already committed transaction remains device work. */ }
+      };
+      const cleanup = () => signal?.removeEventListener("abort", cancel);
+      signal?.addEventListener("abort", cancel, { once: true });
       request.onsuccess = () => {
+        if (signal?.aborted) { cancel(); return; }
         const current = request.result === undefined ? null : DeviceDraftSchema.safeParse(request.result);
         const revision = current === null ? null : current.success ? current.data.revision : undefined;
         if (revision !== expectedRevision) {
@@ -105,15 +113,17 @@ export class IndexedDraftRepository implements DraftRepository {
             .put(current.data, `${new Date().toISOString()}:${crypto.randomUUID()}`);
         store.put(validated, "current");
       };
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = transaction.onabort = () =>
+      transaction.oncomplete = () => { cleanup(); resolve(); };
+      transaction.onerror = transaction.onabort = () => {
+        cleanup();
         reject(
-          conflict
+          signal?.aborted ? signal.reason : conflict
             ? new DraftConflict()
             : new Error(
                 "Your latest changes could not be stored on this device. Keep this tab open and copy your draft.",
               ),
         );
+      };
     });
   }
 }
