@@ -8,8 +8,9 @@ do not establish production repair or permission to release.
 QA took place on 15 to 16 November 2026, Pacific time. Production proof used the
 user's existing Brave profile. Chromium 156 was reported by the user; the version
 page was blocked, so the exact version was not independently verified. This
-consolidation used no browser and changed no production, Auth, deployment or
-catalog settings. Public evidence uses account A and account B only.
+documentation session operated no browser or database and changed no Auth,
+deployment or catalog settings. The approved production cloud QA cleanup is
+recorded below. Public evidence uses account A and account B only.
 
 ## Production state and rollback
 
@@ -30,8 +31,8 @@ build. After the user approved repairing the disposable fixture setup, all six
 PostgreSQL 17.11 integrations passed with zero skips, including A/B/A/A,
 restart, revocation, interaction, replay and identity boundaries. The earlier
 schema-setup failure is superseded by that successful run. The disposable container
-and test credential file were removed. This fixture cleanup does not mean the
-production QA records below were deleted.
+and test credential file were removed. This fixture cleanup is separate from the reviewed production QA cleanup
+recorded below.
 
 Bridge archive SHA-256 values:
 
@@ -40,7 +41,8 @@ Bridge archive SHA-256 values:
 
 ## Eight-block acceptance matrix
 
-All rows below are **production, Brave** unless explicitly labelled fixture.
+All rows below are **production, Brave (Chromium 156)** unless explicitly
+labelled fixture.
 "Observed" covers the stated subset; it does not close the unproven criteria.
 
 | Block | Result | Observed | Skipped, stopped or unproven |
@@ -50,7 +52,7 @@ All rows below are **production, Brave** unless explicitly labelled fixture.
 | 3. Bring projects | Partial | A/B membership refreshes returned `access=ready`; both existing team workspaces opened. Imported name and Certified shortDescription matched. Duplicate warning and Use this project reused B's existing workspace without a duplicate or team overwrite; the temporary card remained device-only and was restored to its synthetic QA content. | Source place and links did not import. Both projects already had workspaces, so a separate On Certified entry was unavailable. Source produced zero new pencil entries, so removal/reload persistence could not be tested. New Green Goods identity, exact AT-URI/PDS and import are unproven. Older real/QA and withdrawn entries were preserved. |
 | 4. Needs and offers | Failed launch gate | Ten needs and ten offers covered all eight kinds, with expected kinds declared before observing. [Exact synthetic sample](quality-results.json): 16/20 exact (80%). Equipment, amounts, mixed kinds and Portuguese positive `água` worked; no amount or date was invented. Manual correction did not inflate the denominator. First-batch entries were removed with visible Undo before reusing five-card limits. | Both negated-money cases wrongly included Financial. Two soil research/data cases wrongly added Living alongside Intellectual. The numeric 80% threshold alone does not override the user's negation launch blocker. |
 | 5. Share and match | Stopped by user | Zero current-task support entries shared; zero withdrawals needed. Fresh private account lists were isolated in block 1. | Positive cross-account match, explanations, edit/withdrawal propagation and private-entry exclusion within that shared flow remain unproven. Resume after reviewed fixes receive an approved release. |
-| 6. Funding | Partial | 699 funders / 771 records. NLnet search: 5 programs. Closing 30 days: 16; with Open now: 12. Africa: 276; Grant: 635; Climate & environment: 276; Research leads: 0 for the synthetic card. Clearing filters restored 771. All offered sorts changed order. [Thirteen official date spot-checks](deadline-checks.md) matched, including NLnet, FUNBIO and CDFW. | Weave offers Research priority, not a literal Thematic fit sort. The existing private Green Goods card had no lead-group widget matches; this does not mean zero thematic overlap. New Green Goods exact fit/ranking remains unproven. Haymarket note/header are stale. CDFW exact cutoff instants remain unresolved. |
+| 6. Funding | Partial | 699 funders / 771 records. NLnet search: 5 programs. Closing 30 days: 16; with Open now: 12. Africa: 276; Grant: 635; Climate & environment: 276; Research leads: 0 for the synthetic card. Clearing filters restored 771. All offered sorts changed order. [Thirteen official date spot-checks](deadline-checks.md) matched, including NLnet, FUNBIO and CDFW. | Weave offers Research priority, not a literal Thematic fit sort. The existing private card had no lead-group widget matches; this does not mean zero thematic overlap. New Green Goods exact fit/ranking remains unproven. Haymarket note/header are stale. CDFW exact cutoff instants remain unresolved. |
 | 7. Initiatives | Partial | 998 shown. Search, Show more (12 to 24), descending first-page shared dates and three Home items matching the first directory cards worked. First two API pages contained 12 each with zero overlap. | An older Green Goods public result is not proof of the new project by name alone. New Ma Earth project is private, so public appearance after creation/refresh was not proved. No new project was published to force this test. |
 | 8. Across the app | Failed cross-tab gate; other checks partial | PDF, Funding and Initiatives had equal document/viewport widths at 360, 375 and 1280 in explicit Light/Dark. Keyboard navigation, Enter/filters and reload preservation worked. In two sign-out reproductions, one each for A and B, the other tab retained signed-in controls and cached cloud cards until reload. | No continued server authorization or protected stale-tab write was established. Stop rule applied after the second reproduction. No release occurred during QA, so returning-visitor update transition remains unproven. 200% text zoom, reduced motion, offline and physical phones were not checked. Limited error-log groups do not establish a global 5xx count. |
 
@@ -85,10 +87,10 @@ uncovered work. No issue was created and no repository setting was changed.
 | Priority | Finding | Tracking / boundary |
 |---|---|---|
 | Blocks launch | Explicitly denied money suggests Financial. | [Draft #80](https://github.com/regen-commons/weave/pull/80). No duplicate issue. Not deployed. |
-| Blocks launch | Cross-tab sign-out leaves cached private UI and signed-in controls. | [Draft #81](https://github.com/regen-commons/weave/pull/81), independently reviewed; partial fixture sign-out/retention proof below. Reentry/focus and responsive proof pending. No production fix claimed. |
+| Blocks launch | Cross-tab sign-out leaves cached private UI and signed-in controls. | [Draft #81](https://github.com/regen-commons/weave/pull/81), independently reviewed; supported fixture cases passed below. Focus timing, browser race timing and export bytes remain unproven. No production repair claimed. |
 | Fix this week | Certified link/import loses source place and links. | [Source-field finding](findings.md#certified-source-place-and-links). Covers explicit fields, not the already-shortened description. |
 | Fix this week | Soil research/test data adds Living unnecessarily. | [Soil-data finding](findings.md#soil-research-and-test-data). Outside #80's patch. |
-| Fix this week | Selective cloud-card and local draft/backup deletion is absent. | [Deletion finding](findings.md#selective-deletion-and-qa-cleanup); retained scope below. No broad deletion or account removal. |
+| Fix this week | Selective cloud-card and local draft/backup deletion is absent. | [Deletion finding](findings.md#selective-deletion-and-qa-cleanup). Cloud QA removed by reviewed maintenance; self-service/local deletion remains absent. |
 | Fix this week | Haymarket source wording note and Research snapshot header are stale. | [Catalog finding](findings.md#stale-catalog-notes-and-date-header). Date checks passed; no catalog edit/publication. |
 | Later | PDF source place is not assigned to structured Where. | [PDF finding](findings.md#pdf-structured-place); source text was retained. |
 | Later / known | Expired Certified attempt can land on localhost. | [Known-expiry follow-up](findings.md#expired-sign-in-returns-to-localhost). Not reproduced here; shared Auth changes need approval. |
@@ -108,7 +110,7 @@ Forty independent probes passed. Full CI passed: root 147, design system 34,
 API 217 plus 56 conditional skips, app 323, harness 78, guidance 95 and
 type/design checks. Four GitHub workflows passed on the exact fix head.
 
-**Fixture, Brave:** both negated-money inputs suggested Living only; tools with
+**fixture, Brave (Chromium 156, user-reported):** both negated-money inputs suggested Living only; tools with
 negated money and tools at no cost suggested Material only, 4/4. Keyboard manual
 correction, Keep and Continue retained the chosen kind. The established route was
 `/start/needs?fixture=draft&speech=none`; the supplied `/needs` route was stale, not
@@ -137,71 +139,112 @@ completed` ([#80 preview](https://vercel.com/regen-commons/weave/9zcBhFGHmgp1CeG
 [#81 preview](https://vercel.com/regen-commons/weave/DfhiucgbyEQc9gkahRyPM29K8e1Y)).
 Those deployment statuses do not prove browser acceptance or production repair.
 
-**Partial fixture, Brave:** the sole QA owner used keyboard sign-out. The
-second already-open tab removed the synthetic viewer's cloud card
-(`Cross-tab fixture cloud A`) and Account control and
-showed Sign in without a reload. The local description, unfinished sentence,
-attached synthetic `cross-tab-local-note.txt` and backup list compared equal
-before/after. The orchestrator inspected the actual browser-tool results; this
-consolidation session did not operate the browser.
+**fixture, Brave (Chromium 156, user-reported):** the completed v2 review exercised the normal app account and
+social providers against a synthetic backend on `127.0.0.1:5178`, without a
+`?fixture=` UI scenario. The observer tab was never reloaded in these cases:
 
-Two-account reentry/focus and responsive captures are still pending. The fixture
-selector did not carry the normal return marker, and the available browser
-control could not explicitly activate tabs, so those paths must not be claimed
-from this partial check. No new capture is included for this supplement. The
-observed sign-out/retention result is fixture proof only, not clearance to release
-or evidence that production `21a0900` is repaired.
+| Supported case | Observed result |
+|---|---|
+| Synthetic viewer keyboard sign-out | Observer removed `Cross-tab fixture cloud A` and Account controls and showed Sign in. |
+| Synthetic editor keyboard sign-out | Observer removed both synthetic cloud cards and Account controls and showed Sign in. |
+| Viewer and editor reentry | With the explicitly approved `account=signed-in` return-marker simulation, observer showed only the selected synthetic card; workspace role matched viewer/editor. |
+| Direct viewer-to-editor switch | The same return marker replaced the synthetic viewer card with the editor card and changed the role from view to edit. |
+| Visible local retention | Description, unfinished sentence and backup-list title/timestamp stayed unchanged across sign-out and switches. `cross-tab-local-note.txt` remained listed. No cloud save was used for that local draft. |
+| Responsive/theme | Signed-out observer had no horizontal overflow at 360, 375 and 1280 in Light/Dark; capture dimensions were independently checked. |
+
+The fixture selector omitted the normal app callback marker, so reentry/switch
+proof uses the source-verified return-marker simulation. It does not prove a
+production OAuth roundtrip. Actual focus-return timing remains unproven: CUA
+could not activate a tab, and the narrowly permitted DevTools inventory showed
+only `about:blank`, so the same real profile could not be verified and no focus
+action was taken. Async Save/Load races passed the 54 focused implementation and
+review tests; their timing was not established by this browser run.
+
+A device-export attempt timed out and reset the CUA kernel; it was not retried,
+and the expected export artifact was absent. Exported attachment-byte equivalence
+is unproven. The supported retention claim is visible text/backup equality and
+attachment listing. The existing real Brave tabs were rebound after reset;
+appearance returned to System and the viewport override was cleared. This
+consolidation session only inspected the supplied artifacts and images.
+Production `21a0900` is unchanged; the fixture pass is not clearance to release.
 
 ## Cleanup retained, not completed
 
+**Production cloud QA cleanup completed on 16 November 2026.** After independent
+review and a successful `ROLLBACK` dry run, the orchestrator committed a guarded
+transaction deleting exactly **two private, unlinked, zero-entry QA initiatives
+and their two matching idempotency save receipts**. The guards checked exact
+owner/identity, full synthetic content, revision and timestamps, zero related
+entries/references, pinned foreign keys and absence of non-internal DELETE
+triggers/rules. Non-target account A/B record counts were unchanged. A separate
+read-only postflight found **zero target initiatives and zero target receipts**.
+This is **production, Supabase SQL** proof. Fresh owner-checked lists
+(**production, Brave (Chromium 156)**) then retained **three older cloud cards
+for A and two for B**, with
+neither targeted QA card present and no QA card saved or recreated. Final browser
+verification: `2026-11-16T11:11:18.125725Z` (16 November, 3:11 a.m. Pacific).
+
+A fresh workspace listing would have required renewed consent, which was not
+taken. Workspace preservation is supported by the guarded database reference and
+count checks, not a new browser listing. Both account lists and Settings were
+checked; the browser reservation was released after the completion summary.
+
+The orchestrator's post-cleanup public smoke returned health HTTP 200 at
+`21a0900` and public-projects HTTP 200 with a bounded index, 998 total and 12 on
+the first page. Its `checkedAt` remained `2026-11-16T04:19:06.910000Z`, which
+still does not prove a scheduled cron firing. Fresh remote verification kept
+`origin/main` at `21a090098b166c403b6ee4cdda772bf8489fb92a`. No release occurred.
+
 No current-task support entry was shared: withdrawal count **0**. Remaining
-disposable scope is **2 cloud cards, 1 device draft and 7 backups**. Production UI
-showed no individual delete/remove control. Read-only code review confirmed
-`/api/account` exposes list/load/save/sign-out, with narrow authenticated RPC
-grants and no initiative-delete command. `DraftRepository` exposes
-load/save/replace/backups; replacing a draft backs up the old one first.
+**production-origin** scope is **zero cloud QA cards, one device draft and seven
+backups**. The separate local fixture also retains one synthetic draft, one
+backup and one listed attachment. No selective local removal path is supported.
 
-| Storage | Exact synthetic title | Count / identifying UI detail |
+| Storage | Exact synthetic title | Final status / identifying UI detail |
 |---|---|---|
-| Cloud, account A | QA 15 Nov A | 1 |
-| Cloud, account B | QA 15 Nov B | 1 |
-| Current device draft | QA 15 Nov PDF Garden | 1; synthetic PDF, zero needs/offers, never saved to a team or cloud |
-| Local backups | QA 15 Nov Talk Garden | 2; displayed 15 November, 11:23:14 p.m. and 11:22:19 p.m. Pacific |
-| Local backups | QA 15 Nov A | 3; displayed 15 November, 6:40:16 p.m., 6:36:59 p.m., 6:35:47 p.m. Pacific |
-| Local backups | QA 15 Nov B | 2; displayed 15 November, 6:39:36 p.m. and 6:39:19 p.m. Pacific |
+| Production cloud, account A | QA 15 Nov A | Removed by the reviewed transaction; matching receipt removed |
+| Production cloud, account B | QA 15 Nov B | Removed by the reviewed transaction; matching receipt removed |
+| Production device draft | QA 15 Nov PDF Garden | 1 retained; synthetic PDF, zero needs/offers, never saved to a team or cloud |
+| Production local backups | QA 15 Nov Talk Garden | 2 retained; displayed 15 November, 11:23:14 p.m. and 11:22:19 p.m. Pacific |
+| Production local backups | QA 15 Nov A | 3 retained; displayed 15 November, 6:40:16 p.m., 6:36:59 p.m., 6:35:47 p.m. Pacific |
+| Production local backups | QA 15 Nov B | 2 retained; displayed 15 November, 6:39:36 p.m. and 6:39:19 p.m. Pacific |
+| Separate local fixture, `127.0.0.1:5178` | Cross-tab local draft; cross-tab-local-note.txt | 1 draft, 1 backup and 1 listed attachment retained |
 
-Backup display times are `draft.updatedAt`, not backup key timestamps, and are
-insufficient deletion selectors. A future supported operator cleanup needs exact
-initiative UUID/owner/revision and proof of no workspace/publication references
-before any cascading deletion. Local cleanup needs exact keys/draft IDs/revisions,
-compare-before-delete and preservation checks. The read-only assessment of the
-correct Platform database (PostgreSQL 17.11) found eight inbound foreign keys relevant to cleanup
-and no non-internal DELETE triggers/rules on `initiatives` or `save_requests`.
-It read no user rows and prepared no executable deletion SQL. A guarded operator
-path is feasible only after an exact owner-bound manifest is available; that
-identity/content proof remains absent. The [deletion finding](findings.md#selective-deletion-and-qa-cleanup)
-records the required reference, receipt, concurrency and preservation checks.
-No deletion ran and the retained counts are unchanged. None of those private
-selectors belongs in public evidence. No browser/IndexedDB mutation,
-whole-account deletion or browser-wide clearing was attempted. Real data, older QA, workspaces, withdrawn
-entries and the real-data backup created while opening an older card were
-preserved. Cleanup remains pending a supported path.
+The app still has no individual saved-card or device-backup delete control.
+`/api/account` exposes list/load/save/sign-out; `DraftRepository` exposes
+load/save/replace/backups, and replacing a draft backs up its predecessor.
+The reviewed one-off database operation adds no app deletion feature. The
+[deletion finding](findings.md#selective-deletion-and-qa-cleanup) therefore remains
+open for supported selective controls and safe local cleanup.
+
+Backup display times are `draft.updatedAt`, not backup key timestamps; title/time
+alone cannot safely select deletion targets. Local cleanup needs exact
+keys/draft IDs/revisions with compare-before-delete and preservation checks.
+No arbitrary browser/IndexedDB mutation, whole-account deletion or browser-wide
+clearing was attempted. Real data, older QA, workspaces, withdrawn entries and
+the real-data backup made while opening an older card were preserved. Private
+selectors, full cloud documents and executable deletion SQL are excluded from
+this public evidence. The private identification manifest was removed after
+verification and its absence independently confirmed. No forensic erasure is claimed.
 
 ## Rendered proof
 
 The following existing captures were visually inspected before inclusion. They
-contain synthetic fixture inputs or the public directory, with no private cloud
-card, account address or record URI. Captured widths were checked from the image
-files. Full-page fixture images include a fixed toolbar at the viewport edge;
+contain synthetic fixture inputs or the public directory, with no real private
+cloud card, account address or record URI. Captured widths were checked from the
+image files. Full-page fixture images include a fixed toolbar at the viewport edge;
 the overlap is a capture artifact, not a removed input.
 
-| Production, Brave, 375 px, Dark | Production, Brave, 1280 px, Light, scrolled public directory |
+| production, Brave (Chromium 156), 375 px, Dark | production, Brave (Chromium 156), 1280 px, Light, scrolled public directory |
 |---|---|
 | ![Public Initiatives at 375 px in Dark](production-brave-initiatives-375-dark.jpg) | ![Public Initiatives at 1280 px in Light](production-brave-initiatives-1280-light.jpg) |
-| Fixture, Brave, 375 px, Light | Fixture, Brave, 1280 px, Dark |
+| fixture, Brave (Chromium 156, user-reported), 375 px, Light | fixture, Brave (Chromium 156, user-reported), 1280 px, Dark |
 | ![Synthetic negation examples at 375 px in Light](fixture-brave-negation-375-light.jpg) | ![Synthetic negation examples at 1280 px in Dark](fixture-brave-negation-1280-dark.jpg) |
+| fixture, Brave (Chromium 156, user-reported), 375 px, Dark, synthetic viewer return | fixture, Brave (Chromium 156, user-reported), 1280 px, Light, synthetic editor return |
+| ![Synthetic viewer card and view-only workspace at 375 px in Dark](fixture-brave-cross-tab-viewer-return-375-dark.jpg) | ![Synthetic editor card and editable workspace at 1280 px in Light](fixture-brave-cross-tab-editor-return-1280-light.jpg) |
 
-The separate stale-tab capture is **1460 px**, not 1280. It is retained locally,
+The separate **production, Brave (Chromium 156)** stale-tab capture is
+**1460 px**, not 1280. It is retained locally,
 not committed as private-card proof. Production appearance was restored to System
 and temporary viewport overrides cleared after QA.
 
@@ -221,13 +264,15 @@ allow the retained artifacts to be checked without publishing their full content
 
 | Source artifact | SHA-256 |
 |---|---|
-| `production-results.md` | `f2d9ee0b9d6918a8ee8061e60d2c1a10b867ae901e69095336986ef5af620972` |
+| `production-results.md` | `c7c005447906924f8de8032809fd5ffae9f3300b9073e8b7588772af7dc09121` |
 | `quality-results.json` | `7d783d8fae7f1d56949079141c5e53eb4ee42c7eee249257054a9b8ff731704e` |
 | `deadline-checks.md` | `433ac0fe730dab4082a601c7b4f89f7536f69f1e9a09ba21d92ee619a521100f` |
 | `two-tab-signout-reproduction.md` | `7b0fae4190d57a994e2435efce7cc64a1e650fa2f259086ea7b08d5d34b8dcd6` |
-| `cleanup-remaining.md` | `463c534e781820b0ab5c91118140c80526b195a34742e3d36e196e6406b9904b` |
+| `cleanup-remaining.md` | `0717049e67cb5568c45f15965417686cbf314415eb10675071a16176083781eb` |
 | `fixture-negation-review.md` | `3fd2091c2b3bf49cd56f0814409f003e727fd4471e11ad6e2e713009aec8bd15` |
 | `fixture-negation-results.json` | `34b8c16267fd1b3288c2e3ced30f74c965e00a0c742f1eeee012a2bb0c7bda28` |
+| `fixture-cross-tab-review.md` | `6a90fe5c06997f279369a50cc7827ee63e7491d9060527b3f9a5adf27db177b7` |
+| `fixture-cross-tab-results.json` | `5e2ab9ab6063623687e7c888c383321855279494b2626a5342db22e0d6bbeccf` |
 
 Bridge `verification-status.json`, `test.log` and `test-auth-db.log` were inspected
 in the retained bridge artifact directory. Configuration, index refresh and
@@ -248,11 +293,12 @@ Consolidation checks ran in an isolated branch from `origin/develop` at
 - `bun run guidance:check`: 98 Markdown files passed.
 - `git diff --check`, local Markdown links and JSON/sample counts passed.
   Text checks found no email, DID, AT-URI, database URL, private-key marker or
-  em dash in the new evidence, decision diff or issue drafts. Four image widths
+  em dash in the new evidence, decision diff or issue drafts. Six selected image widths
   were confirmed as 375/1280 and visually inspected.
 
-Cross-tab fixture sign-out/retention is partially observed; reentry/focus and
-responsive captures remain pending. The six uncovered findings are tracked in this evidence draft PR because repository Issues is
+Supported cross-tab fixture cases and responsive captures passed; focus timing,
+browser race timing and exported-file bytes remain unproven. The six uncovered
+findings are tracked in this evidence draft PR because repository Issues is
 disabled. Nothing here authorizes a merge, release or production mutation.
 
 ## Follow-up phone and release checklist
@@ -272,4 +318,4 @@ release/update checks wait for an approved release of the blocker fixes.
 - Add to the home screen, reopen offline, and try 200% text zoom.
 - After the approved fixes are released: repeat production negation and two-tab
   sign-out, complete sharing/matching and withdrawal checks, observe the
-  returning-visitor release transition, and finish supported selective cleanup.
+  returning-visitor release transition, and finish supported selective local cleanup when available.

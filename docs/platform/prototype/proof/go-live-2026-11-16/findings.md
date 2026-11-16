@@ -59,21 +59,25 @@ Acceptance criteria:
 control. Read-only review found `/api/account` supports list/load/save/sign-out,
 with narrow authenticated RPCs and no initiative-delete command.
 `DraftRepository` supports load/save/replace/backups; blank replacement backs up
-the previous draft first. Supported controls therefore cannot finish the
-[retained manifest](README.md#cleanup-retained-not-completed): two synthetic cloud
-cards, one device draft and seven backups. No current-task support entry was
-shared, so withdrawals needed are zero.
+the previous draft first. The [cleanup record](README.md#cleanup-retained-not-completed)
+now confirms the reviewed operator removal of the two cloud QA cards and their
+two matching save receipts, with zero targets in a separate postflight. Fresh
+owner-checked browser lists retained A's three and B's two older cloud cards and
+excluded both QA targets. The private identification manifest was removed. That
+one-off operation adds no supported app delete command. One production device
+draft and seven backups remain, plus the separate fixture's draft, backup and
+listed attachment. No current-task support entry was shared; withdrawals needed
+are zero.
 
 Reproduce with disposable synthetic saves and a device draft with two backups.
 Preserve real data, older QA, workspaces and withdrawn entries. No whole-account
 deletion, browser-wide clearing or arbitrary IndexedDB mutation is an acceptable
-substitute for a supported selective operation. A later read-only schema
-assessment of the correct Platform PostgreSQL 17.11 database found eight inbound
-foreign keys relevant to cleanup and no non-internal DELETE triggers/rules on `initiatives` or
-`save_requests`. It read no user rows and prepared no executable deletion SQL.
-A guarded maintenance path is feasible, but exact private owner-bound selectors
-and complete synthetic documents remain unestablished. No deletion ran; the
-retained counts are unchanged.
+substitute for a supported selective operation. The live PostgreSQL 17.11 schema
+and constraints were independently checked, followed by an exact owner-bound
+manifest, guarded rollback dry run, reviewed commit and separate read-only
+postflight. Full identity/content/revision/timestamp and receipt guards passed;
+non-target account A/B record counts were unchanged. Self-service deletion and
+selective local cleanup remain missing even though the cloud QA task is complete.
 
 Acceptance criteria:
 
@@ -87,8 +91,8 @@ Acceptance criteria:
   carries the same reviewed synthetic document. A serializable guarded
   transaction rechecks the manifest, deletes exactly two cards with only the
   expected receipt cascade, and proves preservation of unrelated data. Quiesce
-  saves/retries before the operation; this is a contract, not prepared SQL or a
-  completed cleanup.
+  saves/retries before the operation. The reviewed two-card maintenance cleanup
+  followed these safeguards; general product controls remain a separate follow-up.
 - Local deletion uses exact keys/draft IDs/revisions and compare-before-delete.
   Displayed time is `draft.updatedAt`, not the backup key timestamp; title/time
   alone cannot identify the target safely.
