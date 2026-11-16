@@ -18,7 +18,7 @@ All 630 existing identities and their prior fields, programs and sources remain 
 
 The funding pulse shows sourced available program windows closing within two or three weeks. It separates inquiry and partner routes, labels unverified cutoff times, excludes closed/conditional/unconfirmed calls, and opens the exact program's terms. It refreshes as dates pass. Catalog availability is not a personal eligibility decision.
 
-[Maintenance workflow](docs/maintenance.md) documents Monday discovery and Thursday freshness reviews through draft PRs. [Historical intake](research/history-intake.json) retains all 94 reviewed leads, their original discovery pointers, import references, unresolved terms and exclusions alongside the previous 12 additions. An official program can be closed, conditional or have unconfirmed intake; review does not imply current availability. Private research captures remain outside the repository.
+[Maintenance workflow](docs/maintenance.md) documents Monday discovery and Thursday freshness reviews through draft PRs. Existing program updates use [revision-aware imports](docs/program-revisions.md), with stale-record checks, scoped evidence, screening review and an append-only archive of prior records. [Historical intake](research/history-intake.json) retains all 94 reviewed leads, their original discovery pointers, import references, unresolved terms and exclusions alongside the previous 12 additions. An official program can be closed, conditional or have unconfirmed intake; review does not imply current availability. Private research captures remain outside the repository.
 
 ## First October 29 import
 

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {catalogBefore} from './helpers/reverification-2026-11-15.mjs';
+import {auditCatalog} from './helpers/audit-revisions.mjs';
 
 const read = path => JSON.parse(fs.readFileSync(new URL('../' + path, import.meta.url)));
 const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
@@ -14,7 +14,7 @@ const archive = read(root + 'proposals.json');
 const coverage = read('research/freshness-coverage-2026-11-05.json');
 const inventory = read('research/freshness-inventory-2026-11-05.json');
 const log = read('research/maintenance-review-log.json');
-const funds = catalogBefore(read('dist/data/funders.json')).funds;
+const funds = auditCatalog(read('dist/data/funders.json')).funds;
 
 test('November freshness proposals retain all 699 records and preceding ledger entries', () => {
   assert.equal(funds.length, baseline.fundCount);

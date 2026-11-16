@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { isDeepStrictEqual } from "node:util";
+import {validateRevisionHistory} from './revision-history.mjs';
 export function validateSchema(value, schema, path = "$") {
   const fail = (message) => {
     throw new Error(`${path}: ${message}`);
@@ -457,5 +458,6 @@ export function validateSnapshot(root) {
         );
     }
   }
+  validateRevisionHistory(root);
   return data;
 }

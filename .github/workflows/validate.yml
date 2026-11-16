@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24.20.0'
@@ -30,5 +31,9 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
       - run: bun run test
+      - name: Preserve committed revision history
+        env:
+          REVISION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/revise-program.py --check-base "$REVISION_BASE_SHA"
       - run: git diff --exit-code
       - run: git diff --check

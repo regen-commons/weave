@@ -5,15 +5,17 @@ import {createHash} from 'node:crypto';
 import {validateResearch} from '../scripts/research-validation.mjs';
 import {validConditions, checkConditions} from '../dist/matching.mjs';
 import {upcomingWindows} from '../dist/deadlines.mjs';
-import {reverificationArchive as archive, catalogBefore, manifestBefore, fileBytesBefore} from './helpers/reverification-2026-11-15.mjs';
+import {reverificationArchive as archive} from './helpers/reverification-2026-11-15.mjs';
+import {auditCatalog, auditInput, auditFileHash, beforeRevisions} from './helpers/audit-revisions.mjs';
 
 const read = path => JSON.parse(fs.readFileSync(new URL('../' + path, import.meta.url)));
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object'
   ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
 const hash = v => createHash('sha256').update(JSON.stringify(canonical(v))).digest('hex');
-const bytesHash = b => createHash('sha256').update(b).digest('hex');
 const catalog = read('dist/data/funders.json');
-const prior = catalogBefore(catalog);
+// Before this pass, and as this pass left it before any later journaled revision.
+const prior = auditCatalog(catalog);
+const afterPass = beforeRevisions(catalog);
 const conditionsFile = read('dist/data/program-conditions.json');
 const schema = read('dist/data/enrichment.schema.json');
 const log = read('research/maintenance-review-log.json');
@@ -31,9 +33,9 @@ test('the archive rebuilds the exact catalog, inputs and screening state from be
   assert.equal(archive.baseCommit, 'f54bf29362fc05109aff9038d74b7808d2130c84');
   assert.equal(archive.priorTopLevel.compiledAt, '2026-10-30T05:14:23.839542+00:00');
   for (const [path, expected] of Object.entries(archive.priorFileSha256))
-    if (path !== 'dist/data/research-coverage.json') assert.equal(bytesHash(fileBytesBefore(path)), expected, path);
+    if (path !== 'dist/data/research-coverage.json') assert.equal(auditFileHash(path), expected, path);
   assert.equal(hash(prior.funds), archive.priorCatalogFundsSha256);
-  assert.equal(hash(manifestBefore(read('research/supplemental-funders.json'))), archive.priorManifestSha256);
+  assert.equal(hash(auditInput('research/supplemental-funders.json')), archive.priorManifestSha256);
   for (const change of archive.changes) assert.equal(hash(change.priorFundRecord), change.priorFundSha256, change.fundId);
   assert.deepEqual(catalog.funds.map(f => f.id), prior.funds.map(f => f.id));
   assert.equal(catalog.funds.length, 699);
@@ -43,7 +45,7 @@ test('the archive rebuilds the exact catalog, inputs and screening state from be
   assert.deepEqual(archive.changes.filter(c => c.appendedProgramIds.length).map(c => [c.fundId, ...c.appendedProgramIds]).sort(), [...applied].sort());
   for (const change of archive.changes.filter(c => !c.appendedProgramIds.length)) {
     assert.ok(change.displayReselected, change.fundId);
-    assert.deepEqual(catalog.funds.find(f => f.id === change.fundId).enrichment, change.priorFundRecord.enrichment, 'research terms unchanged');
+    assert.deepEqual(afterPass.funds.find(f => f.id === change.fundId).enrichment, change.priorFundRecord.enrichment, 'research terms unchanged');
   }
   assert.ok(catalog.compiledAt > archive.priorTopLevel.compiledAt);
 });
@@ -82,12 +84,12 @@ test('applied rounds sit under existing funders with evidence, unknowns and a sc
   assert.ok(!upcomingWindows(catalog.funds, new Date('2027-01-03T11:00:01Z'), 60).some(w => w.program.id === call2.id));
 });
 
-test('the stale call and the existing-term revisions stay out of the catalog', () => {
+test('the stale call stays out of the catalog, and this pass left the existing-term revisions unapplied', () => {
   assert.equal(program(catalog.funds, 'local-funbio', 'funbio-tcsa-porto-sul-10-2026'), undefined);
   assert.equal(program(catalog.funds, 'local-nlnet', 'nlnet-restack-call2-2026'), undefined, 'duplicate Thursday id not added');
   for (const proposal of thursday.proposals.filter(p => p.kind === 'revise-existing')) {
-    const current = program(catalog.funds, proposal.fundId, proposal.programId);
-    assert.deepEqual(current.application, proposal.before.application ?? proposal.before, proposal.programId);
+    const held = program(afterPass.funds, proposal.fundId, proposal.programId);
+    assert.deepEqual(held.application, proposal.before.application ?? proposal.before, proposal.programId);
   }
 });
 
