@@ -1,4 +1,4 @@
-import { accountRequest, assertAccount, parseSaved } from "../account/client.ts";
+import { accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { accountKey, loadedDraft, saveCommand } from "../account/document.ts";
 import { DeviceDraftSchema, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft } from "../describe/contracts.ts";
 import type { DraftController } from "../describe/controller.ts";
@@ -23,6 +23,7 @@ export async function preparePersonalProject(controller: DraftController, projec
 }
 
 export async function loadPersonalProject(controller: DraftController, workspaceId: string, owner: string, signal: AbortSignal) {
+  signal = AbortSignal.any([signal, accountSessionSignal()]);
   signal.throwIfAborted();
   const before = controller.getSnapshot().draft;
   const result = await accountRequest(`?id=${encodeURIComponent(workspaceId)}`, undefined, "/api/account", signal);
@@ -31,8 +32,7 @@ export async function loadPersonalProject(controller: DraftController, workspace
   const saved = parseSaved(result.saved);
   if (saved.id !== workspaceId) throw Error("invalid_save_receipt");
   if (controller.getSnapshot().draft !== before) throw Error("draft_changed");
-  await controller.replace(loadedDraft(saved, owner));
-  signal.throwIfAborted();
+  await controller.replace(loadedDraft(saved, owner), signal);
 }
 
 /** A Certified project has one canonical workspace, including when another tab links it first. */
@@ -60,6 +60,7 @@ export async function connectPersonalProject(controller: DraftController, owner:
 
 /** The reviewed action saves this person's draft. A completed stale request never rebinds another account's card. */
 export async function saveForProject(controller: DraftController, owner: string, signal: AbortSignal) {
+  signal = AbortSignal.any([signal, accountSessionSignal()]);
   signal.throwIfAborted();
   const draft = controller.getSnapshot().draft;
   if (draft.account.saved?.owner === owner && draft.account.saved.contentKey === accountKey(draft))

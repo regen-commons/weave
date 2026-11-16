@@ -1,7 +1,7 @@
 /** The agreed social screens over the same-origin account and project APIs. No fixture identities or content. */
 import { parseSummaries, record, uuid } from "@weave/api/account-contract";
 import type { AccountState } from "../account/client.ts";
-import { AccountFailure, accountMessage, accountRequest, assertAccount, parseSaved } from "../account/client.ts";
+import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { loadedDraft } from "../account/document.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
@@ -225,11 +225,13 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       options.openWorkspace(p.workspaceId); return link;
     },
     async openCard(id) {
+      const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);
+      signal.throwIfAborted();
       const before = options.controller.getSnapshot().draft;
-      const result = await request(`?id=${encodeURIComponent(id)}`, undefined, "/api/account", lifetime.signal);
-      checked(); assertAccount(result, owner!); const saved = parseSaved(result.saved);
+      const result = await request(`?id=${encodeURIComponent(id)}`, undefined, "/api/account", signal);
+      signal.throwIfAborted(); checked(); assertAccount(result, owner!); const saved = parseSaved(result.saved);
       if (saved.id !== id || options.controller.getSnapshot().draft !== before) throw Error("Your device draft changed. Try opening the card again.");
-      await options.controller.replace(loadedDraft(saved, owner!)); checked();
+      await options.controller.replace(loadedDraft(saved, owner!), signal); checked();
       selected = null;
       const linked = state.workspaces?.find(p => p.workspaceId === id);
       if (linked) select(linked.uri);
