@@ -12,16 +12,28 @@ export interface DeletableCard {
 
 /**
  * The device draft no longer points at a removed saved card, so autosave and Save cannot
- * write to it again. A draft whose own ID was that card's gets a new ID: the next Save
- * creates a new card instead of meeting the removed one. The device words stay.
+ * write to it again. A draft whose own ID was that card's keeps it, so device state keyed by
+ * it stays attached, and retires it: the next Save creates a new card. The device words stay.
  */
 export function forgetSavedCard(draft: DeviceDraft, id: string): Partial<DeviceDraft> | null {
-  const { saved, pending } = draft.account;
-  if (saved?.id !== id && pending?.id !== id && draft.id !== id) return null;
+  const { saved, pending, retired = [] } = draft.account;
+  const retire = draft.id === id && !retired.includes(id);
+  if (saved?.id !== id && pending?.id !== id && !retire) return null;
   return {
-    ...(draft.id === id ? { id: crypto.randomUUID() } : {}),
-    account: { saved: saved?.id === id ? null : saved, pending: pending?.id === id ? null : pending },
+    account: {
+      saved: saved?.id === id ? null : saved,
+      pending: pending?.id === id ? null : pending,
+      ...(retire || retired.length ? { retired: retire ? [...retired, id].slice(-20) : retired } : {}),
+    },
   };
+}
+
+/** Release the device draft from a card the account no longer has, if it points at it. */
+export async function releaseDeletedCard(controller: DraftController, id: string): Promise<boolean> {
+  if (!forgetSavedCard(controller.getSnapshot().draft, id)) return false;
+  controller.change((draft) => revise(draft, forgetSavedCard(draft, id) ?? {}));
+  await controller.settled();
+  return controller.getSnapshot().storage === "saved";
 }
 
 export interface DeletedCard {
@@ -51,10 +63,13 @@ export async function deleteSavedCard(
     throw new AccountFailure("account_unavailable");
   }
   if (deleted.id !== card.id || deleted.revision !== card.revision) throw new AccountFailure("account_unavailable");
+  // The server confirmed the deletion. A device problem from here on is reported, never thrown.
   if (!forgetSavedCard(controller.getSnapshot().draft, card.id)) return { deleted, device: "unrelated" };
-  controller.change((draft) => revise(draft, forgetSavedCard(draft, card.id) ?? {}));
-  await controller.settled();
-  return { deleted, device: controller.getSnapshot().storage === "saved" ? "unbound" : "unbound_unsaved" };
+  try {
+    return { deleted, device: (await releaseDeletedCard(controller, card.id)) ? "unbound" : "unbound_unsaved" };
+  } catch {
+    return { deleted, device: "unbound_unsaved" };
+  }
 }
 
 const savedCount = (kept: number) =>
@@ -76,7 +91,7 @@ export function deleteFailure(error: unknown): string {
   const code = error instanceof AccountFailure ? error.code : "";
   if (code === "save_conflict") return "This card changed somewhere else. Reload to see the latest version.";
   if (code === "initiative_referenced")
-    return "A card linked to a team or shared for matching cannot be deleted here yet. Nothing was removed.";
+    return "This card is linked to a Certified project, shared for matching or has saved partners, so it cannot be deleted here yet. Nothing was removed.";
   if (code === "not_found") return "This card is no longer saved in your account. Reload to see your saved cards.";
   if (code === "connection_failed")
     return "The connection failed before Weave could confirm the deletion. Try again.";

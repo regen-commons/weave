@@ -300,9 +300,11 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);
       try {
         const result = await deleteSavedCard(options.controller, card, requestId, request, signal);
-        checked();
-        cardsGeneration++; nextCardOffset = Math.max(0, nextCardOffset - 1);
-        state = { ...state, cards: state.cards.filter(item => item.id !== card.id) }; emit();
+        // Confirmed by the server: report it even if this view has since closed.
+        if (!lifetime.signal.aborted) {
+          cardsGeneration++; nextCardOffset = Math.max(0, nextCardOffset - 1);
+          state = { ...state, cards: state.cards.filter(item => item.id !== card.id) }; emit();
+        }
         return result;
       } finally {
         // The account list is the authority afterwards, whether the card went or was refused.

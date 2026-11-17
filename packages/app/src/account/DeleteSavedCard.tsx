@@ -25,11 +25,18 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
   useEffect(() => {
     if (!open) { setChosen(null); setProblem(null); }
   }, [open]);
+  const reloaded = useRef(false);
   // The pressed control leaves with its view, so focus moves with the person.
   useEffect(() => {
-    const target = chosen ? "[data-confirm-cancel]" : returnTo.current ? `[data-card-id="${returnTo.current}"]` : null;
+    const target = chosen ? "[data-confirm-cancel]" : returnTo.current ? `[data-card-id="${returnTo.current}"]`
+      : reloaded.current ? "[data-card-id]" : null;
+    reloaded.current = false;
     if (target) body.current?.querySelector<HTMLElement>(target)?.focus();
   }, [chosen]);
+  // A refusal replaces the pressed button, so focus goes to the way forward it offers.
+  useEffect(() => {
+    if (problem) body.current?.querySelector<HTMLElement>(problem.reload ? "[data-reload]" : "[data-confirm-cancel]")?.focus();
+  }, [problem]);
   async function confirm() {
     if (!chosen || busy) return;
     setBusy(true);
@@ -48,6 +55,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
     try {
       await onReload();
       returnTo.current = null;
+      reloaded.current = true;
       setChosen(null);
       setProblem(null);
     } catch {
@@ -72,7 +80,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
             {busy && <p role="status">Deleting</p>}
             <div className="rc-action-bar">
               {problem?.reload ? (
-                <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={() => void reload()}>
+                <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-reload onClick={() => void reload()}>
                   Reload saved cards
                 </button>
               ) : (
@@ -100,7 +108,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
                     </span>
                   </p>
                   <button className="rc-button" data-variant="secondary" type="button" data-card-id={card.id}
-                    aria-label={`Delete ${card.name} from your account`}
+                    aria-label={`Delete from your account: ${card.name}`}
                     onClick={() => { setProblem(null); setChosen({ card, requestId: crypto.randomUUID() }); }}>
                     Delete from your account
                   </button>

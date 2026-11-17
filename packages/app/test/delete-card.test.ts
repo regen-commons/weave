@@ -6,8 +6,9 @@ import { deletableCards, deleteFailure, deleteSavedCard, deletedMessage, forgetS
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { loadedDraft, saveCommand } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
-import { MemoryDraftRepository } from "../src/describe/repository.ts";
-import { revise } from "../src/describe/contracts.ts";
+import { MemoryDraftRepository, RemovalNotice } from "../src/describe/repository.ts";
+import { newDraft, revise } from "../src/describe/contracts.ts";
+import { SaveDetached, saveAccountCard } from "../src/account/actions.ts";
 import { createLiveSocialService } from "../src/social/live.ts";
 import { accountFixture, fixtureSession } from "../dev/account-fixture.ts";
 
@@ -23,19 +24,20 @@ async function device(change: Parameters<typeof revise>[1] = {}) {
 }
 const deleted = (id = saved.id, revision = 3, kept = 2) => ({ deleted: { id, deleted: true, revision, removed: [id], kept } });
 
-test("forgetting a removed card releases every binding to it and gives a draft with its ID a new one", async () => {
+test("forgetting a removed card releases every binding to it and retires a draft ID that was the card's", async () => {
   const { draft } = await device();
   const pending = { ...draft.account.saved!, requestId: crypto.randomUUID() };
   const both = revise(draft, { account: { saved: draft.account.saved, pending } });
   const forgotten = revise(both, forgetSavedCard(both, saved.id)!);
-  assert.deepEqual(forgotten.account, { saved: null, pending: null });
-  assert.notEqual(forgotten.id, saved.id, "the next Save creates a new card instead of meeting the removed ID");
+  assert.deepEqual(forgotten.account, { saved: null, pending: null, retired: [saved.id] });
+  assert.equal(forgotten.id, saved.id, "device state keyed by the draft ID stays attached");
   assert.equal(forgotten.composer, "Synthetic device words");
-  assert.equal(saveCommand(forgotten, owner).command.id, forgotten.id);
+  assert.notEqual(saveCommand(forgotten, owner).command.id, saved.id, "the next Save never meets the removed ID");
   assert.equal(saveCommand(forgotten, owner).command.expectedRevision, 0);
+  assert.equal(forgetSavedCard(forgotten, saved.id), null, "retiring twice changes nothing");
   assert.equal(forgetSavedCard(draft, other), null, "another card leaves the device draft alone");
   const unbound = revise(draft, { account: { saved: null, pending: null } });
-  assert.notEqual(revise(unbound, forgetSavedCard(unbound, saved.id)!).id, saved.id);
+  assert.deepEqual(revise(unbound, forgetSavedCard(unbound, saved.id)!).account.retired, [saved.id]);
   const elsewhere = revise(draft, { id: crypto.randomUUID() });
   const kept = revise(elsewhere, forgetSavedCard(elsewhere, saved.id)!);
   assert.equal(kept.id, elsewhere.id);
@@ -52,9 +54,9 @@ test("deleting sends the exact ID, listed revision and request, then unbinds the
   assert.deepEqual(bodies, [{ action: "delete", id: saved.id, expectedRevision: 3, requestId }]);
   assert.equal(result.device, "unbound");
   const stored = repository.value!;
-  assert.deepEqual(stored.account, { saved: null, pending: null });
+  assert.deepEqual(stored.account, { saved: null, pending: null, retired: [saved.id] });
   assert.equal(stored.composer, "Synthetic device words");
-  assert.notEqual(stored.id, saved.id);
+  assert.equal(stored.id, saved.id, "the draft keeps its ID and retires it");
   assert.equal(deletedMessage("Seed library", result),
     "Removed Seed library from your account. 2 saved cards kept. The card on this device keeps its words. Save it again to keep a new copy.");
   assert.equal(deletedMessage("Seed library", { deleted: { ...result.deleted, kept: 1 }, device: "unrelated" }),
@@ -67,7 +69,7 @@ test("a refused, unconfirmed or mismatched deletion changes nothing on the devic
   for (const [reply, code, words] of [
     [new AccountFailure("save_conflict"), "save_conflict", "This card changed somewhere else. Reload to see the latest version."],
     [new AccountFailure("initiative_referenced"), "initiative_referenced",
-      "A card linked to a team or shared for matching cannot be deleted here yet. Nothing was removed."],
+      "This card is linked to a Certified project, shared for matching or has saved partners, so it cannot be deleted here yet. Nothing was removed."],
     [new AccountFailure("not_found"), "not_found", "This card is no longer saved in your account. Reload to see your saved cards."],
     [new AccountFailure("connection_failed"), "connection_failed", "The connection failed before Weave could confirm the deletion. Try again."],
     [{ deleted: { id: saved.id, deleted: true, revision: 3, removed: [], kept: 0 } }, "account_unavailable", null],
@@ -146,4 +148,61 @@ test("the live adapter deletes through the account handlers, retries with one re
   const again = saveCommand(controller.getSnapshot().draft, owner);
   assert.notEqual(again.command.id, id);
   assert.equal(again.command.expectedRevision, 0);
+});
+
+function heldSave() {
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (_url: string, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    await gate;
+    return new Response(JSON.stringify({ saved: { id: body.id, revision: body.expectedRevision + 1,
+      updatedAt: "2026-11-16T00:00:00Z", document: body.document } }), { status: 200 });
+  }) as typeof fetch;
+  return { release, restore: () => { globalThis.fetch = original; } };
+}
+
+test("a draft with an unconfirmed save is never removed, so a save answer cannot bind the next blank draft", async () => {
+  const { controller } = await device({ composer: "Edited words" });
+  const held = heldSave();
+  try {
+    const saving = saveAccountCard(controller, owner, async () => {});
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.ok(controller.getSnapshot().draft.account.pending, "the save is waiting for its answer");
+    await assert.rejects(controller.discardCurrent(), RemovalNotice);
+    held.release();
+    await saving;
+    assert.equal(controller.getSnapshot().draft.composer, "Edited words");
+    assert.equal(controller.getSnapshot().draft.account.saved?.revision, 4);
+  } finally { held.restore(); }
+});
+
+test("a save answer for a draft that was replaced meanwhile binds nothing and says so", async () => {
+  const { controller } = await device({ composer: "Edited words" });
+  const held = heldSave();
+  try {
+    const saving = saveAccountCard(controller, owner, async () => {});
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    await controller.replace(revise(newDraft(), { composer: "Different initiative" }));
+    held.release();
+    await assert.rejects(saving, SaveDetached);
+    const after = controller.getSnapshot().draft;
+    assert.equal(after.composer, "Different initiative");
+    assert.equal(after.account.saved, null, "the replacement is never bound to the saved card");
+  } finally { held.restore(); }
+});
+
+test("a save refused because its card was deleted releases the device draft for a new save", async () => {
+  const { controller } = await device();
+  const original = globalThis.fetch;
+  globalThis.fetch = (async () => new Response(JSON.stringify({ error: "initiative_deleted" }), { status: 409 })) as typeof fetch;
+  try {
+    await assert.rejects(saveAccountCard(controller, owner, async () => {}), { code: "initiative_deleted" });
+  } finally { globalThis.fetch = original; }
+  const after = controller.getSnapshot().draft;
+  assert.equal(after.account.saved, null);
+  assert.deepEqual(after.account.retired, [saved.id]);
+  assert.notEqual(saveCommand(after, owner).command.id, saved.id);
+  assert.equal(after.composer, "Synthetic device words");
 });

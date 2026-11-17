@@ -39,7 +39,7 @@ export function AccountProvider({ children, fixture = false }: { children: React
         const current = controller.getSnapshot().draft;
         // A removed ID never returns, so a draft that carried it is saved next as a new card.
         if (current.account.saved?.id === id && current.account.saved.owner === owner && current.account.saved.revision === binding.revision)
-          controller.change(d => revise(d, { ...forgetSavedCard(d, id), account: { saved: null, pending: null } }));
+          controller.change(d => revise(d, { account: { ...(forgetSavedCard(d, id)?.account ?? d.account), saved: null, pending: null } }));
       }
       setMissingDraft(status === "missing" ? controller.getSnapshot().draft.id : null);
     }).catch(() => {});

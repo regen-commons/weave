@@ -6,7 +6,7 @@ import { BackupChanged, DraftConflict, MemoryDraftRepository, RemovalNotice, dra
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import {
-  attachedFiles, backupDeleteWarning, deviceRemovalFailure, discardedMessage, discardWarning, removedBackupMessage,
+  attachedFiles, backupDeleteWarning, draftTime, deviceRemovalFailure, discardedMessage, discardWarning, removedBackupMessage,
 } from "../src/describe/device-removal.ts";
 
 type Stores = Record<"drafts" | "backups", Map<string, unknown>>;
@@ -229,8 +229,8 @@ test("confirmations name the backup, its shown time and its files; result lines 
   const { current, backups } = drafts();
   const withFiles = backups[1]![1];
   assert.equal(attachedFiles(withFiles), 2);
-  assert.match(backupDeleteWarning(withFiles), /^This deletes the backup untitled draft from .+ from this browser, with its 2 attached files\. It cannot be undone\.$/u);
-  assert.ok(backupDeleteWarning(withFiles).includes(new Date(withFiles.updatedAt).toLocaleString()), "the time shown is the draft's own time");
+  assert.match(backupDeleteWarning(withFiles), /^This deletes the backup untitled draft, last changed \d{1,2} [A-Z][a-z]+ \d{4} at \d{2}:\d{2}, from this browser with its 2 attached files\. It cannot be undone\.$/u);
+  assert.ok(backupDeleteWarning(withFiles).includes(draftTime(withFiles)), "the time shown is the draft's own time");
   assert.doesNotMatch(backupDeleteWarning(backups[0]![1]), /attached/u);
   assert.match(discardWarning(current), /with its 1 attached file, so you can restore it below/u);
   assert.equal(removedBackupMessage({ removed: ["k"], kept: 18 }), "Removed 1 backup. 18 backups kept.");

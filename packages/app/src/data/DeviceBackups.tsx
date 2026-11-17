@@ -28,7 +28,8 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ text: string; failed: boolean } | null>(null);
   const reload = () => controller.backups().then(setBackups, () => {});
-  useEffect(() => { void reload(); }, [controller, draft.id]);
+  // Loading or restoring a card keeps the previous draft as a backup, so list again whenever the draft changes.
+  useEffect(() => { void reload(); }, [controller, draft.id, draft.updatedAt]);
   async function run(action: () => Promise<string>) {
     if (busy) return;
     setBusy(true);
@@ -65,7 +66,7 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
                 </button>
                 {manage && (
                   <button className="rc-button" data-variant="quiet" type="button" disabled={busy || disabled}
-                    aria-label={`Delete the backup ${draftTitle(item.draft)}, ${draftTime(item.draft)}`}
+                    aria-label={`Delete this backup: ${draftTitle(item.draft)}, ${draftTime(item.draft)}`}
                     onClick={() => { setRestoring(null); setResult(null); setRemoving({ kind: "backup", backup: item }); }}>
                     Delete this backup
                   </button>

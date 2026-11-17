@@ -3,8 +3,9 @@ import { BackupChanged, DraftConflict, RemovalNotice, type DeviceRemoval } from 
 
 /** The name a backup is listed under. Two backups can share it, so it never identifies one. */
 export const draftTitle = (draft: DeviceDraft) => draft.confirmed?.name || draft.proposal?.name || "untitled draft";
-/** The time shown beside a backup: when its draft last changed, not when the backup was made. */
-export const draftTime = (draft: DeviceDraft) => new Date(draft.updatedAt).toLocaleString();
+/** The time shown beside a backup: when its draft last changed, not when the backup was made. Written in full. */
+export const draftTime = (draft: DeviceDraft) =>
+  new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeStyle: "short" }).format(new Date(draft.updatedAt));
 
 /** Files kept inside a draft: its own, and those added to its needs and offers. */
 export function attachedFiles(draft: DeviceDraft): number {
@@ -17,8 +18,8 @@ const backups = (count: number) =>
 /** The confirmation for one backup, by name, displayed time and contents. */
 export function backupDeleteWarning(draft: DeviceDraft): string {
   const count = attachedFiles(draft);
-  return `This deletes the backup ${draftTitle(draft)} from ${draftTime(draft)} from this browser${
-    count ? `, with its ${files(count)}` : ""}. It cannot be undone.`;
+  return `This deletes the backup ${draftTitle(draft)}, last changed ${draftTime(draft)}, from this browser${
+    count ? ` with its ${files(count)}` : ""}. It cannot be undone.`;
 }
 export function discardWarning(draft: DeviceDraft): string {
   const count = attachedFiles(draft);

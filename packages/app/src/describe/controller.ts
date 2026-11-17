@@ -146,6 +146,9 @@ export class DraftController {
     await this.settled();
     if (!this.writable || this.dirty || this.snapshot.draft !== previous || this.expected === null || !this.repository.discardCurrent)
       throw new RemovalNotice("The device draft changed or is not stored yet. Keep this tab open and try again. Nothing was removed.");
+    // A save still waiting for its answer would otherwise bind whatever draft follows to its card.
+    if (previous.account.pending)
+      throw new RemovalNotice("A save to your account is not confirmed yet. Save again or wait for it to finish, then remove this draft. Nothing was removed.");
     let result: DeviceRemoval & { backup: string };
     try {
       result = await this.repository.discardCurrent(draftPin(previous));

@@ -98,6 +98,8 @@ export function accountMessage(error: unknown): string {
         connection_failed:
           "The connection failed. Your device draft is still here. Try again when you are online.",
         document_too_large: "This card is too large to save. Your device draft is still here.",
+        initiative_deleted:
+          "This card was deleted from your account. Your words are still on this device. Save again to keep them as a new card.",
       } as Record<string, string>
     )[code] ??
     (error instanceof AccountFailure
