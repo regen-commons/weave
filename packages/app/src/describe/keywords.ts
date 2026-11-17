@@ -1,5 +1,6 @@
 import { z } from "../validation.ts";
 import { wholeWords } from "../intake/keywords.ts";
+import { statedWhere, whereFromAnswer } from "./places.ts";
 import {
   FileReadSchema,
   SuggestionSchema,
@@ -64,18 +65,11 @@ export function keywordSuggestion(draft: DeviceDraft, text: string): Initiative 
     (directName.length <= 60 && !/\b(work|working|help|we|our|trabalh|ajud)/iu.test(directName)
       ? directName
       : "");
-  const where =
+  // The person's answer to the Where question wins. Without one, only a place the words state is proposed.
+  const answer =
     draft.turns.find((turn) => turn.prompt === "Where does most of your work happen?")?.text.trim() ??
     (draft.turns.length === 1 ? draft.composer.trim() : "");
-  const isGlobal = /^(?:global|worldwide|anywhere|em todo o mundo)$/iu.test(where);
-  const locations = isGlobal
-    ? []
-    : where
-        .split(/[;\n]/u)
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .slice(0, 8)
-        .map((value) => value.slice(0, 120));
+  const { locations, isGlobal } = answer ? whereFromAnswer(answer) : statedWhere(text);
   const stage = /\b(just starting|starting now|começando agora)\b/iu.test(text)
     ? "seed"
     : /\b(getting going|recently started)\b/iu.test(text)
