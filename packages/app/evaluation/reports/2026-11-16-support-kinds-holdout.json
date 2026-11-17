@@ -1,0 +1,1216 @@
+{
+  "dataset": "support-kinds-v1",
+  "corpusSha256": "f243a270ae73af402f5488cc35087e011ae9852cbe55ef38a10110853f90db5c",
+  "baselineSha256": "caad12eb752c8afbff2f39f97a32729d926b07f4f906c22658f9b0e9933c1f5a",
+  "engineSha256": "dc409bb207826a7a34e55e0809f122ae592b2c1856215f36bb056559a6d63cec",
+  "baselineEngine": "support-kinds released at 921d236",
+  "candidateEngine": "packages/app/src/intake/keywords.ts",
+  "node": "v24.20.0",
+  "annotationStatus": "Synthetic. Development cases: production QA declarations and one development author. Holdout: authored and judged by two separate agent instances blind to the engine and to each other's labels; not human judged.",
+  "thresholds": {
+    "exactMatchFloor": 0.8,
+    "namedRegressionsMustPass": true,
+    "noInventedAmountOrTimeframe": true,
+    "source": "80% is the 20-case production floor recorded in docs/platform/prototype/proof/go-live-2026-11-16/quality-results.json; named regressions are the production sample, negation gate and soil finding."
+  },
+  "limits": [
+    "Synthetic text. No real initiative wording and no human annotation.",
+    "Holdout author and judge are separate agent instances of one model family; their agreement is correlated.",
+    "Development cases include the tuned production sample and a single annotator's cases; they are regression evidence.",
+    "The keyword suggestion is a proposal the person reviews, so exact match measures proposal quality, not saved data.",
+    "Run once after freezing the candidate; a rerun after examining misses is regression evidence."
+  ],
+  "split": "holdout",
+  "gates": {
+    "exactMatchFloor": {
+      "threshold": 0.8,
+      "observed": 0.2727,
+      "passed": false
+    },
+    "namedRegressions": {
+      "passed": true,
+      "groups": []
+    },
+    "noInventedAmountOrTimeframe": {
+      "passed": true,
+      "violations": []
+    }
+  },
+  "passed": false,
+  "baseline": {
+    "cases": 66,
+    "families": 63,
+    "exact": 18,
+    "exactRate": 0.2727,
+    "perKind": {
+      "living": {
+        "support": 9,
+        "truePositive": 7,
+        "falsePositive": 15,
+        "falseNegative": 2,
+        "precision": 0.3182,
+        "recall": 0.7778
+      },
+      "material": {
+        "support": 8,
+        "truePositive": 2,
+        "falsePositive": 1,
+        "falseNegative": 6,
+        "precision": 0.6667,
+        "recall": 0.25
+      },
+      "intellectual": {
+        "support": 15,
+        "truePositive": 6,
+        "falsePositive": 0,
+        "falseNegative": 9,
+        "precision": 1,
+        "recall": 0.4
+      },
+      "experiential": {
+        "support": 9,
+        "truePositive": 1,
+        "falsePositive": 0,
+        "falseNegative": 8,
+        "precision": 1,
+        "recall": 0.1111
+      },
+      "social": {
+        "support": 10,
+        "truePositive": 6,
+        "falsePositive": 2,
+        "falseNegative": 4,
+        "precision": 0.75,
+        "recall": 0.6
+      },
+      "financial": {
+        "support": 9,
+        "truePositive": 7,
+        "falsePositive": 3,
+        "falseNegative": 2,
+        "precision": 0.7,
+        "recall": 0.7778
+      },
+      "cultural": {
+        "support": 7,
+        "truePositive": 1,
+        "falsePositive": 0,
+        "falseNegative": 6,
+        "precision": 1,
+        "recall": 0.1429
+      },
+      "spiritual": {
+        "support": 6,
+        "truePositive": 6,
+        "falsePositive": 0,
+        "falseNegative": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    "byDirection": {
+      "need": {
+        "cases": 34,
+        "exact": 9,
+        "exactRate": 0.2647
+      },
+      "offer": {
+        "cases": 32,
+        "exact": 9,
+        "exactRate": 0.2813
+      }
+    },
+    "byLanguage": {
+      "en": {
+        "cases": 42,
+        "exact": 10,
+        "exactRate": 0.2381
+      },
+      "pt": {
+        "cases": 24,
+        "exact": 8,
+        "exactRate": 0.3333
+      }
+    },
+    "byTag": {
+      "accents": {
+        "cases": 23,
+        "exact": 8,
+        "exactRate": 0.3478
+      },
+      "amount": {
+        "cases": 6,
+        "exact": 3,
+        "exactRate": 0.5
+      },
+      "colloquial": {
+        "cases": 7,
+        "exact": 3,
+        "exactRate": 0.4286
+      },
+      "data-about-living": {
+        "cases": 10,
+        "exact": 1,
+        "exactRate": 0.1
+      },
+      "equipment": {
+        "cases": 6,
+        "exact": 1,
+        "exactRate": 0.1667
+      },
+      "living-resource": {
+        "cases": 9,
+        "exact": 5,
+        "exactRate": 0.5556
+      },
+      "mixed": {
+        "cases": 9,
+        "exact": 1,
+        "exactRate": 0.1111
+      },
+      "negation": {
+        "cases": 11,
+        "exact": 1,
+        "exactRate": 0.0909
+      },
+      "non-money-number": {
+        "cases": 4,
+        "exact": 2,
+        "exactRate": 0.5
+      },
+      "portuguese": {
+        "cases": 24,
+        "exact": 8,
+        "exactRate": 0.3333
+      },
+      "single-kind": {
+        "cases": 55,
+        "exact": 16,
+        "exactRate": 0.2909
+      },
+      "sparse": {
+        "cases": 4,
+        "exact": 0,
+        "exactRate": 0
+      }
+    },
+    "bySource": {
+      "independent-holdout-2026-11-16": {
+        "cases": 66,
+        "exact": 18,
+        "exactRate": 0.2727
+      }
+    }
+  },
+  "candidate": {
+    "cases": 66,
+    "families": 63,
+    "exact": 18,
+    "exactRate": 0.2727,
+    "perKind": {
+      "living": {
+        "support": 9,
+        "truePositive": 7,
+        "falsePositive": 15,
+        "falseNegative": 2,
+        "precision": 0.3182,
+        "recall": 0.7778
+      },
+      "material": {
+        "support": 8,
+        "truePositive": 2,
+        "falsePositive": 1,
+        "falseNegative": 6,
+        "precision": 0.6667,
+        "recall": 0.25
+      },
+      "intellectual": {
+        "support": 15,
+        "truePositive": 6,
+        "falsePositive": 0,
+        "falseNegative": 9,
+        "precision": 1,
+        "recall": 0.4
+      },
+      "experiential": {
+        "support": 9,
+        "truePositive": 1,
+        "falsePositive": 0,
+        "falseNegative": 8,
+        "precision": 1,
+        "recall": 0.1111
+      },
+      "social": {
+        "support": 10,
+        "truePositive": 6,
+        "falsePositive": 2,
+        "falseNegative": 4,
+        "precision": 0.75,
+        "recall": 0.6
+      },
+      "financial": {
+        "support": 9,
+        "truePositive": 7,
+        "falsePositive": 3,
+        "falseNegative": 2,
+        "precision": 0.7,
+        "recall": 0.7778
+      },
+      "cultural": {
+        "support": 7,
+        "truePositive": 1,
+        "falsePositive": 0,
+        "falseNegative": 6,
+        "precision": 1,
+        "recall": 0.1429
+      },
+      "spiritual": {
+        "support": 6,
+        "truePositive": 6,
+        "falsePositive": 0,
+        "falseNegative": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    "byDirection": {
+      "need": {
+        "cases": 34,
+        "exact": 9,
+        "exactRate": 0.2647
+      },
+      "offer": {
+        "cases": 32,
+        "exact": 9,
+        "exactRate": 0.2813
+      }
+    },
+    "byLanguage": {
+      "en": {
+        "cases": 42,
+        "exact": 10,
+        "exactRate": 0.2381
+      },
+      "pt": {
+        "cases": 24,
+        "exact": 8,
+        "exactRate": 0.3333
+      }
+    },
+    "byTag": {
+      "accents": {
+        "cases": 23,
+        "exact": 8,
+        "exactRate": 0.3478
+      },
+      "amount": {
+        "cases": 6,
+        "exact": 3,
+        "exactRate": 0.5
+      },
+      "colloquial": {
+        "cases": 7,
+        "exact": 3,
+        "exactRate": 0.4286
+      },
+      "data-about-living": {
+        "cases": 10,
+        "exact": 1,
+        "exactRate": 0.1
+      },
+      "equipment": {
+        "cases": 6,
+        "exact": 1,
+        "exactRate": 0.1667
+      },
+      "living-resource": {
+        "cases": 9,
+        "exact": 5,
+        "exactRate": 0.5556
+      },
+      "mixed": {
+        "cases": 9,
+        "exact": 1,
+        "exactRate": 0.1111
+      },
+      "negation": {
+        "cases": 11,
+        "exact": 1,
+        "exactRate": 0.0909
+      },
+      "non-money-number": {
+        "cases": 4,
+        "exact": 2,
+        "exactRate": 0.5
+      },
+      "portuguese": {
+        "cases": 24,
+        "exact": 8,
+        "exactRate": 0.3333
+      },
+      "single-kind": {
+        "cases": 55,
+        "exact": 16,
+        "exactRate": 0.2909
+      },
+      "sparse": {
+        "cases": 4,
+        "exact": 0,
+        "exactRate": 0
+      }
+    },
+    "bySource": {
+      "independent-holdout-2026-11-16": {
+        "cases": 66,
+        "exact": 18,
+        "exactRate": 0.2727
+      }
+    }
+  },
+  "misses": [
+    {
+      "id": "kh-002",
+      "expected": [
+        "financial"
+      ],
+      "observed": [
+        "financial",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-006",
+      "expected": [
+        "financial"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "financial"
+      ]
+    },
+    {
+      "id": "kh-007",
+      "expected": [
+        "material"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "material"
+      ]
+    },
+    {
+      "id": "kh-008",
+      "expected": [
+        "material"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "material"
+      ]
+    },
+    {
+      "id": "kh-010",
+      "expected": [
+        "material"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "material"
+      ]
+    },
+    {
+      "id": "kh-011",
+      "expected": [
+        "material"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "material"
+      ]
+    },
+    {
+      "id": "kh-012",
+      "expected": [
+        "material"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "material"
+      ]
+    },
+    {
+      "id": "kh-013",
+      "expected": [
+        "material"
+      ],
+      "observed": [
+        "financial",
+        "material"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "financial"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-014",
+      "expected": [
+        "living"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "living"
+      ]
+    },
+    {
+      "id": "kh-018",
+      "expected": [
+        "living"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "living"
+      ]
+    },
+    {
+      "id": "kh-021",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "intellectual",
+        "social"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "social"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-023",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-024",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "material"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "material"
+      ],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-025",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-026",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-027",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-028",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-029",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "intellectual",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-030",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-031",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "intellectual",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-032",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-033",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-034",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-036",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-037",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-038",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [
+        "experiential",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-039",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-042",
+      "expected": [
+        "social"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "social"
+      ]
+    },
+    {
+      "id": "kh-043",
+      "expected": [
+        "social"
+      ],
+      "observed": [
+        "living",
+        "social"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-045",
+      "expected": [
+        "social"
+      ],
+      "observed": [
+        "financial",
+        "social"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "financial"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-047",
+      "expected": [
+        "social"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "social"
+      ]
+    },
+    {
+      "id": "kh-048",
+      "expected": [
+        "cultural"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "kh-049",
+      "expected": [
+        "cultural"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "kh-050",
+      "expected": [
+        "cultural"
+      ],
+      "observed": [
+        "cultural",
+        "financial"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "financial"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-051",
+      "expected": [
+        "cultural"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "kh-052",
+      "expected": [
+        "cultural"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "kh-053",
+      "expected": [
+        "cultural"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "kh-055",
+      "expected": [
+        "spiritual"
+      ],
+      "observed": [
+        "living",
+        "spiritual"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-057",
+      "expected": [
+        "spiritual"
+      ],
+      "observed": [
+        "social",
+        "spiritual"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "social"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-060",
+      "expected": [],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-061",
+      "expected": [
+        "intellectual",
+        "living"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "intellectual"
+      ]
+    },
+    {
+      "id": "kh-063",
+      "expected": [
+        "financial",
+        "social"
+      ],
+      "observed": [
+        "financial",
+        "living",
+        "social"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "kh-065",
+      "expected": [
+        "experiential",
+        "financial"
+      ],
+      "observed": [
+        "financial"
+      ],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-067",
+      "expected": [
+        "experiential",
+        "living"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "kh-069",
+      "expected": [
+        "cultural",
+        "spiritual"
+      ],
+      "observed": [
+        "living",
+        "spiritual"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "kh-070",
+      "expected": [
+        "financial",
+        "social"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "financial",
+        "social"
+      ]
+    },
+    {
+      "id": "kh-071",
+      "expected": [
+        "experiential",
+        "material"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential",
+        "material"
+      ]
+    },
+    {
+      "id": "kh-072",
+      "expected": [
+        "intellectual",
+        "social"
+      ],
+      "observed": [
+        "intellectual"
+      ],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "social"
+      ]
+    }
+  ],
+  "regressions": [],
+  "fixes": [],
+  "subgroupsBelowFloor": [
+    {
+      "name": "need",
+      "cases": 34,
+      "exact": 9,
+      "exactRate": 0.2647
+    },
+    {
+      "name": "offer",
+      "cases": 32,
+      "exact": 9,
+      "exactRate": 0.2813
+    },
+    {
+      "name": "en",
+      "cases": 42,
+      "exact": 10,
+      "exactRate": 0.2381
+    },
+    {
+      "name": "pt",
+      "cases": 24,
+      "exact": 8,
+      "exactRate": 0.3333
+    },
+    {
+      "name": "accents",
+      "cases": 23,
+      "exact": 8,
+      "exactRate": 0.3478
+    },
+    {
+      "name": "amount",
+      "cases": 6,
+      "exact": 3,
+      "exactRate": 0.5
+    },
+    {
+      "name": "colloquial",
+      "cases": 7,
+      "exact": 3,
+      "exactRate": 0.4286
+    },
+    {
+      "name": "data-about-living",
+      "cases": 10,
+      "exact": 1,
+      "exactRate": 0.1
+    },
+    {
+      "name": "equipment",
+      "cases": 6,
+      "exact": 1,
+      "exactRate": 0.1667
+    },
+    {
+      "name": "living-resource",
+      "cases": 9,
+      "exact": 5,
+      "exactRate": 0.5556
+    },
+    {
+      "name": "mixed",
+      "cases": 9,
+      "exact": 1,
+      "exactRate": 0.1111
+    },
+    {
+      "name": "negation",
+      "cases": 11,
+      "exact": 1,
+      "exactRate": 0.0909
+    },
+    {
+      "name": "non-money-number",
+      "cases": 4,
+      "exact": 2,
+      "exactRate": 0.5
+    },
+    {
+      "name": "portuguese",
+      "cases": 24,
+      "exact": 8,
+      "exactRate": 0.3333
+    },
+    {
+      "name": "single-kind",
+      "cases": 55,
+      "exact": 16,
+      "exactRate": 0.2909
+    },
+    {
+      "name": "sparse",
+      "cases": 4,
+      "exact": 0,
+      "exactRate": 0
+    }
+  ],
+  "uncertain": [
+    {
+      "id": "kh-015",
+      "authorExpected": [
+        "living"
+      ],
+      "judgeExpected": [
+        "living"
+      ],
+      "observed": [
+        "living"
+      ]
+    },
+    {
+      "id": "kh-035",
+      "authorExpected": [
+        "experiential"
+      ],
+      "judgeExpected": [
+        "experiential"
+      ],
+      "observed": []
+    },
+    {
+      "id": "kh-044",
+      "authorExpected": [
+        "social"
+      ],
+      "judgeExpected": [
+        "social"
+      ],
+      "observed": [
+        "financial",
+        "social"
+      ]
+    },
+    {
+      "id": "kh-064",
+      "authorExpected": [
+        "experiential",
+        "financial"
+      ],
+      "judgeExpected": [
+        "experiential",
+        "financial"
+      ],
+      "observed": [
+        "experiential",
+        "financial"
+      ]
+    },
+    {
+      "id": "kh-066",
+      "authorExpected": [
+        "cultural",
+        "material"
+      ],
+      "judgeExpected": [
+        "cultural",
+        "material"
+      ],
+      "observed": []
+    },
+    {
+      "id": "kh-068",
+      "authorExpected": [
+        "cultural",
+        "experiential",
+        "material"
+      ],
+      "judgeExpected": [
+        "cultural",
+        "experiential",
+        "material"
+      ],
+      "observed": [
+        "experiential"
+      ]
+    }
+  ]
+}

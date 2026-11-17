@@ -15568,6 +15568,26 @@
       ],
       "nextReviewOn": "2026-11-19",
       "note": "HTTP 403. The same host also blocked the application page earlier today."
+    },
+    {
+      "runId": "revision-2026-11-16-haymarket",
+      "recordKey": "revision-2026-11-16-haymarket::source-01",
+      "attemptedOn": "2026-11-16",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-16",
+      "result": "verified",
+      "fields": [
+        "application",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.haymarket.org/grants-1"
+      ],
+      "revisions": [
+        "recTQMgGnvmEseTmT::sustaining-grants2026-27"
+      ],
+      "nextReviewOn": "2026-11-19",
+      "note": "The 2026-2027 Sustaining Grant deadline is stated in the present tense, December 2, 2026, and requests for applications are considered until November 30, 2026. The page still says groups funded in the past three years will be emailed an application package in October 2025, and its Urgent Response section still names the 2024-2025 Grant Cycle. Both conflicts are kept as unknowns; the deadline date is unchanged."
     }
   ],
   "runs": [
@@ -17995,6 +18015,54 @@
       ],
       "result": "Applied three existing-term revisions through the revision journal; held Whitley for want of a readable official source. No whole-record verification date advanced.",
       "publication": "Draft pull request stacked on PR #9, labeled automated/codex. No merge, deployment, application or funder contact."
+    },
+    {
+      "id": "revision-2026-11-16-haymarket",
+      "runType": "manual-revision",
+      "localDate": "2026-11-16",
+      "timeZone": "America/Los_Angeles",
+      "executionNote": "Requested in a Claude Code session to fix the stale Haymarket note found by the November 16 go-live deadline check (docs/platform/prototype/proof/go-live-2026-11-16/findings.md). Not a scheduled routine run; no timer is claimed.",
+      "baselineCommit": "921d236e16df13e1273c3ab117fbe59661235792",
+      "branch": "codex/fix-catalog-snapshot-date",
+      "repository": "regen-commons/weave",
+      "pullRequestCheck": {
+        "listing": "gh pr list --repo regen-commons/weave --state open",
+        "listingCount": 2,
+        "scopes": "#69 agent documentation; #3 historical QA. Neither touches Haymarket."
+      },
+      "sourceCounts": {
+        "attempted": 1,
+        "retrieved": 1,
+        "retrievalFailed": 0,
+        "verified": 1,
+        "reviewedNoTerms": 0,
+        "failed": 0
+      },
+      "countDefinition": "Unique URLs attempted in this pass. Verified means only the listed fields.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.haymarket.org/grants-1",
+          "attemptedOn": "2026-11-16",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-16",
+          "fields": [
+            "application",
+            "unknowns"
+          ],
+          "revisions": [
+            "recTQMgGnvmEseTmT::sustaining-grants2026-27"
+          ],
+          "finding": "The 2026-2027 Sustaining Grant deadline is stated in the present tense, December 2, 2026, and requests for applications are considered until November 30, 2026. The page still says groups funded in the past three years will be emailed an application package in October 2025, and its Urgent Response section still names the 2024-2025 Grant Cycle. Both conflicts are kept as unknowns; the deadline date is unchanged.",
+          "nextReviewOn": "2026-11-19"
+        }
+      ],
+      "appliedRevisions": [
+        "2026-11-16-haymarket-deadline-wording"
+      ],
+      "result": "Applied one existing-term revision through the revision journal: the application note and unknowns. Route and dates are unchanged. No whole-record verification date advanced.",
+      "publication": "Committed on a local branch for review. No push, merge, deployment, application or funder contact."
     }
   ]
 }

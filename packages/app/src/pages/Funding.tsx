@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FixtureContext } from "../fixtures.ts";
 import { fundingFixture, teamFixture } from "../fixtures.ts";
-import { catalogEntries } from "../funding/catalog.ts";
+import { catalogEntries, researchSnapshotDate } from "../funding/catalog.ts";
 import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } from "../funding/facets.ts";
 import {
   emptyFundingFilters,
@@ -37,6 +37,10 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
       catalog.error ||
       (state === "error" && !retried ? "The catalog did not load. Your choices are still here." : "");
   const entries = useMemo(() => (catalog.bundle ? catalogEntries(catalog.bundle) : []), [catalog.bundle]);
+  const researchDate = useMemo(
+    () => (catalog.bundle ? researchSnapshotDate(catalog.bundle.catalog) : null),
+    [catalog.bundle],
+  );
   const vocabulary = useMemo(() => fundingVocabulary(entries), [entries]);
   // Ranking needs a card to compare with; without one its group and its sort order mean nothing.
   const personalized = !!catalog.results;
@@ -72,9 +76,9 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
       )}
       {catalog.bundle && (
         <p className="rc-meta">
-          {catalog.bundle.catalog.funds.length} funders, {entries.length} program and overview records.
-          Research snapshot {fullDate(catalog.bundle.catalog.researchCheckedOn)}. Keyword matching runs on
-          this device; no model download.
+          {catalog.bundle.catalog.funds.length} funders, {entries.length} program and overview records.{" "}
+          {researchDate ? `Latest source check ${fullDate(researchDate)}.` : "Latest source check date unknown."}{" "}
+          Keyword matching runs on this device; no model download.
         </p>
       )}
       {catalog.bundle?.conditions === null && (

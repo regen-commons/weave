@@ -1,13 +1,23 @@
 import { randomBytes } from "node:crypto";
 import type { IncomingMessage, ServerResponse, RequestListener } from "node:http";
-import Provider from "oidc-provider";
+import Provider, { errors } from "oidc-provider";
 import { AuthStore } from "./store.ts";
 import { certifiedAuthorizationFailure, oidcAdapter, type CertifiedClient } from "./adapters.ts";
 import { identityClaims } from "./identity.ts";
-import { createBridgeObserver, type BridgeObserver, type BridgeStartStage } from "./operations.ts";
-import { validateConfig, type BridgeConfig } from "./bridge-config.ts";
+import { createBridgeObserver, type BridgeExpiryReason, type BridgeObserver, type BridgeStartStage } from "./operations.ts";
+import { recoveryOrigin, validateConfig, type BridgeConfig } from "./bridge-config.ts";
 export { validateConfig, type BridgeConfig } from "./bridge-config.ts";
 const random = () => randomBytes(32).toString("base64url");
+/**
+ * Supabase Auth, the only relying party, expires its OAuth flow state 300 seconds after /authorize
+ * (GoTrue's minimum). A later return to its callback is sent to the shared project's Site URL instead
+ * of Weave. The bridge stops 20 seconds early to leave time for the remaining redirects to Supabase.
+ * This normally keeps people off the Site URL; it is not a guarantee (see CERTIFIED.md).
+ */
+export const RELYING_PARTY_WINDOW_SECONDS = 280;
+const epoch = () => Math.floor(Date.now() / 1000);
+/** Records written before the deadline existed carry none; they keep the earlier behavior. */
+const pastDeadline = (deadline: unknown) => typeof deadline === "number" && epoch() >= deadline;
 function cookie(req: IncomingMessage, name: string): string | undefined {
   const values = (req.headers.cookie ?? "").split(";").map(v => v.trim()).filter(v => v.startsWith(`${name}=`));
   const value = values.length === 1 ? values[0]!.slice(name.length + 1) : undefined;
@@ -43,6 +53,9 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
   // The edge proxy must overwrite forwarded headers, not append caller-controlled values.
   provider.proxy = secure;
   provider.on("server_error", () => observer.event("provider_error"));
+  // Weave's callback recovers the person's task from its own browser-bound state and offers sign-in again.
+  const recovery = `${recoveryOrigin(config)}/api/sign-in?error=sign_in_expired`;
+  const expired = (res: ServerResponse, reason: BridgeExpiryReason) => { observer.expired(reason); redirect(res, recovery); };
   const callback = provider.callback();
   const oidcRoutes = /^\/(auth(?:\/[A-Za-z0-9_-]+)?|token|jwks|\.well-known\/openid-configuration|session\/end(?:\/(?:confirm|success))?)$/;
   return async (req, res) => {
@@ -66,23 +79,34 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
       if (url.pathname === "/client-metadata.json" && req.method === "GET") return json(res, 200, certified.metadata);
       if (url.pathname === "/at-jwks.json" && req.method === "GET") return json(res, 200, certified.jwks);
       if (url.pathname === "/at/callback" && req.method === "GET") {
+        // A missing cookie or binding has expired or was already used. Either way it cannot finish here.
         const bindingId = cookie(req, `${prefix}at`);
-        if (!bindingId) return json(res, 400, { error: "invalid_browser_state" });
+        if (!bindingId) return expired(res, "cookie_missing");
         const binding = await store.take("browser:at", bindingId);
         setCookie(res, "at", "", 0);
-        if (typeof binding?.uid !== "string") return json(res, 400, { error: "invalid_browser_state" });
+        if (typeof binding?.uid !== "string") return expired(res, "state_gone");
+        // Past the deadline, skip the Certified exchange: no identity is read for a flow Supabase will refuse.
+        if (pastDeadline(binding.deadline)) return expired(res, "deadline");
         const result = await certified.callback(url.searchParams);
         if (result.state !== bindingId) throw new Error("invalid_browser_state");
         identityClaims(result.subject);
         const ticket = random();
-        await store.put("browser:resume", ticket, { uid: binding.uid, subject: result.subject }, 60);
+        await store.put("browser:resume", ticket, { uid: binding.uid, subject: result.subject, deadline: binding.deadline }, 60);
         setCookie(res, "resume", ticket, 60);
         return redirect(res, `${config.issuer}/interaction/${binding.uid}/complete?ticket=${ticket}`);
       }
       if (/^\/interaction\/[A-Za-z0-9_-]+(?:\/complete)?$/.test(url.pathname) && req.method === "GET") {
         const completing = url.pathname.endsWith("/complete");
         if (!completing) startStage = "interaction_details";
-        const interaction = await provider.interactionDetails(req, res);
+        let interaction: Awaited<ReturnType<typeof provider.interactionDetails>>;
+        try { interaction = await provider.interactionDetails(req, res); }
+        catch (error) {
+          // The provider's interaction expired, its cookie is gone or its session changed hands, so this
+          // attempt has nowhere to resume. The description is the provider's fixed text, never request data.
+          if (error instanceof errors.SessionNotFound)
+            return expired(res, error.error_description === "session principal changed" ? "principal_changed" : "interaction_gone");
+          throw error;
+        }
         if (interaction.params.client_id !== config.clientId) throw new Error("unexpected_client");
         if (completing) {
           const ticket = cookie(req, `${prefix}resume`);
@@ -92,12 +116,17 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
           if (binding?.uid !== interaction.uid || interaction.prompt.name !== "login" || typeof binding.subject !== "string")
             throw new Error("invalid_browser_state");
           identityClaims(binding.subject);
+          if (pastDeadline(binding.deadline)) return expired(res, "deadline");
           return await provider.interactionFinished(req, res, { login: { accountId: binding.subject } }, { mergeWithLastSubmission: false });
         }
         if (interaction.prompt.name === "login") {
+          // Anchor to this interaction's authorization request, so revisiting this page cannot extend the
+          // window. A replayed /auth request starts a new interaction and is not covered (see CERTIFIED.md).
+          const deadline = interaction.iat + RELYING_PARTY_WINDOW_SECONDS;
+          if (pastDeadline(deadline)) return expired(res, "deadline");
           const state = random();
           startStage = "browser_state";
-          await store.put("browser:at", state, { uid: interaction.uid }, 600);
+          await store.put("browser:at", state, { uid: interaction.uid, deadline }, 600);
           setCookie(res, "at", state);
           const emailHints = config.emailHints;
           const hint = emailHints?.open(interaction.params.login_hint);

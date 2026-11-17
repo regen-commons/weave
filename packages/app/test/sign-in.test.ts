@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { continueToCertified } from "../src/account/sign-in.ts";
+import { signInResults } from "@weave/api/account-contract";
+import { continueToCertified, isSignInReturn, signInReturnFailed, signInReturnMessage } from "../src/account/sign-in.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
@@ -46,4 +47,17 @@ test("storage failure, competing edits and unavailable sign-in keep the tab and 
 test("an email-free account is signed in and old email-code protocol responses are rejected", () => {
   for (const email of [null, undefined, ""]) assert.equal(accountState({ available: true, signIn: "certified", user: { id: "b1000000-0000-4000-8000-000000000001", email }, items: [] }).user?.email, null);
   assert.throws(() => accountState({ available: true, otpDigits: 8, user: null, items: [] }));
+});
+test("every callback result has a fixed message; only a finished sign-in is not a failure", () => {
+  for (const result of signInResults) {
+    assert.ok(isSignInReturn(result));
+    assert.match(signInReturnMessage(result), /Your device draft is (still here|unchanged)\./);
+    assert.equal(signInReturnFailed(result), result !== "signed-in");
+  }
+  assert.equal(signInReturnMessage("expired"), "Certified sign-in took too long and expired. Your device draft is still here. Sign in again.");
+  for (const other of [null, "", "sign_in_expired", "private-provider-detail", "toString"]) {
+    assert.equal(isSignInReturn(other), false);
+    assert.equal(signInReturnMessage(other), "");
+    assert.equal(signInReturnFailed(other), false);
+  }
 });

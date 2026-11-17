@@ -109,6 +109,11 @@ const AccountBindingSchema = z.strictObject({
 const AccountSyncSchema = z.strictObject({
   saved: AccountBindingSchema.nullable(),
   pending: AccountBindingSchema.extend({ requestId: z.string().uuid() }).nullable(),
+  /**
+   * IDs of saved cards deleted from the account. The draft keeps its own ID, so device state
+   * keyed by it stays attached, but a Save never reuses a retired ID.
+   */
+  retired: z.array(z.string().uuid()).max(20).optional(),
 });
 export const DeviceDraftSchema = z.strictObject({
   version: z.literal(1),

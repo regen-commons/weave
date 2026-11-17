@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { uuid } from "./account-contract.ts";
+import { uuid, type SignInResult } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
 import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
@@ -15,12 +15,24 @@ export function returnTask(path: unknown): string {
     throw new AccountError(400, "invalid_return_task");
   return path;
 }
+// The bridge sends sign_in_expired after Supabase's flow window; the others are Supabase Auth's own codes.
+const expiredCodes = new Set(["sign_in_expired", "flow_state_expired", "bad_oauth_state"]);
+/** A fixed result for an error return. Provider descriptions are never read, kept or shown. */
+export function errorReturn(params: URLSearchParams): Exclude<SignInResult, "signed-in"> | undefined {
+  const errors = params.getAll("error"), codes = params.getAll("error_code");
+  if (!errors.length && !codes.length) return undefined;
+  const [error] = errors, [code] = codes;
+  if (errors.length > 1 || codes.length > 1) return "failed";
+  if (expiredCodes.has(error ?? "") || expiredCodes.has(code ?? "")) return "expired";
+  // Supabase adds an error code to its own failures, including bans and disabled signup.
+  return error === "access_denied" && code === undefined ? "cancelled" : "failed";
+}
 interface Options { origin: string; secureCookies: boolean; store: SignInStore; provider: AccountProvider; emailHints?: ReturnType<typeof certifiedEmailHints> }
 /** Callback establishes identity only. Save and Load remain separate account commands. */
 export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints }: Options) {
   const cookies = sessionCookies(secureCookies);
   const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff" };
-  const finish = (path: string, status: string, session?: string) => {
+  const finish = (path: string, status: SignInResult, session?: string) => {
     const response = new Response(null, { status: 303, headers: { ...headers, Location: `${origin}${path}?account=${status}`, "Set-Cookie": cookies.pending() } });
     if (session) response.headers.append("Set-Cookie", session);
     return response;
@@ -60,13 +72,21 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         const url = new URL(request.url);
         if (url.origin !== origin || url.href.length > 8192) throw Error("invalid_callback");
         const id = cookies.binding(request);
+        const returned = errorReturn(url.searchParams), states = url.searchParams.getAll("state");
+        // Supabase always returns the state this handler put in redirect_to. A return without it comes from
+        // the bridge ending an attempt that ran past Supabase's flow window. It only chooses the message
+        // and recovers this browser's task; it can never establish a session.
+        if (!states.length) {
+          const attempt = id ? await store.take(id) : undefined;
+          if (attempt) returnTo = returnTask(attempt.returnTo);
+          return finish(returnTo, returned ?? "failed");
+        }
         if (!id) throw Error("invalid_browser_state");
         const attempt = await store.take(id);
         if (!attempt) throw Error("expired_or_used_state");
         returnTo = returnTask(attempt.returnTo);
-        if (url.searchParams.getAll("state").length !== 1 || url.searchParams.get("state") !== attempt.state)
-          throw Error("invalid_browser_state");
-        if (url.searchParams.has("error")) return finish(returnTo, "cancelled");
+        if (states.length !== 1 || states[0] !== attempt.state) throw Error("invalid_browser_state");
+        if (returned) return finish(returnTo, returned);
         const code = url.searchParams.get("code");
         if (!code || code.length > 2048 || url.searchParams.getAll("code").length !== 1) throw Error("invalid_callback");
         const session = await provider.exchangeCode(code, attempt.verifier);
@@ -74,9 +94,9 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         // Authoritative database predicate rejects missing Certified identity, bans and revoked sessions.
         await provider.authorize(session.token);
         return finish(returnTo, "signed-in", cookies.session(session.token, session.expiresIn));
-      } catch {
+      } catch (error) {
         if (established) { try { await provider.signOut(established); } catch {} }
-        return finish(returnTo, "failed");
+        return finish(returnTo, error instanceof AccountError && error.code === "sign_in_expired" ? "expired" : "failed");
       }
     },
   };

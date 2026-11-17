@@ -182,3 +182,17 @@ test("caller cancellation stops discovery before any provider or SQL operation",
     503, "project_workspace_unavailable");
   assert.equal(reads.length, 0);
 });
+
+test("project and workspace summaries carry the source place and publisher links as read, and omit what the source lacks", async () => {
+  const sourced = { ...project, place: { status: "named" as const, name: "Riverside allotments" },
+    publisherLinks: ["https://garden.example.org/"] };
+  const unread = { ...project, uri: `${projectUri}2`, place: { status: "unread" as const } };
+  const { execute } = fixture({
+    listProjects: async () => ok({ repositoryDid: groupDid, certifiedRole: "admin" as const, projects: [sourced, unread, project] }),
+    getProject: async () => ok(sourced),
+  }, async () => ({ entries: [workspace] }));
+  const listed = await execute(actor, { action: "list_projects", target: { kind: "group", groupDid } });
+  assert.deepEqual(listed.projects, [sourced, unread, project]);
+  const workspaces = await execute(actor, { action: "list_workspaces" });
+  assert.deepEqual(workspaces.workspaces?.[0]?.project, sourced);
+});

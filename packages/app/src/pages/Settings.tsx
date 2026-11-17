@@ -22,6 +22,7 @@ import { useInformation } from "../ui/information-context.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { InstallGuide } from "../install/InstallGuide.tsx";
+import { DeviceBackups } from "../data/DeviceBackups.tsx";
 export function Settings() {
   const [theme, setTheme] = useState(readTheme);
   const [busy, setBusy] = useState(false);
@@ -110,7 +111,7 @@ export function Settings() {
           <>
             {/* With a card on this device, the account's saved cards, saving and backups live here, once. */}
             {accountTask ? (
-              <AccountSection showLeave={false} heading={false} />
+              <AccountSection showLeave={false} heading={false} showBackups={false} />
             ) : (
               <p>
                 {account.state?.user
@@ -223,6 +224,8 @@ export function Settings() {
             What we store
           </button>
         </div>
+        {/* Backups and removal stay here even when no draft is left on the device, so recovery stays in reach. */}
+        <DeviceBackups manage disabled={busy} />
       </SettingsSection>
       {!(import.meta.env.DEV && example && !example.state.identity) && (
         <SettingsSection title="Leave" leave>

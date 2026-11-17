@@ -15,6 +15,7 @@ import { startCertifiedServer } from "./certified-server.ts";
 import { manageSigningKeys } from "./certified-admin.ts";
 import { checkCertifiedReadiness } from "./certified/readiness.ts";
 import { createBridgeObserver } from "./certified/operations.ts";
+import { WEAVE_APP_ORIGIN } from "./certified/bridge-config.ts";
 
 const database = process.env.WEAVE_BRIDGE_TEST_DATABASE_URL;
 const enabled = !!database;
@@ -180,13 +181,16 @@ integration("real OIDC provider survives process restart mid-sign-in and permits
   const kid=JSON.parse(Buffer.from(header!,"base64url").toString()).kid;
   assert.ok(verify("sha256",Buffer.from(`${header}.${payload}`),createPublicKey({key:jwks.keys.find(k=>k.kid===kid)!,format:"jwk"}),Buffer.from(signature!,"base64url")));
   assert.ok(jwks.keys.every(k=>!k.d));
-  assert.equal((await request(`${issuer}/at/callback?code=synthetic-code&state=${state}`)).status,400);
+  // A used or cookieless Certified callback cannot finish; it returns to Weave instead of Supabase.
+  const replay=await request(`${issuer}/at/callback?code=synthetic-code&state=${state}`);
+  assert.equal(replay.status,303); assert.equal(replay.headers.get("location"),`${WEAVE_APP_ORIGIN}/api/sign-in?error=sign_in_expired`);
   const discovery = await fetch(`${issuer}/.well-known/openid-configuration`).then(r=>r.json()) as { scopes_supported:string[];issuer:string };
   assert.deepEqual(discovery.scopes_supported,["openid"]);assert.equal(discovery.issuer,issuer);
   assert.equal((await fetch(`${issuer}/jwks`,{headers:{"X-Forwarded-Host":"attacker.example"}})).status,400);
   assert.equal((await fetch(`${issuer}/fixture/open`)).status,404);
   assert.equal((await fetch(`${issuer}/api/account`)).status,404);
-  assert.equal((await fetch(`${issuer}/at/callback?code=synthetic-code&state=${state}`)).status,400);
+  assert.equal((await fetch(`${issuer}/at/callback?code=synthetic-code&state=${state}`,{redirect:"manual"})).headers.get("location"),
+    `${WEAVE_APP_ORIGIN}/api/sign-in?error=sign_in_expired`);
   await stop(child);
 });
 
@@ -271,7 +275,8 @@ integration("production entry requires a restricted role and trusted HTTPS ingre
   });
   let published: unknown;
   try {
-    await checkCertifiedReadiness(runtimeEnv);
+    // Without WEAVE_AUTH_APP_ORIGIN, expired sign-ins return to production Weave; readiness says so.
+    assert.deepEqual(await checkCertifiedReadiness(runtimeEnv),{recoveryOrigin:WEAVE_APP_ORIGIN});
     assert.equal((await admin`select count(*)::int n from weave_auth.records where namespace='ops:readiness'`)[0]?.n,0);
     await admin`revoke insert on weave_auth.records from weave_auth_runtime`;
     try { await assert.rejects(checkCertifiedReadiness(runtimeEnv)); }

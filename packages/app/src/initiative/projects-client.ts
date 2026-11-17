@@ -1,9 +1,12 @@
 import { record, uuid } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
+import { LinkSchema } from "../describe/source-contracts.ts";
 import { beginConsentReturn, cancelConsentReturn, currentConsentReturn, finishConsentReturn, takeConsentReturn,
   type ProjectConsentAction } from "./consent-return.ts";
 export type { ProjectConsentAction } from "./consent-return.ts";
 
+/** A project's place as Certified's location record gives it: a readable name, or one Weave could not read. */
+export type ProjectPlace = { status: "named"; name: string } | { status: "unread" };
 export interface PublicProject {
   uri: string;
   cid: string;
@@ -12,6 +15,9 @@ export interface PublicProject {
   title: string;
   description?: string;
   createdAt?: string;
+  place?: ProjectPlace;
+  /** The web addresses on its publisher's Certified profile: the group's, or the person's own. Not the project's links. */
+  publisherLinks?: string[];
 }
 export interface WorkspaceListing {
   workspaceId: string;
@@ -25,6 +31,22 @@ export interface SetupListing { requestId: string; projectUri: string; groupDid:
 export const projectRequest = (body: unknown, signal?: AbortSignal) =>
   accountRequest("", body, "/api/projects", signal);
 const invalid = (): never => { throw new AccountFailure("project_workspace_unavailable"); };
+function projectPlace(value: unknown): ProjectPlace {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return invalid();
+  const p = value as Record<string, unknown>;
+  if (p.status === "unread" && Object.keys(p).length === 1) return { status: "unread" };
+  if (p.status !== "named" || Object.keys(p).length !== 2 || typeof p.name !== "string" || !p.name.trim()
+      || p.name.length > 120 || /\p{Cc}/u.test(p.name)) return invalid();
+  return { status: "named", name: p.name.trim() };
+}
+function projectLinks(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > 6 || !value.every(link => LinkSchema.safeParse(link).success)) return invalid();
+  return [...new Set(value as string[])];
+}
+/** The place a project's source gives the card; empty when it gives none, so nothing is invented. */
+export function projectLocations(project: Pick<PublicProject, "place">): string[] {
+  return project.place?.status === "named" ? [project.place.name] : [];
+}
 export function projectRecord(value: unknown): PublicProject {
   const p = record(value);
   if (typeof p.uri !== "string" || !/^at:\/\/did:[a-z]+:[^/\s]+\/org.hypercerts.collection\/[^/\s]+$/u.test(p.uri)
@@ -34,7 +56,9 @@ export function projectRecord(value: unknown): PublicProject {
   return { uri: p.uri, cid: p.cid, repoDid: p.repoDid, title: p.title,
     ...(typeof p.description === "string" ? { description: p.description } : {}),
     ...(typeof p.createdAt === "string" && Number.isFinite(Date.parse(p.createdAt)) ? { createdAt: p.createdAt } : {}),
-    ...(typeof p.groupDid === "string" ? { groupDid: p.groupDid } : {}) };
+    ...(typeof p.groupDid === "string" ? { groupDid: p.groupDid } : {}),
+    ...(p.place === undefined ? {} : { place: projectPlace(p.place) }),
+    ...(p.publisherLinks === undefined ? {} : { publisherLinks: projectLinks(p.publisherLinks) }) };
 }
 export function projectPage(value: Record<string, unknown>) {
   if (!Array.isArray(value.projects) || value.projects.length > 25

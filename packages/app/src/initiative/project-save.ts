@@ -1,15 +1,19 @@
 import { accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { accountKey, loadedDraft, saveCommand } from "../account/document.ts";
+import { sendSave } from "../account/actions.ts";
 import { DeviceDraftSchema, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft } from "../describe/contracts.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { reviewStep } from "../intake/state.ts";
-import { projectRequest, type PublicProject } from "./projects-client.ts";
+import { projectLocations, projectRequest, type PublicProject } from "./projects-client.ts";
 import { uuid } from "@weave/api/account-contract";
 
-/** A reviewed public project supplies only its actual name and description. Missing facts stay empty. */
+/**
+ * A reviewed public project supplies only its actual name, description and place. Missing facts stay
+ * empty, and its publisher's links stay off the card because they are not the project's own.
+ */
 export function personalProjectDraft(project: PublicProject): DeviceDraft {
   const draft = newDraft();
-  const card = { ...EMPTY_INITIATIVE, name: project.title, description: project.description ?? "" };
+  const card = { ...EMPTY_INITIATIVE, name: project.title, description: project.description ?? "", locations: projectLocations(project) };
   return DeviceDraftSchema.parse({ ...draft, proposal: card, confirmed: card, proposalVersion: draft.inputVersion,
     needs: reviewStep(draft.needs), offers: reviewStep(draft.offers) });
 }
@@ -70,13 +74,13 @@ export async function saveForProject(controller: DraftController, owner: string,
   await controller.settled();
   signal.throwIfAborted();
   if (controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
-  const receipt = parseSaved((await accountRequest("", { action: "save", ...command }, "/api/account", signal)).saved);
+  const receipt = await sendSave(controller, command, signal);
   signal.throwIfAborted();
   if (receipt.id !== command.id || receipt.revision !== command.expectedRevision + 1
       || JSON.stringify(receipt.document) !== binding.contentKey) throw Error("invalid_save_receipt");
   const latest = controller.getSnapshot().draft;
   if (latest.account.pending?.requestId !== binding.requestId) throw Error("draft_changed");
-  controller.change((d) => revise(d, { account: { saved: { id: receipt.id, owner,
+  controller.change((d) => revise(d, { account: { ...d.account, saved: { id: receipt.id, owner,
     revision: receipt.revision, contentKey: binding.contentKey }, pending: null } }));
   await controller.settled();
   signal.throwIfAborted();

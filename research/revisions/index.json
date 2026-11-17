@@ -15,6 +15,11 @@
       "id": "2026-11-15-emergent-2027-resumption",
       "path": "research/revisions/2026-11-15-emergent-2027-resumption.json",
       "sha256": "622a72a468db062e9d26a5db500166709d77d0cf9f1942da0fac3c044a8bdeb3"
+    },
+    {
+      "id": "2026-11-16-haymarket-deadline-wording",
+      "path": "research/revisions/2026-11-16-haymarket-deadline-wording.json",
+      "sha256": "c5b8112f95049e2a6fcba171416fe54e1da817301359a2da4089b2ed61ae47f0"
     }
   ]
 }

@@ -222,6 +222,39 @@ test("private Certified suggestions download workspace evidence once and rank bo
     token))).status, 400);
 });
 
+test("the fixture links a personal project to the saved card, as the workspace candidate does", async () => {
+  const { projectEvidenceFixture } = await import("../dev/matching-fixture.ts");
+  const handler = projectEvidenceFixture(origin);
+  const personal = "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/water-notes";
+  const group = "at://did:plc:bbbbbbbbbbbbbbbbbbbbbbbb/org.hypercerts.collection/watershed";
+  const projects = async (body: object, token: string, status = 200) => {
+    const result = await handler(post("/api/projects", body, token));
+    const data = await result.json();
+    assert.equal(result.status, status, JSON.stringify(data));
+    return record(data);
+  };
+  const owner = crypto.randomUUID(), other = crypto.randomUUID();
+  const token = fixtureSession(owner), otherToken = fixtureSession(other);
+  const id = crypto.randomUUID();
+  await save(token, owner, id, { ...base, needs: [ask("GPS watershed mapping")] });
+  const link = { action: "link", projectUri: personal, initiativeId: id, expectedRevision: 1 };
+  const linked = { status: "linked", workspaceId: id, accessRole: "admin", projectUri: personal, cid: "bafyfixture" };
+
+  assert.equal((await projects({ action: "lookup", projectUri: personal }, token)).status, "unlinked");
+  await projects({ ...link, expectedRevision: 2 }, token, 409);
+  await projects(link, otherToken, 404);
+  await projects({ ...link, projectUri: group }, token, 400);
+  assert.deepEqual(await projects(link, token), linked);
+  assert.deepEqual(await projects(link, token), linked, "a repeated link returns the same canonical link");
+  assert.deepEqual(await projects({ action: "lookup", projectUri: personal }, token), linked);
+  const { workspaces } = await projects({ action: "list_workspaces" }, token);
+  assert.deepEqual((workspaces as { workspaceId: string; kind: string }[]).map(({ workspaceId, kind }) => ({ workspaceId, kind })),
+    [{ workspaceId: id, kind: "personal" }]);
+  assert.equal((await projects({ action: "lookup", projectUri: personal }, otherToken)).status, "unlinked",
+    "each fixture account keeps its own link to the shared personal project");
+  assert.equal(parseMatchingState(await matching(token, id, { action: "state" })).initiativeId, id);
+});
+
 test("a viewer and editor use the same private team document without sharing it", async () => {
   const { FIXTURE_ACCOUNT_ID } = await import("../dev/account-fixture.ts");
   const { FIXTURE_TEAM_ID, FIXTURE_TEAM_EDITOR, projectEvidenceFixture } = await import("../dev/matching-fixture.ts");

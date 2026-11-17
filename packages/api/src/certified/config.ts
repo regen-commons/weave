@@ -8,6 +8,7 @@ export function readConfiguration(env: NodeJS.ProcessEnv) {
   const config: BridgeConfig = {
     issuer: required("WEAVE_AUTH_ISSUER"), clientId: required("WEAVE_AUTH_CLIENT_ID"),
     clientSecret: required("WEAVE_AUTH_CLIENT_SECRET"), redirectUri: required("WEAVE_AUTH_REDIRECT_URI"),
+    ...(env.WEAVE_AUTH_APP_ORIGIN ? { appOrigin: env.WEAVE_AUTH_APP_ORIGIN } : {}),
     emailHints: certifiedEmailHints(env.WEAVE_CERTIFIED_EMAIL_HINT_KEY),
   };
   validateConfig(config);

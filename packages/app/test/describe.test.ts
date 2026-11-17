@@ -13,7 +13,8 @@ import {
 } from "../src/describe/contracts.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { DraftConflict, MemoryDraftRepository } from "../src/describe/repository.ts";
-import { keywordSuggestion, readKeywordSource } from "../src/describe/keywords.ts";
+import { collectSource, fromSource, keywordSuggestion, readKeywordSource } from "../src/describe/keywords.ts";
+import { checkForm, checkNotes, keepCard, whereReadFromWords } from "../src/describe/check.ts";
 import { availableBrowser, browserExtract } from "../src/describe/engines.ts";
 import {
   availableSpeech,
@@ -632,4 +633,223 @@ test("Portuguese words for territory, community, land and art reach their lenses
   for (const text of ["Cuidamos do território.", "Um trabalho comunitário.", "Pela reforma agrária.", "Regularização fundiária."])
     assert.deepEqual(lenses(text), ["place_based"], text);
   assert.deepEqual(lenses("Um projeto artístico."), ["art_culture"]);
+});
+
+/** A draft holding one synthetic PDF, and a reader that returns its text as PDF.js would. */
+const withPdf = (text: string, from = newDraft()) => {
+  const blob = new Blob(["Synthetic PDF bytes"], { type: "application/pdf" });
+  const draft = revise(
+    from,
+    { attachments: [{ id: crypto.randomUUID(), name: "garden.pdf", type: blob.type, bytes: blob.size, blob }] },
+    true,
+  );
+  const reader = async () => ({ text, pages: 1, unreadPages: 0 });
+  return { draft, reader };
+};
+/** Build my card from a draft with a PDF, as the describe step does with the keyword reader. */
+const buildFromPdf = async (text: string, from?: DeviceDraft) => {
+  const { draft, reader } = withPdf(text, from);
+  const result = fromSource(draft, await collectSource(draft, reader));
+  return { result, built: builtCard(draft, result.suggestion, draft.inputVersion, keywordBuild) };
+};
+const pdfWhere = async (text: string) => (await buildFromPdf(text)).result.suggestion.locations;
+/** The person types in the check card's four fields, as the page does. */
+const correct = (draft: DeviceDraft, where: string) => {
+  const form = { ...checkForm(draft)!, where };
+  return revise(draft, { form, publicEdits: editsFromForm(form, draft.publicEdits), confirmed: null });
+};
+const GARDEN = "Synthetic Garden\nSynthetic Garden is a community garden based in Awka. Families grow food together.";
+
+test("a place the PDF states explicitly is proposed for Where, and its words are kept", async () => {
+  const { result, built } = await buildFromPdf(GARDEN);
+  assert.ok(result.text.includes("based in Awka"), "the source words are kept");
+  assert.deepEqual(result.suggestion.locations, ["Awka"], "no country or region is added");
+  assert.equal(result.suggestion.isGlobal, false);
+  assert.equal(checkForm(built)!.where, "Awka", "the check card shows the proposal for review");
+  assert.equal(built.confirmed, null, "a proposal counts only once the person keeps the card");
+  assert.deepEqual(keepCard(built).confirmed!.locations, ["Awka"]);
+});
+
+test("a place is kept as written, with a country or region only when the words state one", async () => {
+  assert.deepEqual(await pdfWhere("Our garden is located in Awka, Nigeria."), ["Awka, Nigeria"]);
+  assert.deepEqual(await pdfWhere("We're based in Awka, Anambra State."), ["Awka, Anambra State"]);
+  assert.deepEqual(await pdfWhere("Our community garden is in the town of Awka."), ["Awka"]);
+  assert.deepEqual(await pdfWhere("Our project is located in Rio de Janeiro."), ["Rio de Janeiro"]);
+  assert.deepEqual(await pdfWhere("We are a network of farmers based in Awka."), ["Awka"]);
+  assert.deepEqual(await pdfWhere("Today, we are based in Awka."), ["Awka"]);
+  assert.deepEqual(await pdfWhere("Founded in Enugu, Nigeria in 2010, we are now based in Awka."), ["Awka"]);
+  assert.deepEqual(await pdfWhere("Synthetic Garden\nLocation: Awka, Anambra State\nFamilies grow food."), [
+    "Awka, Anambra State",
+  ]);
+  assert.deepEqual(await pdfWhere("Based in Awka's main market."), ["Awka"], "a possessive is not part of the name");
+  assert.deepEqual(await pdfWhere("We are based in Awka On Saturdays"), ["Awka"], "a capitalised joining word ends the name");
+  assert.deepEqual(
+    await pdfWhere("We are based in Awka. Our garden is located in Awka, Nigeria."),
+    ["Awka, Nigeria"],
+    "the same place stated twice is one place",
+  );
+  const global = (await buildFromPdf("Synthetic Garden\nWhere: Global")).result.suggestion;
+  assert.deepEqual([global.locations, global.isGlobal], [[], true]);
+});
+
+test("words with no stated place leave Where empty for the person to fill", async () => {
+  for (const text of [
+    "Families grow food together.",
+    "We started in March 2024 and teach in English.",
+    "Workshops run in the area near the school.",
+    "Growing Food in Schools",
+    "Our garden is in Awka.",
+    "We grow food with families in Awka, Anambra State.",
+  ])
+    assert.deepEqual(await pdfWhere(text), [], text);
+  const { built } = await buildFromPdf("Synthetic Garden\nFamilies grow food together.");
+  assert.equal(checkForm(built)!.where, "", "nothing pretends a place was found");
+  assert.deepEqual(keepCard(correct(built, "Awka")).confirmed!.locations, ["Awka"], "the person can add it");
+});
+
+test("work in and operate in name a sector, a language or a department, never a place", async () => {
+  for (const text of [
+    "We work in Education.",
+    "We work in WASH programmes.",
+    "We are working in Partnership with schools.",
+    "We work in Early Childhood Development.",
+    "The team works in Kiswahili.",
+    "We work in Yoruba with families.",
+    "He works in Finance at Shell.",
+    "We operate in Awka.",
+  ])
+    assert.deepEqual(await pdfWhere(text), [], text);
+});
+
+test("a place that belongs to someone else or to the past is not the initiative's Where", async () => {
+  for (const text of [
+    "Founded in Enugu, Nigeria in 2010, we now support farmers across the north.",
+    "Our founder Ada grew up in Kano, Nigeria.",
+    "Ada Obi studied in London, UK.",
+    "Funded by the Ford Foundation in New York, USA.",
+    "Our coordinator, Chidi, is based in Lagos. The garden is in Awka.",
+    "Our partner Green Earth Foundation is based in Berlin.",
+    "Green Earth, our partner organisation, is based in Berlin.",
+    "Ada, who founded our garden, is based in Kano.",
+    "We were based in Lagos.",
+  ])
+    assert.deepEqual(await pdfWhere(text), [], text);
+});
+
+test("cut-off names, addresses, titles, undecided labels and labelled lists are not places", async () => {
+  for (const text of [
+    "We are based in St. Louis.",
+    "We are located in St. Mary's Parish.",
+    "We are based in Plot 12, Zik Avenue, Awka.",
+    "We are based in Dr Okafor's farm.",
+    "Location: TBD",
+    "Location: St. Louis",
+    "Places: 30 participants",
+    "Local: 5 volunteers",
+    "Where: Online",
+    "Where: Lagos; Abuja; Kano",
+    "Location: Awka and Onitsha",
+  ])
+    assert.deepEqual(await pdfWhere(text), [], text);
+});
+
+test("two different places or a list stay unassigned, with every source word kept", async () => {
+  for (const text of [
+    "We are based in Awka. A second garden is located in Onitsha.",
+    "Our coordinator, Chidi, is based in Onitsha. We are based in Awka.",
+    "We are based in Awka and Onitsha.",
+    "We are based in Awka, Onitsha and Nnewi.",
+    "Our garden is located in Awka or Onitsha.",
+    "Location: Awka\nLocation: Onitsha",
+  ]) {
+    const { result, built } = await buildFromPdf(text);
+    assert.deepEqual(result.suggestion.locations, [], text);
+    assert.ok(result.text.includes("Awka") && result.text.includes("Onitsha"), "the source words are kept");
+    assert.equal(checkForm(built)!.where, "");
+  }
+  const { built } = await buildFromPdf("We are based in Awka and Onitsha.");
+  assert.deepEqual(keepCard(correct(built, "Awka; Onitsha")).confirmed!.locations, ["Awka", "Onitsha"]);
+});
+
+test("the typed conversation proposes a stated place by the same rule, and its Where answer wins", async () => {
+  const typing = revise(newDraft(), { composer: "We are based in Aw" }, true);
+  assert.deepEqual(previewFields(typing).locations, [], "a name still being typed is not proposed");
+  const talked = addAnswer(newDraft(), "We are Synthetic Garden, a community garden based in Awka.");
+  assert.deepEqual((await readKeywordSource(talked)).suggestion.locations, ["Awka"]);
+  assert.deepEqual(previewFields(talked).locations, ["Awka"], "the card beside the conversation shows an added answer");
+  const answered = addAnswer(talked, "Upper valley, Brazil");
+  assert.deepEqual((await readKeywordSource(answered)).suggestion.locations, ["Upper valley, Brazil"]);
+  const { result } = await buildFromPdf(GARDEN, seed());
+  assert.deepEqual(result.suggestion.locations, ["Upper valley, Brazil"], "a file never replaces the answer");
+});
+
+test("the check card asks the person to check a Where read from their words, until they change it", async () => {
+  const NOTE = "Where you work was read from your words. Check it before you continue.";
+  const { built } = await buildFromPdf(GARDEN);
+  assert.equal(whereReadFromWords(built), true);
+  assert.equal(checkNotes(built), NOTE);
+  const renamed = revise(built, { form: { ...checkForm(built)!, name: "Garden" }, confirmed: null });
+  assert.equal(checkNotes(renamed), NOTE, "changing another field leaves Where to check");
+  assert.equal(checkNotes(correct(built, "Awka, Anambra State")), "", "a Where the person changed is theirs");
+  assert.equal(checkNotes(keepCard(built)), "", "a kept card has been checked");
+  assert.equal(checkNotes((await buildFromPdf("Synthetic Garden\nFamilies grow food.")).built), "", "no place, no note");
+  assert.equal(checkNotes((await buildFromPdf(GARDEN, seed())).built), "", "an answer to the Where question");
+  assert.equal(checkNotes(continueWithFields(typed())), "", "a typed card");
+  const unread = revise(built, { lastBuild: { ...keywordBuild, unreadFiles: 1 } });
+  assert.equal(checkNotes(unread), `1 file was kept but not read. ${NOTE}`, "the other notes stay");
+});
+
+test("a Where the person typed or reviewed is never replaced by a place from a PDF", async () => {
+  const typedWhere = talkItThrough(typed({ ...FORM, where: "Upper valley" }));
+  const { result, built } = await buildFromPdf(GARDEN, typedWhere);
+  assert.deepEqual(result.suggestion.locations, ["Awka"], "the file still proposes its place");
+  assert.equal(checkForm(built)!.where, "Upper valley", "the typed Where wins");
+
+  const corrected = correct((await buildFromPdf(GARDEN)).built, "Awka, Anambra State");
+  const more = revise(corrected, { composer: "We also keep bees." }, true);
+  const rebuilt = builtCard(more, keywordSuggestion(more, GARDEN), more.inputVersion, keywordBuild);
+  assert.equal(checkForm(rebuilt)!.where, "Awka, Anambra State", "a rebuild keeps the correction");
+  assert.deepEqual(keepCard(rebuilt).confirmed!.locations, ["Awka, Anambra State"]);
+});
+
+test("a place proposed from a PDF and its manual correction survive a reload of the device draft", async () => {
+  const repository = new MemoryDraftRepository();
+  const controller = new DraftController(repository);
+  await controller.initialize();
+  const { built } = await buildFromPdf(GARDEN);
+  controller.change(() => revise(built, {}));
+  await controller.settled();
+  /** A new tab reads a structured clone of the stored draft, as IndexedDB returns it. */
+  const reload = async () => {
+    const stored = DeviceDraftSchema.parse(structuredClone(await repository.load()));
+    const tab = new DraftController(new MemoryDraftRepository(stored));
+    await tab.initialize();
+    return tab.getSnapshot().draft;
+  };
+  const proposed = await reload();
+  assert.equal(checkForm(proposed)!.where, "Awka", "the proposal is still there after a reload");
+  assert.equal(proposed.confirmed, null, "and still waits for review");
+  assert.equal(await proposed.attachments[0]!.blob.text(), "Synthetic PDF bytes", "the original file is kept");
+
+  controller.change((draft) => correct(draft, "Awka, Anambra State"));
+  await controller.settled();
+  const reloaded = await reload();
+  assert.equal(reloaded.form!.where, "Awka, Anambra State");
+  assert.deepEqual(reviewedProposal(reloaded)!.locations, ["Awka, Anambra State"]);
+  assert.deepEqual(reloaded.proposal!.locations, ["Awka"], "the document's proposal stays apart from the correction");
+  assert.deepEqual(keepCard(reloaded).confirmed!.locations, ["Awka, Anambra State"]);
+});
+
+test("a draft stored before places were read from files loads unchanged until the card is built again", async () => {
+  const { built } = await buildFromPdf(GARDEN);
+  const stored: Record<string, unknown> = {
+    ...built,
+    proposal: { ...built.proposal!, locations: [] },
+  };
+  for (const key of ["needs", "offers", "funding", "partnerLeads", "account"]) delete stored[key];
+  const loaded = DeviceDraftSchema.parse(structuredClone(stored));
+  assert.deepEqual(reviewedProposal(loaded)!.locations, [], "loading never fills Where on its own");
+  assert.equal(checkForm(loaded)!.where, "");
+  assert.equal(loaded.attachments.length, 1);
+  assert.deepEqual(keywordSuggestion(loaded, GARDEN).locations, ["Awka"], "building again proposes the place");
 });

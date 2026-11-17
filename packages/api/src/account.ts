@@ -66,7 +66,7 @@ export function createAccountHandlers({
           throw new AccountError(415, "json_required");
         if (!provider) throw new AccountError(503, "accounts_not_configured");
         const body = await boundedJson(request);
-        if (!["sign_out", "save"].includes(String(body.action))) throw new AccountError(400, "invalid_action");
+        if (!["sign_out", "save", "delete"].includes(String(body.action))) throw new AccountError(400, "invalid_action");
         const access = token(request);
         if (body.action === "sign_out") {
           if (access) await provider.signOut(access);
@@ -75,6 +75,28 @@ export function createAccountHandlers({
           return result;
         }
         if (!access) throw new AccountError(401, "sign_in_required");
+        if (body.action === "delete") {
+          // Exactly the card and revision the person saw, and a request ID kept for retries.
+          const keys = Object.keys(body).sort().join(",");
+          if (
+            keys !== "action,expectedRevision,id,requestId" ||
+            !uuid(body.id) ||
+            !uuid(body.requestId) ||
+            !Number.isSafeInteger(body.expectedRevision) ||
+            Number(body.expectedRevision) < 1 ||
+            Number(body.expectedRevision) >= 2147483647
+          )
+            throw new AccountError(400, "invalid_data");
+          await provider.authorize(access);
+          const deleted = await provider.deleteInitiative(access, {
+            id: body.id,
+            expectedRevision: Number(body.expectedRevision),
+            requestId: body.requestId,
+          });
+          if (deleted.id !== body.id || deleted.revision !== body.expectedRevision)
+            throw new AccountError(503, "account_unavailable");
+          return response(200, { deleted });
+        }
         const user = await provider.authorize(access);
         if (body.action === "save") {
           if (!uuid(body.accountId)) throw new AccountError(400, "invalid_data");

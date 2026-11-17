@@ -5,18 +5,19 @@ import { useDraft } from "../describe/use-draft.ts";
 import { newDraft } from "../describe/contracts.ts";
 import { navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
-import type { DraftBackup } from "../describe/repository.ts";
 import { accountKey, saveBlocker } from "./document.ts";
 import { accountMessage, accountRequest, assertAccount, AccountFailure } from "./client.ts";
 import { loadAccountCard, saveAccountCard } from "./actions.ts";
 import { useAccount } from "./context.tsx";
-import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
+import { continueToCertified, signInReturnFailed, signInReturnMessage } from "./sign-in.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
+import { DeviceBackups } from "../data/DeviceBackups.tsx";
 export function AccountSection({
   compact = false,
   autoFocus = false,
   heading = true,
   showLeave = true,
+  showBackups = true,
   onBeginCard,
 }: {
   compact?: boolean;
@@ -24,6 +25,8 @@ export function AccountSection({
   /** Off where a dialog's title already names the section, such as the account door. */
   heading?: boolean;
   showLeave?: boolean;
+  /** Off where the page shows this device's backups in their own place, as Settings does. */
+  showBackups?: boolean;
   onBeginCard?: () => void;
 }) {
   const id = useId();
@@ -32,14 +35,12 @@ export function AccountSection({
   const { controller, draft, ready, storage } = useDraft();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(() => signInReturnMessage(returnResult));
-  const [failed, setFailed] = useState(() => ["failed", "cancelled"].includes(returnResult ?? ""));
+  const [failed, setFailed] = useState(() => signInReturnFailed(returnResult));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
   const [startingCard, setStartingCard] = useState(false);
   const owner = state?.user?.id;
   const [selection, setSelection] = useState<{ owner: string; item: InitiativeSummary } | null>(null);
   const selected = selection && selection.owner === owner ? selection.item : null;
-  const [backups, setBackups] = useState<DraftBackup[]>([]);
-  const [backup, setBackup] = useState<DraftBackup | null>(null);
   const [page, setPage] = useState<{ owner: string; items: InitiativeSummary[] } | null>(null);
   const extra = page && page.owner === owner ? page.items : [];
   const [more, setMore] = useState(true);
@@ -77,12 +78,6 @@ export function AccountSection({
       setBusy(false);
     }
   }
-  useEffect(() => {
-    void controller
-      .backups()
-      .then(setBackups)
-      .catch(() => {});
-  }, [controller]);
   async function save() {
     const user = state?.user;
     if (!user) throw new Error("Sign in before saving.");
@@ -103,7 +98,7 @@ export function AccountSection({
   }
   async function load() {
     if (!selected || !state?.user) return;
-    setBackups(await loadAccountCard(controller, state.user.id, selected.id));
+    await loadAccountCard(controller, state.user.id, selected.id);
     setSelection(null);
     setMessage("Your saved card is loaded. The previous device draft is kept in Device backups in Settings.");
   }
@@ -238,7 +233,6 @@ export function AccountSection({
             <button className="rc-button" data-variant="quiet" type="button" disabled={busy || !ready}
               onClick={() => {
                 setSelection(null);
-                setBackup(null);
                 setStartingCard(true);
               }}>
               Start a new initiative
@@ -275,7 +269,6 @@ export function AccountSection({
                     disabled={busy}
                     onClick={() => {
                       setSelection({ owner: state.user!.id, item });
-                      setBackup(null);
                       setStartingCard(false);
                     }}
                   >
@@ -356,66 +349,7 @@ export function AccountSection({
           </div>
         </section>
       )}
-      {!compact && backups.length > 0 && (
-        <section className="rc-stack" aria-labelledby={`${id}-backups`}>
-          <h3 className="rc-heading" data-size="section" id={`${id}-backups`}>
-            Device backups
-          </h3>
-          <p>
-            These drafts and their files are kept only in this browser. Restoring one backs up the current
-            draft first.
-          </p>
-          <ul className="rc-stack">
-            {backups.map((item) => (
-              <li key={item.key}>
-                <button
-                  className="rc-button"
-                  data-variant="secondary"
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    setBackup(item);
-                    setSelection(null);
-                    setStartingCard(false);
-                  }}
-                >
-                  Restore {item.draft.confirmed?.name || item.draft.proposal?.name || "untitled draft"},{" "}
-                  {new Date(item.draft.updatedAt).toLocaleString()}
-                </button>
-              </li>
-            ))}
-          </ul>
-          {backup && (
-            <div className="rc-action-bar">
-              <button
-                className="rc-button"
-                data-variant="primary"
-                type="button"
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    await controller.replace(backup.draft);
-                    setBackups(await controller.backups());
-                    setBackup(null);
-                    setMessage("Device backup restored. The previous draft was backed up first.");
-                  })
-                }
-              >
-                Back up this draft and restore
-              </button>
-              <button
-                className="rc-button"
-                data-variant="quiet"
-                type="button"
-                disabled={busy}
-                onClick={() => setBackup(null)}
-              >
-                Cancel restoring
-              </button>
-            </div>
-          )}
-        </section>
-      )}
+      {!compact && showBackups && <DeviceBackups disabled={busy} />}
       {compact && (
         <p>
           <a href="/settings">Saved cards and device backups</a>
