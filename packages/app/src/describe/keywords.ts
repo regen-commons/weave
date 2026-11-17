@@ -5,6 +5,7 @@ import {
   FileReadSchema,
   SuggestionSchema,
   EMPTY_INITIATIVE,
+  QUESTIONS,
   type DeviceDraft,
   type Initiative,
 } from "./contracts.ts";
@@ -54,7 +55,18 @@ export function countWords(text: string): number {
   for (const _ of text.matchAll(/\S+/gu)) count++;
   return count;
 }
-export function keywordSuggestion(draft: DeviceDraft, text: string): Initiative {
+/** The person's answer to the Where question: an added answer, or the words they are typing for it. */
+export function whereAnswer(draft: Pick<DeviceDraft, "turns" | "composer">): string {
+  return (
+    draft.turns.find((turn) => turn.prompt === QUESTIONS[1])?.text.trim() ??
+    (draft.turns.length === 1 ? draft.composer.trim() : "")
+  );
+}
+/**
+ * The keyword draft of a card. `settled` is the part of the words that is finished, such as added
+ * answers and read files, and only it may propose a place; it is all of `text` when building.
+ */
+export function keywordSuggestion(draft: DeviceDraft, text: string, settled = text): Initiative {
   const first = draft.turns[0]?.text.trim() || draft.composer.trim() || text.split(/\n/u)[0]?.trim() || "";
   const named = first
     .match(/^(?:we are|we're|our initiative is called|called|somos|nome:)\s+([^,.\n]{1,200})/iu)?.[1]
@@ -66,10 +78,8 @@ export function keywordSuggestion(draft: DeviceDraft, text: string): Initiative 
       ? directName
       : "");
   // The person's answer to the Where question wins. Without one, only a place the words state is proposed.
-  const answer =
-    draft.turns.find((turn) => turn.prompt === "Where does most of your work happen?")?.text.trim() ??
-    (draft.turns.length === 1 ? draft.composer.trim() : "");
-  const { locations, isGlobal } = answer ? whereFromAnswer(answer) : statedWhere(text);
+  const answer = whereAnswer(draft);
+  const { locations, isGlobal } = answer ? whereFromAnswer(answer) : statedWhere(settled, name);
   const stage = /\b(just starting|starting now|começando agora)\b/iu.test(text)
     ? "seed"
     : /\b(getting going|recently started)\b/iu.test(text)

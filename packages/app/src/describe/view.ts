@@ -10,10 +10,9 @@ import { keywordSuggestion } from "./keywords.ts";
 export function previewFields(draft: DeviceDraft): Initiative {
   if (draft.mode === "fields") return applyReview(draft, { ...EMPTY_INITIATIVE, ...draft.publicEdits });
   if (draft.proposal && draft.proposalVersion === draft.inputVersion) return reviewedProposal(draft)!;
-  return applyReview(
-    draft,
-    keywordSuggestion(draft, [...draft.turns.map((turn) => turn.text), draft.composer].join("\n\n")),
-  );
+  // The answer being typed shows as it is, but a place is proposed only from answers already added.
+  const added = draft.turns.map((turn) => turn.text);
+  return applyReview(draft, keywordSuggestion(draft, [...added, draft.composer].join("\n\n"), added.join("\n\n")));
 }
 export function hasDraft(draft: DeviceDraft): boolean {
   return !!(

@@ -8,6 +8,7 @@ import {
   type RecordForm,
 } from "./contracts.ts";
 import { formFrom } from "./forms.ts";
+import { whereAnswer } from "./keywords.ts";
 import { FieldsProblem, readFields } from "./screen.ts";
 
 /** What the check card page shows: nothing to check yet, a card whose words changed after it was built, or the card. */
@@ -31,6 +32,32 @@ export function checkView(draft: DeviceDraft): CheckView {
 export function checkForm(draft: DeviceDraft): RecordForm | null {
   const fields = reviewedProposal(draft);
   return draft.form ?? (fields ? formFrom(fields) : null);
+}
+
+/**
+ * True while Where shows a place the app read from the words, not one the person gave: the card
+ * was built from their words, the Where question has no answer, and Where still reads as built.
+ */
+export function whereReadFromWords(draft: DeviceDraft): boolean {
+  const form = checkForm(draft);
+  if (!draft.proposal || !form || draft.confirmed || typedCard(draft) || whereAnswer(draft)) return false;
+  const read = formFrom(draft.proposal).where;
+  return read !== "" && form.where === read;
+}
+
+/** The line under the check card's heading: what was not read, what was cut, and what to check. */
+export function checkNotes(draft: DeviceDraft): string {
+  const build = draft.lastBuild;
+  return [
+    build?.unreadFiles
+      ? `${build.unreadFiles} ${build.unreadFiles === 1 ? "file was" : "files were"} kept but not read.`
+      : "",
+    (build?.sourceCharacters ?? 0) > 800 ? "About it holds up to 800 characters. Your full words are kept." : "",
+    build?.files.some((file) => file.status === "partial") ? "Some PDF pages had no readable text." : "",
+    whereReadFromWords(draft) ? "Where you work was read from your words. Check it before you continue." : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 /**

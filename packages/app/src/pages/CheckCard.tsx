@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { z } from "zod";
-import { checkForm, checkView, keepCard, keepProblem, publicDetails } from "../describe/check.ts";
+import { checkForm, checkNotes, checkView, keepCard, keepProblem, publicDetails } from "../describe/check.ts";
 import {
   DERIVED_LABELS,
   type DerivedEditsSchema,
@@ -55,15 +55,7 @@ export function CheckCard() {
   const route = cardRoute(draft);
   const settled = route === "needs" || route === "your-initiative";
   const build = draft.lastBuild;
-  const notes = [
-    build?.unreadFiles
-      ? `${build.unreadFiles} ${build.unreadFiles === 1 ? "file was" : "files were"} kept but not read.`
-      : "",
-    (build?.sourceCharacters ?? 0) > 800 ? "About it holds up to 800 characters. Your full words are kept." : "",
-    build?.files.some((file) => file.status === "partial") ? "Some PDF pages had no readable text." : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const notes = checkNotes(draft);
   useEffect(() => {
     if (!focusChip.current) return;
     document.getElementById(`detail-${focusChip.current}`)?.focus();
