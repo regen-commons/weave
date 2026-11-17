@@ -121,6 +121,11 @@ const invitations = new Map<string, { inviteId: string; status: string; expiresA
 ]);
 const fixtureInvites = new Map<string, string>();
 const requested = new Set<string>();
+/**
+ * Personal project links, by account and project URI, to the linked card's ID. Every fixture account sees the
+ * same personal project, so each keeps its own link, as each person's own project would have one.
+ */
+const soloLinks = new Map<string, string>();
 const teamSaves = new Map<string, SavedInitiative>();
 const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
 export function fixtureTeam(token: string, id: string) {
@@ -177,12 +182,40 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     if (command.action === "list_projects") return { projects: fixtureProjects.filter(p =>
       command.target.kind === "personal" ? !p.groupDid : p.groupDid === command.target.groupDid),
       ...(command.target.kind === "group" ? { certifiedRole: command.target.groupDid === groupDid && actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member" } : {}) };
-    if (command.action === "list_workspaces") return { workspaces: teamRoles.has(actor.userId) ? [{ workspaceId: FIXTURE_TEAM_ID,
-      projectUri: groupUri, kind: "group", accessRole: teamRoles.get(actor.userId), project: fixtureProjects[0] }] : [], pendingSetups: [] };
+    // As the workspace candidate's link_result: a personal link opens only while its owner's card exists.
+    const token = sessionCookies(false).token(request) ?? "";
+    const soloLink = (projectUri: string) => {
+      const workspaceId = soloLinks.get(`${actor.userId} ${projectUri}`);
+      if (!workspaceId) return null;
+      try { fixtureInitiative(token, workspaceId); } catch { return { status: "access_required" } as const; }
+      return { status: "linked", workspaceId, accessRole: "admin", projectUri, cid: "bafyfixture" } as const;
+    };
+    if (command.action === "list_workspaces") return { workspaces: [
+      ...(teamRoles.has(actor.userId) ? [{ workspaceId: FIXTURE_TEAM_ID,
+        projectUri: groupUri, kind: "group", accessRole: teamRoles.get(actor.userId), project: fixtureProjects[0] }] : []),
+      ...fixtureProjects.flatMap((project) => {
+        const link = soloLink(project.uri);
+        return link?.status === "linked" ? [{ workspaceId: link.workspaceId, projectUri: project.uri, kind: "personal", accessRole: "admin", project }] : [];
+      }),
+    ], pendingSetups: [] };
     if (command.action === "lookup") {
       if (command.projectUri === groupUri && teamRoles.has(actor.userId)) return { status: "linked", workspaceId: FIXTURE_TEAM_ID,
         projectUri: groupUri, accessRole: teamRoles.get(actor.userId) };
-      return { status: requested.has(command.projectUri) ? "pending" : "unlinked", projectUri: command.projectUri };
+      return soloLink(command.projectUri)
+        ?? { status: requested.has(command.projectUri) ? "pending" : "unlinked", projectUri: command.projectUri };
+    }
+    // A personal project links to the person's saved card at its current revision, keeping the card's ID.
+    // A project already linked returns that canonical link, as the workspace candidate does.
+    if (command.action === "link") {
+      const project = fixtureProjects.find(({ uri }) => uri === command.projectUri);
+      if (!project) throw new AccountError(404, "project_not_found");
+      if (project.groupDid) throw new AccountError(400, "invalid_project_command");
+      const existing = soloLink(project.uri);
+      if (existing) return existing;
+      if (fixtureInitiative(token, command.initiativeId).saved.revision !== command.expectedRevision)
+        throw new AccountError(409, "project_conflict");
+      soloLinks.set(`${actor.userId} ${project.uri}`, command.initiativeId);
+      return soloLink(project.uri);
     }
     if (command.action === "request_setup") { requested.add(command.projectUri); return { status: "pending" }; }
     if (command.action === "claim_invite") {
