@@ -77,7 +77,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
       {catalog.bundle && (
         <p className="rc-meta">
           {catalog.bundle.catalog.funds.length} funders, {entries.length} program and overview records.{" "}
-          {researchDate ? `Research snapshot ${fullDate(researchDate)}.` : "Research snapshot date unknown."}{" "}
+          {researchDate ? `Latest source check ${fullDate(researchDate)}.` : "Latest source check date unknown."}{" "}
           Keyword matching runs on this device; no model download.
         </p>
       )}

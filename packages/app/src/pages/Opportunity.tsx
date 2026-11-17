@@ -277,7 +277,7 @@ export function Opportunity({
         ) : null}
         <p className="rc-meta">
           {fund.verifiedOn ? `Sources checked ${fullDate(fund.verifiedOn)}` : "Source date not verified"}.
-          {researchDate ? ` Catalog snapshot ${fullDate(researchDate)}.` : " Catalog snapshot date unknown."}
+          {researchDate ? ` Latest catalog check ${fullDate(researchDate)}.` : " Latest catalog check date unknown."}
         </p>
       </section>
       {fixture?.state === "loading" && !retried ? (

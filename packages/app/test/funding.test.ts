@@ -118,7 +118,8 @@ test("the research snapshot date follows the latest dated source check, not the 
     const source = readFileSync(new URL(`../src/pages/${page}.tsx`, import.meta.url), "utf8");
     assert.doesNotMatch(source, /researchCheckedOn/, `${page} shows the derived date`);
     assert.match(source, /researchSnapshotDate\(/, page);
-    assert.match(source, /snapshot date unknown\./, `${page} says when the date is unknown`);
+    assert.match(source, /check date unknown\./, `${page} says when the date is unknown`);
+    assert.doesNotMatch(source, /(?:Research|Catalog) snapshot/, `${page} names the date as the latest check, not a whole-catalog snapshot`);
   }
 });
 test("a snapshot with no usable research date says so instead of inventing one", () => {
