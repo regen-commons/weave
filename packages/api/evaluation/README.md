@@ -137,6 +137,124 @@ Negation, requests presented as experience, explicit shared-entry
 - Production pilot, semantic-retrieval switch, authentication, tester gates and
   publishing settings are unchanged. No deployment or migration is part of this work.
 
+## Evaluations added on 16 November 2026
+
+The v2 holdout above has been examined and tuned against. It stays regression
+evidence and was not relabelled or rerun as a new independent result. Three
+additions sit beside it, each frozen by hash before its first scored run.
+
+### Independent matching holdout (v3)
+
+`matching-v3-holdout.json` holds 48 public project passages, 16 shared entries and
+72 need and offer queries across art, software, research and place, about a fifth
+in Brazilian Portuguese. One agent instance wrote it and a second judged relevance.
+Both were blind to the matcher, its vocabulary and the v2 fixtures, and the judge
+never saw the author's labels. The 53 queries where both agreed without doubt are
+scored. The 19 with any doubt or disagreement are reported separately.
+
+```sh
+bun run --filter @weave/api eval:matching-v3 -- --output /private/tmp/weave-matching-v3.json
+```
+
+It reports candidate retrieval separately from final ranking, both directions, by
+domain, language, query evidence type and whether the relevant candidate is public
+or a shared entry. Every returned match is checked for a supported explanation,
+complete provenance, public evidence never marked confirmed and availability left
+unknown. Thresholds come from the technical spec: at least 80% relevant among
+returned results for each domain and direction, and zero unsupported
+confirmations. No recall floor has been agreed, so recall is reported, not gated.
+
+The [first run](reports/2026-11-16-matching-v3-holdout.json) used the unchanged
+`partner-concepts-v2` matcher. Review then found that its headline was optimistic:
+it scored only candidates from the query's domain, averaged precision per query,
+counted no-match queries in the precision gate, and let a group that returned
+almost nothing pass. The [post-hoc re-scoring](reports/2026-11-16-matching-v3-holdout-post-hoc.json)
+of the same frozen corpus and engine uses the spec's definition: relevant
+suggestions among the top five, counted over suggestions, on queries with a known
+relevant candidate. A group with fewer than five suggestions is undecided. It also
+adds an all-candidates path, because the matcher in production has no domain
+field; suggestions from another domain were never judged and count as not
+relevant. This re-scoring happened after the misses were seen, so it is not a new
+independent result.
+
+| Post-hoc, 45 agreed positive and 8 no-match queries | Lexical baseline | Current matcher |
+|---|---:|---:|
+| Relevant among top-five suggestions, all candidates (unjudged counted as not relevant) | 24% | 67% |
+| Relevant among judged top-five suggestions, all candidates | 56% | 83% |
+| Relevant among top-five suggestions, query's domain only | 44% | 83% |
+| Final recall at five | 52% | 44% |
+| Positive queries with no suggestion, all candidates | 7 | 21 |
+| No-match queries with a suggestion, all candidates | 8 of 8 | 2 of 8 |
+| Unsupported confirmations, explanation or provenance failures | 0 | 0 |
+
+On all candidates, the current matcher fails the 80% gate for art offers (50%),
+research needs (50%) and software offers (43%); place needs pass; the other four
+groups return too few suggestions to decide. Portuguese queries reach 25% relevance
+and 22% recall, and cross-language queries recall nothing. Token-overlap retrieval
+reaches 56% of relevant candidates, an upper bound for the SQL shortlist. The
+groups hold 3 to 8 agreed positive queries each, below the spec's 20 needs and 20
+offers per domain, and the corpus has no one-way-fit or incompatibility cases.
+This is synthetic, agent-judged evidence, not a release-quality claim, and the
+matcher does not meet the spec's target on it.
+
+### Hard safety gates
+
+`safety-gates.test.mjs` runs in CI. The final matcher never returns closed,
+withdrawn, expired or not-yet-confirmed entries, entries of the same kind, or the
+person's own initiative; public work never becomes a confirmed need or offer and
+always leaves availability unknown; a published request never serves a need; and
+explicitly shared offers rank before inferred public capability even when the
+public passage overlaps more. Removing the ownership, expiry, evidence-kind or
+evidence-order rule makes these tests fail. Private, unshared
+and unauthorized entries are excluded before ranking by the SQL view and the
+workspace command; the opt-in PostgreSQL suites prove those.
+
+### Kinds of support
+
+Classification is evaluated separately from matching, in
+`packages/app/evaluation/`. The development split pins the 20-case production
+sample, the four production negation gates and the soil finding as named
+regressions. The holdout has 72 cases, written and judged blind by two agent
+instances; six with any doubt are reported, never scored. The released classifier
+from `921d236` is frozen as the baseline.
+
+```sh
+bun run --filter @weave/app eval:kinds -- --split development
+bun run --filter @weave/app eval:kinds -- --split holdout --output /private/tmp/weave-kinds-holdout.json
+```
+
+CI scores development only: the original 80% exact-match floor, every named
+regression, no invented amount or timeframe, and no regression from the baseline.
+Subgroups below the floor are listed even when the aggregate passes.
+
+| Split | Released baseline | Candidate with the soil fix |
+|---|---:|---:|
+| Development, 53 cases | 73.6% | 81.1% |
+| Independent holdout, 66 agreed cases | 27.3% | 27.3% |
+
+A review then found that the soil rule could leave "pesquisas sobre a água" with no
+kind and could run across an entry's title and description. After that fix, both
+splits score the same; the [post-review holdout rerun](../../app/evaluation/reports/2026-11-16-support-kinds-holdout-post-review.json)
+is regression evidence on an examined holdout.
+
+The holdout misses the floor by a wide margin. Of 48 misses, 23 were empty
+proposals from vocabulary gaps (a projector, a hall, goats) and 21 added a kind
+from a decoy word; Living precision was 0.32. Keyword kinds therefore remain
+proposals the person must review. Development still misses the floor for needs
+(77%), negation (67%) and decoy wording (17%).
+
+### User flows
+
+`packages/app/evaluation/user-flows-v1.json` maps each required flow to the exact
+tests that prove it, labelled `module` or `disposable-postgres`. CI fails when a
+named test disappears. Tests that a fix branch adds name that branch and are
+required only on a branch that contains every fix:
+
+```sh
+bun run --filter @weave/app eval:flows
+bun run --filter @weave/app eval:flows -- --require-all
+```
+
 ## Independent quality evaluation still required
 
 The [technical spec's quality criteria](../../../docs/platform/05-technical-spec.md#quality-and-performance-proof)

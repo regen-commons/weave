@@ -1,0 +1,3068 @@
+{
+ "version": 1,
+ "dataset": "support-kinds-v1",
+ "annotationStatus": "Synthetic. Development cases: production QA declarations and one development author. Holdout: authored and judged by two separate agent instances blind to the engine and to each other's labels; not human judged.",
+ "rubric": "kinds-rubric-v1: financial money; material tools, equipment, venues; living land and living things themselves, not information about them; intellectual knowledge, data, research, maps; experiential skills passed on by doing; social relationships, introductions, volunteers, fiscal hosts; cultural art, story, language, heritage; spiritual ceremony, care, listening. Explicitly denied kinds are excluded.",
+ "thresholds": {
+  "exactMatchFloor": 0.8,
+  "namedRegressionsMustPass": true,
+  "noInventedAmountOrTimeframe": true,
+  "source": "80% is the 20-case production floor recorded in docs/platform/prototype/proof/go-live-2026-11-16/quality-results.json; named regressions are the production sample, negation gate and soil finding."
+ },
+ "kinds": [
+  "living",
+  "material",
+  "intellectual",
+  "experiential",
+  "social",
+  "financial",
+  "cultural",
+  "spiritual"
+ ],
+ "cases": [
+  {
+   "id": "prod-01",
+   "family": "prod-01",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need watering cans and wheelbarrows.",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-02",
+   "family": "prod-02",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need USD 500 for our community work.",
+   "expected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "amount"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-03",
+   "family": "prod-03",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de água para a horta",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents",
+    "living-resource"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-04",
+   "family": "prod-04",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need composting training from an experienced gardener.",
+   "expected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-05",
+   "family": "prod-05",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16",
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need open research and soil test data.",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-06",
+   "family": "prod-06",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can lend shovels and watering cans.",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-07",
+   "family": "prod-07",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can offer USD 200 for community work.",
+   "expected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "amount"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-08",
+   "family": "prod-08",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16",
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can share seeds and rainwater for the garden.",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-09",
+   "family": "prod-09",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer hands-on composting training.",
+   "expected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-10",
+   "family": "prod-10",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16",
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer open research and soil test data.",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-11",
+   "family": "prod-11",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need introductions to community garden partners.",
+   "expected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-12",
+   "family": "prod-12",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need local songs and cultural stories for our gathering.",
+   "expected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-13",
+   "family": "prod-13",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need a meditation and spiritual care circle.",
+   "expected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-14",
+   "family": "prod-14",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need hand tools and composting training.",
+   "expected": [
+    "material",
+    "experiential"
+   ],
+   "tags": [
+    "mixed",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-15",
+   "family": "prod-15",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16",
+    "production-negation-gate-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We don't need money. We need rainwater for the garden.",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-16",
+   "family": "prod-16",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can introduce groups to local garden partners.",
+   "expected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-17",
+   "family": "prod-17",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can share local songs and cultural stories.",
+   "expected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-18",
+   "family": "prod-18",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer meditation and spiritual care circles.",
+   "expected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-19",
+   "family": "prod-19",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer hand tools and composting training.",
+   "expected": [
+    "material",
+    "experiential"
+   ],
+   "tags": [
+    "mixed",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "prod-20",
+   "family": "prod-20",
+   "split": "development",
+   "source": "production-sample-2026-11-16",
+   "named": [
+    "production-sample-2026-11-16",
+    "production-negation-gate-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We don't offer money. We offer seeds for the garden.",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "gate-03",
+   "family": "gate-03",
+   "split": "development",
+   "source": "production-negation-gate-2026-11-16",
+   "named": [
+    "production-negation-gate-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need tools but don't need money",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "gate-04",
+   "family": "gate-04",
+   "split": "development",
+   "source": "production-negation-gate-2026-11-16",
+   "named": [
+    "production-negation-gate-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer tools at no cost",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "production QA declared before observing"
+   ]
+  },
+  {
+   "id": "soil-01",
+   "family": "soil-01",
+   "split": "development",
+   "source": "finding-soil-2026-11-16",
+   "named": [
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need soil for the garden beds",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "soil-02",
+   "family": "soil-02",
+   "split": "development",
+   "source": "finding-soil-2026-11-16",
+   "named": [
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "en",
+   "text": "We need topsoil and soil test data",
+   "expected": [
+    "living",
+    "intellectual"
+   ],
+   "tags": [
+    "mixed",
+    "living-resource",
+    "data-about-living"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "soil-03",
+   "family": "soil-03",
+   "split": "development",
+   "source": "finding-soil-2026-11-16",
+   "named": [
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de dados sobre a água",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "soil-04",
+   "family": "soil-04",
+   "split": "development",
+   "source": "finding-soil-2026-11-16",
+   "named": [
+    "finding-soil-2026-11-16"
+   ],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer research about water quality",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-01",
+   "family": "dev-01",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need a tractor for the harvest",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-02",
+   "family": "dev-02",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de um trator e ferramentas",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment",
+    "portuguese"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-03",
+   "family": "dev-03",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Oferecemos oficinas de compostagem para a comunidade",
+   "expected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-04",
+   "family": "dev-04",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Procuramos parceiros locais e voluntários",
+   "expected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-05",
+   "family": "dev-05",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Oferecemos histórias e música para o festival",
+   "expected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-06",
+   "family": "dev-06",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de R$ 3.000 para comprar sementes",
+   "expected": [
+    "financial",
+    "living"
+   ],
+   "tags": [
+    "mixed",
+    "amount",
+    "living-resource",
+    "portuguese"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-07",
+   "family": "dev-07",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need EUR 1,200 to rent a venue",
+   "expected": [
+    "financial",
+    "material"
+   ],
+   "tags": [
+    "mixed",
+    "amount"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-08",
+   "family": "dev-08",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can offer a grant of USD 10,000",
+   "expected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "amount"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-09",
+   "family": "dev-09",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need 20 volunteers for planting day",
+   "expected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "non-money-number",
+    "decoy"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-10",
+   "family": "dev-10",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer a ceremony to open the season",
+   "expected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-11",
+   "family": "dev-11",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need someone to review our grant application",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "decoy"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-12",
+   "family": "dev-12",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We don't have money to offer, but we can lend our greenhouse",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "equipment"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-13",
+   "family": "dev-13",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "No funding needed, just land to grow on",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "living-resource"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-14",
+   "family": "dev-14",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need a fiscal host",
+   "expected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-15",
+   "family": "dev-15",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer mentoring for young farmers",
+   "expected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-16",
+   "family": "dev-16",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Seed library",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource",
+    "sparse"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-17",
+   "family": "dev-17",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need maps of the watershed",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-18",
+   "family": "dev-18",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need seed funding",
+   "expected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "decoy"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-19",
+   "family": "dev-19",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer storytelling workshops",
+   "expected": [
+    "cultural",
+    "experiential"
+   ],
+   "tags": [
+    "mixed"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-20",
+   "family": "dev-20",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Ferramentas e sementes para a horta",
+   "expected": [
+    "material",
+    "living"
+   ],
+   "tags": [
+    "mixed",
+    "equipment",
+    "living-resource",
+    "portuguese",
+    "sparse"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-21",
+   "family": "dev-21",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Não precisamos de dinheiro, precisamos de mudas",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "living-resource",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-22",
+   "family": "dev-22",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need a listening circle for our volunteers",
+   "expected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind",
+    "decoy"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-23",
+   "family": "dev-23",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We offer data analysis for soil labs",
+   "expected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-24",
+   "family": "dev-24",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need water tanks",
+   "expected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment",
+    "decoy"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-25",
+   "family": "dev-25",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need land",
+   "expected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource",
+    "sparse"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-26",
+   "family": "dev-26",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Offering bike repair skills",
+   "expected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "sparse"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "dev-27",
+   "family": "dev-27",
+   "split": "development",
+   "source": "development-authored",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need introductions to funders",
+   "expected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "decoy"
+   ],
+   "judgment": "single",
+   "annotators": [
+    "development author, single annotator"
+   ]
+  },
+  {
+   "id": "kh-001",
+   "family": "h-fin-stipends",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need about $4,500 to pay facilitator stipends for the spring season.",
+   "expected": [
+    "financial"
+   ],
+   "judgeExpected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "amount"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-002",
+   "family": "h-fin-seed-money",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Seed money wanted",
+   "expected": [
+    "financial"
+   ],
+   "judgeExpected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "sparse"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-003",
+   "family": "h-fin-microgrants",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our cooperative has set aside €2,000 in microgrants for neighbourhood food projects this year.",
+   "expected": [
+    "financial"
+   ],
+   "judgeExpected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "amount"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-004",
+   "family": "h-fin-bolsas",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de R$ 15.000 para pagar as bolsas dos jovens monitores até dezembro.",
+   "expected": [
+    "financial"
+   ],
+   "judgeExpected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "amount",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-005",
+   "family": "h-fin-doacao-mensal",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Oferecemos uma pequena doação mensal em dinheiro para coletivos de agricultura urbana.",
+   "expected": [
+    "financial"
+   ],
+   "judgeExpected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-006",
+   "family": "h-fin-fuel",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Not looking for equipment this time, just help covering about $600 in fuel and insurance.",
+   "expected": [
+    "financial"
+   ],
+   "judgeExpected": [
+    "financial"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "amount"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-007",
+   "family": "h-mat-hall",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Need a hall that holds around 80 people for our annual general meeting.",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "non-money-number"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-008",
+   "family": "h-mat-projector",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Need a projector",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "sparse",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-009",
+   "family": "h-mat-ferramentas",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de ferramentas para a horta: enxadas, regadores e um carrinho de mão.",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-010",
+   "family": "h-mat-van",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our cargo van is free on weekends if anyone needs to move supplies between sites.",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-011",
+   "family": "h-mat-telhas",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Sobraram telhas e tijolos da reforma, é só vir buscar.",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-012",
+   "family": "h-mat-marquee",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "No cash to give, but we can lend our marquee and folding tables for events.",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-013",
+   "family": "h-mat-rocadeira",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Sem doação em dinheiro, mas podemos emprestar a nossa roçadeira e o trator.",
+   "expected": [
+    "material"
+   ],
+   "judgeExpected": [
+    "material"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "equipment",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-014",
+   "family": "h-liv-hive-ground",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need nothing but a patch of ground near town where we can keep our beehives.",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-015",
+   "family": "h-liv-topsoil",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Topsoil and compost",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "sparse",
+    "living-resource"
+   ],
+   "judgment": "uncertain",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-016",
+   "family": "h-liv-mudas",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Buscamos mudas de árvores nativas para o reflorestamento da nascente.",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-017",
+   "family": "h-liv-saplings",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We'll have about 200 oak and hazel saplings to give away from our nursery this winter.",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource",
+    "non-money-number"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-018",
+   "family": "h-liv-goats",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Two of our goats are due to kid soon, and we'd like to rehome the young ones with another farm.",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-019",
+   "family": "h-well-water",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We have surplus well water and can share it with neighbouring plots during the dry months.",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-020",
+   "family": "h-liv-sementes-crioulas",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Temos sementes crioulas de milho e feijão para trocar ou doar.",
+   "expected": [
+    "living"
+   ],
+   "judgeExpected": [
+    "living"
+   ],
+   "tags": [
+    "single-kind",
+    "living-resource",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-021",
+   "family": "h-int-templates",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need a template for a volunteer agreement and a simple privacy policy.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-022",
+   "family": "h-int-cycle-map",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Does anyone have an existing map of cycle routes in the valley? We'd rather not redo the work.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-023",
+   "family": "h-int-guia",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de um guia passo a passo para registrar a associação em cartório.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-024",
+   "family": "h-int-source-code",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Happy to share the source code of our tool-library booking app, plus the setup docs.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-025",
+   "family": "h-int-metodologia",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Compartilhamos nossa metodologia de diagnóstico participativo, com fichas e roteiros prontos.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-026",
+   "family": "h-soil-analysis",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need recent soil test results for the allotment site before we decide what to plant.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-027",
+   "family": "h-soil-analysis",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Análise de solo",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living",
+    "sparse",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-028",
+   "family": "h-pt-agua-poco",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de uma análise da qualidade da água do poço antes de usar na horta.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-029",
+   "family": "h-groundwater-data",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need data on groundwater levels rather than the water itself; our wells are fine.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-030",
+   "family": "h-well-water",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can share our well's water test results from the last five years with neighbouring plots.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living",
+    "non-money-number"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-031",
+   "family": "h-dal-drone-map",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our team flew a drone survey of the whole watershed and made a land-cover map that anyone can use.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-032",
+   "family": "h-dal-botanical-survey",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Happy to pass on our botanical survey of the old quarry, species lists and photos included.",
+   "expected": [
+    "intellectual"
+   ],
+   "judgeExpected": [
+    "intellectual"
+   ],
+   "tags": [
+    "single-kind",
+    "data-about-living"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-033",
+   "family": "h-exp-beekeeper",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We'd love an experienced beekeeper to mentor two of our members through their first season.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-034",
+   "family": "h-exp-bioconstrucao",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Buscamos alguém com experiência em bioconstrução para acompanhar o mutirão e ensinar na prática.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-035",
+   "family": "h-exp-hedge",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We don't need money; what we really need is people who know how to lay a hedge.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "uncertain",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-036",
+   "family": "h-exp-grafting",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Happy to show folks how to graft fruit trees, just swing by on a Saturday morning.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-037",
+   "family": "h-exp-agrofloresta",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Oferecemos formação em agrofloresta, com aulas práticas no nosso sítio.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-038",
+   "family": "h-exp-seed-saving",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can run seed-saving workshops, but we can't give out the seeds themselves.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-039",
+   "family": "h-exp-soil-mentoring",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We never lend out the tractor, but our members can mentor new growers on soil care.",
+   "expected": [
+    "experiential"
+   ],
+   "judgeExpected": [
+    "experiential"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-040",
+   "family": "h-fiscal-host",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We're looking for a fiscal host for our project.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-041",
+   "family": "h-soc-volunteers",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Looking for 20 volunteers to help with the river clean-up on the 14th.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "non-money-number"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-042",
+   "family": "h-soc-intro-water",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Could someone introduce us to people at the regional water authority?",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-043",
+   "family": "h-soc-rede-sementes",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Procuramos parceiros para montar uma rede de casas de sementes na região.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-044",
+   "family": "h-soc-farmer-intros",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We'd like introductions to farmers who could host a field trial, ideally without any money changing hands.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "uncertain",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-045",
+   "family": "h-soc-maos",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Não precisamos de dinheiro, precisamos de mãos: voluntários para o mutirão de sábado.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "negation",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-046",
+   "family": "h-soc-coop-network",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can connect you with our network of food co-ops across the region.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-047",
+   "family": "h-soc-apresentar",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Podemos apresentar vocês às lideranças comunitárias do bairro.",
+   "expected": [
+    "social"
+   ],
+   "judgeExpected": [
+    "social"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-048",
+   "family": "h-cul-storyteller",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Storyteller for kids' afternoon",
+   "expected": [
+    "cultural"
+   ],
+   "judgeExpected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind",
+    "sparse"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-049",
+   "family": "h-cul-maracatu",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Queremos um grupo de maracatu ou de capoeira para a festa de inauguração da cozinha comunitária.",
+   "expected": [
+    "cultural"
+   ],
+   "judgeExpected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-050",
+   "family": "h-cul-live-music",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Instead of cash, we'd love an afternoon of live music from a local band at our reopening.",
+   "expected": [
+    "cultural"
+   ],
+   "judgeExpected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind",
+    "negation"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-051",
+   "family": "h-cul-mural",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our collective can paint a mural on your community centre wall.",
+   "expected": [
+    "cultural"
+   ],
+   "judgeExpected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-052",
+   "family": "h-cul-theatre",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We have a theatre troupe that performs short plays about water and land for schools.",
+   "expected": [
+    "cultural"
+   ],
+   "judgeExpected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-053",
+   "family": "h-cul-ilustracoes",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Nosso coletivo de artistas faz ilustrações e cartazes para campanhas de outros projetos.",
+   "expected": [
+    "cultural"
+   ],
+   "judgeExpected": [
+    "cultural"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-054",
+   "family": "h-spi-listening",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Our team is pretty burned out, and we'd welcome someone to hold a listening circle for us.",
+   "expected": [
+    "spiritual"
+   ],
+   "judgeExpected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-055",
+   "family": "h-spi-blessing",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Looking for someone to lead a blessing ceremony when we plant the first tree.",
+   "expected": [
+    "spiritual"
+   ],
+   "judgeExpected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-056",
+   "family": "h-spi-escuta",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de cuidado e escuta para a equipe, que está muito abalada depois do despejo.",
+   "expected": [
+    "spiritual"
+   ],
+   "judgeExpected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-057",
+   "family": "h-spi-chaplain",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our chaplain offers pastoral care to volunteers going through grief.",
+   "expected": [
+    "spiritual"
+   ],
+   "judgeExpected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-058",
+   "family": "h-spi-rodas",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Oferecemos rodas de meditação e práticas de cuidado para quem está na linha de frente.",
+   "expected": [
+    "spiritual"
+   ],
+   "judgeExpected": [
+    "spiritual"
+   ],
+   "tags": [
+    "single-kind",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-059",
+   "family": "h-none-en",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Honestly, we have nothing to offer right now: no money, no equipment, no spare time.",
+   "expected": [],
+   "judgeExpected": [],
+   "tags": [
+    "negation",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-060",
+   "family": "h-none-pt",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Por enquanto não estamos precisando de nada, nem de recursos, nem de terra.",
+   "expected": [],
+   "judgeExpected": [],
+   "tags": [
+    "negation",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-061",
+   "family": "h-water-plus-test",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "We need clean water for the seedling beds, and ideally a lab report on what's in it.",
+   "expected": [
+    "intellectual",
+    "living"
+   ],
+   "judgeExpected": [
+    "intellectual",
+    "living"
+   ],
+   "tags": [
+    "mixed",
+    "living-resource",
+    "data-about-living"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-062",
+   "family": "h-pt-sementes-dados",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Doamos sementes de feijão-guandu junto com os dados de germinação de cada lote.",
+   "expected": [
+    "intellectual",
+    "living"
+   ],
+   "judgeExpected": [
+    "intellectual",
+    "living"
+   ],
+   "tags": [
+    "mixed",
+    "living-resource",
+    "data-about-living",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-063",
+   "family": "h-mix-cash-volunteers",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We can put $1,200 toward your seedlings and send two volunteers on planting day.",
+   "expected": [
+    "financial",
+    "social"
+   ],
+   "judgeExpected": [
+    "financial",
+    "social"
+   ],
+   "tags": [
+    "mixed",
+    "amount"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-064",
+   "family": "h-mix-polytunnel",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Hoping for a grant of around £8,000 for a polytunnel, plus someone to train our team in winter growing.",
+   "expected": [
+    "experiential",
+    "financial"
+   ],
+   "judgeExpected": [
+    "experiential",
+    "financial"
+   ],
+   "tags": [
+    "mixed",
+    "amount"
+   ],
+   "judgment": "uncertain",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-065",
+   "family": "h-pt-contas-contabilidade",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "pt",
+   "text": "Precisamos de R$ 3.000 para as contas do semestre e de alguém que nos ensine a fazer a contabilidade.",
+   "expected": [
+    "experiential",
+    "financial"
+   ],
+   "judgeExpected": [
+    "experiential",
+    "financial"
+   ],
+   "tags": [
+    "mixed",
+    "amount",
+    "portuguese"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-066",
+   "family": "h-mix-studio",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our studio can lend out recording gear, and we'd be glad to record an album with the community choir.",
+   "expected": [
+    "cultural",
+    "material"
+   ],
+   "judgeExpected": [
+    "cultural",
+    "material"
+   ],
+   "tags": [
+    "mixed",
+    "equipment"
+   ],
+   "judgment": "uncertain",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-067",
+   "family": "h-mix-food-forest",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Looking for land to start a food forest, and a mentor who has done it before.",
+   "expected": [
+    "experiential",
+    "living"
+   ],
+   "judgeExpected": [
+    "experiential",
+    "living"
+   ],
+   "tags": [
+    "mixed",
+    "living-resource"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-068",
+   "family": "h-pt-galpao-percussao",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Cedemos o galpão para ensaios e damos uma oficina de percussão para as crianças.",
+   "expected": [
+    "cultural",
+    "experiential",
+    "material"
+   ],
+   "judgeExpected": [
+    "cultural",
+    "experiential",
+    "material"
+   ],
+   "tags": [
+    "mixed",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "uncertain",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-069",
+   "family": "h-mix-ceremony-songs",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "We hold a monthly ceremony for the land and share the old planting songs that go with it.",
+   "expected": [
+    "cultural",
+    "spiritual"
+   ],
+   "judgeExpected": [
+    "cultural",
+    "spiritual"
+   ],
+   "tags": [
+    "mixed"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-070",
+   "family": "h-fiscal-host",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "need",
+   "language": "en",
+   "text": "Need a fiscal sponsor and a few thousand dollars to get the repair café going.",
+   "expected": [
+    "financial",
+    "social"
+   ],
+   "judgeExpected": [
+    "financial",
+    "social"
+   ],
+   "tags": [
+    "mixed",
+    "colloquial"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-071",
+   "family": "h-mix-makerspace",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "en",
+   "text": "Our makerspace offers open access to the laser cutter and free weekly classes on how to use it.",
+   "expected": [
+    "experiential",
+    "material"
+   ],
+   "judgeExpected": [
+    "experiential",
+    "material"
+   ],
+   "tags": [
+    "mixed",
+    "equipment"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  },
+  {
+   "id": "kh-072",
+   "family": "h-pt-nascentes-dados",
+   "split": "holdout",
+   "source": "independent-holdout-2026-11-16",
+   "named": [],
+   "direction": "offer",
+   "language": "pt",
+   "text": "Temos um banco de dados de nascentes mapeadas e podemos apresentar vocês aos moradores que cuidam delas.",
+   "expected": [
+    "intellectual",
+    "social"
+   ],
+   "judgeExpected": [
+    "intellectual",
+    "social"
+   ],
+   "tags": [
+    "mixed",
+    "data-about-living",
+    "portuguese",
+    "accents"
+   ],
+   "judgment": "agreed",
+   "annotators": [
+    "independent author (blind to engine)",
+    "independent judge (blind to author labels and engine)"
+   ]
+  }
+ ]
+}

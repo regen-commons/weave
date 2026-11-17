@@ -1,0 +1,2008 @@
+{
+ "version": 1,
+ "dataset": "matching-v3-holdout",
+ "annotationStatus": "Synthetic, never tuned against. Authored by one agent instance and judged by another, both blind to the engine, its vocabulary and earlier fixtures; the judge did not see the author's labels. Not human judged. Judgments are within domain.",
+ "rubric": "matching-rubric-v1: a need is served by public work, a published offer or a shared offer that could plausibly provide it; an offer by public work, a published request or a shared need that could plausibly use it. Nearby but different activities are not relevant. Availability, price and place are ignored.",
+ "thresholds": {
+  "precisionAmongReturnedPerDomainDirection": 0.8,
+  "unsupportedConfirmations": 0,
+  "explanationOrProvenanceFailures": 0,
+  "recallFloor": null,
+  "noMatchFalsePositiveTarget": 0,
+  "source": "docs/platform/05-technical-spec.md quality criteria: at least 80 percent relevant returned suggestions per domain/direction on held-out queries with known relevant candidates, zero unsupported confirmed assertions. No recall floor has been agreed, so recall is reported and not gated."
+ },
+ "projects": [
+  {
+   "id": "mp-art-01",
+   "domain": "art",
+   "family": "art-mural-conservation",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Ochre Wall Keepers",
+   "passage": "We clean, stabilise and carefully retouch weathered outdoor murals. Every job starts with a condition report and pigment sampling, so the original artist's work stays intact."
+  },
+  {
+   "id": "mp-art-02",
+   "domain": "art",
+   "family": "art-mural-conservation",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Ateliê Reboco Vivo",
+   "passage": "Restauramos pinturas murais antigas em escolas, igrejas e praças, com consolidação do reboco e retoque das cores originais."
+  },
+  {
+   "id": "mp-art-03",
+   "domain": "art",
+   "family": "art-new-murals",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Sunpatch Mural Crew",
+   "passage": "We design and paint brand-new murals with neighbourhood teenagers, from the first sketch to the final coat of varnish."
+  },
+  {
+   "id": "mp-art-04",
+   "domain": "art",
+   "family": "art-printmaking",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Mossgate Print Commons",
+   "passage": "An open-access risograph and screen-printing studio. Members print zines, posters and campaign flyers for local groups."
+  },
+  {
+   "id": "mp-art-05",
+   "domain": "art",
+   "family": "art-printmaking",
+   "language": "en",
+   "evidenceKind": "published_offer",
+   "name": "Thistledown Letterpress",
+   "passage": "We offer short letterpress and linocut print runs for grassroots campaigns, event posters and small books."
+  },
+  {
+   "id": "mp-art-06",
+   "domain": "art",
+   "family": "art-3d-fabrication",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Cogwhistle Makerspace",
+   "passage": "Members use 3D printers, laser cutters and a CNC router to prototype parts and fix broken household items."
+  },
+  {
+   "id": "mp-art-07",
+   "domain": "art",
+   "family": "art-oral-history-theatre",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Coletivo Barro e Cena",
+   "passage": "Criamos peças de teatro a partir de histórias contadas por agricultoras e agricultores. As apresentações acontecem em feiras, escolas rurais e assentamentos."
+  },
+  {
+   "id": "mp-art-08",
+   "domain": "art",
+   "family": "art-community-choir",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Millrace Community Choir",
+   "passage": "Weekly community choir singing folk songs in four-part harmony. No auditions."
+  },
+  {
+   "id": "mp-art-09",
+   "domain": "art",
+   "family": "art-acoustic-panels",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Hushloft Acoustics",
+   "passage": "We build acoustic panels and soundproofing for music studios, rehearsal rooms and home cinemas."
+  },
+  {
+   "id": "mp-art-10",
+   "domain": "art",
+   "family": "art-natural-dye",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Madder & Weld Dye Garden",
+   "passage": "We grow madder, weld and woad, and teach people to dye wool and cotton with roots, leaves and flowers."
+  },
+  {
+   "id": "mp-art-11",
+   "domain": "art",
+   "family": "art-weaving",
+   "language": "en",
+   "evidenceKind": "published_request",
+   "name": "Shuttlewick Weavers",
+   "passage": "We are looking for donated yarn and spare floor looms for our intergenerational weaving circle."
+  },
+  {
+   "id": "mp-art-12",
+   "domain": "art",
+   "family": "art-stage-building",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Palco Firme Montagens",
+   "passage": "Montamos palcos, tendas e arquibancadas para shows, festas e eventos ao ar livre."
+  },
+  {
+   "id": "mp-software-01",
+   "domain": "software",
+   "family": "sw-offline-field-apps",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Brackenlog Field Apps",
+   "passage": "We build offline-first mobile apps that let land stewards record plant surveys, photos and GPS tracks without signal, then sync when they are back online."
+  },
+  {
+   "id": "mp-software-02",
+   "domain": "software",
+   "family": "sw-offline-field-apps",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Trilha Miúda Apps",
+   "passage": "Desenvolvemos aplicativos que funcionam sem internet para mapear nascentes e áreas de reflorestamento. Os dados sincronizam quando o celular volta a ter sinal."
+  },
+  {
+   "id": "mp-software-03",
+   "domain": "software",
+   "family": "sw-web-accessibility",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Tallowmere Access Lab",
+   "passage": "We test websites with screen readers and keyboard-only navigation, then write plain-language fix lists for small nonprofits."
+  },
+  {
+   "id": "mp-software-04",
+   "domain": "software",
+   "family": "sw-public-dashboards",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Hollowbrook Ledger Labs",
+   "passage": "We turn messy spreadsheets from community groups into public dashboards that show where money and volunteer hours went."
+  },
+  {
+   "id": "mp-software-05",
+   "domain": "software",
+   "family": "sw-green-hosting",
+   "language": "en",
+   "evidenceKind": "published_offer",
+   "name": "Emberlight Hosting Co-op",
+   "passage": "We offer web hosting and email for cooperatives and community groups, run on servers powered by renewable energy."
+  },
+  {
+   "id": "mp-software-06",
+   "domain": "software",
+   "family": "sw-solar-install",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Painéis Serra Clara",
+   "passage": "Instalamos painéis solares e fazemos a manutenção de inversores em escolas rurais."
+  },
+  {
+   "id": "mp-software-07",
+   "domain": "software",
+   "family": "sw-localisation",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Ponte Dupla Localização",
+   "passage": "Traduzimos e adaptamos aplicativos e sites de projetos sociais para o português e o espanhol, incluindo textos de botões e mensagens de erro."
+  },
+  {
+   "id": "mp-software-08",
+   "domain": "software",
+   "family": "sw-illustrated-maps",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Quillmarsh Map Studio",
+   "passage": "We draw and print hand-illustrated maps of towns and valleys for walls, guidebooks and tourism brochures."
+  },
+  {
+   "id": "mp-software-09",
+   "domain": "software",
+   "family": "sw-physical-access",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Stepfree Joinery Works",
+   "passage": "We build wheelchair ramps, handrails and accessible entrances for village halls and community buildings."
+  },
+  {
+   "id": "mp-software-10",
+   "domain": "software",
+   "family": "sw-records-database",
+   "language": "en",
+   "evidenceKind": "published_request",
+   "name": "Wickerfold Seed Exchange",
+   "passage": "We are looking for a volunteer developer to help move our seed exchange records from paper cards into a simple database."
+  },
+  {
+   "id": "mp-software-11",
+   "domain": "software",
+   "family": "sw-digital-security",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Lanternkey Security Circle",
+   "passage": "Digital security workshops for activist groups: password managers, two-step login and encrypted messaging."
+  },
+  {
+   "id": "mp-software-12",
+   "domain": "software",
+   "family": "sw-delivery-ordering",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Turnipcart Co-op Software",
+   "passage": "We maintain open-source ordering and delivery software for farmer cooperatives that sell weekly veg boxes, from the order form to the driver's route sheet."
+  },
+  {
+   "id": "mp-research-01",
+   "domain": "research",
+   "family": "rs-soil-testing",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Wormcast Soil Lab",
+   "passage": "A community soil lab measuring organic carbon, pH and earthworm counts for farmers and allotment groups."
+  },
+  {
+   "id": "mp-research-02",
+   "domain": "research",
+   "family": "rs-soil-testing",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Rootmeadow Testing Station",
+   "passage": "Tests for soil organic matter, nutrients and microbial life, with plain-language reports for community gardens and family farms."
+  },
+  {
+   "id": "mp-research-03",
+   "domain": "research",
+   "family": "rs-stream-monitoring",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Pebblerun Stream Watch",
+   "passage": "Volunteers sample local streams every month for nitrates, turbidity and freshwater invertebrates, and publish the results openly."
+  },
+  {
+   "id": "mp-research-04",
+   "domain": "research",
+   "family": "rs-community-surveys",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Kettleyard Social Research",
+   "passage": "We design household surveys and run focus groups so community groups can learn what residents actually want before they plan anything."
+  },
+  {
+   "id": "mp-research-05",
+   "domain": "research",
+   "family": "rs-evidence-reviews",
+   "language": "en",
+   "evidenceKind": "published_offer",
+   "name": "Lampwick Evidence Desk",
+   "passage": "We offer literature reviews and short evidence summaries for grassroots projects that need to know what has already been studied."
+  },
+  {
+   "id": "mp-research-06",
+   "domain": "research",
+   "family": "rs-research-ethics",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Hearthstone Ethics Panel",
+   "passage": "We review research plans that involve residents and advise on consent forms, anonymity and data protection."
+  },
+  {
+   "id": "mp-research-07",
+   "domain": "research",
+   "family": "rs-bird-acoustics",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Observatório Canto da Vereda",
+   "passage": "Monitoramos aves com pontos de escuta e gravadores automáticos de som, e treinamos moradores para identificar as espécies pelo canto."
+  },
+  {
+   "id": "mp-research-08",
+   "domain": "research",
+   "family": "rs-topsoil-supply",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Barrowfull Topsoil",
+   "passage": "We deliver screened topsoil, compost and bark mulch by the tonne to gardens and building sites."
+  },
+  {
+   "id": "mp-research-09",
+   "domain": "research",
+   "family": "rs-water-filters",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Rillwell Filters",
+   "passage": "We sell and fit under-sink water filters for homes and offices."
+  },
+  {
+   "id": "mp-research-10",
+   "domain": "research",
+   "family": "rs-land-surveying",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Theodolite & Peg Surveyors",
+   "passage": "Licensed land surveyors measuring property boundaries and topography for planning applications."
+  },
+  {
+   "id": "mp-research-11",
+   "domain": "research",
+   "family": "rs-seed-germination",
+   "language": "pt",
+   "evidenceKind": "published_request",
+   "name": "Rede Sementes da Grota",
+   "passage": "Procuramos pesquisadores para avaliar a germinação e o vigor das sementes crioulas guardadas pela nossa rede."
+  },
+  {
+   "id": "mp-research-12",
+   "domain": "research",
+   "family": "rs-nest-boxes",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Owlbeam Joinery",
+   "passage": "We build bird boxes, bat boxes and garden benches from reclaimed timber."
+  },
+  {
+   "id": "mp-place-01",
+   "domain": "place",
+   "family": "pl-composting",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Larkhill Compost Commons",
+   "passage": "We collect food scraps from about 300 households by cargo bike and turn them into compost for local gardens."
+  },
+  {
+   "id": "mp-place-02",
+   "domain": "place",
+   "family": "pl-composting",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Composta Vila Ipê",
+   "passage": "Recolhemos resíduos orgânicos de casas, feiras e restaurantes do bairro e transformamos tudo em adubo para hortas urbanas."
+  },
+  {
+   "id": "mp-place-03",
+   "domain": "place",
+   "family": "pl-tool-lending",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Marrow Street Tool Library",
+   "passage": "Neighbours borrow drills, ladders, garden tools and pressure washers instead of buying them."
+  },
+  {
+   "id": "mp-place-04",
+   "domain": "place",
+   "family": "pl-rainwater",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Downpipe Gardens",
+   "passage": "We fit rainwater tanks and dig swales on school grounds, then teach pupils how water moves across the land."
+  },
+  {
+   "id": "mp-place-05",
+   "domain": "place",
+   "family": "pl-tree-saplings",
+   "language": "en",
+   "evidenceKind": "published_offer",
+   "name": "Hazelcombe Tree Nursery",
+   "passage": "We offer free native tree saplings to community groups planting hedgerows, orchards and small woods."
+  },
+  {
+   "id": "mp-place-06",
+   "domain": "place",
+   "family": "pl-community-kitchen",
+   "language": "pt",
+   "evidenceKind": "work",
+   "name": "Cozinha Comum do Morro Alto",
+   "passage": "Cozinha comunitária que prepara refeições com alimentos doados e oferece cursos de culinária para jovens do morro."
+  },
+  {
+   "id": "mp-place-07",
+   "domain": "place",
+   "family": "pl-land-trust",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Fernlea Community Land Trust",
+   "passage": "We hold land in trust so that it can be farmed and gardened by local people permanently, whoever owns the houses around it."
+  },
+  {
+   "id": "mp-place-08",
+   "domain": "place",
+   "family": "pl-flood-readiness",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Wetfoot Lane Flood Group",
+   "passage": "Residents map flood-prone streets, keep a shared stock of sandbags and run an evacuation drill each winter."
+  },
+  {
+   "id": "mp-place-09",
+   "domain": "place",
+   "family": "pl-scrap-metal",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Ironmere Scrap Recovery",
+   "passage": "We collect scrap metal, old radiators and car batteries from households and send them for recycling."
+  },
+  {
+   "id": "mp-place-10",
+   "domain": "place",
+   "family": "pl-tree-surgery",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Crowsnest Tree Surgeons",
+   "passage": "Tree felling, crown reduction and stump grinding for homeowners and councils."
+  },
+  {
+   "id": "mp-place-11",
+   "domain": "place",
+   "family": "pl-community-garden",
+   "language": "pt",
+   "evidenceKind": "published_request",
+   "name": "Horta da Praça Nova",
+   "passage": "Buscamos doações de mudas, ferramentas e esterco para ampliar a horta comunitária da praça."
+  },
+  {
+   "id": "mp-place-12",
+   "domain": "place",
+   "family": "pl-kitchen-fitting",
+   "language": "en",
+   "evidenceKind": "work",
+   "name": "Dovetail & Oak Kitchens",
+   "passage": "We design and fit kitchen cabinets and worktops in new-build homes."
+  }
+ ],
+ "shared": [
+  {
+   "id": "ms-art-01",
+   "domain": "art",
+   "family": "art-mural-conservation",
+   "language": "en",
+   "kind": "offer",
+   "title": "Mural condition surveys",
+   "description": "Our trained conservators can assess flaking paint and damaged plaster on community murals and advise on repair."
+  },
+  {
+   "id": "ms-art-02",
+   "domain": "art",
+   "family": "art-songwriting",
+   "language": "pt",
+   "kind": "offer",
+   "title": "Oficinas de canção coletiva",
+   "description": "Facilitamos oficinas em que moradores compõem e gravam canções sobre a história do bairro."
+  },
+  {
+   "id": "ms-art-03",
+   "domain": "art",
+   "family": "art-printmaking",
+   "language": "en",
+   "kind": "need",
+   "title": "Print time for a seed library zine",
+   "description": "We need access to a risograph or screen-printing bench to print a few hundred copies of our seed library zine."
+  },
+  {
+   "id": "ms-art-04",
+   "domain": "art",
+   "family": "art-natural-dye",
+   "language": "en",
+   "kind": "need",
+   "title": "Dye plants for a memorial quilt",
+   "description": "Our quilting group needs madder roots, woad or other dye plants to colour fabric for a memorial quilt."
+  },
+  {
+   "id": "ms-software-01",
+   "domain": "software",
+   "family": "sw-records-database",
+   "language": "en",
+   "kind": "offer",
+   "title": "Small databases for community records",
+   "description": "I can set up a simple database and data-entry forms for community records, such as a seed library or a tool library."
+  },
+  {
+   "id": "ms-software-02",
+   "domain": "software",
+   "family": "sw-web-accessibility",
+   "language": "pt",
+   "kind": "offer",
+   "title": "Revisão de acessibilidade de sites",
+   "description": "Testamos sites com leitores de tela e indicamos correções de acessibilidade para organizações sociais."
+  },
+  {
+   "id": "ms-software-03",
+   "domain": "software",
+   "family": "sw-offline-field-apps",
+   "language": "en",
+   "kind": "need",
+   "title": "Offline app for tree planting records",
+   "description": "We need a phone app that works without signal so planters can log each tree with its GPS point."
+  },
+  {
+   "id": "ms-software-04",
+   "domain": "software",
+   "family": "sw-green-hosting",
+   "language": "en",
+   "kind": "need",
+   "title": "Hosting for our association website",
+   "description": "Our website went offline and we are looking for stable hosting that includes email."
+  },
+  {
+   "id": "ms-research-01",
+   "domain": "research",
+   "family": "rs-stream-monitoring",
+   "language": "en",
+   "kind": "offer",
+   "title": "Freshwater invertebrate identification",
+   "description": "We can identify stream invertebrate samples to family level and explain what they say about water health."
+  },
+  {
+   "id": "ms-research-02",
+   "domain": "research",
+   "family": "rs-seed-germination",
+   "language": "en",
+   "kind": "offer",
+   "title": "Seed germination trials",
+   "description": "Our university greenhouse can run germination and vigour tests on community seed lots."
+  },
+  {
+   "id": "ms-research-03",
+   "domain": "research",
+   "family": "rs-bird-acoustics",
+   "language": "pt",
+   "kind": "need",
+   "title": "Gravadores para monitorar aves",
+   "description": "Precisamos de gravadores automáticos de som emprestados para um levantamento de aves na mata ciliar."
+  },
+  {
+   "id": "ms-research-04",
+   "domain": "research",
+   "family": "rs-community-surveys",
+   "language": "en",
+   "kind": "need",
+   "title": "Help analysing survey responses",
+   "description": "We collected 400 paper questionnaires about the food market and need help coding and analysing them."
+  },
+  {
+   "id": "ms-place-01",
+   "domain": "place",
+   "family": "pl-tool-lending",
+   "language": "en",
+   "kind": "offer",
+   "title": "Lending a cement mixer, wheelbarrows and ladders",
+   "description": "We can lend our cement mixer, wheelbarrows and long ladders for community building days."
+  },
+  {
+   "id": "ms-place-02",
+   "domain": "place",
+   "family": "pl-composting",
+   "language": "pt",
+   "kind": "offer",
+   "title": "Oficina de compostagem doméstica",
+   "description": "Ensinamos moradores a montar composteiras em casa e em prédios."
+  },
+  {
+   "id": "ms-place-03",
+   "domain": "place",
+   "family": "pl-flood-readiness",
+   "language": "en",
+   "kind": "need",
+   "title": "Sandbags and volunteers before storm season",
+   "description": "Our riverside street needs sandbags, shovels and people to fill them before the winter storms."
+  },
+  {
+   "id": "ms-place-04",
+   "domain": "place",
+   "family": "pl-community-kitchen",
+   "language": "en",
+   "kind": "need",
+   "title": "Surplus vegetables for our free lunch club",
+   "description": "Our community lunch club needs regular surplus vegetables and bread to cook with."
+  }
+ ],
+ "queries": [
+  {
+   "id": "mq-art-n01",
+   "domain": "art",
+   "family": "art-mural-conservation",
+   "direction": "need",
+   "language": "en",
+   "title": "Restore a faded mural on our community hall",
+   "description": "The paint is flaking and we want the original conserved, not painted over.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-art-01",
+    "mp-art-02"
+   ],
+   "relevantShared": [
+    "ms-art-01"
+   ],
+   "judgeRelevantProjects": [
+    "mp-art-01",
+    "mp-art-02"
+   ],
+   "judgeRelevantShared": [
+    "ms-art-01"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-n02",
+   "domain": "art",
+   "family": "art-mural-conservation",
+   "direction": "need",
+   "language": "en",
+   "title": "Help saving an old painted wall at the school",
+   "description": "We need someone who can stop the plaster crumbling and touch up the original colours.",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-art-01",
+    "mp-art-02"
+   ],
+   "relevantShared": [
+    "ms-art-01"
+   ],
+   "judgeRelevantProjects": [
+    "mp-art-01",
+    "mp-art-02"
+   ],
+   "judgeRelevantShared": [
+    "ms-art-01"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-n03",
+   "domain": "art",
+   "family": "art-printmaking",
+   "direction": "need",
+   "language": "en",
+   "title": "Print posters for our river clean-up campaign",
+   "description": "About 200 posters; any printing method is fine.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-art-04",
+    "mp-art-05"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-04",
+    "mp-art-05"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-n04",
+   "domain": "art",
+   "family": "art-printmaking",
+   "direction": "need",
+   "language": "en",
+   "title": "risograph access",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-art-04"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-04"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-n05",
+   "domain": "art",
+   "family": "art-oral-history-theatre",
+   "direction": "need",
+   "language": "en",
+   "title": "A theatre group to turn farmers' stories into a play",
+   "description": "We recorded interviews with older growers and want them performed.",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-art-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-n06",
+   "domain": "art",
+   "family": "art-oral-history-theatre",
+   "direction": "need",
+   "language": "pt",
+   "title": "Montar um espetáculo com as memórias dos agricultores mais velhos",
+   "description": "Temos horas de conversas gravadas e queremos levá-las ao palco.",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-art-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-n07",
+   "domain": "art",
+   "family": "art-songwriting",
+   "direction": "need",
+   "language": "en",
+   "title": "Workshops where residents write and record songs about our neighbourhood",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-art-02"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-art-02"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-n08",
+   "domain": "art",
+   "family": "art-natural-dye",
+   "direction": "need",
+   "language": "en",
+   "title": "natural dyeing workshop",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-art-10"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-10"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-n09",
+   "domain": "art",
+   "family": "art-nomatch-interpreting",
+   "direction": "need",
+   "language": "pt",
+   "title": "Intérprete de Libras para a apresentação de teatro",
+   "description": "Queremos que o público surdo acompanhe a peça.",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-o01",
+   "domain": "art",
+   "family": "art-weaving",
+   "direction": "offer",
+   "language": "en",
+   "title": "Two floor looms to give away",
+   "description": "From a closed textile classroom.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-art-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-o02",
+   "domain": "art",
+   "family": "art-weaving",
+   "direction": "offer",
+   "language": "en",
+   "title": "Boxes of undyed wool and cotton yarn",
+   "description": "Left over from a closed knitting shop.",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-art-10",
+    "mp-art-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-10",
+    "mp-art-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-o03",
+   "domain": "art",
+   "family": "art-natural-dye",
+   "direction": "offer",
+   "language": "en",
+   "title": "Surplus madder roots and dried woad leaves",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-art-10"
+   ],
+   "relevantShared": [
+    "ms-art-04"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-art-04"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-o04",
+   "domain": "art",
+   "family": "art-natural-dye",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Temos plantas tintórias sobrando para doar",
+   "description": "Raízes e folhas secas que dão cor a tecidos.",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-art-10"
+   ],
+   "relevantShared": [
+    "ms-art-04"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-art-04"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-o05",
+   "domain": "art",
+   "family": "art-printmaking",
+   "direction": "offer",
+   "language": "en",
+   "title": "Free screen-printing bench time for community groups",
+   "description": "Open to any group that needs to print.",
+   "evidenceType": "literal",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-art-03"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-art-03"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-o06",
+   "domain": "art",
+   "family": "art-printmaking",
+   "direction": "offer",
+   "language": "en",
+   "title": "spare riso ink",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-art-04"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-04"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-o07",
+   "domain": "art",
+   "family": "art-oral-history-theatre",
+   "direction": "offer",
+   "language": "en",
+   "title": "Our barn is free for rehearsals and small shows",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-art-07",
+    "mp-art-08"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-07",
+    "mp-art-08"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-art-o08",
+   "domain": "art",
+   "family": "art-oral-history-theatre",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Temos entrevistas gravadas com agricultores antigos",
+   "description": "Podem virar material para quem cria teatro a partir de memórias.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-art-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-art-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-art-o09",
+   "domain": "art",
+   "family": "art-nomatch-darkroom",
+   "direction": "offer",
+   "language": "en",
+   "title": "Darkroom enlargers and photo paper",
+   "description": "From a closed film photography club.",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n01",
+   "domain": "software",
+   "family": "sw-offline-field-apps",
+   "direction": "need",
+   "language": "en",
+   "title": "Offline mapping app to record plant surveys",
+   "description": "Our volunteers work in valleys with no phone signal.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-software-01",
+    "mp-software-02"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-01",
+    "mp-software-02"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n02",
+   "domain": "software",
+   "family": "sw-green-hosting",
+   "direction": "need",
+   "language": "en",
+   "title": "A place to keep our co-op's website and mailboxes running, ideally on clean energy",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-software-05"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-05"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n03",
+   "domain": "software",
+   "family": "sw-web-accessibility",
+   "direction": "need",
+   "language": "en",
+   "title": "Accessibility audit of our website",
+   "description": "We want to check our donation page works for everyone.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-software-03"
+   ],
+   "relevantShared": [
+    "ms-software-02"
+   ],
+   "judgeRelevantProjects": [
+    "mp-software-03"
+   ],
+   "judgeRelevantShared": [
+    "ms-software-02"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n04",
+   "domain": "software",
+   "family": "sw-web-accessibility",
+   "direction": "need",
+   "language": "en",
+   "title": "Can blind visitors actually use our site?",
+   "description": "We'd like someone to try it the way they would and tell us what to fix.",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-software-03"
+   ],
+   "relevantShared": [
+    "ms-software-02"
+   ],
+   "judgeRelevantProjects": [
+    "mp-software-03"
+   ],
+   "judgeRelevantShared": [
+    "ms-software-02"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n05",
+   "domain": "software",
+   "family": "sw-public-dashboards",
+   "direction": "need",
+   "language": "pt",
+   "title": "Painel público mostrando para onde foram o dinheiro e as horas de voluntariado",
+   "description": "Hoje está tudo em planilhas bagunçadas.",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-software-04"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-04"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n06",
+   "domain": "software",
+   "family": "sw-localisation",
+   "direction": "need",
+   "language": "en",
+   "title": "Translate our app's screens into Portuguese and Spanish",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-software-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n07",
+   "domain": "software",
+   "family": "sw-records-database",
+   "direction": "need",
+   "language": "en",
+   "title": "Simple database for our tool library records",
+   "description": "Our paper lending cards keep getting lost.",
+   "evidenceType": "literal",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-software-01"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-software-01"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n08",
+   "domain": "software",
+   "family": "sw-digital-security",
+   "direction": "need",
+   "language": "en",
+   "title": "digital security training",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-software-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-n09",
+   "domain": "software",
+   "family": "sw-nomatch-device-repair",
+   "direction": "need",
+   "language": "en",
+   "title": "Repair the cracked touchscreen on our field tablet",
+   "description": "",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o01",
+   "domain": "software",
+   "family": "sw-offline-field-apps",
+   "direction": "offer",
+   "language": "en",
+   "title": "We can build an offline app to log tree planting with GPS",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-software-03"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-software-03"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o02",
+   "domain": "software",
+   "family": "sw-records-database",
+   "direction": "offer",
+   "language": "en",
+   "title": "Volunteer developer for a small database project",
+   "description": "Happy to turn paper records into a simple searchable database.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-software-10"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-10"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o03",
+   "domain": "software",
+   "family": "sw-green-hosting",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Migramos sites de associações que saíram do ar para uma hospedagem estável com e-mail",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-software-04"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-software-04"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o04",
+   "domain": "software",
+   "family": "sw-web-accessibility",
+   "direction": "offer",
+   "language": "en",
+   "title": "blind testers for accessibility audits",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-software-03"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-03"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o05",
+   "domain": "software",
+   "family": "sw-delivery-ordering",
+   "direction": "offer",
+   "language": "en",
+   "title": "Open-source code that works out the shortest delivery rounds for vans",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-software-12"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-12"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o06",
+   "domain": "software",
+   "family": "sw-digital-security",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Licenças gratuitas de gerenciador de senhas para coletivos",
+   "description": "Podem ser usadas em oficinas e treinamentos.",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-software-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o07",
+   "domain": "software",
+   "family": "sw-localisation",
+   "direction": "offer",
+   "language": "en",
+   "title": "Native Spanish speakers who can check app translations",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-software-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o08",
+   "domain": "software",
+   "family": "sw-offline-field-apps",
+   "direction": "offer",
+   "language": "en",
+   "title": "beta testers for field apps",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-software-01",
+    "mp-software-02"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-software-01",
+    "mp-software-02"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-software-o09",
+   "domain": "software",
+   "family": "sw-nomatch-computer-classes",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Aulas gratuitas de informática e segurança digital básica para idosos",
+   "description": "Ensinamos a usar o celular e o computador sem cair em golpes.",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n01",
+   "domain": "research",
+   "family": "rs-soil-testing",
+   "direction": "need",
+   "language": "en",
+   "title": "Soil organic carbon testing for our farm",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-research-01",
+    "mp-research-02"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-01",
+    "mp-research-02"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-research-n02",
+   "domain": "research",
+   "family": "rs-research-ethics",
+   "direction": "need",
+   "language": "en",
+   "title": "Someone to check our interview consent forms are fair to the residents we talk to",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-research-06"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-06"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n03",
+   "domain": "research",
+   "family": "rs-stream-monitoring",
+   "direction": "need",
+   "language": "en",
+   "title": "Monthly water quality sampling in our stream",
+   "description": "Mainly nitrates and turbidity.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-research-03"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-03"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n04",
+   "domain": "research",
+   "family": "rs-stream-monitoring",
+   "direction": "need",
+   "language": "pt",
+   "title": "Identificar os bichinhos do riacho para saber se a água está limpa",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-research-03"
+   ],
+   "relevantShared": [
+    "ms-research-01"
+   ],
+   "judgeRelevantProjects": [
+    "mp-research-03"
+   ],
+   "judgeRelevantShared": [
+    "ms-research-01"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n05",
+   "domain": "research",
+   "family": "rs-community-surveys",
+   "direction": "need",
+   "language": "en",
+   "title": "Find out what people on our estate really want from the new community centre",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-research-04"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-04"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n06",
+   "domain": "research",
+   "family": "rs-evidence-reviews",
+   "direction": "need",
+   "language": "pt",
+   "title": "revisão de literatura",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-research-05"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-05"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n07",
+   "domain": "research",
+   "family": "rs-seed-germination",
+   "direction": "need",
+   "language": "en",
+   "title": "seed germination testing",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-research-02"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-research-02"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n08",
+   "domain": "research",
+   "family": "rs-bird-acoustics",
+   "direction": "need",
+   "language": "en",
+   "title": "Bird monitoring with sound recorders, and training locals to recognise species by song",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-research-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-n09",
+   "domain": "research",
+   "family": "rs-nomatch-peer-review",
+   "direction": "need",
+   "language": "en",
+   "title": "Peer review for our paper on solar cell chemistry",
+   "description": "",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-o01",
+   "domain": "research",
+   "family": "rs-bird-acoustics",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Emprestamos gravadores automáticos de som",
+   "description": "Servem para levantamentos de fauna.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-research-07"
+   ],
+   "relevantShared": [
+    "ms-research-03"
+   ],
+   "judgeRelevantProjects": [
+    "mp-research-07"
+   ],
+   "judgeRelevantShared": [
+    "ms-research-03"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-research-o02",
+   "domain": "research",
+   "family": "rs-bird-acoustics",
+   "direction": "offer",
+   "language": "en",
+   "title": "Lending acoustic recorders for wildlife surveys",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-research-07"
+   ],
+   "relevantShared": [
+    "ms-research-03"
+   ],
+   "judgeRelevantProjects": [
+    "mp-research-07"
+   ],
+   "judgeRelevantShared": [
+    "ms-research-03"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-research-o03",
+   "domain": "research",
+   "family": "rs-community-surveys",
+   "direction": "offer",
+   "language": "en",
+   "title": "We can code and analyse paper questionnaires",
+   "description": "A team of volunteers used to survey data.",
+   "evidenceType": "literal",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-research-04"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-research-04"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-research-o04",
+   "domain": "research",
+   "family": "rs-stream-monitoring",
+   "direction": "offer",
+   "language": "en",
+   "title": "A microscope and lab bench for sorting river bug samples",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-research-03"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-03"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-o05",
+   "domain": "research",
+   "family": "rs-seed-germination",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Fazemos testes de germinação e vigor de sementes crioulas",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-research-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-o06",
+   "domain": "research",
+   "family": "rs-soil-testing",
+   "direction": "offer",
+   "language": "en",
+   "title": "soil carbon analyser available",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-research-01",
+    "mp-research-02"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-01",
+    "mp-research-02"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-research-o07",
+   "domain": "research",
+   "family": "rs-research-ethics",
+   "direction": "offer",
+   "language": "en",
+   "title": "Templates for consent forms and data protection notices",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-research-04",
+    "mp-research-06"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-04",
+    "mp-research-06"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-research-o08",
+   "domain": "research",
+   "family": "rs-stream-monitoring",
+   "direction": "offer",
+   "language": "en",
+   "title": "Freshwater invertebrate ID keys and kick-sampling nets",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-research-03"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-research-03"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-research-o09",
+   "domain": "research",
+   "family": "rs-nomatch-genealogy",
+   "direction": "offer",
+   "language": "en",
+   "title": "Genealogy research into family surnames",
+   "description": "",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n01",
+   "domain": "place",
+   "family": "pl-composting",
+   "direction": "need",
+   "language": "en",
+   "title": "Help our street start composting food scraps",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-place-01",
+    "mp-place-02"
+   ],
+   "relevantShared": [
+    "ms-place-02"
+   ],
+   "judgeRelevantProjects": [
+    "mp-place-01",
+    "mp-place-02"
+   ],
+   "judgeRelevantShared": [
+    "ms-place-02"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n02",
+   "domain": "place",
+   "family": "pl-composting",
+   "direction": "need",
+   "language": "en",
+   "title": "compost workshop",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [],
+   "relevantShared": [
+    "ms-place-02"
+   ],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [
+    "ms-place-02"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-place-n03",
+   "domain": "place",
+   "family": "pl-tool-lending",
+   "direction": "need",
+   "language": "en",
+   "title": "Borrow long ladders and a pressure washer for a clean-up day",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-place-03"
+   ],
+   "relevantShared": [
+    "ms-place-01"
+   ],
+   "judgeRelevantProjects": [
+    "mp-place-03"
+   ],
+   "judgeRelevantShared": [
+    "ms-place-01"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n04",
+   "domain": "place",
+   "family": "pl-rainwater",
+   "direction": "need",
+   "language": "en",
+   "title": "Help our school catch and store the rain that falls on its roof",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-place-04"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-04"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n05",
+   "domain": "place",
+   "family": "pl-tree-saplings",
+   "direction": "need",
+   "language": "en",
+   "title": "Free native tree saplings for a new hedgerow",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-place-05"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-05"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n06",
+   "domain": "place",
+   "family": "pl-tree-saplings",
+   "direction": "need",
+   "language": "pt",
+   "title": "Mudas de árvores nativas para plantar uma cerca viva",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-place-05"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-05"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n07",
+   "domain": "place",
+   "family": "pl-community-kitchen",
+   "direction": "need",
+   "language": "en",
+   "title": "Somewhere our teenagers can learn to cook with donated food",
+   "description": "We don't have a kitchen of our own.",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-place-06"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-06"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n08",
+   "domain": "place",
+   "family": "pl-flood-readiness",
+   "direction": "need",
+   "language": "en",
+   "title": "flood preparedness",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-place-08"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-08"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-n09",
+   "domain": "place",
+   "family": "pl-nomatch-beekeeping",
+   "direction": "need",
+   "language": "en",
+   "title": "Beekeeper to look after hives in our community garden",
+   "description": "",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-o01",
+   "domain": "place",
+   "family": "pl-community-garden",
+   "direction": "offer",
+   "language": "en",
+   "title": "Donating vegetable seedlings and well-rotted manure",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-place-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-o02",
+   "domain": "place",
+   "family": "pl-community-garden",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Doamos ferramentas de jardinagem usadas",
+   "description": "Enxadas, ancinhos e regadores em bom estado.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-place-03",
+    "mp-place-11"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-03",
+    "mp-place-11"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-place-o03",
+   "domain": "place",
+   "family": "pl-flood-readiness",
+   "direction": "offer",
+   "language": "en",
+   "title": "Sandbags and filling volunteers before storm season",
+   "description": "",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-place-08"
+   ],
+   "relevantShared": [
+    "ms-place-03"
+   ],
+   "judgeRelevantProjects": [
+    "mp-place-08"
+   ],
+   "judgeRelevantShared": [
+    "ms-place-03"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-o04",
+   "domain": "place",
+   "family": "pl-flood-readiness",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Temos voluntários com pás para ajudar ruas que alagam",
+   "description": "",
+   "evidenceType": "cross-language",
+   "relevantProjects": [
+    "mp-place-08"
+   ],
+   "relevantShared": [
+    "ms-place-03"
+   ],
+   "judgeRelevantProjects": [
+    "mp-place-08"
+   ],
+   "judgeRelevantShared": [
+    "ms-place-03"
+   ],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-place-o05",
+   "domain": "place",
+   "family": "pl-community-kitchen",
+   "direction": "offer",
+   "language": "en",
+   "title": "Surplus vegetables and day-old bread, still good to eat",
+   "description": "Collected from a market stall each week.",
+   "evidenceType": "literal",
+   "relevantProjects": [
+    "mp-place-06"
+   ],
+   "relevantShared": [
+    "ms-place-04"
+   ],
+   "judgeRelevantProjects": [
+    "mp-place-06"
+   ],
+   "judgeRelevantShared": [
+    "ms-place-04"
+   ],
+   "judgment": "agreed"
+  },
+  {
+   "id": "mq-place-o06",
+   "domain": "place",
+   "family": "pl-land-trust",
+   "direction": "offer",
+   "language": "en",
+   "title": "A retired farmer wants to pass on her field so it stays in community use",
+   "description": "",
+   "evidenceType": "paraphrase",
+   "relevantProjects": [
+    "mp-place-07"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-07"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-place-o07",
+   "domain": "place",
+   "family": "pl-rainwater",
+   "direction": "offer",
+   "language": "en",
+   "title": "spare rainwater tanks",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-place-04"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-04"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-place-o08",
+   "domain": "place",
+   "family": "pl-composting",
+   "direction": "offer",
+   "language": "en",
+   "title": "cargo bike to give away",
+   "description": "",
+   "evidenceType": "sparse",
+   "relevantProjects": [
+    "mp-place-01"
+   ],
+   "relevantShared": [],
+   "judgeRelevantProjects": [
+    "mp-place-01"
+   ],
+   "judgeRelevantShared": [],
+   "judgment": "uncertain"
+  },
+  {
+   "id": "mq-place-o09",
+   "domain": "place",
+   "family": "pl-nomatch-video-tools",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Ferramentas de edição de vídeo grátis",
+   "description": "Para quem quer filmar a história do bairro.",
+   "evidenceType": "no-match",
+   "relevantProjects": [],
+   "relevantShared": [],
+   "judgeRelevantProjects": [],
+   "judgeRelevantShared": [],
+   "judgment": "agreed"
+  }
+ ]
+}
