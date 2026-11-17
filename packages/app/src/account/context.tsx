@@ -5,6 +5,7 @@ import { browserSessionEvents } from "./session-events.ts";
 import { checkSavedPresence, type SavedPresence } from "./saved-presence.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { revise } from "../describe/contracts.ts";
+import { forgetSavedCard } from "./delete-card.ts";
 const AccountContext = createContext<{
   state: AccountState | null;
   refresh: () => Promise<AccountState>;
@@ -34,12 +35,13 @@ export function AccountProvider({ children, fixture = false }: { children: React
     void checkSavedPresence(binding, owner, state.items, cancellation.signal).then(status => {
       if (cancellation.signal.aborted) return;
       setVerified({ owner, id, status });
-      setMissingDraft(status === "missing" ? controller.getSnapshot().draft.id : null);
       if (status === "missing") {
         const current = controller.getSnapshot().draft;
+        // A removed ID never returns, so a draft that carried it is saved next as a new card.
         if (current.account.saved?.id === id && current.account.saved.owner === owner && current.account.saved.revision === binding.revision)
-          controller.change(d => revise(d, { account: { saved: null, pending: null } }));
+          controller.change(d => revise(d, { ...forgetSavedCard(d, id), account: { saved: null, pending: null } }));
       }
+      setMissingDraft(status === "missing" ? controller.getSnapshot().draft.id : null);
     }).catch(() => {});
     return () => cancellation.abort();
   }, [state?.user?.id, state?.items, binding?.id, binding?.owner, binding?.revision, fixture, controller]);
