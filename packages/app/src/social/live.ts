@@ -1,8 +1,9 @@
 /** The agreed social screens over the same-origin account and project APIs. No fixture identities or content. */
-import { parseSummaries, record, uuid } from "@weave/api/account-contract";
+import { parseSummaries, record, uuid, type InitiativeSummary } from "@weave/api/account-contract";
 import type { AccountState } from "../account/client.ts";
 import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { loadedDraft } from "../account/document.ts";
+import { deleteSavedCard } from "../account/delete-card.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
@@ -14,7 +15,7 @@ import type { CertifiedRecord, ProjectLink, SocialService, SocialState } from ".
 
 export type LiveSocialService = Pick<SocialService,
   "snapshot" | "signIn" | "signOut" | "save" | "linkProject" | "openWorkspace" | "openCard" |
-  "createProject" | "requestWorkspace" | "checkAgain" | "clearCard" | "approveSetup" | "recoverWorkspace" | "moreCards"> & {
+  "createProject" | "requestWorkspace" | "checkAgain" | "clearCard" | "approveSetup" | "recoverWorkspace" | "moreCards" | "deleteCard"> & {
   reload(): Promise<void>;
   subscribe(listener: () => void): () => void;
   dispose(): void;
@@ -39,6 +40,7 @@ export function certifiedRecord(project: PublicProject, group?: Group): Certifie
     ...(project.place?.status === "unread" ? { unreadFields: ["locations" as const] } : {}),
     ...(project.publisherLinks?.length ? { publisherLinks: [...project.publisherLinks] } : {}) };
 }
+const savedCard = (item: InitiativeSummary) => ({ id: item.id, name: item.name, savedOn: item.updatedAt.slice(0, 10), revision: item.revision });
 const projectLink = (record: CertifiedRecord): ProjectLink => ({ ...record,
   workspace: !record.group ? "solo" : record.workspace ? "open" : "absent", requestedOn: null, created: false });
 export function createLiveSocialService(options: Options): LiveSocialService {
@@ -65,7 +67,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     try { return options.storage?.getItem(key()) ?? (selected?.scope === key() ? selected.uri : null); } catch { return selected?.scope === key() ? selected.uri : null; }
   };
   let state: SocialState = { identity: owner ? { handle: "", id: owner } : null, saved: null, project: null, shared: null, published: null,
-    records: [], cards: options.account.items.map(item => ({ id: item.id, name: item.name, savedOn: item.updatedAt.slice(0, 10) })),
+    records: [], cards: options.account.items.map(savedCard),
     workspaces: [], hasMoreCards: options.account.items.length === 20, reminders: [], leads: [], notifications: { funding: false, partners: false } };
   const emit = () => { if (!lifetime.signal.aborted) for (const notify of listeners) notify(); };
   const checked = () => { lifetime.signal.throwIfAborted(); if (!owner) throw new AccountFailure("sign_in_required"); return owner; };
@@ -174,7 +176,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       const nextKey = JSON.stringify(account.items);
       if (cardsKey !== nextKey) {
         cardsKey = nextKey; cardsGeneration++; nextCardOffset = account.items.length;
-        state = { ...state, cards: account.items.map(item => ({ id: item.id, name: item.name, savedOn: item.updatedAt.slice(0, 10) })),
+        state = { ...state, cards: account.items.map(savedCard),
           hasMoreCards: account.items.length === 20 };
       }
       state = { ...state, project: selectedProject ? linkOf(selectedProject) : null };
@@ -286,7 +288,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       nextCardOffset += items.length;
       const seen = new Set(state.cards.map(item => item.id));
       const added = items.filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
-      state = { ...state, cards: [...state.cards, ...added.map(item => ({ id: item.id, name: item.name, savedOn: item.updatedAt.slice(0, 10) }))], hasMoreCards: items.length === 20 };
+      state = { ...state, cards: [...state.cards, ...added.map(savedCard)], hasMoreCards: items.length === 20 };
       emit();
     },
     async approveSetup(projectUri, requestId) {
@@ -300,6 +302,22 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       options.openWorkspace(result.workspaceId);
     },
     async clearCard() { selected = null; state = { ...state, project: null }; emit(); },
+    async deleteCard(card, requestId) {
+      checked();
+      const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);
+      try {
+        const result = await deleteSavedCard(options.controller, card, requestId, request, signal);
+        // Confirmed by the server: report it even if this view has since closed.
+        if (!lifetime.signal.aborted) {
+          cardsGeneration++; nextCardOffset = Math.max(0, nextCardOffset - 1);
+          state = { ...state, cards: state.cards.filter(item => item.id !== card.id) }; emit();
+        }
+        return result;
+      } finally {
+        // The account list is the authority afterwards, whether the card went or was refused.
+        if (!lifetime.signal.aborted) await options.refreshAccount().then(account => service.syncAccount(account), () => {});
+      }
+    },
   };
   return service;
 }

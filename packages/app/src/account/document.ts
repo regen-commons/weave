@@ -95,7 +95,7 @@ export function saveCommand(draft: DeviceDraft, owner: string) {
       : {
           id: same
             ? saved.id
-            : saved || (pending?.owner && pending.owner !== owner)
+            : saved || (pending?.owner && pending.owner !== owner) || draft.account.retired?.includes(draft.id)
               ? crypto.randomUUID()
               : draft.id,
           owner,

@@ -5,6 +5,7 @@
  * first-release target so the interface can be reviewed.
  */
 import type { Scenario } from "../fixtures.ts";
+import type { DeletedCard } from "../account/delete-card.ts";
 
 /** Chosen need and offer identities, or every kept one. */
 export type Entries = readonly string[] | "all";
@@ -51,6 +52,8 @@ export interface SavedCard {
   readonly id: string;
   readonly name: string;
   readonly savedOn: string;
+  /** The saved revision the list showed. Deleting names exactly this revision. */
+  readonly revision?: number;
 }
 export interface SocialState {
   readonly identity: { readonly handle: string; readonly id?: string } | null;
@@ -125,6 +128,8 @@ export interface SocialService {
   approveSetup?(projectUri: string, requestId: string): Promise<void>;
   recoverWorkspace?(projectUri: string): Promise<void>;
   moreCards?(): Promise<void>;
+  /** Removes one private save at the revision the list showed. The device draft keeps its words. */
+  deleteCard?(card: { id: string; revision: number }, requestId: string): Promise<DeletedCard>;
 }
 
 export const EXAMPLE_HANDLE = "orchard.certified.one";
@@ -197,7 +202,7 @@ const slug = (name: string) =>
     .replace(/^-|-$/gu, "")
     .slice(0, 60) || "initiative";
 
-const orchardCard = (savedOn: string): SavedCard => ({ id: slug(ORCHARD_RECORD.name), name: ORCHARD_RECORD.name, savedOn });
+const orchardCard = (savedOn: string): SavedCard => ({ id: slug(ORCHARD_RECORD.name), name: ORCHARD_RECORD.name, savedOn, revision: 1 });
 const linkTo = (record: CertifiedRecord, created = false): ProjectLink => ({
   uri: record.uri,
   name: record.name,
@@ -293,7 +298,7 @@ export function createSocialFixture(
         ...state,
         saved: { place, on: today, key, card: id },
         // A team workspace holds its own copy, so a private save that moves there leaves the personal list.
-        cards: id ? [{ id, name, savedOn: today }, ...others] : others,
+        cards: id ? [{ id, name, savedOn: today, revision: (state.cards.find((card) => card.id === id)?.revision ?? 0) + 1 }, ...others] : others,
       };
     },
     async linkProject(uri) {
@@ -414,6 +419,17 @@ export function createSocialFixture(
     },
     async clearCard() {
       state = { ...state, saved: null, project: null, shared: null, published: null };
+    },
+    async deleteCard(card) {
+      identity();
+      const current = state.cards.find((item) => item.id === card.id);
+      if (!current) throw new Error("This card is no longer saved in your account.");
+      if (current.revision !== card.revision) throw new Error("This card changed somewhere else. Reload to see the latest version.");
+      const cards = state.cards.filter((item) => item.id !== card.id);
+      const bound = state.saved?.card === card.id;
+      state = { ...state, cards, saved: bound ? null : state.saved };
+      return { deleted: { id: card.id, deleted: true, revision: card.revision, removed: [card.id], kept: cards.length },
+        device: bound ? "unbound" : "unrelated" };
     },
     async remind(id) {
       saved();

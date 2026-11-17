@@ -402,3 +402,10 @@ edits, original file bytes and local backups. It names its device scope and neve
 claims to export unrequested server cards. A failed file read rejects the download
 without changing the draft. Account deletion and a complete account export require
 their own authorized server adapters; the example deletion never calls them.
+
+Device backups sit under Your data, so they stay in reach after the draft is removed.
+Each backup restores, or is deleted after a confirmation that names it, its shown
+time and its attached files. Remove this draft from this device keeps the draft as a
+backup first. Both compare the stored draft before removing it, and the result line
+says what was removed and how many backups stayed. Your Initiatives deletes one
+private save at a time through a dialog, because a listing card carries no button.

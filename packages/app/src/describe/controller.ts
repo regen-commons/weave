@@ -1,5 +1,5 @@
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "./contracts.ts";
-import { DraftConflict, type DraftRepository } from "./repository.ts";
+import { DraftConflict, draftPin, RemovalNotice, type DeviceRemoval, type DraftBackup, type DraftRepository } from "./repository.ts";
 export type DeviceStorage = "loading" | "none" | "saving" | "saved" | "memory" | "conflict";
 export interface DraftSnapshot {
   draft: DeviceDraft;
@@ -131,6 +131,44 @@ export class DraftController {
     }
     this.expected = validated.revision;
     this.publish({ draft: validated, storage: "saved", error: null });
+  }
+  /** Removes one backup for good. The current draft and every other backup stay. */
+  async deleteBackup(backup: DraftBackup): Promise<DeviceRemoval> {
+    if (!this.repository.deleteBackup) throw new RemovalNotice("This device cannot remove backups. Nothing was removed.");
+    return this.repository.deleteBackup(backup.key, draftPin(backup.draft));
+  }
+  /**
+   * Removes the current draft from this device after keeping it as a backup. Another tab's
+   * newer draft, or words typed meanwhile, stop it: they stay, and nothing is removed.
+   */
+  async discardCurrent(): Promise<DeviceRemoval & { backup: string }> {
+    const previous = this.snapshot.draft;
+    await this.settled();
+    if (!this.writable || this.dirty || this.snapshot.draft !== previous || this.expected === null || !this.repository.discardCurrent)
+      throw new RemovalNotice("The device draft changed or is not stored yet. Keep this tab open and try again. Nothing was removed.");
+    // A save still waiting for its answer would otherwise bind whatever draft follows to its card.
+    if (previous.account.pending)
+      throw new RemovalNotice("A save to your account is not confirmed yet. Save again or wait for it to finish, then remove this draft. Nothing was removed.");
+    let result: DeviceRemoval & { backup: string };
+    try {
+      result = await this.repository.discardCurrent(draftPin(previous));
+    } catch (error) {
+      if (error instanceof DraftConflict) {
+        this.writable = false;
+        this.publish({ storage: "conflict", error: error.message });
+      }
+      throw error;
+    }
+    if (this.snapshot.draft !== previous) {
+      // Words typed during the removal stay in this tab; they are not written over the removal.
+      const notice = "Your latest words are still in this tab. The removed draft was kept as a device backup.";
+      this.writable = false;
+      this.publish({ storage: "conflict", error: notice });
+      throw new RemovalNotice(notice);
+    }
+    this.expected = null;
+    this.publish({ draft: newDraft(), storage: "none", error: null });
+    return result;
   }
   async settled(): Promise<void> {
     await this.writing;

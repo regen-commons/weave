@@ -706,6 +706,43 @@ triggers and stale operations. That suite remains unexecuted here because this
 session has neither a local PostgreSQL server nor access to the Docker daemon.
 Hosted personal/group consent, write and independent read-back remain pilot gates.
 
+### Local saved-card deletion
+
+`POST /api/account` with action `delete` removes one personal saved card. The
+body is exactly `{action, id, expectedRevision, requestId}`, with the same
+same-origin, JSON and 64 KB guards as Save. It calls `weave.delete_initiative`
+with the person's own token. Keep the request ID for retries: a retry returns
+the first result, `{id, deleted: true, revision, removed: [id], kept}`, where `kept` counts the
+account's remaining personal cards.
+
+Apply `supabase/candidates/weave-initiative-deletion.sql` last, after
+`weave-open-ended-sharing.sql`. It refuses to install before team content,
+matching vectors and support publication. The command checks the owner, the exact
+ID and the revision before it removes anything. It then removes the card, its
+needs and offers, that owner's save and matching receipts and any expired matching
+review, and keeps a tombstone so the ID never returns. A first save of a removed ID
+fails with `initiative_deleted`, and the app then saves the words as a new card; an
+old revision is not found. These cases are refused, with the stable code:
+
+| Case | Code |
+|---|---|
+| No session | `sign_in_required` |
+| Another owner's card, a team document, a removed card | `not_found` |
+| A different revision | `save_conflict` |
+| A project link, create intent, open matching review, lead or query vector, a support listing, review or request, an entry still shared for matching, or another account's save or matching receipt | `initiative_referenced` |
+
+`initiative-deletion-postgres.test.ts` needs a disposable loopback database
+named `weave_deletion_test` in `WEAVE_DELETION_TEST_DATABASE_URL`. It also needs the
+private-account baseline in `WEAVE_DELETION_TEST_BASELINE`. pgvector must be
+available for the matching vectors candidate. The suite applies every candidate in
+the website's migration order. It asserts the exact set of foreign keys and
+triggers on initiatives, needs and offers, so a new reference fails until deletion
+handles it. It also proves owner and revision binding, unchanged unrelated rows,
+retries, a create racing a deletion and direct table denial. The tombstone check
+relies on READ COMMITTED, the default for PostgREST and the API's transactions.
+Under REPEATABLE READ, a review probe found that a stale create racing a deletion
+fails with a serialization error (40001) rather than `initiative_deleted`.
+
 ### Production pilot preparation
 
 On 12 November the user chose open project access rather than supplying two

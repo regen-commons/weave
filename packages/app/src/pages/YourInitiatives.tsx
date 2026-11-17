@@ -30,6 +30,8 @@ import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { EXAMPLE_EDITOR_OWNER } from "../initiative/ProjectEditor.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
+import { DeleteSavedCard } from "../account/DeleteSavedCard.tsx";
+import { deletableCards } from "../account/delete-card.ts";
 
 /**
  * Everything a signed-in person can open: the card on this device, their private saves and
@@ -47,6 +49,7 @@ export function YourInitiatives() {
   const [starting, setStarting] = useState(false);
   /** A project opened from its card while an unlinked card is on this device: link that card, or start apart. */
   const [choosing, setChoosing] = useState<CertifiedRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const access = new URLSearchParams(routeSearch()).get("access");
   const consentNotice = access === "failed" ? <p role="status">Certified access could not be confirmed. Try again.</p>
     : access === "denied" ? <p role="status">Certified access was declined.</p> : null;
@@ -109,6 +112,10 @@ export function YourInitiatives() {
   const workspaces = state.workspaces ?? state.records.filter(record => record.workspace);
   const records = state.records.filter((record) => !record.workspace && record.uri !== project?.uri);
   const total = (onDevice ? 1 : 0) + cards.length + workspaces.length + records.length;
+  // The device's own saved copy is listed here too: deleting it leaves the device words in place.
+  const removable = service.deleteCard
+    ? deletableCards(state.cards, (state.workspaces ?? []).map(record => record.workspaceId), onDevice ? state.saved?.card ?? deviceSavedId ?? null : null)
+    : [];
   const empty = total === 0 && !social.loading && !social.problem;
   async function openCard(card: SavedCard) {
     if (live) { await service.openCard(card.id, null); go(pathTo("your-initiative")); return; }
@@ -242,8 +249,12 @@ export function YourInitiatives() {
               </li>
             ))}
           </CardGrid>
-          {state.hasMoreCards && service.moreCards && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-            onClick={() => void run(async () => { await service.moreCards?.(); })}>More private saves</button>}
+          {(state.hasMoreCards && service.moreCards || removable.length > 0) && <div className="rc-action-bar">
+            {state.hasMoreCards && service.moreCards && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => void run(async () => { await service.moreCards?.(); })}>More private saves</button>}
+            {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => { setMessage(""); setDeleting(true); }}>Delete a saved card</button>}
+          </div>}
         </Section>
       )}
       {records.length > 0 && (
@@ -338,6 +349,12 @@ export function YourInitiatives() {
       </div>
       {busy && <p role="status">Opening</p>}
       {note}
+      {service.deleteCard && (
+        <DeleteSavedCard open={deleting} cards={removable} onClose={() => setDeleting(false)}
+          onDelete={async (card, requestId) => { const result = await service.deleteCard!(card, requestId); refresh(); return result; }}
+          onReload={async () => { await (social.reload?.() ?? service.checkAgain()); refresh(); }}
+          onDeleted={(text) => { setDeleting(false); setFailed(false); setMessage(text); refresh(); }} />
+      )}
       <TaskDialog title="Your project" open={!!choosing} onClose={() => setChoosing(null)}>
         {choosing && (
           <ProjectStep
