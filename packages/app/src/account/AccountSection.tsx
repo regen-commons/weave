@@ -10,7 +10,7 @@ import { accountKey, saveBlocker } from "./document.ts";
 import { accountMessage, accountRequest, assertAccount, AccountFailure } from "./client.ts";
 import { loadAccountCard, saveAccountCard } from "./actions.ts";
 import { useAccount } from "./context.tsx";
-import { continueToCertified, signInReturnMessage } from "./sign-in.ts";
+import { continueToCertified, signInReturnFailed, signInReturnMessage } from "./sign-in.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 export function AccountSection({
   compact = false,
@@ -32,7 +32,7 @@ export function AccountSection({
   const { controller, draft, ready, storage } = useDraft();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(() => signInReturnMessage(returnResult));
-  const [failed, setFailed] = useState(() => ["failed", "cancelled"].includes(returnResult ?? ""));
+  const [failed, setFailed] = useState(() => signInReturnFailed(returnResult));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
   const [startingCard, setStartingCard] = useState(false);
   const owner = state?.user?.id;

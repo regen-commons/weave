@@ -2,7 +2,7 @@ import { createPublicKey, randomBytes } from "node:crypto";
 import { get } from "node:http";
 import { isDeepStrictEqual } from "node:util";
 import { readConfiguration } from "./config.ts";
-import type { BridgeConfig } from "./bridge-config.ts";
+import { recoveryOrigin, type BridgeConfig } from "./bridge-config.ts";
 import { publicKeys, type SigningKey, type SigningMaterial } from "./keys.ts";
 import { assertBridgeRuntimeRole } from "./runtime-access.ts";
 import { AuthStore } from "./store.ts";
@@ -70,7 +70,8 @@ export async function checkPublishedBridge(config: BridgeConfig, port: number, s
     throw new Error("bridge_not_ready");
 }
 
-export async function checkCertifiedReadiness(env: NodeJS.ProcessEnv): Promise<void> {
+/** Reports the public origin that expired sign-ins return to, so operators can see which Weave it is. */
+export async function checkCertifiedReadiness(env: NodeJS.ProcessEnv): Promise<{ recoveryOrigin: string }> {
   const { config, cipher, port, connect } = readConfiguration(env), sql = connect();
   const store = new AuthStore(sql, cipher), probeId = randomBytes(32).toString("base64url");
   try {
@@ -82,5 +83,6 @@ export async function checkCertifiedReadiness(env: NodeJS.ProcessEnv): Promise<v
       if ((await store.take("ops:readiness", probeId))?.ready !== true) throw Error("bridge_not_ready");
     } finally { await store.remove("ops:readiness", probeId); }
     await checkPublishedBridge(config, port, signing);
+    return { recoveryOrigin: recoveryOrigin(config) };
   } finally { await sql.end({ timeout: 5 }); }
 }

@@ -28,6 +28,9 @@ export interface AccountUser {
   id: string;
   email: string | null;
 }
+/** How a sign-in attempt ended. The callback adds one to the task's address and reports nothing else. */
+export const signInResults = ["signed-in", "cancelled", "expired", "failed"] as const;
+export type SignInResult = typeof signInResults[number];
 export const uuid = (value: unknown): value is string =>
   typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(value);
 const handleLabel = "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?";
