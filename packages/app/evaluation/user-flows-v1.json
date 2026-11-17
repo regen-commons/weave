@@ -343,7 +343,7 @@
     },
     {
      "file": "packages/app/test/social-live.test.ts",
-     "test": "Use this project on a team workspace brings the source place and links, keeps them on reload and writes nothing",
+     "test": "Use this project on a team workspace brings the source place, keeps it on reload and writes nothing",
      "class": "module",
      "landsWith": "claude/fix-certified-source-fields"
     },
@@ -355,7 +355,7 @@
     },
     {
      "file": "packages/app/test/project-page.test.ts",
-     "test": "a project without a place or links, or with a place Weave could not read, leaves Where and links empty",
+     "test": "a project without a place, or with one Weave could not read, leaves Where empty and says why",
      "class": "module",
      "landsWith": "claude/fix-certified-source-fields"
     }
