@@ -4,6 +4,7 @@ import { parseProjectUri } from "./project-index-source.ts";
 
 const collection = "org.hypercerts.collection";
 const organization = "app.certified.actor.organization";
+const locationNsid = "app.certified.location";
 const descriptionType = "org.hypercerts.defs#descriptionString";
 const register = "app.certified.group.register";
 const memberships = "app.certified.groups.membership.list";
@@ -47,6 +48,8 @@ const fail = (code: CertifiedProjectError): Failure => ({ ok: false, code });
 export type CertifiedGroupRole = "owner" | "admin" | "member";
 export type CertifiedMembership = { groupDid: string; role: CertifiedGroupRole; joinedAt: string; handle?: string; displayName?: string };
 export type CertifiedGroup = { groupDid: string; handle: string };
+/** A project's place from the location record it names: a readable name, or a record Weave could not read as one. */
+export type CertifiedProjectPlace = { status: "named"; name: string } | { status: "unread" };
 export type CertifiedProject = {
   uri: string;
   cid: string;
@@ -56,6 +59,10 @@ export type CertifiedProject = {
   description?: string;
   createdAt: string;
   visibility: "public" | "unlisted";
+  /** From the project's own `location` record. Absent when the project names no location. */
+  place?: CertifiedProjectPlace;
+  /** The web addresses (`urls`) on the organization record of the repository that publishes the project. */
+  links?: string[];
 };
 export type CertifiedProjectDraft = { rkey: string; title: string; description?: string; createdAt: string };
 export type CertifiedProjectTarget = { kind: "personal" } | { kind: "group"; groupDid: string };
@@ -234,6 +241,61 @@ function readProjectDescription(item: Record<string, unknown>): string | undefin
   return item.shortDescription;
 }
 
+/** A place as a card keeps one: one line of at most 120 characters. */
+function placeLabel(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const label = value.replace(/\s+/gu, " ").trim();
+  return label && label.length <= 120 && !/[\p{Cc}\p{Surrogate}]/u.test(label) ? label : undefined;
+}
+
+// Region codes that CLDR names but that are not one country.
+const notCountries = new Set(["EU", "EZ", "QO", "UN", "XA", "XB", "ZZ"]);
+const regionNames = new Intl.DisplayNames(["en"], { type: "region", fallback: "none" });
+
+/**
+ * The name a Location Protocol record gives its place: its own name, an address written as text, or
+ * the English name of an ISO country code. Coordinates, shapes, cells and files never become a name.
+ */
+function placeName(value: Record<string, unknown>): string | undefined {
+  if (value.$type !== locationNsid) return undefined;
+  const named = placeLabel(value.name);
+  if (named) return named;
+  const inline = value.location;
+  if (!inline || typeof inline !== "object" || Array.isArray(inline)) return undefined;
+  const { $type, string } = inline as Record<string, unknown>;
+  if ($type !== `${locationNsid}#string`) return undefined;
+  if (value.locationType === "address") return placeLabel(string);
+  if (value.locationType === "country-code" && typeof string === "string" && /^[A-Z]{2}$/u.test(string)
+    && !notCountries.has(string)) return placeLabel(regionNames.of(string));
+  return undefined;
+}
+
+/** The location record a project pins in its own repository, or null for anything else. */
+function locationReference(value: unknown, repo: string): { rkey: string; cid: string } | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const { uri, cid: version } = value as Record<string, unknown>;
+  const prefix = `at://${repo}/${locationNsid}/`;
+  if (typeof uri !== "string" || !uri.startsWith(prefix) || typeof version !== "string" || !cid.test(version)) return null;
+  const rkey = uri.slice(prefix.length);
+  return /^[A-Za-z0-9._:~-]{1,512}$/u.test(rkey) && rkey !== "." && rkey !== ".." ? { rkey, cid: version } : null;
+}
+
+/** The organization's web addresses as a card keeps links: http or https, no credentials, at most six. */
+function organizationLinks(value: Record<string, unknown>): string[] {
+  if (!Array.isArray(value.urls)) return [];
+  const links: string[] = [];
+  for (const item of value.urls.slice(0, 50)) {
+    const url = item && typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>).url : undefined;
+    if (typeof url !== "string" || url.length > 2048 || /[\s\p{Cc}]/u.test(url) || links.includes(url)) continue;
+    try {
+      const parsed = new URL(url);
+      if ((parsed.protocol === "https:" || parsed.protocol === "http:") && !parsed.username && !parsed.password) links.push(url);
+    } catch { /* Not a web address, so it is left out. */ }
+    if (links.length === 6) break;
+  }
+  return links;
+}
+
 function recordEnvelope(value: unknown, uri: string) {
   const row = record(value);
   if (row.uri !== uri || typeof row.cid !== "string" || !cid.test(row.cid)) throw Error("invalid_record_reference");
@@ -352,6 +414,20 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     return decode(await fetchJson(url, signal), value => recordEnvelope(value, `at://${repo}/${nsid}/${rkey}`));
   }
 
+  /**
+   * The project's place from the location record it pins in its own repository. A missing, changed,
+   * foreign or unreadable record, or one that holds only coordinates, stays unread: nothing is guessed.
+   */
+  async function readPlace(pds: string, repo: string, entry: Record<string, unknown>, signal: AbortSignal)
+    : Promise<CertifiedProjectPlace | undefined> {
+    if (entry.location === undefined) return undefined;
+    const reference = locationReference(entry.location, repo);
+    if (!reference) return { status: "unread" };
+    const read = await readRecord(pds, repo, locationNsid, reference.rkey, signal);
+    const name = read.ok && read.value.cid === reference.cid ? placeName(read.value.value) : undefined;
+    return name ? { status: "named", name } : { status: "unread" };
+  }
+
   async function actorProfile(did: string, signal: AbortSignal) {
     const identity = await readIdentity(did, signal);
     if (!identity.ok) return identity;
@@ -385,13 +461,16 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     if (!project.ok) return project;
     const org = await readRecord(identity.value.pds, repo, organization, "self", signal);
     if (org.ok) {
-      const orgVisibility = decode(org, ({ value }) => {
+      const publisher = decode(org, ({ value }) => {
         if (value.$type !== organization) throw Error("invalid_organization_record");
-        return visibility(value.visibility);
+        return { visibility: visibility(value.visibility), links: organizationLinks(value) };
       });
-      if (!orgVisibility.ok) return orgVisibility;
-      if (orgVisibility.value === "unlisted") project.value.visibility = "unlisted";
+      if (!publisher.ok) return publisher;
+      if (publisher.value.visibility === "unlisted") project.value.visibility = "unlisted";
+      if (publisher.value.links.length) project.value.links = publisher.value.links;
     } else if (org.code !== "not_found") return org;
+    const place = await readPlace(identity.value.pds, repo, source.value.value, signal);
+    if (place) project.value.place = place;
     return ok({ project: project.value, value: source.value.value });
   }
 
@@ -564,25 +643,28 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
         return fail("unsupported");
       if (target.kind === "personal" && identity.value.groupService !== undefined) return fail("unsupported");
       const base = { repositoryDid, ...(certifiedRole === undefined ? {} : { certifiedRole }) };
-      const org = await readRecord(identity.value.pds, repositoryDid, organization, "self", signal);
+      const pds = identity.value.pds;
+      let links: string[] = [];
+      const org = await readRecord(pds, repositoryDid, organization, "self", signal);
       if (org.ok) {
-        const publicOrganization = decode(org, ({ value }) => {
+        const publisher = decode(org, ({ value }) => {
           if (value.$type !== organization) throw Error("invalid_organization_record");
-          return visibility(value.visibility) === "public";
+          return { listed: visibility(value.visibility) === "public", links: organizationLinks(value) };
         });
-        if (!publicOrganization.ok) return publicOrganization;
-        if (!publicOrganization.value) return ok({ ...base, projects: [] as CertifiedProject[] });
+        if (!publisher.ok) return publisher;
+        if (!publisher.value.listed) return ok({ ...base, projects: [] as CertifiedProject[] });
+        links = publisher.value.links;
       } else if (org.code !== "not_found") return org;
       const url = new URL(`/xrpc/${listRecords}`, identity.value.pds);
       url.search = new URLSearchParams({ repo: repositoryDid, collection, limit: String(projectPageSize),
         ...(cursor === undefined ? {} : { cursor }) }).toString();
-      return decode(await fetchJson(url, signal), value => {
+      const listed = decode(await fetchJson(url, signal), value => {
         const page = record(value);
         if (!Array.isArray(page.records) || page.records.length > projectPageSize
           || (page.cursor !== undefined && (!isCursor(page.cursor) || page.cursor === cursor || !page.records.length)))
           throw Error("invalid_project_page");
         const seen = new Set<string>();
-        const projects = page.records.flatMap((input: unknown): CertifiedProject[] => {
+        const projects = page.records.flatMap((input: unknown): { project: CertifiedProject; entry: Record<string, unknown> }[] => {
           const row = record(input);
           const { uri, did } = parseProjectUri(row.uri);
           if (did !== repositoryDid || seen.has(uri)) throw Error("invalid_project_page_repository");
@@ -592,12 +674,23 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
           if (value.type !== "project" || visibility(value.visibility) !== "public") return [];
           if (!validText(value.title, 800, 80) || !isTimestamp(value.createdAt)) throw Error("invalid_project_record");
           const description = readProjectDescription(value);
-          return [{ uri, cid, repoDid: repositoryDid, ...(target.kind === "group" ? { groupDid: repositoryDid } : {}),
+          return [{ entry: value, project: { uri, cid, repoDid: repositoryDid, ...(target.kind === "group" ? { groupDid: repositoryDid } : {}),
             title: value.title, createdAt: value.createdAt, visibility: "public",
-            ...(description === undefined ? {} : { description }) }];
+            ...(description === undefined ? {} : { description }), ...(links.length ? { links: [...links] } : {}) } }];
         });
-        return { ...base, projects, ...(page.cursor === undefined ? {} : { cursor: page.cursor }) };
+        return { projects, ...(page.cursor === undefined ? {} : { cursor: page.cursor }) };
       });
+      if (!listed.ok) return listed;
+      // Each place is its project's own location record, read a few at a time. A failed read leaves it unread.
+      const { projects } = listed.value;
+      for (let start = 0; start < projects.length; start += 5) {
+        await Promise.all(projects.slice(start, start + 5).map(async ({ project, entry }) => {
+          const place = await readPlace(pds, repositoryDid, entry, signal);
+          if (place) project.place = place;
+        }));
+      }
+      return ok({ ...base, projects: projects.map(({ project }) => project),
+        ...(listed.value.cursor === undefined ? {} : { cursor: listed.value.cursor }) });
     },
     confirmProject(groupDid: string, input: CertifiedProjectDraft) {
       return confirmRecord(groupDid, input);

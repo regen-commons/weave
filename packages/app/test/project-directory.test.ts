@@ -158,3 +158,25 @@ test("a competing personal link loads the winner and retains the newly saved car
     assert.ok(repo.history.some(b=>b.draft.account.saved?.id===privateSave));
   } finally {globalThis.fetch=original;}
 });
+
+test("project pages keep the source place and links the server read, and refuse malformed ones",()=>{
+  const sourced={...project,place:{status:"named",name:"Riverside allotments"},links:["https://garden.example.org/"]};
+  assert.deepEqual(projectPage({projects:[sourced]}).projects[0],sourced);
+  assert.deepEqual(projectPage({projects:[{...project,place:{status:"unread"}}]}).projects[0],{...project,place:{status:"unread"}});
+  assert.deepEqual(projectPage({projects:[project]}).projects[0],project,"a project without them gets none");
+  for (const bad of [
+    {place:{status:"named",name:""}},{place:{status:"named",name:"x".repeat(121)}},{place:{status:"guessed",name:"Brazil"}},
+    {place:"Brazil"},{links:"https://garden.example.org/"},{links:["javascript:alert(1)"]},
+    {links:Array.from({length:7},(_,i)=>`https://garden.example.org/${i}`)},
+  ]) assert.throws(()=>projectPage({projects:[{...project,...bad}]}),/project_workspace_unavailable/u);
+  const listing=workspacePage({workspaces:[{workspaceId:saved.id,projectUri:project.uri,kind:"personal",accessRole:"admin",project:sourced}]});
+  assert.deepEqual(listing.workspaces[0]?.project,sourced);
+});
+
+test("a first personal project takes its source place and links too, and still invents none",()=>{
+  const draft=personalProjectDraft({...project,place:{status:"named",name:"Riverside allotments"},links:["https://garden.example.org/"]});
+  assert.deepEqual(draft.confirmed?.locations,["Riverside allotments"]);
+  assert.deepEqual(draft.links,["https://garden.example.org/"]);
+  assert.deepEqual(accountDocument(draft).initiative.links,["https://garden.example.org/"]);
+  assert.deepEqual(personalProjectDraft({...project,place:{status:"unread"}}).confirmed?.locations,[]);
+});

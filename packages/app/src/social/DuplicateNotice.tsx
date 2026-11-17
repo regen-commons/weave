@@ -4,7 +4,7 @@ import { likelyDuplicate } from "../initiative/duplicates.ts";
 import { draftWithRecord, suggestionsOnLink } from "../initiative/import.ts";
 import { publicCard } from "../initiative/status.ts";
 import { useSocial } from "./context.tsx";
-import { suggestionLine } from "./words.ts";
+import { sourceDetailsLine, suggestionLine } from "./words.ts";
 
 /** Projects the person said are a different initiative, for this visit. */
 const different = new Set<string>();
@@ -45,9 +45,12 @@ export function DuplicateNotice() {
       if (social.mode === "fixture") controller.change((current) => draftWithRecord(current, match));
       social.refresh();
       setMessage(
-        `Your card now uses ${match.name} from Certified. ${
-          suggestionLine(suggested) || "Your needs and offers are unchanged."
-        }`,
+        [
+          `Your card now uses ${match.name} from Certified.`,
+          // Example projects replace all four details; a live one fills its place and links only where the card is empty.
+          sourceDetailsLine(match),
+          suggestionLine(suggested) || "Your needs and offers are unchanged.",
+        ].filter(Boolean).join(" "),
       );
     } catch (error) {
       setFailed(true);

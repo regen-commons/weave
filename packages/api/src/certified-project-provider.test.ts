@@ -476,3 +476,96 @@ test("reads an exact repository record through canonical trusted PDS resolution 
   assert.deepEqual(await provider.readRepoRecord(actorDid, "../collection", rkey), { ok: false, code: "invalid_input" });
   assert.deepEqual(await provider.readRepoRecord(actorDid, nsid, ".."), { ok: false, code: "invalid_input" });
 });
+
+const locationNsid = "app.certified.location";
+const locationRkey = "3jzfcijpj2z2b";
+const locationUri = `at://${groupDid}/${locationNsid}/${locationRkey}`;
+const locationCid = `bafyrei${"a".repeat(52)}`;
+const located = { ...value, location: { uri: locationUri, cid: locationCid } };
+/** A synthetic Location Protocol record: an address written as text, unless a case changes it. */
+const place = (overrides: Record<string, unknown> = {}) => ({
+  $type: locationNsid, lpVersion: "1.0.0", srs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+  locationType: "address", location: { $type: `${locationNsid}#string`, string: "Riverside allotments, Upper valley" },
+  createdAt: date, ...overrides,
+});
+const siteLinks = { $type: organization, createdAt: date, urls: [
+  { url: "https://garden.example.org/", label: "Website" },
+  { url: "https://garden.example.org/" },
+  { url: "javascript:alert(1)" },
+  { url: "https://someone:secret@garden.example.org/" },
+  { url: "https://social.example.org/@garden", label: "Social" },
+] };
+
+/** The group's public source: identity, the project record, its location record and its organization record. */
+function sourceReads(url: URL, options: { entry?: unknown; place?: unknown; org?: unknown } = {}) {
+  if (url.origin === cgs) return Response.json({ groups: [{ groupDid, role: "admin", joinedAt: date }] });
+  if (url.origin === "https://plc.directory") return Response.json(identity(groupDid, cgs));
+  assert.equal(url.origin, pds);
+  assert.equal(url.searchParams.get("repo"), groupDid, "nothing is read from another repository");
+  const nsid = url.searchParams.get("collection");
+  if (nsid === organization) return options.org === undefined ? missingRecord()
+    : Response.json({ uri: `at://${groupDid}/${organization}/self`, cid, value: options.org });
+  if (nsid === locationNsid) {
+    assert.equal(url.searchParams.get("rkey"), locationRkey);
+    if (options.place instanceof Response) return options.place;
+    return options.place === undefined ? missingRecord() : Response.json({ uri: locationUri, cid: locationCid, value: options.place });
+  }
+  assert.equal(nsid, collection);
+  const entry = options.entry ?? located;
+  if (url.pathname.endsWith("listRecords")) return Response.json({ records: [{ uri, cid, value: entry }] });
+  return Response.json({ uri, cid, value: entry });
+}
+
+test("a project's own location record gives its place, and its organization's web addresses give its links", async () => {
+  const sourced = { ...fullProject, place: { status: "named", name: "Riverside allotments, Upper valley" },
+    links: ["https://garden.example.org/", "https://social.example.org/@garden"] };
+  const read = fixture(url => sourceReads(url, { place: place(), org: siteLinks }));
+  assert.deepEqual(await read.provider.getProject(uri), { ok: true, value: sourced });
+  const listed = fixture(url => sourceReads(url, { place: place(), org: siteLinks }));
+  assert.deepEqual(await listed.provider.listProjects(actorDid, { kind: "group", groupDid }), {
+    ok: true, value: { repositoryDid: groupDid, certifiedRole: "admin", projects: [sourced] },
+  });
+  for (const [record, name] of [
+    [place({ name: "North orchard", locationType: "coordinate-decimal",
+      location: { $type: `${locationNsid}#string`, string: "-23.5, -46.6" } }), "North orchard"],
+    [place({ locationType: "country-code", location: { $type: `${locationNsid}#string`, string: "NG" } }), "Nigeria"],
+  ] as const) {
+    const { provider } = fixture(url => sourceReads(url, { place: record }));
+    const result = await provider.getProject(uri);
+    assert.deepEqual(result.ok && result.value.place, { status: "named", name });
+  }
+});
+
+test("a place Weave cannot read as a name stays unread, and a missing place or link stays missing", async () => {
+  const unread = { status: "unread" };
+  const otherRepository = { ...value, location: { uri: `at://${actorDid}/${locationNsid}/${locationRkey}`, cid: locationCid } };
+  for (const [label, options] of [
+    ["coordinates only", { place: place({ locationType: "coordinate-decimal",
+      location: { $type: `${locationNsid}#string`, string: "6.21, 7.07" } }) }],
+    ["a GeoJSON point", { place: place({ locationType: "geojson-point",
+      location: { $type: `${locationNsid}#string`, string: '{"type":"Point","coordinates":[7.07,6.21]}' } }) }],
+    ["an external file", { place: place({ location: { $type: "org.hypercerts.defs#uri", uri: "https://example.org/area.geojson" } }) }],
+    ["no such country", { place: place({ locationType: "country-code", location: { $type: `${locationNsid}#string`, string: "ZZ" } }) }],
+    ["an address longer than a place", { place: place({ location: { $type: `${locationNsid}#string`, string: "Plot ".repeat(30) } }) }],
+    ["not a location record", { place: { $type: "app.example.other", name: "Somewhere" } }],
+    ["a deleted location record", {}],
+    ["a location read that fails", { place: badGateway() }],
+    ["a reference in another repository", { entry: otherRepository }],
+    ["several locations", { entry: { ...value, location: [located.location, located.location] } }],
+    ["a reference without a version", { entry: { ...value, location: { uri: locationUri } } }],
+  ] as const) {
+    const { provider } = fixture(url => sourceReads(url, options));
+    const result = await provider.getProject(uri);
+    assert.deepEqual(result.ok && result.value.place, unread, label);
+  }
+  const changed = fixture(url => url.searchParams.get("collection") === locationNsid
+    ? Response.json({ uri: locationUri, cid, value: place() }) : sourceReads(url));
+  const moved = await changed.provider.getProject(uri);
+  assert.deepEqual(moved.ok && moved.value.place, unread, "a newer location record is not substituted for the pinned one");
+
+  const bare = fixture(url => sourceReads(url, { entry: value, org: { $type: organization, createdAt: date } }));
+  assert.deepEqual(await bare.provider.getProject(uri), { ok: true, value: fullProject }, "no place or links are invented");
+  assert.ok(bare.calls.every(call => call.url.searchParams.get("collection") !== locationNsid));
+  const noAddresses = fixture(url => sourceReads(url, { entry: value, org: { ...siteLinks, urls: [{ url: "ftp://garden.example.org" }] } }));
+  assert.deepEqual(await noAddresses.provider.getProject(uri), { ok: true, value: fullProject });
+});

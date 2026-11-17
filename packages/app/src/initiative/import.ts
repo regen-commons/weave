@@ -1,4 +1,4 @@
-import { confirmDraft, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft } from "../describe/contracts.ts";
+import { confirmDraft, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft, type Initiative } from "../describe/contracts.ts";
 import { formFrom } from "../describe/forms.ts";
 import type { AskKind } from "../intake/contracts.ts";
 import { projectPageAsks, projectSource, suggestFromProjectPage } from "../intake/project-page.ts";
@@ -58,20 +58,36 @@ export function draftFromRecord(record: ProjectRecord): DeviceDraft {
   return withProjectSuggestions(described(newDraft(), record), record);
 }
 
+/** The place and links already on the card: checked, or given as fields before it was checked. */
+function ownPlaceAndLinks(draft: DeviceDraft, current: Initiative) {
+  if (draft.confirmed) return draft.confirmed;
+  return {
+    locations: draft.publicEdits.locations ?? current.locations,
+    isGlobal: draft.publicEdits.isGlobal ?? current.isGlobal,
+    links: draft.links.length ? draft.links : current.links,
+  };
+}
+
 /**
  * Puts a linked Certified project's four public details on the card this device already has.
  * Needs, offers, funding answers and the details Weave keeps for matching stay as they are.
  * A card that was not checked yet is checked here when the project's details are complete,
  * because they are the project's own published words and not a suggestion.
+ * A project that lists the fields its source supplied gives its name and description, and its
+ * place and links only where the card has none: a place or link the person gave stays theirs.
  */
 export function withProjectDetails(draft: DeviceDraft, record: ProjectRecord): DeviceDraft {
   const current = draft.confirmed ?? draft.proposal ?? EMPTY_INITIATIVE;
+  const own = ownPlaceAndLinks(draft, current);
+  const supplied = (field: keyof PublicCard) => !!record.verifiedFields?.includes(field);
+  const fillPlace = supplied("locations") && record.locations.length > 0 && !own.locations.length && !own.isGlobal;
+  const fillLinks = supplied("links") && record.links.length > 0 && !own.links.length;
   const source = record.verifiedFields ? {
-    name: record.verifiedFields.includes("name") ? record.name : current.name,
-    description: record.verifiedFields.includes("description") ? record.description : current.description,
-    locations: record.verifiedFields.includes("locations") ? record.locations : current.locations,
-    links: record.verifiedFields.includes("links") ? record.links : current.links,
-    isGlobal: record.verifiedFields.includes("locations") ? false : current.isGlobal,
+    name: supplied("name") ? record.name : current.name,
+    description: supplied("description") ? record.description : current.description,
+    locations: fillPlace ? record.locations : own.locations,
+    links: fillLinks ? record.links : own.links,
+    isGlobal: own.isGlobal,
   } : record;
   const edits = publicEdits(source);
   if (draft.confirmed)

@@ -5,10 +5,11 @@ import { readFileSync } from "node:fs";
 import { createLiveSocialService } from "../src/social/live.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
-import { newDraft, revise } from "../src/describe/contracts.ts";
+import { DeviceDraftSchema, newDraft, revise } from "../src/describe/contracts.ts";
 import { loadedDraft } from "../src/account/document.ts";
 import { draftWithRecord } from "../src/initiative/import.ts";
 import { likelyDuplicate } from "../src/initiative/duplicates.ts";
+import { publicCard } from "../src/initiative/status.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { accountFixture, fixtureSession } from "../dev/account-fixture.ts";
 import { projectEvidenceFixture, FIXTURE_TEAM_ADMIN, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_TEAM_ID, FIXTURE_PROJECT_STARTER, publishFixtureProject } from "../dev/matching-fixture.ts";
@@ -98,6 +99,43 @@ test("duplicate suggestions use actual project names and only verified fields re
   assert.deepEqual(next.proposal?.links, ["https://example.org/local"]);
   assert.deepEqual(next.proposal?.locations, ["Local place"]);
   assert.equal(next.composer, draft.composer);
+});
+
+test("Use this project on a team workspace brings the source place and links, keeps them on reload and writes nothing", async () => {
+  const { service, controller, repo, bodies } = await fixture();
+  await service.reload();
+  const match = likelyDuplicate({ name: "Watershed Team", links: [] }, service.snapshot().workspaces!)!;
+  assert.deepEqual(match.verifiedFields, ["name", "description", "locations", "links"]);
+  await service.linkProject(match.uri);
+  const linked = controller.getSnapshot().draft;
+  assert.deepEqual(publicCard(linked).locations, ["Lower river meadows (fixture)"]);
+  assert.deepEqual(publicCard(linked).links, ["https://watershed.example.org/"]);
+  assert.equal(service.snapshot().project?.workspaceId, FIXTURE_TEAM_ID, "the existing workspace is reused");
+  assert.deepEqual(bodies.filter(body => !String(body.action).startsWith("list_")).map(body => body.action), ["lookup"],
+    "no project is created and nothing is saved to the team");
+  assert.equal(linked.account.saved, null, "the card stays on this device only");
+  // A reload reads the stored device draft back through the draft validator, as a new tab does.
+  const stored = DeviceDraftSchema.parse(JSON.parse(JSON.stringify(await repo.load())));
+  const reopened = new DraftController(new MemoryDraftRepository(stored));
+  await reopened.initialize();
+  assert.deepEqual(publicCard(reopened.getSnapshot().draft), publicCard(linked));
+  assert.equal(reopened.getSnapshot().draft.form?.where, "Lower river meadows (fixture)");
+});
+
+test("a fresh link takes the source place and links, and a place Weave cannot read stays empty and named as unread", async () => {
+  const member = await fixture(FIXTURE_GROUP_MEMBER);
+  await member.service.reload();
+  const seeds = member.service.snapshot().records.find(p => p.name === "Seed library (fixture)")!;
+  await member.service.linkProject(seeds.uri);
+  assert.deepEqual(publicCard(member.controller.getSnapshot().draft).locations, ["Upper valley seed house (fixture)"]);
+  assert.deepEqual(publicCard(member.controller.getSnapshot().draft).links, ["https://seeds.example.org/"]);
+  const admin = await fixture();
+  await admin.service.reload();
+  const notes = admin.service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  assert.deepEqual([notes.locations, notes.links, notes.unreadFields], [[], [], ["locations"]]);
+  await admin.service.linkProject(notes.uri);
+  assert.deepEqual(publicCard(admin.controller.getSnapshot().draft).locations, [], "no place is guessed");
+  assert.deepEqual(publicCard(admin.controller.getSnapshot().draft).links, []);
 });
 
 test("the live screen adapter saves and reloads a private card through the authenticated account handlers", async () => {

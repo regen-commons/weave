@@ -27,3 +27,12 @@ test("one shared word, an empty card or no projects suggest nothing", () => {
   assert.equal(likelyDuplicate({ name: "", links: [] }, projects), null);
   assert.equal(likelyDuplicate({ name: "Orchard learning circle", links: [] }, []), null);
 });
+
+test("a link that several projects share, such as their group's website, does not pick one of them", () => {
+  const site = ["https://valley.example.org/"];
+  const nursery = { name: "Valley tree nursery", links: site };
+  const school = { name: "Valley seed school", links: site };
+  assert.equal(likelyDuplicate({ name: "Seed school", links: ["https://valley.example.org"] }, [nursery, school]), school);
+  assert.equal(likelyDuplicate({ name: "Something else", links: site }, [nursery, school]), null);
+  assert.equal(likelyDuplicate({ name: "Something else", links: site }, [nursery, orchard]), nursery, "a link only one project has still decides");
+});

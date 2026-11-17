@@ -4,7 +4,7 @@ import type { AccountState } from "../account/client.ts";
 import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { loadedDraft } from "../account/document.ts";
 import type { DraftController } from "../describe/controller.ts";
-import { projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
+import { projectDetails, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
 import { projectChoiceKey } from "./project-choice.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
@@ -26,11 +26,14 @@ type Options = { account: AccountState; controller: DraftController; refreshAcco
   request?: typeof accountRequest; storage?: Pick<Storage, "getItem" | "setItem" | "removeItem">;
   openWorkspace(id: string): void; signIn(): Promise<void>; signedOut(): void };
 
+/** A project as Certified supplied it. Its place and links count as supplied only when the source gave them. */
 export function certifiedRecord(project: PublicProject, group?: Group): CertifiedRecord {
-  return { uri: project.uri, name: project.title, description: project.description ?? "", locations: [], links: [],
+  const { locations, links } = projectDetails(project);
+  return { uri: project.uri, name: project.title, description: project.description ?? "", locations, links,
     publishedOn: project.createdAt?.slice(0, 10) ?? "", group: project.groupDid ? group?.displayName ?? group?.handle ?? "Certified group" : null,
     role: project.groupDid ? group?.role ?? "member" : "owner", workspace: false,
-    verifiedFields: ["name", "description"] };
+    verifiedFields: ["name", "description", ...(locations.length ? ["locations" as const] : []), ...(links.length ? ["links" as const] : [])],
+    ...(project.place?.status === "unread" ? { unreadFields: ["locations" as const] } : {}) };
 }
 const projectLink = (record: CertifiedRecord): ProjectLink => ({ ...record,
   workspace: !record.group ? "solo" : record.workspace ? "open" : "absent", requestedOn: null, created: false });

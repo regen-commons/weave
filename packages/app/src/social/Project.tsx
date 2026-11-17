@@ -14,7 +14,7 @@ import { useAccountDoor } from "../account/door.tsx";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { ExampleDoor } from "./Door.tsx";
 import { type CertifiedRecord, type ProjectLink } from "./fixture.ts";
-import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, suggestionLine, workspaceLine, workspaceOpenLine } from "./words.ts";
+import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, replacesNameOrDescription, sourceDetailsLine, sourceOriginLine, suggestionLine, workspaceLine, workspaceOpenLine } from "./words.ts";
 
 /** The choice that opens the external editors after checking existing projects. */
 const NEW = "new";
@@ -179,9 +179,10 @@ export function ProjectStep({
           {live ? (
             <>
               <p>
-                {replacesCard(card, record) ? "Your card takes this name and description. " : ""}
+                {replacesNameOrDescription(card, record) ? "Your card takes this name and description. " : ""}
                 Its needs and offers stay private and unchanged.
               </p>
+              {sourceDetailsLine(record) && <p>{sourceDetailsLine(record)}</p>}
               {suggested.length > 0 && <p>{suggestionLine(suggested)}</p>}
               <p className="rc-meta">Saving to a team, sharing and publishing stay separate steps.</p>
             </>
@@ -200,7 +201,7 @@ export function ProjectStep({
             <summary className="rc-footer-link">Where these details come from</summary>
             <p>
               {live
-                ? "The name and description come from Certified. Other details stay as they are on your card."
+                ? sourceOriginLine(record)
                 : "After linking, the name, place, description and links come from Certified. Change them there and Weave shows the latest."}
               {suggested.length > 0 && " Suggested needs and offers are read from the description on this device."}
             </p>

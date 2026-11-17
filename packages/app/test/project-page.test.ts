@@ -11,7 +11,7 @@ import {
   withProjectDetails,
   withProjectSuggestions,
 } from "../src/initiative/import.ts";
-import { cardRoute, chosenEntries, publicKey, shareable } from "../src/initiative/status.ts";
+import { cardRoute, chosenEntries, publicCard, publicKey, shareable } from "../src/initiative/status.ts";
 import { continueBoth, startsByHand, suggestedEntry, suggestionSource } from "../src/intake/ask-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 import { intakeComplete } from "../src/intake/finish.ts";
@@ -27,7 +27,14 @@ import {
   reviewStep,
 } from "../src/intake/state.ts";
 import { SEED_LIBRARY_RECORD, WATER_NOTES_RECORD, type CertifiedRecord } from "../src/social/fixture.ts";
-import { suggestionLine, waitingAction, waitingLine } from "../src/social/words.ts";
+import {
+  replacesNameOrDescription,
+  sourceDetailsLine,
+  sourceOriginLine,
+  suggestionLine,
+  waitingAction,
+  waitingLine,
+} from "../src/social/words.ts";
 
 /** A project the way the live adapter passes it: Certified supplied only its name and description. */
 const project = (description: string, uri = "at://did:plc:example-garden/org.hypercerts.collection/garden"): CertifiedRecord => ({
@@ -305,4 +312,78 @@ test("a list on a card made without the assistant starts by hand beside project 
   assert.equal(startsByHand(addEntry(linked.needs, "Land"), "none"), false, "an entry of their own keeps the list as it is");
   assert.equal(startsByHand(answerStep(linked.needs, "needs", "Land"), "none"), false);
   assert.equal(startsByHand(changeStep(linked.needs, { mode: "manual" }), "none"), false, "already by hand");
+});
+
+/** The same project when Certified also supplied its own place and its organization's links. */
+const PLACED: CertifiedRecord = {
+  ...GARDEN,
+  locations: ["Riverside allotments, Upper valley"],
+  links: ["https://garden.example.org/"],
+  verifiedFields: ["name", "description", "locations", "links"],
+};
+
+test("linking a project brings its source place and links onto a card that has none", () => {
+  const fresh = draftWithRecord(newDraft(), PLACED);
+  assert.deepEqual(publicCard(fresh), {
+    name: "Garden ledger",
+    locations: ["Riverside allotments, Upper valley"],
+    description: PLACED.description,
+    links: ["https://garden.example.org/"],
+  });
+  assert.equal(fresh.form?.where, "Riverside allotments, Upper valley", "the card's Where field shows it");
+  assert.equal(fresh.account.saved, null, "linking keeps the card on this device only");
+
+  const bare = revise(saved, { confirmed: { ...saved.confirmed!, locations: [], links: [] } });
+  const linked = draftWithRecord(bare, PLACED);
+  assert.deepEqual(linked.confirmed?.locations, ["Riverside allotments, Upper valley"]);
+  assert.deepEqual(linked.confirmed?.links, ["https://garden.example.org/"]);
+  assert.equal(intakeComplete(linked), true, "a checked card stays checked");
+});
+
+test("a place or links the person already gave the card stay theirs when a project is linked", () => {
+  const linked = draftWithRecord(saved, PLACED);
+  assert.deepEqual(linked.confirmed?.locations, ["Upper valley"], "the checked card's own Where stays");
+  assert.deepEqual(linked.confirmed?.links, ["https://garden.example.org/"], "its empty links are filled");
+  assert.equal(linked.confirmed?.name, "Garden ledger", "the name still comes from Certified, as the review says");
+  const same = { ...publicCard(saved), name: PLACED.name, description: PLACED.description };
+  assert.equal(replacesNameOrDescription(same, PLACED), false, "a different Where alone is not called a replacement");
+  assert.equal(replacesNameOrDescription(publicCard(saved), PLACED), true);
+
+  const everywhere = revise(saved, { confirmed: { ...saved.confirmed!, locations: [], isGlobal: true } });
+  assert.deepEqual(publicCard(draftWithRecord(everywhere, PLACED)).locations, ["Global"]);
+
+  const typed = revise(newDraft(), {
+    mode: "fields",
+    publicEdits: { name: "Our garden", locations: ["Lower valley"], isGlobal: false },
+    links: ["https://ours.example.org/"],
+  });
+  const kept = withProjectDetails(typed, PLACED);
+  assert.deepEqual(publicCard(kept).locations, ["Lower valley"], "fields typed before checking stay too");
+  assert.deepEqual(publicCard(kept).links, ["https://ours.example.org/"]);
+  assert.deepEqual(kept.publicEdits.locations, ["Lower valley"]);
+});
+
+test("a project without a place or links, or with a place Weave could not read, leaves Where and links empty", () => {
+  const none = draftWithRecord(newDraft(), GARDEN);
+  assert.deepEqual(publicCard(none).locations, []);
+  assert.deepEqual(publicCard(none).links, []);
+  const unread: CertifiedRecord = { ...GARDEN, unreadFields: ["locations"] };
+  const card = draftWithRecord(newDraft(), unread);
+  assert.deepEqual(publicCard(card).locations, [], "no country or coordinates are guessed");
+  assert.equal(card.form?.where, "");
+
+  assert.equal(sourceDetailsLine(GARDEN), "");
+  assert.equal(sourceDetailsLine(PLACED), "Its place and links go on your card only where yours are empty.");
+  assert.equal(sourceDetailsLine({ verifiedFields: ["name", "locations"] }), "Its place goes on your card only if Where is empty.");
+  assert.equal(sourceDetailsLine({ verifiedFields: ["name", "links"] }), "Its links go on your card only if it has none.");
+  assert.equal(sourceDetailsLine(unread), "Certified lists a place for it that Weave could not read, so Where stays as it is on your card.");
+  assert.equal(
+    sourceDetailsLine({ ...unread, verifiedFields: ["name", "links"] }),
+    "Its links go on your card only if it has none. Certified lists a place for it that Weave could not read, so Where stays as it is on your card.",
+  );
+  assert.equal(sourceOriginLine(GARDEN), "The name and description come from Certified. Other details stay as they are on your card.");
+  assert.equal(
+    sourceOriginLine(PLACED),
+    "The name and description come from Certified, and its place and links when your card has none. Other details stay as they are on your card.",
+  );
 });

@@ -58,6 +58,34 @@ export function publicFacts(card: PublicCard, supplied?: readonly (keyof PublicC
   return facts.filter(({ field }) => !supplied || supplied.includes(field)).map(({ term, value }) => ({ term, value }));
 }
 
+type SourceFields = Pick<CertifiedRecord, "verifiedFields" | "unreadFields">;
+
+/**
+ * What linking a live project does with its place and links, said before the tap and after it.
+ * They fill only what the card leaves empty, and a place Weave could not read is named, not guessed.
+ * Empty when the project gave neither.
+ */
+export function sourceDetailsLine(record: SourceFields): string {
+  const place = !!record.verifiedFields?.includes("locations");
+  const links = !!record.verifiedFields?.includes("links");
+  const filled = place && links ? "Its place and links go on your card only where yours are empty."
+    : place ? "Its place goes on your card only if Where is empty."
+    : links ? "Its links go on your card only if it has none."
+    : "";
+  const unread = record.unreadFields?.includes("locations")
+    ? "Certified lists a place for it that Weave could not read, so Where stays as it is on your card."
+    : "";
+  return [filled, unread].filter(Boolean).join(" ");
+}
+
+/** Where a live project's details come from, for the link review. */
+export function sourceOriginLine(record: SourceFields): string {
+  const extra = record.verifiedFields?.includes("locations") || record.verifiedFields?.includes("links");
+  return extra
+    ? "The name and description come from Certified, and its place and links when your card has none. Other details stay as they are on your card."
+    : "The name and description come from Certified. Other details stay as they are on your card.";
+}
+
 /** What the project step says about discovery, and the one way to act on it. */
 export interface Discovery {
   readonly line: string;
@@ -118,4 +146,9 @@ export function replacesCard(card: PublicCard, record: PublicCard): boolean {
   const key = (value: PublicCard) =>
     JSON.stringify([value.name, value.locations, value.description, value.links]);
   return !!card.name.trim() && key(card) !== key(record);
+}
+
+/** True when linking a live project changes the card's name or description, the two details it always takes. */
+export function replacesNameOrDescription(card: PublicCard, record: PublicCard): boolean {
+  return replacesCard(card, { ...card, name: record.name, description: record.description });
 }
