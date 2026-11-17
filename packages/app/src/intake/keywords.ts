@@ -48,13 +48,14 @@ const KIND_CLAUSES = new RegExp([
   String.raw`\b(?:but|however|yet)\s+(?=(?:we|i|you|they|it|need|offer|provide|share|want|seek|lend|have)\b|${DENIED_SUPPORT.source})`,
 ].join("|"), "iu");
 // A living word that only says what information is about ("soil test data", "data on
-// water quality", "dados sobre a água") names knowledge, not a living resource. Only an
-// Intellectual word anchors the phrase, so the Intellectual suggestion always remains.
+// water quality", "dados sobre a água") names knowledge, not a living resource. Living is
+// set aside only in a clause the Intellectual bank also matches, so no statement loses
+// every kind: "pesquisas sobre a água" keeps Living because "pesquisas" is not in the bank.
 // Only the word directly qualified is covered: in "topsoil and soil test data" the
 // topsoil may be a resource, so an ambiguous list keeps Living for the person to check.
 const LIVING_TOPIC = String.raw`(?:soil|topsoil|water|rainwater|land|seed\w*|tree\w*|plant\w*|terra|água|solo)`;
 const TOPIC_DETAIL = String.raw`(?:health|quality|moisture|carbon|fertility|nutrient\w*|chemistry|samples?|sampling|tests?|testing|use|cover|tenure|saving|conditions?)`;
-const INFORMATION = String.raw`(?:data|research|map\w*|knowledge|method\w*|review\w*|dados|pesquisa\w*)`;
+const INFORMATION = String.raw`(?:data|research|map\w*|knowledge|method\w*|review\w*|dados|pesquisa)`;
 const TOPICS = String.raw`${LIVING_TOPIC}(?:\s+${TOPIC_DETAIL}){0,3}`;
 const INFORMATION_ABOUT_LIVING = new RegExp(
   wholeWords(
@@ -69,9 +70,13 @@ export function suggestKinds(text: string): (keyof typeof BANKS)[] {
   const assertions = text.split(KIND_CLAUSES).filter((clause) => !DENIED_SUPPORT.test(clause));
   return (Object.keys(BANKS) as (keyof typeof BANKS)[]).filter((key) =>
     assertions.some((clause) =>
-      BANKS[key].test(key === "living" ? clause.replace(INFORMATION_ABOUT_LIVING, " ") : clause),
+      BANKS[key].test(key === "living" && BANKS.intellectual.test(clause) ? clause.replace(INFORMATION_ABOUT_LIVING, " ") : clause),
     ),
   );
+}
+/** A need or offer's title and description are separate statements: no phrase or denial runs across them. */
+export function suggestEntryKinds(title: string, description: string | null): (keyof typeof BANKS)[] {
+  return suggestKinds(`${title}\n${description ?? ""}`);
 }
 export function chunksFrom(text: string, sourceId: string): AskChunk[] {
   return text
