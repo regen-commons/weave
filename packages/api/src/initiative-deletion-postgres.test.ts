@@ -205,12 +205,12 @@ integration("a card anything else refers to is refused before any row is removed
     ["create intent", id => sql`insert into weave_workspace.create_intents(actor_id, request_id, initiative_id, expected_revision,
       group_handle, project_rkey, created_at, title, description) values(${owner}, ${next()}, ${id}, 2,
       ${`group${serial}`}, ${`rkey${serial}`}, now(), 'Fixture', '')`],
-    ["matching review", id => sql`insert into private.weave_matching_reviews(initiative_id, initiative_revision, entries, expires_at, valid_until)
+    ["open matching review", id => sql`insert into private.weave_matching_reviews(initiative_id, initiative_revision, entries, expires_at, valid_until)
       values(${id}, 2, '[]', now() + interval '1 day', now() + interval '15 minutes')`],
     ["matching lead", (id, doc) => sql`insert into private.weave_matching_leads(initiative_id, kind, entry_id, candidate_id, disposition)
       values(${id}, 'need', ${doc.needs[0]!.id}, 'public:at://did:plc:x/org.hypercerts.collection/y', 'saved')`],
-    ["matching receipt", id => sql`insert into private.weave_matching_requests(actor_id, request_id, command)
-      values(${owner}, ${next()}, jsonb_build_array(${id}::uuid, 'withdraw', null, '[]'::jsonb))`],
+    ["another account's matching receipt", id => sql`insert into private.weave_matching_requests(actor_id, request_id, command)
+      values(${other}, ${next()}, jsonb_build_array(${id}::uuid, 'withdraw', null, '[]'::jsonb))`],
     ["query vector", (id, doc) => sql`insert into private.weave_matching_query_vectors(initiative_id, kind, entry_id, revision,
       share_version, model_version, embedding) values(${id}, 'need', ${doc.needs[0]!.id}, 1, 1, private.weave_matching_embedding_model(),
       (array[1::real] || array_fill(0::real, array[255]))::extensions.vector)`],
@@ -224,10 +224,26 @@ integration("a card anything else refers to is refused before any row is removed
     await refer(target.id, target.doc);
     await unchangedAfter(() => remove(owner, target.id, 2, next()), "PT409", "initiative_referenced");
   }
-  // A withdrawn share is no longer shared, so it does not hold the card.
+  // A withdrawn share, an expired review and the owner's own matching receipts no longer hold
+  // the card: they go with it, and every other receipt stays.
   const withdrawn = await card(owner, "Withdrawn share");
   await sql`update weave.needs set matching_audience = 'weave_users', matching_withdrawn = true where initiative_id = ${withdrawn.id}`;
+  await sql`insert into private.weave_matching_reviews(initiative_id, initiative_revision, entries, expires_at, valid_until)
+    values(${withdrawn.id}, 2, '[]', now() + interval '1 day', now() - interval '1 second')`;
+  const unrelated = await card(owner, "Unrelated receipts");
+  await sql`insert into private.weave_matching_requests(actor_id, request_id, command) values
+    (${owner}, ${next()}, jsonb_build_array(${withdrawn.id}::uuid, 'withdraw', null, '[]'::jsonb)),
+    (${owner}, ${next()}, jsonb_build_array(${unrelated.id}::uuid, 'withdraw', null, '[]'::jsonb))`;
+  const before = await snapshot(withdrawn.id);
   assert.equal((await remove(owner, withdrawn.id, 2, next())).deleted, true);
+  const after = await snapshot(withdrawn.id);
+  const own = await sql`select count(*)::int as n from private.weave_matching_requests where command->>0 = ${withdrawn.id}`;
+  assert.equal(own[0]!.n, 0, "the owner's receipts for the card are gone");
+  const reviews = await sql`select count(*)::int as n from private.weave_matching_reviews where initiative_id = ${withdrawn.id}`;
+  assert.equal(reviews[0]!.n, 0, "the expired review is gone");
+  assert.equal(after["private.weave_matching_requests"]!.rows, before["private.weave_matching_requests"]!.rows - 1);
+  assert.deepEqual({ ...after, "private.weave_matching_requests": null }, { ...before, "private.weave_matching_requests": null });
+  assert.equal((await sql`select count(*)::int as n from private.weave_matching_requests where command->>0 = ${unrelated.id}`)[0]!.n, 1);
 });
 
 integration("a retry repeats its result; any other call for a removed card is not found and nothing returns", async () => {
@@ -240,11 +256,11 @@ integration("a retry repeats its result; any other call for a removed card is no
   await rejects(remove(other, target.id, 2, request), "PT404", "not_found");
   await rejects(remove(owner, another.id, 2, request), "PT409", "request_reused");
   // A stale client: a first save, its retried create, an old revision and its retried update all fail.
-  await rejects(save(owner, target.id, 0, next(), target.doc), "PT409", "revision_conflict");
-  await rejects(save(owner, target.id, 0, target.first, target.doc), "PT409", "revision_conflict");
+  await rejects(save(owner, target.id, 0, next(), target.doc), "PT409", "initiative_deleted");
+  await rejects(save(owner, target.id, 0, target.first, target.doc), "PT409", "initiative_deleted");
   await rejects(save(owner, target.id, 2, next(), target.doc), "PT404", "not_found");
   await rejects(save(owner, target.id, 1, target.second, target.doc), "PT404", "not_found");
-  await rejects(save(other, target.id, 0, next(), target.doc), "PT409", "revision_conflict");
+  await rejects(save(other, target.id, 0, next(), target.doc), "PT409", "initiative_deleted");
   assert.deepEqual(await snapshot(), settled, "no card, entry, receipt or counter changed after the deletion");
 });
 
@@ -272,7 +288,7 @@ integration("a first save waiting on a concurrent deletion fails once the deleti
   }
   release();
   await deletion;
-  await rejects(create, "PT409", "revision_conflict");
+  await rejects(create, "PT409", "initiative_deleted");
   assert.equal((await sql`select count(*)::int as n from weave.initiatives where id = ${target.id}`)[0]!.n, 0);
   // Two deliveries of one request racing each other both report the same deletion.
   const again = await card(), request = next();

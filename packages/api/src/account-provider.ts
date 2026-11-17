@@ -74,7 +74,8 @@ function supabaseRequests(url: string, key: string, request: typeof fetch) {
         /* Never return provider data. */
       }
       // Only a known reason is mapped to its own stable code; the provider's words never leave.
-      if (code === "PT409" && message === "initiative_referenced") throw new AccountError(409, "initiative_referenced");
+      if (code === "PT409" && (message === "initiative_referenced" || message === "initiative_deleted"))
+        throw new AccountError(409, message);
       if (["PT400", "PT401", "PT403", "PT404", "PT409", "PT429"].includes(code))
         throw new AccountError(
           Number(code.slice(2)),

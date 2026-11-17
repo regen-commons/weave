@@ -346,6 +346,7 @@ test("the delete RPC uses the person's token and maps only known database reason
     profile: "weave", body: { p_id: id, p_expected_revision: 3, p_request_id: requestId } });
   for (const [body, status, code] of [
     [{ code: "PT409", message: "initiative_referenced", details: "private detail" }, 409, "initiative_referenced"],
+    [{ code: "PT409", message: "initiative_deleted" }, 409, "initiative_deleted"],
     [{ code: "PT409", message: "revision_conflict" }, 409, "save_conflict"],
     [{ code: "PT409", message: "something private" }, 409, "save_conflict"],
     [{ code: "PT404", message: "not_found" }, 404, "not_found"],

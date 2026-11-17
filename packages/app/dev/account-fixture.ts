@@ -72,7 +72,7 @@ const provider: AccountProvider = {
     const row = records.get(command.id);
     if (row && row.owner !== id) throw new AccountError(404, "not_found");
     if (!row && removed.has(command.id))
-      throw new AccountError(command.expectedRevision === 0 ? 409 : 404, command.expectedRevision === 0 ? "save_conflict" : "not_found");
+      throw new AccountError(command.expectedRevision === 0 ? 409 : 404, command.expectedRevision === 0 ? "initiative_deleted" : "not_found");
     if ((row?.saved.revision ?? 0) !== command.expectedRevision) throw new AccountError(409, "save_conflict");
     const saved = {
       id: command.id,

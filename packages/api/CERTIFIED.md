@@ -684,16 +684,17 @@ Apply `supabase/candidates/weave-initiative-deletion.sql` last, after
 `weave-open-ended-sharing.sql`. It refuses to install before team content,
 matching vectors and support publication. The command checks the owner, the exact
 ID and the revision before it removes anything. It then removes the card, its
-needs and offers and that owner's save receipts, and keeps a tombstone so the ID
-never returns. A first save of a removed ID fails with a conflict; an old
-revision is not found. These cases are refused, with the stable code:
+needs and offers, that owner's save and matching receipts and any expired matching
+review, and keeps a tombstone so the ID never returns. A first save of a removed ID
+fails with `initiative_deleted`, and the app then saves the words as a new card; an
+old revision is not found. These cases are refused, with the stable code:
 
 | Case | Code |
 |---|---|
 | No session | `sign_in_required` |
 | Another owner's card, a team document, a removed card | `not_found` |
 | A different revision | `save_conflict` |
-| A project link, create intent, matching review, lead, receipt or query vector, a support listing, review or request, an entry still shared for matching, or another account's save receipt | `initiative_referenced` |
+| A project link, create intent, open matching review, lead or query vector, a support listing, review or request, an entry still shared for matching, or another account's save or matching receipt | `initiative_referenced` |
 
 `initiative-deletion-postgres.test.ts` needs a disposable loopback database
 named `weave_deletion_test` in `WEAVE_DELETION_TEST_DATABASE_URL`. It also needs the
@@ -704,6 +705,8 @@ triggers on initiatives, needs and offers, so a new reference fails until deleti
 handles it. It also proves owner and revision binding, unchanged unrelated rows,
 retries, a create racing a deletion and direct table denial. The tombstone check
 relies on READ COMMITTED, the default for PostgREST and the API's transactions.
+Under REPEATABLE READ, a review probe found that a stale create racing a deletion
+fails with a serialization error (40001) rather than `initiative_deleted`.
 
 ### Production pilot preparation
 

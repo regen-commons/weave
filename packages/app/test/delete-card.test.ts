@@ -142,7 +142,7 @@ test("the live adapter deletes through the account handlers, retries with one re
     "a lost response retried with its request ID reports the same deletion");
   await assert.rejects(request("", { action: "delete", id, expectedRevision: 1, requestId: crypto.randomUUID() }), { code: "not_found" });
   await assert.rejects(request("", { action: "save", accountId: owner, id, expectedRevision: 0, requestId: crypto.randomUUID(), document }),
-    { code: "save_conflict" }, "a stale first save cannot bring the card back");
+    { code: "initiative_deleted" }, "a stale first save cannot bring the card back");
   const again = saveCommand(controller.getSnapshot().draft, owner);
   assert.notEqual(again.command.id, id);
   assert.equal(again.command.expectedRevision, 0);

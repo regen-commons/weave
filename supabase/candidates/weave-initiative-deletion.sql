@@ -30,14 +30,16 @@ alter table private.weave_deleted_initiatives enable row level security;
 revoke all on private.weave_deleted_initiatives from public, anon, authenticated, service_role;
 
 -- A stale first save (expected revision 0) or a retried create for a removed ID
--- fails. The trigger runs after the insert, so under READ COMMITTED (PostgREST and
--- the API's transactions) a create that waited for a concurrent deletion to commit
--- reads that deletion's tombstone and rolls back.
+-- fails with initiative_deleted, so the client can save its words as a new card.
+-- The trigger runs after the insert, so under READ COMMITTED (PostgREST and the
+-- API's transactions) a create that waited for a concurrent deletion to commit reads
+-- that deletion's tombstone and rolls back. Under REPEATABLE READ the same create
+-- fails with a serialization error (40001) instead.
 create function private.weave_initiative_not_deleted() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
   if exists (select from private.weave_deleted_initiatives where id = new.id) then
-    raise sqlstate 'PT409' using message = 'revision_conflict';
+    raise sqlstate 'PT409' using message = 'initiative_deleted';
   end if;
   return null;
 end $$;
@@ -49,14 +51,16 @@ create trigger weave_initiative_not_deleted after insert on weave.initiatives
 --   weave.needs, weave.offers                 the card's own entries: removed with it
 --   private.weave_save_requests               this owner's receipts hold only this card: removed;
 --                                             another actor's receipt: refused
---   private.weave_matching_reviews, _leads    refused
+--   private.weave_matching_reviews            a review still open: refused; expired ones: removed
+--   private.weave_matching_leads              refused
 --   private.weave_matching_query_vectors      refused
 --   weave_workspace.project_links             refused (a solo link would cascade grants,
 --                                             invites and support listings)
 --   weave_workspace.create_intents            refused
 -- Nothing references weave.needs or weave.offers. References without a foreign key:
--- matching receipts (command->>0), support listings, reviews and requests keyed by the
--- workspace ID, and any entry still shared for matching: refused. Other people's leads
+-- support listings, reviews and requests keyed by the workspace ID, any entry still
+-- shared for matching, and another actor's matching receipt (command->>0): refused.
+-- The owner's own matching receipts only replay commands on this card: removed. Other people's leads
 -- naming this card as a candidate stay theirs and read as unavailable, as after a
 -- withdrawal.
 create function private.weave_delete_initiative(p_id uuid, p_expected_revision integer, p_request_id uuid)
@@ -98,9 +102,9 @@ begin
     or exists (select from weave_workspace.support_listings where workspace_id = p_id)
     or exists (select from weave_workspace.support_reviews where workspace_id = p_id)
     or exists (select from weave_workspace.support_requests where workspace_id = p_id)
-    or exists (select from private.weave_matching_reviews where initiative_id = p_id)
+    or exists (select from private.weave_matching_reviews where initiative_id = p_id and valid_until > now())
     or exists (select from private.weave_matching_leads where initiative_id = p_id)
-    or exists (select from private.weave_matching_requests where command->>0 = p_id::text)
+    or exists (select from private.weave_matching_requests where command->>0 = p_id::text and actor_id <> actor)
     or exists (select from private.weave_matching_query_vectors where initiative_id = p_id)
     or exists (select from private.weave_save_requests where initiative_id = p_id and actor_id <> actor)
     or exists (select from private.weave_matching_entries
@@ -110,6 +114,8 @@ begin
   delete from weave.needs where initiative_id = p_id;
   delete from weave.offers where initiative_id = p_id;
   delete from private.weave_save_requests where actor_id = actor and initiative_id = p_id;
+  delete from private.weave_matching_requests where actor_id = actor and command->>0 = p_id::text;
+  delete from private.weave_matching_reviews where initiative_id = p_id;
   delete from weave.initiatives where id = p_id;
   select count(*) into kept from weave.initiatives where owner_id = actor and team_workspace_id is null;
   result = jsonb_build_object('id', p_id, 'deleted', true, 'revision', p_expected_revision,
