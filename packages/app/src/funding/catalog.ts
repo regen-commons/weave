@@ -3,6 +3,7 @@ import {
   ConditionsSchema,
   RulesSchema,
   type Bundle,
+  type Catalog,
   type Entry,
   type Program,
 } from "./contracts.ts";
@@ -34,6 +35,39 @@ export function catalogEntries(bundle: Bundle): Entry[] {
       ? fund.enrichment.programs.map((program) => ({ id: `${fund.id}::${program.id}`, fund, program }))
       : [{ id: fund.id, fund, program: null }],
   );
+}
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/u;
+const isDay = (value: unknown): value is string =>
+  typeof value === "string" &&
+  ISO_DAY.test(value) &&
+  !Number.isNaN(Date.parse(value)) &&
+  new Date(value).toISOString().startsWith(value);
+// No place's calendar runs more than 14 hours ahead of UTC.
+const LATEST_LOCAL_OFFSET_MS = 14 * 60 * 60 * 1000;
+/**
+ * The latest day this catalog records checking an official source: whole-record research,
+ * a source version or dated program evidence. Partial reviews and journaled revisions date
+ * their sources and evidence but do not move a record's whole-record research date, so
+ * `researchCheckedOn` alone falls behind them. A day after compilation cannot be in this
+ * catalog and is ignored. Null when no usable day is recorded; say so rather than guess.
+ */
+export function researchSnapshotDate(catalog: Catalog): string | null {
+  const compiled = Date.parse(catalog.compiledAt);
+  const limit = Number.isNaN(compiled)
+    ? null
+    : new Date(compiled + LATEST_LOCAL_OFFSET_MS).toISOString().slice(0, 10);
+  let latest: string | null = null;
+  const consider = (value: unknown) => {
+    if (isDay(value) && (!limit || value <= limit) && (!latest || value > latest)) latest = value;
+  };
+  consider(catalog.researchCheckedOn);
+  for (const fund of catalog.funds) {
+    consider(fund.verifiedOn);
+    for (const source of fund.enrichment.sources) consider(source.checkedOn);
+    for (const program of fund.enrichment.programs)
+      for (const evidence of program.evidence) consider(evidence.checkedOn);
+  }
+  return latest;
 }
 export type AccessTone = "success" | "warning" | "info";
 const ACCESS_TONES: Record<string, AccessTone | undefined> = { green: "success", amber: "warning", purple: "info" };

@@ -90,7 +90,8 @@ export const ConditionSchema = z.looseObject({
 export const CatalogSchema = z.looseObject({
   funds: z.array(FundSchema),
   compiledAt: z.string(),
-  researchCheckedOn: z.string(),
+  /** The latest whole-record research date. Partial reviews do not move it; see researchSnapshotDate. */
+  researchCheckedOn: z.string().optional(),
 });
 export const RulesSchema = z.object({ version: z.literal(1), rules: z.array(RuleSchema) });
 export const ConditionsSchema = z.object({ version: z.literal(1), conditions: z.array(ConditionSchema) });

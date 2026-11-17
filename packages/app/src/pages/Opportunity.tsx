@@ -7,7 +7,7 @@ import { ACCESS, effectiveAccess } from "../../../../dist/domain.mjs";
 import { fundingSourceUrl } from "../funding/source.ts";
 import { programFund } from "../../../../dist/matching.mjs";
 import { FundSchema } from "../funding/contracts.ts";
-import { catalogEntries, findEntry } from "../funding/catalog.ts";
+import { catalogEntries, findEntry, researchSnapshotDate } from "../funding/catalog.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { fitLevel } from "../funding/select.ts";
 import { fundingFixture, teamFixture, type FixtureContext } from "../fixtures.ts";
@@ -90,6 +90,7 @@ export function Opportunity({
     catalog.bundle!.conditions?.filter(
       (condition) => condition.fundId === fund.id && condition.programId === program?.id,
     ) ?? [];
+  const researchDate = researchSnapshotDate(catalog.bundle!.catalog);
   const asks = import.meta.env.DEV && example ? teamFixture(team) : null;
   // The next step depends on the person: describe the work first, then go to the funder.
   const described = catalog.personalized;
@@ -276,7 +277,7 @@ export function Opportunity({
         ) : null}
         <p className="rc-meta">
           {fund.verifiedOn ? `Sources checked ${fullDate(fund.verifiedOn)}` : "Source date not verified"}.
-          Catalog snapshot {fullDate(catalog.bundle!.catalog.researchCheckedOn)}.
+          {researchDate ? ` Latest catalog check ${fullDate(researchDate)}.` : " Latest catalog check date unknown."}
         </p>
       </section>
       {fixture?.state === "loading" && !retried ? (
