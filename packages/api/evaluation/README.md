@@ -165,21 +165,37 @@ returned results for each domain and direction, and zero unsupported
 confirmations. No recall floor has been agreed, so recall is reported, not gated.
 
 The [first run](reports/2026-11-16-matching-v3-holdout.json) used the unchanged
-`partner-concepts-v2` matcher:
+`partner-concepts-v2` matcher. Review then found that its headline was optimistic:
+it scored only candidates from the query's domain, averaged precision per query,
+counted no-match queries in the precision gate, and let a group that returned
+almost nothing pass. The [post-hoc re-scoring](reports/2026-11-16-matching-v3-holdout-post-hoc.json)
+of the same frozen corpus and engine uses the spec's definition: relevant
+suggestions among the top five, counted over suggestions, on queries with a known
+relevant candidate. A group with fewer than five suggestions is undecided. It also
+adds an all-candidates path, because the matcher in production has no domain
+field; suggestions from another domain were never judged and count as not
+relevant. This re-scoring happened after the misses were seen, so it is not a new
+independent result.
 
-| Measure, 53 agreed queries | Lexical baseline | Current matcher |
+| Post-hoc, 45 agreed positive and 8 no-match queries | Lexical baseline | Current matcher |
 |---|---:|---:|
-| Relevant among returned | 47% | 83% |
+| Relevant among top-five suggestions, all candidates (unjudged counted as not relevant) | 24% | 67% |
+| Relevant among judged top-five suggestions, all candidates | 56% | 83% |
+| Relevant among top-five suggestions, query's domain only | 44% | 83% |
 | Final recall at five | 52% | 44% |
-| Positive queries with no result | 9 of 45 | 22 of 45 |
-| No-match queries with a result | 6 of 8 | 1 of 8 |
+| Positive queries with no suggestion, all candidates | 7 | 21 |
+| No-match queries with a suggestion, all candidates | 8 of 8 | 2 of 8 |
 | Unsupported confirmations, explanation or provenance failures | 0 | 0 |
 
-The current matcher misses the 80% gate for place offers (67%), research needs
-(63%) and software offers (75%). Portuguese queries reach 40% relevance and 22%
-recall, and cross-language queries recall nothing. Token-overlap retrieval reaches
-56% of relevant candidates, so better ranking alone cannot recover the rest. This
-is synthetic, agent-judged evidence, not a release-quality claim.
+On all candidates, the current matcher fails the 80% gate for art offers (50%),
+research needs (50%) and software offers (43%); place needs pass; the other four
+groups return too few suggestions to decide. Portuguese queries reach 25% relevance
+and 22% recall, and cross-language queries recall nothing. Token-overlap retrieval
+reaches 56% of relevant candidates, an upper bound for the SQL shortlist. The
+groups hold 3 to 8 agreed positive queries each, below the spec's 20 needs and 20
+offers per domain, and the corpus has no one-way-fit or incompatibility cases.
+This is synthetic, agent-judged evidence, not a release-quality claim, and the
+matcher does not meet the spec's target on it.
 
 ### Hard safety gates
 
@@ -187,8 +203,9 @@ is synthetic, agent-judged evidence, not a release-quality claim.
 withdrawn, expired or not-yet-confirmed entries, entries of the same kind, or the
 person's own initiative; public work never becomes a confirmed need or offer and
 always leaves availability unknown; a published request never serves a need; and
-explicitly shared offers rank before inferred public capability. Removing the
-ownership, expiry or evidence-kind rule makes these tests fail. Private, unshared
+explicitly shared offers rank before inferred public capability even when the
+public passage overlaps more. Removing the ownership, expiry, evidence-kind or
+evidence-order rule makes these tests fail. Private, unshared
 and unauthorized entries are excluded before ranking by the SQL view and the
 workspace command; the opt-in PostgreSQL suites prove those.
 
@@ -214,6 +231,11 @@ Subgroups below the floor are listed even when the aggregate passes.
 |---|---:|---:|
 | Development, 53 cases | 73.6% | 81.1% |
 | Independent holdout, 66 agreed cases | 27.3% | 27.3% |
+
+A review then found that the soil rule could leave "pesquisas sobre a água" with no
+kind and could run across an entry's title and description. After that fix, both
+splits score the same; the [post-review holdout rerun](../../app/evaluation/reports/2026-11-16-support-kinds-holdout-post-review.json)
+is regression evidence on an examined holdout.
 
 The holdout misses the floor by a wide margin. Of 48 misses, 23 were empty
 proposals from vocabulary gaps (a projector, a hall, goats) and 21 added a kind

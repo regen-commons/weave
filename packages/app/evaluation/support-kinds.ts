@@ -46,7 +46,8 @@ export function validateSupportCorpus(data: unknown): SupportCorpus {
       || (row.judgeExpected !== undefined && (!Array.isArray(row.judgeExpected) || !row.judgeExpected.every(isKind))))
       throw Error("invalid_support_judgment");
     if (!Array.isArray(row.tags) || !row.tags.every((tag) => TAGS.has(tag))) throw Error("invalid_support_tag");
-    if (row.split === "holdout" && (row.judgment === "single" || row.named.length)) throw Error("invalid_holdout_case");
+    if (row.split === "holdout" && (row.judgment === "single" || row.named.length || row.annotators.length < 2
+      || !Array.isArray(row.judgeExpected))) throw Error("invalid_holdout_case");
     // A holdout label counts only when two blind annotators gave the same kinds without doubt.
     if (row.judgment === "agreed" && row.judgeExpected
       && JSON.stringify([...row.judgeExpected].sort()) !== JSON.stringify([...row.expected].sort())) throw Error("invalid_support_judgment");
@@ -130,21 +131,23 @@ export function evaluateSupportKinds(corpus: SupportCorpus, split: "development"
   });
   const invented = inventedFields(all);
   const t = corpus.thresholds;
+  const regressions = scored.filter((row) => base.get(row.id)!.exact && !next.get(row.id)!.exact).map((row) => row.id);
   const gates = {
     exactMatchFloor: { threshold: t.exactMatchFloor, observed: engines.candidate.summary.exactRate,
       passed: (engines.candidate.summary.exactRate ?? 0) >= t.exactMatchFloor },
     namedRegressions: { passed: named.every((group) => !group.failed.length), groups: named },
     noInventedAmountOrTimeframe: { passed: !invented.length, violations: invented },
+    noRegressionFromBaseline: { passed: !regressions.length, regressions },
   };
   return {
     split, gates, passed: Object.values(gates).every((gate) => gate.passed),
     baseline: engines.baseline.summary, candidate: engines.candidate.summary,
     // Every miss, false positive and regression is listed, even when the aggregate passes.
     misses: engines.candidate.rows.filter((row) => !row.exact),
-    regressions: scored.filter((row) => base.get(row.id)!.exact && !next.get(row.id)!.exact).map((row) => row.id),
+    regressions,
     fixes: scored.filter((row) => !base.get(row.id)!.exact && next.get(row.id)!.exact).map((row) => row.id),
     subgroupsBelowFloor: Object.entries({ ...engines.candidate.summary.byDirection, ...engines.candidate.summary.byLanguage,
-      ...engines.candidate.summary.byTag }).filter(([, value]) => (value.exactRate ?? 1) < t.exactMatchFloor)
+      ...engines.candidate.summary.byTag, ...engines.candidate.summary.bySource }).filter(([, value]) => (value.exactRate ?? 1) < t.exactMatchFloor)
       .map(([name, value]) => ({ name, ...value })),
     uncertain: uncertain.map((row) => ({ id: row.id, authorExpected: row.expected, judgeExpected: row.judgeExpected ?? null,
       observed: [...candidateKinds(row.text)].sort() })),
@@ -164,6 +167,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const { corpus, corpusSha256, baselineSha256, engineSha256 } = await loadSupportCorpus();
   const result = evaluateSupportKinds(corpus, split);
   const report = { dataset: corpus.dataset, corpusSha256, baselineSha256, engineSha256,
+    evaluationStatus: process.argv.includes("--post-hoc") ? "post-review-rerun-of-the-examined-holdout-regression-evidence"
+      : split === "holdout" ? "holdout-run" : "development-regression",
     baselineEngine: "support-kinds released at 921d236", candidateEngine: "packages/app/src/intake/keywords.ts",
     node: process.version, annotationStatus: corpus.annotationStatus, thresholds: corpus.thresholds,
     limits: ["Synthetic text. No real initiative wording and no human annotation.",

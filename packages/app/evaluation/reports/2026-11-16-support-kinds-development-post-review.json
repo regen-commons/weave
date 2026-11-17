@@ -1,0 +1,613 @@
+{
+  "dataset": "support-kinds-v1",
+  "corpusSha256": "f243a270ae73af402f5488cc35087e011ae9852cbe55ef38a10110853f90db5c",
+  "baselineSha256": "caad12eb752c8afbff2f39f97a32729d926b07f4f906c22658f9b0e9933c1f5a",
+  "engineSha256": "dd734e0be0be0f576fb866ea874214c6b6ec6ca5beff8ca9a82f95e17c10d19c",
+  "evaluationStatus": "development-regression",
+  "baselineEngine": "support-kinds released at 921d236",
+  "candidateEngine": "packages/app/src/intake/keywords.ts",
+  "node": "v24.20.0",
+  "annotationStatus": "Synthetic. Development cases: production QA declarations and one development author. Holdout: authored and judged by two separate agent instances blind to the engine and to each other's labels; not human judged.",
+  "thresholds": {
+    "exactMatchFloor": 0.8,
+    "namedRegressionsMustPass": true,
+    "noInventedAmountOrTimeframe": true,
+    "source": "80% is the 20-case production floor recorded in docs/platform/prototype/proof/go-live-2026-11-16/quality-results.json; named regressions are the production sample, negation gate and soil finding."
+  },
+  "limits": [
+    "Synthetic text. No real initiative wording and no human annotation.",
+    "Holdout author and judge are separate agent instances of one model family; their agreement is correlated.",
+    "Development cases include the tuned production sample and a single annotator's cases; they are regression evidence.",
+    "The keyword suggestion is a proposal the person reviews, so exact match measures proposal quality, not saved data."
+  ],
+  "split": "development",
+  "gates": {
+    "exactMatchFloor": {
+      "threshold": 0.8,
+      "observed": 0.8113,
+      "passed": true
+    },
+    "namedRegressions": {
+      "passed": true,
+      "groups": [
+        {
+          "name": "finding-soil-2026-11-16",
+          "cases": 7,
+          "failed": []
+        },
+        {
+          "name": "production-negation-gate-2026-11-16",
+          "cases": 4,
+          "failed": []
+        },
+        {
+          "name": "production-sample-2026-11-16",
+          "cases": 20,
+          "failed": []
+        }
+      ]
+    },
+    "noInventedAmountOrTimeframe": {
+      "passed": true,
+      "violations": []
+    },
+    "noRegressionFromBaseline": {
+      "passed": true,
+      "regressions": []
+    }
+  },
+  "passed": true,
+  "baseline": {
+    "cases": 53,
+    "families": 53,
+    "exact": 39,
+    "exactRate": 0.7358,
+    "perKind": {
+      "living": {
+        "support": 12,
+        "truePositive": 11,
+        "falsePositive": 8,
+        "falseNegative": 1,
+        "precision": 0.5789,
+        "recall": 0.9167
+      },
+      "material": {
+        "support": 12,
+        "truePositive": 11,
+        "falsePositive": 0,
+        "falseNegative": 1,
+        "precision": 1,
+        "recall": 0.9167
+      },
+      "intellectual": {
+        "support": 8,
+        "truePositive": 8,
+        "falsePositive": 0,
+        "falseNegative": 0,
+        "precision": 1,
+        "recall": 1
+      },
+      "experiential": {
+        "support": 8,
+        "truePositive": 7,
+        "falsePositive": 0,
+        "falseNegative": 1,
+        "precision": 1,
+        "recall": 0.875
+      },
+      "social": {
+        "support": 6,
+        "truePositive": 6,
+        "falsePositive": 1,
+        "falseNegative": 0,
+        "precision": 0.8571,
+        "recall": 1
+      },
+      "financial": {
+        "support": 6,
+        "truePositive": 6,
+        "falsePositive": 2,
+        "falseNegative": 0,
+        "precision": 0.75,
+        "recall": 1
+      },
+      "cultural": {
+        "support": 4,
+        "truePositive": 3,
+        "falsePositive": 0,
+        "falseNegative": 1,
+        "precision": 1,
+        "recall": 0.75
+      },
+      "spiritual": {
+        "support": 4,
+        "truePositive": 4,
+        "falsePositive": 0,
+        "falseNegative": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    "byDirection": {
+      "need": {
+        "cases": 31,
+        "exact": 22,
+        "exactRate": 0.7097
+      },
+      "offer": {
+        "cases": 22,
+        "exact": 17,
+        "exactRate": 0.7727
+      }
+    },
+    "byLanguage": {
+      "en": {
+        "cases": 44,
+        "exact": 32,
+        "exactRate": 0.7273
+      },
+      "pt": {
+        "cases": 9,
+        "exact": 7,
+        "exactRate": 0.7778
+      }
+    },
+    "byTag": {
+      "accents": {
+        "cases": 5,
+        "exact": 3,
+        "exactRate": 0.6
+      },
+      "amount": {
+        "cases": 5,
+        "exact": 5,
+        "exactRate": 1
+      },
+      "data-about-living": {
+        "cases": 7,
+        "exact": 2,
+        "exactRate": 0.2857
+      },
+      "decoy": {
+        "cases": 6,
+        "exact": 1,
+        "exactRate": 0.1667
+      },
+      "equipment": {
+        "cases": 11,
+        "exact": 10,
+        "exactRate": 0.9091
+      },
+      "living-resource": {
+        "cases": 10,
+        "exact": 8,
+        "exactRate": 0.8
+      },
+      "mixed": {
+        "cases": 7,
+        "exact": 6,
+        "exactRate": 0.8571
+      },
+      "negation": {
+        "cases": 6,
+        "exact": 4,
+        "exactRate": 0.6667
+      },
+      "non-money-number": {
+        "cases": 1,
+        "exact": 0,
+        "exactRate": 0
+      },
+      "portuguese": {
+        "cases": 9,
+        "exact": 7,
+        "exactRate": 0.7778
+      },
+      "single-kind": {
+        "cases": 46,
+        "exact": 33,
+        "exactRate": 0.7174
+      },
+      "sparse": {
+        "cases": 4,
+        "exact": 4,
+        "exactRate": 1
+      }
+    },
+    "bySource": {
+      "development-authored": {
+        "cases": 27,
+        "exact": 17,
+        "exactRate": 0.6296
+      },
+      "finding-soil-2026-11-16": {
+        "cases": 4,
+        "exact": 2,
+        "exactRate": 0.5
+      },
+      "production-negation-gate-2026-11-16": {
+        "cases": 2,
+        "exact": 2,
+        "exactRate": 1
+      },
+      "production-sample-2026-11-16": {
+        "cases": 20,
+        "exact": 18,
+        "exactRate": 0.9
+      }
+    }
+  },
+  "candidate": {
+    "cases": 53,
+    "families": 53,
+    "exact": 43,
+    "exactRate": 0.8113,
+    "perKind": {
+      "living": {
+        "support": 12,
+        "truePositive": 11,
+        "falsePositive": 4,
+        "falseNegative": 1,
+        "precision": 0.7333,
+        "recall": 0.9167
+      },
+      "material": {
+        "support": 12,
+        "truePositive": 11,
+        "falsePositive": 0,
+        "falseNegative": 1,
+        "precision": 1,
+        "recall": 0.9167
+      },
+      "intellectual": {
+        "support": 8,
+        "truePositive": 8,
+        "falsePositive": 0,
+        "falseNegative": 0,
+        "precision": 1,
+        "recall": 1
+      },
+      "experiential": {
+        "support": 8,
+        "truePositive": 7,
+        "falsePositive": 0,
+        "falseNegative": 1,
+        "precision": 1,
+        "recall": 0.875
+      },
+      "social": {
+        "support": 6,
+        "truePositive": 6,
+        "falsePositive": 1,
+        "falseNegative": 0,
+        "precision": 0.8571,
+        "recall": 1
+      },
+      "financial": {
+        "support": 6,
+        "truePositive": 6,
+        "falsePositive": 2,
+        "falseNegative": 0,
+        "precision": 0.75,
+        "recall": 1
+      },
+      "cultural": {
+        "support": 4,
+        "truePositive": 3,
+        "falsePositive": 0,
+        "falseNegative": 1,
+        "precision": 1,
+        "recall": 0.75
+      },
+      "spiritual": {
+        "support": 4,
+        "truePositive": 4,
+        "falsePositive": 0,
+        "falseNegative": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    "byDirection": {
+      "need": {
+        "cases": 31,
+        "exact": 24,
+        "exactRate": 0.7742
+      },
+      "offer": {
+        "cases": 22,
+        "exact": 19,
+        "exactRate": 0.8636
+      }
+    },
+    "byLanguage": {
+      "en": {
+        "cases": 44,
+        "exact": 35,
+        "exactRate": 0.7955
+      },
+      "pt": {
+        "cases": 9,
+        "exact": 8,
+        "exactRate": 0.8889
+      }
+    },
+    "byTag": {
+      "accents": {
+        "cases": 5,
+        "exact": 4,
+        "exactRate": 0.8
+      },
+      "amount": {
+        "cases": 5,
+        "exact": 5,
+        "exactRate": 1
+      },
+      "data-about-living": {
+        "cases": 7,
+        "exact": 6,
+        "exactRate": 0.8571
+      },
+      "decoy": {
+        "cases": 6,
+        "exact": 1,
+        "exactRate": 0.1667
+      },
+      "equipment": {
+        "cases": 11,
+        "exact": 10,
+        "exactRate": 0.9091
+      },
+      "living-resource": {
+        "cases": 10,
+        "exact": 8,
+        "exactRate": 0.8
+      },
+      "mixed": {
+        "cases": 7,
+        "exact": 6,
+        "exactRate": 0.8571
+      },
+      "negation": {
+        "cases": 6,
+        "exact": 4,
+        "exactRate": 0.6667
+      },
+      "non-money-number": {
+        "cases": 1,
+        "exact": 0,
+        "exactRate": 0
+      },
+      "portuguese": {
+        "cases": 9,
+        "exact": 8,
+        "exactRate": 0.8889
+      },
+      "single-kind": {
+        "cases": 46,
+        "exact": 37,
+        "exactRate": 0.8043
+      },
+      "sparse": {
+        "cases": 4,
+        "exact": 4,
+        "exactRate": 1
+      }
+    },
+    "bySource": {
+      "development-authored": {
+        "cases": 27,
+        "exact": 17,
+        "exactRate": 0.6296
+      },
+      "finding-soil-2026-11-16": {
+        "cases": 4,
+        "exact": 4,
+        "exactRate": 1
+      },
+      "production-negation-gate-2026-11-16": {
+        "cases": 2,
+        "exact": 2,
+        "exactRate": 1
+      },
+      "production-sample-2026-11-16": {
+        "cases": 20,
+        "exact": 20,
+        "exactRate": 1
+      }
+    }
+  },
+  "misses": [
+    {
+      "id": "dev-09",
+      "expected": [
+        "social"
+      ],
+      "observed": [
+        "living",
+        "social"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "dev-11",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "financial",
+        "intellectual"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "financial"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "dev-13",
+      "expected": [
+        "living"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "living"
+      ]
+    },
+    {
+      "id": "dev-15",
+      "expected": [
+        "experiential"
+      ],
+      "observed": [],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "experiential"
+      ]
+    },
+    {
+      "id": "dev-18",
+      "expected": [
+        "financial"
+      ],
+      "observed": [
+        "financial",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "dev-19",
+      "expected": [
+        "cultural",
+        "experiential"
+      ],
+      "observed": [
+        "experiential"
+      ],
+      "exact": false,
+      "falsePositive": [],
+      "falseNegative": [
+        "cultural"
+      ]
+    },
+    {
+      "id": "dev-21",
+      "expected": [
+        "living"
+      ],
+      "observed": [
+        "financial",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "financial"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "dev-22",
+      "expected": [
+        "spiritual"
+      ],
+      "observed": [
+        "social",
+        "spiritual"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "social"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "dev-23",
+      "expected": [
+        "intellectual"
+      ],
+      "observed": [
+        "intellectual",
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": []
+    },
+    {
+      "id": "dev-24",
+      "expected": [
+        "material"
+      ],
+      "observed": [
+        "living"
+      ],
+      "exact": false,
+      "falsePositive": [
+        "living"
+      ],
+      "falseNegative": [
+        "material"
+      ]
+    }
+  ],
+  "regressions": [],
+  "fixes": [
+    "prod-05",
+    "prod-10",
+    "soil-03",
+    "soil-04"
+  ],
+  "subgroupsBelowFloor": [
+    {
+      "name": "need",
+      "cases": 31,
+      "exact": 24,
+      "exactRate": 0.7742
+    },
+    {
+      "name": "en",
+      "cases": 44,
+      "exact": 35,
+      "exactRate": 0.7955
+    },
+    {
+      "name": "decoy",
+      "cases": 6,
+      "exact": 1,
+      "exactRate": 0.1667
+    },
+    {
+      "name": "negation",
+      "cases": 6,
+      "exact": 4,
+      "exactRate": 0.6667
+    },
+    {
+      "name": "non-money-number",
+      "cases": 1,
+      "exact": 0,
+      "exactRate": 0
+    },
+    {
+      "name": "development-authored",
+      "cases": 27,
+      "exact": 17,
+      "exactRate": 0.6296
+    }
+  ],
+  "uncertain": []
+}

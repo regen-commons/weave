@@ -41,7 +41,9 @@ test("public work never becomes a confirmed need or offer and never implies avai
     project("published", "published_offer", "We offer bicycle repair for cargo bikes.")];
   const forNeed = rankPartnerMatches({ queries: [need], publicEvidence: evidence, now });
   assert.deepEqual(ids(forNeed).sort(), ["published", "work"], "a published request cannot serve a need");
-  const forOffer = rankPartnerMatches({ queries: [offer], publicEvidence: evidence, now });
+  const forOffer = rankPartnerMatches({ queries: [offer], publicEvidence: [...evidence,
+    project("learners", "work", "We run bicycle repair training for volunteers in our shop.")], now });
+  assert.ok(ids(forOffer).length, "the offer query is matched, so the exclusion below is not vacuous");
   assert.ok(!ids(forOffer).includes("published"), "a published offer cannot use an offer");
   for (const match of [...forNeed, ...forOffer]) {
     assert.ok(!["confirmed_offer", "confirmed_need"].includes(match.evidenceKind));
@@ -52,11 +54,13 @@ test("public work never becomes a confirmed need or offer and never implies avai
   assert.equal(forNeed.find((m) => m.evidence.id === "work").evidenceKind, "inferred_capability");
 });
 
-test("an explicitly shared offer ranks before inferred public capability and says it was confirmed", () => {
+test("an explicitly shared offer ranks before inferred public capability, even with less word overlap", () => {
+  // The public passage shares more words than the shared offer, so only the evidence-class rule can put the offer first.
   const results = rankPartnerMatches({ queries: [need], now,
-    shared: [shared("ok", "offer", "Bicycle repair for cargo bikes")],
+    shared: [shared("ok", "offer", "Bicycle repair")],
     publicEvidence: [project("work", "work", "We run bicycle repair for cargo bikes.")] });
   assert.deepEqual(results.map((m) => m.evidenceKind), ["confirmed_offer", "inferred_capability"]);
+  assert.ok(results[1].reasons[0].terms.length > results[0].reasons[0].terms.length, "the public passage overlaps more");
   assert.equal(results[0].action, "review_entry");
   assert.ok(results[0].evidence.confirmedAt);
 });
@@ -74,7 +78,7 @@ test("the independent matching holdout is pinned, validates and rejects unscorab
 
 test("every holdout result keeps its explanation and provenance; scores are not asserted in CI", async () => {
   const { data } = await loadMatchingV3();
-  for (const path of ["retrieval", "full-domain"]) {
+  for (const path of ["all-candidates", "full-domain", "retrieval"]) {
     const result = evaluateV3(data, true, path);
     const gates = gatesV3(data, result);
     assert.equal(gates.unsupportedConfirmations.passed, true);

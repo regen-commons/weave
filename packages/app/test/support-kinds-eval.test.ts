@@ -19,7 +19,8 @@ test("development keeps the 80% floor, every named regression and the person's o
   const { corpus } = await loadSupportCorpus();
   const result = evaluateSupportKinds(corpus, "development");
   assert.equal(result.gates.exactMatchFloor.passed, true, JSON.stringify(result.misses));
-  assert.deepEqual(result.gates.namedRegressions.groups.filter((group) => group.failed.length), []);
+  assert.deepEqual(result.gates.namedRegressions.groups.map((group) => [group.name, group.cases, group.failed]), [
+    ["finding-soil-2026-11-16", 7, []], ["production-negation-gate-2026-11-16", 4, []], ["production-sample-2026-11-16", 20, []]]);
   assert.deepEqual(result.gates.noInventedAmountOrTimeframe.violations, []);
   assert.deepEqual(result.regressions, [], "no case the released engine got right may break");
 });
@@ -45,7 +46,7 @@ test("the validator rejects leakage, duplicates, unknown kinds and unscorable ho
   };
   reject((data) => data.cases.push({ ...first(), id: "copy" }), "split_leakage");
   reject((data) => data.cases.push({ ...first(), id: "moved", split: "holdout", named: [], judgment: "agreed",
-    text: "A different sentence entirely" }), "split_leakage");
+    judgeExpected: first().expected, annotators: ["author", "judge"], text: "A different sentence entirely" }), "split_leakage");
   reject((data) => { data.cases[0]!.expected = ["money" as never]; }, "invalid_support_judgment");
   reject((data) => { const row = data.cases.find((entry) => entry.split === "holdout")!; row.judgment = "single"; }, "invalid_holdout_case");
   reject((data) => {
@@ -53,4 +54,6 @@ test("the validator rejects leakage, duplicates, unknown kinds and unscorable ho
     row.judgeExpected = ["spiritual"];
   }, "invalid_support_judgment");
   reject((data) => { data.thresholds.exactMatchFloor = 0.5; }, "invalid_support_corpus");
+  reject((data) => { delete data.cases.find((entry) => entry.split === "holdout")!.judgeExpected; }, "invalid_holdout_case");
+  reject((data) => { data.cases.find((entry) => entry.split === "holdout")!.annotators = ["one annotator"]; }, "invalid_holdout_case");
 });
