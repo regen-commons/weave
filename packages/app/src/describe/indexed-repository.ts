@@ -1,5 +1,14 @@
 import { DeviceDraftSchema, type DeviceDraft } from "./contracts.ts";
-import { DraftConflict, type DraftBackup, type DraftRepository } from "./repository.ts";
+import {
+  BackupChanged,
+  DraftConflict,
+  pinned,
+  RemovalNotice,
+  type DeviceRemoval,
+  type DraftBackup,
+  type DraftPin,
+  type DraftRepository,
+} from "./repository.ts";
 export class IndexedDraftRepository implements DraftRepository {
   private connection: Promise<IDBDatabase> | undefined;
   private open(): Promise<IDBDatabase> {
@@ -75,6 +84,55 @@ export class IndexedDraftRepository implements DraftRepository {
         }
       };
       tx.onerror = tx.onabort = () => reject(new Error("Device backups could not be read."));
+    });
+  }
+  async deleteBackup(key: string, expected: DraftPin): Promise<DeviceRemoval> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction("backups", "readwrite");
+      const store = transaction.objectStore("backups");
+      const request = store.get(key);
+      let changed = false, kept = 0;
+      request.onsuccess = () => {
+        const current = request.result === undefined ? null : DeviceDraftSchema.safeParse(request.result);
+        if (!current?.success || !pinned(current.data, expected)) {
+          changed = true;
+          transaction.abort();
+          return;
+        }
+        store.delete(key);
+        const count = store.count();
+        count.onsuccess = () => { kept = count.result; };
+      };
+      transaction.oncomplete = () => resolve({ removed: [key], kept });
+      transaction.onerror = transaction.onabort = () =>
+        reject(changed ? new BackupChanged() : new RemovalNotice("This device could not remove the backup. Nothing was removed."));
+    });
+  }
+  async discardCurrent(expected: DraftPin): Promise<DeviceRemoval & { backup: string }> {
+    const db = await this.open();
+    const backup = `${new Date().toISOString()}:${crypto.randomUUID()}`;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(["drafts", "backups"], "readwrite");
+      const drafts = transaction.objectStore("drafts"), backups = transaction.objectStore("backups");
+      const request = drafts.get("current");
+      let conflict = false, kept = 0;
+      request.onsuccess = () => {
+        const current = request.result === undefined ? null : DeviceDraftSchema.safeParse(request.result);
+        if (!current?.success || !pinned(current.data, expected)) {
+          conflict = true;
+          transaction.abort();
+          return;
+        }
+        // The backup and the removal commit together, or neither does.
+        backups.put(current.data, backup);
+        drafts.delete("current");
+        const count = backups.count();
+        count.onsuccess = () => { kept = count.result; };
+      };
+      transaction.oncomplete = () => resolve({ removed: ["current"], kept, backup });
+      transaction.onerror = transaction.onabort = () =>
+        reject(conflict ? new DraftConflict() : new RemovalNotice("This device could not remove the draft. Nothing was removed."));
     });
   }
   async replace(draft: DeviceDraft, expectedRevision: number | null, signal?: AbortSignal): Promise<void> {
