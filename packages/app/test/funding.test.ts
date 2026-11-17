@@ -11,6 +11,7 @@ import {
   legacyFundingHref,
   opportunityHref,
   parseBundle,
+  researchSnapshotDate,
 } from "../src/funding/catalog.ts";
 import { evaluateCatalog } from "../src/funding/engine.ts";
 import { EvaluationSchema, emptyFundingForm } from "../src/funding/contracts.ts";
@@ -105,6 +106,46 @@ test("the app retains the entire public release and all program identities, incl
   assert.ok(bundle.conditions, "The committed prerequisite and priority criteria load completely");
   for (const entry of entries)
     assert.equal(findEntry(entries, entry.fund.id, entry.program?.id ?? null)?.id, entry.id);
+});
+test("the research snapshot date follows the latest dated source check, not the whole-record research date", () => {
+  const catalog = bundle.catalog;
+  // Partial reviews and journaled revisions date their evidence without moving researchCheckedOn.
+  const haymarket = catalog.funds.find((fund) => fund.id === "recTQMgGnvmEseTmT")!;
+  assert.ok(haymarket.enrichment.programs[0]!.evidence.some((evidence) => evidence.checkedOn === "2026-11-16"));
+  assert.equal(catalog.researchCheckedOn, "2026-10-29");
+  assert.ok(researchSnapshotDate(catalog)! >= "2026-11-16");
+  for (const page of ["Funding", "Opportunity"]) {
+    const source = readFileSync(new URL(`../src/pages/${page}.tsx`, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /researchCheckedOn/, `${page} shows the derived date`);
+    assert.match(source, /researchSnapshotDate\(/, page);
+    assert.match(source, /snapshot date unknown\./, `${page} says when the date is unknown`);
+  }
+});
+test("a snapshot with no usable research date says so instead of inventing one", () => {
+  const sample = structuredClone(bundle.catalog.funds.find((fund) => fund.enrichment.programs.length)!);
+  const snapshot = (compiledAt: string, days: { researchCheckedOn?: string; source?: string; evidence: string }) => {
+    const fund = structuredClone(sample);
+    fund.verifiedOn = null;
+    fund.enrichment.sources = [{ url: "https://example.org", ...(days.source ? { checkedOn: days.source } : {}) }];
+    fund.enrichment.programs = fund.enrichment.programs
+      .slice(0, 1)
+      .map((program) => ({ ...program, evidence: [{ url: "https://example.org", checkedOn: days.evidence }] }));
+    const { researchCheckedOn } = days;
+    return parseBundle({ funds: [fund], compiledAt, ...(researchCheckedOn ? { researchCheckedOn } : {}) }, rules, conditions)
+      .catalog;
+  };
+  assert.equal(researchSnapshotDate(snapshot("2026-11-17T00:30:00Z", { evidence: "" })), null);
+  assert.equal(researchSnapshotDate(snapshot("2026-11-17T00:30:00Z", { evidence: "2026-02-30" })), null);
+  assert.equal(researchSnapshotDate(snapshot("2026-11-17T00:30:00Z", { evidence: "16 November" })), null);
+  // A day after compilation cannot be in the snapshot; a local date a day ahead of UTC can.
+  assert.equal(researchSnapshotDate(snapshot("2026-11-17T00:30:00Z", { evidence: "2062-11-16" })), null);
+  assert.equal(researchSnapshotDate(snapshot("2026-11-16T23:00:00Z", { evidence: "2026-11-17" })), "2026-11-17");
+  assert.equal(
+    researchSnapshotDate(
+      snapshot("2026-11-17T00:30:00Z", { researchCheckedOn: "2026-10-29", source: "2026-11-15", evidence: "2026-11-09" }),
+    ),
+    "2026-11-15",
+  );
 });
 test("each program uses the unchanged rubric and full-corpus IDF; best results match the live engine", () => {
   const project = projectFrom(draft())!;

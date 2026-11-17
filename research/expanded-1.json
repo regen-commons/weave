@@ -9946,7 +9946,7 @@
           "opensOn": null,
           "closesOn": "2026-12-02",
           "deadlineInstant": null,
-          "note": "Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date."
+          "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
         },
         "costs": {
           "supported": [
@@ -9968,10 +9968,21 @@
             "url": "https://www.haymarket.org/grants-1",
             "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
             "checkedOn": "2026-10-15"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+            "checkedOn": "2026-11-16"
           }
         ],
         "unknowns": [
-          "Live intake wording conflict, duration and complete funding criteria need confirmation."
+          "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+          "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+          "Grant duration and complete funding criteria need confirmation."
         ]
       }
     ],
@@ -9985,6 +9996,11 @@
         "url": "https://www.haymarket.org/grants-1",
         "title": "Sustaining Grants 2026–27 — official program guidance",
         "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://www.haymarket.org/grants-1",
+        "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
+        "checkedOn": "2026-11-16"
       }
     ],
     "evidence": [
