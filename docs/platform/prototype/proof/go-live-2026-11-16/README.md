@@ -1,6 +1,7 @@
 # Production go-live evidence, 16 November 2026
 
-Weave is live at `ea2b810`. Both previously designated launch-blocker gates passed
+Weave went live at `ea2b810` on 16 November and is now at `024d713`, from the
+[17 November release](#release-of-85-to-93-17-november). Both previously designated launch-blocker gates passed
 on the verified new production client: negation classification and real A/B
 cross-tab session changes. Sharing remains stopped by the user's direction after
 browser-control timeouts. Matching and its dependent acceptance checks remain
@@ -10,6 +11,53 @@ QA took place on 15 to 16 November 2026, Pacific time. Production proof used the
 user's existing Brave profile. Chromium 156 was reported by the user; the version
 page was blocked, so the exact version was not independently verified. These evidence changes alter no Auth, deployment or catalog settings. The approved production cloud QA cleanup is
 recorded below. Public evidence uses account A and account B only.
+
+## Release of #85 to #93, 17 November
+
+The user approved releasing `develop` to `main` on 17 November 2026.
+[Release PR #94](https://github.com/regen-commons/weave/pull/94) merged as
+`024d713b8ac55e8ddbf75a2fdab2018d3d7720e1` at 19:56 UTC (11:56 a.m. Pacific). Its
+tree matches `develop` at `7194d4896bbffae6877781ee9e870daaf7b166c6`.
+
+| Change | What it does |
+|---|---|
+| [#86](https://github.com/regen-commons/weave/pull/86) | A return from an expired sign-in recovers to the person's task instead of failing. Needs the identity bridge redeploy below. |
+| [#90](https://github.com/regen-commons/weave/pull/90) | A person can delete one saved card or one device backup without touching the others. Needs the deletion migration below. |
+| [#88](https://github.com/regen-commons/weave/pull/88) | A linked Certified project keeps its source place and links. |
+| [#89](https://github.com/regen-commons/weave/pull/89) | A place named in an uploaded PDF is proposed as the initiative's place. |
+| [#91](https://github.com/regen-commons/weave/pull/91) | Soil research and data no longer suggest Living by themselves. |
+| [#85](https://github.com/regen-commons/weave/pull/85) | Refreshes the Haymarket catalog note and its funding date. |
+| [#92](https://github.com/regen-commons/weave/pull/92) | Adds evaluation sets and reports for user flows, kinds of support and matching. |
+| [#93](https://github.com/regen-commons/weave/pull/93) | Lets the account fixture link personal projects. Fixture only. |
+| [#87](https://github.com/regen-commons/weave/pull/87) | Adds the workspace QA cleanup evidence below. |
+
+#86 and #90 are critical tier. Both reached `develop` and production without the
+second review that tier requires, by the user's direction. That review is still
+owed.
+
+| Release evidence | Verified result |
+|---|---|
+| Weave production | `dpl_5TqNXtaEQp52pHKvRn2rmW2oyrss`, [deployment](https://weave-d6usnphtd-regen-commons.vercel.app), serving [Weave](https://weave.regencommons.com). Health returned status ok, commit `024d713`, at 23:30 UTC on 17 November. |
+| Weave rollback | `dpl_CW1UA9tLeehBXtqowkTFW1jfnRZ7` at `2c93b0f`, the deployment immediately preceding this release. No Weave rollback was performed. |
+| Deletion migration | `20261117200140_weave_initiative_deletion` added to the Platform history by [website#25](https://github.com/regen-commons/website/pull/25), merge `896d92202ef08872ae53b9c7f96b9d4a467ac398`. It is a byte-for-byte copy of `supabase/candidates/weave-initiative-deletion.sql`. The user applied it with `supabase db push`; `migration list` on Platform (`ztygpuzldujfsqrubxic`) shows it in both local and remote history. Grants were not queried after the apply. |
+| Identity bridge | `dpl_9NGryYjCXFD7XRBHrjejx2brE6Re`, built from `024d713`, serving [the bridge](https://auth.regencommons.com). Upload archive SHA-256 `0e18a5c64124e38e44ed26cb7659f597eeb461128d1dde0139bfcfceb8824f2d`. The build ran typecheck and 20 bridge and sign-in tests, which passed locally and on Vercel. |
+| Bridge rollback | `dpl_A3pK35hYcLGzS3g8vixKrykjiv9j`, the earlier live bridge. The user promoted it at about 23:30 UTC on 17 November, then had the new build re-promoted minutes later. Both promotions completed. |
+| Bridge continuity | After the first promote, discovery, `/jwks`, `/client-metadata.json` and `/at-jwks.json` returned 200 with the same digests as before the deploy, and an unknown client got 400. Runtime logs showed no errors. After the re-promote, discovery, `/jwks` and `/at-jwks.json` again returned 200 with the same digest and key IDs `PNJi9otFeNK6hvIYvq373HuXRlH0FPPz` and `-jnWRUAqPt6TSsV9Sz4xWnjvIekFae3N`. |
+| Settings boundary | No environment, key, deployment-configuration or shared Auth change. `WEAVE_AUTH_APP_ORIGIN` stays unset, so the bridge's recovery returns to `https://weave.regencommons.com`. The bridge upload dropped the two earlier overlay archives, because `main` already contains their files. |
+| Funding Commons | `Canceled by Ignored Build Step` on `024d713`: skipped as configured, not published. |
+
+**Not proven in production:**
+
+- The expired sign-in recovery. It needs a real Certified sign-in held past five
+  minutes.
+- Deleting a saved card or a device backup. No production card or backup was
+  deleted, and the remaining production device data was left alone by the user's
+  direction.
+- Saving, sharing and matching for this release. They were proven in the fixture
+  only. Production sharing stays stopped until the user approves resuming QA.
+
+The shared Auth Site URL change that #86's analysis raised needs a separate
+decision with the website maintainers.
 
 ## Released fixes and post-release production verification
 
@@ -367,8 +415,9 @@ check followed. The Platform destination was reconfirmed first.
 
 Remaining: the production device draft with its PDF and the seven earlier task
 backups among the 19, and the separate local fixture's draft, backup and
-attachment. Selective device removal is a draft change that needs release
-approval before it can be used on production. Private selectors stay outside Git.
+attachment. Selective device removal shipped on 17 November in #90; using it on
+the production device data needs the user's approval. Private selectors stay
+outside Git.
 
 ## Rendered proof
 
@@ -470,4 +519,5 @@ remain stopped and unproven; restarting them needs the user's direction.
 - When the user authorizes resumed sharing QA: complete A/B matching, reasons,
   private-entry exclusion and edit/withdrawal propagation. Keep the earlier
   production gate/update passes distinct from those unproven steps.
-- Finish supported selective local cleanup when it becomes available.
+- Finish selective local cleanup with #90's removal, which is now released, once
+  the user approves touching the production device data.
