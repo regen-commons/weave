@@ -4,10 +4,12 @@ import type { SignInAttempt } from "../../api/src/sign-in-store.ts";
 import { createAccountHandlers } from "@weave/api/account";
 import { AccountError, type AccountProvider } from "../../api/src/account-provider.ts";
 import { certifiedEmailHints } from "../../api/src/certified/email-hint.ts";
-import type { SavedInitiative } from "@weave/api/account-contract";
+import type { DeletedInitiative, SavedInitiative } from "@weave/api/account-contract";
 const sessions = new Map<string, string>();
 const records = new Map<string, { owner: string; saved: SavedInitiative }>();
 const requests = new Map<string, { input: string; saved: SavedInitiative }>();
+/** Removed IDs stay reserved, as in the database candidate, so a stale first save cannot bring a card back. */
+const removed = new Map<string, { owner: string; requestId: string; deleted: DeletedInitiative }>();
 const owner = (token: string) => {
   const id = sessions.get(token);
   if (!id) throw new AccountError(401, "sign_in_required");
@@ -69,6 +71,8 @@ const provider: AccountProvider = {
     }
     const row = records.get(command.id);
     if (row && row.owner !== id) throw new AccountError(404, "not_found");
+    if (!row && removed.has(command.id))
+      throw new AccountError(command.expectedRevision === 0 ? 409 : 404, command.expectedRevision === 0 ? "save_conflict" : "not_found");
     if ((row?.saved.revision ?? 0) !== command.expectedRevision) throw new AccountError(409, "save_conflict");
     const saved = {
       id: command.id,
@@ -79,6 +83,22 @@ const provider: AccountProvider = {
     records.set(saved.id, { owner: id, saved });
     requests.set(key, { input, saved });
     return saved;
+  },
+  async deleteInitiative(token, command) {
+    const id = owner(token), row = records.get(command.id);
+    if (!row || row.owner !== id) {
+      const previous = removed.get(command.id);
+      if (previous?.owner === id && previous.requestId === command.requestId && previous.deleted.revision === command.expectedRevision)
+        return previous.deleted;
+      throw new AccountError(404, "not_found");
+    }
+    if (row.saved.revision !== command.expectedRevision) throw new AccountError(409, "save_conflict");
+    records.delete(command.id);
+    for (const [key, request] of requests) if (key.startsWith(`${id}:`) && request.saved.id === command.id) requests.delete(key);
+    const deleted: DeletedInitiative = { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id],
+      kept: [...records.values()].filter((item) => item.owner === id).length };
+    removed.set(command.id, { owner: id, requestId: command.requestId, deleted });
+    return deleted;
   },
 };
 export const accountFixture = createAccountHandlers({

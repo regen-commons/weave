@@ -275,6 +275,30 @@ function checkedSave(value: unknown, allowUnclassified: boolean): SavedInitiativ
     document: checkedDocument(o.document, allowUnclassified),
   };
 }
+/** What one account deletion removed and how many personal saved cards the account kept. */
+export interface DeletedInitiative {
+  id: string;
+  deleted: true;
+  revision: number;
+  removed: string[];
+  kept: number;
+}
+export function parseDeleted(value: unknown): DeletedInitiative {
+  const o = exact(value, ["id", "deleted", "revision", "removed", "kept"]);
+  if (
+    !uuid(o.id) ||
+    o.deleted !== true ||
+    !Number.isSafeInteger(o.revision) ||
+    Number(o.revision) < 1 ||
+    !Array.isArray(o.removed) ||
+    o.removed.length !== 1 ||
+    o.removed[0] !== o.id ||
+    !Number.isSafeInteger(o.kept) ||
+    Number(o.kept) < 0
+  )
+    throw Error("invalid_data");
+  return { id: o.id, deleted: true, revision: Number(o.revision), removed: [o.id], kept: Number(o.kept) };
+}
 export function parseUser(value: unknown): AccountUser {
   const o = record(value);
   if (!uuid(o.id)) throw Error("invalid_data");

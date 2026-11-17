@@ -32,6 +32,7 @@ function fixture(emailHints?: ReturnType<typeof certifiedEmailHints>) {
     async save() { throw Error("sign-in must never save"); },
     async load() { throw Error("sign-in must never load"); },
     async list() { throw Error("sign-in must never list private documents"); },
+    async deleteInitiative() { throw Error("sign-in must never delete"); },
   };
   const make = () => createSignInHandlers({ origin, secureCookies: true, provider, store, emailHints });
   const post = (returnTo: string, headers = {}, email?: string, emailRedirectConsent?: boolean) =>

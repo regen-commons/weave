@@ -1,10 +1,12 @@
 import {
+  parseDeleted,
   parseSaved,
   parseSummaries,
   parseUser,
   record,
   type AccountDocument,
   type AccountUser,
+  type DeletedInitiative,
   type SavedInitiative,
   type InitiativeSummary,
 } from "./account-contract.ts";
@@ -28,6 +30,11 @@ export interface AccountProvider {
     token: string,
     command: { id: string; expectedRevision: number; requestId: string; document: AccountDocument },
   ): Promise<SavedInitiative>;
+  /** Removes one personal saved card at its exact revision. A retry with the same request ID repeats the result. */
+  deleteInitiative(
+    token: string,
+    command: { id: string; expectedRevision: number; requestId: string },
+  ): Promise<DeletedInitiative>;
 }
 function supabaseRequests(url: string, key: string, request: typeof fetch) {
   const call = async (path: string, method: string, body: unknown, token?: string, schema = false) => {
@@ -58,12 +65,16 @@ function supabaseRequests(url: string, key: string, request: typeof fetch) {
   const rpc = async (name: string, body: unknown, token: string) => {
     const { response, data } = await call(`/rest/v1/rpc/${name}`, "POST", body, token, true);
     if (!response.ok) {
-      let code = "";
+      let code = "", message = "";
       try {
-        code = String(record(data).code);
+        const error = record(data);
+        code = String(error.code);
+        message = String(error.message);
       } catch {
         /* Never return provider data. */
       }
+      // Only a known reason is mapped to its own stable code; the provider's words never leave.
+      if (code === "PT409" && message === "initiative_referenced") throw new AccountError(409, "initiative_referenced");
       if (["PT400", "PT401", "PT403", "PT404", "PT409", "PT429"].includes(code))
         throw new AccountError(
           Number(code.slice(2)),
@@ -156,6 +167,20 @@ export function createSupabaseAccountProvider(
     async load(token, id) {
       try {
         return parseSaved(await rpc("load_initiative", { p_id: id }, token));
+      } catch (error) {
+        if (error instanceof AccountError) throw error;
+        throw new AccountError(503, "account_unavailable");
+      }
+    },
+    async deleteInitiative(token, command) {
+      try {
+        return parseDeleted(
+          await rpc(
+            "delete_initiative",
+            { p_id: command.id, p_expected_revision: command.expectedRevision, p_request_id: command.requestId },
+            token,
+          ),
+        );
       } catch (error) {
         if (error instanceof AccountError) throw error;
         throw new AccountError(503, "account_unavailable");

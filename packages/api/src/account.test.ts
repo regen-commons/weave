@@ -26,6 +26,10 @@ function fixture() {
     list: async () => [{ id, revision: 1, name: "Synthetic initiative", updatedAt: saved.updatedAt }],
     load: async () => saved,
     save: async (_token, command) => ({ ...saved, document: command.document }),
+    deleteInitiative: async (_token, command) => {
+      calls.push(`delete:${command.id}:${command.expectedRevision}:${command.requestId}`);
+      return { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id], kept: 2 };
+    },
   };
   return { provider, calls, handlers: createAccountHandlers({ provider }) };
 }
@@ -260,4 +264,102 @@ test("a saved card carries any type of work the app offers, learning included, a
   const withLenses = (lenses: unknown) => parseDocument({ ...document, initiative: { ...document.initiative, lenses } });
   assert.deepEqual(withLenses(["learning", "place_based"]).initiative.lenses, ["learning", "place_based"]);
   assert.throws(() => withLenses(["schools"]), /invalid_data/);
+});
+
+test("delete removes one exact saved card through the provider and reports what was removed and kept", async () => {
+  const { handlers, calls } = fixture();
+  const command = { action: "delete", id, expectedRevision: 3, requestId };
+  const result = await handlers.POST(post(command));
+  assert.equal(result.status, 200);
+  assert.deepEqual(await result.json(), { deleted: { id, deleted: true, revision: 3, removed: [id], kept: 2 } });
+  assert.deepEqual(calls, [`delete:${id}:3:${requestId}`]);
+});
+
+test("delete rejects cross-site, non-JSON, oversized, signed-out and malformed commands before the provider", async () => {
+  const { handlers, calls } = fixture();
+  const command = { action: "delete", id, expectedRevision: 3, requestId };
+  for (const [body, headers, status, error] of [
+    [command, { origin: "https://other.test" }, 403, "origin_required"],
+    [command, { "content-type": "text/plain" }, 415, "json_required"],
+    [command, { cookie: "" }, 401, "sign_in_required"],
+    [{ ...command, padding: "x".repeat(65536) }, {}, 413, "request_too_large"],
+    [{ ...command, accountId: user.id }, {}, 400, "invalid_data"],
+    [{ action: "delete", id, expectedRevision: 3 }, {}, 400, "invalid_data"],
+    [{ action: "delete", id, requestId }, {}, 400, "invalid_data"],
+    [{ ...command, id: "not-a-uuid" }, {}, 400, "invalid_data"],
+    [{ ...command, requestId: "x" }, {}, 400, "invalid_data"],
+    [{ ...command, expectedRevision: 0 }, {}, 400, "invalid_data"],
+    [{ ...command, expectedRevision: 1.5 }, {}, 400, "invalid_data"],
+    [{ ...command, expectedRevision: "3" }, {}, 400, "invalid_data"],
+    [{ ...command, expectedRevision: 2147483647 }, {}, 400, "invalid_data"],
+  ] as const) {
+    const result = await handlers.POST(post(body, headers));
+    assert.equal(result.status, status, JSON.stringify(body).slice(0, 80));
+    assert.deepEqual(await result.json(), { error });
+  }
+  assert.deepEqual(calls, []);
+});
+
+test("delete failures keep stable codes, clear an ended session and never echo the provider", async () => {
+  const command = { action: "delete", id, expectedRevision: 3, requestId };
+  for (const [failure, status, code] of [
+    [new AccountError(401, "sign_in_required"), 401, "sign_in_required"],
+    [new AccountError(404, "not_found"), 404, "not_found"],
+    [new AccountError(409, "save_conflict"), 409, "save_conflict"],
+    [new AccountError(409, "initiative_referenced"), 409, "initiative_referenced"],
+    [new Error("private provider detail"), 503, "account_unavailable"],
+  ] as const) {
+    const { provider } = fixture();
+    provider.deleteInitiative = async () => { throw failure; };
+    const result = await createAccountHandlers({ provider }).POST(post(command));
+    assert.equal(result.status, status);
+    assert.deepEqual(await result.json(), { error: code });
+    assert.equal(/Max-Age=0/.test(result.headers.get("set-cookie") ?? ""), status === 401);
+  }
+  const { provider } = fixture();
+  provider.authorize = async () => { throw new AccountError(401, "sign_in_required"); };
+  let removed = 0;
+  provider.deleteInitiative = async () => { removed++; throw new Error("unreachable"); };
+  assert.equal((await createAccountHandlers({ provider }).POST(post(command))).status, 401);
+  assert.equal(removed, 0, "an expired session never reaches the delete command");
+  const other = fixture().provider;
+  other.deleteInitiative = async () => ({ id: "b3000000-0000-4000-8000-000000000009", deleted: true, revision: 3,
+    removed: ["b3000000-0000-4000-8000-000000000009"], kept: 0 });
+  const mismatch = await createAccountHandlers({ provider: other }).POST(post(command));
+  assert.equal(mismatch.status, 503, "a result for another card is not reported as this deletion");
+});
+
+test("the delete RPC uses the person's token and maps only known database reasons", async () => {
+  const replies: { status: number; body: unknown }[] = [];
+  const seen: { url: string; authorization: string | null; profile: string | null; body: unknown }[] = [];
+  const provider = createSupabaseAccountProvider("https://db.example.test", "sb_publishable_synthetic", async (url, init) => {
+    const headers = new Headers(init?.headers);
+    seen.push({ url: String(url), authorization: headers.get("authorization"), profile: headers.get("content-profile"),
+      body: JSON.parse(String(init?.body)) });
+    const reply = replies.shift()!;
+    return Response.json(reply.body, { status: reply.status });
+  });
+  const command = { id, expectedRevision: 3, requestId };
+  replies.push({ status: 200, body: { id, deleted: true, revision: 3, removed: [id], kept: 4 } });
+  assert.deepEqual(await provider.deleteInitiative("test.access.token", command), { id, deleted: true, revision: 3, removed: [id], kept: 4 });
+  assert.deepEqual(seen[0], { url: "https://db.example.test/rest/v1/rpc/delete_initiative", authorization: "Bearer test.access.token",
+    profile: "weave", body: { p_id: id, p_expected_revision: 3, p_request_id: requestId } });
+  for (const [body, status, code] of [
+    [{ code: "PT409", message: "initiative_referenced", details: "private detail" }, 409, "initiative_referenced"],
+    [{ code: "PT409", message: "revision_conflict" }, 409, "save_conflict"],
+    [{ code: "PT409", message: "something private" }, 409, "save_conflict"],
+    [{ code: "PT404", message: "not_found" }, 404, "not_found"],
+    [{ code: "PT401", message: "sign_in_required" }, 401, "sign_in_required"],
+    [{ code: "PT400", message: "invalid_data" }, 400, "invalid_data"],
+    [{ code: "42501", message: "permission denied for table initiatives" }, 403, "account_unavailable"],
+  ] as const) {
+    replies.push({ status, body });
+    await assert.rejects(provider.deleteInitiative("test.access.token", command),
+      (error) => error instanceof AccountError && error.code === code && !error.message.includes("private"));
+  }
+  for (const body of [{ id, deleted: false, revision: 3, removed: [id], kept: 0 }, { id, deleted: true, revision: 3, removed: [], kept: 0 },
+    { id, deleted: true, revision: 3, removed: [id], kept: -1 }, { id, deleted: true, revision: 3, removed: [id], kept: 0, extra: 1 }]) {
+    replies.push({ status: 200, body });
+    await assert.rejects(provider.deleteInitiative("test.access.token", command), /account_unavailable/);
+  }
 });
