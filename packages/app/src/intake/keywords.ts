@@ -18,7 +18,7 @@ export function wholeWords(keywords: RegExp, symbols?: RegExp): RegExp {
   return new RegExp(symbols ? `${words}|${symbols.source}` : words, "iu");
 }
 const BANKS = {
-  living: wholeWords(/living|land|water|rainwater|seed\w*|soil|tree\w*|plant\w*|nursery|terra|mudas|sementes|água/),
+  living: wholeWords(/living|land|water|rainwater|seed\w*|soil|topsoil|tree\w*|plant\w*|nursery|terra|mudas|sementes|água/),
   material: wholeWords(
     /tool\w*|equipment\w*|equipamento\w*|machine\w*|máquina\w*|tractor\w*|trator\w*|pumps?|shovel\w*|spade\w*|wheelbarrow\w*|greenhouse\w*|estufa\w*|irrigation|vehicle\w*|fenc\w*|trucks?|building|venue|materials?|ferramenta\w*|cerca\w*/,
   ),
@@ -47,11 +47,30 @@ const KIND_CLAUSES = new RegExp([
   String.raw`(?:,\s*|\b(?:and|or)\s+)(?=(?:we|i|you|they|it)\b|${DENIED_SUPPORT.source})`,
   String.raw`\b(?:but|however|yet)\s+(?=(?:we|i|you|they|it|need|offer|provide|share|want|seek|lend|have)\b|${DENIED_SUPPORT.source})`,
 ].join("|"), "iu");
+// A living word that only says what information is about ("soil test data", "data on
+// water quality", "dados sobre a água") names knowledge, not a living resource. Only an
+// Intellectual word anchors the phrase, so the Intellectual suggestion always remains.
+// Only the word directly qualified is covered: in "topsoil and soil test data" the
+// topsoil may be a resource, so an ambiguous list keeps Living for the person to check.
+const LIVING_TOPIC = String.raw`(?:soil|topsoil|water|rainwater|land|seed\w*|tree\w*|plant\w*|terra|água|solo)`;
+const TOPIC_DETAIL = String.raw`(?:health|quality|moisture|carbon|fertility|nutrient\w*|chemistry|samples?|sampling|tests?|testing|use|cover|tenure|saving|conditions?)`;
+const INFORMATION = String.raw`(?:data|research|map\w*|knowledge|method\w*|review\w*|dados|pesquisa\w*)`;
+const TOPICS = String.raw`${LIVING_TOPIC}(?:\s+${TOPIC_DETAIL}){0,3}`;
+const INFORMATION_ABOUT_LIVING = new RegExp(
+  wholeWords(
+    new RegExp(
+      `${TOPICS}\\s+${INFORMATION}|${INFORMATION}\\s+(?:on|about|of|into|de|da|do|das|dos|sobre)\\s+(?:(?:the|our|their|a|o|as|os)\\s+)?${TOPICS}`,
+    ),
+  ).source,
+  "giu",
+);
 /** Kinds of support the words point at: a keyword suggestion for a person to check, never a classification. */
 export function suggestKinds(text: string): (keyof typeof BANKS)[] {
   const assertions = text.split(KIND_CLAUSES).filter((clause) => !DENIED_SUPPORT.test(clause));
   return (Object.keys(BANKS) as (keyof typeof BANKS)[]).filter((key) =>
-    assertions.some((clause) => BANKS[key].test(clause)),
+    assertions.some((clause) =>
+      BANKS[key].test(key === "living" ? clause.replace(INFORMATION_ABOUT_LIVING, " ") : clause),
+    ),
   );
 }
 export function chunksFrom(text: string, sourceId: string): AskChunk[] {

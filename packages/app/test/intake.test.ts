@@ -410,6 +410,52 @@ test("positive wording, additive not only and amount punctuation retain support 
   assert.deepEqual(suggestKinds("We can share rainwater for the garden"), ["living"]);
   assert.deepEqual(suggestKinds("Rainwaterproof covers"), [], "rainwater remains a whole word");
 });
+test("research and data about soil, water or land suggest Intellectual, not a living resource", () => {
+  for (const words of [
+    "We need open research and soil test data.",
+    "We offer open research and soil test data.",
+    "We need soil health data",
+    "We need data on soil moisture",
+    "We offer research about water quality",
+    "We need a land use map",
+    "Precisamos de dados sobre a água",
+  ])
+    assert.deepEqual(suggestKinds(words), ["intellectual"], words);
+});
+test("actual soil, seeds and water keep Living beside data about them", () => {
+  for (const words of [
+    "We need soil for the garden beds",
+    "We offer topsoil and compost",
+    "We can share seeds and rainwater for the garden.",
+    "We need water for the nursery",
+    "Precisamos de água para a horta",
+  ])
+    assert.deepEqual(suggestKinds(words), ["living"], words);
+  assert.deepEqual(suggestKinds("We need topsoil and soil test data"), ["living", "intellectual"]);
+  assert.deepEqual(suggestKinds("We can share soil and water quality data"), ["living", "intellectual"],
+    "an ambiguous list keeps Living for the person to check");
+  assert.deepEqual(suggestKinds("We need seeds, tools and research on seed saving"), ["living", "material", "intellectual"]);
+  assert.deepEqual(suggestKinds("Precisamos de água e dados sobre o solo"), ["living", "intellectual"]);
+  assert.deepEqual(suggestKinds("We don't need soil data. We need seeds."), ["living"], "negation still applies");
+  assert.deepEqual(suggestKinds("We don't need money. We need soil test data."), ["intellectual"]);
+});
+test("a reviewed kind on soil data survives Keep, rebuilding and a device reload", async () => {
+  for (const kind of ASK_KINDS) {
+    const words = `We ${kind === "needs" ? "need" : "offer"} open research and soil test data.`;
+    let step = addEntry(emptyAskStep(), words);
+    const item = step.items[0]!;
+    assert.deepEqual(item.value.capitalForms, ["intellectual"]);
+    step = keepPending(toggleKind(step, item.id, "living"));
+    const rebuilt = reconcile(step, keywordExtraction([{ key: "soil", text: words }], kind));
+    assert.deepEqual(rebuilt.items.filter((entry) => entry.decision === "kept").map((entry) => entry.value.capitalForms),
+      [["living", "intellectual"]]);
+    const repository = new MemoryDraftRepository();
+    await repository.save(DeviceDraftSchema.parse({ ...newDraft(), [kind]: rebuilt }), null);
+    const reloaded = (await repository.load())![kind].items.find((entry) => entry.id === item.id)!;
+    assert.deepEqual(reloaded.value.capitalForms, ["living", "intellectual"]);
+    assert.equal(reloaded.decision, "kept");
+  }
+});
 test("denied support stays in the person's words and manual kinds survive Keep and rebuilding", () => {
   for (const kind of ASK_KINDS) {
     const words = `We don't ${kind === "needs" ? "need" : "offer"} money`;
