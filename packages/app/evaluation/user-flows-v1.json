@@ -1,0 +1,498 @@
+{
+ "version": 1,
+ "description": "Required user flows mapped to the exact tests that prove them. landsWith names the branch that adds a test; the checker requires it only with --require-all, on a branch that contains every fix.",
+ "classes": {
+  "module": "deterministic node --test in CI",
+  "disposable-postgres": "opt-in PostgreSQL suite; run against a disposable loopback container, skipped in ordinary CI"
+ },
+ "flows": [
+  {
+   "id": "describe-form",
+   "behavior": "Describe through the four fields, with refusals that store nothing",
+   "evidence": [
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "describe opens on the four fields, and on the conversation only when chosen or already used",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "Continue refuses a missing name, too many places and unsafe links in plain words, and stores nothing",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/check-card.test.ts",
+     "test": "Keep card confirms the four fields as they read and every pencil detail in one tap",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "describe-conversation",
+   "behavior": "Describe through a typed conversation without inventing facts",
+   "evidence": [
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "Talk it through keeps what was typed, lets the conversation fill blank fields, and a build clears the raw field text",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "keyword mode reads text on the device, keeps unknowns empty and never fabricates mapped places or languages",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "the typed conversation proposes a stated place by the same rule, and its Where answer wins",
+     "class": "module",
+     "landsWith": "claude/fix-pdf-structured-place"
+    }
+   ]
+  },
+  {
+   "id": "describe-pdf",
+   "behavior": "Describe through a PDF read on the device, with explicit places proposed for review",
+   "evidence": [
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "PDF text extraction disables eval/WASM/font loading and cleans up on success, unread pages and abort",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "text attachments are read while unsupported files remain stored and explicitly unread",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "a place the PDF states explicitly is proposed for Where, and its words are kept",
+     "class": "module",
+     "landsWith": "claude/fix-pdf-structured-place"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "two different places or a list stay unassigned, with every source word kept",
+     "class": "module",
+     "landsWith": "claude/fix-pdf-structured-place"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "words with no stated place leave Where empty for the person to fill",
+     "class": "module",
+     "landsWith": "claude/fix-pdf-structured-place"
+    }
+   ]
+  },
+  {
+   "id": "source-fields-review",
+   "behavior": "Source fields survive correction, Keep, removed suggestions and reload",
+   "evidence": [
+    {
+     "file": "packages/app/test/check-card.test.ts",
+     "test": "a removed detail stays removed through Keep card, and a corrected one keeps the correction",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "review blocks unconfirmed or stale derived facts and preserves corrections and removals after a rebuild",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "explicit link removals cannot be reintroduced through public edits or raw forms",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "unfinished answer, review and link edits survive device serialization and block premature confirmation",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/project-page.test.ts",
+     "test": "linking the same project again suggests nothing new, and a removed suggestion stays removed",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "a Where the person typed or reviewed is never replaced by a place from a PDF",
+     "class": "module",
+     "landsWith": "claude/fix-pdf-structured-place"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "a place proposed from a PDF and its manual correction survive a reload of the device draft",
+     "class": "module",
+     "landsWith": "claude/fix-pdf-structured-place"
+    }
+   ]
+  },
+  {
+   "id": "support-kinds",
+   "behavior": "All eight kinds, equipment, amounts, negation, mixed, Portuguese, accents, soil data and living resources",
+   "evidence": [
+    {
+     "file": "packages/app/test/support-kinds-eval.test.ts",
+     "test": "development keeps the 80% floor, every named regression and the person's own words",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/support-kinds-eval.test.ts",
+     "test": "the soil finding failed on the released engine and passes on the candidate",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "explicitly denied support is not suggested for needs or offers",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "kinds come from whole words in any script, so água is water and careço is not care",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "research and data about soil, water or land suggest Intellectual, not a living resource",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "actual soil, seeds and water keep Living beside data about them",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "a reviewed kind on soil data survives Keep, rebuilding and a device reload",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "private-save-load",
+   "behavior": "Private save and load bound to the signed-in account",
+   "evidence": [
+    {
+     "file": "packages/app/test/account.test.ts",
+     "test": "checked card roundtrips without source text, files, confidence or local editors",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/account.test.ts",
+     "test": "saved list and load responses must belong to the account shown in the UI",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/src/account.test.ts",
+     "test": "private save and load round-trip unclassified entries while matching still requires classification",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/social-live.test.ts",
+     "test": "the live screen adapter saves and reloads a private card through the authenticated account handlers",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "account-switching",
+   "behavior": "Switching accounts hides the previous account and keeps device work",
+   "evidence": [
+    {
+     "file": "packages/app/test/account-session.test.ts",
+     "test": "new sign-in immediately hides the previous account, rechecks the cookie once and recovers without saving or loading",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/account.test.ts",
+     "test": "a card on this device belongs to the account that saved it, and is set aside for any other",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/src/account.test.ts",
+     "test": "a cookie changed by another tab cannot save under a different account",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "cross-tab-sign-out",
+   "behavior": "Signing out in one tab clears private views in the others without reload",
+   "evidence": [
+    {
+     "file": "packages/app/test/account-session.test.ts",
+     "test": "confirmed sign-out clears two independent tab clients and keeps device drafts and backups",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/account-session-events.test.ts",
+     "test": "two independent clients receive a real channel sign-out with no identity, tokens or private data",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/account-session.test.ts",
+     "test": "an unconfirmed sign-out keeps both tabs signed in and does not publish invalidation",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "stale-responses",
+   "behavior": "Stale responses cannot restore an old account or overwrite newer device work",
+   "evidence": [
+    {
+     "file": "packages/app/test/account-session.test.ts",
+     "test": "invalidation rejects all private API responses already parsing, including stale success and auth failure",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/account-session.test.ts",
+     "test": "a cloud Load still in flight at sign-out cannot replace device words, files or backups",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/social-live.test.ts",
+     "test": "an older project discovery response cannot erase the refreshed return list",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "retries",
+   "behavior": "Retries reuse the same request and never duplicate a write",
+   "evidence": [
+    {
+     "file": "packages/app/test/account.test.ts",
+     "test": "save retries reuse the same request only for the same owner and checked payload",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/saved-presence.test.ts",
+     "test": "uncertain project creation retries the same reviewed intent, and unreadable state sends no new write",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/matching-feedback.test.ts",
+     "test": "matching feedback replays the exact uncertain command and retains success/error and refresh feedback",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "storage-failure",
+   "behavior": "Device storage failure never claims a save or loses words",
+   "evidence": [
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "storage failure never claims a save or discards words; retry can recover without overwriting another draft",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/account.test.ts",
+     "test": "failed backup and a competing tab preserve the visible draft",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/describe.test.ts",
+     "test": "device writes serialize newer input and reject a second tab's stale revision",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "expired-sign-in",
+   "behavior": "An expired Certified sign-in returns to the person's task, never the shared Site URL",
+   "evidence": [
+    {
+     "file": "packages/api/src/sign-in.test.ts",
+     "test": "a Certified return after Supabase's flow window goes back to the task, never to the Site URL",
+     "class": "module",
+     "landsWith": "claude/fix-expired-sign-in"
+    },
+    {
+     "file": "packages/api/src/sign-in.test.ts",
+     "test": "a stall after Certified, a revisited start and expired bridge state all return to the task",
+     "class": "module",
+     "landsWith": "claude/fix-expired-sign-in"
+    },
+    {
+     "file": "packages/api/src/sign-in.test.ts",
+     "test": "a Certified return within Supabase's window finishes the sign-in on the person's task",
+     "class": "module",
+     "landsWith": "claude/fix-expired-sign-in"
+    }
+   ]
+  },
+  {
+   "id": "import-link-reuse",
+   "behavior": "Import, link and reuse a Certified project without duplicates or overwriting reviewed content",
+   "evidence": [
+    {
+     "file": "packages/app/test/duplicates.test.ts",
+     "test": "the same name points to the project, whatever its case, accents or plurals",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/social-live.test.ts",
+     "test": "duplicate suggestions use actual project names and only verified fields replace the device card",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/project-page.test.ts",
+     "test": "a checked card stays checked: the suggestions wait beside it and nothing leaves until they are kept",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/social-live.test.ts",
+     "test": "Use this project on a team workspace brings the source place and links, keeps them on reload and writes nothing",
+     "class": "module",
+     "landsWith": "claude/fix-certified-source-fields"
+    },
+    {
+     "file": "packages/app/test/project-page.test.ts",
+     "test": "a place or links the person already gave the card stay theirs when a project is linked",
+     "class": "module",
+     "landsWith": "claude/fix-certified-source-fields"
+    },
+    {
+     "file": "packages/app/test/project-page.test.ts",
+     "test": "a project without a place or links, or with a place Weave could not read, leaves Where and links empty",
+     "class": "module",
+     "landsWith": "claude/fix-certified-source-fields"
+    }
+   ]
+  },
+  {
+   "id": "selective-deletion",
+   "behavior": "Selective cloud and device deletion that preserves unrelated data",
+   "evidence": [
+    {
+     "file": "packages/api/src/account.test.ts",
+     "test": "delete rejects cross-site, non-JSON, oversized, signed-out and malformed commands before the provider",
+     "class": "module",
+     "landsWith": "claude/fix-selective-deletion"
+    },
+    {
+     "file": "packages/app/test/delete-card.test.ts",
+     "test": "a refused, unconfirmed or mismatched deletion changes nothing on the device and says why",
+     "class": "module",
+     "landsWith": "claude/fix-selective-deletion"
+    },
+    {
+     "file": "packages/app/test/device-removal.test.ts",
+     "test": "deleting one backup by its exact key and pin removes only it; the draft and other backups stay identical",
+     "class": "module",
+     "landsWith": "claude/fix-selective-deletion"
+    },
+    {
+     "file": "packages/app/test/device-removal.test.ts",
+     "test": "a wrong key, ID, revision or time removes nothing and says the backup changed",
+     "class": "module",
+     "landsWith": "claude/fix-selective-deletion"
+    },
+    {
+     "file": "packages/api/src/initiative-deletion-postgres.test.ts",
+     "test": "another account, a stale revision, a team document and bad sessions or inputs change nothing",
+     "class": "disposable-postgres",
+     "landsWith": "claude/fix-selective-deletion"
+    },
+    {
+     "file": "packages/api/src/initiative-deletion-postgres.test.ts",
+     "test": "a card anything else refers to is refused before any row is removed",
+     "class": "disposable-postgres",
+     "landsWith": "claude/fix-selective-deletion"
+    }
+   ]
+  },
+  {
+   "id": "sharing-matching-synthetic",
+   "behavior": "Sharing, matching, editing, expiry and withdrawal on synthetic fixtures",
+   "evidence": [
+    {
+     "file": "packages/app/test/network-partners.test.ts",
+     "test": "private Save, selected sharing, evidence, leads and returning account use the same initiative IDs",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/network-partners.test.ts",
+     "test": "a private edit after preview invalidates that preview and an edited share requires another review",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/network-partners.test.ts",
+     "test": "team editing shares only selected entries, invalidates edits and denies viewer commands",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/src/matching.test.ts",
+     "test": "matches both directions with shared entries and public evidence without confusing evidence classes",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/evaluation/safety-gates.test.mjs",
+     "test": "only open, confirmed, unexpired entries of the other kind from another initiative are matched",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/evaluation/safety-gates.test.mjs",
+     "test": "public work never becomes a confirmed need or offer and never implies availability",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "sharing-lifecycle-database",
+   "behavior": "Shares, edits, withdrawal and private-entry exclusion in disposable PostgreSQL",
+   "evidence": [
+    {
+     "file": "packages/api/src/project-workspaces-postgres.test.ts",
+     "test": "matching returns only shared complementary entries from linked active workspaces",
+     "class": "disposable-postgres"
+    },
+    {
+     "file": "packages/api/src/project-workspaces-postgres.test.ts",
+     "test": "a second workspace finds only selected shares and loses them after edits or withdrawal",
+     "class": "disposable-postgres"
+    },
+    {
+     "file": "packages/api/src/support-publication-postgres.test.ts",
+     "test": "PostgreSQL edit/close/delete and confirmed project unlisting queue withdrawal in the private save transaction",
+     "class": "disposable-postgres"
+    }
+   ]
+  },
+  {
+   "id": "matching-quality",
+   "behavior": "Matching quality on frozen development and independent holdout fixtures",
+   "evidence": [
+    {
+     "file": "packages/api/evaluation/safety-gates.test.mjs",
+     "test": "every holdout result keeps its explanation and provenance; scores are not asserted in CI",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/evaluation/evaluation.test.mjs",
+     "test": "frozen fixtures reject topic, text, identity and judgment leakage",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "funding-snapshot",
+   "behavior": "Funding shows the research snapshot from authoritative metadata",
+   "evidence": [
+    {
+     "file": "packages/app/test/funding.test.ts",
+     "test": "the research snapshot date follows the latest dated source check, not the whole-record research date",
+     "class": "module",
+     "landsWith": "codex/fix-catalog-snapshot-date"
+    },
+    {
+     "file": "packages/app/test/funding.test.ts",
+     "test": "a snapshot with no usable research date says so instead of inventing one",
+     "class": "module",
+     "landsWith": "codex/fix-catalog-snapshot-date"
+    }
+   ]
+  }
+ ]
+}
