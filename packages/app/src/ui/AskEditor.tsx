@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, type FormEvent } from "react";
-import { suggestKinds } from "../intake/keywords.ts";
+import { suggestEntryKinds } from "../intake/keywords.ts";
 import { CAPITALS } from "../capitals.ts";
 import { SCOPES, STATUS, TERMS, URGENCY, type AskForm, type AskKind } from "../intake/contracts.ts";
 
@@ -33,7 +33,7 @@ export function AskEditor({
     if (key === "capitalForms") manualKinds.current = true;
     const updated = { ...value, [key]: next };
     if (!manualKinds.current && (key === "title" || key === "description"))
-      updated.capitalForms = suggestKinds(`${updated.title} ${updated.description}`);
+      updated.capitalForms = suggestEntryKinds(updated.title, updated.description);
     onChange(updated);
   };
   function text(
