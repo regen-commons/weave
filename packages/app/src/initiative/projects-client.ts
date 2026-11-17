@@ -16,8 +16,8 @@ export interface PublicProject {
   description?: string;
   createdAt?: string;
   place?: ProjectPlace;
-  /** Its publisher's web addresses on Certified. */
-  links?: string[];
+  /** The web addresses on its publisher's Certified profile: the group's, or the person's own. Not the project's links. */
+  publisherLinks?: string[];
 }
 export interface WorkspaceListing {
   workspaceId: string;
@@ -43,9 +43,9 @@ function projectLinks(value: unknown): string[] {
   if (!Array.isArray(value) || value.length > 6 || !value.every(link => LinkSchema.safeParse(link).success)) return invalid();
   return [...new Set(value as string[])];
 }
-/** The place and links a project's source gives the card; empty when it gives none, so nothing is invented. */
-export function projectDetails(project: Pick<PublicProject, "place" | "links">) {
-  return { locations: project.place?.status === "named" ? [project.place.name] : [], links: [...(project.links ?? [])] };
+/** The place a project's source gives the card; empty when it gives none, so nothing is invented. */
+export function projectLocations(project: Pick<PublicProject, "place">): string[] {
+  return project.place?.status === "named" ? [project.place.name] : [];
 }
 export function projectRecord(value: unknown): PublicProject {
   const p = record(value);
@@ -58,7 +58,7 @@ export function projectRecord(value: unknown): PublicProject {
     ...(typeof p.createdAt === "string" && Number.isFinite(Date.parse(p.createdAt)) ? { createdAt: p.createdAt } : {}),
     ...(typeof p.groupDid === "string" ? { groupDid: p.groupDid } : {}),
     ...(p.place === undefined ? {} : { place: projectPlace(p.place) }),
-    ...(p.links === undefined ? {} : { links: projectLinks(p.links) }) };
+    ...(p.publisherLinks === undefined ? {} : { publisherLinks: projectLinks(p.publisherLinks) }) };
 }
 export function projectPage(value: Record<string, unknown>) {
   if (!Array.isArray(value.projects) || value.projects.length > 25

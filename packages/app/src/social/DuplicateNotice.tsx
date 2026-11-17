@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { likelyDuplicate } from "../initiative/duplicates.ts";
-import { draftWithRecord, suggestionsOnLink } from "../initiative/import.ts";
+import { draftWithRecord, placeOnLink, suggestionsOnLink } from "../initiative/import.ts";
 import { publicCard } from "../initiative/status.ts";
 import { useSocial } from "./context.tsx";
-import { sourceDetailsLine, suggestionLine } from "./words.ts";
+import { placeLine, publisherLinksLine, suggestionLine } from "./words.ts";
 
 /** Projects the person said are a different initiative, for this visit. */
 const different = new Set<string>();
@@ -39,6 +39,7 @@ export function DuplicateNotice() {
     try {
       // Counted before linking, from the same reading the link makes.
       const suggested = suggestionsOnLink(controller.getSnapshot().draft, match);
+      const place = placeOnLink(controller.getSnapshot().draft, match);
       await social.service.linkProject(match.uri);
       // The project's four public details become the card's. Needs and offers stay as they are,
       // and its description's suggestions are added in pencil.
@@ -47,8 +48,9 @@ export function DuplicateNotice() {
       setMessage(
         [
           `Your card now uses ${match.name} from Certified.`,
-          // Example projects replace all four details; a live one fills its place and links only where the card is empty.
-          sourceDetailsLine(match),
+          // Example projects replace all four details. A live one fills an empty Where and keeps its publisher's links apart.
+          placeLine(place, true),
+          publisherLinksLine(match, true),
           suggestionLine(suggested) || "Your needs and offers are unchanged.",
         ].filter(Boolean).join(" "),
       );

@@ -97,12 +97,12 @@ const memberGroup = "did:plc:cccccccccccccccccccccccc";
 const memberUri = `at://${memberGroup}/org.hypercerts.collection/seed-library`;
 const project = (uri: string, title: string, group?: string, source: Record<string, unknown> = {}) => ({ uri, cid: "bafyfixture", repoDid: uri.split("/")[2],
   ...(group ? { groupDid: group } : {}), title, description: "A fictional local project for learning and watershed monitoring.", createdAt: "2026-11-01T00:00:00Z", ...source });
-// Place and links as Certified's source gives them: named, or a place Weave could not read (coordinates only).
+// Place and publisher links as Certified's source gives them: named, or a place Weave could not read (coordinates only).
 const fixtureProjects = [
   project(groupUri, "Watershed Team (fixture)", groupDid,
-    { place: { status: "named", name: "Lower river meadows (fixture)" }, links: ["https://watershed.example.org/"] }),
+    { place: { status: "named", name: "Lower river meadows (fixture)" }, publisherLinks: ["https://watershed.example.org/"] }),
   project(memberUri, "Seed library (fixture)", memberGroup,
-    { place: { status: "named", name: "Upper valley seed house (fixture)" }, links: ["https://seeds.example.org/"] }),
+    { place: { status: "named", name: "Upper valley seed house (fixture)" }, publisherLinks: ["https://seeds.example.org/"] }),
   project(personalUri, "Water notes (fixture)", undefined, { place: { status: "unread" } }),
 ];
 const externalGroup = "did:plc:ffffffffffffffffffffffff";

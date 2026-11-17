@@ -183,9 +183,9 @@ test("caller cancellation stops discovery before any provider or SQL operation",
   assert.equal(reads.length, 0);
 });
 
-test("project and workspace summaries carry the source place and links as read, and omit what the source lacks", async () => {
+test("project and workspace summaries carry the source place and publisher links as read, and omit what the source lacks", async () => {
   const sourced = { ...project, place: { status: "named" as const, name: "Riverside allotments" },
-    links: ["https://garden.example.org/"] };
+    publisherLinks: ["https://garden.example.org/"] };
   const unread = { ...project, uri: `${projectUri}2`, place: { status: "unread" as const } };
   const { execute } = fixture({
     listProjects: async () => ok({ repositoryDid: groupDid, certifiedRole: "admin" as const, projects: [sourced, unread, project] }),

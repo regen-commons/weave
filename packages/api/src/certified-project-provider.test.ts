@@ -516,9 +516,9 @@ function sourceReads(url: URL, options: { entry?: unknown; place?: unknown; org?
   return Response.json({ uri, cid, value: entry });
 }
 
-test("a project's own location record gives its place, and its organization's web addresses give its links", async () => {
+test("a project's own location record gives its place, and its organization's web addresses stay the publisher's links", async () => {
   const sourced = { ...fullProject, place: { status: "named", name: "Riverside allotments, Upper valley" },
-    links: ["https://garden.example.org/", "https://social.example.org/@garden"] };
+    publisherLinks: ["https://garden.example.org/", "https://social.example.org/@garden"] };
   const read = fixture(url => sourceReads(url, { place: place(), org: siteLinks }));
   assert.deepEqual(await read.provider.getProject(uri), { ok: true, value: sourced });
   const listed = fixture(url => sourceReads(url, { place: place(), org: siteLinks }));
@@ -529,6 +529,7 @@ test("a project's own location record gives its place, and its organization's we
     [place({ name: "North orchard", locationType: "coordinate-decimal",
       location: { $type: `${locationNsid}#string`, string: "-23.5, -46.6" } }), "North orchard"],
     [place({ locationType: "country-code", location: { $type: `${locationNsid}#string`, string: "NG" } }), "Nigeria"],
+    [place({ locationType: "country-code", location: { $type: `${locationNsid}#string`, string: "BR" } }), "Brazil"],
   ] as const) {
     const { provider } = fixture(url => sourceReads(url, { place: record }));
     const result = await provider.getProject(uri);
@@ -545,11 +546,13 @@ test("a place Weave cannot read as a name stays unread, and a missing place or l
     ["a GeoJSON point", { place: place({ locationType: "geojson-point",
       location: { $type: `${locationNsid}#string`, string: '{"type":"Point","coordinates":[7.07,6.21]}' } }) }],
     ["an external file", { place: place({ location: { $type: "org.hypercerts.defs#uri", uri: "https://example.org/area.geojson" } }) }],
-    ["no such country", { place: place({ locationType: "country-code", location: { $type: `${locationNsid}#string`, string: "ZZ" } }) }],
+    ...["ZZ", "AN", "CS", "YU", "SU", "DD", "AC", "CP", "CQ", "DG", "EA", "IC", "TA", "EU", "XK", "ng"].map(code =>
+      [`code ${code}, which is not a current ISO country`,
+        { place: place({ locationType: "country-code", location: { $type: `${locationNsid}#string`, string: code } }) }] as const),
     ["an address longer than a place", { place: place({ location: { $type: `${locationNsid}#string`, string: "Plot ".repeat(30) } }) }],
     ["not a location record", { place: { $type: "app.example.other", name: "Somewhere" } }],
     ["a deleted location record", {}],
-    ["a location read that fails", { place: badGateway() }],
+    ["a malformed location response", { place: Response.json({ uri: locationUri, cid: "not-a-cid", value: place() }) }],
     ["a reference in another repository", { entry: otherRepository }],
     ["several locations", { entry: { ...value, location: [located.location, located.location] } }],
     ["a reference without a version", { entry: { ...value, location: { uri: locationUri } } }],
@@ -562,6 +565,13 @@ test("a place Weave cannot read as a name stays unread, and a missing place or l
     ? Response.json({ uri: locationUri, cid, value: place() }) : sourceReads(url));
   const moved = await changed.provider.getProject(uri);
   assert.deepEqual(moved.ok && moved.value.place, unread, "a newer location record is not substituted for the pinned one");
+
+  for (const [label, failure] of [["an outage", badGateway()], ["a refusal", Response.json({}, { status: 403 })],
+    ["a timeout", new Promise<Response>(() => undefined)]] as const) {
+    const { provider } = fixture(url => url.searchParams.get("collection") === locationNsid ? failure : sourceReads(url), { timeoutMs: 50 });
+    assert.deepEqual(await provider.getProject(uri), { ok: true, value: fullProject },
+      `${label} leaves the place out instead of calling it unreadable`);
+  }
 
   const bare = fixture(url => sourceReads(url, { entry: value, org: { $type: organization, createdAt: date } }));
   assert.deepEqual(await bare.provider.getProject(uri), { ok: true, value: fullProject }, "no place or links are invented");

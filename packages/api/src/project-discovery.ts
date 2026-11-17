@@ -44,7 +44,8 @@ function summary(project: CertifiedProject) {
   return { uri: project.uri, cid: project.cid, repoDid: project.repoDid,
     ...(project.groupDid ? { groupDid: project.groupDid } : {}), title: project.title,
     ...(project.description ? { description: [...project.description].slice(0, 600).join("") } : {}),
-    ...(project.place ? { place: project.place } : {}), ...(project.links?.length ? { links: project.links } : {}),
+    ...(project.place ? { place: project.place } : {}),
+    ...(project.publisherLinks?.length ? { publisherLinks: project.publisherLinks } : {}),
     createdAt: project.createdAt, visibility: "public" as const };
 }
 

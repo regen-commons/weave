@@ -10,6 +10,7 @@ type ProjectRecord = PublicCard & {
   readonly uri?: string;
   readonly isGlobal?: boolean;
   readonly verifiedFields?: readonly (keyof PublicCard)[];
+  readonly unreadFields?: readonly (keyof PublicCard)[];
 };
 /** One entry a project page suggests, named by its list. */
 export interface ProjectSuggestion {
@@ -68,6 +69,16 @@ function ownPlaceAndLinks(draft: DeviceDraft, current: Initiative) {
   };
 }
 
+/** What linking a project does with its place: fills an empty Where, keeps the card's own, names one Weave could not read, or nothing. */
+export type PlaceOnLink = "filled" | "kept" | "unread" | "none";
+
+export function placeOnLink(draft: DeviceDraft, record: ProjectRecord): PlaceOnLink {
+  if (record.unreadFields?.includes("locations")) return "unread";
+  if (!record.verifiedFields?.includes("locations") || !record.locations.length) return "none";
+  const own = ownPlaceAndLinks(draft, draft.confirmed ?? draft.proposal ?? EMPTY_INITIATIVE);
+  return own.locations.length || own.isGlobal ? "kept" : "filled";
+}
+
 /**
  * Puts a linked Certified project's four public details on the card this device already has.
  * Needs, offers, funding answers and the details Weave keeps for matching stay as they are.
@@ -80,7 +91,7 @@ export function withProjectDetails(draft: DeviceDraft, record: ProjectRecord): D
   const current = draft.confirmed ?? draft.proposal ?? EMPTY_INITIATIVE;
   const own = ownPlaceAndLinks(draft, current);
   const supplied = (field: keyof PublicCard) => !!record.verifiedFields?.includes(field);
-  const fillPlace = supplied("locations") && record.locations.length > 0 && !own.locations.length && !own.isGlobal;
+  const fillPlace = placeOnLink(draft, record) === "filled";
   const fillLinks = supplied("links") && record.links.length > 0 && !own.links.length;
   const source = record.verifiedFields ? {
     name: supplied("name") ? record.name : current.name,

@@ -1,9 +1,10 @@
 /**
  * Whether a card looks like a project the person already has on Certified, so Weave can offer
- * that project before a second copy starts. A shared link is the strongest sign when only one
- * project has it; a link several projects share, such as their group's website, leaves the
- * choice to the names. The names have to agree: the same words, or every word of the shorter
- * name inside the longer one when it has at least two. It only suggests; the person decides.
+ * that project before a second copy starts. A project's own link is the strongest sign when only
+ * one project has it; a link several projects share leaves the choice to the names, first among
+ * those projects and then among all. Links on a publisher's profile are not a project's and never
+ * count. The names have to agree: the same words, or every word of the shorter name inside the
+ * longer one when it has at least two. It only suggests; the person decides.
  */
 const SMALL_WORDS = new Set(["a", "an", "and", "the", "of", "for", "e", "o", "os", "as", "da", "das", "de", "do", "dos"]);
 
@@ -46,5 +47,6 @@ export function likelyDuplicate<T extends { readonly name: string; readonly link
   );
   if (byLink.length === 1) return byLink[0]!;
   const name = words(card.name);
-  return (byLink.length ? byLink : records).find((record) => sameName(name, words(record.name))) ?? null;
+  const named = (list: readonly T[]) => list.find((record) => sameName(name, words(record.name)));
+  return named(byLink) ?? named(records) ?? null;
 }

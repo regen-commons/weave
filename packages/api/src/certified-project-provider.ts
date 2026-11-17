@@ -59,10 +59,16 @@ export type CertifiedProject = {
   description?: string;
   createdAt: string;
   visibility: "public" | "unlisted";
-  /** From the project's own `location` record. Absent when the project names no location. */
+  /**
+   * From the project's own `location` record. Absent when the project names no location, or when that
+   * record could not be reached this time, so a passing failure is never reported as an unreadable place.
+   */
   place?: CertifiedProjectPlace;
-  /** The web addresses (`urls`) on the organization record of the repository that publishes the project. */
-  links?: string[];
+  /**
+   * The web addresses (`urls`) on the organization record of the repository that publishes the project.
+   * They are the publisher's links, not the project's own, and are kept apart from it.
+   */
+  publisherLinks?: string[];
 };
 export type CertifiedProjectDraft = { rkey: string; title: string; description?: string; createdAt: string };
 export type CertifiedProjectTarget = { kind: "personal" } | { kind: "group"; groupDid: string };
@@ -248,8 +254,15 @@ function placeLabel(value: unknown): string | undefined {
   return label && label.length <= 120 && !/[\p{Cc}\p{Surrogate}]/u.test(label) ? label : undefined;
 }
 
-// Region codes that CLDR names but that are not one country.
-const notCountries = new Set(["EU", "EZ", "QO", "UN", "XA", "XB", "ZZ"]);
+// The 249 officially assigned ISO 3166-1 alpha-2 codes. CLDR also names withdrawn codes through aliases
+// (AN, CS, SU, YU, DD) and regions that are not countries (AC, CP, EA, EU, IC, XK, ZZ); none of those count.
+const countryCodes = new Set(("AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS "
+  + "BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ "
+  + "FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT "
+  + "JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP "
+  + "MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE "
+  + "RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV "
+  + "TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW").split(" "));
 const regionNames = new Intl.DisplayNames(["en"], { type: "region", fallback: "none" });
 
 /**
@@ -265,8 +278,8 @@ function placeName(value: Record<string, unknown>): string | undefined {
   const { $type, string } = inline as Record<string, unknown>;
   if ($type !== `${locationNsid}#string`) return undefined;
   if (value.locationType === "address") return placeLabel(string);
-  if (value.locationType === "country-code" && typeof string === "string" && /^[A-Z]{2}$/u.test(string)
-    && !notCountries.has(string)) return placeLabel(regionNames.of(string));
+  if (value.locationType === "country-code" && typeof string === "string" && countryCodes.has(string))
+    return placeLabel(regionNames.of(string));
   return undefined;
 }
 
@@ -416,7 +429,8 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
 
   /**
    * The project's place from the location record it pins in its own repository. A missing, changed,
-   * foreign or unreadable record, or one that holds only coordinates, stays unread: nothing is guessed.
+   * foreign or malformed record, or one that holds only coordinates, stays unread: nothing is guessed.
+   * A read that fails for a passing reason, such as a timeout or an outage, leaves the place out.
    */
   async function readPlace(pds: string, repo: string, entry: Record<string, unknown>, signal: AbortSignal)
     : Promise<CertifiedProjectPlace | undefined> {
@@ -424,7 +438,8 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     const reference = locationReference(entry.location, repo);
     if (!reference) return { status: "unread" };
     const read = await readRecord(pds, repo, locationNsid, reference.rkey, signal);
-    const name = read.ok && read.value.cid === reference.cid ? placeName(read.value.value) : undefined;
+    if (!read.ok) return read.code === "not_found" || read.code === "invalid_response" ? { status: "unread" } : undefined;
+    const name = read.value.cid === reference.cid ? placeName(read.value.value) : undefined;
     return name ? { status: "named", name } : { status: "unread" };
   }
 
@@ -459,7 +474,11 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
       };
     });
     if (!project.ok) return project;
-    const org = await readRecord(identity.value.pds, repo, organization, "self", signal);
+    // The organization and location records are independent, so they are read together.
+    const [org, place] = await Promise.all([
+      readRecord(identity.value.pds, repo, organization, "self", signal),
+      readPlace(identity.value.pds, repo, source.value.value, signal),
+    ]);
     if (org.ok) {
       const publisher = decode(org, ({ value }) => {
         if (value.$type !== organization) throw Error("invalid_organization_record");
@@ -467,9 +486,8 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
       });
       if (!publisher.ok) return publisher;
       if (publisher.value.visibility === "unlisted") project.value.visibility = "unlisted";
-      if (publisher.value.links.length) project.value.links = publisher.value.links;
+      if (publisher.value.links.length) project.value.publisherLinks = publisher.value.links;
     } else if (org.code !== "not_found") return org;
-    const place = await readPlace(identity.value.pds, repo, source.value.value, signal);
     if (place) project.value.place = place;
     return ok({ project: project.value, value: source.value.value });
   }
@@ -676,19 +694,17 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
           const description = readProjectDescription(value);
           return [{ entry: value, project: { uri, cid, repoDid: repositoryDid, ...(target.kind === "group" ? { groupDid: repositoryDid } : {}),
             title: value.title, createdAt: value.createdAt, visibility: "public",
-            ...(description === undefined ? {} : { description }), ...(links.length ? { links: [...links] } : {}) } }];
+            ...(description === undefined ? {} : { description }), ...(links.length ? { publisherLinks: [...links] } : {}) } }];
         });
         return { projects, ...(page.cursor === undefined ? {} : { cursor: page.cursor }) };
       });
       if (!listed.ok) return listed;
-      // Each place is its project's own location record, read a few at a time. A failed read leaves it unread.
+      // Each place is its project's own location record. A page holds at most 25, read together.
       const { projects } = listed.value;
-      for (let start = 0; start < projects.length; start += 5) {
-        await Promise.all(projects.slice(start, start + 5).map(async ({ project, entry }) => {
-          const place = await readPlace(pds, repositoryDid, entry, signal);
-          if (place) project.place = place;
-        }));
-      }
+      await Promise.all(projects.map(async ({ project, entry }) => {
+        const place = await readPlace(pds, repositoryDid, entry, signal);
+        if (place) project.place = place;
+      }));
       return ok({ ...base, projects: projects.map(({ project }) => project),
         ...(listed.value.cursor === undefined ? {} : { cursor: listed.value.cursor }) });
     },

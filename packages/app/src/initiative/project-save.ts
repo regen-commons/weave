@@ -3,15 +3,18 @@ import { accountKey, loadedDraft, saveCommand } from "../account/document.ts";
 import { DeviceDraftSchema, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft } from "../describe/contracts.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { reviewStep } from "../intake/state.ts";
-import { projectDetails, projectRequest, type PublicProject } from "./projects-client.ts";
+import { projectLocations, projectRequest, type PublicProject } from "./projects-client.ts";
 import { uuid } from "@weave/api/account-contract";
 
-/** A reviewed public project supplies only its actual name, description, place and links. Missing facts stay empty. */
+/**
+ * A reviewed public project supplies only its actual name, description and place. Missing facts stay
+ * empty, and its publisher's links stay off the card because they are not the project's own.
+ */
 export function personalProjectDraft(project: PublicProject): DeviceDraft {
   const draft = newDraft();
-  const card = { ...EMPTY_INITIATIVE, name: project.title, description: project.description ?? "", ...projectDetails(project) };
+  const card = { ...EMPTY_INITIATIVE, name: project.title, description: project.description ?? "", locations: projectLocations(project) };
   return DeviceDraftSchema.parse({ ...draft, proposal: card, confirmed: card, proposalVersion: draft.inputVersion,
-    links: card.links, publicEdits: { links: card.links }, needs: reviewStep(draft.needs), offers: reviewStep(draft.offers) });
+    needs: reviewStep(draft.needs), offers: reviewStep(draft.offers) });
 }
 
 export async function preparePersonalProject(controller: DraftController, project: PublicProject, signal: AbortSignal) {

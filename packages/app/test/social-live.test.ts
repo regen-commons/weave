@@ -101,15 +101,17 @@ test("duplicate suggestions use actual project names and only verified fields re
   assert.equal(next.composer, draft.composer);
 });
 
-test("Use this project on a team workspace brings the source place and links, keeps them on reload and writes nothing", async () => {
+test("Use this project on a team workspace brings the source place, keeps it on reload and writes nothing", async () => {
   const { service, controller, repo, bodies } = await fixture();
   await service.reload();
   const match = likelyDuplicate({ name: "Watershed Team", links: [] }, service.snapshot().workspaces!)!;
-  assert.deepEqual(match.verifiedFields, ["name", "description", "locations", "links"]);
+  assert.deepEqual(match.verifiedFields, ["name", "description", "locations"]);
+  assert.deepEqual([match.links, match.publisherLinks], [[], ["https://watershed.example.org/"]],
+    "the group's links are kept apart from the project's own");
   await service.linkProject(match.uri);
   const linked = controller.getSnapshot().draft;
   assert.deepEqual(publicCard(linked).locations, ["Lower river meadows (fixture)"]);
-  assert.deepEqual(publicCard(linked).links, ["https://watershed.example.org/"]);
+  assert.deepEqual(publicCard(linked).links, [], "the group's links stay off the card");
   assert.equal(service.snapshot().project?.workspaceId, FIXTURE_TEAM_ID, "the existing workspace is reused");
   assert.deepEqual(bodies.filter(body => !String(body.action).startsWith("list_")).map(body => body.action), ["lookup"],
     "no project is created and nothing is saved to the team");
@@ -122,13 +124,13 @@ test("Use this project on a team workspace brings the source place and links, ke
   assert.equal(reopened.getSnapshot().draft.form?.where, "Lower river meadows (fixture)");
 });
 
-test("a fresh link takes the source place and links, and a place Weave cannot read stays empty and named as unread", async () => {
+test("a fresh link takes the source place, and a place Weave cannot read stays empty and named as unread", async () => {
   const member = await fixture(FIXTURE_GROUP_MEMBER);
   await member.service.reload();
   const seeds = member.service.snapshot().records.find(p => p.name === "Seed library (fixture)")!;
   await member.service.linkProject(seeds.uri);
   assert.deepEqual(publicCard(member.controller.getSnapshot().draft).locations, ["Upper valley seed house (fixture)"]);
-  assert.deepEqual(publicCard(member.controller.getSnapshot().draft).links, ["https://seeds.example.org/"]);
+  assert.deepEqual(publicCard(member.controller.getSnapshot().draft).links, []);
   const admin = await fixture();
   await admin.service.reload();
   const notes = admin.service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
