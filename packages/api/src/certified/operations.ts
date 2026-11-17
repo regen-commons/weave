@@ -2,7 +2,7 @@ import { performance } from "node:perf_hooks";
 import type { RequestListener } from "node:http";
 
 const events = ["started", "stopped", "start_failed", "stop_failed", "cleanup_succeeded",
-  "cleanup_failed", "provider_error", "request_failed", "sign_in_expired"] as const;
+  "cleanup_failed", "provider_error", "request_failed"] as const;
 type BridgeEvent = typeof events[number];
 const routes = ["discovery", "keys", "authorization", "token", "certified_callback", "interaction", "end_session", "unknown"] as const;
 type BridgeRoute = typeof routes[number];
@@ -11,6 +11,9 @@ const startStages = ["interaction_details", "browser_state", "email_hint", "oaut
 export type BridgeStartStage = typeof startStages[number];
 const startErrors = ["state_store_failed", "upstream_rejected", "upstream_timeout",
   "upstream_request_failed", "validation_failed"] as const;
+/** Why the bridge sent a sign-in back to Weave instead of to Supabase. Labels only, never identifiers. */
+const expiryReasons = ["cookie_missing", "state_gone", "deadline", "interaction_gone", "principal_changed"] as const;
+export type BridgeExpiryReason = typeof expiryReasons[number];
 const oauthErrors = ["invalid_client", "invalid_request", "invalid_scope", "unauthorized_client",
   "unsupported_response_type", "invalid_grant", "use_dpop_nonce", "server_error", "temporarily_unavailable"] as const;
 export function allowlistedOAuthError(value: unknown) {
@@ -26,6 +29,7 @@ export interface BridgeObserver {
   event(name: BridgeEvent): void;
   request(route: BridgeRoute, status: number, durationMs: number, aborted: boolean): void;
   startFailure(failure: BridgeStartFailure): void;
+  expired(reason: BridgeExpiryReason): void;
 }
 
 /** The sink accepts only reconstructed, bounded labels. It never receives a request or error. */
@@ -36,6 +40,7 @@ export function createBridgeObserver(write: (line: string) => void = () => {}): 
   };
   return {
     event(name) { if (events.includes(name)) emit({ event: name }); },
+    expired(reason) { if (expiryReasons.includes(reason)) emit({ event: "sign_in_expired", reason }); },
     startFailure({ stage, error, upstreamStatus, oauthError }) {
       if (!startStages.includes(stage) || !startErrors.includes(error)) return;
       const code = error === "upstream_rejected" ? allowlistedOAuthError(oauthError) : undefined;

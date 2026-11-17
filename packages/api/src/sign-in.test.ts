@@ -254,7 +254,7 @@ function platformAuth() {
   };
 }
 /** Expiry follows the mocked clock, as the database clock does for the real store. */
-function memoryStore(signing: SigningMaterial): AuthStore {
+function memoryStore(signing: SigningMaterial): AuthStore & { records: Map<string, { payload: Record<string, unknown> }> } {
   const rows = new Map<string, { payload: Record<string, unknown>; expires: number; consumed?: number }>();
   const live = (key: string) => {
     const row = rows.get(key);
@@ -289,7 +289,8 @@ function memoryStore(signing: SigningMaterial): AuthStore {
     },
     remove: async (namespace: string, id: string) => { rows.delete(`${namespace}:${id}`); },
     revokeGrant: async () => {},
-  } as unknown as AuthStore;
+    records: rows,
+  } as unknown as AuthStore & { records: typeof rows };
 }
 function cookieJar() {
   const cookies = new Map<string, string>();
@@ -306,7 +307,9 @@ function cookieJar() {
 }
 async function bridgeChain(run: (scenario: {
   issuer: string; browser: ReturnType<typeof cookieJar>; app: ReturnType<typeof fixture>; auth: ReturnType<typeof platformAuth>;
-  certifiedCallbacks: () => number; events: () => string[];
+  certifiedCallbacks: () => number; store: ReturnType<typeof memoryStore>;
+  /** The bounded reasons the bridge logged for each return to Weave. */
+  expiries: () => string[];
   /** Follows bridge redirects until the browser leaves the bridge. */
   follow: (url: string) => Promise<string>;
   /** Supabase's callback and then Weave's, as the browser would continue. */
@@ -327,8 +330,9 @@ async function bridgeChain(run: (scenario: {
   const address = server.address(); assert.ok(address && typeof address !== "string");
   const issuer = `http://127.0.0.1:${address.port}`;
   try {
+    const store = memoryStore(signing);
     bridge = await createBridge({ issuer, clientId: "weave-platform", clientSecret: "x".repeat(40), redirectUri: supabaseCallback,
-      appOrigin: origin, loopbackTest: true }, memoryStore(signing), certified, createBridgeObserver(line => lines.push(line)));
+      appOrigin: origin, loopbackTest: true }, store, certified, createBridgeObserver(line => lines.push(line)));
     const browser = cookieJar(), app = fixture(), auth = platformAuth();
     const follow = async (url: string) => {
       for (let n = 0; n < 12; n++) {
@@ -344,8 +348,8 @@ async function bridgeChain(run: (scenario: {
       if (!location.startsWith(origin)) return location;
       return (await app.make().GET(new Request(location, { headers: { Cookie: appCookie } }))).headers.get("location")!;
     };
-    await run({ issuer, browser, app, auth, follow, finish, certifiedCallbacks: () => callbacks,
-      events: () => lines.map(line => JSON.parse(line).event as string) });
+    await run({ issuer, browser, app, auth, follow, finish, store, certifiedCallbacks: () => callbacks,
+      expiries: () => lines.map(line => JSON.parse(line)).filter(event => event.event === "sign_in_expired").map(event => event.reason) });
     assert.ok(lines.every(line => !line.includes("synthetic") && !line.includes("did:")));
   } finally {
     await new Promise<void>(resolve => { server.close(() => resolve()); server.closeAllConnections(); });
@@ -389,7 +393,7 @@ test("a Certified return after Supabase's flow window goes back to the task, nev
       assert.ok(!landed.startsWith(siteUrl));
       assert.equal(scenario.certifiedCallbacks(), 0, "no Certified identity is read for a flow Supabase will refuse");
       assert.equal(scenario.app.counts().exchanges, 0);
-      assert.deepEqual(scenario.events().filter(event => event !== "request"), ["sign_in_expired"]);
+      assert.deepEqual(scenario.expiries(), ["deadline"]);
     });
   }
 });
@@ -404,6 +408,7 @@ test("a stall after Certified, a revisited start and expired bridge state all re
     t.mock.timers.tick(10_000);
     assert.equal(await scenario.follow(completion), `${origin}/api/sign-in?error=sign_in_expired`);
     assert.equal(await scenario.finish(`${origin}/api/sign-in?error=sign_in_expired`, appCookie), `${origin}/start/finish?account=expired`);
+    assert.deepEqual(scenario.expiries(), ["deadline"]);
   });
   await bridgeChain(async scenario => {
     await reachCertified(scenario);
@@ -412,6 +417,15 @@ test("a stall after Certified, a revisited start and expired bridge state all re
     t.mock.timers.tick(RELYING_PARTY_WINDOW_SECONDS * 1000);
     // Going back from Certified must not open a new Certified authorization for a flow Supabase will refuse.
     assert.equal(await scenario.follow(`${scenario.issuer}/interaction/${uid}`), `${origin}/api/sign-in?error=sign_in_expired`);
+    assert.deepEqual(scenario.expiries(), ["deadline"]);
+  });
+  await bridgeChain(async scenario => {
+    const { certifiedState } = await reachCertified(scenario);
+    t.mock.timers.tick(minutes(11));
+    // The cookie jar keeps the bridge's state cookie; its stored binding has expired.
+    assert.equal(await scenario.follow(`${scenario.issuer}/at/callback?code=synthetic-code&state=${certifiedState}`),
+      `${origin}/api/sign-in?error=sign_in_expired`);
+    assert.deepEqual(scenario.expiries(), ["state_gone"]);
   });
   await bridgeChain(async scenario => {
     const { appCookie, certifiedState } = await reachCertified(scenario, "/settings");
@@ -423,5 +437,48 @@ test("a stall after Certified, a revisited start and expired bridge state all re
       `${origin}/api/sign-in?error=sign_in_expired`);
     assert.equal(await scenario.finish(`${origin}/api/sign-in?error=sign_in_expired`, appCookie), `${origin}/settings?account=expired`);
     assert.equal(scenario.certifiedCallbacks(), 0);
+    assert.deepEqual(scenario.expiries(), ["cookie_missing"]);
+  });
+});
+test("a provider interaction that lost its cookie, expired or changed hands returns to Weave without reading an identity", async t => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.UTC(2026, 10, 16, 20) });
+  const recovery = `${origin}/api/sign-in?error=sign_in_expired`;
+  await bridgeChain(async scenario => {
+    await reachCertified(scenario);
+    const uid = scenario.browser.cookies.get("_interaction");
+    assert.ok(uid, "the provider's interaction cookie");
+    // The browser has dropped the provider's interaction cookie, as it does after its ten-minute lifetime.
+    scenario.browser.cookies.delete("_interaction");
+    scenario.browser.cookies.delete("_interaction.sig");
+    assert.equal(await scenario.follow(`${scenario.issuer}/interaction/${uid}`), recovery);
+    assert.equal(scenario.certifiedCallbacks(), 0);
+    assert.deepEqual(scenario.expiries(), ["interaction_gone"]);
+  });
+  await bridgeChain(async scenario => {
+    await reachCertified(scenario);
+    const uid = scenario.browser.cookies.get("_interaction");
+    assert.ok(uid);
+    // The cookie is kept, but the provider's interaction record outlived its 600-second lifetime.
+    // The lookup fails before the deadline is read, so this is the provider path, not the deadline.
+    t.mock.timers.tick(601_000);
+    assert.equal(await scenario.follow(`${scenario.issuer}/interaction/${uid}`), recovery);
+    assert.equal(scenario.certifiedCallbacks(), 0);
+    assert.deepEqual(scenario.expiries(), ["interaction_gone"]);
+  });
+  await bridgeChain(async scenario => {
+    // A finished sign-in leaves a bridge session; the next attempt's interaction refers to it.
+    const first = await reachCertified(scenario);
+    assert.ok((await scenario.follow(`${scenario.issuer}/at/callback?code=synthetic-code&state=${first.certifiedState}`))
+      .startsWith(supabaseCallback));
+    await reachCertified(scenario);
+    const uid = scenario.browser.cookies.get("_interaction");
+    assert.ok(uid);
+    let sessions = 0;
+    for (const [key, record] of scenario.store.records)
+      if (key.startsWith("oidc:Session:")) { sessions++; record.payload.accountId = "https://certified.one|did:plc:other"; }
+    assert.equal(sessions, 1);
+    assert.equal(await scenario.follow(`${scenario.issuer}/interaction/${uid}`), recovery);
+    assert.equal(scenario.certifiedCallbacks(), 1, "only the first, finished attempt read an identity");
+    assert.deepEqual(scenario.expiries(), ["principal_changed"]);
   });
 });

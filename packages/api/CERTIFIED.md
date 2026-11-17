@@ -271,15 +271,38 @@ provider details. Supabase receives only the publishable key and the person's JW
 for subsequent account commands. Private responses are not cached by the PWA.
 
 Supabase Auth keeps its OAuth flow state for 300 seconds after `/authorize`. A later
-return to its callback goes to the shared project's Site URL, not to Weave, so the
-bridge never sends one. From 280 seconds after the authorization request, or when its
-browser state or interaction has expired, the bridge reads no Certified identity and
-redirects to Weave's `/api/sign-in?error=sign_in_expired`. That return carries no
+return to its callback goes to the shared project's Site URL, not to Weave. From 280
+seconds after the authorization request, or when its browser state or interaction has
+expired, the bridge reads no Certified identity and redirects to Weave's
+`/api/sign-in?error=sign_in_expired` instead of to Supabase. That return carries no
 callback state, so it cannot establish a session. Weave consumes the attempt bound to
 the browser and returns to its task with `account=expired`, or to Settings when the
 attempt has gone. Supabase's own `flow_state_expired` at the code exchange reports the
 same result. The person sees a fixed message and signs in again; the device draft is
 untouched. Callback results are `signed-in`, `cancelled`, `expired` and `failed`.
+
+This normally keeps people off the Site URL; it is not a guarantee. These paths can
+still reach it:
+
+- A completion just before the deadline whose remaining redirects (resume, consent and
+  Supabase's callback) take longer than the 20-second margin, for example on a bridge
+  cold start.
+- A Supabase callback error raised before Supabase loads `redirect_to`, such as
+  `flow_state_already_used` when a callback address is replayed.
+- A manual replay of the bridge's `/auth` request with the same Supabase state. It
+  starts a new interaction with a fresh 280 seconds while Supabase's flow keeps its
+  original start.
+
+Each expiry is logged as a `sign_in_expired` event with a `reason` from a fixed list:
+`cookie_missing`, `state_gone`, `deadline`, `interaction_gone` or `principal_changed`.
+No identifier is logged.
+
+The bridge has one recovery origin, `WEAVE_AUTH_APP_ORIGIN`, which defaults to
+production `https://weave.regencommons.com`. A preview Weave that shares the bridge
+therefore sends its expired attempts to production `/settings?account=expired`, where
+there is no attempt to recover. A non-production bridge that omits the setting also
+targets production. `auth:check` prints the configured origin as
+`certified_bridge_recovery_origin=` after `certified_bridge_ready`.
 
 For disposable loopback tests only, `WEAVE_LOCAL_AUTH=true` permits local HTTP and
 non-Secure cookies. It is refused when `VERCEL` is present or `NODE_ENV=production`.

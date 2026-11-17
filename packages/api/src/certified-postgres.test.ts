@@ -275,7 +275,8 @@ integration("production entry requires a restricted role and trusted HTTPS ingre
   });
   let published: unknown;
   try {
-    await checkCertifiedReadiness(runtimeEnv);
+    // Without WEAVE_AUTH_APP_ORIGIN, expired sign-ins return to production Weave; readiness says so.
+    assert.deepEqual(await checkCertifiedReadiness(runtimeEnv),{recoveryOrigin:WEAVE_APP_ORIGIN});
     assert.equal((await admin`select count(*)::int n from weave_auth.records where namespace='ops:readiness'`)[0]?.n,0);
     await admin`revoke insert on weave_auth.records from weave_auth_runtime`;
     try { await assert.rejects(checkCertifiedReadiness(runtimeEnv)); }

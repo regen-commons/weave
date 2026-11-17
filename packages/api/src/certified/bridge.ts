@@ -4,14 +4,15 @@ import Provider, { errors } from "oidc-provider";
 import { AuthStore } from "./store.ts";
 import { certifiedAuthorizationFailure, oidcAdapter, type CertifiedClient } from "./adapters.ts";
 import { identityClaims } from "./identity.ts";
-import { createBridgeObserver, type BridgeObserver, type BridgeStartStage } from "./operations.ts";
-import { validateConfig, WEAVE_APP_ORIGIN, type BridgeConfig } from "./bridge-config.ts";
+import { createBridgeObserver, type BridgeExpiryReason, type BridgeObserver, type BridgeStartStage } from "./operations.ts";
+import { recoveryOrigin, validateConfig, type BridgeConfig } from "./bridge-config.ts";
 export { validateConfig, type BridgeConfig } from "./bridge-config.ts";
 const random = () => randomBytes(32).toString("base64url");
 /**
  * Supabase Auth, the only relying party, expires its OAuth flow state 300 seconds after /authorize
  * (GoTrue's minimum). A later return to its callback is sent to the shared project's Site URL instead
- * of Weave. The bridge stops 20 seconds early, which covers the remaining redirects to Supabase.
+ * of Weave. The bridge stops 20 seconds early to leave time for the remaining redirects to Supabase.
+ * This normally keeps people off the Site URL; it is not a guarantee (see CERTIFIED.md).
  */
 export const RELYING_PARTY_WINDOW_SECONDS = 280;
 const epoch = () => Math.floor(Date.now() / 1000);
@@ -53,8 +54,8 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
   provider.proxy = secure;
   provider.on("server_error", () => observer.event("provider_error"));
   // Weave's callback recovers the person's task from its own browser-bound state and offers sign-in again.
-  const recovery = `${config.appOrigin ?? WEAVE_APP_ORIGIN}/api/sign-in?error=sign_in_expired`;
-  const expired = (res: ServerResponse) => { observer.event("sign_in_expired"); redirect(res, recovery); };
+  const recovery = `${recoveryOrigin(config)}/api/sign-in?error=sign_in_expired`;
+  const expired = (res: ServerResponse, reason: BridgeExpiryReason) => { observer.expired(reason); redirect(res, recovery); };
   const callback = provider.callback();
   const oidcRoutes = /^\/(auth(?:\/[A-Za-z0-9_-]+)?|token|jwks|\.well-known\/openid-configuration|session\/end(?:\/(?:confirm|success))?)$/;
   return async (req, res) => {
@@ -80,12 +81,12 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
       if (url.pathname === "/at/callback" && req.method === "GET") {
         // A missing cookie or binding has expired or was already used. Either way it cannot finish here.
         const bindingId = cookie(req, `${prefix}at`);
-        if (!bindingId) return expired(res);
+        if (!bindingId) return expired(res, "cookie_missing");
         const binding = await store.take("browser:at", bindingId);
         setCookie(res, "at", "", 0);
-        if (typeof binding?.uid !== "string") return expired(res);
+        if (typeof binding?.uid !== "string") return expired(res, "state_gone");
         // Past the deadline, skip the Certified exchange: no identity is read for a flow Supabase will refuse.
-        if (pastDeadline(binding.deadline)) return expired(res);
+        if (pastDeadline(binding.deadline)) return expired(res, "deadline");
         const result = await certified.callback(url.searchParams);
         if (result.state !== bindingId) throw new Error("invalid_browser_state");
         identityClaims(result.subject);
@@ -100,8 +101,10 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
         let interaction: Awaited<ReturnType<typeof provider.interactionDetails>>;
         try { interaction = await provider.interactionDetails(req, res); }
         catch (error) {
-          // The provider's interaction expired or its cookie is gone, so this attempt has nowhere to resume.
-          if (error instanceof errors.SessionNotFound) return expired(res);
+          // The provider's interaction expired, its cookie is gone or its session changed hands, so this
+          // attempt has nowhere to resume. The description is the provider's fixed text, never request data.
+          if (error instanceof errors.SessionNotFound)
+            return expired(res, error.error_description === "session principal changed" ? "principal_changed" : "interaction_gone");
           throw error;
         }
         if (interaction.params.client_id !== config.clientId) throw new Error("unexpected_client");
@@ -113,13 +116,14 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
           if (binding?.uid !== interaction.uid || interaction.prompt.name !== "login" || typeof binding.subject !== "string")
             throw new Error("invalid_browser_state");
           identityClaims(binding.subject);
-          if (pastDeadline(binding.deadline)) return expired(res);
+          if (pastDeadline(binding.deadline)) return expired(res, "deadline");
           return await provider.interactionFinished(req, res, { login: { accountId: binding.subject } }, { mergeWithLastSubmission: false });
         }
         if (interaction.prompt.name === "login") {
-          // Anchor to the authorization request, so revisiting this page cannot extend Supabase's window.
+          // Anchor to this interaction's authorization request, so revisiting this page cannot extend the
+          // window. A replayed /auth request starts a new interaction and is not covered (see CERTIFIED.md).
           const deadline = interaction.iat + RELYING_PARTY_WINDOW_SECONDS;
-          if (pastDeadline(deadline)) return expired(res);
+          if (pastDeadline(deadline)) return expired(res, "deadline");
           const state = random();
           startStage = "browser_state";
           await store.put("browser:at", state, { uid: interaction.uid, deadline }, 600);
