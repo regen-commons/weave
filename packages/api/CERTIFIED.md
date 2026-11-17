@@ -198,6 +198,7 @@ file or chat. The scripts do not load `.env` files.
 | `WEAVE_AUTH_CLIENT_ID` | One registered Supabase OIDC client identifier. |
 | `WEAVE_AUTH_CLIENT_SECRET` | At least 32 characters, shared with that relying party only. |
 | `WEAVE_AUTH_REDIRECT_URI` | Exact HTTPS Supabase Auth callback. No wildcard redirect. |
+| `WEAVE_AUTH_APP_ORIGIN` | Optional exact HTTPS Weave origin for sign-ins the bridge cannot finish. Defaults to `https://weave.regencommons.com`. |
 | `WEAVE_AUTH_DATABASE_URL` | Dedicated restricted runtime connection. Remote connections require certificate-verified TLS; no SSL query override. |
 | `WEAVE_DATABASE_CA_PEM` | Supabase's published database CA in PEM format. Set it on both Vercel preview projects so Node can verify the pooler's certificate and hostname. |
 | `WEAVE_AUTH_ENCRYPTION_KEYS` | Secret JSON: `active` wrapping-key ID, `keys` mapping IDs to 32-byte base64url keys, and a separate 32-byte base64url `lookup` key. |
@@ -268,6 +269,17 @@ cookie uses SameSite=Lax so it can return from Certified. Invalid, missing, expi
 or replayed state cannot establish a session. Failures return fixed messages without
 provider details. Supabase receives only the publishable key and the person's JWT
 for subsequent account commands. Private responses are not cached by the PWA.
+
+Supabase Auth keeps its OAuth flow state for 300 seconds after `/authorize`. A later
+return to its callback goes to the shared project's Site URL, not to Weave, so the
+bridge never sends one. From 280 seconds after the authorization request, or when its
+browser state or interaction has expired, the bridge reads no Certified identity and
+redirects to Weave's `/api/sign-in?error=sign_in_expired`. That return carries no
+callback state, so it cannot establish a session. Weave consumes the attempt bound to
+the browser and returns to its task with `account=expired`, or to Settings when the
+attempt has gone. Supabase's own `flow_state_expired` at the code exchange reports the
+same result. The person sees a fixed message and signs in again; the device draft is
+untouched. Callback results are `signed-in`, `cancelled`, `expired` and `failed`.
 
 For disposable loopback tests only, `WEAVE_LOCAL_AUTH=true` permits local HTTP and
 non-Secure cookies. It is refused when `VERCEL` is present or `NODE_ENV=production`.

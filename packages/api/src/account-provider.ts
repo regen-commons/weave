@@ -29,6 +29,17 @@ export interface AccountProvider {
     command: { id: string; expectedRevision: number; requestId: string; document: AccountDocument },
   ): Promise<SavedInitiative>;
 }
+/** Supabase Auth sends its error code in a header, and in the body of its initial API version. */
+function supabaseErrorCode(response: Response, data: unknown): string | undefined {
+  const header = response.headers.get("x-sb-error-code");
+  if (header) return header;
+  try {
+    const code = record(data).error_code;
+    return typeof code === "string" ? code : undefined;
+  } catch {
+    return undefined;
+  }
+}
 function supabaseRequests(url: string, key: string, request: typeof fetch) {
   const call = async (path: string, method: string, body: unknown, token?: string, schema = false) => {
     let response: Response;
@@ -109,6 +120,9 @@ export function createSupabaseAccountProvider(
     },
     async exchangeCode(code, verifier) {
       const { response, data } = await call("/auth/v1/token?grant_type=pkce", "POST", { auth_code: code, code_verifier: verifier });
+      // Supabase's PKCE flow lasts five minutes. Only its fixed error code is read, never its message.
+      if (response.status === 422 && supabaseErrorCode(response, data) === "flow_state_expired")
+        throw new AccountError(401, "sign_in_expired");
       if (!response.ok) throw new AccountError(response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
         response.status === 429 ? "rate_limited" : response.status >= 500 ? "account_unavailable" : "sign_in_failed");
       let o: Record<string, unknown>;

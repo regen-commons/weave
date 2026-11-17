@@ -2,7 +2,7 @@ import { performance } from "node:perf_hooks";
 import type { RequestListener } from "node:http";
 
 const events = ["started", "stopped", "start_failed", "stop_failed", "cleanup_succeeded",
-  "cleanup_failed", "provider_error", "request_failed"] as const;
+  "cleanup_failed", "provider_error", "request_failed", "sign_in_expired"] as const;
 type BridgeEvent = typeof events[number];
 const routes = ["discovery", "keys", "authorization", "token", "certified_callback", "interaction", "end_session", "unknown"] as const;
 type BridgeRoute = typeof routes[number];

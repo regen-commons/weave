@@ -218,6 +218,21 @@ test("timeouts, corrupt successful responses and exchange throttling do not leak
     (error) => error instanceof AccountError && error.status === 429 && error.code === "rate_limited",
   );
 });
+test("only Supabase's expired-flow code reports an expired sign-in; its message is never kept", async () => {
+  const exchange = (status: number, body: unknown, headers: Record<string, string> = {}) =>
+    createSupabaseAccountProvider("https://synthetic.test", "synthetic", async () =>
+      new Response(JSON.stringify(body), { status, headers })).exchangeCode("synthetic", "verifier");
+  const rejected = (code: string) => (error: unknown) =>
+    error instanceof AccountError && error.code === code && !JSON.stringify(error).includes("private") && !error.message.includes("private");
+  const detail = "private provider detail";
+  // Supabase's initial API version sends the code in the body; every version sends the header.
+  await assert.rejects(exchange(422, { code: 422, error_code: "flow_state_expired", msg: detail }), rejected("sign_in_expired"));
+  await assert.rejects(exchange(422, { code: "flow_state_expired", message: detail }, { "x-sb-error-code": "flow_state_expired" }),
+    rejected("sign_in_expired"));
+  await assert.rejects(exchange(404, { code: 404, error_code: "flow_state_not_found", msg: detail }), rejected("sign_in_failed"));
+  await assert.rejects(exchange(422, { code: 422, error_code: "validation_failed", msg: detail }), rejected("sign_in_failed"));
+  await assert.rejects(exchange(500, { code: 500, error_code: "flow_state_expired", msg: detail }), rejected("account_unavailable"));
+});
 
 test("a cookie changed by another tab cannot save under a different account", async () => {
   const { provider } = fixture();

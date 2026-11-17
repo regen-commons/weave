@@ -8,8 +8,8 @@ import { PrivateSaveAction } from "./PrivateSaveAction.tsx";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { AccountSection } from "./AccountSection.tsx";
+import { isSignInReturn } from "./sign-in.ts";
 const DoorContext = createContext<((intent?: DoorIntent) => void) | null>(null);
-const RETURNS = ["signed-in", "failed", "cancelled"];
 /** The one account door. Sign-in returns to the task; saving stays a separate choice. */
 export function AccountDoorProvider({ children }: { children: ReactNode }) {
   const social = useSocialFixture();
@@ -18,7 +18,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState("");
   // Coming back from Certified reopens the door where the person left it, unless the page shows the account itself.
   const [intent, setIntent] = useState<DoorIntent | null>(() =>
-    RETURNS.includes(new URLSearchParams(window.location.search).get("account") ?? "") &&
+    isSignInReturn(new URLSearchParams(window.location.search).get("account")) &&
     ![pathTo("settings"), pathTo("your-initiatives")].includes(window.location.pathname) &&
     matchRoute(window.location.pathname)?.name !== "team-workspace"
       ? "keep"
