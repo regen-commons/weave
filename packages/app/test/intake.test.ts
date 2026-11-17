@@ -29,7 +29,7 @@ import {
   reconcile,
   reviewStep,
 } from "../src/intake/state.ts";
-import { candidateChunks, chunksFrom, keywordExtraction, suggestKinds } from "../src/intake/keywords.ts";
+import { candidateChunks, chunksFrom, keywordExtraction, suggestEntryKinds, suggestKinds } from "../src/intake/keywords.ts";
 import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
 import { asksWithoutKind, cardText, intakeComplete } from "../src/intake/finish.ts";
 import { draftText } from "../src/describe/view.ts";
@@ -678,4 +678,19 @@ test("a card shows only the details a person added", () => {
   );
   assert.equal(askExtras({ ...value, urgency: "now", capacity: "Two days a month" }, "needs"), "Now");
   assert.equal(askExtras({ ...value, urgency: "now", capacity: "Two days a month" }, "offers"), "Two days a month");
+});
+test("setting Living aside for data words never leaves a statement with no kind", () => {
+  for (const words of ["Precisamos de pesquisas sobre a água", "Precisamos de pesquisadores da terra",
+    "We need soil test data", "We offer water quality research", "Precisamos de dados sobre a água"]) {
+    const kinds = suggestKinds(words);
+    assert.ok(kinds.length, words);
+    if (!kinds.includes("living")) assert.ok(kinds.includes("intellectual"), words);
+  }
+  assert.deepEqual(suggestKinds("Precisamos de pesquisas sobre a água"), ["living"], "the released suggestion stays");
+});
+test("a need's title and description are separate statements for kinds of support", () => {
+  assert.deepEqual(suggestEntryKinds("Soil", "Data from last year shows we need five tonnes"), ["living", "intellectual"]);
+  assert.deepEqual(suggestEntryKinds("Seeds", "Methods to store them through winter"), ["living", "intellectual"]);
+  assert.deepEqual(suggestEntryKinds("Soil test data", null), ["intellectual"]);
+  assert.deepEqual(suggestEntryKinds("We don't need money", "Seeds for the garden"), ["living"]);
 });
