@@ -333,6 +333,43 @@ The separate local fixture retains one draft, one backup and one attachment.
 Private identification files remain local for a later exact cleanup; they are
 excluded from Git. This is partial cleanup, with no forensic-erasure claim.
 
+### Workspace QA needs cleanup, 17 November
+
+The two private workspace QA needs were removed on 17 November 2026 UTC
+(16 November Pacific). This is **production, Supabase SQL** proof; no browser
+check followed. The Platform destination was reconfirmed first.
+
+- **Binding.** A narrow read bound both needs uniquely inside account A's existing
+  workspace and matched every field against the private UI readback. Neither had
+  ever been shared. The workspace document's newest save receipt equalled the live
+  document, and an older receipt differed from it only by these two needs.
+- **Preview reference.** The uncertain sharing-review click had created one
+  matching preview naming the garden-tools need. It had expired unconsumed, so no
+  share happened. No support listing, review, request, lead, query vector or
+  matching request named either need. No save had occurred anywhere for about four
+  hours, so the data was quiescent.
+- **Review and rehearsal.** An independent review approved the guarded transaction
+  with changes, and all six were applied. The first rehearsal stopped on a type
+  error before any change. The second rehearsal passed every guard, then rolled
+  back, and a readback confirmed nothing had changed.
+- **What was removed.** The committed transaction took the same parent lock as the
+  save path and followed its contract. It deleted exactly **two needs** and **one
+  expired preview**, and advanced the workspace document from revision 11 to 12
+  with a new `updatedAt`, so a stale tab gets a revision conflict instead of
+  restoring the needs.
+- **What was preserved.** In-transaction count and hash checks covered every other
+  initiative, need, offer, receipt, link, grant, intent and account. The separate
+  read-only postflight found zero targets, no "QA 16 Nov" entry anywhere, and the
+  preview gone. The card, funding details, older withdrawn need, offer, workspace
+  link, grant and all 11 save receipts were unchanged.
+- **Mixed receipts.** Save receipts that contain the removed needs alongside real
+  workspace content were kept, so no forensic erasure is claimed.
+
+Remaining: the production device draft with its PDF and the seven earlier task
+backups among the 19, and the separate local fixture's draft, backup and
+attachment. Selective device removal is a draft change that needs release
+approval before it can be used on production. Private selectors stay outside Git.
+
 ## Rendered proof
 
 The following existing captures were visually inspected before inclusion. They
