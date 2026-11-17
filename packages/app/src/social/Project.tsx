@@ -3,7 +3,7 @@ import { editorStorage, finishEditorHandoff, PROJECT_EDITORS, readEditorHandoff 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useDraft } from "../describe/use-draft.ts";
-import { draftWithRecord, suggestionsOnLink } from "../initiative/import.ts";
+import { draftWithRecord, placeOnLink, suggestionsOnLink } from "../initiative/import.ts";
 import { cardName, publicCard } from "../initiative/status.ts";
 import { Facts } from "../ui/Facts.tsx";
 import { keepFocusOnPage } from "../ui/focus.ts";
@@ -14,7 +14,8 @@ import { useAccountDoor } from "../account/door.tsx";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { ExampleDoor } from "./Door.tsx";
 import { type CertifiedRecord, type ProjectLink } from "./fixture.ts";
-import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, suggestionLine, workspaceLine, workspaceOpenLine } from "./words.ts";
+import { discoveryLine, linkEffect, placeLine, projectLine, publicFacts, publisherFacts, publisherLinksLine, replacesCard,
+  replacesNameOrDescription, sourceOriginLine, suggestionLine, workspaceLine, workspaceOpenLine } from "./words.ts";
 
 /** The choice that opens the external editors after checking existing projects. */
 const NEW = "new";
@@ -175,13 +176,15 @@ export function ProjectStep({
             Use {record.name}
           </h3>
           {/* Live projects supply only some fields; the rest of the card stays as it is. */}
-          <Facts items={publicFacts(record, live ? record.verifiedFields : undefined)} />
+          <Facts items={live ? [...publicFacts(record, record.verifiedFields), ...publisherFacts(record)] : publicFacts(record)} />
           {live ? (
             <>
               <p>
-                {replacesCard(card, record) ? "Your card takes this name and description. " : ""}
+                {replacesNameOrDescription(card, record) ? "Your card takes this name and description. " : ""}
                 Its needs and offers stay private and unchanged.
               </p>
+              {placeLine(placeOnLink(draft, record)) && <p>{placeLine(placeOnLink(draft, record))}</p>}
+              {publisherLinksLine(record) && <p>{publisherLinksLine(record)}</p>}
               {suggested.length > 0 && <p>{suggestionLine(suggested)}</p>}
               <p className="rc-meta">Saving to a team, sharing and publishing stay separate steps.</p>
             </>
@@ -200,7 +203,7 @@ export function ProjectStep({
             <summary className="rc-footer-link">Where these details come from</summary>
             <p>
               {live
-                ? "The name and description come from Certified. Other details stay as they are on your card."
+                ? sourceOriginLine(record)
                 : "After linking, the name, place, description and links come from Certified. Change them there and Weave shows the latest."}
               {suggested.length > 0 && " Suggested needs and offers are read from the description on this device."}
             </p>

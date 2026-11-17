@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { likelyDuplicate } from "../initiative/duplicates.ts";
-import { draftWithRecord, suggestionsOnLink } from "../initiative/import.ts";
+import { draftWithRecord, placeOnLink, suggestionsOnLink } from "../initiative/import.ts";
 import { publicCard } from "../initiative/status.ts";
 import { useSocial } from "./context.tsx";
-import { suggestionLine } from "./words.ts";
+import { placeLine, publisherLinksLine, suggestionLine } from "./words.ts";
 
 /** Projects the person said are a different initiative, for this visit. */
 const different = new Set<string>();
@@ -39,15 +39,20 @@ export function DuplicateNotice() {
     try {
       // Counted before linking, from the same reading the link makes.
       const suggested = suggestionsOnLink(controller.getSnapshot().draft, match);
+      const place = placeOnLink(controller.getSnapshot().draft, match);
       await social.service.linkProject(match.uri);
       // The project's four public details become the card's. Needs and offers stay as they are,
       // and its description's suggestions are added in pencil.
       if (social.mode === "fixture") controller.change((current) => draftWithRecord(current, match));
       social.refresh();
       setMessage(
-        `Your card now uses ${match.name} from Certified. ${
-          suggestionLine(suggested) || "Your needs and offers are unchanged."
-        }`,
+        [
+          `Your card now uses ${match.name} from Certified.`,
+          // Example projects replace all four details. A live one fills an empty Where and keeps its publisher's links apart.
+          placeLine(place, true),
+          publisherLinksLine(match, true),
+          suggestionLine(suggested) || "Your needs and offers are unchanged.",
+        ].filter(Boolean).join(" "),
       );
     } catch (error) {
       setFailed(true);

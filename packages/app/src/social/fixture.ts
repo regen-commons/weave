@@ -27,6 +27,10 @@ export interface CertifiedRecord {
   readonly accessRole?: "viewer" | "editor" | "admin";
   /** Fields this provider actually supplied. Missing fields never erase local work. */
   readonly verifiedFields?: readonly (keyof PublicCard)[];
+  /** Fields the source holds in a form Weave could not read, such as a place given only as coordinates. */
+  readonly unreadFields?: readonly (keyof PublicCard)[];
+  /** Links on the publisher's Certified profile: the group's, or the person's own. Shown apart, never put on the card. */
+  readonly publisherLinks?: readonly string[];
 }
 /** The Certified project this device's card belongs to. */
 export interface ProjectLink {

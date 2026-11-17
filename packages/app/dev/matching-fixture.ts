@@ -95,10 +95,16 @@ const personalDid = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa";
 const personalUri = `at://${personalDid}/org.hypercerts.collection/water-notes`;
 const memberGroup = "did:plc:cccccccccccccccccccccccc";
 const memberUri = `at://${memberGroup}/org.hypercerts.collection/seed-library`;
-const project = (uri: string, title: string, group?: string) => ({ uri, cid: "bafyfixture", repoDid: uri.split("/")[2],
-  ...(group ? { groupDid: group } : {}), title, description: "A fictional local project for learning and watershed monitoring.", createdAt: "2026-11-01T00:00:00Z" });
-const fixtureProjects = [project(groupUri, "Watershed Team (fixture)", groupDid),
-  project(memberUri, "Seed library (fixture)", memberGroup), project(personalUri, "Water notes (fixture)")];
+const project = (uri: string, title: string, group?: string, source: Record<string, unknown> = {}) => ({ uri, cid: "bafyfixture", repoDid: uri.split("/")[2],
+  ...(group ? { groupDid: group } : {}), title, description: "A fictional local project for learning and watershed monitoring.", createdAt: "2026-11-01T00:00:00Z", ...source });
+// Place and publisher links as Certified's source gives them: named, or a place Weave could not read (coordinates only).
+const fixtureProjects = [
+  project(groupUri, "Watershed Team (fixture)", groupDid,
+    { place: { status: "named", name: "Lower river meadows (fixture)" }, publisherLinks: ["https://watershed.example.org/"] }),
+  project(memberUri, "Seed library (fixture)", memberGroup,
+    { place: { status: "named", name: "Upper valley seed house (fixture)" }, publisherLinks: ["https://seeds.example.org/"] }),
+  project(personalUri, "Water notes (fixture)", undefined, { place: { status: "unread" } }),
+];
 const externalGroup = "did:plc:ffffffffffffffffffffffff";
 const externalProject = project(`at://${externalGroup}/org.hypercerts.collection/editor-return`, "Editor return project (fixture)", externalGroup);
 let externalPublished = false;
