@@ -1,6 +1,7 @@
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "./contracts.ts";
 import { broughtAcross, DraftChanged, draftPin, pinned, RemovalNotice, type DeviceRemoval, type DraftBackup, type DraftPin, type DraftRepository } from "./repository.ts";
 import { memoryPointer, type DraftChannel, type DraftMessage, type DraftPointer } from "./tabs.ts";
+import { blankCard } from "./content.ts";
 export type DeviceStorage = "loading" | "none" | "saving" | "saved" | "memory";
 export interface DraftSnapshot {
   /** The draft this tab is working on. */
@@ -257,6 +258,24 @@ export class DraftController {
     if (this.writable) this.publish({ draft, storage: "none", error: null });
     else this.publish({ draft, storage: "memory", error: UNREAD });
     return draft;
+  }
+  /**
+   * Starts a new initiative, as every "Start An Initiative" does. The tab's own card is kept as
+   * the new one only when it has never been stored and holds nothing of the person's, not even a
+   * card binding, so a card that only looks empty, or one bound to a saved card, is never reused.
+   * The card is pinned to the tab either way, so neither a draft read late nor Try Again after a
+   * failed read takes its place. `leave` calls it off while storage is still being read.
+   */
+  async startNewInitiative(leave?: AbortSignal): Promise<DeviceDraft> {
+    await this.loaded();
+    leave?.throwIfAborted();
+    await this.settled();
+    leave?.throwIfAborted();
+    const current = this.snapshot.draft;
+    if (this.expected !== null || this.dirty || !blankCard(current)) return this.startNew();
+    this.untouched = false;
+    this.pointer.set(current.id);
+    return current;
   }
   /** Opens one of the device's stored drafts in this tab. Throws when it is no longer stored. */
   async open(id: string): Promise<DeviceDraft> {

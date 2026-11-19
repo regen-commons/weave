@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { beginNewInitiative } from "../describe/start-new.ts";
 import { cardRoute } from "../initiative/status.ts";
@@ -18,19 +18,22 @@ import { IntakeStepper } from "../ui/Stepper.tsx";
 export function StartNew() {
   const { controller, draft } = useDraft();
   const [problem, setProblem] = useState("");
-  const started = useRef(false);
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    // Called off when the page goes: Back or a link pressed while storage is still being read
+    // starts nothing and never replaces the page the person moved to.
+    const leave = new AbortController();
     void (async () => {
       try {
-        await beginNewInitiative(controller);
+        await beginNewInitiative(controller, leave.signal);
+        if (leave.signal.aborted) return;
         navigate(fixtureHref(pathTo("initiative"), routeSearch(), true), true, true);
       } catch (error) {
+        if (leave.signal.aborted) return;
         // Words not stored yet stay on the card they belong to. Nothing is started over them.
         setProblem(error instanceof Error ? error.message : "A new initiative could not be started. Try again.");
       }
     })();
+    return () => leave.abort();
   }, [controller]);
   return (
     <Stack>

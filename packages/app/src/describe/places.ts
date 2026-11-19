@@ -187,9 +187,6 @@ function labelledWhere(value: string): StatedWhere {
 }
 
 const key = (place: string) => place.toLocaleLowerCase().split(/,[ \t]*/u);
-/** "Awka" says less than "Awka, Nigeria", so the same place stated twice is still one place. */
-const within = (short: string[], long: string[]) =>
-  short.length < long.length && short.every((part, index) => part === long[index]);
 
 /**
  * The place the words say the initiative is in, for the person to review on the check card.
@@ -238,9 +235,12 @@ export function statedWhere(words: string, name = ""): StatedWhere {
     mentioned.push(place);
     stated.push(place);
   }
-  const distinct = new Set(
-    mentioned.filter((place) => !mentioned.some((other) => within(key(place), key(other)))).map((place) => key(place).join(", ")),
-  );
+  // "Awka" says less than "Awka, Nigeria": a place that begins a longer one stated here is the same
+  // place. Every shorter beginning of every mention is noted once, so this is one pass, however
+  // many times a place is mentioned.
+  const keys = mentioned.map(key);
+  const beginnings = new Set(keys.flatMap((parts) => parts.slice(0, -1).map((_, end) => parts.slice(0, end + 1).join(", "))));
+  const distinct = new Set(keys.map((parts) => parts.join(", ")).filter((joined) => !beginnings.has(joined)));
   if (distinct.size !== 1 || !stated.length) return NONE;
   // The initiative's own words, at their most explicit: "Awka, Nigeria" over "Awka".
   const place = stated.reduce((best, next) => (key(next).length > key(best).length ? next : best));

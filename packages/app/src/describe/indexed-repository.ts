@@ -16,6 +16,7 @@ import {
   type DraftRepository,
 } from "./repository.ts";
 
+import { sameContent } from "./content.ts";
 import { readEarlier, removeFromEarlier } from "./earlier-database.ts";
 
 /**
@@ -50,37 +51,6 @@ class Unanswered extends Error {
     super("The earlier device storage did not answer.");
   }
 }
-/**
- * The keys that are only bookkeeping: when and how often a draft was written, its mark, and the
- * note of how the last fill ran. Everything else is content. That includes the card binding
- * (saved, pending, retired), because dropping a version that differs only there would leave a
- * Save aimed at a card the other tab deleted, and `runs`, the record of what the assistant did,
- * which the person can read in Settings.
- */
-const BOOKKEEPING = new Set(["version", "revision", "inputVersion", "updatedAt", "mark", "proposalVersion", "lastBuild"]);
-/** A value as plain data in one order: keys sorted, absent and undefined alike, a file as its name, type and size. */
-function canonical(value: unknown): unknown {
-  if (value instanceof Blob) return { blob: value.size, type: value.type };
-  if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === "object")
-    return Object.fromEntries(
-      Object.keys(value)
-        .filter((key) => (value as Record<string, unknown>)[key] !== undefined)
-        .sort()
-        .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
-    );
-  return value;
-}
-/**
- * The same words, files, card binding and assistant record, whatever the bookkeeping says. It does
- * not depend on the order of keys, which differs between the two builds' stored drafts.
- */
-export function sameContent(a: DeviceDraft, b: DeviceDraft): boolean {
-  const content = (draft: DeviceDraft) =>
-    JSON.stringify(canonical(Object.fromEntries(Object.entries(draft).filter(([key]) => !BOOKKEEPING.has(key)))));
-  return content(a) === content(b);
-}
-
 type Seen = Record<string, { revision: number; updatedAt: string }>;
 const seenAt = (draft: DeviceDraft) => ({ revision: draft.revision, updatedAt: draft.updatedAt });
 const sameVersion = (draft: DeviceDraft, seen: { revision: number; updatedAt: string } | undefined) =>
@@ -211,6 +181,17 @@ export class IndexedDraftRepository implements DraftRepository {
             // here never passes for the older tab's, even at the same revision and instant. And
             // not the same words under other bookkeeping, which would be a backup of nothing:
             // then this build's version simply stays, with what it knows about saving.
+            // The same words, and only the card binding or the assistant record differ: this build's
+            // version stays, whichever was written later. The older tab never saw this build's save,
+            // so its binding would leave the saved card showing "Not saved yet", or save the same
+            // words again as a new card after a deletion. Its version is kept beside it.
+            if (sameContent(mine.data, theirs, ["account", "runs"])) {
+              backups.put(theirs, betweenBuildsKey(theirs.id));
+              kept++;
+              seen[theirs.id] = seenAt(theirs);
+              recorded = true;
+              return;
+            }
             const theirsLater = Date.parse(theirs.updatedAt) > Date.parse(mine.data.updatedAt);
             // Kept under its own kind of key, outside the cap on versions replaced between tabs.
             backups.put(theirsLater ? mine.data : theirs, betweenBuildsKey(theirs.id));

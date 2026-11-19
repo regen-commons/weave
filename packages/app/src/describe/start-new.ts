@@ -2,19 +2,19 @@ import { resumeLabel } from "../home.ts";
 import { pathTo, type RouteName } from "../routes.ts";
 import type { DeviceDraft } from "./contracts.ts";
 import type { DraftController } from "./controller.ts";
-import { hasDraft } from "./view.ts";
 
 /**
  * Starts a new initiative in this tab, the way every "Start An Initiative" does: the drafts
  * already on the device stay as they are, and the tab moves to a blank card that is stored at its
- * first word. When the tab is already on a blank card, that card is the new one, so loading the
- * start address twice, by a reload or a second press, never makes two. It waits for the first read
- * of storage, so a draft read late can never take the place of the new card.
+ * first word. A blank card the tab never stored is the new one, so loading the start address twice
+ * never makes two (`DraftController.startNewInitiative` says exactly which cards count). It waits
+ * for the first read of storage and pins the card to the tab, so a draft read late can never take
+ * its place. `leave` calls it off when the person goes elsewhere first.
  */
-export async function beginNewInitiative(controller: DraftController): Promise<DeviceDraft> {
+export async function beginNewInitiative(controller: DraftController, leave?: AbortSignal): Promise<DeviceDraft> {
   await controller.initialize();
-  const current = controller.getSnapshot().draft;
-  return hasDraft(current) ? controller.startNew() : current;
+  leave?.throwIfAborted();
+  return controller.startNewInitiative(leave);
 }
 
 /**

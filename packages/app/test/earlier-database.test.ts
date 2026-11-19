@@ -606,8 +606,9 @@ test("words an older tab types between the look and the removal are left there a
   }
 });
 
-test("a save's receipt counts as a difference: whichever version is later stays, and the other is kept as a backup", async t => {
-  // 19 November review: a version that differs only in its card binding must never be dropped.
+test("with the same words, this build's receipt stays on the draft and the older tab's version is kept as a backup", async t => {
+  // 19 November reviews: a version that differs only in its card binding is never dropped, and
+  // with the same words the binding this build holds stays, whichever was written later.
   const owner = "b1000000-0000-4000-8000-000000000001";
   const start = words("Synthetic words before the update");
   const fake = withReleased(t, start);
@@ -618,9 +619,11 @@ test("a save's receipt counts as a difference: whichever version is later stays,
   // The older tab writes the same words later, with no receipt: it never saw the save.
   olderTabWrites(fake, { ...at(start, "2099-01-01T00:00:00.000Z", start.composer), inputVersion: start.inputVersion });
   await controller.lookAgain();
+  assert.equal(draftsHere(fake)[0]![1].account.saved?.owner, owner, "the draft keeps the receipt, so it still reads as saved");
+  assert.equal(controller.getSnapshot().draft.account.saved?.owner, owner);
   const kept = backupsHere(fake);
-  assert.equal(kept.length, 1, "the version with the receipt is not dropped");
-  assert.equal(kept[0]![1].account.saved?.owner, owner);
+  assert.equal(kept.length, 1, "the older tab's version is not dropped");
+  assert.equal(kept[0]![1].account.saved, null);
   await controller.lookAgain();
   assert.equal(backupsHere(fake).length, 1, "and it is kept once");
 });
@@ -664,7 +667,7 @@ test("a version the released build wrote with the same words makes no backup, in
   assert.deepEqual(backupsHere(fake), [], "nothing differs, so nothing is kept twice");
 });
 
-test("a version that differs only in its card binding is never dropped: the later one wins and the other is kept", async t => {
+test("a version that differs only in its card binding is never dropped: this build's binding stays and the other is kept", async t => {
   const owner = "b1000000-0000-4000-8000-000000000001", card = "b3000000-0000-4000-8000-000000000009";
   const released = releasedShape();
   const fake = withReleased(t, { ...released, account: { saved: { id: card, owner, revision: 1, contentKey: "{}" }, pending: null } });
@@ -675,13 +678,13 @@ test("a version that differs only in its card binding is never dropped: the late
   // The older tab deleted the saved card: the same words, no binding, and the card's ID retired.
   olderTabWrites(fake, { ...released, revision: released.revision + 2, updatedAt: "2099-01-01T00:00:00.000Z", account: { saved: null, pending: null, retired: [card] } } as DeviceDraft);
   await controller.lookAgain();
-  const stored = draftsHere(fake)[0]![1];
-  assert.equal(stored.account.saved, null, "the next Save does not target the deleted card");
-  assert.deepEqual(stored.account.retired, [card]);
+  // The draft keeps this build's binding: a Save then meets the deleted card and says so, where
+  // the retired ID would have saved the same words again as a new card.
+  assert.equal(draftsHere(fake)[0]![1].account.saved?.id, card);
   const kept = backupsHere(fake);
   assert.equal(kept.length, 1);
   assert.ok(kept[0]![0].startsWith(betweenBuildsPrefix(released.id)));
-  assert.equal(kept[0]![1].account.saved?.id, card, "this build's version, with its binding, is kept");
+  assert.deepEqual(kept[0]![1].account.retired, [card], "the older tab's version, with what it knew, is kept");
 });
 
 test("a deletion has one bound in all, and once it fires the message says only what is certain", async t => {

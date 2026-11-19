@@ -13,6 +13,8 @@ import { statedWhere } from "../src/describe/places.ts";
 
 /** Well under a second, with room for a slow machine. */
 const LIMIT_MS = 500;
+/** For a case a slow phone must also finish quickly: a tenth of the limit here. */
+const TIGHT_MS = 50;
 const PROSE = "We grow food in Awka with families from Lagos and share seeds in schools across the valley. ";
 const prose = (size: number) => PROSE.repeat(Math.ceil(size / PROSE.length)).slice(0, size);
 const spaces = " ".repeat(20_000);
@@ -40,6 +42,11 @@ test("the place rules make one bounded pass, on 20,000 spaces, on line ends, and
   quick("line ends", () => statedWhere("We are a garden in Awka\r\n".repeat(800), ""));
   quick("prose, 200,000", () => statedWhere(prose(200_000), "Riverbend"));
   quick("prose, 2,000,000", () => statedWhere(prose(2_000_000), "Riverbend"));
+  // Many places in the 20,000 characters read: each mention is compared once, not with every other.
+  const started = performance.now();
+  statedWhere("based in Aa. ".repeat(1_600));
+  const took = performance.now() - started;
+  assert.ok(took < TIGHT_MS, `a place stated over and over took ${Math.round(took)} ms`);
   assert.deepEqual(
     quick("a place, then prose", () => statedWhere(`We are a seed library in Porto Alegre, Brazil. ${prose(2_000_000)}`, "")),
     { locations: ["Porto Alegre, Brazil"], isGlobal: false },

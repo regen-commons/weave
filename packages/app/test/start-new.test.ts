@@ -8,6 +8,9 @@ import { test } from "node:test";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
+import { IndexedDraftRepository } from "../src/describe/indexed-repository.ts";
+import { readEarlier, removeFromEarlier } from "../src/describe/earlier-database.ts";
+import { fakeIndexedDB, installIndexedDB } from "./fake-indexeddb.ts";
 import { memoryPointer } from "../src/describe/tabs.ts";
 import { hasDraft } from "../src/describe/view.ts";
 import { beginNewInitiative, describeDoor } from "../src/describe/start-new.ts";
@@ -83,7 +86,88 @@ test("the start address is a step of its own, and every start control goes to it
   }
   // The page starts the card once and replaces its own address, so a reload shows step 1.
   const page = source("pages/StartNew.tsx");
-  assert.match(page, /await beginNewInitiative\(controller\)/u);
+  assert.match(page, /await beginNewInitiative\(controller, leave\.signal\)/u);
   // In place and without a page transition, which would wait for a frame a background tab does not draw.
   assert.match(page, /navigate\(fixtureHref\(pathTo\("initiative"\), routeSearch\(\), true\), true, true\)/u);
+});
+
+// With the real IndexedDB adapter, on the synthetic database. The memory repository never brings
+// anything across from the released build, so it cannot show a draft arriving late.
+const tick = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+test("a new card stays the new card when the released build's draft arrives after the first read has moved on", async t => {
+  const older = words("Riverbend Seed Library, written in the released build");
+  const fake = fakeIndexedDB({}, 0, { seed: { drafts: [["current", older]] }, version: 2 });
+  installIndexedDB(t, fake);
+  const answer = Promise.withResolvers<void>();
+  const repository = new IndexedDraftRepository({ earlier: { read: async () => { await answer.promise; return readEarlier(); }, remove: removeFromEarlier } });
+  // A first visit after the update: nothing in this build's storage yet, and the older one slow to answer.
+  const controller = new DraftController(repository, { pointer: memoryPointer(), earlierWait: 5 });
+  const started = await beginNewInitiative(controller);
+  answer.resolve();
+  await tick(30);
+  assert.equal(controller.getSnapshot().draft.id, started.id, "step 1 is not swapped for the older draft");
+  assert.equal(hasDraft(controller.getSnapshot().draft), false);
+  assert.ok(controller.getSnapshot().drafts.some((draft) => draft.id === older.id), "the older draft is in the list");
+});
+
+test("Try Again after a failed first read keeps the tab on the new card", async t => {
+  const stored = words("Riverbend Seed Library");
+  const fake = fakeIndexedDB({ drafts: [[stored.id, stored]], meta: [["last", stored.id]] });
+  installIndexedDB(t, fake);
+  const controller = new DraftController(new IndexedDraftRepository(), { pointer: memoryPointer(), earlierWait: 5 });
+  // The first read of this build's storage fails.
+  fake.control.failCommit = true;
+  await controller.initialize();
+  assert.ok(controller.getSnapshot().error, "the failure is on screen");
+  const started = await beginNewInitiative(controller);
+  controller.retry();
+  await tick(30);
+  assert.equal(controller.getSnapshot().error, null, "storage reads now");
+  assert.equal(controller.getSnapshot().draft.id, started.id, "the tab stays on the new card, not the draft written last");
+  assert.equal(hasDraft(controller.getSnapshot().draft), false);
+});
+
+test("a stored card whose words were cleared is never reused as the new card, so its saved card cannot be overwritten", async t => {
+  const owner = "b1000000-0000-4000-8000-000000000001";
+  // A card saved to the account, then every field cleared on this device: blank to look at, bound to a saved card.
+  const cleared = revise(newDraft(), { account: { saved: { id: "b3000000-0000-4000-8000-000000000001", owner, revision: 3, contentKey: "{}" }, pending: null } }, true);
+  assert.equal(hasDraft(cleared), false, "it looks blank");
+  const fake = fakeIndexedDB({ drafts: [[cleared.id, cleared]], meta: [["last", cleared.id]] });
+  installIndexedDB(t, fake);
+  const controller = new DraftController(new IndexedDraftRepository(), { pointer: memoryPointer() });
+  await controller.initialize();
+  assert.equal(controller.getSnapshot().draft.id, cleared.id);
+  const started = await beginNewInitiative(controller);
+  assert.notEqual(started.id, cleared.id, "a real new card");
+  assert.equal(started.account.saved, null, "with no binding to anyone's saved card");
+  assert.deepEqual(fake.snapshot().drafts.map(([key]) => key), [cleared.id], "the cleared card is kept as it was");
+});
+
+test("a blank card the tab never stored, with nothing of the person's, is the one reused", async () => {
+  const controller = new DraftController(new MemoryDraftRepository(), { pointer: memoryPointer() });
+  await controller.initialize();
+  const first = await beginNewInitiative(controller);
+  // A choice of assistant is something of the person's, so a card holding one is not blank.
+  controller.change((draft) => revise(draft, { assistant: "browser" }));
+  await controller.settled();
+  const second = await beginNewInitiative(controller);
+  assert.notEqual(second.id, first.id);
+});
+
+test("leaving the start page while it waits starts nothing", async () => {
+  const stored = words("Riverbend Seed Library");
+  const controller = new DraftController(new MemoryDraftRepository(stored), { pointer: memoryPointer() });
+  const leave = new AbortController();
+  const starting = beginNewInitiative(controller, leave.signal);
+  // The person presses Back while storage is still being read.
+  leave.abort();
+  await assert.rejects(starting, { name: "AbortError" });
+  await controller.initialize();
+  assert.equal(controller.getSnapshot().draft.id, stored.id, "the tab is where it was");
+  // The page does the same: its effect calls the start off when it goes, and only then would navigate.
+  const page = source("pages/StartNew.tsx");
+  assert.match(page, /const leave = new AbortController\(\);/u);
+  assert.match(page, /return \(\) => leave\.abort\(\);/u);
+  assert.match(page, /await beginNewInitiative\(controller, leave\.signal\);\s*if \(leave\.signal\.aborted\) return;/u);
 });
