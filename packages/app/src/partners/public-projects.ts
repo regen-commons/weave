@@ -63,11 +63,38 @@ export function showsIndex(list: PublicProjectList): boolean {
 /**
  * What the Initiatives page shows now. Until a first page says whether the list is switched on, it shows
  * only that it is loading, so neither the search form nor the starter list flashes before the other.
+ * A browser that last heard the list is off shows the starter list straight away (`expectStarter`).
  * Once the list has answered, a later search keeps the index on screen while it loads.
  */
-export function listView(list: PublicProjectList, indexSeen: boolean): "loading" | "index" | "starter" {
-  if (list.status === "loading") return indexSeen ? "index" : "loading";
+export function listView(list: PublicProjectList, indexSeen: boolean, expectStarter = false): "loading" | "index" | "starter" {
+  if (list.status === "loading") return indexSeen ? "index" : expectStarter ? "starter" : "loading";
   return showsIndex(list) ? "index" : "starter";
+}
+
+/**
+ * Where this browser keeps one fact: the list was not switched on the last time it answered. The
+ * starter list needs nothing from the network, so a page that expects it shows it at once, with
+ * no skeleton of another list's shape to jump from (DL-109). Nothing about the person is kept.
+ */
+export const INDEX_OFF_KEY = "weave-projects-index-off";
+
+/** Whether the last answer said the list is off. A browser that refuses storage expects the list. */
+export function expectsStarter(storage: Pick<Storage, "getItem"> | null): boolean {
+  try {
+    return storage?.getItem(INDEX_OFF_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Keeps what an answer said about the list being on. A request that failed says nothing either way. */
+export function rememberIndex(storage: Pick<Storage, "setItem" | "removeItem"> | null, page: PublicProjectPage): void {
+  try {
+    if (page.index.status === "off") storage?.setItem(INDEX_OFF_KEY, "1");
+    else storage?.removeItem(INDEX_OFF_KEY);
+  } catch {
+    /* The page still works; it only cannot skip the skeleton next time. */
+  }
 }
 
 const count = (total: number) => new Intl.NumberFormat("en-GB").format(total);

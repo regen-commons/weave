@@ -6,7 +6,7 @@ import { fundingFixture, type FixtureContext } from "../fixtures.ts";
 import { catalogEntries } from "../funding/catalog.ts";
 import { useCatalogBundle } from "../funding/use-catalog.ts";
 import {
-  CLOSING_SOON_DAYS, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel,
+  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel,
 } from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
@@ -94,7 +94,8 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       <p className="rc-visually-hidden" role="status">
         Loading
       </p>
-      <CardGridSkeleton kind={kind} preview={preview} />
+      {/* As many shapes as the preview asks for; its layout shows the same whole rows of either (DL-108). */}
+      <CardGridSkeleton kind={kind} preview={preview} count={preview === "row" ? FUNDING_PREVIEW_COUNT : RECENT_PREVIEW_COUNT} />
     </div>
   );
   return (
@@ -216,7 +217,6 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="kinds"
-        band
         title="Money Is One Of Eight Kinds Of Support"
         note={
           <>
@@ -312,7 +312,6 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="commons"
-        band
         title="Part Of Regen Commons"
         note={
           <>

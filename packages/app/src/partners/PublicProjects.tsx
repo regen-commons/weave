@@ -6,13 +6,13 @@ import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { FilterBar } from "../ui/FilterBar.tsx";
 import { keepFocusOnPage } from "../ui/focus.ts";
-import { ListEnd, useAddedFocus } from "../ui/ListEnd.tsx";
+import { ListEnd, ListEndHold, useAddedFocus } from "../ui/ListEnd.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
   countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
-  listView, searchQuery, SEARCH_PAUSE_MS, type PublicProjectCard as Project, type PublicProjectList,
+  expectsStarter, listView, rememberIndex, searchQuery, SEARCH_PAUSE_MS, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
 
 const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
@@ -25,7 +25,7 @@ const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
 export function PublicProjectCard({ project, level }: { project: Project; level: 2 | 3 }) {
   const Title = level === 3 ? "h3" : "h2";
   return (
-    <Card kind="initiative">
+    <Card kind="initiative" rows="fixed">
       <Title className="rc-card-title">
         <Link href={project.sourceUrl}>{project.name}</Link>
       </Title>
@@ -71,6 +71,15 @@ export function usePublicProjects(q: string, limit?: number, enabled = true) {
   return { list, more, retry: () => setAttempt((count) => count + 1) };
 }
 
+/** This browser's storage, or none where it is refused. */
+function deviceStorage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 /** The words typed, once typing has paused, so a search asks the list once. */
 function usePaused(value: string, ms: number): string {
   const [paused, setPaused] = useState(value);
@@ -100,12 +109,15 @@ export function PublicProjects() {
   const [indexSeen, setIndexSeen] = useState(false);
   // The last list that arrived stays on screen while the next search loads, so the cards do not blink.
   const [arrived, setArrived] = useState<Extract<PublicProjectList, { status: "ready" }> | null>(null);
+  // What the list said last time decides the first shape: the starter list at once where it was off.
+  const [expectStarter] = useState(() => expectsStarter(deviceStorage()));
   useEffect(() => {
     if (list.status !== "ready") return;
     setArrived(list);
+    rememberIndex(deviceStorage(), list.page);
     if (list.page.index.status !== "off") setIndexSeen(true);
   }, [list]);
-  const view = listView(list, indexSeen);
+  const view = listView(list, indexSeen, expectStarter);
   const ready = list.status === "ready" ? list : arrived;
   const waiting = list.status === "loading";
   // Focus moves to the first project a press of Show More added, so a keyboard user keeps their place.
@@ -129,7 +141,7 @@ export function PublicProjects() {
       summary={ready ? countLine(ready.page.index.total, ready.q !== "") : undefined}
       note={ready ? indexLine(ready.page.index, day) : undefined}
       loading={loading}
-      reserve="0,000 projects shared on Certified. Checked on 00 September 0000."
+      reserve="Checked on 00 November 0000."
       onClear={clear}
     />
   );
@@ -139,6 +151,7 @@ export function PublicProjects() {
       <div className="rc-stack" aria-busy="true">
         {bar(true)}
         <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
+        <ListEndHold things="projects" />
       </div>
     );
   }
@@ -161,7 +174,10 @@ export function PublicProjects() {
     <div className="rc-stack" aria-busy={waiting || undefined}>
       {bar(!ready)}
       {!ready ? (
-        <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
+        <>
+          <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
+          <ListEndHold things="projects" />
+        </>
       ) : (
         <>
           {ready.projects.length ? (
@@ -182,8 +198,10 @@ export function PublicProjects() {
               Try other words, or clear the search to see every project.
             </EmptyState>
           )}
-          {/* The list fills in as its end comes near, and a new search starts its run again (DL-101). */}
-          {list.status === "ready" && (list.page.next || list.projects.length > PUBLIC_PROJECT_PAGE_SIZE) && (
+          {/* The list fills in as its end comes near, and a new search starts its run again (DL-101). Every
+              list with cards has its end, and keeps its room while a search loads (DL-108). */}
+          {list.status !== "ready" && ready.projects.length > 0 && <ListEndHold things="projects" />}
+          {list.status === "ready" && list.projects.length > 0 && (
             <ListEnd
               key={list.q}
               shown={list.projects.length}

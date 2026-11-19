@@ -4,9 +4,14 @@ import type { ReactNode } from "react";
  * Listing card molecule; content comes from pages, actions sit at the bottom. `kind` keeps a record's
  * own colour wherever the card appears, such as funding gold (DL-050).
  */
-export function Card({ kind, children }: { kind?: "funding" | "initiative"; children: ReactNode }) {
+export function Card({ kind, rows, children }: {
+  kind?: "funding" | "initiative";
+  /** `fixed`: every part keeps a set number of lines, so each card of its kind is the same height (DL-108). */
+  rows?: "fixed";
+  children: ReactNode;
+}) {
   return (
-    <article className="rc-card" data-layout="listing" data-kind={kind}>
+    <article className="rc-card" data-layout="listing" data-kind={kind} data-rows={rows}>
       {children}
     </article>
   );

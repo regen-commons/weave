@@ -12,14 +12,15 @@ function Hold({ children }: { children: ReactNode }) {
 type SkeletonKind = "funding" | "initiative" | "project" | "partner";
 
 /**
- * One card's shape, built from the parts the loaded card has, in their own classes, so each part
- * keeps the room its type and its rules give it: two lines for a title in a row of cards, a tag's
- * height, a summary's lines (DL-104). The words only hold room; nobody reads or hears them.
+ * One card's shape, built from the parts the loaded card has, in their own classes and with the
+ * same fixed rows, so each part keeps exactly the room the loaded card's part keeps and the two are
+ * one height by construction (DL-104, DL-108). The words only draw the shape; they set no height,
+ * and nobody reads or hears them.
  */
 function SkeletonCard({ kind }: { kind: SkeletonKind }) {
   if (kind === "funding")
     return (
-      <div className="rc-card" data-layout="listing" data-kind="funding">
+      <div className="rc-card" data-layout="listing" data-kind="funding" data-rows="fixed">
         <p className="rc-eyebrow">
           <Hold>Grant, USD 00,000</Hold>
         </p>
@@ -47,7 +48,7 @@ function SkeletonCard({ kind }: { kind: SkeletonKind }) {
     );
   if (kind === "project")
     return (
-      <div className="rc-card" data-layout="listing" data-kind="initiative">
+      <div className="rc-card" data-layout="listing" data-kind="initiative" data-rows="fixed">
         <p className="rc-card-title">
           <Hold>Project name</Hold>
         </p>

@@ -13,7 +13,7 @@ test("a preview's loading shapes take the preview's own layout", () => {
   const skeleton = source("ui/CardSkeleton.tsx");
   assert.ok(skeleton.includes('<ul className="rc-card-grid" data-preview={preview} aria-hidden="true">'));
   const home = source("pages/Home.tsx");
-  assert.ok(home.includes("<CardGridSkeleton kind={kind} preview={preview} />"));
+  assert.ok(home.includes('<CardGridSkeleton kind={kind} preview={preview} count={preview === "row" ? FUNDING_PREVIEW_COUNT : RECENT_PREVIEW_COUNT} />'));
   // Funding closing soon is one row and Recently shared is two, loading or not.
   assert.equal(count(home, 'skeleton("funding", "row")'), 1);
   assert.equal(count(home, '<CardGrid preview="row">'), 1);
