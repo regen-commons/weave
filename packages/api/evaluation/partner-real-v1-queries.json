@@ -1,0 +1,1470 @@
+{
+ "version": 1,
+ "dataset": "partner-real-v1-queries",
+ "corpus": "partner-real-v1-corpus.json",
+ "authorship": "Written 19 November 2026 by four agent instances, one per domain, each reading only the frozen corpus and its brief; none saw the matcher, its vocabulary, earlier fixtures or the other domains. Not tuned against.",
+ "domains": {
+  "art": "arts, culture, crafts, film, music, storytelling, design, artisans, cultural heritage",
+  "software": "digital tools, apps, data platforms, sensors and AI, maps and remote sensing, web3",
+  "research": "scientific study, monitoring, surveys, field data, evaluation, laboratories",
+  "place": "on-the-ground work with land, water, food, forests, compost, buildings, schools, sites"
+ },
+ "evidenceTypes": {
+  "literal": "close to how a project describes its work",
+  "paraphrase": "same meaning in other words",
+  "sparse": "a 1 to 4 word title and no description",
+  "cross-language": "Portuguese or Spanish, while fitting projects are in another language",
+  "hard-negative": "shares obvious words with projects that do not fit; may have none that fit",
+  "no-match": "no project in the corpus fits, in the author's judgment"
+ },
+ "rubric": "partner-real-rubric-v1: a need is served by a project whose described work could plausibly provide what is needed; an offer by a project that could plausibly use what is offered, given what it describes doing. A nearby but different activity is not relevant, and shared vague words are not a reason. Availability, price, distance and language are ignored. Judged from the listed passages only.",
+ "thresholds": {
+  "precisionAmongReturnedPerDomainDirection": 0.8,
+  "unsupportedConfirmations": 0,
+  "explanationOrProvenanceFailures": 0,
+  "recallFloor": null,
+  "source": "docs/platform/05-technical-spec.md quality criteria: at least 80 percent relevant returned top-five suggestions per domain/direction on held-out queries with known relevant candidates; zero unsupported confirmed assertions. No recall floor has been agreed, so recall is reported, not gated."
+ },
+ "queries": [
+  {
+   "id": "rq-art-n01",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Film training for young people to document our work",
+   "description": "Our youth volunteers want to learn filmmaking so they can tell the story of our restoration site themselves.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n02",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Artists to collaborate with scientists on water conservation",
+   "description": "We monitor springs and streams and want artists who can work alongside our researchers to make the findings visible.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n03",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Handmade crafts from women artisans for our visitor shop",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n04",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Artist residency that can host our team for a few weeks",
+   "description": "We are a small group of artists and ecologists looking for a place to live and work together on the land.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n05",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Storytelling partner to communicate our climate science",
+   "description": "Our data is solid but nobody outside the lab understands it.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n06",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Healing arts practices for a community wellbeing space",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n07",
+   "domain": "art",
+   "direction": "need",
+   "language": "es",
+   "title": "Saberes ancestrales sobre plantas medicinales para nuestro huerto",
+   "description": "Queremos aprender de comunidades que guardan el conocimiento tradicional de las plantas que curan.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n08",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Art and stories in environmental education for primary schools",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-n09",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Borrowing cameras and sound gear for a shoot",
+   "description": "We have a story to tell but no equipment to capture it properly.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-n10",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Carpentry know-how for a small timber cabin",
+   "description": "We want careful joinery and need people who have built with wood at a high level before.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-n11",
+   "domain": "art",
+   "direction": "need",
+   "language": "pt",
+   "title": "Gente que desenha espaços para planejar nosso povoado",
+   "description": "Precisamos de quem saiba pensar casas e lugares de convivência antes de começarmos a obra.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-n12",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "A public venue to exhibit our community's artwork",
+   "description": "",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-n13",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Documentary maker",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-art-n14",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Wikimedia Commons help",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-art-n15",
+   "domain": "art",
+   "direction": "need",
+   "language": "es",
+   "title": "Arte comunitario",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-art-n16",
+   "domain": "art",
+   "direction": "need",
+   "language": "pt",
+   "title": "Apoio para resgatar artesanato tradicional de comunidades costeiras",
+   "description": "Nossa comunidade de pescadores está perdendo os ofícios manuais dos mais velhos.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-art-n17",
+   "domain": "art",
+   "direction": "need",
+   "language": "es",
+   "title": "Enseñanza de artes creativas junto a oficios de la tierra",
+   "description": "Buscamos quien combine talleres artísticos con aprendizaje práctico en el campo para adultos.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-art-n18",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Sound artist to compose a piece from our forest recordings",
+   "description": "We have hours of soundscape audio and want a composer to turn it into a listening work for an exhibition.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-art-n19",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Weaving teacher for a new textile cooperative",
+   "description": "",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-art-n20",
+   "domain": "art",
+   "direction": "need",
+   "language": "en",
+   "title": "Recording studio time for a community choir album",
+   "description": "",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-art-o01",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Trained art educators to run nature journaling sessions",
+   "description": "Our facilitators teach drawing and observation outdoors with children and teachers.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o02",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Funding for artist residencies on regenerative land",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o03",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Business mentoring for women artisan groups",
+   "description": "We help craft cooperatives price, package and sell their work.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o04",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Documentary production about indigenous knowledge and oral histories",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o05",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Video production for free online regenerative courses",
+   "description": "We film and edit lessons so educators can reach learners who cannot attend in person.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o06",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Folk musicians and dancers for community land gatherings",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o07",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Donated cinema cameras and lenses for a film school",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o08",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Youth art workshops for river conservation projects",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-art-o09",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Expressive arts as a path through burnout and grief",
+   "description": "We guide small groups through painting, movement and voice to recover after hard years.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-o10",
+   "domain": "art",
+   "direction": "offer",
+   "language": "es",
+   "title": "Ilustramos cuadernos y cartillas para niños que aprenden sobre la naturaleza",
+   "description": "",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-o11",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Our gallery is looking for climate-themed work to hang this spring",
+   "description": "",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-o12",
+   "domain": "art",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Projetamos casas e salões comunitários com materiais locais",
+   "description": "Nossa equipe faz o desenho e acompanha a obra de espaços coletivos no campo.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-art-o13",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Craft fair stall",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-art-o14",
+   "domain": "art",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Escritora voluntária",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-art-o15",
+   "domain": "art",
+   "direction": "offer",
+   "language": "es",
+   "title": "Fotografía documental",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-art-o16",
+   "domain": "art",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Oficinas de artes criativas para ecovilas",
+   "description": "Levamos pintura, música e trabalhos manuais para comunidades que vivem na terra.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-art-o17",
+   "domain": "art",
+   "direction": "offer",
+   "language": "es",
+   "title": "Difundimos las voces de abuelas indígenas en encuentros climáticos internacionales",
+   "description": "",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-art-o18",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Screening tour for documentaries about water restoration",
+   "description": "We bring finished films to community halls and festivals.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-art-o19",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Minting community artworks as collectible digital tokens",
+   "description": "",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-art-o20",
+   "domain": "art",
+   "direction": "offer",
+   "language": "en",
+   "title": "Repaired violins and lessons for youth orchestras",
+   "description": "",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-pl-n01",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Training to run a weekly community composting point",
+   "description": "We want to collect household food scraps every week and turn them into compost, and need someone who already runs a composting hub to train our volunteers.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n02",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Guidance on replanting mangroves along a degraded shoreline",
+   "description": "We are about to replant mangrove seedlings on an eroded estuary bank and want advice from a group that has done mangrove restoration.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n03",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Help designing a rain-harvesting native food forest in a desert city",
+   "description": "We need someone experienced in capturing stormwater in urban earthworks and planting native food plants on former asphalt.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n04",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Learning coral transplanting for community reef restoration",
+   "description": "Our dive club wants to rebuild a damaged reef and needs people who transplant coral fragments and run a coral nursery.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n05",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Prescribed fire training for our land stewardship crew",
+   "description": "We look after fire-prone grassland and want practitioners of prescribed burning to train us.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n06",
+   "domain": "place",
+   "direction": "need",
+   "language": "es",
+   "title": "Plántulas de especies nativas para restaurar bosque altoandino",
+   "description": "Buscamos un vivero o socio que propague especies nativas para nuestras parcelas de restauración y corredores biológicos.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n07",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Advice on reconnecting koala habitat across cleared farmland",
+   "description": "We want to replant a wildlife corridor so koalas can move between remnant patches.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n08",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Help elders start home food gardens with indigenous crops",
+   "description": "Our older members want backyard gardens of traditional African crops, drawing on their own ecological knowledge.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-n09",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Someone to teach pupils to grow vegetables on campus",
+   "description": "We want children to sow, tend and harvest a plot on the school grounds as part of their regular lessons.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-n10",
+   "domain": "place",
+   "direction": "need",
+   "language": "es",
+   "title": "Nuestras parcelas se abren en zanjas con cada aguacero",
+   "description": "Necesitamos gente que entienda por qué el suelo se desmorona y cómo frenarlo en tierras de pequeños productores.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-n11",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Clearing exotic vines and shrubs that are smothering our woodland",
+   "description": "Non-native plants are taking over a community forest and we need a team that has removed them before.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-n12",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Making our neighbourhood less scorching for people on foot",
+   "description": "We want to measure how hot sidewalks and squares get in summer and then bring those temperatures down.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-n13",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "beekeeping mentor",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-pl-n14",
+   "domain": "place",
+   "direction": "need",
+   "language": "pt",
+   "title": "mutirão de limpeza do bairro",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-pl-n15",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "taro patch restoration",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-pl-n16",
+   "domain": "place",
+   "direction": "need",
+   "language": "pt",
+   "title": "Como recuperar um córrego urbano que virou esgoto",
+   "description": "Nosso bairro quer transformar um rio canalizado e poluído em espaço de convivência e precisa aprender com quem já fez isso.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-pl-n17",
+   "domain": "place",
+   "direction": "need",
+   "language": "es",
+   "title": "Experiencia en recuperar pastizales degradados con comunidades pastoras",
+   "description": "Queremos restaurar tierras de pastoreo áridas y buscamos aprender de proyectos comunitarios que ya lo hicieron.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-pl-n18",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Acoustic treatment to stop echo in our village hall",
+   "description": "Our hall echoes badly during meetings and we need someone to treat the walls and ceiling for better acoustics.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-pl-n19",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Builders to teach volunteers to raise an earth-and-timber classroom",
+   "description": "We want to build an outdoor classroom with natural materials and need builders who can teach as they work.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-pl-n20",
+   "domain": "place",
+   "direction": "need",
+   "language": "en",
+   "title": "Growing oyster mushrooms on spent coffee grounds",
+   "description": "We collect coffee grounds from cafés and want to learn to cultivate edible mushrooms on them.",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-pl-o01",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Surplus mangrove propagules from our coastal nursery",
+   "description": "We have more mangrove seedlings than we can plant this season and can pass them to restoration groups.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o02",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Finished compost for community and home food gardens",
+   "description": "Our green-waste site makes more compost than we use and can supply growers rebuilding garden soil.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o03",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Hydroponic growing kits and nutrient solution to donate",
+   "description": "We are closing an indoor farm and can give away hydroponic systems in working order.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o04",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Kelp seeding support for kelp forest restoration",
+   "description": "Our marine lab can grow kelp on lines and share it with groups restoring kelp beds.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o05",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Small cattle herd for managed rotational grazing",
+   "description": "We can bring our herd to graze land that needs planned grazing as part of its restoration.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o06",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Fruit and nut tree saplings for food forest plantings",
+   "description": "Our nursery has extra grafted fruit and nut trees for groups establishing food forests.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o07",
+   "domain": "place",
+   "direction": "offer",
+   "language": "es",
+   "title": "Ofrecemos semillas de árboles del bosque seco amazónico",
+   "description": "Tenemos semillas de especies nativas para quienes reforestan y producen su propio material vegetal.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o08",
+   "domain": "place",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Doamos mudas de plantas medicinais amazônicas",
+   "description": "Temos mudas excedentes de plantas medicinais tradicionais para jardins e projetos de cura.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-pl-o09",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Daily load of spoiled produce looking for a better use",
+   "description": "Our market throws out bruised fruit and vegetables every day and we would rather they fed soil or animals than a landfill.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-o10",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Classes of children ready for hands-on visits to farms and forests",
+   "description": "Our teachers want to bring pupils somewhere they can learn outdoors by doing real work on the land.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-o11",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Excavator and operator to dig ponds and shallow basins",
+   "description": "We can shape land so it holds water, for projects that want to keep rain on site.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-o12",
+   "domain": "place",
+   "direction": "offer",
+   "language": "es",
+   "title": "Podemos entregar plástico y cartón ya separados de nuestras oficinas",
+   "description": "Cada semana juntamos material limpio y clasificado y buscamos quien le dé una segunda vida.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-pl-o13",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "agave pups",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-pl-o14",
+   "domain": "place",
+   "direction": "offer",
+   "language": "pt",
+   "title": "mudas de café",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-pl-o15",
+   "domain": "place",
+   "direction": "offer",
+   "language": "es",
+   "title": "plantines de yerba mate",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-pl-o16",
+   "domain": "place",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Doamos armadilhas para controle de predadores invasores",
+   "description": "Temos armadilhas sobrando para gambás, furões e gatos ferais e queremos entregá-las a grupos que protegem aves nativas.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-pl-o17",
+   "domain": "place",
+   "direction": "offer",
+   "language": "es",
+   "title": "Semillas de plantas tolerantes a la sal para tierras secas",
+   "description": "Producimos semilla de especies halófitas y queremos apoyar proyectos que restauran suelos salinos.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-pl-o18",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Wood chips from city street tree pruning",
+   "description": "Our tree crew can drop off truckloads of chipped branches for mulch or compost.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-pl-o19",
+   "domain": "place",
+   "direction": "offer",
+   "language": "es",
+   "title": "Redes de pesca en desuso para reciclar o reutilizar",
+   "description": "Nuestra cooperativa pesquera tiene cientos de metros de redes viejas y busca a quien pueda aprovecharlas.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-pl-o20",
+   "domain": "place",
+   "direction": "offer",
+   "language": "en",
+   "title": "Oyster shell and spat for building shellfish reefs",
+   "description": "We recycle restaurant oyster shell and can supply seeded shell to groups rebuilding oyster reefs.",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-re-n01",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Training for youth to deploy AudioMoth sensors",
+   "description": "We want local young people to place AudioMoth recorders, collect the audio and help identify species from it.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n02",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Baseline biodiversity survey of reptiles, amphibians and mammals",
+   "description": "We need a team that can document what lives on our reserve before restoration begins.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n03",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Urban tree assessment and ecosystem services study",
+   "description": "Our campus wants its trees measured for structure, diversity and the services they provide.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n04",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Community water monitoring for our watershed",
+   "description": "We want residents to track the state of our streams and spot pollution early.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n05",
+   "domain": "research",
+   "direction": "need",
+   "language": "es",
+   "title": "Estudio de erosión hídrica y cárcavas en suelos de pequeños productores",
+   "description": "Buscamos quien sepa evaluar por qué se colapsan nuestros suelos y proponer manejo sustentable.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n06",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Mapping forest carbon with community knowledge",
+   "description": "We want to estimate the carbon stored in our forest while keeping local priorities in the picture.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n07",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Citizen science training for students recording biodiversity",
+   "description": "Our school wants pupils to collect real observations that feed into global databases.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n08",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Documenting elders' knowledge of medicinal plants",
+   "description": "We need help recording what our older knowledge keepers know before it is lost.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-n09",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Someone to measure how hot our sidewalks get in summer",
+   "description": "We suspect some blocks are far worse than others and want numbers before planting shade.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-n10",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Expertise on crops that survive in salty ground",
+   "description": "Seawater has crept into our fields and we need people who have studied what can still grow there.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-n11",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "A way to prove to funders our field results are real",
+   "description": "We want each observation time-stamped and vouched for by someone else, not just a report we write ourselves.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-n12",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Count every tree and household inside our reserve",
+   "description": "",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-n13",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Freshwater fish survey",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-re-n14",
+   "domain": "research",
+   "direction": "need",
+   "language": "pt",
+   "title": "Monitoramento de manguezal",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-re-n15",
+   "domain": "research",
+   "direction": "need",
+   "language": "es",
+   "title": "Inventario de flora amenazada",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-re-n16",
+   "domain": "research",
+   "direction": "need",
+   "language": "pt",
+   "title": "Pesquisa sobre agricultura urbana na cidade",
+   "description": "Precisamos de alguém que já tenha estudado e mapeado hortas urbanas para orientar nosso levantamento.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-re-n17",
+   "domain": "research",
+   "direction": "need",
+   "language": "es",
+   "title": "Grabar y analizar la fauna nocturna de los árboles del barrio",
+   "description": "Queremos saber qué animales viven de noche en nuestra ciudad y necesitamos quien sepa registrarlos.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-re-n18",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Sea turtle nesting beach surveys",
+   "description": "We need volunteers trained to count nests and hatchlings along the beach each season.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-re-n19",
+   "domain": "research",
+   "direction": "need",
+   "language": "en",
+   "title": "Measuring carbon stored in our mangroves for credits",
+   "description": "We have planted mangroves and need someone who can quantify the carbon they hold.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-re-n20",
+   "domain": "research",
+   "direction": "need",
+   "language": "es",
+   "title": "Medición de calidad del aire (PM2.5) cerca de una autopista",
+   "description": "Buscamos equipo y apoyo técnico para medir partículas finas en las escuelas junto a la vía.",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-re-o01",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Bird call identification from your audio recordings",
+   "description": "Our ornithology team can listen through passive acoustic recordings and confirm which bird species are present.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o02",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Hosting open data for community biodiversity observations",
+   "description": "We provide a free platform where community monitors can publish and share their records.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o03",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Water and sediment testing for heavy metals",
+   "description": "Our lab analyses samples from rivers and streams for metals and hydrocarbon pollution.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o04",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Drone and satellite mapping of forest restoration sites",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o05",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Marine scientists volunteering on reef and kelp surveys",
+   "description": "",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o06",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Analysis of smart trap sensor data for predator control",
+   "description": "We turn trap and sensor logs into maps of where pests are being caught.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o07",
+   "domain": "research",
+   "direction": "offer",
+   "language": "es",
+   "title": "Análisis de laboratorio de compost y biofertilizantes",
+   "description": "Medimos nutrientes y madurez del compost para proyectos comunitarios.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o08",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Waste audits and characterization studies",
+   "description": "We sort and weigh what communities throw away to show where the biggest problems are.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-re-o09",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "We teach growers to run their own field trials",
+   "description": "Simple experimental design so farmers can compare plots and trust what they see.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-o10",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Walking surveys of street and park temperatures",
+   "description": "Our team carries handheld sensors through neighborhoods to show where heat builds up.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-o11",
+   "domain": "research",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Acompanhamos a volta dos animais depois da restauração",
+   "description": "Fazemos registros periódicos para mostrar quais espécies reaparecem nas áreas recuperadas.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-o12",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "We measure how fast rain soaks into your ground",
+   "description": "",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-re-o13",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "AudioMoth sensors to lend",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-re-o14",
+   "domain": "research",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Análise de solo",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-re-o15",
+   "domain": "research",
+   "direction": "offer",
+   "language": "es",
+   "title": "Identificación de plantas",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-re-o16",
+   "domain": "research",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Identificação de morcegos por gravação ultrassônica",
+   "description": "Analisamos gravações noturnas e dizemos quais espécies de morcego estão presentes.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-re-o17",
+   "domain": "research",
+   "direction": "offer",
+   "language": "es",
+   "title": "Medición de biodiversidad en sistemas agroforestales",
+   "description": "Evaluamos aves, insectos y flora en cafetales y otras parcelas agroforestales.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-re-o18",
+   "domain": "research",
+   "direction": "offer",
+   "language": "en",
+   "title": "Tree-ring dating of timber in heritage buildings",
+   "description": "",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-re-o19",
+   "domain": "research",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Testes de germinação de sementes nativas em laboratório",
+   "description": "Avaliamos a viabilidade de lotes de sementes antes do plantio.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-re-o20",
+   "domain": "research",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Monitoramento de geleiras e balanço de massa",
+   "description": "",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-sw-n01",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Help identifying bird calls in our AudioMoth recordings",
+   "description": "We have hundreds of hours of audio from our wetland sites and need people or tools that can recognise species by their calls.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n02",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Traceability platform for our circular supply chain data",
+   "description": "We need a cloud system to track materials and keep regulatory records as products move through repair and recycling.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n03",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "AI tool for climate compliance and KPI reporting",
+   "description": "Our funders want standardized climate reports and we lack a way to monitor indicators.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n04",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "IoT sensors for smart trapping of possums and stoats",
+   "description": "We want our trap lines to report when they fire so volunteers stop walking empty checks.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n05",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Open tools so our community owns its biodiversity data",
+   "description": "Looking for a partner with local AI assistants and open data tooling we can run ourselves.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n06",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Community digital water monitoring network",
+   "description": "We want residents to collect and share data on the state of our rivers and springs.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n07",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Attestation layer for scientific and ecosystem contributions",
+   "description": "We need a provenance trail that records who contributed which observation and when.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n08",
+   "domain": "software",
+   "direction": "need",
+   "language": "es",
+   "title": "Trazabilidad y contratos para engorda regenerativa con inversionistas",
+   "description": "Buscamos un modelo para conectar inversionistas con ganaderos y registrar cada animal durante el ciclo.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-n09",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Who has studied after-dark city animals by ear?",
+   "description": "We want to learn how others track changes in nighttime wildlife in town parks and street trees using sound.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-n10",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Online exchange so unwanted household items find new owners",
+   "description": "We'd like a ready-made system where neighbours pass on furniture and goods instead of throwing them away.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-n11",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Smart digital assistant for our family bakery's admin",
+   "description": "We are a tiny shop drowning in emails, orders and paperwork and want automated help that respects how we work.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-n12",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "A way for faraway supporters to sponsor and follow our planting",
+   "description": "We want people elsewhere to pay for specific seedlings online and see the work on the ground.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-n13",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Bioacoustic data analysis",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-sw-n14",
+   "domain": "software",
+   "direction": "need",
+   "language": "pt",
+   "title": "Mapeamento de carbono florestal",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-sw-n15",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Web3 education",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-sw-n16",
+   "domain": "software",
+   "direction": "need",
+   "language": "pt",
+   "title": "Quem ensine jovens a instalar gravadores AudioMoth?",
+   "description": "Queremos formar jovens da comunidade para colocar sensores acústicos no campo e organizar as gravações.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-sw-n17",
+   "domain": "software",
+   "direction": "need",
+   "language": "es",
+   "title": "Monitoreo climático inteligente con IA para comunidades rurales",
+   "description": "Necesitamos sensores y modelos que nos avisen de sequías y lluvias para planificar los cultivos.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-sw-n18",
+   "domain": "software",
+   "direction": "need",
+   "language": "en",
+   "title": "Digital network connection for a remote village",
+   "description": "We need satellite or mesh internet so the school and clinic can get online.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-sw-n19",
+   "domain": "software",
+   "direction": "need",
+   "language": "es",
+   "title": "Monitoreo digital de reptiles con cámaras trampa",
+   "description": "Buscamos experiencia con cámaras automáticas y software para clasificar las fotos.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-sw-n20",
+   "domain": "software",
+   "direction": "need",
+   "language": "pt",
+   "title": "Aplicativo de pedidos e entregas de cestas agroecológicas",
+   "description": "Procuramos quem desenvolva um app para que consumidores encomendem cestas dos nossos agricultores.",
+   "evidenceType": "no-match"
+  },
+  {
+   "id": "rq-sw-o01",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Open archive hosting for soundscape and audio recordings",
+   "description": "We can store, publish and share long-term acoustic datasets openly.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o02",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Biodiversity data collection app for community volunteers",
+   "description": "Our mobile app lets volunteers log species observations with photos and location.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o03",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Remote sensing analysis of forest cover change",
+   "description": "We process satellite imagery to detect deforestation and track regrowth over time.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o04",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Reward points app for neighbourhood cleanup campaigns",
+   "description": "Residents earn points for cleanups and waste sorting, tracked on a simple app.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o05",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Biodiversity dMRV for agroforestry farms",
+   "description": "We provide digital measurement, reporting and verification of biodiversity gains on agroforestry plots.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o06",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Expert verification of community-collected biodiversity data",
+   "description": "Our panel of taxonomists reviews and validates records gathered by local monitors.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o07",
+   "domain": "software",
+   "direction": "offer",
+   "language": "es",
+   "title": "Software de trazabilidad para ganadería regenerativa",
+   "description": "Ofrecemos registro digital de cada animal y de los ciclos de engorda para inversionistas y productores.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o08",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Temperature sensor network for measuring urban heat",
+   "description": "We lend street-level sensors that log air and surface temperature across a city.",
+   "evidenceType": "literal"
+  },
+  {
+   "id": "rq-sw-o09",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Volunteer developers for an early-stage site that channels donations to restoration",
+   "description": "Our coders can help build and test a web product that links donors with people restoring land.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-o10",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Lessons for kids on healthy habits with screens, games and chat apps",
+   "description": "We have a curriculum that helps children think about how they use chatbots, video games and social media.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-o11",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Turning recorded voice stories into searchable text",
+   "description": "We transcribe interviews in local languages so elders' memories can be searched and kept.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-o12",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Water-quality probes that send readings to a shared dashboard",
+   "description": "We can install sensors that report pollution levels from streams and rivers automatically.",
+   "evidenceType": "paraphrase"
+  },
+  {
+   "id": "rq-sw-o13",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Bird call classifier",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-sw-o14",
+   "domain": "software",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Mapeamento participativo por celular",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-sw-o15",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Film editing software",
+   "description": "",
+   "evidenceType": "sparse"
+  },
+  {
+   "id": "rq-sw-o16",
+   "domain": "software",
+   "direction": "offer",
+   "language": "es",
+   "title": "Bases de datos abiertas para ciencia ciudadana escolar",
+   "description": "Ofrecemos una plataforma donde estudiantes suben sus observaciones de naturaleza y las comparten con bases globales.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-sw-o17",
+   "domain": "software",
+   "direction": "offer",
+   "language": "pt",
+   "title": "Plataforma de rastreabilidade para reciclagem",
+   "description": "Oferecemos um sistema para registrar o material coletado, pesado e vendido por catadores.",
+   "evidenceType": "cross-language"
+  },
+  {
+   "id": "rq-sw-o18",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Smart contract and protocol security audits",
+   "description": "We review blockchain code before launch to find vulnerabilities.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-sw-o19",
+   "domain": "software",
+   "direction": "offer",
+   "language": "es",
+   "title": "Software de gestión para laboratorios de análisis de suelo y agua",
+   "description": "Ofrecemos licencias para registrar muestras, resultados y control de calidad en laboratorios.",
+   "evidenceType": "hard-negative"
+  },
+  {
+   "id": "rq-sw-o20",
+   "domain": "software",
+   "direction": "offer",
+   "language": "en",
+   "title": "Satellite monitoring of glacier and snowpack melt",
+   "description": "We provide seasonal snow cover and ice loss maps from satellite data.",
+   "evidenceType": "no-match"
+  }
+ ]
+}
