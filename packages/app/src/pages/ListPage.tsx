@@ -74,7 +74,7 @@ export function ListPage({
             <h2 className="rc-notice-title">The list did not load</h2>
             <p>Your search and filter choices are still here.</p>
             <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>
-              Try again
+              Try Again
             </button>
           </div>
         </section>
@@ -105,7 +105,7 @@ export function ListPage({
               variant="primary"
               href={kind === "funding" ? FUNDING_COMMONS : pathTo("initiative")}
             >
-              {kind === "funding" ? "Browse current funding" : "Describe your initiative"}
+              {kind === "funding" ? "Browse Current Funding" : "Describe Your Initiative"}
             </ButtonLink>
           }
         >
@@ -152,7 +152,7 @@ export function ListPage({
                   type="button"
                   onClick={() => setFilters(EMPTY_FILTERS)}
                 >
-                  Clear filters
+                  Clear Filters
                 </button>
               }
             >

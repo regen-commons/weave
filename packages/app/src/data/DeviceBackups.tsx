@@ -18,7 +18,7 @@ import {
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 
 type Step = { kind: "restore" | "delete"; backup: DraftBackup } | { kind: "current" };
-const TITLES = { restore: "Restore this backup?", delete: "Delete this backup?", current: "Remove this draft from this device?" };
+const TITLES = { restore: "Restore This Backup?", delete: "Delete This Backup?", current: "Remove This Draft From This Device?" };
 
 /**
  * This browser's backups, one compact row each: the name, when it last changed, and Restore and
@@ -92,13 +92,13 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
           {backups.length > BACKUPS_SHOWN && (
             <button className="rc-button" data-variant="quiet" data-size="sm" type="button"
               aria-expanded={all} aria-controls={`${id}-list`} onClick={() => setAll((value) => !value)}>
-              {all ? "Show fewer backups" : `Show all ${backups.length} backups`}
+              {all ? "Show Fewer Backups" : `Show All ${backups.length} Backups`}
             </button>
           )}
           {current && (
             <button className="rc-button" data-variant="quiet" data-size="sm" type="button"
               disabled={busy || disabled || !ready} onClick={() => ask({ kind: "current" })}>
-              Remove this draft from this device
+              Remove This Draft From This Device
             </button>
           )}
         </div>
@@ -126,14 +126,14 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
                     await controller.replace(step.backup.draft);
                     return "Device backup restored. The previous draft was backed up first.";
                   })}>
-                  Back up this draft and restore
+                  Back Up This Draft And Restore
                 </button>
               ) : (
                 <button className="rc-button" data-variant="danger" type="button" disabled={busy}
                   onClick={() => void run(async () => step.kind === "current"
                     ? discardedMessage(await controller.discardCurrent())
                     : removedBackupMessage(await controller.deleteBackup(step.backup)))}>
-                  {step.kind === "current" ? "Remove from this device" : "Delete this backup"}
+                  {step.kind === "current" ? "Remove From This Device" : "Delete This Backup"}
                 </button>
               )}
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy}

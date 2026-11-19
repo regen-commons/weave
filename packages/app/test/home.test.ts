@@ -108,25 +108,25 @@ test("Home keeps one solid primary: resume a card, open one kept elsewhere, or s
 
 test("Home's resume link is named for where the card stopped", () => {
   assert.equal(cardRoute(newDraft()), "initiative");
-  assert.equal(resumeLabel("initiative"), "Continue your initiative");
-  assert.equal(resumeLabel("check-card"), "Continue your initiative");
+  assert.equal(resumeLabel("initiative"), "Continue Your Initiative");
+  assert.equal(resumeLabel("check-card"), "Continue Your Initiative");
 
   // Continue from the four fields confirms the card, so home resumes at needs and offers.
   const form = { name: "Orchard circle", where: "Upper valley", about: "Families share growing skills.", links: "" };
   const typed = continueWithFields(revise(newDraft(), { form, publicEdits: editsFromForm(form, {}) }, true));
   assert.equal(cardRoute(typed), "needs");
-  assert.equal(resumeLabel(cardRoute(typed)), "Continue your initiative");
+  assert.equal(resumeLabel(cardRoute(typed)), "Continue Your Initiative");
 
-  assert.equal(resumeLabel("your-initiative"), "Open your initiative");
+  assert.equal(resumeLabel("your-initiative"), "Open Your Initiative");
 });
 
 test("the second door names Certified only where a Certified project can be behind it", () => {
-  assert.equal(openLabel(null), "Open your saved initiative", "choosing a Certified project is an example only");
-  assert.equal(openLabel({ signedIn: false, projects: 0 }), "Open one from Certified");
-  assert.equal(openLabel({ signedIn: true, projects: 2 }), "Open one from Certified");
+  assert.equal(openLabel(null), "Open Your Saved Initiative", "choosing a Certified project is an example only");
+  assert.equal(openLabel({ signedIn: false, projects: 0 }), "Open One From Certified");
+  assert.equal(openLabel({ signedIn: true, projects: 2 }), "Open One From Certified");
   assert.equal(
     openLabel({ signedIn: true, projects: 0 }),
-    "Open your saved initiative",
+    "Open Your Saved Initiative",
     "a private save with no project is not on Certified",
   );
 });

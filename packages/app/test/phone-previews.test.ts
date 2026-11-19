@@ -17,7 +17,7 @@ test("a preview's loading shapes take the preview's own layout", () => {
   // Funding closing soon is one row and Recently shared is two, loading or not.
   assert.equal(count(home, 'skeleton("funding", "row")'), 1);
   assert.equal(count(home, '<CardGrid preview="row">'), 1);
-  assert.equal(count(home, 'skeleton("initiative", "rows")'), 1);
+  assert.equal(count(home, 'skeleton(fixture ? "initiative" : "project", "rows")'), 1);
   assert.equal(count(home, '<CardGrid preview="rows">'), 2);
   // No preview is drawn without its layout, which is what makes it a row on a phone.
   assert.equal(count(home, "<CardGrid>"), 0);

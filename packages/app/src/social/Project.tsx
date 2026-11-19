@@ -121,9 +121,9 @@ export function ProjectStep({
       actions={
         discovery.action === "consent" ? <ConsentButton action="membership" />
           : discovery.action === "retry" ? (
-            <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={busy} onClick={checkAgain}>Try again</button>
+            <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={busy} onClick={checkAgain}>Try Again</button>
           ) : discovery.action === "check" ? (
-            <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy} onClick={checkAgain}>Check again</button>
+            <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy} onClick={checkAgain}>Check Again</button>
           ) : undefined
       }
     >
@@ -138,7 +138,7 @@ export function ProjectStep({
   if (live && !records.length && (fixture.loading || fixture.problem)) return <div className="rc-stack">
     {status}
     <div className="rc-action-bar">
-      <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Not now</button>
+      <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Not Now</button>
     </div>
   </div>;
   const editorStep = (
@@ -211,11 +211,11 @@ export function ProjectStep({
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="primary" type="button" disabled={busy}
               onClick={() => void link(record)}>
-              Link this project
+              Link This Project
             </button>
             {alternative && record.uri === initial ? alternative : (
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onCancel}>
-                Not now
+                Not Now
               </button>
             )}
           </div>
@@ -225,7 +225,7 @@ export function ProjectStep({
       {!record && picked !== NEW && (
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>
-            Not now
+            Not Now
           </button>
         </div>
       )}
@@ -234,7 +234,7 @@ export function ProjectStep({
         <summary className="rc-footer-link">Recover a workspace without an admin</summary>
         <p>A verified Certified group owner can recover an existing workspace only when it has no active admin. Saved team work is preserved.</p>
         <button className="rc-button" data-variant="secondary" type="button" disabled={busy}
-          onClick={() => void run(async () => { await service.recoverWorkspace!(record.uri); return projectLinkForRecovery(record); })}>Recover workspace access</button>
+          onClick={() => void run(async () => { await service.recoverWorkspace!(record.uri); return projectLinkForRecovery(record); })}>Recover Workspace Access</button>
       </details>}
     </div>
   );
@@ -271,10 +271,10 @@ export function ProjectAction({
         type="button"
         onClick={() => fixture.mode === "live" && !fixture.state.identity ? openDoor("certified") : setOpen(true)}
       >
-        {pending ? "Find my project" : children}
+        {pending ? "Find My Project" : children}
       </button>
       {/* Ma Earth and Certified projects are both Certified records, so the title names neither editor. */}
-      <TaskDialog title="Your project" open={open} onClose={close}>
+      <TaskDialog title="Your Project" open={open} onClose={close}>
         {fixture.state.identity ? (
           <ProjectStep key={`${owner}/${draft.id}`} onDone={close} onCancel={close} />
         ) : import.meta.env.DEV ? (
@@ -345,7 +345,7 @@ export function WorkspaceRow({ primary = false, focus = false }: { primary?: boo
                 )
               }
             >
-              {asked ? "Check again" : project.role === "member" ? "Ask for a team workspace" : "Set up team workspace"}
+              {asked ? "Check Again" : project.role === "member" ? "Ask For A Team Workspace" : "Set Up Team Workspace"}
             </button>
           ) : undefined
         }

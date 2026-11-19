@@ -48,15 +48,15 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
   function show(next: "share" | "publish") { setOpened(current => ({ ...current, [next]: true })); setStep(next); }
   return <>
     <StatusLine actions={!readOnly && <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={!online}
-      onClick={() => show("share")}>Share for matching</button>}>{shared}</StatusLine>
+      onClick={() => show("share")}>Share For Matching</button>}>{shared}</StatusLine>
     <StatusLine actions={!readOnly && <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
-      onClick={() => show("publish")}>Publish on Certified</button>}>{published}</StatusLine>
-    <TaskDialog title="Share for matching" open={step === "share"} onClose={() => close("share")} retainContents>
+      onClick={() => show("publish")}>Publish On Certified</button>}>{published}</StatusLine>
+    <TaskDialog title="Share For Matching" open={step === "share"} onClose={() => close("share")} retainContents>
       {opened.share && <SavedMatching key={saved.revision} active={active} synced online={online} compact={false}
         onExpired={onExpired} fixture={false} team={team} readOnly={readOnly} presentation="sharing" visible={step === "share"} />
       }
     </TaskDialog>
-    <TaskDialog title="Publish on Certified" open={step === "publish"} onClose={() => close("publish")} retainContents>
+    <TaskDialog title="Publish On Certified" open={step === "publish"} onClose={() => close("publish")} retainContents>
       {opened.publish && <PublicSupport workspaceId={saved.id} saved={saved} readOnly={readOnly} expanded visible={step === "publish"} />}
     </TaskDialog>
   </>;

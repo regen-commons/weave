@@ -17,6 +17,7 @@ import { linkPreviews } from "./dev/link-previews.ts";
 import { appManifest } from "./dev/manifest.ts";
 import { themeColor } from "./dev/theme-color.ts";
 import { isolateFixtureProjectOAuth } from "./dev/fixture-oauth-isolation.ts";
+import { readsProduction } from "./dev/production-projects.ts";
 
 /**
  * Answers /api/<name> from api/<name>.ts, the same entry files Vercel deploys, so the app
@@ -53,6 +54,12 @@ export function apiRoutes(): Plugin {
       server.middlewares.use(
         "/api",
         serve(join(server.config.root, "api"), isolateFixtureProjectOAuth(process.env.WEAVE_ACCOUNT_FIXTURE === "1", async (name) => {
+          // Opt-in and development only: the public project list alone is read from production,
+          // by GET, with nothing of the browser's (dev/production-projects.ts).
+          if (readsProduction(process.env.WEAVE_PRODUCTION_PROJECTS, name)) {
+            const proxy = await server.ssrLoadModule("/dev/production-projects.ts");
+            return proxy.productionPublicProjects();
+          }
           if (["matching", "projects"].includes(name) && process.env.WEAVE_ACCOUNT_FIXTURE === "1") {
             const fixture = await server.ssrLoadModule("/dev/matching-fixture.ts");
             return { POST: name === "matching" ? fixture.matchingFixture

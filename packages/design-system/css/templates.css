@@ -23,6 +23,11 @@
 /* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
    window below it, reads this. */
 .rc-page { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
+/* The site banner's height where a page has one, and nothing where it has none. The page body
+   leaves it out of the window it fills, so the footer starts at the fold and not a banner below
+   it (DL-102). */
+.rc-page { --site-banner-height: 0rem; }
+.rc-page:has(> .rc-site-banner) { --site-banner-height: var(--space-7); }
 /* The tab bar's height on a phone: a tab and the bar's top edge. The bar is fixed to the bottom
    of the window, so the page keeps that much room under its footer, and the room the phone's
    home indicator takes, and the footer's last line is never under the bar (DL-086). */
@@ -35,8 +40,8 @@
   .rc-page:has(> .rc-dock:not(:empty)) { padding-block-end: calc(var(--dock-height) + env(safe-area-inset-bottom)); }
   /* Between the two bars a short page fills the window that is left, and no more, so what closes
      it is in view above the tab bar or the dock. */
-  .rc-page:has(> .rc-bottom-nav) > .rc-page-body { min-block-size: calc(100dvh - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
-  .rc-page:has(> .rc-dock:not(:empty)) > .rc-page-body { min-block-size: calc(100dvh - var(--app-header-height) - var(--dock-height) - env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-bottom-nav) > .rc-page-body { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-dock:not(:empty)) > .rc-page-body { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--dock-height) - env(safe-area-inset-bottom)); }
 }
 /* A large desktop gives the page, the app bar and the footer more of its width, so a list holds
    four cards across (DL-077). */
@@ -52,10 +57,14 @@
   isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  min-block-size: calc(100dvh - var(--app-header-height));
+  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height));
 }
 
+/* One line of words in a bar of a known height, which the page body reads (--site-banner-height). */
 .rc-site-banner {
+  display: grid;
+  place-items: center;
+  min-block-size: var(--site-banner-height);
   padding: var(--space-2) var(--gutter);
   border-block-end: var(--border-thin) solid var(--control-line);
   background: var(--surface-tint);
@@ -79,12 +88,14 @@
   inline-size: 100%;
   max-inline-size: var(--page-width);
   margin-inline: auto;
-  padding-block: var(--space-5) var(--space-8);
+  padding-block: var(--space-5) var(--space-6);
   padding-inline: var(--gutter);
 }
-/* A wide screen has room to breathe: more above the title and before the footer. */
+/* A wide screen has room to breathe: more above the title and before the footer. The footer brings
+   its own room above its links, so the page ends a short step before the footer's line and not a
+   long one (DL-102). */
 @media (min-width: 56.25rem) {
-  .rc-main { padding-block: var(--space-6) var(--space-9); }
+  .rc-main { padding-block: var(--space-6) var(--space-7); }
 }
 
 .rc-stack {

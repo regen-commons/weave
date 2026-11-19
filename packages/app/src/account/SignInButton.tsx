@@ -21,7 +21,7 @@ export function SignInButton({
   size,
   ref,
   onProblem,
-  children = "Sign in with Certified",
+  children = "Sign In With Certified",
 }: {
   variant?: "primary" | "secondary";
   size?: "sm";

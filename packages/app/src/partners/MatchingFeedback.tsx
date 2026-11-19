@@ -23,9 +23,9 @@ export function MatchingFeedback({ busy, loading, error, notice, pending, online
     {notice && <p className="rc-meta" role="status" tabIndex={-1} ref={noticeRef}>{notice}</p>}
     {pending && !reviewing && !readOnly && <div className="rc-action-bar">
       <button className="rc-button" data-variant="secondary" type="button" disabled={busy || !online}
-        onClick={() => onRetry(pending)}>Try again</button>
+        onClick={() => onRetry(pending)}>Try Again</button>
     </div>}
     {onRefresh && <button className="rc-button" data-variant="quiet" type="button" disabled={refreshBlocked}
-      onClick={onRefresh}>Check again</button>}
+      onClick={onRefresh}>Check Again</button>}
   </>;
 }

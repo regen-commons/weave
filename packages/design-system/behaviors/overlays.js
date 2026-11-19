@@ -30,7 +30,19 @@ export function inlinePlacement({ triggerLeft, triggerRight, panelWidth, windowW
   return Math.max(gap, Math.min(wanted, windowWidth - panelWidth - gap));
 }
 
+/**
+ * Whether a scroll somewhere in the window moves an open panel. A scroll inside the panel moves
+ * nothing the panel is placed against, so it is left alone: placing measures the panel at its full
+ * height, and a panel measured that way while it is being scrolled loses its place (DL-100).
+ */
+export function scrollMovesPanel(scrolled, panel) {
+  return scrolled !== panel && !panel.contains(scrolled);
+}
+
 function place(trigger, panel) {
+  // Measuring lets the panel grow for a moment, which can pull a scrolled panel back up; it goes
+  // back to where the person left it once it has its room.
+  const scrolledTo = panel.scrollTop;
   const rect = trigger.getBoundingClientRect();
   const style = getComputedStyle(panel);
   const margin = parseFloat(style.marginLeft) || 0;
@@ -58,6 +70,7 @@ function place(trigger, panel) {
   panel.style.setProperty("--popover-max-block", `${maxBlock}px`);
   panel.style.setProperty("--popover-left", `${left - margin}px`);
   panel.style.setProperty("--popover-top", `${top - margin}px`);
+  if (panel.scrollTop !== scrolledTo) panel.scrollTop = scrolledTo;
 }
 
 function overlay(trigger, panel) {
@@ -106,8 +119,8 @@ function overlay(trigger, panel) {
   on(
     window,
     "scroll",
-    () => {
-      if (isOpen()) place(trigger, panel);
+    (event) => {
+      if (isOpen() && scrollMovesPanel(event.target, panel)) place(trigger, panel);
     },
     true,
   );

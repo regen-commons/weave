@@ -82,7 +82,7 @@ export function AppHeader({
             dialog, which says what went wrong and offers the same step again. */}
         {!signedIn && (
           <SignInButton ref={signIn} variant="secondary" size="sm" onProblem={(message) => openAccount("sign-in", message)}>
-            Sign in
+            Sign In
           </SignInButton>
         )}
         {/* A wide screen gives a signed-in person the account's menu, which holds Settings; signed

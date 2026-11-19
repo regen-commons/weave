@@ -45,8 +45,8 @@ const RULES: Record<FitEvidence, FitRule> = {
 };
 
 export const FIT_GROUPS: Readonly<Record<FitGroupKey, { readonly heading: string; readonly explanation: string }>> = {
-  direct: { heading: "Direct fits", explanation: "They have said they offer or need this." },
-  possible: { heading: "Possible fits", explanation: "Their public work suggests a fit. They have not offered or asked." },
+  direct: { heading: "Direct Fits", explanation: "They have said they offer or need this." },
+  possible: { heading: "Possible Fits", explanation: "Their public work suggests a fit. They have not offered or asked." },
 };
 const GROUP_ORDER: readonly FitGroupKey[] = ["direct", "possible"];
 

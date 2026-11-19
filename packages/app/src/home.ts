@@ -86,7 +86,7 @@ export function homeDoors(
 
 /** The resume link is named for where it goes: the initiative's own page once nothing is left to add. */
 export function resumeLabel(route: RouteName): string {
-  return route === "your-initiative" ? "Open your initiative" : "Continue your initiative";
+  return route === "your-initiative" ? "Open Your Initiative" : "Continue Your Initiative";
 }
 
 /**
@@ -96,6 +96,6 @@ export function resumeLabel(route: RouteName): string {
  */
 export function openLabel(certified: { readonly signedIn: boolean; readonly projects: number } | null): string {
   return certified && (!certified.signedIn || certified.projects > 0)
-    ? "Open one from Certified"
-    : "Open your saved initiative";
+    ? "Open One From Certified"
+    : "Open Your Saved Initiative";
 }

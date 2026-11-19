@@ -102,7 +102,8 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
       record.hidden = !record.textContent.toLowerCase().includes(search.value.trim().toLowerCase()) || (countries.length > 0 && !countries.includes(record.dataset.country));
       if (!record.hidden) count++;
     }
-    const direction = example.querySelector("[data-example-sort]").value === "reverse" ? -1 : 1;
+    const sort = example.querySelector("[data-example-sort]:checked");
+    const direction = sort?.value === "reverse" ? -1 : 1;
     records.sort((a, b) => direction * a.querySelector("h2").textContent.localeCompare(b.querySelector("h2").textContent)).forEach((record) => grid.append(record));
     example.querySelector("[data-example-count]").textContent = `${count} of ${records.length} examples`;
     const chips = example.querySelector("[data-example-chips]");
@@ -115,10 +116,9 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
       button.addEventListener("click", () => { choose(country, false); update(); });
       chips.append(button);
     }
-    // Sort shows its choice on its face; the select under it is clear.
-    const sort = example.querySelector("[data-example-sort]");
-    const face = sort.closest(".rc-sort")?.querySelector(".rc-sort-face > span");
-    if (face) face.textContent = `: ${sort.selectedOptions[0].textContent}`;
+    // Sort says the order in force on its button, which opens the same menu a filter opens.
+    const face = example.querySelector("[data-example-sort-face]");
+    if (face && sort) face.textContent = `Sort: ${sort.closest("label").textContent.trim()}`;
   }
   function choose(country, chosen) {
     for (const check of checks) if (check.value === country) check.checked = chosen;
@@ -148,8 +148,8 @@ answerExample?.addEventListener("submit", (event) => {
 });
 document.querySelector("[data-example-edit]")?.addEventListener("click", (event) => {
   const field = document.querySelector("[data-example-edit-field]"); const text = document.querySelector("#example-answer"); const input = document.querySelector("#example-edit");
-  if (field.hidden) { field.hidden = false; text.hidden = true; event.currentTarget.textContent = "Keep changes"; input.focus(); }
-  else if (input.value.trim()) { text.textContent = input.value.trim(); field.hidden = true; text.hidden = false; event.currentTarget.textContent = "Edit your words"; }
+  if (field.hidden) { field.hidden = false; text.hidden = true; event.currentTarget.textContent = "Keep Changes"; input.focus(); }
+  else if (input.value.trim()) { text.textContent = input.value.trim(); field.hidden = true; text.hidden = false; event.currentTarget.textContent = "Edit Your Words"; }
 });
 document.querySelector("[data-example-file]")?.addEventListener("change", (event) => {
   for (const file of event.currentTarget.files ?? []) {

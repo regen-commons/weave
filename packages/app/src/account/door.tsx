@@ -60,7 +60,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
     <DoorContext.Provider value={(next = "keep", note = "") => { setProblem(note); setIntent(next); }}>
       {children}
       <TaskDialog
-        title={intent === "sign-in" || intent === "certified" ? "Sign in" : "Save your initiative"}
+        title={intent === "sign-in" || intent === "certified" ? "Sign In" : "Save Your Initiative"}
         open={intent !== null}
         onClose={() => setIntent(null)}
       >

@@ -61,7 +61,7 @@ export function Settings() {
       <Heading level={1} size="page">
         Settings
       </Heading>
-      <SettingsSection title="Your initiative" note="The card kept on this device.">
+      <SettingsSection title="Your Initiative" note="The card kept on this device.">
         {hasDraft(draft) ? (
           <StatusLine
             actions={
@@ -77,7 +77,7 @@ export function Settings() {
             <p>No initiative on this device yet.</p>
             <div className="rc-action-bar">
               <ButtonLink href={pathTo("initiative")} variant="secondary">
-                Describe your initiative
+                Describe Your Initiative
               </ButtonLink>
             </div>
           </>
@@ -170,7 +170,7 @@ export function Settings() {
               type="button"
               onClick={() => controller.change((current) => revise(current, { assistant: "keywords" }))}
             >
-              Use keywords instead
+              Use Keywords Instead
             </button>
           )}
           <button
@@ -179,14 +179,14 @@ export function Settings() {
             type="button"
             onClick={() => information("assistant")}
           >
-            What the assistant did
+            What The Assistant Did
           </button>
         </div>
       </SettingsSection>
-      <SettingsSection title="Install Weave on your phone" note="It opens like an app, full screen.">
+      <SettingsSection title="Install Weave On Your Phone" note="It opens like an app, full screen.">
         <InstallGuide />
       </SettingsSection>
-      <SettingsSection title="Your data" note="A copy of what this device holds.">
+      <SettingsSection title="Your Data" note="A copy of what this device holds.">
         <p>
           Download this device's draft, unfinished words, files, assistant records and backups. Cards
           saved in your account are not included. Keep the file private.
@@ -213,7 +213,7 @@ export function Settings() {
               })
             }
           >
-            {busy ? "Preparing your data" : "Download device data"}
+            {busy ? "Preparing Your Data" : "Download Device Data"}
           </button>
           <button
             className="rc-button"
@@ -221,7 +221,7 @@ export function Settings() {
             type="button"
             onClick={() => information("storage")}
           >
-            What we store
+            What We Store
           </button>
           <button
             className="rc-button"
@@ -229,13 +229,13 @@ export function Settings() {
             type="button"
             onClick={() => information("policy")}
           >
-            Data policy
+            Data Policy
           </button>
         </div>
       </SettingsSection>
       {/* Backups and removal stay here even when no draft is left on the device, so recovery stays in reach. */}
       <SettingsSection
-        title="Device backups"
+        title="Device Backups"
         note="Earlier drafts and their files, kept only in this browser. Restoring one backs up the current draft first."
       >
         <DeviceBackups manage disabled={busy} />
@@ -258,7 +258,7 @@ export function Settings() {
                     })
                   }
                 >
-                  Sign out
+                  Sign Out
                 </button>
                 <button
                   className="rc-button"
@@ -267,7 +267,7 @@ export function Settings() {
                   disabled={busy}
                   onClick={() => setDeleting(true)}
                 >
-                  Delete your account
+                  Delete Your Account
                 </button>
               </div>
               {(status.state === "shared" || status.state === "published") && (
@@ -280,7 +280,7 @@ export function Settings() {
           ) : (
             <>
               <SignOutAction
-                label="Sign out of this device"
+                label="Sign Out Of This Device"
                 onResult={(text, error) => {
                   setMessage(text);
                   setFailed(error);
@@ -301,7 +301,7 @@ export function Settings() {
         </p>
       )}
       {import.meta.env.DEV && example && (
-        <TaskDialog title="Delete your account?" open={deleting} onClose={() => setDeleting(false)}>
+        <TaskDialog title="Delete Your Account?" open={deleting} onClose={() => setDeleting(false)}>
           <p>
             This deletes the initiatives you saved privately in Weave and takes back anything you shared.
             Your Certified account is not deleted, and the card on this device stays.
@@ -320,7 +320,7 @@ export function Settings() {
               })
             }
           >
-            Delete my account
+            Delete My Account
           </button>
         </TaskDialog>
       )}

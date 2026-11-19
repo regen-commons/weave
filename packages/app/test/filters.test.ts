@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { activeChoices, narrowing, pickedValue, pressOption, withoutChoice, type Facet } from "../src/filters.ts";
+import { activeChoices, narrowing, pickedValue, pressOption, sortChoice, withoutChoice, type Facet } from "../src/filters.ts";
 
 const region: Facet = {
   key: "region",
@@ -77,4 +77,11 @@ test("a value the list no longer offers still shows, so it can be taken off", ()
   const [choice] = activeChoices([{ ...region, chosen: ["Oceania"] }]);
   assert.equal(choice?.label, "Oceania");
   assert.deepEqual(withoutChoice(choice!), []);
+});
+
+test("Sort shows the order in force, or the first on offer where the chosen one is not offered", () => {
+  const options = [{ value: "closing", label: "Closing soon" }, { value: "name", label: "Name A to Z" }];
+  assert.equal(sortChoice({ value: "name", options })?.label, "Name A to Z");
+  assert.equal(sortChoice({ value: "fit", options })?.label, "Closing soon", "an order that needs a card falls back");
+  assert.equal(sortChoice({ value: "name", options: [] }), undefined);
 });

@@ -65,7 +65,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
     }
   }
   return (
-    <TaskDialog title="Delete a saved card" open={open} onClose={onClose} blockClose={busy}>
+    <TaskDialog title="Delete A Saved Card" open={open} onClose={onClose} blockClose={busy}>
       <div className="rc-stack" ref={body} aria-busy={busy}>
         {chosen ? (
           <>
@@ -81,11 +81,11 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
             <div className="rc-action-bar">
               {problem?.reload ? (
                 <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-reload onClick={() => void reload()}>
-                  Reload saved cards
+                  Reload Saved Cards
                 </button>
               ) : (
                 <button className="rc-button" data-variant="danger" type="button" disabled={busy} onClick={() => void confirm()}>
-                  Delete from your account
+                  Delete From Your Account
                 </button>
               )}
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy} data-confirm-cancel
@@ -110,7 +110,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
                   <button className="rc-button" data-variant="secondary" type="button" data-card-id={card.id}
                     aria-label={`Delete from your account: ${card.name}`}
                     onClick={() => { setProblem(null); setChosen({ card, requestId: crypto.randomUUID() }); }}>
-                    Delete from your account
+                    Delete From Your Account
                   </button>
                 </li>
               ))}

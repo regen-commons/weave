@@ -108,10 +108,10 @@ test("ranked results split into direct fits and possible fits, each in the order
   ]);
   const [direct, possible] = groupFits(ranked, ({ evidence }) => evidence.kind);
   assert.deepEqual([direct!.key, direct!.heading, direct!.explanation],
-    ["direct", "Direct fits", "They have said they offer or need this."]);
+    ["direct", "Direct Fits", "They have said they offer or need this."]);
   assert.deepEqual(direct!.results.map(({ evidence }) => evidence.id), ["art-feminism:training", "osm:contribute"]);
   assert.deepEqual([possible!.key, possible!.heading, possible!.explanation],
-    ["possible", "Possible fits", "Their public work suggests a fit. They have not offered or asked."]);
+    ["possible", "Possible Fits", "Their public work suggests a fit. They have not offered or asked."]);
   assert.deepEqual(possible!.results.map(({ evidence }) => evidence.id), ["public-lab:research", "osm:mapping"]);
   assert.equal(direct!.results[1], ranked[3]);
 });
@@ -133,8 +133,8 @@ test("every kind of evidence from the device and the network falls in one group"
 
 test("no results leave both groups empty, and a preview keeps the first results of each group", () => {
   assert.deepEqual(groupFits([], (kind: FitEvidence) => kind).map(({ key, heading, results }) => [key, heading, results]), [
-    ["direct", "Direct fits", []],
-    ["possible", "Possible fits", []],
+    ["direct", "Direct Fits", []],
+    ["possible", "Possible Fits", []],
   ]);
   const kinds: FitEvidence[] = [
     "inferred_capability", "published_offer", "potential_use", "confirmed_offer", "inferred_capability", "published_need",

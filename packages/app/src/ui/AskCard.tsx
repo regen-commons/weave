@@ -41,7 +41,7 @@ export function AskCard({
           disabled={disabled}
           onClick={onUndo}
         >
-          Undo remove
+          Undo Remove
         </button>
       </div>
     );
@@ -130,7 +130,7 @@ export function AskCard({
             id={entryId(item.id, "more")}
             onClick={onMore}
           >
-            More details
+            More Details
           </button>
           <button
             className="rc-button"

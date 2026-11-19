@@ -5,6 +5,7 @@ import {
   narrowing,
   pickedValue,
   pressOption,
+  sortChoice,
   withoutChoice,
   type Facet,
   type SortChoice,
@@ -89,26 +90,45 @@ function FilterMenu({ facet, name, onChange }: { facet: Facet; name: string; onC
 }
 
 /**
- * Sort control (`rc-sort`): a native select drawn as one more filter button, so the bar's controls
- * match and a phone opens its own picker. The select lies clear over the face and takes the press.
+ * Sort: one more button in the bar that opens the same menu a filter opens, with one order to pick
+ * (DL-100). The button says the order in force, so the bar reads the same before and after a press.
  */
-function SortControl({ sort, onSort }: { sort: SortChoice; onSort(value: string): void }) {
+function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSort(value: string): void }) {
   const id = useId();
-  const current = sort.options.find((option) => option.value === sort.value) ?? sort.options[0];
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (trigger.current && panel.current) return connectPopover(trigger.current, panel.current);
+  }, []);
+  const current = sortChoice(sort);
   return (
-    <div className="rc-button rc-sort" data-variant="secondary">
-      {/* The word is the select's label. The value beside it is for the eye; the select says its own. */}
-      <label className="rc-sort-face" htmlFor={id}>
-        Sort<span aria-hidden="true">: {current?.label}</span>
-      </label>
-      <select id={id} value={current?.value} onChange={(event) => onSort(event.target.value)}>
-        {sort.options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
+    <>
+      <button className="rc-button" data-variant="secondary" type="button" ref={trigger} popoverTarget={id}>
+        Sort: {current?.label}
+      </button>
+      <div className="rc-menu" ref={panel} id={id} popover="auto" data-align="end">
+        <fieldset className="rc-menu-group">
+          <legend>Sort</legend>
+          <div className="rc-menu-options">
+            {sort.options.map((option) => (
+              <label className="rc-menu-option" key={option.value}>
+                <input
+                  className="rc-check"
+                  type="radio"
+                  name={name}
+                  checked={current?.value === option.value}
+                  onChange={() => onSort(option.value)}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <button type="button" className="rc-button" data-variant="quiet" data-close-popover>
+          Done
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -118,8 +138,9 @@ function SortControl({ sort, onSort }: { sort: SortChoice; onSort(value: string)
  * and how much of the list is left. The list narrows as a person types, so the field has no button.
  * On a phone one Filters button opens every filter in a sheet; a wide screen gives each filter its
  * own menu. Choices take effect as they are made, so the sheet's foot only says how many results
- * they leave. While the list loads, the search field is already there and the filters hold their
- * row, so nothing moves when the list arrives.
+ * they leave. While the list loads the bar is already whole: the search works, the filters and Sort
+ * are drawn as they will be and wait, and the count line keeps the room its sentence will take
+ * (`reserve`), so nothing moves when the list arrives (DL-104).
  */
 export function FilterBar({
   noun,
@@ -136,6 +157,7 @@ export function FilterBar({
   summary,
   note,
   loading = false,
+  reserve,
   onClear,
 }: {
   /** What the list holds, as the search field names it: "initiatives", "funding". */
@@ -160,6 +182,8 @@ export function FilterBar({
   note?: string;
   /** The list is still arriving: search works, and the filters and the count hold their places. */
   loading?: boolean;
+  /** A sentence about as long as the count line will be, which keeps its room while the list loads. */
+  reserve?: string;
   /** Takes off the search and every filter. The sort order stays. */
   onClear(): void;
 }) {
@@ -187,10 +211,25 @@ export function FilterBar({
         </div>
       </form>
       {loading && controls ? (
-        <div className="rc-filter-controls" aria-hidden="true">
-          <span className="rc-skeleton" data-shape="control" />
-          <span className="rc-skeleton" data-shape="control" />
-          <span className="rc-skeleton" data-shape="control" />
+        // The real buttons, waiting: the same words at the same sizes, so the row is the one that stays.
+        <div className="rc-filter-controls">
+          {facets.length > 0 && (
+            <button className="rc-button" data-variant="secondary" data-filter="all" type="button" disabled>
+              <Icon name="filter" size="sm" />
+              Filters{narrowed > 0 ? ` (${narrowed})` : ""}
+            </button>
+          )}
+          {facets.map((facet) => (
+            <button key={facet.key} className="rc-button" data-variant="secondary" data-filter="one" data-menu type="button" disabled>
+              {facet.label}
+              {narrowing(facet) > 0 ? ` (${narrowing(facet)})` : ""}
+            </button>
+          ))}
+          {sort && (
+            <button className="rc-button" data-variant="secondary" data-menu type="button" disabled>
+              Sort: {sortChoice(sort)?.label}
+            </button>
+          )}
         </div>
       ) : controls ? (
         <div className="rc-filter-controls">
@@ -210,7 +249,7 @@ export function FilterBar({
           {facets.map((facet) => (
             <FilterMenu key={facet.key} facet={facet} name={`${id}-${facet.key}-menu`} onChange={onFacet} />
           ))}
-          {sort && onSort && <SortControl sort={sort} onSort={onSort} />}
+          {sort && onSort && <SortMenu sort={sort} name={`${id}-sort`} onSort={onSort} />}
         </div>
       ) : null}
       {(query || choices.length > 0) && (
@@ -234,15 +273,24 @@ export function FilterBar({
             </button>
           ))}
           <button className="rc-button" data-variant="quiet" data-size="sm" type="button" onClick={onClear}>
-            Clear filters
+            Clear Filters
           </button>
         </div>
       )}
       <p className="rc-meta">
-        <span role="status" aria-atomic="true">
+        {/* While the list loads the words are for assistive technology; the eye gets the line's room. */}
+        <span role="status" aria-atomic="true" className={loading ? "rc-visually-hidden" : undefined}>
           {loading ? `Loading ${noun}` : summary ?? `${count} of ${total} ${things}${note ? "." : ""}`}
         </span>
-        {!loading && note ? ` ${note}` : ""}
+        {loading ? (
+          <span className="rc-skeleton" data-shape="hold" aria-hidden="true">
+            {reserve ?? `0 of 0 ${things}`}
+          </span>
+        ) : note ? (
+          ` ${note}`
+        ) : (
+          ""
+        )}
       </p>
       <Dialog presentation="information" title="Filters" open={sheet} leaves onClose={() => setSheet(false)}>
         {facets.map((facet) => (
@@ -264,15 +312,15 @@ export function FilterBar({
         <div className="rc-dialog-foot">
           <button
             className="rc-button"
-            data-variant="quiet"
+            data-variant="secondary"
             type="button"
             disabled={!query && choices.length === 0}
             onClick={onClear}
           >
-            Clear all
+            Clear All
           </button>
           <button className="rc-button" data-variant="primary" type="button" onClick={() => setSheet(false)}>
-            Show {count} {count === 1 ? "result" : "results"}
+            Show {count} {count === 1 ? "Result" : "Results"}
           </button>
         </div>
       </Dialog>

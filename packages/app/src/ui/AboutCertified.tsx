@@ -13,9 +13,9 @@ export function AboutCertified() {
   return (
     <>
       <button className="rc-button" data-variant="quiet" type="button" onClick={() => setOpen(true)}>
-        What is Certified?
+        What Is Certified?
       </button>
-      <Dialog presentation="information" title="What is Certified?" open={open} leaves onClose={() => setOpen(false)}>
+      <Dialog presentation="information" title="What Is Certified?" open={open} leaves onClose={() => setOpen(false)}>
         <p>Certified is the account you sign in to Weave with.</p>
         <dl className="rc-facts" data-kind="terms">
           {CERTIFIED_FACTS.map(([title, body]) => (

@@ -10,8 +10,8 @@ export function Stack({ wide, children }: { wide?: boolean; children: ReactNode 
 }
 
 /**
- * Panel (`rc-panel`): the page's own surface behind words and controls that have no card of their
- * own, so the mycelium behind the page does not run through them on a wide screen.
+ * Panel (`rc-panel`): a block of words and controls that have no card of their own, such as a
+ * form or a side panel. It keeps the block's rhythm and paints nothing (DL-099).
  */
 export function Panel({ children }: { children: ReactNode }) {
   return <div className="rc-panel">{children}</div>;

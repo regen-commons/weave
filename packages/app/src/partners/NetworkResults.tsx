@@ -104,7 +104,7 @@ export function FitCard({
   level, name, href, entry, kind, reciprocal = false, topics = [], kinds = [], unknowns = [], basis, checkPlace = false,
   actions, children,
 }: {
-  level: 3 | 4 | 5;
+  level: 2 | 3 | 4 | 5;
   name: string;
   /** The public source the name opens, in a new tab. Left out where the card has its own Open the source. */
   href?: string;
@@ -167,7 +167,7 @@ export function FitCard({
 export function SourceLink({ href, name }: { href: string; name: string }) {
   return (
     <Link className="rc-button" data-variant="quiet" data-size="sm" href={href}
-      aria-label={`Open the source: ${name} (opens in a new tab)`}>Open the source</Link>
+      aria-label={`Open the source: ${name} (opens in a new tab)`}>Open The Source</Link>
   );
 }
 
@@ -277,7 +277,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
       </FitGroups>
       {saved.length > 0 && (
         <section className="rc-section" aria-labelledby={`${id}-saved`}>
-          <Group className="rc-heading" data-size="section" id={`${id}-saved`}>Saved partners</Group>
+          <Group className="rc-heading" data-size="section" id={`${id}-saved`}>Saved Partners</Group>
           <p className="rc-meta">These stay private. Saving sends no invitation.</p>
           <ul className="rc-ask-summary">
             {saved.map((lead) => {

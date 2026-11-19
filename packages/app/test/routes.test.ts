@@ -22,8 +22,8 @@ import {
 test("each route has a unique path and name; device and team routes use the same initiative page title", () => {
   for (const key of ["path", "name"] as const)
     assert.equal(new Set(ROUTES.map((route) => route[key])).size, ROUTES.length, key);
-  assert.deepEqual(ROUTES.filter(route => route.title === "Your initiative").map(route => route.name), ["your-initiative", "team-workspace"]);
-  const otherTitles = ROUTES.filter(route => route.title !== "Your initiative").map(route => route.title);
+  assert.deepEqual(ROUTES.filter(route => route.title === "Your Initiative").map(route => route.name), ["your-initiative", "team-workspace"]);
+  const otherTitles = ROUTES.filter(route => route.title !== "Your Initiative").map(route => route.title);
   assert.equal(new Set(otherTitles).size, otherTitles.length);
   assert.deepEqual(
     INTAKE_STEPS.map((step) => step.route),
@@ -34,7 +34,7 @@ test("the frame has four tabs, detail sheets, the person's initiative pages and 
   for (const path of ["/", "/partners", "/funding", "/initiatives", "/settings", "/your-initiative", "/your-initiatives"])
     assert.ok(matchRoute(path), path);
   assert.equal(matchRoute("/save"), undefined);
-  assert.equal(matchRoute("/your-initiative")?.title, "Your initiative");
+  assert.equal(matchRoute("/your-initiative")?.title, "Your Initiative");
   assert.equal(matchRoute("/start/finish")?.name, "your-initiative");
   assert.equal(matchRoute("/your-initiatives")?.title, "Your Initiatives");
   assert.equal(matchRoute("/start/initiative/check")?.name, "check-card");
@@ -56,7 +56,7 @@ test("the frame has four tabs, detail sheets, the person's initiative pages and 
 });
 test("navigation names a page by its short label where the title is a sentence", () => {
   assert.equal(navLabel("home"), "Home");
-  assert.equal(navLabel("initiative"), "Describe your initiative");
+  assert.equal(navLabel("initiative"), "Describe Your Initiative");
   assert.equal(navLabel("funding"), "Funding");
   assert.equal(navLabel("your-initiatives"), "Your Initiatives");
 });
@@ -113,7 +113,7 @@ test("a wide screen's breadcrumbs follow the route table, outermost first, and t
   assert.deepEqual(breadcrumbTrail(matchRoute("/settings")), [{ label: "Your Initiatives", href: "/your-initiatives" }]);
   assert.deepEqual(breadcrumbTrail(matchRoute("/partners")), [
     { label: "Your Initiatives", href: "/your-initiatives" },
-    { label: "Your initiative", href: "/your-initiative" },
+    { label: "Your Initiative", href: "/your-initiative" },
   ]);
   // The trail is the structure, so the way a person came never changes it; the back link's does.
   assert.equal(backTarget(matchRoute("/settings"), { from: "/funding", hops: 1 })?.label, "Funding");
@@ -131,7 +131,7 @@ test("the back link returns to where the person came from, otherwise one level u
     hops: 0,
   });
   assert.deepEqual(backTarget(matchRoute("/start/needs"), null), {
-    label: "Check your card",
+    label: "Check Your Card",
     href: "/start/initiative/check",
     hops: 0,
   });
@@ -149,7 +149,7 @@ test("the back link returns to where the person came from, otherwise one level u
   });
   // A visit that names the page itself says nothing about where the person came from.
   assert.deepEqual(backTarget(matchRoute("/partners"), { from: "/partners?state=error", hops: 1 }), {
-    label: "Your initiative",
+    label: "Your Initiative",
     href: "/your-initiative",
     hops: 0,
   });
@@ -171,7 +171,7 @@ test("earlier browsing links still resolve to their new section", () => {
   assert.equal(pathTo("funding"), "/funding");
   assert.equal(documentTitle(matchRoute("/partners")), "Partners | Weave");
   assert.equal(documentTitle(matchRoute("/")), "Weave");
-  assert.equal(documentTitle(undefined), "Page not found | Weave");
+  assert.equal(documentTitle(undefined), "Page Not Found | Weave");
 });
 test("fixture navigation preserves only example controls on internal development links", () => {
   assert.equal(
@@ -224,7 +224,7 @@ test("a team workspace opens only from a canonical workspace identifier", async 
   const path = teamWorkspacePath(id);
   assert.equal(matchRoute(path)?.name, "team-workspace");
   assert.equal(matchRoute(path)?.id, id);
-  assert.equal(documentTitle(matchRoute(path)), "Your initiative | Weave");
+  assert.equal(documentTitle(matchRoute(path)), "Your Initiative | Weave");
   assert.equal(returnTask(path), path);
   for (const value of ["/workspaces/unknown", `${path}/other`, `${path}?return=//example.org`]) {
     assert.equal(matchRoute(value), undefined);

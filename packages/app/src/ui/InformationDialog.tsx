@@ -11,7 +11,7 @@ import { Icon } from "./Icon.tsx";
 /** A run belongs to the part of the card it read, which is finer than the step map. */
 const RUN_LABELS = { initiative: "Initiative", needs: "Needs", offers: "Offers" } as const;
 export type Information = "storage" | "assistant" | "policy";
-const TITLES = { storage: "What we store", assistant: "What the assistant did", policy: "Data policy" };
+const TITLES = { storage: "What We Store", assistant: "What The Assistant Did", policy: "Data Policy" };
 /**
  * Three separate things over the current page: a short answer to what Weave stores, the whole data
  * policy, and the assistant's metadata-only record.
@@ -43,7 +43,7 @@ export function InformationDialog({
               ))}
             </dl>
             <button className="rc-button" data-variant="quiet" type="button" onClick={onPolicy}>
-              Read the data policy
+              Read The Data Policy
             </button>
           </>
         ) : information === "assistant" ? (
@@ -94,7 +94,7 @@ export function InformationDialog({
                 }
               }}
             >
-              Download assistant record
+              Download Assistant Record
             </button>
             <p className="rc-meta">
               Cloud consent is off because cloud models are not connected. No consent withdrawal is needed for

@@ -75,7 +75,7 @@ export function AccountMenu({
           aria-disabled={busy || undefined}
           onClick={() => void leave()}
         >
-          {busy ? "Signing out" : "Sign out"}
+          {busy ? "Signing Out" : "Sign Out"}
         </button>
         {problem && (
           <p className="rc-notice" data-tone="warning" role="alert">

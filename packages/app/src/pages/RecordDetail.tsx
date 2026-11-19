@@ -29,7 +29,7 @@ export function RecordDetail({
   const available = import.meta.env.DEV && !!fixture;
   const shown = available ? record : undefined;
   const state = fixture?.state;
-  const title = shown?.title ?? "Initiative not available";
+  const title = shown?.title ?? "Initiative Not Available";
   useEffect(() => {
     if (sheet.open) document.title = `${title} | Weave`;
   }, [title, sheet.open]);
@@ -46,7 +46,7 @@ export function RecordDetail({
             <h3 className="rc-notice-title">The initiative did not load</h3>
             <p>Your device card is safe.</p>
             <button type="button" className="rc-button" data-variant="secondary" onClick={retry}>
-              Try again
+              Try Again
             </button>
           </div>
         </section>
@@ -73,7 +73,7 @@ export function RecordDetail({
           <PublicAsks kind="offers" asks={shown.publicDetails?.offers ?? []} />
           <section className="rc-stack">
             <h3 className="rc-heading" data-size="section">
-              Get in touch
+              Get In Touch
             </h3>
             <p>Weave makes no introductions yet. Their links may say how to reach them.</p>
             {shown.publicDetails?.links.length ? (

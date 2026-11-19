@@ -18,12 +18,12 @@ test("matching feedback replays the exact uncertain command and retains success/
   let replay: unknown, refreshed = false;
   const nodes = elements(MatchingFeedback({ busy: false, loading: false, error: "Response lost", notice: "Previous result",
     pending, online: true, readOnly: false, onRetry(command: MatchingMutation) { replay = command; }, onRefresh() { refreshed = true; } }));
-  const retry = nodes.find(node => node.type === "button" && node.props.children === "Try again");
+  const retry = nodes.find(node => node.type === "button" && node.props.children === "Try Again");
   assert.equal(retry.props.disabled, false); retry.props.onClick();
   assert.equal(replay, pending, "retry preserves the reviewed request identity and fields");
   assert.ok(nodes.some(node => node.props?.role === "alert" && node.props.children === "Response lost"));
   assert.ok(nodes.some(node => node.props?.role === "status" && node.props.children === "Previous result"));
-  nodes.find(node => node.type === "button" && node.props.children === "Check again").props.onClick();
+  nodes.find(node => node.type === "button" && node.props.children === "Check Again").props.onClick();
   assert.equal(refreshed, true);
   const viewer = elements(MatchingFeedback({ busy: false, loading: false, error: "", notice: "", pending,
     online: true, readOnly: true, onRetry() { throw Error("viewer cannot mutate"); } }));

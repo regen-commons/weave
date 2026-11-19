@@ -9,7 +9,7 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
   return (
     <section className="rc-card-list" aria-labelledby={id}>
       <h3 className="rc-heading" data-size="section" id={id}>
-        {kind === "needs" ? "What they need" : "What they offer"}
+        {kind === "needs" ? "What They Need" : "What They Offer"}
       </h3>
       {!asks.length ? (
         <p className="rc-meta">Nothing listed yet.</p>

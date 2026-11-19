@@ -38,14 +38,14 @@ export const STORAGE_SUMMARY: readonly Term[] = [
 
 export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] = [
   {
-    title: "What stays on this device",
+    title: "What Stays On This Device",
     body: [
       "Your draft, conversations, files, unfinished edits, assistant records and backups are kept in this browser. Settings can download all of it, including files.",
       "Clearing this site's data in your browser removes them. Work you have not saved cannot be recovered after that.",
     ],
   },
   {
-    title: "Signing in",
+    title: "Signing In",
     body: [
       "You sign in with Certified, an account service separate from Weave. Certified handles your email address and the code it sends you.",
       "Weave receives an identifier for your Certified account and keeps a session cookie for up to one hour. Weave does not keep your email address. If you choose to add your email before signing in, Weave passes it to Certified, where it appears in the link and may be saved in browser history or request logs.",
@@ -59,7 +59,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     ],
   },
   {
-    title: "Teams, sharing and publishing",
+    title: "Teams, Sharing And Publishing",
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
@@ -67,26 +67,26 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     ],
   },
   {
-    title: "The assistant",
+    title: "The Assistant",
     body: [
       "The assistant reads your words on this device, with keyword rules or a model already built into your browser, and only after you choose it. No words are sent to a cloud model.",
       "Places are kept as you wrote them, with no map lookup.",
     ],
   },
   {
-    title: "Public initiatives",
+    title: "Public Initiatives",
     body: [
       "The Initiatives list shows projects that are already public on Certified. Weave reads that public list each day and keeps a copy of each project's public description.",
     ],
   },
   {
-    title: "Other services",
+    title: "Other Services",
     body: [
       "The app loads no analytics or advertising scripts. The services that host Weave and handle sign-in keep their own request logs, which Weave does not control.",
     ],
   },
   {
-    title: "Deleting and leaving",
+    title: "Deleting And Leaving",
     body: [
       "Signing out ends your session and keeps this device's draft and backups. You can delete device backups in Settings and delete a saved card in Your Initiatives. A card that is still shared or linked to a project is not deleted, and Weave says why.",
       "Deleting a whole account and downloading the copies saved in it are not available in Weave yet.",

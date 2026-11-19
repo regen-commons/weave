@@ -3,6 +3,7 @@ import { FundSchema, type Entry, type Evaluation } from "../funding/contracts.ts
 import { programFund } from "../../../../dist/matching.mjs";
 import { fitLevel } from "../funding/select.ts";
 import { accessSign, fundingEyebrow, opportunityHref } from "../funding/catalog.ts";
+import { deadlineSign } from "../funding/deadline.ts";
 import { fullDate } from "../home.ts";
 import { Link, routeSearch } from "../router.tsx";
 import { Card } from "./Card.tsx";
@@ -27,6 +28,7 @@ export function OpportunityCard({
   const fund = FundSchema.parse(programFund(entry.fund, entry.program));
   const access = effectiveAccess(fund);
   const sign = accessSign(access);
+  const deadline = fund.deadlineDate ? deadlineSign(fund.deadlineDate, access === "closed", new Date()) : null;
   return (
     <Card kind="funding">
       <p className="rc-eyebrow">
@@ -55,11 +57,20 @@ export function OpportunityCard({
             {sign.label}
           </Tag>
         </li>
-        {fund.deadlineDate && (
+        {deadline && fund.deadlineDate && (
           <li>
-            <Tag icon="clock">
-              {access === "closed" ? "Ended " : "Closes "}
-              <time dateTime={fund.deadlineDate}>{fullDate(fund.deadlineDate, "medium")}</time>
+            {/* The one clock on the card. Close to its end the tag counts the days and is toned; the
+                words say so on their own, and the date stays one hover away (DL-103). */}
+            <Tag icon="clock" tone={deadline.soon ? "warning" : undefined} strong>
+              {deadline.dated ? (
+                <>
+                  {deadline.label} <time dateTime={fund.deadlineDate}>{fullDate(fund.deadlineDate, "medium")}</time>
+                </>
+              ) : (
+                <time dateTime={fund.deadlineDate} title={fullDate(fund.deadlineDate)}>
+                  {deadline.label}
+                </time>
+              )}
             </Tag>
           </li>
         )}
@@ -68,7 +79,6 @@ export function OpportunityCard({
       {result && <p className="rc-meta">{result.readiness.label}</p>}
       {teamLine && <p className="rc-team-line">{teamLine}</p>}
       <p className="rc-time">
-        <Icon name="clock" size="sm" />
         {fund.verifiedOn ? `Sources checked ${fullDate(fund.verifiedOn)}` : "Source date unverified"}
       </p>
     </Card>

@@ -54,7 +54,7 @@ export function FundingProfile() {
   return (
     <section className="rc-stack" aria-labelledby={`${id}-title`}>
       <h2 className="rc-heading" data-size="section" id={`${id}-title`}>
-        Details for funding
+        Details For Funding
       </h2>
       <p className="rc-meta">
         Optional, kept on this device. Typed locations do not establish country, registration or eligibility.
@@ -71,7 +71,7 @@ export function FundingProfile() {
             update({ ...draft.funding.form });
           }}
         >
-          Change funding details
+          Change Funding Details
         </button>
       ) : (
         <form
@@ -181,10 +181,10 @@ export function FundingProfile() {
           )}
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="primary" type="submit">
-              Keep funding details
+              Keep Funding Details
             </button>
             <button className="rc-button" data-variant="quiet" type="button" onClick={() => update(null)}>
-              Cancel changes
+              Cancel Changes
             </button>
           </div>
         </form>
