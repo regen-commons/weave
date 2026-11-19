@@ -30,6 +30,9 @@ const HELD = [
 const HOLDS_COPY = /^(?:button|ButtonLink|SignInButton|Heading|h[1-4]|Title|Group)$/u;
 /** Components whose `title` is drawn as a heading. */
 const TITLED = /^(?:Section|SettingsSection|Dialog|TaskDialog|DetailSheet)$/u;
+/** Components that draw a button from a `label`, and the one that takes its save button's words. */
+const LABELLED = /^(?:LeadButton|SignOutAction)$/u;
+const SAVE_LABEL = "saveLabel";
 /** A heading set as a message reports something, and stays a sentence (VOICE.md). */
 const MESSAGE = /rc-(?:notice|empty)-title/u;
 /** Words inside these are a person's own, or data: a record's name, a need's title. */
@@ -118,12 +121,14 @@ export function copyIn(text: string): Copy[] {
   for (let at = text.indexOf("<"); at !== -1; at = text.indexOf("<", at + 1)) {
     const tag = openTag(text, at);
     if (!tag) continue;
-    if (TITLED.test(tag.name)) {
-      const title = /\btitle=(?:"([^"]*)"|\{)/u.exec(tag.attributes);
-      if (title?.[1] !== undefined) keep(at, title[1], `<${tag.name} title>`);
-      else if (title) {
-        const from = title.index + title[0].length - 1;
-        for (const words of chosenStrings(tag.attributes.slice(from, braceEnd(tag.attributes, from)))) keep(at, words, `<${tag.name} title>`);
+    // Words handed to a component as a property that it draws as a heading or a button's label.
+    const handed = [TITLED.test(tag.name) ? "title" : "", LABELLED.test(tag.name) ? "label" : "", SAVE_LABEL].filter(Boolean);
+    for (const property of handed) {
+      const given = new RegExp(`\\b${property}=(?:"([^"]*)"|\\{)`, "u").exec(tag.attributes);
+      if (given?.[1] !== undefined) keep(at, given[1], `<${tag.name} ${property}>`);
+      else if (given) {
+        const from = given.index + given[0].length - 1;
+        for (const words of chosenStrings(tag.attributes.slice(from, braceEnd(tag.attributes, from)))) keep(at, words, `<${tag.name} ${property}>`);
       }
     }
     const drawnAsButton = /^(?:Link|a)$/u.test(tag.name) && /className="[^"]*\brc-button\b/u.test(tag.attributes);
@@ -179,8 +184,12 @@ test("the reader finds a button's label and a heading's words, and leaves the re
       <p>Words in a paragraph are a sentence.</p>
       <TaskDialog title={kind === "need" ? "Add a need" : "Add An Offer"} open={open} />
       <Heading level={2} size="section">{count} Partners for you</Heading>
+      <LeadButton label={lead ? "Remove from saved" : "Save"} name={name} disabled={state === "busy"} onClick={save} />
+      <AskEditor kind="needs" saveLabel="Save to team privately" />
+      <CardGridSkeleton kind="funding" label="Comparing your card with funding" />
     </Section>`).map(({ words }) => words);
-  assert.deepEqual(found, ["Three steps", "See all funding", "Signing out", "Sign Out", "Start an initiative", "Add a need", "Add An Offer", "Partners for you"]);
+  assert.deepEqual(found, ["Three steps", "See all funding", "Signing out", "Sign Out", "Start an initiative", "Add a need", "Add An Offer", "Partners for you",
+    "Remove from saved", "Save", "Save to team privately"]);
 });
 
 test("a word that starts small is found, and names, numbers and a person's own words are not", () => {
@@ -205,6 +214,20 @@ test("every button and every heading in the app's markup is in title case (DL-10
     }
   }
   assert.deepEqual(small, []);
+});
+
+test("a button's words set as a component's default are in title case too", () => {
+  // A component that draws a button takes its words as `children`, and may name them itself.
+  const small: string[] = [];
+  for (const file of markup) {
+    if (HELD.some((held) => file === held || (held.endsWith("/") && file.startsWith(held)))) continue;
+    for (const [, words] of readFileSync(join(SRC, file), "utf8").matchAll(/\bchildren = "([^"]+)"/gu)) {
+      const word = smallWord(words!);
+      if (word) small.push(`${file} "${words}": "${word}" starts small`);
+    }
+  }
+  assert.deepEqual(small, []);
+  assert.match(readFileSync(join(SRC, "account/SignOutAction.tsx"), "utf8"), /\blabel = "Sign Out",/u);
 });
 
 test("every file held out of the rule still exists, so the list shrinks and never rots", () => {

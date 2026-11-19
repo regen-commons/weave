@@ -69,15 +69,15 @@ Use one door and one family of verbs: Sign in and Save. Signing in says who you 
 | Moment | Words |
 |---|---|
 | The offer | Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave. |
-| Buttons | Sign in with Certified. Sign in to save. Not now. |
+| Buttons | Sign In With Certified. Sign In To Save. Not Now. |
 | Optional email | Add your email (optional). Your email appears in the link to Certified and may be saved in browser history or request logs. |
 | Before saving | On this device only. |
-| Save | Save privately. Save to team workspace. Save changes. |
+| Save | Save Privately. Save To Team Workspace. Save Changes. |
 | Saved privately | Saved privately in Weave. Only you can see it. |
 | Saved for a team | Saved in the Upper valley growers workspace. Teammates with access can see it. |
 | Changed since saving | Changed on this device since you saved. |
-| Sharing | Share for matching. Not shared. Only you see your needs and offers. |
-| Publishing | Publish on Certified. Not published. |
+| Sharing | Share For Matching. Not shared. Only you see your needs and offers. |
+| Publishing | Publish On Certified. Not published. |
 | Withdrawing | Ask to withdraw. The listing can stay readable until Certified confirms. |
 
 ## Words we avoid

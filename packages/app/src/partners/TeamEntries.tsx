@@ -134,7 +134,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
               onChange={(event) => setTitle(event.target.value)} />
           </div>}
           <AskEditor kind={edit.kind} value={edit.form} error={error} disabled={frozen || !online}
-            saveLabel="Save to team privately"
+            saveLabel="Save To Team Privately"
             onChange={(form) => setEdit({ ...edit, form })}
             onSave={() => void save()}
             onCancel={() => { setEdit(null); setError(""); onEditing(false); }} />

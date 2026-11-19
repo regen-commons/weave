@@ -230,7 +230,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 <p className="rc-card-meta">{entryLine(entry.kind, entry.title)}</p>
                 <p className="rc-meta">You hid this result.</p>
                 <div className="rc-action-bar">
-                  {!readOnly && <LeadButton label="Undo hide" name={name} disabled={disabled}
+                  {!readOnly && <LeadButton label="Undo Hide" name={name} disabled={disabled}
                     onClick={() => onRemove(entry, match.candidateId)} />}
                 </div>
               </Card>
@@ -252,7 +252,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
               actions={(evidence.type === "public" || !compact) && (
                 <>
                   {!compact && !readOnly && (
-                    <LeadButton label={lead ? "Remove from saved" : "Save"} name={name}
+                    <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
                       variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
                       onClick={() => lead
                         ? onRemove(entry, match.candidateId)
@@ -300,7 +300,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                     </p>
                   )}
                   <div className="rc-action-bar">
-                    {!readOnly && <LeadButton label="Remove from saved" name={name} disabled={disabled}
+                    {!readOnly && <LeadButton label="Remove From Saved" name={name} disabled={disabled}
                       onClick={() => onRemove(lead, lead.candidateId)} />}
                     {match?.evidence.type === "public" && <SourceLink href={match.evidence.sourceUrl} name={name} />}
                   </div>

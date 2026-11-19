@@ -248,7 +248,7 @@ function projectLinkForRecovery(record: CertifiedRecord): ProjectLink {
 export function ProjectAction({
   variant = "secondary",
   size,
-  children = "Link or create a project",
+  children = "Link Or Create A Project",
 }: {
   variant?: "primary" | "secondary" | "quiet";
   size?: "sm";

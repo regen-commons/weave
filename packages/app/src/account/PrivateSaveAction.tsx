@@ -8,7 +8,7 @@ import { useSocial } from "../social/context.tsx";
 import { useAccount } from "./context.tsx";
 
 /** Save is the confirming tap. The surrounding row states the audience and the fields that stay on device. */
-export function PrivateSaveAction({ children = "Save privately", size, onSaved, onFailed }: {
+export function PrivateSaveAction({ children = "Save Privately", size, onSaved, onFailed }: {
   children?: ReactNode; size?: "sm"; onSaved?(): void; onFailed(message: string): void;
 }) {
   const { state, refresh, savedCheck } = useAccount();
