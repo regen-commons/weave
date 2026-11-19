@@ -1,3 +1,5 @@
+import { KIND } from "./names.ts";
+
 /** The card's Where as words state it: up to eight places as written, or global. */
 export interface StatedWhere {
   locations: string[];
@@ -80,6 +82,54 @@ function aboutInitiative(name: string): RegExp {
   );
 }
 
+/**
+ * The plainer ways people say where they are: "in", "across", "from", and Portuguese "em", "no",
+ * "na" and Spanish "en", "desde". These words also introduce sectors ("we work in Education"),
+ * languages, dates and other people's places, so a place after them counts only when the
+ * initiative is the subject and says what it is: "We are a school garden in Nairobi", "Our group
+ * is in Lamu", "Riverbend Seed Library is a volunteer group in Porto Alegre", "Bee Corridors, a
+ * network of beekeepers across Ghana", "Somos a Horta Vila Nova, em Porto Alegre", or a sentence
+ * that opens "In Lagos, we". A verb such as "work", "operate", "grow" or "were" never counts.
+ */
+const NEAR = new RegExp(
+  String.raw`(?<![\p{L}\p{M}])(?<!(?:[Bb]ased|[Ll]ocated|[Ss]ituated|[Hh]eadquartered)[ \t]+)(?:in|In|across|Across|throughout|from|From|em|Em|no|na|nos|nas|en|En|desde|Desde)[ \t]+(${PLACE})`,
+  "gu",
+);
+/** Words in a description that say the place belongs to someone the initiative works with. */
+const ELSEWHERE = words("with for to and or by alongside com para e ou con y");
+const ARTICLE = String.raw`(?:the|The|o|a|os|as|el|la|los|las)`;
+const KIND_ARTICLE = String.raw`(?:a|an|um|uma|un|una)`;
+/**
+ * The subject and a form of "be", and what it says it is: "We are a school garden", "Somos la
+ * Red de Semillas del Sur, un colectivo", "X is a volunteer group", "X, a network of beekeepers".
+ */
+function nearSubject(name: string): RegExp {
+  const be = [
+    String.raw`[Ww]e(?:['’]re|[ \t]+are)`,
+    String.raw`(?:[Nn]ós[ \t]+)?[Ss]omos`,
+    String.raw`[Ee]stamos`,
+    String.raw`[Oo]ur[ \t]+${NOUN}(?:[ \t]+${NOUN})?[ \t]+(?:is|are)`,
+  ];
+  if (name.trim()) be.push(String.raw`${escape(name.trim())}[ \t]+(?:is|are|é|são|es|son|está|están)`);
+  const apposition = name.trim() ? String.raw`|${escape(name.trim())},[ \t]+${KIND_ARTICLE}(?:[ \t]+[\p{Ll}-]+){1,6}` : "";
+  // What it is: an article and a name ("the Red de Semillas del Sur,"), then a kind ("a school garden").
+  const what = String.raw`(?:[ \t]+${ARTICLE})?(?:[ \t]+${NAME},?)?(?:[ \t]+${KIND_ARTICLE})?(?:[ \t]+[\p{Ll}-]+){0,6}`;
+  return new RegExp(String.raw`(?:^|[,;:][ \t]*)(?:(?:${be.join("|")})${what}${apposition})[ \t]+$`, "u");
+}
+/**
+ * True when what the subject says it is names no one else: no "with", "for" or "and" after the
+ * form of "be", and no "working" or "based" where a kind of group should be.
+ */
+function ownDescription(prefix: string): boolean {
+  const said = prefix.split(/[ \t,]+/u).filter(Boolean);
+  const be = said.findIndex((word) => /^(?:are|is|somos|estamos|é|são|es|son|está|están|we['’]re)$/iu.test(word));
+  const what = said.slice(be + 1);
+  if (what.some((word) => ELSEWHERE.has(word.toLocaleLowerCase()))) return false;
+  // "We are working in Partnership": a verb, not what the initiative is.
+  const first = what[0];
+  return !first || !/^\p{Ll}[\p{L}\p{M}]*(?:ing|ed)$/u.test(first);
+}
+
 /** The place a matched name holds: cut at a word that is not a place, or unclear when it cannot be one. */
 function placeName(raw: string, after: string): { place: string; unclear: boolean; list: boolean } {
   const kept: string[] = [];
@@ -122,9 +172,11 @@ const within = (short: string[], long: string[]) =>
  * A labelled line ("Location: Awka") is taken as written when it holds one place. Otherwise a
  * capitalised name counts after "based in", "located in", "situated in", "headquartered in" or
  * "in the town of", and only when the initiative says it about itself: "we", "our garden", the
- * card's name, or a sentence that opens with "Based in". A place that belongs to someone else, a
+ * card's name, or a sentence that opens with "Based in". After "in", "across", "from" and their
+ * Portuguese and Spanish words, a name counts only as `NEAR` says. A place that belongs to someone else, a
  * second place, a list, or an unclear phrase leaves Where empty. Nothing is added: no country,
- * region or map point the words do not state. The patterns are English, with Portuguese labels.
+ * region or map point the words do not state. The patterns are English, with Portuguese and Spanish
+ * for the plainer words.
  * Only settled words should be passed, so a half-typed name is never proposed.
  */
 export function statedWhere(text: string, name = ""): StatedWhere {
@@ -142,6 +194,23 @@ export function statedWhere(text: string, name = ""): StatedWhere {
     mentioned.push(place);
     const sentence = text.slice(0, match.index).split(/[.!?\n]/u).at(-1)!.trimStart();
     if (subject.test(sentence)) stated.push(place);
+  }
+  // The plainer words count only for the initiative itself, so they never add someone else's place.
+  const near = nearSubject(name);
+  for (const match of text.matchAll(NEAR)) {
+    const after = text.slice(match.index + match[0].length);
+    const { place, unclear, list } = placeName(match[1]!, after);
+    // "in January", "from The": not a place at all, and not a reason to doubt the others.
+    if (!place) continue;
+    const sentence = text.slice(0, match.index).split(/[.!?\n]/u).at(-1)!.trimStart();
+    const opens = !sentence.trim() && /^,?[ \t]+(?:we|our|nós|nosotros)(?![\p{L}\p{M}])/iu.test(after.replace(/^,/u, ", "));
+    if (!opens && !(near.test(sentence) && ownDescription(sentence))) continue;
+    // "From" names a hometown as often as a base: "students from Unilag". It counts only when the
+    // initiative has said it is a kind of group: "a seed library from Lancashire".
+    if (/^(?:from|desde)$/iu.test(match[0].split(/[ \t]/u)[0]!) && !opens && !KIND.test(sentence)) continue;
+    if (unclear || list) return NONE;
+    mentioned.push(place);
+    stated.push(place);
   }
   const distinct = new Set(
     mentioned.filter((place) => !mentioned.some((other) => within(key(place), key(other)))).map((place) => key(place).join(", ")),

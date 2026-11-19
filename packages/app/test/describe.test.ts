@@ -471,6 +471,10 @@ test("a place is kept as written, with a country or region only when the words s
   ]);
   assert.deepEqual(await pdfWhere("Based in Awka's main market."), ["Awka"], "a possessive is not part of the name");
   assert.deepEqual(await pdfWhere("We are based in Awka On Saturdays"), ["Awka"], "a capitalised joining word ends the name");
+  // Plainer words count when the initiative says what it is and where (19 November 2026).
+  assert.deepEqual(await pdfWhere("Our garden is in Awka."), ["Awka"]);
+  assert.deepEqual(await pdfWhere("We are a school garden in Nairobi where children grow vegetables."), ["Nairobi"]);
+  assert.deepEqual(await pdfWhere("In Awka, we grow food with families."), ["Awka"]);
   assert.deepEqual(
     await pdfWhere("We are based in Awka. Our garden is located in Awka, Nigeria."),
     ["Awka, Nigeria"],
@@ -486,8 +490,8 @@ test("words with no stated place leave Where empty for the person to fill", asyn
     "We started in March 2024 and teach in English.",
     "Workshops run in the area near the school.",
     "Growing Food in Schools",
-    "Our garden is in Awka.",
     "We grow food with families in Awka, Anambra State.",
+    "We were in Awka until 2019.",
   ])
     assert.deepEqual(await pdfWhere(text), [], text);
   const { built } = await buildFromPdf("Synthetic Garden\nFamilies grow food together.");
@@ -555,8 +559,11 @@ test("two different places or a list stay unassigned, with every source word kep
     assert.ok(result.text.includes("Awka") && result.text.includes("Onitsha"), "the source words are kept");
     assert.equal(fieldsForm(built)!.where, "");
   }
+  // These words give no name either, so the person writes one as well.
   const { built } = await buildFromPdf("We are based in Awka and Onitsha.");
-  assert.deepEqual(continueDescribe(correct(built, "Awka; Onitsha")).confirmed!.locations, ["Awka", "Onitsha"]);
+  assert.equal(fieldsForm(built)!.name, "", "no name is made out of a sentence");
+  const corrected = editFields(built, { ...fieldsForm(built), name: "Synthetic Garden", where: "Awka; Onitsha" });
+  assert.deepEqual(continueDescribe(corrected).confirmed!.locations, ["Awka", "Onitsha"]);
 });
 
 test("words in the box propose a stated place by the same rule, and nothing is on the card before a fill", async () => {

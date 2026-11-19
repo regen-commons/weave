@@ -110,6 +110,36 @@ export function withMainLink(form: RecordForm, link: string): string {
   return others.length ? [link.trim(), ...others].join("\n") : link.trim();
 }
 
+/** Words that only point somewhere: "See ... for more", "Visit ... to learn more", "Saiba mais em ...". */
+const POINTER = new Set(
+  [
+    "see visit more info information details at on our the website site web page homepage for find us here go to",
+    "check out learn read about online link follow and or a also can you please full story more:",
+    "mais veja visite acesse acesso informações informacoes saiba em no na nosso nossa página pagina para ver sobre aqui",
+    "más mas información informacion visita visítanos visitanos en nuestro nuestra sitio aquí aqui conoce",
+  ]
+    .join(" ")
+    .split(" "),
+);
+/**
+ * About it without the sentences that only point at a link the card holds, such as "See
+ * https://example.org for more." A sentence that says something beside its link is kept whole,
+ * and so is one whose link the card does not hold, since it is then the only place the link is.
+ */
+export function withoutLinkPointers(text: string, links: readonly string[]): string {
+  if (!links.length) return text;
+  const held = new Set(links.map((link) => link.trim()));
+  return text
+    .split(/(?<=[.!?])\s+/u)
+    .filter((sentence) => {
+      const found = [...sentence.matchAll(/https?:\/\/[^\s<>"']+/giu)].map((match) => match[0].replace(/[.,;:!?)\]]+$/u, ""));
+      if (!found.length || !found.every((link) => held.has(link))) return true;
+      const rest = sentence.replace(/https?:\/\/[^\s<>"']+/giu, " ").toLocaleLowerCase().match(/[\p{L}\p{M}:]+/gu) ?? [];
+      return !rest.every((word) => POINTER.has(word));
+    })
+    .join(" ");
+}
+
 /** What a fill did, so the page can say it in one line. */
 export interface FillResult {
   readonly draft: DeviceDraft;
@@ -133,11 +163,16 @@ export function fillFields(
     // "we are the seed library" names the Seed library: a name starts with a capital and no article.
     name: suggestion.name.trim().replace(/^the\s+/u, "").replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase()),
     where: suggestion.isGlobal ? "Global" : suggestion.locations.join("; "),
-    about: clip(suggestion.description, ABOUT_LIMIT),
+    about: "",
     links: linkIn(said),
   };
   const form = { ...before };
   const filled = new Set(draft.filled);
+  // The link the card will hold after this fill, by the same rule as the loop below. A sentence in
+  // About it that only points at a link the card holds says nothing the link field does not.
+  const keepsLink = !!proposed.links && (!mainLink(before) || filled.has("links"));
+  const cardLinks = [keepsLink ? proposed.links : mainLink(before), ...otherLinks(before)].filter(Boolean);
+  proposed.about = clip(withoutLinkPointers(suggestion.description, cardLinks), ABOUT_LIMIT);
   const fields: FieldKey[] = [];
   for (const key of FIELDS) {
     const current = key === "links" ? mainLink(before) : before[key].trim();
