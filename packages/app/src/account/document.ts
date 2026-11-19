@@ -83,23 +83,41 @@ export function belongsToAnotherAccount(
   return chosenBy.length > 0 && !chosenBy.includes(accountId);
 }
 
-export function saveCommand(draft: DeviceDraft, owner: string) {
-  const document = accountDocument(draft),
+/**
+ * A save was asked for a card that belongs to another account. A card is never copied into
+ * another account (DL-055), so nothing is sent and the card stays as it is on the device.
+ */
+export class AnotherAccountsCard extends Error {
+  constructor() {
+    super("This card belongs to another account, so it was not saved. It stays on this device and opens again when that account signs in.");
+  }
+}
+
+/**
+ * The card on this device as an account would hold it, for the account it belongs to and for no
+ * other. Every save takes its document from here, a private save and a copy into a team alike,
+ * so the refusal is in the save itself and not only on the buttons: a return from sign-in, a
+ * retry or a page nobody guarded all pass through it.
+ */
+export function ownDocument(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
+  if (belongsToAnotherAccount(draft, owner, chosenBy)) throw new AnotherAccountsCard();
+  return accountDocument(draft);
+}
+
+export function saveCommand(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
+  const document = ownDocument(draft, owner, chosenBy),
     contentKey = JSON.stringify(document),
     saved = draft.account.saved;
-  const same = saved?.owner === owner;
   const pending = draft.account.pending;
   const binding =
     pending?.owner === owner && pending.contentKey === contentKey
       ? pending
       : {
-          id: same
-            ? saved.id
-            : saved || (pending?.owner && pending.owner !== owner) || draft.account.retired?.includes(draft.id)
-              ? crypto.randomUUID()
-              : draft.id,
+          // Past the refusal, a saved card is this account's own and keeps its ID. A card whose ID
+          // was retired by a deletion gets a new one, so the next save never meets the removed ID.
+          id: saved ? saved.id : draft.account.retired?.includes(draft.id) ? crypto.randomUUID() : draft.id,
           owner,
-          revision: same ? saved.revision : 0,
+          revision: saved ? saved.revision : 0,
           contentKey,
           requestId: crypto.randomUUID(),
         };

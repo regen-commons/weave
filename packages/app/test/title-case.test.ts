@@ -12,19 +12,10 @@ import { ROUTES } from "../src/routes.ts";
 const SRC = fileURLToPath(new URL("../src/", import.meta.url));
 
 /**
- * The steps for starting an initiative are being rebuilt in another branch, which converts them
- * itself. Take a name off this list as its file arrives in title case.
+ * Files held out of the rule while another branch converts them. None is held now: the steps for
+ * starting an initiative arrived in title case with their redesign (DL-110, DL-113).
  */
-const HELD = [
-  "pages/Describe.tsx",
-  "pages/CheckCard.tsx",
-  "pages/AskStep.tsx",
-  "pages/YourInitiatives.tsx",
-  "pages/YourInitiative.tsx",
-  "describe/",
-  "intake/",
-  "initiative/",
-];
+const HELD: readonly string[] = [];
 
 /** Elements whose words are a button's label or a heading. */
 const HOLDS_COPY = /^(?:button|ButtonLink|SignInButton|Heading|h[1-4]|Title|Group)$/u;

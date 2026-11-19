@@ -17,7 +17,7 @@ function database(original: DeviceDraft) {
     onerror: null as (() => void) | null,
     onabort: null as (() => void) | null,
     objectStore(name: string) {
-      return { get: () => request, put(value: DeviceDraft) { if (name === "drafts") staged = value; else stagedBackup = value; } };
+      return { get: () => request, put(value: DeviceDraft) { if (name === "drafts") staged = value; else if (name === "backups") stagedBackup = value; } };
     },
     abort() {
       if (finished) throw new Error("TransactionInactiveError");
@@ -51,7 +51,7 @@ test("the real IndexedDB adapter cancels both staged draft and backup writes bef
   Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: db.factory });
   t.after(() => { if (previous) Object.defineProperty(globalThis, "indexedDB", previous); else Reflect.deleteProperty(globalThis, "indexedDB"); });
   const cancellation = new AbortController();
-  const pending = new IndexedDraftRepository().replace(replacement, original.revision, cancellation.signal);
+  const pending = new IndexedDraftRepository().replace(replacement, cancellation.signal);
   await db.opened;
   db.read();
   assert.equal(db.staged()?.composer, "Synthetic loaded cloud words");
@@ -70,7 +70,7 @@ test("completed and failed IndexedDB transactions remove their abort listeners, 
     const replacement = revise(original, { composer: "Synthetic loaded words" });
     const db = database(original), cancellation = new AbortController();
     Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: db.factory });
-    const pending = new IndexedDraftRepository().replace(replacement, original.revision, cancellation.signal);
+    const pending = new IndexedDraftRepository().replace(replacement, cancellation.signal);
     await db.opened;
     db.read(); db[outcome]();
     if (outcome === "commit") await pending;

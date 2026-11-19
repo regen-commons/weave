@@ -1,8 +1,8 @@
 import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
+import { useSetAside } from "./set-aside.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { newDraft } from "../describe/contracts.ts";
 import { Link, navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import { accountKey, saveBlocker } from "./document.ts";
@@ -44,11 +44,11 @@ export function AccountSection({
   const Title = compact ? "h3" : "h2";
   const { state, refresh, clear, returnResult, acknowledgeReturn, missingRecord, savedCheck } = useAccount();
   const { controller, draft, ready, storage } = useDraft();
+  const setAside = useSetAside();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(() => notice || signInReturnMessage(returnResult));
   const [failed, setFailed] = useState(() => !!notice || signInReturnFailed(returnResult));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
-  const [startingCard, setStartingCard] = useState(false);
   const owner = state?.user?.id;
   const [selection, setSelection] = useState<{ owner: string; item: InitiativeSummary } | null>(null);
   const selected = selection && selection.owner === owner ? selection.item : null;
@@ -59,12 +59,7 @@ export function AccountSection({
     setSelection(null);
     setPage(null);
     setMore(true);
-    setStartingCard(false);
   }, [owner]);
-  // The question a dialog is asking. Its title is kept while the dialog closes, so it does not change on the way out.
-  const asking = selected ? "load" : startingCard ? "new" : null;
-  const [asked, setAsked] = useState<"load" | "new">("new");
-  if (asking && asking !== asked) setAsked(asking);
   const key = accountKey(draft),
     saved = draft.account.saved;
   const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key && savedCheck === "present";
@@ -84,7 +79,6 @@ export function AccountSection({
           clear();
         }
         setSelection(null);
-        setStartingCard(false);
         setPage(null);
       }
       setMessage(accountMessage(error));
@@ -105,9 +99,9 @@ export function AccountSection({
         : "The earlier checked card was saved. Your latest changes are still on this device; save again when ready.",
     );
   }
+  /** A new initiative is a draft of its own, so nothing is asked and nothing is backed up (DL-112). */
   async function beginCard() {
-    await controller.replace(newDraft());
-    setStartingCard(false);
+    await controller.startNew();
     onBeginCard?.();
     navigate(pathTo("initiative"));
   }
@@ -115,7 +109,7 @@ export function AccountSection({
     if (!selected || !state?.user) return;
     await loadAccountCard(controller, state.user.id, selected.id);
     setSelection(null);
-    setMessage("Your saved card is loaded. The previous device draft is kept in Device backups in Settings.");
+    setMessage("Your saved card is loaded. Your other drafts on this device are as you left them.");
   }
   return (
     <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
@@ -210,7 +204,8 @@ export function AccountSection({
             </p>
             <p>Sharing is separate. Choose what to share from your initiative's page.</p>
           </details>
-          {!key && (
+          {setAside && <p>A card from another account is on this device. It opens again when that account signs in.</p>}
+          {!key && !setAside && (
             <p>
               {saveBlocker(draft) ??
                 "Check your initiative, needs and offers, and keep or cancel open funding changes before saving."}
@@ -218,7 +213,8 @@ export function AccountSection({
           )}
           <div className="rc-action-bar">
             {/* Once the card is saved there is nothing to press: the header and the list say so. */}
-            {!currentSaved && (
+            {/* Another account's card is set aside here as on its own pages: this account cannot save it (DL-055). */}
+            {!currentSaved && !setAside && (
               <button
                 className="rc-button"
                 data-variant="primary"
@@ -238,7 +234,6 @@ export function AccountSection({
                   setFailed(failed);
                   if (!failed) {
                     setSelection(null);
-                    setStartingCard(false);
                     setPage(null);
                   }
                 }}
@@ -252,7 +247,7 @@ export function AccountSection({
             <button className="rc-button" data-variant="quiet" type="button" disabled={busy || !ready}
               onClick={() => {
                 setSelection(null);
-                setStartingCard(true);
+                void run(beginCard);
               }}>
               Start A New Initiative
             </button>
@@ -275,7 +270,6 @@ export function AccountSection({
                     disabled={busy}
                     onClick={() => {
                       setSelection({ owner: state.user!.id, item });
-                      setStartingCard(false);
                     }}
                   >
                     Load {item.name}
@@ -325,23 +319,22 @@ export function AccountSection({
           </button>
         </>
       )}
-      {/* Both questions are asked in a dialog, so the list they were asked from stays where it is. */}
-      <TaskDialog title={asked === "load" ? "Load This Saved Card?" : "Start A New Initiative?"} open={!!asking}
-        onClose={() => { setSelection(null); setStartingCard(false); }} blockClose={busy}>
+      {/* Asked in a dialog, so the list it was asked from stays where it is. */}
+      <TaskDialog title="Load This Saved Card?" open={!!selected} onClose={() => setSelection(null)} blockClose={busy}>
         <div className="rc-stack">
           <p>
-            {asking === "load" && selected
-              ? `${selected.name} opens on this device. The current device draft, including its conversations and files, is backed up in this browser first. Loading stops if that backup cannot be stored.`
-              : "Weave keeps a device backup of this draft, including its conversations and files, before opening a new card."}
+            {selected
+              ? `${selected.name} opens on this device. A copy of this card already on this device is backed up first, and your other drafts are not changed.`
+              : ""}
           </p>
           {failed && message && <p className="rc-notice" data-tone="warning" role="alert">{message}</p>}
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-task-focus
-              onClick={() => void run(asking === "load" ? load : beginCard)}>
-              {asking === "load" ? "Back Up This Draft And Load" : "Back Up And Start New"}
+              onClick={() => void run(load)}>
+              Load Saved Card
             </button>
             <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => { setSelection(null); setStartingCard(false); }}>
+              onClick={() => setSelection(null)}>
               Cancel
             </button>
           </div>
@@ -355,7 +348,7 @@ export function AccountSection({
       )}
       {/* Said, not drawn: the pressed button shows it is busy, and a new line would push the page down. */}
       {busy && <p className="rc-visually-hidden" role="status">Connecting to your account</p>}
-      {message && !asking && (message !== signInReturnMessage("signed-in") || state?.user) && (
+      {message && !selected && (message !== signInReturnMessage("signed-in") || state?.user) && (
         <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
           {message}
         </p>

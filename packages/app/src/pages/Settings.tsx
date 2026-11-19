@@ -76,7 +76,7 @@ export function Settings() {
           <>
             <p>No initiative on this device yet.</p>
             <div className="rc-action-bar">
-              <ButtonLink href={pathTo("initiative")} variant="secondary">
+              <ButtonLink href={pathTo("new-initiative")} variant="secondary">
                 Describe Your Initiative
               </ButtonLink>
             </div>
@@ -236,7 +236,7 @@ export function Settings() {
       {/* Backups and removal stay here even when no draft is left on the device, so recovery stays in reach. */}
       <SettingsSection
         title="Device Backups"
-        note="Earlier drafts and their files, kept only in this browser. Restoring one backs up the current draft first."
+        note="Earlier drafts and their files, kept only in this browser. Restoring one opens it as its own draft, and a draft it replaces is backed up first."
       >
         <DeviceBackups manage disabled={busy} />
       </SettingsSection>

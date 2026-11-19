@@ -5,6 +5,7 @@ import { DeviceDraftSchema, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft
 import type { DraftController } from "../describe/controller.ts";
 import { reviewStep } from "../intake/state.ts";
 import { projectLocations, projectRequest, type PublicProject } from "./projects-client.ts";
+import { sessionChoosers } from "../social/project-choice.ts";
 import { uuid } from "@weave/api/account-contract";
 
 /**
@@ -69,7 +70,7 @@ export async function saveForProject(controller: DraftController, owner: string,
   const draft = controller.getSnapshot().draft;
   if (draft.account.saved?.owner === owner && draft.account.saved.contentKey === accountKey(draft))
     return { initiativeId: draft.account.saved.id, expectedRevision: draft.account.saved.revision };
-  const { binding, command } = saveCommand(draft, owner);
+  const { binding, command } = saveCommand(draft, owner, sessionChoosers(draft.id));
   controller.change((d) => revise(d, { account: { ...d.account, pending: binding } }));
   await controller.settled();
   signal.throwIfAborted();
@@ -78,12 +79,14 @@ export async function saveForProject(controller: DraftController, owner: string,
   signal.throwIfAborted();
   if (receipt.id !== command.id || receipt.revision !== command.expectedRevision + 1
       || JSON.stringify(receipt.document) !== binding.contentKey) throw Error("invalid_save_receipt");
-  const latest = controller.getSnapshot().draft;
-  if (latest.account.pending?.requestId !== binding.requestId) throw Error("draft_changed");
-  controller.change((d) => revise(d, { account: { ...d.account, saved: { id: receipt.id, owner,
-    revision: receipt.revision, contentKey: binding.contentKey }, pending: null } }));
-  await controller.settled();
+  // The receipt goes to the draft that asked, by its ID, even if the tab has left it meanwhile.
+  const bound = await controller.amend(draft.id, (d) =>
+    d.account.pending?.requestId === binding.requestId
+      ? revise(d, { account: { ...d.account, saved: { id: receipt.id, owner,
+          revision: receipt.revision, contentKey: binding.contentKey }, pending: null } })
+      : null);
+  if (!bound) throw Error("draft_changed");
   signal.throwIfAborted();
-  if (controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
+  if (controller.getSnapshot().draft.id === draft.id && controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
   return { initiativeId: receipt.id, expectedRevision: receipt.revision };
 }

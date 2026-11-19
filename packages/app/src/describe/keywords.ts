@@ -1,5 +1,6 @@
 import { z } from "../validation.ts";
 import { wholeWords } from "../intake/keywords.ts";
+import { statedName } from "./names.ts";
 import { statedWhere, whereFromAnswer } from "./places.ts";
 import {
   FileReadSchema,
@@ -67,16 +68,9 @@ export function whereAnswer(draft: Pick<DeviceDraft, "turns" | "composer">): str
  * answers and read files, and only it may propose a place; it is all of `text` when building.
  */
 export function keywordSuggestion(draft: DeviceDraft, text: string, settled = text): Initiative {
-  const first = draft.turns[0]?.text.trim() || draft.composer.trim() || text.split(/\n/u)[0]?.trim() || "";
-  const named = first
-    .match(/^(?:we are|we're|our initiative is called|called|somos|nome:)\s+([^,.\n]{1,200})/iu)?.[1]
-    ?.trim();
-  const directName = first.split(/[,.\n]/u)[0] ?? "";
-  const name =
-    named ??
-    (directName.length <= 60 && !/\b(work|working|help|we|our|trabalh|ajud)/iu.test(directName)
-      ? directName
-      : "");
+  // The words the person gave first: an answer to the name question, the box, or the first file.
+  const first = draft.turns[0]?.text.trim() || draft.composer.trim() || text.trim();
+  const name = statedName(first);
   // The person's answer to the Where question wins. Without one, only a place the words state is proposed.
   const answer = whereAnswer(draft);
   const { locations, isGlobal } = answer ? whereFromAnswer(answer) : statedWhere(settled, name);

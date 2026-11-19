@@ -1,3 +1,6 @@
+import { useAccount } from "../account/context.tsx";
+import { belongsToAnotherAccount } from "../account/document.ts";
+import { useSetAside } from "../account/set-aside.ts";
 import { useEffect, useId, useState } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { hasDraft } from "../describe/view.ts";
@@ -22,14 +25,19 @@ const TITLES = { restore: "Restore This Backup?", delete: "Delete This Backup?",
 
 /**
  * This browser's backups, one compact row each: the name, when it last changed, and Restore and
- * Delete. A long history shows its newest few and offers the rest. Restoring backs up the current
- * draft first, and deleting is for good; each asks first and names exactly what it acts on. With
- * `manage`, the current draft can also be removed after it is kept as a backup.
+ * Delete. A long history shows its newest few and offers the rest. Restoring opens the backup as
+ * its own draft and backs up a stored draft it replaces, and deleting is for good; each asks first
+ * and names exactly what it acts on. Versions that another tab's edit replaced are listed here too
+ * (DL-112). With `manage`, the draft this tab is on can also be removed after it is kept as a backup.
  */
 export function DeviceBackups({ manage = false, disabled = false }: { manage?: boolean; disabled?: boolean }) {
   const id = useId();
   const { controller, draft, ready } = useDraft();
-  const [backups, setBackups] = useState<DraftBackup[]>([]);
+  const account = useAccount();
+  const setAside = useSetAside();
+  const [stored, setBackups] = useState<DraftBackup[]>([]);
+  // Another account's backups stay on the device and out of this account's list, as its cards do (DL-055).
+  const backups = stored.filter((item) => !belongsToAnotherAccount(item.draft, account.state?.user?.id));
   const [all, setAll] = useState(false);
   const [step, setStep] = useState<Step | null>(null);
   const [busy, setBusy] = useState(false);
@@ -51,7 +59,7 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
       await reload();
     }
   }
-  const current = manage && hasDraft(draft);
+  const current = manage && hasDraft(draft) && !setAside;
   // Settings has a place for backups whether or not there are any; elsewhere an empty list is left out.
   if (!backups.length && !current && !result && !manage) return null;
   const listed = listedBackups(backups, all);
@@ -124,9 +132,9 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
                 <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-task-focus
                   onClick={() => void run(async () => {
                     await controller.replace(step.backup.draft);
-                    return "Device backup restored. The previous draft was backed up first.";
+                    return "Device backup restored.";
                   })}>
-                  Back Up This Draft And Restore
+                  Restore Backup
                 </button>
               ) : (
                 <button className="rc-button" data-variant="danger" type="button" disabled={busy}

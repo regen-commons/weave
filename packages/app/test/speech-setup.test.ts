@@ -6,11 +6,12 @@ import {
   offersSetup,
   speechSetupStore,
   speechSupport,
-  voiceControls,
+  NO_SPEECH,
+  talkControls,
   type SpeechSetupState,
   type Wait,
 } from "../src/describe/speech-setup.ts";
-import { listVoice, speechSetupList } from "../src/intake/ask-page.ts";
+import { speechSetupList } from "../src/intake/ask-page.ts";
 import { emptyAskStep } from "../src/intake/contracts.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -316,49 +317,52 @@ test("languages are set up one by one, and a known state stays while the browser
   assert.equal(store.state("en-US"), "ready");
 });
 
-test("Voice input says plainly where speech stands, and never promises it where it cannot work", () => {
+test("Talk it out says plainly where speech stands, and where it cannot work it says so in one line (DL-110)", () => {
   const states: SpeechSetupState[] = ["checking", "none", "language", "offer", "installing", "slow", "failed", "ready"];
   for (const state of states) {
-    const controls = voiceControls(state);
-    assert.doesNotMatch(controls.note + controls.label, /[—→·]/, `${state} breaks the voice rules`);
+    const controls = talkControls(state);
+    assert.doesNotMatch(controls.note + controls.label, /[\u2014\u2192\u00b7]/, `${state} breaks the voice rules`);
     if (controls.note) assert.match(controls.note, /^[A-Z][^]*\.$/, `${state} is a plain sentence`);
   }
-  assert.deepEqual(voiceControls("none"), { shown: false, action: null, label: "", note: "" });
-  assert.equal(voiceControls("checking").shown, false, "no flash before the browser answers");
-  assert.equal(voiceControls("language").action, null);
+  // A browser without speech on the device (Brave, Safari, Chrome on Android) is told so, never left guessing.
+  assert.deepEqual(talkControls("none"), { action: null, label: "", note: NO_SPEECH, language: false });
+  assert.match(NO_SPEECH, /this browser does not offer it\. You can type instead\.$/);
+  assert.deepEqual(talkControls("checking"), { action: null, label: "", note: "", language: false }, "no flash before the browser answers");
+  assert.equal(talkControls("language").action, null);
+  assert.equal(talkControls("language").language, true, "another language may work, so the choice is offered");
   assert.deepEqual(
-    [voiceControls("offer").action, voiceControls("offer").label],
-    ["set-up", "Set up speech on this device"],
+    [talkControls("offer").action, talkControls("offer").label],
+    ["set-up", "Set Up Speech On This Device"],
   );
-  assert.match(voiceControls("offer").note, /Audio stays on this device/);
-  assert.match(voiceControls("offer").note, /may download/, "it does not claim a download that may not happen");
+  assert.match(talkControls("offer").note, /Audio stays on this device/);
+  assert.match(talkControls("offer").note, /may download/, "it does not claim a download that may not happen");
   for (const state of ["installing", "slow"] as const) {
-    assert.equal(voiceControls(state).action, "setting-up");
-    assert.match(voiceControls(state).note, /type/, "typing still works while it runs");
+    assert.equal(talkControls(state).action, "setting-up");
+    assert.match(talkControls(state).note, /type/, "typing still works while it runs");
   }
-  assert.notEqual(voiceControls("slow").note, voiceControls("installing").note);
-  assert.equal(voiceControls("failed").action, "set-up", "the same action keeps its name to try again");
-  assert.match(voiceControls("failed").note, /could not set up speech/);
-  assert.deepEqual(voiceControls("ready"), { shown: true, action: "speak", label: "", note: "" });
-  assert.match(voiceControls("ready", { setUpHere: true }).note, /^Speech is ready/);
-  assert.match(voiceControls("installing", { listening: true }).note, /^Listening on this device/);
+  assert.notEqual(talkControls("slow").note, talkControls("installing").note);
+  assert.equal(talkControls("failed").action, "set-up", "the same action keeps its name to try again");
+  assert.match(talkControls("failed").note, /could not set up speech/);
+  // One button in one place: Talk It Out, then Stop while it listens.
+  assert.deepEqual(talkControls("ready"), { action: "talk", label: "Talk It Out", note: "", language: true });
+  assert.match(talkControls("ready", { setUpHere: true }).note, /^Speech is ready/);
+  assert.deepEqual(
+    [talkControls("ready", { listening: true }).action, talkControls("ready", { listening: true }).label],
+    ["stop", "Stop"],
+  );
+  assert.match(talkControls("installing", { listening: true }).note, /^Listening on this device/);
   for (const state of ["offer", "ready", "language"] as const)
-    assert.deepEqual(
-      voiceControls(state, { asking: true }),
-      { shown: true, action: null, label: "", note: "" },
-      `while a new language is asked about, only its choice shows, in ${state}'s place`,
-    );
-  assert.equal(voiceControls("none", { asking: true }).shown, false);
+    assert.equal(talkControls(state, { asking: true }).action, null, `no button while a new language is asked about, in ${state}'s place`);
   assert.deepEqual(
     states.filter(offersSetup),
     ["offer", "installing", "slow", "failed"],
-    "the setup takes Speak's place only while it is on offer or under way",
+    "the setup takes the button's place only while it is on offer or under way",
   );
 });
 
 test("the needs and offers page offers setup once, in the list the route opened unless it is full", () => {
   let full = emptyAskStep();
-  for (const words of ["Seedlings", "Fencing", "A truck", "A map", "A meeting room"]) full = addEntry(full, words);
+  for (const words of ["Seedlings", "Fencing", "A truck", "A map"]) full = addEntry(full, words);
   const empty = emptyAskStep();
   assert.equal(speechSetupList("needs", { needs: empty, offers: empty }), "needs");
   assert.equal(speechSetupList("offers", { needs: empty, offers: empty }), "offers");
@@ -366,18 +370,13 @@ test("the needs and offers page offers setup once, in the list the route opened 
   assert.equal(speechSetupList("offers", { needs: full, offers: full }), undefined);
 });
 
-test("a list's voice leads with Speak or the page's one setup, and the language choice stays where it helps", () => {
-  const top = { full: false, hostsSetup: true, listening: false };
-  const other = { ...top, hostsSetup: false };
-  assert.equal(listVoice("ready", top), "top");
-  assert.equal(listVoice("ready", other), "top", "both lists get Speak");
-  for (const state of ["offer", "installing", "slow", "failed"] as const) {
-    assert.equal(listVoice(state, top), "top");
-    assert.equal(listVoice(state, other), null, "the page asks once");
-  }
-  assert.equal(listVoice("language", top), "top", "the choice stays where it was picked");
-  assert.equal(listVoice("language", other), "conversation");
-  for (const state of ["checking", "none"] as const) assert.equal(listVoice(state, top), null);
-  assert.equal(listVoice("ready", { ...top, full: true }), null, "a full list takes no more");
-  assert.equal(listVoice("none", { ...top, full: true, listening: true }), "top", "finishing always works");
+test("a second Talk it out on a page stays quiet until talking works, so setup and the missing-speech line show once", () => {
+  for (const state of ["checking", "none", "language", "offer", "installing", "slow", "failed"] as const)
+    assert.deepEqual(
+      talkControls(state, { secondary: true }),
+      { action: null, label: "", note: "", language: false },
+      `${state}: the first list on the page says it`,
+    );
+  assert.equal(talkControls("ready", { secondary: true }).action, "talk", "both lists get Talk It Out");
+  assert.equal(talkControls("none", { secondary: true, listening: true }).action, "stop", "stopping always works");
 });

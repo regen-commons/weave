@@ -41,7 +41,7 @@ test("a list that is loading holds its layout with the bar and card skeletons, n
   assert.match(bar, /data-filter="one" data-menu type="button" disabled>/u);
   assert.match(bar, /<span aria-hidden="true">\s*<span className="rc-skeleton" data-shape="hold">/u);
   assert.match(bar, /<span role="status" aria-atomic="true" className=\{loading \? "rc-visually-hidden" : undefined\}>/u);
-  for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx", "pages/CheckCard.tsx", "pages/YourInitiative.tsx"])
+  for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx", "pages/YourInitiative.tsx"])
     assert.match(read(page), /<DraftSkeleton \/>/u, page);
 });
 
@@ -107,6 +107,18 @@ test("Sort opens the same menu the filters open, and the sheet's Clear all is a 
   assert.match(bar, /data-variant="secondary"\s+type="button"\s+disabled=\{!query && choices\.length === 0\}\s+onClick=\{onClear\}/u);
 });
 
+test("Your Initiatives holds its own cards' shape while it loads, under the heading that arrives, and never a funding card's", () => {
+  const skeleton = read("ui/CardSkeleton.tsx");
+  const own = skeleton.slice(skeleton.indexOf('if (kind === "own")'), skeleton.indexOf('if (kind === "project")'));
+  // A name and a line about where it is kept, as the loaded card has. Measured at 1280 px: 140 against 160.
+  for (const part of ["rc-card-title", "rc-card-meta"]) assert.match(own, new RegExp(`className="${part}"`, "u"), part);
+  for (const part of ["rc-eyebrow", "rc-tag-list", "rc-card-summary", "rc-time"]) assert.doesNotMatch(own, new RegExp(`className="${part}"`, "u"), part);
+  const page = read("pages/YourInitiatives.tsx");
+  assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
+  assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
+  assert.match(page, /\{loading && \(\s*<Section id="initiatives-certified" title="On Certified">/u, "the heading is there before its cards");
+});
+
 test("a list card keeps set rows, so a card and its skeleton are one height by construction (DL-108)", () => {
   // The two cards a loading list stands in for ask for fixed rows, and so do their skeletons.
   assert.match(read("ui/OpportunityCard.tsx"), /<Card kind="funding" rows="fixed">/u);
@@ -157,4 +169,20 @@ test("the prompt to describe an initiative is a plain section, not a notice (DL-
   const projects = read("partners/PublicProjects.tsx");
   assert.match(projects, /listView\(list, indexSeen, expectStarter\)/u);
   assert.match(projects, /rememberIndex\(deviceStorage\(\), list\.page\);/u);
+});
+
+test("a funding list compared with a person's card holds the fit and readiness lines its cards arrive with (DL-108)", () => {
+  // Measured at 1280 px with a checked card: a loaded card is 427 px, and a skeleton without
+  // these two lines is 339.
+  const card = read("ui/OpportunityCard.tsx");
+  assert.match(card, /\{result && <p className="rc-meta">\{result\.readiness\.label\}<\/p>\}/u, "the loaded card's readiness line");
+  assert.match(card, /<Fit\b/u, "and its fit line");
+  const skeleton = read("ui/CardSkeleton.tsx");
+  const funding = skeleton.slice(skeleton.indexOf('if (kind === "funding")'), skeleton.indexOf('if (kind === "own")'));
+  assert.match(funding, /\{matched && \(\s*<span className="rc-tooltip-wrap">\s*<span className="rc-tooltip-trigger">\s*<span className="rc-fit">/u);
+  assert.match(funding, /\{matched && \(\s*<p className="rc-meta">/u);
+  // The card page's funding is always compared with the card.
+  assert.match(read("ui/FirstFunding.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
+  // And the example of that page holds the same shape the live page holds.
+  assert.match(read("pages/YourInitiative.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
 });

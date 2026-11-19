@@ -107,6 +107,8 @@ function initiative(value: unknown): JsonObject {
   if (languages.some((item) => !/^[a-z]{2}$/u.test(item))) throw Error("invalid_data");
   return {
     name: text(o.name, 200, true),
+    // The app now asks for up to 400 characters and one link. The stored limits stay at 800 and
+    // six, so a card saved before that still parses and saves.
     description: text(o.description, 800),
     locations: list(o.locations, 8, 120),
     isGlobal: o.isGlobal,
@@ -160,6 +162,7 @@ function checkedAsk(value: unknown, allowUnclassified: boolean): SavedAsk {
     id: row.id,
     value: {
       title: text(o.title, 140, true),
+      // The app asks for up to 200 characters; 600 is the stored limit, kept for earlier cards.
       description: nullable(o.description, 600),
       capitalForms,
       amount,
@@ -174,8 +177,15 @@ function checkedAsk(value: unknown, allowUnclassified: boolean): SavedAsk {
     },
   };
 }
+/** How many needs, and how many offers, a card can be given. Adding one more is refused where it is added. */
+export const ASK_LIMIT = 4;
+/**
+ * How many a stored list may hold. Cards saved under the earlier limit of five stay readable and
+ * saveable, so this contract accepts them; it cannot tell an old list of five from a new one.
+ */
+export const STORED_ASK_LIMIT = 5;
 function asks(value: unknown, allowUnclassified: boolean): SavedAsk[] {
-  if (!Array.isArray(value) || value.length > 5) throw Error("invalid_data");
+  if (!Array.isArray(value) || value.length > STORED_ASK_LIMIT) throw Error("invalid_data");
   const rows = value.map(row => checkedAsk(row, allowUnclassified));
   if (new Set(rows.map((row) => row.id.toLowerCase())).size !== rows.length) throw Error("invalid_data");
   return rows;

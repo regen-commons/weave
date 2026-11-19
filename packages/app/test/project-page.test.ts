@@ -13,7 +13,7 @@ import {
   withProjectSuggestions,
 } from "../src/initiative/import.ts";
 import { cardRoute, chosenEntries, publicCard, publicKey, shareable } from "../src/initiative/status.ts";
-import { continueBoth, startsByHand, suggestedEntry, suggestionSource } from "../src/intake/ask-page.ts";
+import { continueBoth, suggestedEntry, suggestionSource } from "../src/intake/ask-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 import { intakeComplete } from "../src/intake/finish.ts";
 import { candidateChunks, chunksFrom, keywordExtraction } from "../src/intake/keywords.ts";
@@ -231,7 +231,7 @@ test("linking the same project again suggests nothing new, and a removed suggest
   assert.equal(draftWithRecord(byHand, GARDEN).needs.items[0]!.decision, "removed");
 });
 
-test("suggestions never replace or repeat the card's entries and stay within five", () => {
+test("suggestions never replace or repeat the card's entries and stay within four", () => {
   const record = project(
     "We need seedlings and tools. We need a nursery manager. We offer a water mapping workshop. We offer seed-saving classes.",
   );
@@ -241,12 +241,12 @@ test("suggestions never replace or repeat the card's entries and stay within fiv
   assert.deepEqual(titles(linked, "needs"), ["Seedlings and tools", "A nursery manager"]);
   assert.deepEqual(titles(linked, "offers"), ["Water mapping workshop", "Seed-saving classes"]);
 
-  let four = newDraft().needs;
-  for (const words of ["Land", "Seeds", "Money", "Mentors"]) four = addEntry(four, words);
-  const nearlyFull = draftWithRecord(revise(newDraft(), { needs: four }), BUSY);
-  assert.deepEqual(titles(nearlyFull, "needs"), ["Land", "Seeds", "Money", "Mentors", "Seedlings for the spring"]);
-  const full = draftWithRecord(revise(newDraft(), { needs: addEntry(four, "Water") }), BUSY);
-  assert.equal(activeItems(full.needs).length, 5);
+  let three = newDraft().needs;
+  for (const words of ["Land", "Seeds", "Money"]) three = addEntry(three, words);
+  const nearlyFull = draftWithRecord(revise(newDraft(), { needs: three }), BUSY);
+  assert.deepEqual(titles(nearlyFull, "needs"), ["Land", "Seeds", "Money", "Seedlings for the spring"]);
+  const full = draftWithRecord(revise(newDraft(), { needs: addEntry(three, "Water") }), BUSY);
+  assert.equal(activeItems(full.needs).length, 4);
   assert.ok(full.needs.items.every((item) => !fromProjectPage(item)));
   assert.equal(full.offers.items.length, 3, "the other list still gets its suggestions");
 });
@@ -305,16 +305,6 @@ test("opening a team workspace links nothing, so it suggests nothing", () => {
   const opened = withProjectDetails(saved, SEED_LIBRARY_RECORD);
   assert.deepEqual(opened.needs.items, saved.needs.items);
   assert.deepEqual(opened.offers.items, saved.offers.items);
-});
-
-test("a list on a card made without the assistant starts by hand beside project suggestions", () => {
-  const linked = draftWithRecord(newDraft(), GARDEN);
-  assert.equal(linked.assistant, "none");
-  assert.equal(startsByHand(linked.needs, linked.assistant), true);
-  assert.equal(startsByHand(linked.needs, "keywords"), false);
-  assert.equal(startsByHand(addEntry(linked.needs, "Land"), "none"), false, "an entry of their own keeps the list as it is");
-  assert.equal(startsByHand(answerStep(linked.needs, "needs", "Land"), "none"), false);
-  assert.equal(startsByHand(changeStep(linked.needs, { mode: "manual" }), "none"), false, "already by hand");
 });
 
 /** The same project when Certified also named its place, with links on the group's Certified profile. */

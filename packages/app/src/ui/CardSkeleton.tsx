@@ -9,7 +9,7 @@ function Hold({ children }: { children: ReactNode }) {
   );
 }
 
-type SkeletonKind = "funding" | "initiative" | "project" | "partner";
+type SkeletonKind = "funding" | "initiative" | "project" | "partner" | "own";
 
 /**
  * One card's shape, built from the parts the loaded card has, in their own classes and with the
@@ -17,7 +17,7 @@ type SkeletonKind = "funding" | "initiative" | "project" | "partner";
  * one height by construction (DL-104, DL-108). The words only draw the shape; they set no height,
  * and nobody reads or hears them.
  */
-function SkeletonCard({ kind }: { kind: SkeletonKind }) {
+function SkeletonCard({ kind, matched }: { kind: SkeletonKind; matched?: boolean }) {
   if (kind === "funding")
     return (
       <div className="rc-card" data-layout="listing" data-kind="funding" data-rows="fixed">
@@ -30,6 +30,17 @@ function SkeletonCard({ kind }: { kind: SkeletonKind }) {
         <p className="rc-card-meta">
           <Hold>Funder name</Hold>
         </p>
+        {/* A card compared with a person's own card carries a fit line here, in its tooltip's
+            wrappers, which give the line its height. */}
+        {matched && (
+          <span className="rc-tooltip-wrap">
+            <span className="rc-tooltip-trigger">
+              <span className="rc-fit">
+                <Hold>Good fit</Hold>
+              </span>
+            </span>
+          </span>
+        )}
         <div className="rc-tag-list">
           <span className="rc-tag">
             <Hold>Open call</Hold>
@@ -41,8 +52,27 @@ function SkeletonCard({ kind }: { kind: SkeletonKind }) {
         <p className="rc-card-summary">
           <Hold>What the program supports, in a few words that run to a second line</Hold>
         </p>
+        {/* And a line about readiness under the summary. */}
+        {matched && (
+          <p className="rc-meta">
+            <Hold>Ready to apply</Hold>
+          </p>
+        )}
         <p className="rc-time">
           <Hold>Sources checked 00 November 0000</Hold>
+        </p>
+      </div>
+    );
+  // One of a person's own initiatives or Certified projects in Your Initiatives: a name and a
+  // line or two about where it is kept. It is far shorter than a funding card.
+  if (kind === "own")
+    return (
+      <div className="rc-card" data-layout="listing">
+        <p className="rc-card-title">
+          <Hold>Name of a project</Hold>
+        </p>
+        <p className="rc-card-meta">
+          <Hold>You are a member of the group that runs it. It has no team workspace in Weave yet.</Hold>
         </p>
       </div>
     );
@@ -86,8 +116,14 @@ function SkeletonCard({ kind }: { kind: SkeletonKind }) {
  * `label`, which assistive technology hears in the drawing's place. A preview's shapes take the
  * preview's own layout (`preview`), so on a phone they hold one row and not three (DL-090).
  */
-export function CardGridSkeleton({ kind, count = 3, label, preview }: {
+export function CardGridSkeleton({ kind, count = 3, label, preview, matched }: {
   kind: SkeletonKind; count?: number; label?: string; preview?: "row" | "rows";
+  /**
+   * The funding cards that arrive were compared with a person's card, so each carries a fit line
+   * and a readiness line that a plain catalog card does not have. Without this the skeleton is
+   * two lines shorter than the cards it stands in for.
+   */
+  matched?: boolean;
 }) {
   return (
     <>
@@ -99,7 +135,7 @@ export function CardGridSkeleton({ kind, count = 3, label, preview }: {
       <ul className="rc-card-grid" data-preview={preview} aria-hidden="true">
         {Array.from({ length: count }, (_, index) => (
           <li key={index}>
-            <SkeletonCard kind={kind} />
+            <SkeletonCard kind={kind} matched={matched} />
           </li>
         ))}
       </ul>

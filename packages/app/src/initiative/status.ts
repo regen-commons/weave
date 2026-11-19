@@ -7,7 +7,7 @@ import type { RouteName } from "../routes.ts";
 import type { Entries, PublicCard, SocialState, WorkspaceState } from "../social/fixture.ts";
 
 /** The card's one-line state: where it is kept, and the widest audience that can see any of it. */
-export type CardState = "none" | "device" | "saving" | "memory" | "conflict" | "saved" | "shared" | "published";
+export type CardState = "none" | "device" | "memory" | "saved" | "shared" | "published";
 /**
  * One of the two ways an entry leaves the team: sharing for matching, or publishing.
  * Each is its own explicit action, so each has its own state and line.
@@ -46,8 +46,7 @@ export function cardName(draft: DeviceDraft): string {
 /** Where to open the card: its page once checked, otherwise the step it is waiting on. */
 export function cardRoute(draft: DeviceDraft): RouteName {
   if (intakeComplete(draft)) return "your-initiative";
-  if (draft.confirmed && draft.proposalVersion === draft.inputVersion) return "needs";
-  return draft.proposal ? "check-card" : "initiative";
+  return draft.confirmed && draft.proposalVersion === draft.inputVersion ? "needs" : "initiative";
 }
 
 export function chosenEntries(draft: DeviceDraft, entries: Entries) {
@@ -223,6 +222,16 @@ export function openSteps(status: CardStatus, workspace: WorkspaceState | null):
   return { lead, sharing, publishing, later: lines.join(" ") };
 }
 
+/** What a card that exists only in this browser says, on its page and on its badge in Your Initiatives. */
+export const NOT_SAVED_YET = "Not saved yet";
+/**
+ * What a card says while nobody is signed in and it carries the mark of an earlier save. Whether
+ * that copy is current cannot be known signed out, so the card never claims it was not saved.
+ */
+export const SAVED_SIGNED_OUT = "Saved to an account. Sign in to open the saved copy.";
+/** True for a card that some account saved, seen while nobody is signed in. */
+export const savedSignedOut = (draft: DeviceDraft, signedIn: boolean): boolean => !signedIn && !!draft.account.saved;
+
 /** What the live account holds for this card: no session, nothing, this version, or an earlier one. */
 export type AccountSave = "signed-out" | "none" | "current" | "changed";
 
@@ -269,10 +278,9 @@ export function cardStatus(
     };
   }
   if (!hasDraft(draft)) return { state: "none", line: "", ...rows };
-  if (storage === "saving") return { state: "saving", line: "Saving on this device.", ...rows };
-  if (storage === "memory") return { state: "memory", line: "Not saved on this device.", ...rows };
-  if (storage === "conflict") return { state: "conflict", line: "Draft changed in another tab.", ...rows };
-  return { state: "device", line: "On this device only.", ...rows };
+  if (storage === "memory") return { state: "memory", line: "Not stored on this device yet.", ...rows };
+  // Kept in this browser until the person saves it. The words say what is missing, not where it is.
+  return { state: "device", line: savedSignedOut(draft, signed) ? SAVED_SIGNED_OUT : `${NOT_SAVED_YET}.`, ...rows };
 }
 
 function saveStep(
@@ -283,13 +291,13 @@ function saveStep(
   team: string | null,
 ): SaveStep | null {
   if (!intakeComplete(draft)) return null;
-  if (!signed) return { needs: "sign-in", label: "Sign in to save", note: "" };
+  if (!signed) return { needs: "sign-in", label: "Sign In To Save", note: "" };
   // A personal save does not follow the person into a team workspace on its own.
   const moves = !!saved && !!team && saved.place !== "workspace";
   if (saved && !unsaved && !moves) return null;
   return {
     needs: "save",
-    label: unsaved && !moves ? "Save changes" : team ? "Save to team workspace" : "Save privately",
+    label: unsaved && !moves ? "Save Changes" : team ? "Save To Team Workspace" : "Save Privately",
     note: team
         ? `Teammates with access to the ${team} workspace can see it. ${SAVING_LIMIT}`
         : `Only you can see it. ${SAVING_LIMIT}`,

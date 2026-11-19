@@ -42,7 +42,7 @@
       <a class="rc-skip-link" href="#main">Skip to content</a>
       <header class="rc-app-header">
         <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="needs.html" aria-label="Back to Needs and offers"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#back"/></svg><span>Needs and offers</span></a></nav></div>
-        <div class="rc-app-header-state"><p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg><span>On this device</span></p><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
+        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
       </header>
       <div class="rc-page-body">
       <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
@@ -59,8 +59,14 @@
                 </li>
               </ol>
               <div class="rc-voice-input">
-                <p class="rc-meta">Local speech is not available in this static example. Type below.</p>
-                <p class="rc-voice-transcript">Your words stay editable.</p>
+                <div class="rc-voice-slot">
+                  <button class="rc-button" data-variant="secondary" data-size="lg" type="button" aria-pressed="false">
+                    <svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#mic" /></svg>Talk It Out
+                  </button>
+                  <div class="rc-voice-aside">
+                    <p class="rc-meta" role="status">Speech is not available in this static example. You can type instead.</p>
+                  </div>
+                </div>
               </div>
               <form class="rc-composer" data-example-answer>
                 <label for="example-words">Type your answer</label

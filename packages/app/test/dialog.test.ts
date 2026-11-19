@@ -94,6 +94,8 @@ test("a question that replaces or withdraws something is asked in a dialog, not 
     assert.match(source(file), /<TaskDialog\b/u, file);
   }
   assert.match(source("account/AccountSection.tsx"), /Load This Saved Card\?/u);
-  assert.match(source("pages/YourInitiatives.tsx"), /Start a new initiative\?/u);
+  // Starting an initiative replaces nothing, so it asks nothing (DL-112).
+  for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx"])
+    assert.doesNotMatch(source(file), /Start a new initiative\?|Back up (this card )?and start new/iu, file);
   assert.match(source("partners/PartnerExperience.tsx"), /Withdraw From Matching\?/u);
 });

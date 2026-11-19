@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, type FormEvent } from "react";
 import { suggestEntryKinds } from "../intake/keywords.ts";
 import { CAPITALS } from "../capitals.ts";
-import { SCOPES, STATUS, TERMS, URGENCY, type AskForm, type AskKind } from "../intake/contracts.ts";
+import { ASK_DESCRIPTION_LIMIT, SCOPES, STATUS, TERMS, URGENCY, type AskForm, type AskKind } from "../intake/contracts.ts";
+import { nearLimit } from "../describe/fill.ts";
 
 /** Ask card editor: native fields, every kind equal, raw values owned by the device draft. */
 export function AskEditor({
@@ -108,7 +109,14 @@ export function AskEditor({
       }}
     >
       {text("title", kind === "needs" ? "What you need" : "What you can offer", 140)}
-      {text("description", "In a line", 600, undefined, true)}
+      {/* A description written before the shorter limit keeps its length until it is changed (DL-111). */}
+      {text(
+        "description",
+        "In a line",
+        Math.max(ASK_DESCRIPTION_LIMIT, value.description.length),
+        `Optional, up to ${ASK_DESCRIPTION_LIMIT} characters. ${nearLimit(value.description.length, ASK_DESCRIPTION_LIMIT)}`.trim(),
+        true,
+      )}
       <fieldset
         disabled={disabled}
         className="rc-menu-group"
@@ -217,11 +225,10 @@ export function AskEditor({
           ))}
         </select>
       </div>
-      {error && (
-        <p className="rc-error" role="alert" id={`${id}-error`}>
-          {error}
-        </p>
-      )}
+      {/* The problem has its place whether or not there is one, so it pushes nothing down. */}
+      <p className="rc-error rc-status-slot" role="alert" id={`${id}-error`}>
+        {error}
+      </p>
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="submit" disabled={disabled}>
           {saveLabel ?? (kind === "needs" ? "Keep This Need" : "Keep This Offer")}

@@ -42,7 +42,7 @@
       <a class="rc-skip-link" href="#main">Skip to content</a>
       <header class="rc-app-header">
         <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="home.html" aria-label="Back to Home"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#back"/></svg><span>Home</span></a></nav></div>
-        <div class="rc-app-header-state"><p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg><span>On this device</span></p><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
+        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
       </header>
       <div class="rc-page-body">
       <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
@@ -52,89 +52,105 @@
           <li><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
           <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
         </ol>
-        <h1 class="rc-heading" data-size="page">Tell us about your initiative</h1>
+        <h1 class="rc-heading" data-size="page">Tell Us About Your Initiative</h1>
         <div class="rc-step-layout">
           <div class="rc-step-main">
-            <section class="rc-guide rc-conversation-panel" aria-label="Describe your initiative">
-              <p class="rc-guide-status">Assistant on this device. Guided questions.</p>
-              <ol class="rc-conversation" data-example-conversation>
-                <li class="rc-conversation-turn" data-from="assistant">
-                  <p class="rc-conversation-label">Assistant</p>
-                  <p class="rc-message" data-from="assistant">
-                    What is your initiative called, and what do you do?
-                  </p>
-                </li>
-                <li class="rc-conversation-turn" data-from="person">
-                  <p class="rc-conversation-label">You</p>
-                  <p class="rc-message" data-from="person" id="example-answer">
-                    We are Orchard learning circle, a group of families restoring an orchard.
-                  </p>
-                  <div class="rc-field" hidden data-example-edit-field>
-                    <label for="example-edit">Your words</label
-                    ><textarea class="rc-input" id="example-edit">
-We are Orchard learning circle, a group of families restoring an orchard.</textarea
+            <div class="rc-panel">
+              <section class="rc-stack" aria-labelledby="example-talk">
+                <h2 class="rc-heading" data-size="section" id="example-talk">Say It In Your Own Words</h2>
+                <p>Talk for a minute about what you do and where, or type it. Weave fills in the fields below, on this device.</p>
+                <div class="rc-voice-input">
+                  <div class="rc-voice-slot">
+                    <button class="rc-button" data-variant="secondary" data-size="lg" type="button" aria-pressed="false">
+                      <svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#mic" /></svg>Talk It Out
+                    </button>
+                    <div class="rc-voice-aside">
+                      <p class="rc-meta" role="status">Speech is not available in this static example. You can type instead.</p>
+                    </div>
+                  </div>
+                  <div class="rc-field">
+                    <label for="example-said">What you said, or type a few sentences</label>
+                    <textarea class="rc-input rc-voice-transcript" id="example-said" rows="4" data-sizing="fixed">
+We are Orchard learning circle. We are based in Upper Valley, Brazil. Families restore an orchard and share what they learn about water and soil.</textarea
                     >
                   </div>
-                  <button class="rc-button" data-variant="quiet" type="button" data-example-edit>
-                    Edit your words
-                  </button>
-                </li>
-                <li class="rc-conversation-turn" data-from="assistant">
-                  <p class="rc-conversation-label">Assistant</p>
-                  <p class="rc-message" data-from="assistant">Where does most of your work happen?</p>
-                </li>
-              </ol>
-              <div class="rc-voice-input">
-                <p class="rc-meta">Local speech is not available in this static example. Type below.</p>
-                <p class="rc-voice-transcript" aria-live="polite">Your words stay editable.</p>
-              </div>
-              <form class="rc-composer" data-example-answer>
-                <label for="example-words">Type your answer</label
-                ><textarea class="rc-input" id="example-words" rows="4" maxlength="20000" required></textarea>
+                  <div class="rc-action-bar">
+                    <button class="rc-button" data-variant="secondary" type="button">Fill In The Fields</button>
+                    <p class="rc-meta rc-status-slot" data-lines="2" role="status">
+                      Filled 3 fields and suggested 3 details. Check them and change anything.
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <form class="rc-form" action="#fields">
+                <h2 class="rc-heading" data-size="section">Your Initiative</h2>
+                <div class="rc-field">
+                  <label for="example-name">Name</label>
+                  <p class="rc-hint">From what you said.</p>
+                  <input class="rc-input" id="example-name" data-pencil value="Orchard learning circle" />
+                </div>
+                <div class="rc-field">
+                  <label for="example-where">Where you work</label>
+                  <p class="rc-hint">From what you said. Separate places with semicolons. Global is fine too.</p>
+                  <input class="rc-input" id="example-where" data-pencil value="Upper Valley, Brazil" />
+                </div>
+                <div class="rc-field">
+                  <label for="example-about">About it</label>
+                  <p class="rc-hint">From what you said. Two or three sentences.</p>
+                  <textarea class="rc-input" id="example-about" rows="6" data-sizing="fixed" data-pencil>
+Families restore an orchard and share what they learn about water and soil.</textarea
+                  >
+                </div>
+                <div class="rc-field">
+                  <label for="example-link">Website or main link</label>
+                  <p class="rc-hint">Optional.</p>
+                  <input class="rc-input" id="example-link" type="url" />
+                </div>
+                <fieldset class="rc-field">
+                  <legend>Suggested details (optional)</legend>
+                  <p class="rc-hint">Tap the ones that fit. The rest are left off.</p>
+                  <div class="rc-chip-group" data-reserve="rows">
+                    <label class="rc-chip" data-pencil><input class="rc-check" type="checkbox" />Getting going</label>
+                    <label class="rc-chip" data-pencil><input class="rc-check" type="checkbox" />Place-based</label>
+                    <label class="rc-chip" data-pencil><input class="rc-check" type="checkbox" />Families</label>
+                  </div>
+                </fieldset>
                 <div class="rc-action-bar">
-                  <button class="rc-button" data-variant="secondary" type="submit">Add your answer</button>
+                  <button class="rc-button" data-variant="secondary" type="button">Add Files</button>
+                  <p class="rc-meta rc-status-slot" role="status">Optional, up to 25 MB each. Files stay on this device.</p>
+                </div>
+                <ul class="rc-attachment-list">
+                  <li class="rc-attachment">
+                    <div>
+                      <strong>field-notes.txt</strong>
+                      <p class="rc-meta">Text file read on this device</p>
+                    </div>
+                  </li>
+                </ul>
+                <p class="rc-error rc-status-slot" role="alert"></p>
+                <div class="rc-action-bar">
+                  <a class="rc-button" data-variant="primary" data-from="wide" href="needs.html">Continue</a
+                  ><button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-cloud">
+                    Cloud consent example
+                  </button>
                 </div>
               </form>
-              <div class="rc-field">
-                <label for="example-file">Add a file</label>
-                <p class="rc-hint">Local reference only in this example.</p>
-                <input class="rc-input" type="file" id="example-file" data-example-file />
-              </div>
-              <ul class="rc-attachment-list" data-example-attachments>
-                <li class="rc-attachment">
-                  <div>
-                    <strong>field-notes.txt</strong>
-                    <p class="rc-meta">Text file read on this device</p>
-                  </div>
-                </li>
-              </ul>
-              <div class="rc-action-bar">
-                <a class="rc-button" data-variant="primary" data-from="wide" href="check-card.html">Open review example</a
-                ><button
-                  class="rc-button"
-                  data-variant="quiet"
-                  type="button"
-                  data-open-dialog="example-cloud"
-                >
-                  Cloud consent example
-                </button>
-              </div>
-            </section>
+            </div>
           </div>
-          <aside class="rc-step-aside">
-            <article class="rc-card rc-draft-preview">
+          <aside class="rc-step-aside" data-from="wide">
+            <article class="rc-card rc-draft-preview" data-pencil>
               <h2 class="rc-card-title" data-example-preview>Orchard learning circle</h2>
-              <p class="rc-card-meta">Upper valley, Brazil</p>
+              <p class="rc-card-meta">Upper Valley, Brazil</p>
               <p class="rc-card-summary">
                 Families restore an orchard and share what they learn about water and soil.
               </p>
-              <p class="rc-draft-status">Draft on this device. Nobody else can see it.</p>
+              <p class="rc-draft-status">Not saved yet. Nothing here has been shared.</p>
             </article>
           </aside>
         </div>
       </main>
       </div>
-      <div class="rc-dock"><a class="rc-button" data-variant="primary" href="check-card.html">Open review example</a></div>
+      <div class="rc-dock"><a class="rc-button" data-variant="primary" href="needs.html">Continue</a></div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
           <section data-repeats="tabs">

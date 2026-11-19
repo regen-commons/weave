@@ -22,8 +22,7 @@ test("the page shell draws the dock on a focused step and the tab bar on every o
 
 test("each intake step docks its way forward, and shows the same action in its place on a wide screen", () => {
   const steps: readonly [file: string, actions: readonly string[]][] = [
-    ["pages/Describe.tsx", ["continueAction", "buildAction"]],
-    ["pages/CheckCard.tsx", ["forward"]],
+    ["pages/Describe.tsx", ["forward"]],
     ["pages/AskStep.tsx", ["forward"]],
   ];
   for (const [file, actions] of steps) {
@@ -40,19 +39,16 @@ test("each intake step docks its way forward, and shows the same action in its p
 
 test("a docked submit names the form it sends, because the dock is outside the form", () => {
   const describe = source("pages/Describe.tsx");
-  assert.ok(describe.includes('<form className="rc-form" id={FIELDS_ID} onSubmit={continueFields} onKeyDown={moveOnEnter}>'));
+  assert.ok(describe.includes('<form className="rc-form" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>'));
   assert.match(describe, /type="submit"\s+form=\{FIELDS_ID\}/u);
-  const check = source("pages/CheckCard.tsx");
-  assert.ok(check.includes('<form className="rc-form" id={FORM_ID} onSubmit={submit} onKeyDown={moveOnEnter}>'));
-  assert.match(check, /type="submit" form=\{FORM_ID\}/u);
 });
 
 test("a problem a docked action raises is drawn where the person is", () => {
-  for (const file of ["pages/Describe.tsx", "pages/CheckCard.tsx"]) {
-    const text = source(file);
-    assert.ok(text.includes("revealProblem(PROBLEM_ID,"), `${file} brings its problem into view`);
-    assert.ok(text.includes('role="alert" id={PROBLEM_ID}'), `${file} names the problem it reveals`);
-  }
+  const text = source("pages/Describe.tsx");
+  assert.ok(text.includes("revealProblem(PROBLEM_ID,"), "the describe step brings its problem into view");
+  assert.ok(text.includes('role="alert" id={PROBLEM_ID}'), "and names the problem it reveals");
+  // The problem's place is always on the page, so showing it pushes nothing down (DL-113).
+  assert.ok(text.includes('className="rc-error rc-status-slot" role="alert" id={PROBLEM_ID}'));
   // Needs and offers already moves the focus to the list that stopped the page.
   assert.match(source("pages/AskStep.tsx"), /getElementById\(`ask-\$\{first\}-blocker`\)\?\.focus\(\)/u);
 });

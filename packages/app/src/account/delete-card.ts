@@ -28,12 +28,30 @@ export function forgetSavedCard(draft: DeviceDraft, id: string): Partial<DeviceD
   };
 }
 
-/** Release the device draft from a card the account no longer has, if it points at it. */
+/** The drafts on this device that point at a saved card: the tab's own first, then the others. */
+export function draftsBoundTo(controller: DraftController, id: string): string[] {
+  const { draft, drafts } = controller.getSnapshot();
+  return [...new Set([draft, ...drafts].filter((item) => forgetSavedCard(item, id)).map((item) => item.id))];
+}
+
+/**
+ * Release every draft on this device from a card the account no longer has: the tab's own and
+ * any other the browser holds (DL-112). False when nothing pointed at it, or when this device
+ * could not store a release.
+ */
 export async function releaseDeletedCard(controller: DraftController, id: string): Promise<boolean> {
-  if (!forgetSavedCard(controller.getSnapshot().draft, id)) return false;
-  controller.change((draft) => revise(draft, forgetSavedCard(draft, id) ?? {}));
-  await controller.settled();
-  return controller.getSnapshot().storage === "saved";
+  const bound = draftsBoundTo(controller, id);
+  if (!bound.length) return false;
+  let stored = true;
+  for (const draftId of bound) {
+    const released = await controller.amend(draftId, (draft) => {
+      const change = forgetSavedCard(draft, id);
+      return change ? revise(draft, change) : null;
+    });
+    const current = controller.getSnapshot();
+    if (!released || (current.draft.id === draftId && current.storage !== "saved")) stored = false;
+  }
+  return stored;
 }
 
 export interface DeletedCard {
@@ -64,7 +82,7 @@ export async function deleteSavedCard(
   }
   if (deleted.id !== card.id || deleted.revision !== card.revision) throw new AccountFailure("account_unavailable");
   // The server confirmed the deletion. A device problem from here on is reported, never thrown.
-  if (!forgetSavedCard(controller.getSnapshot().draft, card.id)) return { deleted, device: "unrelated" };
+  if (!draftsBoundTo(controller, card.id).length) return { deleted, device: "unrelated" };
   try {
     return { deleted, device: (await releaseDeletedCard(controller, card.id)) ? "unbound" : "unbound_unsaved" };
   } catch {
@@ -106,11 +124,13 @@ export const deleteNeedsReload = (error: unknown) =>
 export function deletableCards(
   cards: readonly { id: string; name: string; savedOn: string; revision?: number }[],
   workspaceIds: readonly (string | undefined)[],
-  deviceCardId: string | null,
+  /** The saved cards that a draft on this device is the working copy of: one ID, or every one. */
+  deviceCardIds: string | null | readonly string[],
 ): (DeletableCard & { savedOn: string; onDevice: boolean })[] {
+  const onDevice = typeof deviceCardIds === "string" ? [deviceCardIds] : (deviceCardIds ?? []);
   return cards.flatMap((card) =>
     typeof card.revision === "number" && !workspaceIds.includes(card.id)
-      ? [{ id: card.id, name: card.name, revision: card.revision, savedOn: card.savedOn, onDevice: card.id === deviceCardId }]
+      ? [{ id: card.id, name: card.name, revision: card.revision, savedOn: card.savedOn, onDevice: onDevice.includes(card.id) }]
       : [],
   );
 }

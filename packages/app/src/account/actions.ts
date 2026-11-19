@@ -3,11 +3,12 @@ import { revise } from "../describe/contracts.ts";
 import { accountRequest, accountSessionSignal, AccountFailure, assertAccount, parseSaved } from "./client.ts";
 import { loadedDraft, saveCommand } from "./document.ts";
 import { releaseDeletedCard } from "./delete-card.ts";
+import { sessionChoosers } from "../social/project-choice.ts";
 
-/** The save went through, but the device draft is no longer the one that asked for it. */
+/** The save went through, but the draft that asked for it is no longer on this device as it was. */
 export class SaveDetached extends Error {
   constructor() {
-    super("Your card was saved to your account, but the draft on this device changed meanwhile, so it is not linked to that save. Open the saved card from Your Initiatives to continue it.");
+    super("Your card was saved to your account, but the draft on this device was removed or replaced meanwhile, so it is not linked to that save. Open the saved card from Your Initiatives to continue it.");
   }
 }
 
@@ -25,7 +26,8 @@ export async function sendSave(controller: DraftController, command: { id: strin
 export async function saveAccountCard(controller: DraftController, owner: string, refresh: () => Promise<unknown>) {
   const signal = accountSessionSignal();
   signal.throwIfAborted();
-  const { binding, command } = saveCommand(controller.getSnapshot().draft, owner);
+  const asking = controller.getSnapshot().draft;
+  const { binding, command } = saveCommand(asking, owner, sessionChoosers(asking.id));
   controller.change(current => revise(current, { account: { ...current.account, pending: binding } }));
   await controller.settled();
   signal.throwIfAborted();
@@ -35,15 +37,20 @@ export async function saveAccountCard(controller: DraftController, owner: string
   signal.throwIfAborted();
   if (receipt.id !== command.id || JSON.stringify(receipt.document) !== binding.contentKey)
     throw new AccountFailure("account_unavailable");
-  // Only the draft that is still waiting for this request is bound to its result. A draft
-  // removed, restored or loaded meanwhile must never inherit the saved card.
-  if (controller.getSnapshot().draft.account.pending?.requestId !== binding.requestId) {
+  // The receipt goes to the draft that asked, by its ID, wherever the tab is now: a person may
+  // have opened or started another initiative while the save was in flight (DL-112). Only a
+  // draft still waiting for this request is bound. One removed, restored or loaded meanwhile,
+  // and any other draft, never inherits the saved card.
+  const bound = await controller.amend(asking.id, current =>
+    current.account.pending?.requestId === binding.requestId
+      ? revise(current, { account: { ...current.account, saved: {
+          id: receipt.id, owner, revision: receipt.revision, contentKey: binding.contentKey,
+        }, pending: null } })
+      : null);
+  if (!bound) {
     await refresh();
     throw new SaveDetached();
   }
-  controller.change(current => revise(current, { account: { ...current.account, saved: {
-    id: receipt.id, owner, revision: receipt.revision, contentKey: binding.contentKey,
-  }, pending: null } }));
   await refresh();
   signal.throwIfAborted();
   return binding.contentKey;

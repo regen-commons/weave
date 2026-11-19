@@ -20,3 +20,12 @@ export function projectChoosers(storage: Pick<Storage, "length" | "key"> | undef
   }
   return choosers;
 }
+
+/** The same, read from this tab's own session storage. Where storage is blocked or absent, nobody has chosen. */
+export function sessionChoosers(draftId: string): string[] {
+  try {
+    return projectChoosers(window.sessionStorage, draftId);
+  } catch {
+    return [];
+  }
+}
