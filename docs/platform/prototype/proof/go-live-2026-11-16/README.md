@@ -1,6 +1,8 @@
 # Production go-live evidence, 16 November 2026
 
-Weave went live at `ea2b810` on 16 November and is now at `024d713`, from the
+Weave went live at `ea2b810` on 16 November and is now at `2893fb1`, from the
+[layout fixes release](#release-of-101-18-november). It followed the
+[polish release](#release-of-95-to-97-18-november) earlier on 18 November and the
 [17 November release](#release-of-85-to-93-17-november). Both previously designated launch-blocker gates passed
 on the verified new production client: negation classification and real A/B
 cross-tab session changes. Sharing remains stopped by the user's direction after
@@ -11,6 +13,98 @@ QA took place on 15 to 16 November 2026, Pacific time. Production proof used the
 user's existing Brave profile. Chromium 156 was reported by the user; the version
 page was blocked, so the exact version was not independently verified. These evidence changes alter no Auth, deployment or catalog settings. The approved production cloud QA cleanup is
 recorded below. Public evidence uses account A and account B only.
+
+## Release of #101, 18 November
+
+The user checked the polish release on 18 November and found three items from the
+feedback review only partly fixed: the gap above the footer, skeletons that did not
+match the loaded layout, and surfaces left behind text sections. They approved the
+fixes and then this release.
+[Release PR #102](https://github.com/regen-commons/weave/pull/102) merged as
+`2893fb134aa0727df2b496301b0b5eb681634679` at 07:01 UTC on 19 November (11:01 p.m.
+Pacific on 18 November). Its tree matches `develop` at
+`54ab290dff143fa429ddd12ba75b3474e8e98675`.
+
+| Change | What it does |
+|---|---|
+| [#101](https://github.com/regen-commons/weave/pull/101) | List cards keep fixed rows, so a skeleton and a loaded card are one height and a loading list holds the loaded layout (DL-108). A page ends one step above the footer's line, no section is a tinted band, and the "Describe your initiative" prompt is a plain section (DL-109). Initiatives opens on the starter list when the browser last heard the public list was off. |
+
+The release changes no deployed function, server contract, database schema,
+dependency, security header or deployment configuration. The intake redesign is still
+not released.
+
+| Release evidence | Verified result |
+|---|---|
+| Checks before the merge | `bun install --frozen-lockfile`, `bun run ci`, `git diff --exit-code` and `git diff --check` exited 0 on #101's head `7f53132`, and its seven GitHub checks passed. On `54ab290` the four GitHub checks of the release PR passed. |
+| Weave production | Vercel reported the deployment for `2893fb1` complete at 07:02 UTC on 19 November ([status](https://vercel.com/regen-commons/weave/81RYzb4MUUS3LERaTBqYGhEQpbip)). [Weave](https://weave.regencommons.com) health returned status ok, commit `2893fb1`, at 07:03 UTC. It still returned `a1470b6` at 07:03:06. The deployment was not inspected with the Vercel CLI. |
+| Weave rollback | The deployment that served `a1470b6` before this release ([status](https://vercel.com/regen-commons/weave/AzPmryd76FHq3LXBNMMYSt3RAJDG)). No rollback was performed. |
+| Returning browsers | A browser that had the earlier build kept showing it from the service worker's cache through two page loads after the deployment. It showed the new build on the load after the worker had updated. |
+| Funding Commons | `Canceled by Ignored Build Step` on `2893fb1`: skipped as configured, not published. |
+
+Each page below was opened from another page in production and sampled every 16 ms,
+comparing the last frame that showed a skeleton with the final frame. Class
+`production`, the Claude desktop app's built-in Chromium browser, signed out, dark
+theme, with the live catalog and public project list.
+
+| Page | Before, at `a1470b6` | After, at `2893fb1` |
+|---|---|---|
+| Funding, 1280 px | 12 skeleton cards of 282 px loaded into 24 of 315 px | Identical: 24 cards of 339 px, same filter bar, list end and footer |
+| Funding, 375 px | 12 skeleton cards of 282 px loaded into 24 of 258 to 290 px | Identical: 24 cards of 314 px, same filter bar, list end and footer |
+| Initiatives, 1280 px | Cards matched; the footer moved 72 px | Identical: 12 cards of 258 px, same list end and footer |
+| Initiatives, 375 px | Not measured | Identical: 12 cards of 233 px, same list end and footer |
+| Home, 1280 px | "Recently Shared" held 3 skeleton cards and loaded 8; the section below moved 282 px | Identical: 8 cards both times, nothing moved |
+| Home, 375 px | "Recently Shared" skeleton cards of 231 px loaded at 258 px; the footer moved 27 px | Identical: 8 cards of 233 px, nothing moved |
+| Home, last text to the footer's line | 96 px at 1280 px, across a tinted band and a 40 px strip | 40 px at 1280 px and 32 px at 375 px, with no tinted section |
+
+**Not proven in production:**
+
+- A real phone, the light theme, reduced motion, and widths other than 375 and
+  1280 px.
+- A first visit to Initiatives while the public list is off. That case still jumps
+  and cannot be seen while the list is on.
+- A person with a card, for whom ranking lines still arrive after the list.
+- Signing in, saving, sharing and matching. Nothing was signed in, saved, shared or
+  deleted in production.
+
+## Release of #95 to #97, 18 November
+
+The user approved releasing the desktop and phone polish from `develop` to `main` on
+18 November 2026, Pacific time, ahead of the intake redesign.
+[Release PR #98](https://github.com/regen-commons/weave/pull/98) merged as
+`a1470b66e8bf9f9e1e73a34a1476470e4c0c293e` at 04:58 UTC on 19 November (8:58 p.m.
+Pacific on 18 November). Its tree matches `develop` at
+`eb92f04e7603a831ab8791e9914c7a5ddafaa040`.
+
+| Change | What it does |
+|---|---|
+| [#96](https://github.com/regen-commons/weave/pull/96) | The desktop and phone polish from manual QA and the 18 November UX feedback review, recorded as DL-079 to DL-107 in the design system's decision log. It includes a development-only, opt-in read of the public project list from production. |
+| [#97](https://github.com/regen-commons/weave/pull/97) | Rewrites the README around Weave, with matching edits to `AGENTS.md` and the app package's description. |
+| [#95](https://github.com/regen-commons/weave/pull/95) | Adds the 17 November release record below. Docs only. |
+
+The release changes no deployed function, server contract, database schema,
+dependency, security header or deployment configuration, so nothing had to be applied
+before or after the merge. The intake redesign (a one-page describe step, four needs
+and offers, several drafts per browser) is not in this release. An independent review
+found defects in it, and it stays on its own branch until they are fixed.
+
+| Release evidence | Verified result |
+|---|---|
+| Checks before the merge | `bun install --frozen-lockfile`, `bun run ci`, `git diff --exit-code` and `git diff --check` exited 0 on #96's head `f90bab6`, and its seven GitHub checks passed. `develop` then differed from that tree only by #97's three files. On `eb92f04` the four GitHub checks of the release PR passed: `guidance-check`, `design-check`, `build-and-test` and `weave-check`. |
+| Weave production | Vercel reported the deployment for `a1470b6` complete at 05:00 UTC on 19 November ([status](https://vercel.com/regen-commons/weave/AzPmryd76FHq3LXBNMMYSt3RAJDG)). [Weave](https://weave.regencommons.com) health returned status ok, commit `a1470b6`, at 05:00 UTC. A minute earlier it still returned `024d713`. The deployment was not inspected with the Vercel CLI, whose sign-in on the release machine had expired. |
+| Weave rollback | `dpl_5TqNXtaEQp52pHKvRn2rmW2oyrss` at `024d713`, the deployment that served production before this release. No rollback was performed. |
+| Rendered check | Class `production`, the Claude desktop app's built-in Chromium browser, signed out, dark theme only. Home at 1280 px showed the title case heading and buttons and the header's theme switch. Funding at 375 px showed the fixed tab bar with Home, Initiatives, Funding and You, the sort menu button with no native select, and 771 programs from 699 funders. Neither page scrolled sideways or logged a console error. |
+| Funding Commons | `Canceled by Ignored Build Step` on `a1470b6`: skipped as configured, not published. |
+
+**Not proven in production:**
+
+- A real phone. Safari and iOS behaviour has only been emulated: safe areas,
+  rubber-banding, sheet drag, the fixed mycelium canvas as the address bar shows and
+  hides, and its clip.
+- The light theme, the keyboard, page slide motion and reduced motion. The production
+  check above covered two pages in the dark theme.
+- The install shortcuts and screenshots in an installed app.
+- Signing in, saving, sharing and matching for this release. Nothing was signed in,
+  saved, shared or deleted in production.
 
 ## Release of #85 to #93, 17 November
 
