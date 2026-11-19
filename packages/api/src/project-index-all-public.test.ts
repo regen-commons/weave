@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ALL_PUBLIC_REDISPLAY_MS, refreshAllPublicProjects, withdrawAllPublicProjects, type AllPublicStore } from "./project-index-all-public.ts";
+import {
+  ALL_PUBLIC_REDISPLAY_MS, refreshAllPublicProjects, testEntryReason, withdrawAllPublicProjects, type AllPublicStore,
+} from "./project-index-all-public.ts";
 import { createAccountHostResolver, isCertifiedTestHost, type AccountHost } from "./project-index-hosts.ts";
 import { createProjectIndexRefreshHandler } from "./project-index-refresh-http.ts";
 import { createHypercertsSource } from "./project-index-source.ts";
@@ -290,6 +292,60 @@ test("an account's server comes from its DID document, and only a definite answe
   assert.deepEqual(await web.resolve("did:web:dev.certified.app"), { status: "found", host: "dev.certified.app" });
 });
 
+// Invented names and text in the shapes seen on 19 November 2026. None is a real project.
+const realText = ["We restore wetlands along the river with volunteers each season."];
+test("a project whose name or own words declare it a QA or test entry is recognised, and why", () => {
+  for (const name of ["QA Wizard Project 7", "QA Test Project B", "QA Riverside Repair Cafe", "Test project", "test",
+    "Tests", "Seed library tutorial (test)", "Pollinator count - TEST", "Testing", "Testing project 2", "testing 123"])
+    assert.equal(testEntryReason(name, realText), "test_named", name);
+  for (const passage of ["TEST PROJECT made to check the publishing wizard.", "Automated QA project created by the release suite.",
+    "QA test story about a community garden.", "This is a test project for the upload form.",
+    "An automated QA entry with sample text.", "We plant trees here. It is not a real project.",
+    "A test project created on staging to check images.", "Ignore this one, it is a QA project made for testing."])
+    assert.equal(testEntryReason("Riverside Commons", [realText[0]!, passage]), "test_described", passage);
+  // The name is checked first, so a project that both names and describes itself as a test counts once, by name.
+  assert.equal(testEntryReason("QA Garden 3", ["TEST PROJECT for the garden form."]), "test_named");
+});
+
+test("real projects that only mention testing, contests, demos or staging are never taken for test entries", () => {
+  for (const name of ["Attested Wetland Restoration", "Soil Testing Cooperative", "Testing Grounds Farm", "Coastal Contest for Clean Beaches",
+    "Latest Harvest Collective", "Protest Garden", "QAnat Water Revival", "Qanat Keepers", "Test-bed Agroforestry Trust",
+    "Demonstration Plot Network", "Demo Farm Collective", "Tutorial Forest School", "Staging Ground Community Kitchen",
+    "Water Testing for Every Village", "Qa Valley Seeds", "Retest Lab Cooperative", "Testament Orchard", ""])
+    assert.equal(testEntryReason(name, realText), null, name);
+  for (const passage of ["Our fields are testing grounds for our tools and seed varieties.",
+    "We run soil testing for smallholder farms across the valley.", "Members attested each planting with photos.",
+    "The demonstration plot opened in spring with forty families.", "A tutorial for new volunteers runs monthly.",
+    "We are staging a community harvest festival in June.", "We tested drip irrigation last season and kept it.",
+    "This is a real project with real people behind it.", "Our latest contest drew forty entries from schools.",
+    "Qanat project restores an old water channel.", "Test plots across three villages show yield gains.",
+    "Testing project outcomes with the community each season keeps us honest.", "The staging area holds tools.",
+    "We are not a charity but a cooperative.", "Demo days show the test results of our compost trials."])
+    assert.equal(testEntryReason("Riverside Commons", [passage]), null, passage);
+});
+
+test("a test entry is skipped on first sight, withdrawn if shown, and counted without its name", async () => {
+  const views = Array.from({ length: 30 }, (_, n) => projectView(n));
+  const index = setup(views);
+  await index.run();
+  index.advance(24 * 60 * 60 * 1000);
+  views[1] = projectView(1, { title: "QA Wizard Project 1" });
+  views[2] = projectView(2, { short: "TEST PROJECT made to check the publishing wizard. Please ignore it." });
+  // A test server is the first reason, so this project is counted once, as a test host.
+  views[3] = projectView(3, { title: "QA Wizard Project 3" });
+  index.hosts.answers.set(projectDid(3), { status: "found", host: "dev.certified.app" });
+  views.push(projectView(40, { title: "Test project" }), projectView(41, { title: "Soil Testing Cooperative",
+    short: "Our fields are testing grounds for our tools. Members attested each planting." }));
+  const report = await index.run();
+  assert.deepEqual([report.status, report.listed, report.testHosts, report.testNamed, report.testDescribed, report.withdrawn],
+    ["complete", 32, 1, 2, 1, 3]);
+  const state = await index.store.state();
+  assert.deepEqual(state.projects.filter(({ shown }) => !shown).map(({ uri }) => uri).sort(), [1, 2, 3].map(projectUri).sort());
+  assert.equal(index.data.sources.has(projectUri(40)), false);
+  assert.equal(state.projects.find(({ uri }) => uri === projectUri(41))?.shown, true);
+  assert.doesNotMatch(JSON.stringify(report), /at:\/\/|QA Wizard|Test project|TEST PROJECT|Soil Testing/u);
+});
+
 test("a date or text Postgres cannot store makes the record or passage invalid instead of reaching the index", async () => {
   const views = [projectView(0), projectView(1, { createdAt: "2026-10-01T12:00:00+20:00" }),
     projectView(2, { createdAt: "0000-01-01T00:00:00Z" }), projectView(3, { indexedAt: "2026-11-14T00:00:00-16:00" }),
@@ -311,7 +367,7 @@ test("withdrawing everything empties the list in a new generation", async () => 
 });
 
 test("the cron handler needs its secret, its switch and its database, and logs counts only", async () => {
-  const views = Array.from({ length: 3 }, (_, n) => projectView(n));
+  const views = [...Array.from({ length: 3 }, (_, n) => projectView(n)), projectView(3, { title: "QA Wizard Project 3" })];
   const lines: string[] = [];
   const memory = memoryStore(() => start);
   let closed = 0;
@@ -338,10 +394,11 @@ test("the cron handler needs its secret, its switch and its database, and logs c
   env.WEAVE_INDEX_REFRESH = "all-public";
   const ok = await call(`Bearer ${env.CRON_SECRET}`);
   assert.equal(ok.status, 200);
-  const report = await ok.json() as { status: string; listed: number };
-  assert.deepEqual([report.status, report.listed, closed, cas], ["complete", 3, 1, ["fixture-ca"]]);
+  const report = await ok.json() as { status: string; listed: number; testNamed: number };
+  assert.deepEqual([report.status, report.listed, report.testNamed, closed, cas], ["complete", 4, 1, 1, ["fixture-ca"]]);
   assert.equal(lines.length, 1);
-  assert.doesNotMatch(lines.join("\n") + JSON.stringify(report), /at:\/\/|wetlands|Watershed|fixture-cron-secret|fixture@/u);
+  assert.equal(JSON.parse(lines[0]!).testNamed, 1);
+  assert.doesNotMatch(lines.join("\n") + JSON.stringify(report), /at:\/\/|wetlands|Watershed|QA Wizard|fixture-cron-secret|fixture@/u);
 
   env.CRON_SECRET = "short";
   assert.deepEqual(await body(await call("Bearer short")), [503, "no-store", { error: "project_index_refresh_unavailable" }]);

@@ -23,6 +23,46 @@ const SHRINK_GUARD_MINIMUM = 20;
 /** Account lookups at once. 1,068 accounts took 14 seconds at six on 15 November. */
 const HOST_LOOKUPS = 6;
 
+/**
+ * Why a project declares itself a QA or test entry: by its name, or by its own words. Projects published
+ * from production accounts to check Certified's tools are not shown (decision, 19 November 2026).
+ */
+export type TestEntryReason = "test_named" | "test_described";
+
+/**
+ * A word ends at anything but a letter, digit, hyphen or apostrophe, so "attested", "contest", "latest",
+ * "test-bed" and "QAnat" are never the words "test" or "QA". "QA" must be written in capitals.
+ */
+const nameWords = (name: string) => name.split(/[^\p{L}\p{N}'’-]+/u).map((word) => word.replace(/^['’-]+|['’-]+$/gu, ""))
+  .filter(Boolean);
+/**
+ * "Testing" names real work, such as a soil testing cooperative, so it counts only in a name with nothing
+ * else in it but "project" and numbering, such as "Testing" or "Testing project 2".
+ */
+const bareTestingName = (words: string[]) => words.some((word) => word.toLowerCase() === "testing")
+  && words.every((word) => /^(?:testing|projects?|\p{N}+|\p{L})$/iu.test(word));
+/**
+ * A passage that says what the project is: it opens by calling itself a QA or test project, story or
+ * entry, or states that it is not real or was made on staging. Ordinary mentions of testing ("soil
+ * testing", "testing grounds for our tools") and "demo", "tutorial" or "staging" alone are not signals.
+ */
+const testDeclarations = [
+  /^(?:(?:this|it) is (?:just |only )?)?(?:an? )?(?:automated )?(?:QA|test)(?: test)? (?:project|story|entry)\b/iu,
+  /\bnot an? (?:real|actual|genuine) (?:project|initiative|organi[sz]ation)\b/iu,
+  /\b(?:QA|test) (?:project|story|entry) (?:created|made|published) (?:on|in|for) (?:staging|QA|testing)\b/iu,
+];
+
+/**
+ * Whether a project's name or passages mark it as a QA or test entry, and why. The name is checked first.
+ * `null` means nothing marks it, which is the answer for every project whose author did not say so.
+ */
+export function testEntryReason(name: string, passages: readonly string[]): TestEntryReason | null {
+  const words = nameWords(name);
+  if (words.some((word) => word === "QA" || /^tests?$/iu.test(word)) || bareTestingName(words)) return "test_named";
+  if (passages.some((passage) => testDeclarations.some((pattern) => pattern.test(passage.trim())))) return "test_described";
+  return null;
+}
+
 type Source = Pick<ReturnType<typeof createHypercertsSource>, "listProjects">;
 type Indexed = Extract<ProjectRead, { status: "indexed" }>;
 export type AllPublicStore = ProjectIndexStore & Required<Pick<ProjectIndexStore, "state">>;
@@ -37,6 +77,8 @@ function counts() {
     pages: 0, records: 0, listed: 0, unlisted: 0, invalid: 0, duplicates: 0, withoutText: 0,
     /** Projects left out because their account is on a Certified test server, or has no usable server. */
     accounts: 0, testHosts: 0, withoutHost: 0,
+    /** Projects left out because their name or their own words declare them a QA or test entry. */
+    testNamed: 0, testDescribed: 0,
     shownBefore: 0, withdrawn: 0, generation: null as number | null,
     indexed: 0, restricted: 0, missing: 0, failed: 0, scanned: 0,
   };
@@ -62,10 +104,11 @@ async function apply(store: AllPublicStore, manifest: ProjectManifest, reads: Ma
 
 /**
  * Traverses the whole listing, then replaces the permission set with the listed public projects whose
- * accounts are not on a Certified test server, in a new generation. A failed or partial traversal, or an
- * account lookup that fails, changes nothing. The existing checkpoint, expiry and withdrawal handling
- * applies the set, and projects checked longest ago are committed first so a sweep cut short by time is
- * finished by the next run instead of starting over at the same place.
+ * accounts are not on a Certified test server and that do not declare themselves test entries, in a new
+ * generation. A failed or partial traversal, or an account lookup that fails, changes nothing. The
+ * existing checkpoint, expiry and withdrawal handling applies the set, and projects checked longest ago
+ * are committed first so a sweep cut short by time is finished by the next run instead of starting over
+ * at the same place.
  */
 export async function refreshAllPublicProjects(input: {
   source: Source;
@@ -122,6 +165,15 @@ export async function refreshAllPublicProjects(input: {
     reads.delete(uri);
     if (host?.status === "found") report.testHosts++;
     else report.withoutHost++;
+  }
+  // Self-declared test entries on production accounts are left out the same way. The name travels on each
+  // passage, so a project with no usable text is judged on nothing here; it is never shown anyway.
+  for (const [uri, { passages }] of [...reads]) {
+    const reason = testEntryReason(passages[0]?.projectName ?? "", passages.map(({ passage }) => passage));
+    if (!reason) continue;
+    reads.delete(uri);
+    if (reason === "test_named") report.testNamed++;
+    else report.testDescribed++;
   }
   report.withoutText = [...reads.values()].filter(({ passages }) => !passages.length).length;
 

@@ -416,6 +416,13 @@ the account's server from its DID document through plc.directory. An account
 that no longer exists or names no server is left out, and a lookup that fails
 leaves the refresh unapplied.
 
+Decided by the user on 19 November 2026: self-declared QA and test projects on
+production accounts are left out too. A project is left out when its name has
+"QA" (in capitals), "test" or "tests" as a whole word, or is just "Testing"
+with at most "project" and a number, or when its own words open by calling it a test or QA project or say
+it is not a real project or was made on staging. Mentions such as "soil
+testing", "attested" or "demo" are not signals.
+
 - A daily refresh traverses the whole listing. Only a complete traversal, with
   every account looked up, replaces what Weave shows: a failed page, a repeated
   cursor, a failed account lookup, the page budget or the time budget changes
