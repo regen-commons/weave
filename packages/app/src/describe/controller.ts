@@ -37,10 +37,15 @@ export class DraftController {
   private pointer: DraftPointer;
   private channel: DraftChannel | undefined;
   private listening = false;
-  constructor(repository: DraftRepository, tabs: { pointer?: DraftPointer; channel?: DraftChannel } = {}) {
+  /** How long the first read waits for the released build's storage before going on without it. */
+  private readonly earlierWait: number;
+  /** The tab opened with no draft of its own to return to, and nothing has been typed or opened in it since. */
+  private untouched = false;
+  constructor(repository: DraftRepository, tabs: { pointer?: DraftPointer; channel?: DraftChannel; earlierWait?: number } = {}) {
     this.repository = repository;
     this.pointer = tabs.pointer ?? memoryPointer();
     this.channel = tabs.channel;
+    this.earlierWait = tabs.earlierWait ?? 3000;
   }
   getSnapshot = (): DraftSnapshot => this.snapshot;
   subscribe = (listener: () => void): (() => void) => {
@@ -69,9 +74,13 @@ export class DraftController {
     this.loading = (async () => {
       try {
         this.unread = false;
-        await this.bringAcross();
+        // The released build's storage is given a moment and no more. If it has not answered,
+        // this build's own storage is read and used, and what the older one holds is shown when
+        // it does answer. A hang there must never leave typed words unstored.
+        await this.bringAcross(this.earlierWait);
         const named = this.pointer.get();
         const saved = await this.repository.load(named);
+        this.untouched = named === null && !saved;
         // A tab that started a new initiative and has not typed yet names a draft that is not
         // stored. It stays on that blank draft across a reload, and never falls back to another one.
         const blank = named && !saved ? { ...newDraft(), id: named } : null;
@@ -99,6 +108,7 @@ export class DraftController {
   }
   change(update: (draft: DeviceDraft) => DeviceDraft): DeviceDraft {
     const next = DeviceDraftSchema.parse(update(this.snapshot.draft));
+    this.untouched = false;
     if (next.revision <= this.snapshot.draft.revision) throw new Error("Draft changes need a new revision");
     this.dirty = true;
     // Words typed while storage is still being read wait for it quietly. Once the read has
@@ -171,11 +181,44 @@ export class DraftController {
    * Takes in what the released build's storage holds and this build has not seen. A failure to
    * read it changes nothing: its draft stays where it is, and the next look tries again.
    */
-  private async bringAcross(): Promise<string[]> {
+  private async bringAcross(wait?: number): Promise<string[]> {
+    const work = (async () => {
+      try {
+        return (await this.repository.bringAcross?.()) ?? [];
+      } catch {
+        return [];
+      }
+    })();
+    if (wait === undefined) return work;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const waited = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), wait); });
+    const result = await Promise.race([work, waited]);
+    clearTimeout(timer);
+    if (result !== null) return result;
+    void work.then((ids) => this.arrived(ids));
+    return [];
+  }
+  /** What the released build's storage held came across after the first read had gone on without it. */
+  private async arrived(ids: string[]): Promise<void> {
+    if (!ids.length) return;
+    await this.loaded();
+    if (!this.writable) return;
+    for (const id of ids) {
+      this.channel?.post({ kind: "saved", id });
+      await this.heard({ kind: "saved", id });
+    }
+    // A tab that opened on nothing, and has had nothing typed or opened in it, shows the draft
+    // it would have opened had the older storage answered in time.
+    if (!this.untouched || this.dirty || this.writing) return;
     try {
-      return (await this.repository.bringAcross?.()) ?? [];
+      const last = await this.repository.load(null);
+      if (!last || !this.untouched || this.dirty) return;
+      this.untouched = false;
+      this.expected = draftPin(last);
+      this.pointer.set(last.id);
+      this.publish({ draft: last, storage: "saved", error: null, drafts: this.listed(last.id, last) });
     } catch {
-      return [];
+      /* The list already shows it; the tab keeps what it has. */
     }
   }
   /**
@@ -202,6 +245,7 @@ export class DraftController {
    */
   async startNew(): Promise<DeviceDraft> {
     await this.loaded();
+    this.untouched = false;
     await this.settled();
     if (this.dirty) throw new Error(UNSTORED);
     const draft = newDraft();
@@ -216,6 +260,7 @@ export class DraftController {
   /** Opens one of the device's stored drafts in this tab. Throws when it is no longer stored. */
   async open(id: string): Promise<DeviceDraft> {
     await this.loaded();
+    this.untouched = false;
     if (this.snapshot.draft.id === id) return this.snapshot.draft;
     // While the first read of storage has not succeeded, the tab cannot store a draft it opens,
     // so it does not open one as if it could. The failure and its Try Again stay on screen.
@@ -244,6 +289,7 @@ export class DraftController {
   async replace(next: DeviceDraft, signal?: AbortSignal): Promise<void> {
     signal?.throwIfAborted();
     await this.loaded();
+    this.untouched = false;
     const previous = this.snapshot.draft;
     await this.settled();
     signal?.throwIfAborted();
@@ -275,7 +321,13 @@ export class DraftController {
   /** Removes one backup for good. Every draft and every other backup stay. */
   async deleteBackup(backup: DraftBackup): Promise<DeviceRemoval> {
     if (!this.repository.deleteBackup) throw new RemovalNotice("This device cannot remove backups. Nothing was removed.");
-    return this.repository.deleteBackup(backup.key, draftPin(backup.draft));
+    const result = await this.repository.deleteBackup(backup.key, draftPin(backup.draft));
+    // The removal looked at an older tab's storage first. What it found there is in the list now.
+    for (const id of result.returned ?? []) {
+      this.channel?.post({ kind: "saved", id });
+      await this.heard({ kind: "saved", id });
+    }
+    return result;
   }
   /**
    * Removes this tab's draft from the device after keeping it as a backup. A version another tab

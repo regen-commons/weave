@@ -44,7 +44,8 @@ export function discardWarning(draft: DeviceDraft): string {
   return `Weave keeps ${draftTitle(draft)} as a device backup first${count ? `, with its ${files(count)}` : ""}, so you can restore it below. A copy saved in your account is not changed.`;
 }
 
-export const removedBackupMessage = (result: DeviceRemoval) => `Removed 1 backup. ${backups(result.kept)}`;
+export const removedBackupMessage = (result: DeviceRemoval) =>
+  `Removed 1 backup. ${backups(result.kept)}${result.returned?.length ? " An older tab on this device held newer words, and they are in Your Initiatives now." : ""}`;
 export const discardedMessage = (result: DeviceRemoval) =>
   `Removed this draft from this device and kept it as a backup you can restore. ${backups(result.kept)}`;
 

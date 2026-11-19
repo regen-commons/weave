@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SavedInitiative } from "@weave/api/account-contract";
 import { useAccount } from "../account/context.tsx";
+import { useSetAside } from "../account/set-aside.ts";
 import { AnotherAccountsCard, accountDocument, saveBlocker } from "../account/document.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
@@ -15,11 +16,13 @@ export function SaveDeviceToTeam({ workspaceId, onSaved, primary = false }: {
 }) {
   const { draft } = useDraft();
   const owner = useAccount().state?.user?.id;
+  const setAside = useSetAside();
   const [open, setOpen] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [pending, setPending] = useState<TeamSave | null>(null);
   const task = useRef<AbortController | null>(null);
   useEffect(() => () => task.current?.abort(), []);
-  if (saveBlocker(draft) || !owner) return null;
+  // Another account's card is neither offered nor previewed to this one (DL-055). The save refuses it too.
+  if (saveBlocker(draft) || !owner || setAside) return null;
   async function save() {
     if (busy || !owner) return;
     setBusy(true); setError("");

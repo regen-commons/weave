@@ -348,7 +348,7 @@ test("an edit while a link is being stored preserves the newer words and require
 test("a card another account opened from its project takes no project choice from this account, so it stays set aside (DL-055)", async () => {
   // Account A opened this unsaved card from its Certified project in this tab and signed out.
   // Account B signs in on the same tab. The card is set aside for B, and must stay so whatever B opens.
-  const { service, controller, stored, bodies } = await fixture(FIXTURE_TEAM_ADMIN);
+  const { service, controller, stored, bodies, opened } = await fixture(FIXTURE_TEAM_ADMIN);
   const theirs = controller.getSnapshot().draft;
   stored.set(projectChoiceKey(FIXTURE_GROUP_MEMBER, theirs.id), "at://did:plc:example/org.example.project/theirs");
   const storage = { get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null };
@@ -360,6 +360,12 @@ test("a card another account opened from its project takes no project choice fro
   await service.openWorkspace(workspace.uri, null);
   assert.deepEqual(projectChoosers(storage, theirs.id), [FIXTURE_GROUP_MEMBER], "no second chooser is written");
   assert.equal(setAside(), true, "the card is still set aside");
+  // The workspace itself opens for the person who is signed in, and the other account's card
+  // is never shown as linked to it, now or after the list is read again.
+  assert.deepEqual(opened, [workspace.workspaceId]);
+  assert.equal(service.snapshot().project, null);
+  await service.reload();
+  assert.equal(service.snapshot().project, null);
   // Linking a project would write this account's project into that card. It is refused whole.
   const before = bodies.length;
   await assert.rejects(service.linkProject(workspace.uri), AnotherAccountsCard);
@@ -376,4 +382,8 @@ test("a card that is this account's to use still takes its project choice", asyn
   const workspace = service.snapshot().workspaces!.find((item) => item.workspaceId)!;
   await service.openWorkspace(workspace.uri, null);
   assert.equal(stored.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, mine.id)), workspace.uri);
+  // The person's own workspace stays their card's project when the list is read again.
+  assert.equal(service.snapshot().project?.workspaceId, workspace.workspaceId);
+  await service.reload();
+  assert.equal(service.snapshot().project?.workspaceId, workspace.workspaceId);
 });

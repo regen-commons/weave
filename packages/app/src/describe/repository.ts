@@ -38,6 +38,8 @@ export const pinned = (draft: DeviceDraft, pin: DraftPin) =>
 export interface DeviceRemoval {
   removed: string[];
   kept: number;
+  /** Drafts whose newer words were found in an older tab's storage during the removal, and are in the list again. */
+  returned?: string[];
 }
 /**
  * How many versions replaced by another tab's edit are kept for one draft. The oldest goes when a
@@ -56,6 +58,13 @@ export function replacedKey(id: string, earlier: readonly string[] = []): string
   const newest = Math.max(0, ...earlier.map((key) => Date.parse(key.slice(prefix.length, prefix.length + 24)) || 0));
   return `${prefix}${new Date(Math.max(Date.now(), newest + 1)).toISOString()}:${crypto.randomUUID()}`;
 }
+/**
+ * The backup key of a version that lost to the other build's later edit, when a draft changed in
+ * the released build and in this one. No cap ever drops these: a tab of the released build never
+ * takes this build's edits, so each one may hold words kept nowhere else. Only the person deletes them.
+ */
+export const betweenBuildsPrefix = (id: string) => `between-builds:${id}:`;
+export const betweenBuildsKey = (id: string) => `${betweenBuildsPrefix(id)}${new Date().toISOString()}:${crypto.randomUUID()}`;
 /** The key of a backup made before a draft was opened over or removed. */
 export const backupKey = () => `${new Date().toISOString()}:${crypto.randomUUID()}`;
 

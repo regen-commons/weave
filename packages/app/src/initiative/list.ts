@@ -105,7 +105,8 @@ export function savingLine(saving: DraftSaving, savedOn: string | null): string 
     case "newer-in-account":
       return "A newer version is saved in your account. It opens from here.";
     case "changed-both":
-      return "Changed on this device and in your account since you saved.";
+      // Said before the press, because opening the saved version leaves this page.
+      return "Changed on this device and in your account since you saved. Opening the saved version keeps this device's copy.";
   }
 }
 
@@ -124,7 +125,8 @@ export function standsForProject(draft: DeviceDraft, uri: string, chosenUri: str
 
 /**
  * Opens the account's version of a card in place of this browser's working copy, and returns
- * whether that copy is now a device backup. The loaded version is stored under the card's own
+ * whether that copy is now a device backup. Either way the copy is kept, which the entry says
+ * before the press: the page moves on to the card, so nothing said afterwards would be read. The loaded version is stored under the card's own
  * ID, which is usually the copy's ID too: the load then backs the copy up and replaces it. A
  * copy kept under another ID would stay beside it as a second draft of the same card, so it is
  * moved to the backups, unless it is waiting for a save's answer or changed meanwhile, in which
@@ -138,11 +140,4 @@ export async function openSavedOver(
 ): Promise<boolean> {
   await open();
   return copy.id === saved.id ? true : retire(copy.id);
-}
-
-/** What the page says once the saved version is open: where the copy that was here went. */
-export function savedVersionOpened(backedUp: boolean): string {
-  return backedUp
-    ? "The saved version is open. The copy that was on this device is in Device backups in Settings."
-    : "The saved version is open. The copy that was on this device is still in your list.";
 }

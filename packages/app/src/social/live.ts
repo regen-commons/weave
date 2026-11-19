@@ -243,7 +243,11 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     async openWorkspace(uri) {
       const p = find(uri); if (!p?.workspaceId) throw Error("Check the workspace list again.");
       await post({ action: "team_load", workspaceId: p.workspaceId });
-      const link = projectLink(p); select(uri); state = { ...state, project: link }; emit();
+      const link = projectLink(p);
+      // The project becomes the tab's card's project only when that card is this account's. With
+      // another account's card in the tab the workspace still opens, and nothing is recorded
+      // against the card or shown as its project.
+      if (!setAside()) { select(uri); state = { ...state, project: link }; emit(); }
       options.openWorkspace(p.workspaceId); return link;
     },
     async openCard(id) {

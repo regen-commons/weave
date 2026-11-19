@@ -10,8 +10,10 @@ import { fakeIndexedDB, installIndexedDB } from "./fake-indexeddb.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { DeviceDraftSchema, newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import { changeSaid, saidText } from "../src/describe/fill.ts";
+import { readEarlier, removeFromEarlier } from "../src/describe/earlier-database.ts";
 import { IndexedDraftRepository, removalReachesEarlierCopy } from "../src/describe/indexed-repository.ts";
-import { BackupChanged, RemovalNotice, draftPin, replacedPrefix } from "../src/describe/repository.ts";
+import { removedBackupMessage } from "../src/describe/device-removal.ts";
+import { BackupChanged, RemovalNotice, betweenBuildsPrefix, draftPin, replacedPrefix } from "../src/describe/repository.ts";
 import { memoryPointer } from "../src/describe/tabs.ts";
 
 type Fake = ReturnType<typeof fakeIndexedDB>;
@@ -174,7 +176,7 @@ test("changed in both builds: the later edit wins by its time, and the other ver
     assert.equal(controller.getSnapshot().draft.composer, winner.composer, "the open tab shows the winner");
     const kept = backupsHere(fake);
     assert.equal(kept.length, 1);
-    assert.ok(kept[0]![0].startsWith(replacedPrefix(start.id)), "kept the way a replaced version is, so Settings can restore it");
+    assert.ok(kept[0]![0].startsWith(betweenBuildsPrefix(start.id)), "kept under its own kind of key, which no cap drops, for Settings to restore");
     assert.equal(kept[0]![1].composer, loser.composer, "the other version, words and all");
     // The same older version is not taken, or backed up, a second time.
     await controller.lookAgain();
@@ -361,4 +363,160 @@ test("the released build's first database, with no backups store, comes across t
   assert.equal(controller.getSnapshot().draft.composer, "Synthetic words from the first version");
   assert.equal(fake.earlier.control.version, 1);
   assert.equal(DeviceDraftSchema.safeParse(draftsHere(fake)[0]![1]).success, true);
+});
+
+test("deleting a backup looks again first: words an older tab typed since the copy come across, and its newer draft is not deleted", async t => {
+  // The reviewer's state: copied at one revision and removed here; an older tab in another
+  // window types two more revisions; no look has run since.
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start);
+  const controller = tab();
+  await controller.initialize();
+  await controller.discardCurrent();
+  const typed = at(at(start, "2099-01-01T00:00:00.000Z", "one more"), "2099-01-01T00:00:05.000Z", "Synthetic words the older tab typed that this build never copied");
+  olderTabWrites(fake, typed);
+  const [kept] = await controller.backups();
+  const result = await controller.deleteBackup(kept!);
+  // The backup the person asked to delete is gone.
+  assert.deepEqual(backupsHere(fake), []);
+  // The older tab's draft is exactly as it wrote it, so that tab goes on storing.
+  assert.deepEqual(fake.earlier.snapshot().drafts, [["current", typed]]);
+  // And its words are here, in the list, with the page saying so.
+  assert.deepEqual(draftsHere(fake).map(([, draft]) => draft.composer), ["Synthetic words the older tab typed that this build never copied"]);
+  assert.deepEqual(result.returned, [start.id]);
+  assert.deepEqual(controller.getSnapshot().drafts.map((draft) => draft.id), [start.id]);
+  assert.match(removedBackupMessage(result), /older tab/u);
+  assert.doesNotMatch(removedBackupMessage({ removed: [kept!.key], kept: 0 }), /older tab/u);
+});
+
+test("the released build's draft is removed only at the version this build has seen", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, at(start, "2099-01-01T00:00:00.000Z", "Synthetic newer words"));
+  const seen = { revision: start.revision, updatedAt: start.updatedAt };
+  // A version this build never saw is left alone, and the caller is told.
+  assert.deepEqual(await removeFromEarlier({ backupKey: BACKUP, draft: { id: start.id, seen } }), { newer: true });
+  assert.equal(fake.earlier.snapshot().drafts.length, 1);
+  // One it never saw at all is not its to delete either.
+  assert.deepEqual(await removeFromEarlier({ backupKey: BACKUP, draft: { id: start.id, seen: undefined } }), { newer: true });
+  assert.equal(fake.earlier.snapshot().drafts.length, 1);
+  const now = (await readEarlier())!.drafts[0]!;
+  assert.deepEqual(await removeFromEarlier({ backupKey: BACKUP, draft: { id: start.id, seen: { revision: now.revision, updatedAt: now.updatedAt } } }), { newer: false });
+  assert.deepEqual(fake.earlier.snapshot().drafts, []);
+});
+
+test("the released build's draft stays while anything of the initiative may still be kept here: an unreadable backup, or the card under another ID", async t => {
+  const owner = "b1000000-0000-4000-8000-000000000001", card = "b3000000-0000-4000-8000-000000000009";
+  for (const kept of ["unreadable backup", "card under another ID"] as const) {
+    const start = revise(words("Synthetic words before the update"), { account: { saved: { id: card, owner, revision: 1, contentKey: "{}" }, pending: null } });
+    const fake = withReleased(t, start);
+    const repository = new IndexedDraftRepository();
+    await repository.bringAcross();
+    const { backup } = await repository.discard(draftPin((await repository.load(start.id))!));
+    if (kept === "unreadable backup") fake.stores.backups!.set("2026-11-01T00:00:00.000Z:unreadable", { not: "a draft" });
+    else await repository.save(revise({ ...words("The account's version of the same card"), id: card }, { account: start.account }), null);
+    await repository.deleteBackup(backup, draftPin(start));
+    assert.deepEqual(fake.earlier.snapshot().drafts.map(([key]) => key), ["current"], kept);
+    assert.equal(fake.snapshot().backups.some(([key]) => key === backup), false, "the backup itself is deleted");
+  }
+});
+
+test("a look that cannot read the released build's database stops the deletion, with nothing removed", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start, [[BACKUP, words("Synthetic earlier backup")]]);
+  let failing = false;
+  const repository = new IndexedDraftRepository({ earlier: { read: async () => { if (failing) throw new Error("blocked"); return readEarlier(); }, remove: removeFromEarlier } });
+  await repository.bringAcross();
+  const before = { here: fake.snapshot(), there: fake.earlier.snapshot() };
+  failing = true;
+  const [backup] = await repository.backups();
+  await assert.rejects(repository.deleteBackup(backup!.key, draftPin(backup!.draft)), (error) => error instanceof RemovalNotice && /Nothing was removed/u.test(error.message));
+  assert.deepEqual({ here: fake.snapshot(), there: fake.earlier.snapshot() }, before);
+});
+
+test("round after round between an older tab and this build, every version the other build replaced is still a backup", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start);
+  const controller = tab();
+  await controller.initialize();
+  let theirs = start;
+  const mine: string[] = [];
+  // The older tab never takes this build's edits, so each round this build's version loses to
+  // the older tab's later one. Those words exist nowhere else.
+  for (let round = 1; round <= 6; round++) {
+    mine.push(`Synthetic words typed in this build, round ${round}`);
+    controller.change((draft) => words(mine.at(-1)!, draft));
+    await controller.settled();
+    theirs = at(theirs, `2099-01-01T00:00:0${round}.000Z`, `Synthetic words typed in the older tab, round ${round}`);
+    olderTabWrites(fake, theirs);
+    await controller.lookAgain();
+  }
+  const kept = backupsHere(fake).map(([, draft]) => draft.composer);
+  assert.deepEqual(kept.sort(), [...mine].sort(), "all six, none dropped by a cap");
+  assert.equal(draftsHere(fake)[0]![1].composer, "Synthetic words typed in the older tab, round 6");
+  // Two tabs of this build typing in turn still keep only the last three replaced versions.
+  const other = tab();
+  await other.initialize();
+  for (let turn = 1; turn <= 5; turn++) {
+    for (const [name, typist] of [["first", controller], ["second", other]] as const) {
+      typist.change((draft) => words(`Synthetic turn ${turn} in the ${name} tab`, draft));
+      await typist.settled();
+    }
+  }
+  const after = backupsHere(fake);
+  assert.equal(after.filter(([key]) => key.startsWith(replacedPrefix(start.id))).length, 3, "the cap still holds for this build's own tabs");
+  for (const text of mine) assert.ok(after.some(([, draft]) => draft.composer === text), `still kept: ${text}`);
+});
+
+test("a tab holding an older read of the released database never writes it over a newer version another tab brought across", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start);
+  const fresh = new IndexedDraftRepository();
+  await fresh.bringAcross();
+  const eleven = at(start, "2099-01-01T00:00:00.000Z", "Synthetic revision eleven"), twelve = at(eleven, "2099-01-01T00:00:05.000Z", "Synthetic revision twelve");
+  // This tab read the released database when it held revision eleven, and was slow to write.
+  const stale = new IndexedDraftRepository({ earlier: { read: async () => ({ drafts: [eleven], last: eleven.id, backups: [] }), remove: removeFromEarlier } });
+  olderTabWrites(fake, twelve);
+  assert.deepEqual(await fresh.bringAcross(), [start.id]);
+  assert.deepEqual(await stale.bringAcross(), [], "the older read changes nothing");
+  assert.equal(draftsHere(fake)[0]![1].composer, "Synthetic revision twelve");
+  assert.deepEqual(backupsHere(fake), []);
+  // And the newer version is not then taken for a change to copy again.
+  assert.deepEqual(await fresh.bringAcross(), []);
+});
+
+test("a released database that does not answer never holds up this build's own storage, and its draft is shown when it does", async t => {
+  for (const typedMeanwhile of [false, true]) {
+    const start = words("Synthetic words before the update");
+    const fake = withReleased(t, start);
+    const answer = Promise.withResolvers<void>();
+    const repository = new IndexedDraftRepository({ earlier: { read: async () => { await answer.promise; return readEarlier(); }, remove: removeFromEarlier } });
+    const controller = new DraftController(repository, { pointer: memoryPointer(), earlierWait: 5 });
+    await controller.initialize();
+    // The first read is over: this build stores, and says nothing is wrong, with the older database still silent.
+    assert.deepEqual([controller.getSnapshot().ready, controller.getSnapshot().storage, controller.getSnapshot().error], [true, "none", null]);
+    if (typedMeanwhile) {
+      controller.change((draft) => words("Synthetic words typed while the older database was silent", draft));
+      await controller.settled();
+      assert.equal(controller.getSnapshot().storage, "saved", "typed words are stored, not left in memory");
+    }
+    answer.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const shown = controller.getSnapshot();
+    assert.ok(shown.drafts.some((draft) => draft.id === start.id), "the older draft is in the list once its database answers");
+    if (typedMeanwhile) {
+      assert.equal(shown.draft.composer, "Synthetic words typed while the older database was silent", "the tab stays on what the person typed");
+      assert.equal(draftsHere(fake).length, 2);
+    } else assert.equal(shown.draft.id, start.id, "an untouched tab opens it, as it would have at the start");
+  }
+});
+
+test("a released database that never answers leaves this build working", async t => {
+  const fake = fakeIndexedDB({}, 0);
+  installIndexedDB(t, fake);
+  const repository = new IndexedDraftRepository({ earlier: { read: () => new Promise(() => {}), remove: removeFromEarlier } });
+  const controller = new DraftController(repository, { pointer: memoryPointer(), earlierWait: 5 });
+  await controller.initialize();
+  controller.change((draft) => words("Synthetic words", draft));
+  await controller.settled();
+  assert.deepEqual([controller.getSnapshot().storage, controller.getSnapshot().error], ["saved", null]);
 });

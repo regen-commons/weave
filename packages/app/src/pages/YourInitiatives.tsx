@@ -4,7 +4,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import { intakeFixture, type FixtureContext } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
 import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver, savedVersionOpened } from "../initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
 import { cardName, cardRoute, NOT_SAVED_YET, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -156,7 +156,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     }
     go(pathTo(cardRoute(controller.getSnapshot().draft)));
   }
-  /** Opens the account's version over this browser's working copy, and says where the copy went only when asked. */
+  /** Opens the account's version over this browser's working copy, which is kept: as a backup, or still in the list. */
   const openOver = (item: DeviceDraft, saved: SavedCard) =>
     openSavedOver(item, saved, () => openCard(saved), (id) => controller.retire(id));
   /** One of this browser's initiatives. The badge says what is missing; a saved one says where it is kept. */
@@ -191,9 +191,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           {saving === "changed-both" && saved && (
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
-                onClick={() => void run(async () => {
-                  setMessage(savedVersionOpened(await openOver(item, saved)));
-                })}>
+                onClick={() => void run(async () => { await openOver(item, saved); })}>
                 Open Saved Version
               </button>
             </div>

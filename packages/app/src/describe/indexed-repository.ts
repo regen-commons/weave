@@ -5,6 +5,7 @@ import {
   REPLACED_KEPT,
   RemovalNotice,
   backupKey,
+  betweenBuildsKey,
   draftPin,
   pinned,
   replacedKey,
@@ -58,8 +59,11 @@ function seenRecord(value: unknown): Seen {
 export class IndexedDraftRepository implements DraftRepository {
   private connection: Promise<IDBDatabase> | undefined;
   private readonly removeEarlierCopy: boolean;
-  constructor(options: { removeEarlierCopy?: boolean } = {}) {
+  /** How the released build's database is read and changed. Tests pass their own to stand in for a slow or failing one. */
+  private readonly earlier: { read: typeof readEarlier; remove: typeof removeFromEarlier };
+  constructor(options: { removeEarlierCopy?: boolean; earlier?: { read: typeof readEarlier; remove: typeof removeFromEarlier } } = {}) {
     this.removeEarlierCopy = options.removeEarlierCopy ?? removalReachesEarlierCopy();
+    this.earlier = options.earlier ?? { read: readEarlier, remove: removeFromEarlier };
   }
   private open(): Promise<IDBDatabase> {
     if (!this.connection)
@@ -107,10 +111,12 @@ export class IndexedDraftRepository implements DraftRepository {
    * - changed here too: the later edit wins by the time each build stamped on it, and the other
    *   version is kept as a device backup. A time that cannot be read leaves this build's version
    *   as the draft. Either way neither version is dropped.
+   *   That backup is never dropped by a cap: a tab of the released build never takes this
+   *   build's edits, so round after round each one may hold words kept nowhere else.
    * One transaction on this database writes all of it or none. Returns the IDs whose draft changed.
    */
   async bringAcross(): Promise<string[]> {
-    const earlier = await readEarlier();
+    const earlier = await this.earlier.read();
     if (!earlier || (!earlier.drafts.length && !earlier.backups.length)) return [];
     const db = await this.open();
     return new Promise((resolve, reject) => {
@@ -128,7 +134,12 @@ export class IndexedDraftRepository implements DraftRepository {
         const keys = backupKeys.result.map(String);
         let recorded = false, lastSet = typeof last.result === "string";
         earlier.drafts.forEach((theirs, index) => {
-          if (sameVersion(theirs, seen[theirs.id])) return;
+          const before = seen[theirs.id];
+          if (sameVersion(theirs, before)) return;
+          // Another tab of this build has already taken a later version: this read is an old
+          // one, and writing it would put older words over newer ones. Old by its revision and
+          // by its time, so words typed after a clock was set back still count as new.
+          if (before && theirs.revision < before.revision && Date.parse(theirs.updatedAt) < Date.parse(before.updatedAt)) return;
           const stored: unknown = here[index]!.result;
           const mine = stored === undefined ? null : DeviceDraftSchema.safeParse(stored);
           // What this version cannot read is never written over, and is looked at again next time.
@@ -140,10 +151,8 @@ export class IndexedDraftRepository implements DraftRepository {
             // Not the very same version: this build marks each of its own revisions, so an edit
             // here never passes for the older tab's, even at the same revision and instant.
             const theirsLater = Date.parse(theirs.updatedAt) > Date.parse(mine.data.updatedAt);
-            const prefix = replacedPrefix(theirs.id);
-            const earlierKeys = keys.filter((key) => key.startsWith(prefix)).sort();
-            for (const key of earlierKeys.slice(0, Math.max(0, earlierKeys.length - (REPLACED_KEPT - 1)))) backups.delete(key);
-            backups.put(theirsLater ? mine.data : theirs, replacedKey(theirs.id, earlierKeys));
+            // Kept under its own kind of key, outside the cap on versions replaced between tabs.
+            backups.put(theirsLater ? mine.data : theirs, betweenBuildsKey(theirs.id));
             if (theirsLater) {
               drafts.put(theirs, theirs.id);
               changed.push(theirs.id);
@@ -241,38 +250,60 @@ export class IndexedDraftRepository implements DraftRepository {
   }
   /**
    * What removing this backup leaves of its initiative here: null when the backup is not the
-   * pinned one, otherwise whether a draft or another backup of the same initiative remains.
+   * pinned one. Otherwise whether anything of the initiative may still be kept, and the version
+   * of its draft this build last saw in the released build's database. Counted as kept: a draft
+   * or another backup with the same ID; one that stands for the same saved card under another
+   * ID; and any draft or backup this build cannot read, since it cannot be ruled out.
    */
-  private async remainsWithout(key: string, expected: DraftPin): Promise<{ remains: boolean } | null> {
+  private async remainsWithout(key: string, expected: DraftPin): Promise<{ remains: boolean; seen: Seen[string] | undefined } | null> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(["drafts", "backups"], "readonly");
+      const transaction = db.transaction(STORES, "readonly");
       const store = transaction.objectStore("backups");
       const target = store.get(key), values = store.getAll(), keys = store.getAllKeys();
-      const draft = transaction.objectStore("drafts").get(expected.id);
+      const drafts = transaction.objectStore("drafts").getAll();
+      const copied = transaction.objectStore("meta").get(COPIED);
       transaction.oncomplete = () => {
         const pinnedHere = target.result === undefined ? null : DeviceDraftSchema.safeParse(target.result);
         if (!pinnedHere?.success || !pinned(pinnedHere.data, expected)) return resolve(null);
-        const another = values.result.some((value: unknown, index) => {
+        const card = (draft: DeviceDraft) => draft.account.saved?.id ?? draft.account.pending?.id ?? null;
+        const itsCard = card(pinnedHere.data);
+        const sameInitiative = (value: unknown) => {
           const parsed = DeviceDraftSchema.safeParse(value);
-          return String(keys.result[index]) !== key && parsed.success && parsed.data.id === expected.id;
-        });
-        resolve({ remains: draft.result !== undefined || another });
+          if (!parsed.success) return true;
+          return parsed.data.id === expected.id || (itsCard !== null && card(parsed.data) === itsCard);
+        };
+        const remains = drafts.result.some(sameInitiative)
+          || values.result.some((value: unknown, index) => String(keys.result[index]) !== key && sameInitiative(value));
+        resolve({ remains, seen: seenRecord(copied.result)[expected.id] });
       };
       transaction.onerror = transaction.onabort = () =>
         reject(new RemovalNotice("This device could not remove the backup. Nothing was removed."));
     });
   }
   async deleteBackup(key: string, expected: DraftPin): Promise<DeviceRemoval> {
+    const returned: string[] = [];
     if (this.removeEarlierCopy) {
-      // The released build's copy goes first, so a failure there leaves this backup in place to
-      // try again. Its draft goes too once nothing of the initiative is kept here.
+      const unchecked = () =>
+        new RemovalNotice("An earlier copy on this device could not be checked or removed. Nothing was removed. Try again.");
+      // A tab of the released build may have typed since the last look. Its words come across
+      // first, so nothing this build has not copied is ever deleted there.
+      try {
+        returned.push(...(await this.bringAcross()));
+      } catch {
+        throw unchecked();
+      }
       const state = await this.remainsWithout(key, expected);
       if (!state) throw new BackupChanged();
+      // The released build's copy goes before this one, so a failure there leaves this backup in
+      // place to try again. Its draft goes too once nothing of the initiative is kept here, and
+      // only at the version this build has seen.
       try {
-        await removeFromEarlier({ backupKey: key, draftId: state.remains ? null : expected.id });
+        const { newer } = await this.earlier.remove({ backupKey: key, draft: state.remains ? null : { id: expected.id, seen: state.seen } });
+        // It was typed in between the look and the removal: left as it is there, and brought across.
+        if (newer) returned.push(...(await this.bringAcross()));
       } catch {
-        throw new RemovalNotice("An earlier copy of this backup on this device could not be removed. Nothing was removed. Try again.");
+        throw unchecked();
       }
     }
     const db = await this.open();
@@ -292,7 +323,7 @@ export class IndexedDraftRepository implements DraftRepository {
         const count = store.count();
         count.onsuccess = () => { kept = count.result; };
       };
-      transaction.oncomplete = () => resolve({ removed: [key], kept });
+      transaction.oncomplete = () => resolve({ removed: [key], kept, ...(returned.length ? { returned: [...new Set(returned)] } : {}) });
       transaction.onerror = transaction.onabort = () =>
         reject(changed ? new BackupChanged() : new RemovalNotice("This device could not remove the backup. Nothing was removed."));
     });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver, savedVersionOpened } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -88,7 +88,7 @@ test("a project a draft already stands for is that draft: by this account's choi
   assert.equal(standsForProject(suggested, another, null), false);
 });
 
-test("opening the saved version over a working copy says truthfully where the copy went", async () => {
+test("opening the saved version over a working copy keeps the copy, and the entry says so before the press", async () => {
   const calls: string[] = [];
   const open = async () => { calls.push("open"); };
   const retire = (kept: boolean) => async (id: string) => { calls.push(`retire ${id}`); return kept; };
@@ -101,9 +101,10 @@ test("opening the saved version over a working copy says truthfully where the co
   assert.deepEqual(calls, ["open", "retire copy"]);
   // A copy still waiting for a save's answer is left where it is, and the page must not claim otherwise.
   assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(false)), false);
-  assert.match(savedVersionOpened(true), /is in Device backups/u);
-  assert.doesNotMatch(savedVersionOpened(false), /backups/iu);
-  assert.match(savedVersionOpened(false), /still in your list/u);
+  // The page leaves for the card on success, so the entry says the copy is kept before the press,
+  // in words true whichever way it is kept.
+  assert.match(savingLine("changed-both", null), /Opening the saved version keeps this device's copy\./u);
+  assert.doesNotMatch(savingLine("changed-both", null), /backup/iu);
   // A load that fails moves nothing.
   calls.length = 0;
   await assert.rejects(openSavedOver({ id: "copy" }, { id: "card" }, async () => { throw new Error("offline"); }, retire(true)), /offline/);

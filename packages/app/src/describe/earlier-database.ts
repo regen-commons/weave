@@ -97,30 +97,48 @@ export async function readEarlier(): Promise<EarlierContent | null> {
   }
 }
 
+/** A version of a draft as this build last saw it in the released build's database. */
+export interface SeenVersion {
+  revision: number;
+  updatedAt: string;
+}
+
 /**
  * Removes from the released build's database what a person removed for good in this build: the
- * backup under the same key, and with `draftId` every draft there of that initiative. One
- * transaction, so it removes all of it or none. A database that is not there holds nothing to remove.
+ * backup under the same key, and with `draft` that build's draft of the initiative, but only at
+ * the version this build has seen. A tab of that build may have typed since, and words this
+ * build never copied are not its to delete: such a draft is left exactly as it is and `newer`
+ * says so, for the caller to bring across. One transaction, so it removes all of it or none. A
+ * database that is not there holds nothing to remove.
  */
-export async function removeFromEarlier(removal: { backupKey: string; draftId: string | null }): Promise<void> {
+export async function removeFromEarlier(removal: {
+  backupKey: string;
+  draft: { id: string; seen: SeenVersion | undefined } | null;
+}): Promise<{ newer: boolean }> {
   const db = await openEarlier();
-  if (!db) return;
+  if (!db) return { newer: false };
   try {
     const stores = present(db).filter((name) => name !== "meta");
-    if (!stores.length) return;
-    await new Promise<void>((resolve, reject) => {
+    if (!stores.length) return { newer: false };
+    return await new Promise<{ newer: boolean }>((resolve, reject) => {
       const transaction = db.transaction(stores, "readwrite");
+      let newer = false;
       if (stores.includes("backups")) transaction.objectStore("backups").delete(removal.backupKey);
-      if (removal.draftId !== null && stores.includes("drafts")) {
+      if (removal.draft !== null && stores.includes("drafts")) {
+        const wanted = removal.draft;
         const store = transaction.objectStore("drafts");
         const values = store.getAll(), keys = store.getAllKeys();
         keys.onsuccess = () =>
           values.result.forEach((value: unknown, index) => {
             const parsed = DeviceDraftSchema.safeParse(value);
-            if (parsed.success && parsed.data.id === removal.draftId) store.delete(keys.result[index]!);
+            if (!parsed.success || parsed.data.id !== wanted.id) return;
+            const seen = wanted.seen;
+            if (seen && parsed.data.revision === seen.revision && parsed.data.updatedAt === seen.updatedAt)
+              store.delete(keys.result[index]!);
+            else newer = true;
           });
       }
-      transaction.oncomplete = () => resolve();
+      transaction.oncomplete = () => resolve({ newer });
       transaction.onerror = transaction.onabort = () => reject(new Error("The earlier device storage could not be changed."));
     });
   } finally {
