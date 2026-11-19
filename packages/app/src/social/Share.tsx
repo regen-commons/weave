@@ -14,7 +14,7 @@ import { exposureLabel, shareGate, type ShareIntent } from "./gate.ts";
 import { ProjectStep, WorkspaceRow } from "./Project.tsx";
 import { publicFacts } from "./words.ts";
 
-const TITLES: Record<ShareIntent, string> = { share: "Share for matching", publish: "Publish on Certified" };
+const TITLES: Record<ShareIntent, string> = { share: "Share For Matching", publish: "Publish On Certified" };
 const CARD_STEPS: Partial<Record<RouteName, string>> = {
   initiative: "Describe your initiative",
   needs: "Add needs and offers",
@@ -136,7 +136,7 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
         <WorkspaceRow primary focus />
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="quiet" type="button" onClick={onClose}>
-            Not now
+            Not Now
           </button>
         </div>
       </Stage>
@@ -148,10 +148,10 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
         <p>Check your initiative, needs and offers first.</p>
         <div className="rc-action-bar">
           <Link className="rc-button" data-variant="primary" href={pathTo(route)} data-task-focus onClick={onClose}>
-            {CARD_STEPS[route] ?? "Open your card"}
+            {CARD_STEPS[route] ?? "Open Your Card"}
           </Link>
           <button className="rc-button" data-variant="quiet" type="button" onClick={onClose}>
-            Not now
+            Not Now
           </button>
         </div>
       </Stage>
@@ -176,7 +176,7 @@ function SaveGate({ intent, onClose }: { intent: ShareIntent; onClose(): void })
       <div className="rc-action-bar">
         <ExampleSave focus onFailed={setMessage} />
         <button className="rc-button" data-variant="quiet" type="button" onClick={onClose}>
-          Not now
+          Not Now
         </button>
       </div>
       {message && (
@@ -283,7 +283,7 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
           </p>
           <div className="rc-action-bar">
             <Link className="rc-button" data-variant="primary" href={pathTo("needs")} data-task-focus onClick={onClose}>
-              Change needs and offers
+              Change Needs And Offers
             </Link>
           </div>
         </>
@@ -342,11 +342,11 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
             disabled={busy}
             onClick={() => void run(() => (sharing ? service.stopSharing() : service.withdraw()))}
           >
-            {sharing ? "Stop sharing" : "Ask to withdraw"}
+            {sharing ? "Stop Sharing" : "Ask To Withdraw"}
           </button>
         )}
         <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onClose}>
-          {live && !dirty ? "Done" : "Not now"}
+          {live && !dirty ? "Done" : "Not Now"}
         </button>
       </div>
       {message &&

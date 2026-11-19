@@ -3,6 +3,7 @@ import {
 } from "@weave/api/public-projects-contract";
 
 export type { PublicProjectCard, PublicProjectPage };
+export { PUBLIC_PROJECT_PAGE_SIZE };
 /** The longest a search box entry may be, matching what the list accepts. */
 export const PUBLIC_PROJECT_QUERY_MAX = 100;
 const TIMEOUT_MS = 8000;
@@ -87,5 +88,5 @@ export function countLine(total: number, searching: boolean): string {
 
 /** Home's link to the list. */
 export function sharedLabel(total: number): string {
-  return total === 1 ? "1 project shared on Certified" : `${count(total)} projects shared on Certified`;
+  return total === 1 ? "1 Project Shared On Certified" : `${count(total)} Projects Shared On Certified`;
 }

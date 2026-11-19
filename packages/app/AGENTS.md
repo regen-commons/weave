@@ -51,9 +51,10 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - The app owns no visual CSS. It imports `@regen-commons/design-system/css` once, in
   `src/main.tsx`, and components render the system's markup and `rc-` classes. No
   inline styles, no raw values. A missing pattern goes into the design system first.
-- Labels come from [VOICE.md](../design-system/brand/VOICE.md): sentence case, plain
-  names, no em dashes or arrows. Every page has one `h1`, and the tab title echoes it,
-  except on home, whose tab shows the product name alone.
+- Labels come from [VOICE.md](../design-system/brand/VOICE.md): title case for buttons
+  and headings, sentence case for the rest, plain names, no em dashes or arrows. Every
+  page has one `h1`, and the tab title echoes it, except on home, whose tab shows the
+  product name alone.
 - TypeScript follows the [TypeScript rules](../../.claude/rules/typescript.md).
 - The theme follows the system until a person chooses one: in Settings, with the header's switch
   on a wide screen (DL-079), or on a phone's You tab (DL-086). All three read and write it through

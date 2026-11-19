@@ -255,6 +255,15 @@
     color: var(--on-surface);
   }
 }
+/* Outlined (`data-variant="secondary"`): an icon button that sits beside a secondary Button takes
+   that button's line and corners, and with `data-size="sm"` its height, so the two read as a pair.
+   The header's theme switch beside Sign in is one (DL-107). */
+.rc-icon-button[data-variant="secondary"] { border: var(--border-thick) solid var(--control-line); color: var(--on-surface); }
+.rc-icon-button[data-size="sm"] { min-inline-size: var(--control-sm-height); min-block-size: var(--control-sm-height); }
+.rc-icon-button[data-variant="secondary"]:active:not(:disabled) { border-color: var(--on-surface); }
+@media (hover: hover) {
+  .rc-icon-button[data-variant="secondary"]:hover:not(:disabled) { border-color: var(--on-surface); }
+}
 /* As a link, it marks the page it leads to once the person is there, as Settings does in the app header. */
 .rc-icon-button[aria-current="page"] { background: var(--surface-tint); color: var(--on-surface); }
 
@@ -443,6 +452,10 @@ button.rc-chip {
 }
 /* A toned tag says its state in its word; the icon carries the hue. */
 .rc-tag[data-tone] > .rc-icon { color: var(--tone-line); }
+/* A tag that must not be missed in its row, such as a deadline: heavier words, and where it is
+   toned, the tone along its start edge as a notice has it (DL-103). */
+.rc-tag[data-emphasis="strong"] { font: var(--type-label-md); }
+.rc-tag[data-emphasis="strong"][data-tone] { border-inline-start: var(--border-edge) solid var(--tone-line); }
 .rc-tag[data-capital] {
   padding-inline-start: 0;
   background: var(--tone);
@@ -574,8 +587,13 @@ button.rc-chip {
 .rc-skeleton[data-shape="line"] { block-size: var(--space-4); }
 .rc-skeleton[data-shape="short"] { block-size: var(--space-4); inline-size: 45%; }
 .rc-skeleton[data-shape="media"] { aspect-ratio: 16 / 9; block-size: auto; }
-.rc-skeleton[data-shape="control"] { inline-size: var(--space-10); block-size: var(--control-height); border-radius: var(--control-radius); }
+/* Hold: the exact room of words that are on their way. It holds words about as long, unseen, in
+   the type of whatever it sits in, so the line wraps where the real one will (DL-104). */
+.rc-skeleton[data-shape="hold"] { display: inline; block-size: auto; color: transparent; box-decoration-break: clone; -webkit-box-decoration-break: clone; user-select: none; }
 .rc-skeleton[data-shape="panel"] { block-size: var(--space-11); }
+/* Room: the exact room of a block that may be on its way, held by the block itself, unseen. */
+.rc-skeleton[data-shape="room"] { block-size: auto; }
+.rc-skeleton[data-shape="room"] > * { visibility: hidden; }
 @media (prefers-reduced-motion: no-preference) {
   .rc-skeleton { animation: rc-pulse calc(var(--duration-slow) * 5) ease-in-out infinite alternate; }
 }

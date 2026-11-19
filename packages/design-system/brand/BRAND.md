@@ -84,7 +84,7 @@ These are the system's memorable ideas. Use them consistently, and resist adding
 
 - Line icons at 24 by 24, stroke 1.5, round caps. See [icons.svg](icons.svg).
 - The paper grain, [grain.svg](grain.svg), sits behind one hero region at most: Home's hero or a doorway. It is a file rather than an inline image, because the app's security policy loads images from the site itself only.
-- The mycelium canvas grows underneath the content of Home and doorways, quieter under the column of content than in the margins (DL-071). Both it and the grain stop moving under reduced motion.
+- The mycelium canvas grows underneath the content of every page, fixed to the window as the website's is, with its resting network quieter under the column of content than in the margins (DL-071, DL-106). Both it and the grain stop moving under reduced motion.
 - Use photographs of real people and places, with their permission and with credit. No stock photos. Crop to a fixed ratio with a faint inner outline.
 
 ## Motion

@@ -271,6 +271,9 @@
   background: var(--surface-overlay);
   color: var(--on-surface-overlay);
   box-shadow: var(--shadow-4);
+  /* A dialog reads from its start edge wherever it is written in the page, a centred doorway
+     included: it is its own surface and takes nothing from the text around its markup (DL-100). */
+  text-align: start;
 }
 /* A record opened over its list reads at the list's width. */
 .rc-dialog[data-presentation="detail"] { inline-size: min(100% - var(--space-5), var(--list-width)); }
@@ -351,9 +354,6 @@
 .rc-app-header-state > .rc-save-status { min-inline-size: 0; }
 .rc-app-header-state > .rc-save-status > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button, .rc-app-header-state > .rc-account { flex: none; }
-/* An icon button in the bar, the switch between light and dark, has no box of its own to see, so
-   its tint under a mouse is a round one about the glyph. */
-.rc-app-header-state > .rc-icon-button { border-radius: var(--radius-full); }
 /* On a phone, a page where the card is worked on says how it is saved and, signed out, offers
    Sign in beside that. The name of the page behind has no room there, so the way back keeps its
    arrow alone, as a native bar does when its title is crowded. Its name is still read out. */
@@ -388,15 +388,10 @@
   .rc-filter-controls > [data-filter="all"] { display: none; }
   .rc-filter-controls > [data-filter="one"] { display: inline-flex; }
 }
-/* Sort: a native select drawn as one more filter button, so the bar's controls match and line up
-   and a phone opens its own picker. The select lies clear over the face and takes the press. */
-.rc-sort { position: relative; max-inline-size: 100%; }
-.rc-sort > select { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; opacity: 0; font: inherit; cursor: pointer; }
-.rc-sort:has(> select:focus-visible) { outline: var(--border-edge) solid var(--focus); outline-offset: var(--border-thick); }
-.rc-sort-face { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* A filter's menu button and Sort point down with the same mark, set the same distance in. */
-.rc-filter-controls > .rc-button[popovertarget]::after,
-.rc-sort::after {
+/* A filter's menu button and Sort open the same kind of menu and point down with the same mark,
+   set the same distance in (DL-100). While the list loads the buttons wait, with no menu yet, and
+   keep the mark (`data-menu`) so the row is the size it will be. */
+.rc-filter-controls > .rc-button:is([popovertarget], [data-menu])::after {
   content: "";
   flex: none;
   inline-size: var(--space-2);
@@ -413,12 +408,19 @@
 .rc-menu-options[data-columns="2"] { display: block; columns: 2; column-gap: var(--space-3); }
 .rc-menu-options[data-columns="2"] > .rc-menu-option { break-inside: avoid; }
 .rc-menu:has(.rc-menu-options[data-columns="2"]) { min-inline-size: min(var(--form-width), calc(100vw - var(--space-6))); }
-.rc-menu-group > legend { font: var(--type-title-sm); margin-block-end: var(--space-2); }
-.rc-menu-option { display: flex; align-items: center; min-block-size: var(--control-sm-height); gap: var(--space-2); padding-inline: var(--space-2); cursor: pointer; }
+/* A menu's name, its rows and its Done share one inset, so a row's tint under a pointer has room
+   on both sides of its words and nothing sits against the menu's edge (DL-100). */
+.rc-menu-group > legend { font: var(--type-title-sm); margin-block-end: var(--space-2); padding-inline: var(--space-3); }
+.rc-menu-option { display: flex; align-items: center; min-block-size: var(--control-sm-height); gap: var(--space-3); padding-inline: var(--space-3); border-radius: var(--radius-sm); cursor: pointer; }
+.rc-menu > .rc-button[data-close-popover] { margin-inline: var(--space-3); }
 .rc-menu-option:active { background: var(--surface-tint); }
 @media (hover: hover) {
   .rc-menu-option:hover { background: var(--surface-tint); }
 }
+/* List end: the foot of a long list. It says how much of the list is on the page and holds Show
+   More, which the keyboard uses and which waits once the list has stopped filling in on its own
+   (DL-101). It reads from the list's start edge, the count first. */
+.rc-list-end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); min-block-size: var(--control-height); }
 /* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
    it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
 .rc-menu-head { padding: var(--space-1) var(--space-2) var(--space-2); color: var(--text-secondary); overflow-wrap: anywhere; }
@@ -450,14 +452,14 @@
 /* A notice that arrives in an open menu wraps to the menu's width and never widens it, so the menu
    stays where it opened. */
 .rc-menu > .rc-notice { inline-size: 0; min-inline-size: 100%; margin-block-start: var(--space-2); }
-/* Footer aligns with the logo on every page, with a slim focused-flow variant. */
+/* Footer: it spans the window as the app bar does, so its top line runs edge to edge, and its
+   contents keep the page's edges and line up with the logo (DL-102). */
 .rc-footer {
   display: grid;
   gap: var(--space-5);
   inline-size: 100%;
-  max-inline-size: var(--page-width);
-  margin-inline: auto;
-  padding: var(--space-7) var(--gutter) var(--space-6);
+  padding-block: var(--space-6);
+  padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
   border-block-start: var(--border-thin) solid var(--line);
 }
 .rc-footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--space-11)), 1fr)); gap: var(--space-5); }

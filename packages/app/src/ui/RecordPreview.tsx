@@ -24,7 +24,7 @@ export function RecordPreview({
       data-pencil={!confirmed || undefined}
       aria-label="Your initiative preview"
     >
-      {named && <h2 className="rc-card-title">{fields.name || "Your initiative"}</h2>}
+      {named && <h2 className="rc-card-title">{fields.name || "Your Initiative"}</h2>}
       <p className="rc-card-meta">
         {fields.isGlobal ? "Global" : fields.locations.join("; ") || "Add where you work"}
       </p>

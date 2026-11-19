@@ -89,7 +89,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
     if (catalog.failed) catalog.retry();
     if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
   }
-  const skeleton = (kind: "funding" | "initiative", preview: "row" | "rows") => (
+  const skeleton = (kind: "funding" | "initiative" | "project", preview: "row" | "rows") => (
     <div aria-busy="true">
       <p className="rc-visually-hidden" role="status">
         Loading
@@ -104,12 +104,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <>
             {doors.resume && (
               <ButtonLink href={resume?.workspaceId ? teamWorkspacePath(resume.workspaceId) : pathTo(route)} variant="primary" size="lg">
-                {resume ? "Continue your initiative" : resumeLabel(route)}
+                {resume ? "Continue Your Initiative" : resumeLabel(route)}
               </ButtonLink>
             )}
             {doors.start && (
               <ButtonLink href={pathTo("initiative")} variant={doors.start} size="lg">
-                Start an initiative
+                Start An Initiative
               </ButtonLink>
             )}
             {/* Choosing a Certified project exists only in the example world, so only its door names Certified. */}
@@ -146,7 +146,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             <>
               {sharedCount > 0 && (
                 <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-                  {fixture ? `${sharedCount} ${sharedCount === 1 ? "initiative" : "initiatives"} shared` : sharedLabel(sharedCount)}
+                  {fixture ? `${sharedCount} ${sharedCount === 1 ? "Initiative" : "Initiatives"} Shared` : sharedLabel(sharedCount)}
                 </ButtonLink>
               )}
               {/* Opens Funding on the same deadlines it counts, soonest first. */}
@@ -156,7 +156,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
                   variant="quiet"
                   size="sm"
                 >
-                  {closingSoon} {closingSoon === 1 ? "fund" : "funds"} closing soon
+                  {closingSoon} {closingSoon === 1 ? "Fund" : "Funds"} Closing Soon
                 </ButtonLink>
               )}
             </>
@@ -170,7 +170,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             </span>
           ) : (
             <>
-              Find partners and funding for <em>regenerative work</em>
+              Find Partners And Funding For <em>Regenerative Work</em>
             </>
           )}
         </Heading>
@@ -192,22 +192,22 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <div className="rc-notice-body">
             <h2 className="rc-notice-title">The latest did not load</h2>
             <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>
-              Try again
+              Try Again
             </button>
           </div>
         </section>
       )}
-      <Section id="how" title="Three steps">
+      <Section id="how" title="Three Steps">
         <NumberedList
           items={[
             {
-              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe your initiative",
+              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe Your Initiative",
               note: "Four short fields.",
             },
-            { title: "Add what you need and can offer", note: "Up to four of each." },
+            { title: "Add What You Need And Can Offer", note: "Up to four of each." },
             {
               // The maker's wording, chosen over "fit", which the results pages keep (DL-063).
-              title: "See funding and partners that align",
+              title: "See Funding And Partners That Align",
               // The step names two things, and only one of them works signed out.
               note: "Funding needs no sign-in. Partners start with a Certified project.",
             },
@@ -217,7 +217,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       <Section
         id="kinds"
         band
-        title="Money is one of eight kinds of support"
+        title="Money Is One Of Eight Kinds Of Support"
         note={
           <>
             An initiative also runs on skills, relationships, land and culture. Every need and offer in
@@ -229,10 +229,10 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="soon"
-        title="Funding closing soon"
+        title="Funding Closing Soon"
         action={
           <ButtonLink href={pathTo("funding")} variant="quiet" size="sm">
-            See all funding
+            See All Funding
           </ButtonLink>
         }
       >
@@ -251,7 +251,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             title={fundingFailed ? "Funding did not load" : "No closing dates coming up"}
             action={
               <ButtonLink href={pathTo("funding")} variant="quiet">
-                Browse funding
+                Browse Funding
               </ButtonLink>
             }
           >
@@ -261,15 +261,15 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="recent"
-        title="Recently shared"
+        title="Recently Shared"
         action={
           <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-            Browse all initiatives
+            Browse All Initiatives
           </ButtonLink>
         }
       >
         {loading || (!fixture && published.status === "loading") ? (
-          skeleton("initiative", "rows")
+          skeleton(fixture ? "initiative" : "project", "rows")
         ) : publishedReady && publishedReady.projects.length ? (
           <CardGrid preview="rows">
             {publishedReady.projects.map((project) => (
@@ -291,7 +291,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             title="Shared initiatives did not load"
             action={
               <button className="rc-button" data-variant="secondary" type="button" onClick={retryPublished}>
-                Try again
+                Try Again
               </button>
             }
           >
@@ -302,7 +302,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             title={failed ? "Shared initiatives did not load" : "No shared initiatives here yet"}
             action={
               <ButtonLink href={pathTo("initiative")} variant="secondary">
-                Start an initiative
+                Start An Initiative
               </ButtonLink>
             }
           >
@@ -313,7 +313,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       <Section
         id="commons"
         band
-        title="Part of Regen Commons"
+        title="Part Of Regen Commons"
         note={
           <>
             Regen Commons is a shared home for the regenerative movement. Across places and practices, people
@@ -324,10 +324,10 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       >
         <div className="rc-action-bar">
           <ButtonLink href={COMMONS.learn} variant="secondary">
-            Learn about Regen Commons
+            Learn About Regen Commons
           </ButtonLink>
           <ButtonLink href={COMMONS.membership} variant="secondary">
-            Become a member
+            Become A Member
           </ButtonLink>
         </div>
         <p className="rc-meta">

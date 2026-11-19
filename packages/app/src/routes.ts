@@ -35,7 +35,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "home",
     path: "/",
-    title: "Find partners and funding for regenerative work",
+    title: "Find Partners And Funding For Regenerative Work",
     label: "Home",
     form: false,
     section: "home",
@@ -44,7 +44,7 @@ export const ROUTES: readonly Route[] = [
     name: "initiative",
     path: "/start/initiative",
     title: "Tell Us About Your Initiative",
-    label: "Describe your initiative",
+    label: "Describe Your Initiative",
     form: true,
     parent: "home",
   },
@@ -53,7 +53,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "your-initiative",
     path: "/your-initiative",
-    title: "Your initiative",
+    title: "Your Initiative",
     form: false,
     section: "your-initiatives",
     parent: "your-initiatives",
@@ -104,7 +104,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "team-workspace",
     path: "/workspaces/:id",
-    title: "Your initiative",
+    title: "Your Initiative",
     form: false,
     section: "your-initiatives",
     parent: "your-initiatives",
@@ -112,8 +112,8 @@ export const ROUTES: readonly Route[] = [
 ];
 export const INTAKE_STEPS = [
   { route: "initiative", label: "Initiative" },
-  { route: "needs", label: "Needs and offers" },
-  { route: "your-initiative", label: "Funding and partners" },
+  { route: "needs", label: "Needs And Offers" },
+  { route: "your-initiative", label: "Funding And Partners" },
 ] as const satisfies readonly { route: RouteName; label: string }[];
 /**
  * How a move between two pages is drawn on a phone (DL-094). A page deeper in is pushed on, the
@@ -266,7 +266,7 @@ export function breadcrumbTrail(route: Route | undefined): Crumb[] {
   return trail;
 }
 export function documentTitle(route: Route | undefined): string {
-  return !route ? "Page not found | Weave" : route.name === "home" ? "Weave" : `${route.title} | Weave`;
+  return !route ? "Page Not Found | Weave" : route.name === "home" ? "Weave" : `${route.title} | Weave`;
 }
 const ROUTE_BASE = "https://weave.example.org";
 /** The prototype build keeps the route in the URL fragment. Anything that is not a route opens Home. */

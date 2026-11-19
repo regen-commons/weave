@@ -115,7 +115,7 @@ export function AccountSection({
     <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
       {heading && (
         <Title className="rc-heading" data-size="section" id={`${id}-title`}>
-          {compact ? "Save your initiative" : "Your account"}
+          {compact ? "Save Your Initiative" : "Your Account"}
         </Title>
       )}
       {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here. You can save it again.</p>}
@@ -133,7 +133,7 @@ export function AccountSection({
               })
             }
           >
-            Check account access
+            Check Account Access
           </button>
         </>
       ) : !state.available ? (
@@ -154,11 +154,11 @@ export function AccountSection({
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="primary" type="submit" disabled={busy || !ready}
                 data-task-focus={autoFocus || undefined}>
-                Sign in with Certified
+                Sign In With Certified
               </button>
               {onNotNow && (
                 <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onNotNow}>
-                  Not now
+                  Not Now
                 </button>
               )}
             </div>
@@ -222,7 +222,7 @@ export function AccountSection({
                 disabled={busy || !ready || !key || storage !== "saved"}
                 onClick={() => void run(save)}
               >
-                Save privately
+                Save Privately
               </button>
             )}
             {showLeave && (
@@ -298,7 +298,7 @@ export function AccountSection({
                 })
               }
             >
-              More saved cards
+              More Saved Cards
             </button>
           )}
           <button
@@ -315,7 +315,7 @@ export function AccountSection({
               })
             }
           >
-            Refresh saved cards
+            Refresh Saved Cards
           </button>
         </>
       )}

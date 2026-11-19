@@ -477,6 +477,107 @@ This is the phone's own keyboard only. With a keyboard on the desk Enter sends t
 
 Neither was needed. The same few lines are a file of the site's own, `theme-boot.js`, loaded in the head before anything is drawn. It reads the pinned theme from where the app stores it and sets the page's theme, its colour scheme and which bar colour applies. The policy is what it was, and a test holds it there: no inline script, no hash, no exception. The cost is one small request before the first paint, which the installed app answers from its own cache. A test runs the file against a stand-in page and holds it to the module that owns the theme, so the two cannot drift.
 
+## DL-098: A page never moves sideways
+
+**Status:** user decision from manual QA on phones, 18 November 2026. On a phone the page could still be pulled a little to one side and spring back, though nothing on Home, Funding or Initiatives is wider than the screen. The root was answering a sideways pull with its own bounce. Now the page and its body clip what would hang over their sides, so there is nothing to pull into view, and under a finger the root gives up its sideways bounce.
+
+It is `clip` and not `hidden`: `hidden` makes a scrolling box, and the app bar would stop sticking inside it. The bounce is given up only where the pointer is a finger, because on a desk the same line turns off the trackpad's swipe back through history. On Android with button navigation, in a browser tab, it also turns off the browser's own swipe back; the Back button is still there.
+
+Two things follow. A row that scrolls sideways on purpose still does, inside its own box (DL-090). And content that overflows the page by mistake is now cut off instead of making the page scroll, and the page's scroll width no longer shows it, so a rendered check for overflow has to compare what is drawn with the window and not trust the page's scroll width. The push and pop of DL-094 move a picture of the page inside the view transition's own layer, which is fixed to the window, so the shift never widens the page; a test holds the keyframes to that layer.
+
+Not verified on a phone: built and measured in desktop Chromium with touch emulation only.
+
+## DL-099: No panel behind a form or a side panel
+
+**Status:** user decision, 18 November 2026. Reverses the part of DL-085 that gave a form or a side panel with no card of its own a surface and a hairline from 900 px. The boxes made a wide screen read as a set of cards with a page somewhere behind them, and the page is the thing the app has in common with the website. Panel still exists and still sets the block's rhythm, and it paints nothing at any width, so a wide screen and a phone now agree.
+
+What keeps the words clear is what DL-071 already set: under the column of content the resting network shows at 45 percent of its strength, and a card, a field or a button still covers the threads that pass under it. New growth from a mouse is bright where it grows, behind labels and hints as well, and is gone within three seconds.
+
+The change is made in the stylesheet only, so the pages that use Panel did not change: the intake steps, the record page's side panel and the team workspace.
+
+## DL-100: Sort opens a menu like the filters, and a menu scrolls to its last row
+
+**Status:** user decision from manual QA, 18 November 2026. Reverses the part of DL-061 that made Sort a native select drawn as a button. It looked like the filter buttons beside it and then opened something else: the browser's own picker, in the browser's type and colours, where every filter opened the system's menu. Sort is now one more button in the bar that opens the same menu, with one order to pick as radios, the way the Closing filter offers one date range. The button still reads "Sort: Closing soon", so the bar looks the same before a press. `rc-sort` and `rc-sort-face` are gone. The cost is the phone's own picker, which a phone no longer opens for Sort; the menu's rows are full 44 px targets.
+
+Four smaller things about the same bar came out of the same review.
+
+- A menu's name, its rows and Done share one inset of 12 px, so a row's tint has room on both sides of its words. A row's inset was 8 px and Done had none.
+- Clear all, in the foot of a phone's Filters sheet, is an outlined button. As a link-style button it had no side padding, and while nothing was chosen it drew as a tinted block the width of its words.
+- A dialog reads from its start edge wherever its markup sits. "What is Certified?" opened centred because its dialog is written inside a centred doorway and took the doorway's alignment. The fix is on `rc-dialog`, so no page has to remember it.
+- A menu taller than its room now scrolls to its last row. Every scroll inside a menu placed the menu again, and placing measures the menu at its full height for a moment, which sent it back to its first row. With the full catalog the Region menu could not reach Done at 1280 by 800 px. The example catalog has three regions, too few to overflow, so the fault did not show there. A scroll inside a menu no longer places it, and placing keeps the menu where the person left it.
+
+## DL-101: A long list fills in as its end comes near, and Initiatives is one flat list
+
+**Status:** user decision from manual QA, 18 November 2026. Funding ended in a "Show more funding" button and the public project list in "Show more projects". Both now end in a List end (`rc-list-end`): a line that says how much of the list is on the page, announced politely, and the next batch arrives as a person scrolls to within about half a screen of it.
+
+Loading on scroll has two known costs, and each has a rule here.
+
+- **The footer.** A list that keeps growing keeps the footer out of reach, and the catalog holds several hundred programs. After three batches the list waits, and Show More brings the next and starts another run of three. The footer is reachable at every pause.
+- **The keyboard.** A person tabbing from card to card would bring more cards without end and never reach what follows the list. While the keyboard's focus is in the list, nothing arrives unasked. Show More is a real button after the last card: pressing it moves focus to the first card it added, and Tab past it goes on to the footer.
+
+The starter list on Initiatives, shown when the public project list is off or empty, was grouped under four headings by what a source lists. It is now one flat grid like every other list, in the catalog's own order. Each card still says what its source lists, and the "What is listed" filter still narrows by it. Indexing more fields to filter the public project list on is a separate change.
+
+Not verified on a phone: built and measured in desktop Chromium, with touch emulation for the phone widths.
+
+## DL-102: The footer spans the window, and the page ends a short step above it
+
+**Status:** user decision from manual QA, 18 November 2026. The footer was a box as wide as the page, so its top line stopped short of the window's edges while the app bar's ran across: 160 to 1280 px in a 1440 px window. It now spans the window as the app bar does, and its contents keep the page's edges and line up with the logo.
+
+The gap above it had three causes. The page's bottom padding (80 px on a wide screen) and the footer's top padding (40 px) added up to 120 px; they are now 40 and 32. An empty status line at the end of the starter list held a row of the page's spacing; it takes room only once it says something. And the page body filled the window under the app bar without counting the site banner, so on a short page the footer started a banner's height below the fold. The banner now has a known height, `--site-banner-height`, which the page body leaves out, on a phone as well.
+
+## DL-103: A funding card counts the days to a deadline that is near
+
+**Status:** user decision from manual QA, 18 November 2026. A card gave its deadline as a date in a tag like any other, "Closes 30 Nov 2026", and the reader did the sum. Within 60 days the tag now counts: "Closes in 12 days", "Closes tomorrow", "Closes today". Further out the date says more than a count and stays. A date that has passed reads "Ended" with its date, whether or not the catalog marks the call closed; it read "Closes" with a past date before.
+
+The deadline tag is strong (`data-emphasis="strong"`): heavier words than the tags beside it. In the last 14 days it is toned as a warning, on its clock and along its start edge. The words carry the meaning and the tone only repeats it. A counted deadline keeps its date in the tag's tooltip, and the opportunity's own page gives it in full.
+
+The card had two clocks, one on the deadline and one on "Sources checked". The second is gone, so the clock means the deadline.
+
+Days are counted to the end of the closing day in UTC, as the Closing filter counts them, so a card and the filter agree on what "within 30 days" holds.
+
+## DL-104: A list's skeleton holds the loaded page's exact room
+
+**Status:** user decision from manual QA, 18 November 2026. Extends DL-081 and DL-085. A loading list drew skeletons, and the page still moved when the list arrived. At 375 px on Funding the grid started at 503 px while loading and 716 px loaded, and a skeleton card was 176 px tall against about 290. Four things did not match, and each now takes its size from the same rules the loaded page uses.
+
+- **Filter controls.** Three blocks of one fixed width stood in for the bar's buttons. The bar now draws its own buttons, disabled, with their own words, so the row is the one that stays.
+- **The count line.** "Loading funding" was one line and the loaded sentence wraps to three on a phone. While the list loads the words are for assistive technology only, and a hold keeps the room of a sentence about as long.
+- **The prompt to describe an initiative.** It waited for the catalog, though it depends only on whether the person has a card. It is there from the first paint. Until the device draft opens, a room holds its exact size.
+- **Cards.** A skeleton card is built from the loaded card's own parts in their own classes: a funding card's eyebrow, two-line title, funder, tags, summary and date; a public project's title, summary, source and date, with no picture, because the loaded card has none.
+
+Two skeleton shapes are new. A hold (`data-shape="hold"`) keeps the room of words by holding words about as long, unseen, in the type of the part it sits in. A room (`data-shape="room"`) keeps a block's room by holding the block itself, unseen. The `control` shape is gone with the blocks it drew.
+
+Measured after the change at 375 px on Funding, in desktop Chromium: the grid starts at 716 px loading and loaded, and a skeleton card is within a few pixels of the median loaded card. Cards differ in what they hold, so a row can still settle by a line.
+
+## DL-105: Buttons and headings use title case
+
+**Status:** user decision, 18 November 2026. Replaces sentence case on buttons and headings, which DL-028 and VOICE.md had set for everything, and widens the two exceptions DL-033 and DL-072 made for the footer's links and a section's name. Every button and every heading now gives each word a capital, short words included: Start An Initiative, Check Your Card, Not Now. Labels, hints and body text stay in sentence case.
+
+Every word takes a capital, with no list of small words left lower, because the example the maker gave capitalises "An" and because a rule with no exceptions is one a person or a test can apply without looking anything up. The footer's What the Assistant Did becomes What The Assistant Did, so the product has one title case and not two.
+
+The copy itself changed; nothing is transformed in the stylesheet, so a screen reader, a copied label and a translation all get the words as written. VOICE.md says what counts as a button and as a heading. Two calls were made while applying it. A control that holds a choice, a filter or a sort, is labelled like the field it stands in for, in sentence case, and so are its choices. And a line that reports something stays a sentence even where it is set like a title, such as The list did not load or Nothing matches these filters: it is a message, not the name of a place.
+
+A test reads the app's buttons and headings and fails on a word that starts small. The steps for starting an initiative are being rebuilt in another branch and are held out of that test by name until they land.
+
+## DL-106: The mycelium is drawn as the website draws it
+
+**Status:** user decision, 18 November 2026, from a mock set beside the website at 1280 and 390 px in both themes. Supersedes DL-066 where scrolling grew tufts on a phone and where a long page had a canvas as tall as itself, and DL-048 where touch never grew one. The app's mycelium had the website's branches and colours and none of its feel: it was drawn at the screen's full sharpness, so its lines were thin and hard; it was as tall as the page; and new growth was cleared and the resting picture put back each frame, so nothing trailed.
+
+Now it is the website's. The canvas is fixed to the window and the page scrolls over it. It holds one canvas pixel for each CSS pixel, so a phone's or a sharp screen's own scaling softens and widens every line, and a long page costs no more to draw than a short one. New growth leaves trails: each frame the picture so far is rubbed out by the website's share, 3.5 percent, and every live tuft is drawn over it again. A mouse grows tufts where it moves, every 45 px, and so does a finger. Growth uses the website's depth 1 on Home and depth 2 on every other page: reach 50 or 60, fork 0.012 or 0.015, and the website's strength and fade for each.
+
+Three things stay the app's own. A light resting network lies under the trails, about twenty seeds in a desk's window and ten in a phone's, so a phone with no mouse is never blank. It keeps DL-071's rule: whole in the margins and at 45 percent under the column of content. New growth is not dimmed there, because it is gone in a few seconds. Where there is no mouse a tuft still grows on its own every few seconds (DL-048). And drawing stops, which the website's never does: once nothing is alive the last of the trails fades faster and is cleared, and nothing runs until something grows again, while the page is hidden, or under reduced motion, where the resting network is drawn at once and nothing moves.
+
+The website fades by filling with its page colour. The app rubs the trails out towards clear instead, so whatever lies behind the canvas shows through and the behaviour needs to know no colour. The window-sized canvas is clipped by the page body, so no thread lies behind the banner, the bars or the footer, as before. The logo's ring is untouched and still drawn sharp: at that size it is the brand mark.
+
+Not verified on a phone: built and captured in desktop Chromium with touch emulation. How the fixed canvas behaves as a phone's address bar comes and goes is the part to look at; it takes the window's largest height so that it should not resize.
+
+## DL-107: The header's theme switch is outlined to match Sign in
+
+**Status:** user decision from manual QA, 18 November 2026. Changes how the switch of DL-079 is drawn, not what it does. It was a bare glyph beside an outlined Sign in, so the two controls at the end of the bar looked unrelated and the glyph was easy to miss. The user saw two mocks in the live header, at 1280 and 390 px in both themes: an outlined icon button, and a segmented control with System, Light and Dark. They chose the icon button.
+
+The switch is now an Icon button with a secondary Button's line and corners (`data-variant="secondary"`) at Sign in's small height (`data-size="sm"`): 44 by 44 px beside Sign in's 44 px. It still shows the theme it changes to, still says so in words for assistive technology, and still goes back to following the system when the two agree. The round tint the bar gave a bare icon button is gone with the bare button.
+
+The segmented control was 136 px wide. It showed System where the icon button cannot, but on a phone it left no room in the bar for the save status or the way back. The full choice, System included, stays in Settings and on a phone's You tab (DL-086). The switch is still a wide screen's: a phone's bar does not draw it.
+
 ## DL-110: Describing is one page, and talking fills it in place
 
 **Status:** user decision from manual QA, 18 November 2026. Amends DL-022, DL-032, DL-038 and DL-076. The numbers DL-098 to DL-109 are left to the manual QA branch, which was writing its own entries at the same time.

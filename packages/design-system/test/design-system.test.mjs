@@ -515,3 +515,76 @@ test("a tab is pressed, not held like a link (DL-095)", () => {
   // Links in the page keep the phone's own menu: only the tab bar's are controls.
   assert.equal((CSS_FILES.map(read).join("\n").match(/-webkit-touch-callout/g) ?? []).length, 1);
 });
+
+test("a page never moves sideways, and a trackpad keeps its swipe back (DL-098)", () => {
+  const base = stripComments(read("packages/design-system/css/base.css"));
+  // Clip, not hidden: hidden would make a scrolling box of the page and the app bar would stop sticking.
+  assert.match(base, /\n:where\(html, body\) \{ overflow-x: clip; \}/);
+  assert.doesNotMatch(base, /overflow(?:-x)?: hidden/);
+  // The root gives up its sideways bounce under a finger only.
+  assert.match(base, /@media \(pointer: coarse\) \{\s*:where\(html\) \{ overscroll-behavior-x: none; \}\s*\}/);
+  assert.equal((base.match(/overscroll-behavior/g) ?? []).length, 1);
+  // The page's push and pop are drawn by the view transition's own layer, which is fixed to the
+  // window: nothing in the page itself is moved sideways to draw them.
+  const templates = stripComments(read("packages/design-system/css/templates.css"));
+  for (const [, selector] of templates.matchAll(/([^{}]+)\{[^{}]*animation-name: rc-page-(?:in|out)-(?:start|end);[^{}]*\}/g)) {
+    assert.match(selector, /::view-transition-(?:old|new)\(root\)\s*$/, selector.trim());
+  }
+});
+
+test("a filter's menu scrolls to its last row: scrolling inside it never places it again (DL-100)", async () => {
+  const { scrollMovesPanel } = await import("../behaviors/overlays.js");
+  const row = { name: "a row in the menu" };
+  const panel = { contains: (node) => node === row };
+  assert.equal(scrollMovesPanel(panel, panel), false, "the menu's own scroll");
+  assert.equal(scrollMovesPanel(row, panel), false, "a scroll inside the menu");
+  assert.equal(scrollMovesPanel({ name: "the page" }, panel), true, "the page under it still moves it with its button");
+  // Placing measures the menu at its full height. Without the two guards below, every scroll inside
+  // a menu taller than its room sent it back to its first row.
+  const source = read("packages/design-system/behaviors/overlays.js");
+  assert.match(source, /if \(isOpen\(\) && scrollMovesPanel\(event\.target, panel\)\) place\(trigger, panel\);/);
+  assert.match(source, /const scrolledTo = panel\.scrollTop;[\s\S]*if \(panel\.scrollTop !== scrolledTo\) panel\.scrollTop = scrolledTo;\n\}/);
+});
+
+test("a panel keeps a block's rhythm and paints nothing, at any width (DL-099)", () => {
+  const molecules = stripComments(read("packages/design-system/css/molecules.css"));
+  const rules = [...molecules.matchAll(/\.rc-panel[^{]*\{([^}]*)\}/g)].map((match) => match[1].trim());
+  assert.deepEqual(rules, ["display: grid; align-content: start; gap: var(--space-5); min-inline-size: 0;"]);
+});
+
+test("what every page shares is in title case: the footer's links, the dialogs' titles and the way in (DL-105)", () => {
+  // A word that starts small, once tags and entities are set aside.
+  const small = (words) => words.replace(/<[^>]*>/g, " ").replace(/&#?\w+;/g, "&").split(/[\s/-]+/).map((word) => word.replace(/^[^\p{L}\p{N}]+/u, "")).find((word) => /^\p{Ll}/u.test(word));
+  for (const [page, html] of Object.entries(PAGES)) {
+    const shared = [
+      ...html.matchAll(/<(?:a|button)\b[^>]*class="rc-footer-link"[^>]*>([\s\S]*?)<\/(?:a|button)\s*>/g),
+      ...html.matchAll(/<h[1-4]\b[^>]*class="rc-footer-title"[^>]*>([\s\S]*?)<\/h[1-4]>/g),
+    ].map((match) => match[1].replace(/<span class="rc-visually-hidden">[\s\S]*?<\/span>/g, "").trim());
+    assert.ok(shared.length >= 8, `${page} has a footer`);
+    // The three things the footer opens, each under its own name.
+    for (const title of ["What We Store", "What The Assistant Did", "Data Policy"]) {
+      assert.match(html, new RegExp(`<h2 class="rc-dialog-title"[^>]*>\\s*${title}\\s*</h2>`), `${page}: ${title}`);
+    }
+    for (const words of shared) assert.equal(small(words), undefined, `${page}: "${words}"`);
+    // The header's way in, where the page has one.
+    const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
+    for (const [, words] of header.matchAll(/<button\b[^>]*class="rc-(?:button|menu-item)"[^>]*>\s*(Sign [a-zA-Z]+)\s*<\/button>/g)) {
+      assert.equal(small(words), undefined, `${page}: "${words}"`);
+    }
+  }
+});
+
+test("behind a page the mycelium is fixed to the window and shows only through the page body (DL-106)", () => {
+  const templates = stripComments(read("packages/design-system/css/templates.css"));
+  const page = templates.match(/\.rc-mycelium\[data-extent="page"\] \{([^}]*)\}/)?.[1] ?? "";
+  assert.match(page, /position: fixed;/);
+  // The window's largest height: a phone's address bar coming and going must not resize the canvas.
+  assert.match(page, /block-size: 100lvh;/);
+  assert.match(page, /inline-size: 100%;/);
+  // The page body clips it, so the banner, the bars and the footer have no thread behind them.
+  assert.match(templates, /\n\.rc-page-body:has\(> \.rc-mycelium\[data-extent="page"\]\) \{ clip-path: inset\(0\); \}/);
+  // It stays behind the page's content and takes no pointer.
+  const base = templates.match(/\n\.rc-mycelium \{([^}]*)\}/)?.[1] ?? "";
+  assert.match(base, /z-index: -1;/);
+  assert.match(base, /pointer-events: none;/);
+});

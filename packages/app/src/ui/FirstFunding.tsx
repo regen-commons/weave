@@ -17,7 +17,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
           <div className="rc-notice-body">
             <p>{error}</p>
             <button className="rc-button" data-variant="secondary" onClick={retry}>
-              Try again
+              Try Again
             </button>
           </div>
         </section>
@@ -36,7 +36,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
         <p>Nothing in the catalog matches this card yet.</p>
       )}
       <ButtonLink href="/funding" variant="secondary">
-        Browse all funding
+        Browse All Funding
       </ButtonLink>
     </>
   );

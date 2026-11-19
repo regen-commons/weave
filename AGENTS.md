@@ -134,8 +134,9 @@ commands you ran and what they showed, including checks you could not run.
 
 Use `humanize-writing` for prose people read, such as docs, pull requests and
 handoffs. Product copy follows [VOICE.md](packages/design-system/brand/VOICE.md):
-sentence case, plain words, no em dashes and no arrows. Lead with the outcome, keep
-code, commands and paths exact, and say what is uncertain or unverified.
+title case for buttons and headings, sentence case for the rest, plain words, no em
+dashes and no arrows. Lead with the outcome, keep code, commands and paths exact, and
+say what is uncertain or unverified.
 
 ## Harness files
 

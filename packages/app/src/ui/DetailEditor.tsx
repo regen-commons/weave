@@ -140,7 +140,7 @@ export function DetailEditor({
       )}
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="secondary" type="button" onClick={save}>
-          Keep changes
+          Keep Changes
         </button>
         <button className="rc-button" data-variant="quiet" type="button" onClick={onRemove}>
           Remove

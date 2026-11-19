@@ -2,7 +2,7 @@ import { CAPITALS } from "../capitals.ts";
 import type { Facet } from "../filters.ts";
 import type { EvidenceKind, PartnerEvidence } from "./evidence.ts";
 
-/** The public catalog by kind of evidence, for browsing it with no need or offer to match. */
+/** What a public source can list, in the words the starter list's filter offers them. */
 export const BROWSE_GROUPS: readonly { kind: EvidenceKind; heading: string }[] = [
   { kind: "confirmed_offer", heading: "Confirmed offers" },
   { kind: "published_offer", heading: "Published offers to check" },

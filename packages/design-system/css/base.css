@@ -16,6 +16,15 @@
   overflow-wrap: anywhere;
 }
 
+/* A page scrolls down and never sideways. The page clips what would hang over its sides, so
+   there is nothing to pull into view, and under a finger the root does not answer a sideways
+   pull with a bounce (DL-098). Clipping makes no scrolling box, so the app bar still sticks. A
+   desk's trackpad keeps its swipe back through history. */
+:where(html, body) { overflow-x: clip; }
+@media (pointer: coarse) {
+  :where(html) { overscroll-behavior-x: none; }
+}
+
 /* A section pinned to a theme paints its own surface. */
 :where(body, [data-theme]:not(:root)) {
   background: var(--surface);

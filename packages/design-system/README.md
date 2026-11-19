@@ -212,6 +212,30 @@ The tests check that generated files are current, the linter is clean, website v
   and is not drawn under 900 px on a page that has the tab bar.
 - Fix Home hero's live line (DL-092). `rc-home-live` keeps room for both counts, two lines on
   a phone and one when wide, so the page under the hero no longer moves when a count arrives.
+- Modify Filter bar (DL-100). Sort is a button that opens the same Menu a filter opens;
+  remove Sort control (`rc-sort`, `rc-sort-face`). Menu rows, a menu's name and Done share
+  one inset. Dialog reads from its start edge. `./overlays` no longer places a menu again
+  when it is scrolled inside, and exports `scrollMovesPanel`.
+- Add List end, stable (DL-101): `rc-list-end`, the foot of a list that fills in as a person
+  scrolls near it.
+- Modify Footer and Site banner (DL-102). Footer spans the window. `templates.css` gains
+  `--site-banner-height`, which the page body leaves out of the window it fills.
+- Modify Tag (DL-103): `data-emphasis="strong"`.
+- Modify Skeleton (DL-104). Add the `hold` and `room` shapes; remove `control`.
+- Modify Icon button (DL-107): `data-variant="secondary"` and `data-size="sm"`, for an icon
+  button beside a small secondary Button. App header no longer rounds an icon button's tint.
+- Modify the base layer (DL-098). The page and its body clip what would hang over their sides,
+  and under a finger the root gives up its sideways bounce. A check for overflow can no longer
+  trust the page's scroll width.
+- Modify Panel (DL-099). It keeps a block's rhythm and paints nothing at any width: the surface,
+  hairline and padding it had from 900 px are removed.
+- Modify Mycelium and the `./mycelium` behaviour (DL-106). Behind a page the canvas is fixed to
+  the window and clipped by the page body; it draws one canvas pixel for each CSS pixel, leaves
+  trails that fade, and grows under a finger as well as a mouse. `growMycelium` takes `depth` and
+  finds the column itself. Removed exports: `densityFor`, `growsFromScroll`, `scrolledEnough`,
+  `SCROLL_SPACING`. The `data-mycelium-own` attribute is no longer read.
+- Modify the voice (DL-105). Buttons and headings use title case, with a capital on every word.
+  Every example page's shared chrome and the examples that are not the intake steps follow it.
 
 ### Unreleased, Step 8
 

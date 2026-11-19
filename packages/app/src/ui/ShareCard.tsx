@@ -11,7 +11,7 @@ export function ShareCard({ level, children }: { level: 2 | 3; children: ReactNo
   return (
     <article className="rc-card rc-share-card" aria-labelledby={id}>
       <Title className="rc-card-title" id={id}>
-        Partner suggestions start with a Certified project
+        Partner Suggestions Start With A Certified Project
       </Title>
       <p>You can see funding that fits without a project.</p>
       <div className="rc-action-bar">{children}</div>

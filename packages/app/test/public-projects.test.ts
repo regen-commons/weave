@@ -83,8 +83,8 @@ test("the count and freshness lines are whole sentences that say what the list i
   assert.equal(countLine(1, false), "1 project shared on Certified.");
   assert.equal(countLine(1, true), "1 project matches your search.");
   assert.equal(countLine(0, true), "0 projects match your search.");
-  assert.equal(sharedLabel(1108), "1,108 projects shared on Certified");
-  assert.equal(sharedLabel(1), "1 project shared on Certified");
+  assert.equal(sharedLabel(1108), "1,108 Projects Shared On Certified");
+  assert.equal(sharedLabel(1), "1 Project Shared On Certified");
   const index = { status: "bounded", checkedAt: "2026-11-15T04:01:00.000000Z", total: 3 } as const;
   assert.equal(indexLine(index, date), "Checked on 2026-11-15.");
   assert.equal(indexLine({ ...index, status: "stale" }, date), "Last checked on 2026-11-15. The list may be out of date.");

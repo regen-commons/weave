@@ -66,10 +66,10 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
         {/* On the initiative page the saving and sharing section already carries this step. */}
         {!compact && (
           <ButtonLink href={pathTo("your-initiatives")} variant="primary">
-            Link or create a project
+            Link Or Create A Project
           </ButtonLink>
         )}
-        <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse all initiatives</ButtonLink>
+        <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse All Initiatives</ButtonLink>
       </ShareCard>
     );
   }
@@ -111,7 +111,7 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
       {(access === "public" || compact) && (
         <div className="rc-action-bar">
           {access === "public" && <ShareAction variant="secondary" />}
-          {compact && <ButtonLink href={pathTo("partners")} variant="secondary">See all partners</ButtonLink>}
+          {compact && <ButtonLink href={pathTo("partners")} variant="secondary">See All Partners</ButtonLink>}
         </div>
       )}
     </div>

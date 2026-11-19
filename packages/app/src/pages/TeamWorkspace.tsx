@@ -62,7 +62,7 @@ function WorkspaceHeading({ name, role }: { name?: string; role?: TeamWorkspaceS
   return (
     <div className="rc-stack">
       {name && <p className="rc-eyebrow">Team workspace</p>}
-      <Heading level={1} size="page">{name ?? "Team workspace"}</Heading>
+      <Heading level={1} size="page">{name ?? "Team Workspace"}</Heading>
       {role && <p>{ROLE_LINE[role]}</p>}
     </div>
   );
@@ -88,7 +88,7 @@ function WorkspaceSignIn({ workspaceId, available }: { workspaceId: string; avai
       {status === "failed" && <p role="status">Sign-in could not start. Try again.</p>}
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="button"
-          disabled={!ready || status === "starting"} onClick={() => void signIn()}>Sign in with Certified</button>
+          disabled={!ready || status === "starting"} onClick={() => void signIn()}>Sign In With Certified</button>
       </div>
     </div>
   );
@@ -151,7 +151,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       {access === "failed" && <p role="status">Certified access could not be confirmed. Try again.</p>}
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="button" disabled={access === "starting"}
-          onClick={() => void confirmAccess()}>Confirm Certified access</button>
+          onClick={() => void confirmAccess()}>Confirm Certified Access</button>
       </div>
     </div>
   );
@@ -163,7 +163,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       <p role="status">The workspace could not be opened.</p>
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="secondary" type="button"
-          onClick={() => { setLoaded(undefined); setAttempt((value) => value + 1); }}>Try again</button>
+          onClick={() => { setLoaded(undefined); setAttempt((value) => value + 1); }}>Try Again</button>
       </div>
     </div>
   );
@@ -191,27 +191,27 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
             document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
             compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
             fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
-          <Section id="team-funding" title="Funding that fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
+          <Section id="team-funding" title="Funding That Fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
       </Stack> : undefined} aside={<Panel>
-        <Section id="saving-sharing" title="Saving and sharing">
+        <Section id="saving-sharing" title="Saving And Sharing">
           <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>
             {saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}
           </StatusLine>
           {saved && <LiveExposure saved={saved} owner={owner} team readOnly={readOnly || editing} online={online}
             onExpired={() => loseAccess("sign_in_required")} onChanged={() => setMatchVersion(v => v + 1)} />}
         </Section>
-        {!readOnly && <Section id="change-team" title="Change it"><div className="rc-action-bar" data-layout="rows">
+        {!readOnly && <Section id="change-team" title="Change It"><div className="rc-action-bar" data-layout="rows">
           <button className="rc-button" data-variant={saved || ownCard ? "quiet" : "primary"} type="button" disabled={!online}
-            onClick={() => setPanel("entries")}>Change needs and offers</button>
+            onClick={() => setPanel("entries")}>Change Needs And Offers</button>
           {loaded.accessRole === "admin" && loaded.projectUri && <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
-            onClick={() => setPanel("teammates")}>Manage teammates</button>}
+            onClick={() => setPanel("teammates")}>Manage Teammates</button>}
         </div></Section>}
       </Panel>}>
         {saved && fields ? <InitiativeRecord named={false} fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
           offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
           : <p>No needs or offers saved yet.{readOnly ? " An editor can add them." : ""}</p>}
       </StepLayout>
-      <TaskDialog title={panel === "teammates" ? "Manage teammates" : "Needs and offers"} open={panel !== null} onClose={() => setPanel(null)}
+      <TaskDialog title={panel === "teammates" ? "Manage Teammates" : "Needs And Offers"} open={panel !== null} onClose={() => setPanel(null)}
         blockClose={editing} onCloseBlocked={() => setCloseNotice("Save or cancel your entry before closing. Your changes are still here.")}>
         {closeNotice && <p role="status">{closeNotice}</p>}
         {panel === "entries" && <TeamEntries workspaceId={workspaceId} workspace={loaded} online={online} onSaved={saveResult}

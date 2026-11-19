@@ -72,7 +72,7 @@ export function ExampleDoor({
             <div className="rc-action-bar">
               <ExampleSave focus onSaved={() => onDone("saved")} onFailed={setMessage} />
               <button className="rc-button" data-variant="quiet" type="button" onClick={() => onDone("signed-in")}>
-                Not now
+                Not Now
               </button>
             </div>
           </>
@@ -104,7 +104,7 @@ export function ExampleDoor({
       <div className="rc-stack" aria-busy={busy} ref={body}>
         <p className="rc-eyebrow">Certified</p>
         <h3 className="rc-heading" data-size="section">
-          Continue to Weave as {EXAMPLE_HANDLE}?
+          Continue To Weave As {EXAMPLE_HANDLE}?
         </h3>
         <p className="rc-meta">Weave learns who you are on Certified. It does not get your email address.</p>
         <div className="rc-action-bar">
@@ -116,7 +116,7 @@ export function ExampleDoor({
             disabled={busy}
             onClick={() => void comeBack()}
           >
-            Continue as {EXAMPLE_HANDLE}
+            Continue As {EXAMPLE_HANDLE}
           </button>
           <button
             className="rc-button"
@@ -147,10 +147,10 @@ export function ExampleDoor({
           data-task-focus
           onClick={() => setStep("certified")}
         >
-          Sign in with Certified
+          Sign In With Certified
         </button>
         <button className="rc-button" data-variant="quiet" type="button" onClick={() => onDone("cancelled")}>
-          Not now
+          Not Now
         </button>
       </div>
       <p className="rc-meta">{SIGN_IN.effect}</p>
@@ -158,7 +158,7 @@ export function ExampleDoor({
         <AboutCertified />
         {information && (
           <button className="rc-button" data-variant="quiet" type="button" onClick={() => information("storage")}>
-            What is saved
+            What Is Saved
           </button>
         )}
       </div>

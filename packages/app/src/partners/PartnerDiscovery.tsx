@@ -6,7 +6,7 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { FilterBar } from "../ui/FilterBar.tsx";
-import { applyBrowseFacet, browseEvidence, browseFacets, BROWSE_GROUPS, EMPTY_BROWSE } from "./browse.ts";
+import { applyBrowseFacet, browseEvidence, browseFacets, EMPTY_BROWSE } from "./browse.ts";
 import { PUBLIC_PARTNER_EVIDENCE } from "./catalog.ts";
 import type { PartnerEvidence } from "./evidence.ts";
 import { PREVIEW_FITS } from "./groups.ts";
@@ -22,7 +22,7 @@ import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
  * source's summary, what supports the result with its source and date, and what to check.
  */
 export function EvidenceCard({ level, evidence, match, save, opens = false }: {
-  level: 3 | 4;
+  level: 2 | 3 | 4;
   evidence: PartnerEvidence;
   /** The need or offer the result was matched to. Left out where the catalog is only browsed. */
   match?: PartnerMatch;
@@ -97,7 +97,7 @@ export function PartnerDiscovery({ mode, search = "", onSearch }: {
   function card(evidence: PartnerEvidence, match?: PartnerMatch) {
     const label = draft.partnerLeads.includes(evidence.id) ? "Remove from saved" : "Save";
     return (
-      <EvidenceCard level={preview ? 4 : 3} evidence={evidence} match={match} opens={mode === "browse"}
+      <EvidenceCard level={preview ? 4 : mode === "browse" ? 2 : 3} evidence={evidence} match={match} opens={mode === "browse"}
         save={!preview && (
           <button className="rc-button" data-variant={label === "Save" ? "secondary" : "quiet"} data-size="sm"
             type="button" aria-label={`${label}: ${evidence.project}`}
@@ -133,22 +133,17 @@ export function PartnerDiscovery({ mode, search = "", onSearch }: {
               title="Nothing matches these filters"
               action={
                 <button className="rc-button" data-variant="secondary" type="button" onClick={clearBrowse}>
-                  Clear filters
+                  Clear Filters
                 </button>
               }
             >
               Try fewer filters or another search.
             </EmptyState>
           )}
-          {BROWSE_GROUPS.map(({ kind, heading }) => {
-            const entries = shown.filter((evidence) => evidence.kind === kind);
-            return entries.length > 0 && (
-              <section className="rc-section" key={kind} aria-labelledby={`${id}-${kind}`}>
-                <h2 className="rc-heading" data-size="section" id={`${id}-${kind}`}>{heading}</h2>
-                <CardGrid>{entries.map((evidence) => <li key={evidence.id}>{card(evidence)}</li>)}</CardGrid>
-              </section>
-            );
-          })}
+          {/* One flat list, as every other list is: each card says what its source lists (DL-101). */}
+          {shown.length > 0 && (
+            <CardGrid>{shown.map((evidence) => <li key={evidence.id}>{card(evidence)}</li>)}</CardGrid>
+          )}
         </>
       ) : !ready ? <CardGridSkeleton kind="partner" label="Opening your draft" /> : !preview && !draft.confirmed ? (
         <DescribePrompt>Partner suggestions come from the needs and offers on your card.</DescribePrompt>
@@ -167,16 +162,16 @@ export function PartnerDiscovery({ mode, search = "", onSearch }: {
           {!preview && (
             <div className="rc-action-bar">
               <ButtonLink href={pathTo("needs")} variant="secondary">
-                {hasEntries ? "Change needs and offers" : "Add needs and offers"}
+                {hasEntries ? "Change Needs And Offers" : "Add Needs And Offers"}
               </ButtonLink>
-              <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse all initiatives</ButtonLink>
+              <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse All Initiatives</ButtonLink>
             </div>
           )}
         </>
       )}
       {mode === "matches" && saved.length > 0 && (
         <section className="rc-section" aria-labelledby={`${id}-saved`}>
-          <h2 className="rc-heading" data-size="section" id={`${id}-saved`}>Saved partners on this device</h2>
+          <h2 className="rc-heading" data-size="section" id={`${id}-saved`}>Saved Partners On This Device</h2>
           <p className="rc-meta">Saving sends no invitation.</p>
           <CardGrid>{saved.map((evidence) => <li key={evidence.id}>{card(evidence)}</li>)}</CardGrid>
         </section>
@@ -190,7 +185,8 @@ export function PartnerDiscovery({ mode, search = "", onSearch }: {
           </p>
         </details>
       )}
-      {!preview && <p className="rc-meta" role="status">{notice}</p>}
+      {/* The line is always there for assistive technology, and takes room only once it says something. */}
+      {!preview && <p className={notice ? "rc-meta" : "rc-visually-hidden"} role="status">{notice}</p>}
     </div>
   );
 }

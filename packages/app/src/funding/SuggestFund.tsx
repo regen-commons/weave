@@ -29,7 +29,7 @@ export function SuggestFund() {
             type="button"
             onClick={() => setOpen(true)}
           >
-            {sent ? "Suggest another" : "Suggest a fund"}
+            {sent ? "Suggest Another" : "Suggest A Fund"}
           </button>
         }
       >
@@ -37,7 +37,7 @@ export function SuggestFund() {
           ? `Thank you. Regen Commons checks ${sent} against the funder's page before it joins the list.`
           : "Know a fund that is not here?"}
       </StatusLine>
-      <TaskDialog title="Suggest a fund" open={open} onClose={() => setOpen(false)}>
+      <TaskDialog title="Suggest A Fund" open={open} onClose={() => setOpen(false)}>
         <form className="rc-form" onSubmit={send} onKeyDown={moveOnEnter}>
           <div className="rc-field">
             <label htmlFor={`${id}-name`}>Name of the fund or program</label>
@@ -74,7 +74,7 @@ export function SuggestFund() {
             />
           </div>
           <button className="rc-button" data-variant="primary" type="submit">
-            Send suggestion
+            Send Suggestion
           </button>
         </form>
       </TaskDialog>

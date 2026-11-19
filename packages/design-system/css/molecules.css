@@ -688,19 +688,10 @@ a.rc-save-status:active { color: var(--on-surface); }
 .rc-link-preview-text > a { font: var(--type-title-sm); }
 
 /* Section: a heading, optional browse action and its related content. */
-/* Panel: the page's own surface behind a block of words and controls that has no card of its own,
-   such as a form or a side panel, so the mycelium behind the page never runs through them
-   (DL-078). It is flat, with a hairline, so the cards inside it still stand out. A phone, where the
-   mycelium under the one column is at its quietest, keeps the block as it is. */
+/* Panel: a block of words and controls that has no card of its own, such as a form or a side
+   panel. It keeps the block's rhythm and paints nothing, at any width: the words sit on the page
+   itself, where the mycelium behind them rests at its quieter strength (DL-071, DL-099). */
 .rc-panel { display: grid; align-content: start; gap: var(--space-5); min-inline-size: 0; }
-@media (min-width: 56.25rem) {
-  .rc-panel {
-    padding: var(--card-padding);
-    border: var(--border-thin) solid var(--line);
-    border-radius: var(--card-radius);
-    background: var(--surface);
-  }
-}
 .rc-section { display: grid; gap: var(--space-4); min-inline-size: 0; }
 .rc-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
 /* On a phone the title takes a row and its action the next, at the start edge, so no section's

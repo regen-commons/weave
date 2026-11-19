@@ -6,11 +6,12 @@ import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { FilterBar } from "../ui/FilterBar.tsx";
 import { keepFocusOnPage } from "../ui/focus.ts";
+import { ListEnd, useAddedFocus } from "../ui/ListEnd.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
-  countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
+  countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
   listView, searchQuery, SEARCH_PAUSE_MS, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
 
@@ -107,24 +108,13 @@ export function PublicProjects() {
   const view = listView(list, indexSeen);
   const ready = list.status === "ready" ? list : arrived;
   const waiting = list.status === "loading";
-  // Focus moves to the first project "Show more" added, so a keyboard user keeps their place.
-  const [focusAt, setFocusAt] = useState<number | null>(null);
-  const added = useRef<HTMLLIElement | null>(null);
+  // Focus moves to the first project a press of Show More added, so a keyboard user keeps their place.
   const shown = list.status === "ready" ? list.projects.length : 0;
-  useEffect(() => {
-    if (focusAt === null || shown <= focusAt) return;
-    added.current?.focus();
-    setFocusAt(null);
-  }, [shown, focusAt]);
+  const added = useAddedFocus(shown);
 
   function clear() {
     setSearch("");
     keepFocusOnPage();
-  }
-  function showMore() {
-    if (list.status !== "ready" || list.more === "loading") return;
-    setFocusAt(list.projects.length);
-    more();
   }
   const bar = (loading: boolean) => (
     <FilterBar
@@ -139,6 +129,7 @@ export function PublicProjects() {
       summary={ready ? countLine(ready.page.index.total, ready.q !== "") : undefined}
       note={ready ? indexLine(ready.page.index, day) : undefined}
       loading={loading}
+      reserve="0,000 projects shared on Certified. Checked on 00 September 0000."
       onClear={clear}
     />
   );
@@ -147,7 +138,7 @@ export function PublicProjects() {
     return (
       <div className="rc-stack" aria-busy="true">
         {bar(true)}
-        <CardGridSkeleton kind="initiative" count={6} />
+        <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
       </div>
     );
   }
@@ -158,7 +149,7 @@ export function PublicProjects() {
           <section className="rc-notice" data-tone="warning">
             <div className="rc-notice-body">
               <h2 className="rc-notice-title">Projects from Certified did not load</h2>
-              <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>Try again</button>
+              <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>Try Again</button>
             </div>
           </section>
         )}
@@ -170,13 +161,13 @@ export function PublicProjects() {
     <div className="rc-stack" aria-busy={waiting || undefined}>
       {bar(!ready)}
       {!ready ? (
-        <CardGridSkeleton kind="initiative" count={6} />
+        <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
       ) : (
         <>
           {ready.projects.length ? (
             <CardGrid>
               {ready.projects.map((project, index) => (
-                <li key={project.uri} tabIndex={-1} ref={index === focusAt ? added : undefined}>
+                <li key={project.uri} {...added.item(index)}>
                   <PublicProjectCard project={project} level={2} />
                 </li>
               ))}
@@ -185,20 +176,26 @@ export function PublicProjects() {
             <EmptyState
               title="No projects match your search"
               action={
-                <button className="rc-button" data-variant="secondary" type="button" onClick={clear}>Clear search</button>
+                <button className="rc-button" data-variant="secondary" type="button" onClick={clear}>Clear Search</button>
               }
             >
               Try other words, or clear the search to see every project.
             </EmptyState>
           )}
-          {list.status === "ready" && list.page.next && (
-            <div className="rc-action-bar">
-              {/* aria-disabled, not disabled, so the button keeps keyboard focus while the next page loads. */}
-              <button className="rc-button" data-variant="secondary" type="button" aria-disabled={list.more === "loading"}
-                onClick={showMore}>{list.more === "loading" ? "Loading more projects" : "Show more projects"}</button>
-            </div>
+          {/* The list fills in as its end comes near, and a new search starts its run again (DL-101). */}
+          {list.status === "ready" && (list.page.next || list.projects.length > PUBLIC_PROJECT_PAGE_SIZE) && (
+            <ListEnd
+              key={list.q}
+              shown={list.projects.length}
+              total={Math.max(list.page.index.total, list.projects.length)}
+              things="projects"
+              more={!!list.page.next}
+              busy={list.more === "loading"}
+              failed={list.more === "failed"}
+              onPress={added.pressed}
+              onMore={more}
+            />
           )}
-          {list.status === "ready" && list.more === "failed" && <p role="alert">More projects did not load. Try again.</p>}
         </>
       )}
     </div>

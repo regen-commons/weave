@@ -28,7 +28,7 @@ export function DescribePrompt({ children }: { children: ReactNode }) {
         <p>{children}</p>
         <div className="rc-action-bar">
           <ButtonLink href={pathTo(route)} variant="primary">
-            {started ? resumeLabel(route) : "Describe your initiative"}
+            {started ? resumeLabel(route) : "Describe Your Initiative"}
           </ButtonLink>
         </div>
       </div>

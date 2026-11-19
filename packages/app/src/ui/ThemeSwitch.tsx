@@ -16,9 +16,10 @@ export function useTheme() {
 }
 
 /**
- * Theme switch: an Icon button in the app header on a wide screen that changes between light and
- * dark at once (DL-079). It shows the theme it changes to and says so in words for assistive
- * technology. Settings keeps the full choice, with System.
+ * Theme switch: an outlined Icon button in the app header on a wide screen that changes between
+ * light and dark at once (DL-079). It sits beside Sign in with the same line, height and corners,
+ * so the two read as a pair (DL-107). It shows the theme it changes to and says so in words for
+ * assistive technology. Settings keeps the full choice, with System.
  */
 export function ThemeSwitch() {
   const { theme, systemDark, shown } = useTheme();
@@ -26,6 +27,8 @@ export function ThemeSwitch() {
   return (
     <button
       className="rc-icon-button"
+      data-variant="secondary"
+      data-size="sm"
       type="button"
       data-from="wide"
       aria-label={label}

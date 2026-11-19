@@ -100,7 +100,7 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
   const projects = matches ? projectSuggestions(matches, queries, compact ? 2 : undefined) : [];
   return (
     <section className="rc-stack" aria-labelledby={heading}>
-      <Heading id={heading} className="rc-heading" data-size="section">Partners for you</Heading>
+      <Heading id={heading} className="rc-heading" data-size="section">Partners For You</Heading>
       {!hasQueries ? <p>Keep an open need or offer to see suggestions.</p>
         : !online ? <p>Reconnect to check public Certified evidence.</p>
         : current?.status === "error" ? (
@@ -175,7 +175,7 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
         <div className="rc-action-bar">
           {sources.map((url, index) => (
             <ButtonLink key={url} href={url} variant="secondary">
-              {sources.length > 1 ? `View source ${index + 1}` : "View source"}
+              {sources.length > 1 ? `View Source ${index + 1}` : "View Source"}
             </ButtonLink>
           ))}
         </div>

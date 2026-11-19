@@ -69,15 +69,15 @@ Use one door and one family of verbs: Sign in and Save. Signing in says who you 
 | Moment | Words |
 |---|---|
 | The offer | Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave. |
-| Buttons | Sign in with Certified. Sign in to save. Not now. |
+| Buttons | Sign In With Certified. Sign In To Save. Not Now. |
 | Optional email | Add your email (optional). Your email appears in the link to Certified and may be saved in browser history or request logs. |
 | Before saving | Not saved yet. |
-| Save | Save privately. Save to team workspace. Save changes. |
+| Save | Save Privately. Save To Team Workspace. Save Changes. |
 | Saved privately | Saved privately in Weave. Only you can see it. |
 | Saved for a team | Saved in the Upper valley growers workspace. Teammates with access can see it. |
 | Changed since saving | Changed on this device since you saved. |
-| Sharing | Share for matching. Not shared. Only you see your needs and offers. |
-| Publishing | Publish on Certified. Not published. |
+| Sharing | Share For Matching. Not shared. Only you see your needs and offers. |
+| Publishing | Publish On Certified. Not published. |
 | Withdrawing | Ask to withdraw. The listing can stay readable until Certified confirms. |
 
 ## Words we avoid
@@ -90,8 +90,13 @@ Use one door and one family of verbs: Sign in and Save. Signing in says who you 
 
 ## Mechanics
 
-- Sentence case everywhere, including factual record labels. There are two exceptions. A section's name is written as a name wherever it names the section, so the header, the page and a sentence that sends a person there all say Your Initiatives (DL-072). Footer links use title case (DL-033).
-- A button says what happens: Save my initiative, not Submit. An action keeps its name through the flow.
+- Buttons and headings use title case. Everything else uses sentence case (DL-105).
+  - **Title case** gives every word a capital, short words included: Start An Initiative, Fill In The Fields, Not Now, What The Assistant Did. No word is left small, so there is no list of exceptions to remember. Each part of a hyphenated word takes one. A word keeps the capitals it already has, such as PDF and YouTube. A name, a number and a person's own words stay as written.
+  - **A button** is anything pressed to do something: a button, a link drawn as a button, an action in a menu and the footer's links (DL-033). A button that is busy keeps title case: Signing Out.
+  - **A heading** names a page, a section, a step, a dialog or a card the app wrote. The browser tab's title is the page's heading.
+  - **Sentence case** is everything else: field labels and legends, hints, body text, links in a sentence, tags, chips, a filter or a sort and its choices, status lines, the facts on a card, a line that opens more detail beneath it, and words said to assistive technology only. A line that reports something stays a sentence even where it is set like a title, which is every notice's title and every empty state's: The list did not load, Nothing matches these filters.
+  - A section's name is still written as a name wherever it names the section, in a sentence too: Your Initiatives (DL-072).
+- A button says what happens: Save My Initiative, not Submit. An action keeps its name through the flow.
 - No arrows in links or buttons. No em dashes in product copy.
 - No decorative kickers or eyebrows above headings. Keep a factual label only where no heading can carry its meaning, in sentence case (DL-028).
 - Write dates in full: 30 November 2026. Write money with the currency: R$ 60,000.

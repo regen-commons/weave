@@ -135,7 +135,7 @@ export function App() {
   useEffect(() => {
     const callback = new URL(window.location.href);
     if (callback.pathname !== "/" || !callback.searchParams.has("projectConsent")) return;
-    document.title = "Returning to Weave";
+    document.title = "Returning To Weave";
     // Effect replay shares the one-use finish request. Mount project loaders only
     // after promotion; an earlier consent-required response otherwise stays cached.
     if (recovery.current?.href !== callback.href) recovery.current = {
@@ -153,7 +153,7 @@ export function App() {
       ? readFixtures(routeSearch())
       : undefined;
   if (returning) return <div className="rc-page"><main className="rc-main" id="main" tabIndex={-1}>
-    <NarrowLayout><Heading level={1} size="page">Returning to Weave</Heading>
+    <NarrowLayout><Heading level={1} size="page">Returning To Weave</Heading>
       <DraftSkeleton label="Finishing Certified permissions" /></NarrowLayout>
   </main></div>;
   return (

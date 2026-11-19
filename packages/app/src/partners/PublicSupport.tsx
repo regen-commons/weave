@@ -103,13 +103,13 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
     <p>Public listings can be read outside Weave. Publishing is separate from sharing for matching.</p>
     <ul className="rc-ask-summary">{entries.map((e) => <li key={`${e.kind}/${e.entryId}`}><strong>{e.title}</strong>
       {!readOnly && <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
-        onClick={() => void prepare(e.kind, e.entryId)}>Review public listing</button>}</li>)}</ul>
+        onClick={() => void prepare(e.kind, e.entryId)}>Review Public Listing</button>}</li>)}</ul>
     {listings.length > 0 && <ul className="rc-ask-summary">{listings.map((l) => <li key={`${l.kind}/${l.entryId}`}><strong>{l.title}</strong>
       <p>{statuses[l.status]}</p>{!readOnly && <div className="rc-action-bar">
         <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
-          onClick={() => void run({ action: "support_reconcile", workspaceId, kind: l.kind, entryId: l.entryId })}>Check public status</button>
+          onClick={() => void run({ action: "support_reconcile", workspaceId, kind: l.kind, entryId: l.entryId })}>Check Public Status</button>
         {l.status !== "withdrawn" && <button className="rc-button" data-variant="secondary" type="button" disabled={busy || pending !== null}
-          onClick={() => void run({ action: "support_withdraw", workspaceId, kind: l.kind, entryId: l.entryId, requestId: crypto.randomUUID() }, true)}>Withdraw public listing</button>}
+          onClick={() => void run({ action: "support_withdraw", workspaceId, kind: l.kind, entryId: l.entryId, requestId: crypto.randomUUID() }, true)}>Withdraw Public Listing</button>}
       </div>}</li>)}</ul>}
     {cursor && <button className="rc-button" data-variant="quiet" disabled={busy}
       onClick={() => {
@@ -121,18 +121,18 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
         }).finally(() => {
           if (task.current === controller) { task.current = null; if (!controller.signal.aborted) setBusy(false); }
         });
-      }}>More public listings</button>}
+      }}>More Public Listings</button>}
     {pending && !readOnly && <button className="rc-button" data-variant="secondary" disabled={busy}
-      onClick={() => void run(pending, true)}>Retry the same public request</button>}
+      onClick={() => void run(pending, true)}>Retry The Same Public Request</button>}
     {consent && !readOnly && <ConsentButton action={consent} />}{notice && <p role="status">{notice}</p>}
-    <TaskDialog title="Review public listing" open={visible && review !== null && !readOnly}
+    <TaskDialog title="Review Public Listing" open={visible && review !== null && !readOnly}
       onClose={() => { if (visible) setReview(null); }}>
       {review && <div className="rc-stack"><p>Anyone can read these fields. Removing the listing cannot erase copies other apps have already made.</p>
         <Facts items={publicReviewFacts(review)} />
         <p className="rc-meta">Repository: {review.destination}</p>
         <button className="rc-button" data-variant="primary" disabled={busy || readOnly} type="button"
           onClick={() => void run(pending ?? { action: "support_publish", workspaceId, reviewId: review.reviewId,
-            requestId: crypto.randomUUID(), audience: "public-atproto", confirmPublic: true }, true)}>Publish these fields publicly</button>
+            requestId: crypto.randomUUID(), audience: "public-atproto", confirmPublic: true }, true)}>Publish These Fields Publicly</button>
       </div>}
     </TaskDialog>
   </Container>;

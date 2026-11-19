@@ -52,7 +52,8 @@ the app, the website, the steward desk or email.
 - Colour never carries meaning alone. Pair it with a word, an icon, a shape or a
   position, as the capital tiles do.
 - Anything the assistant suggested shows in pencil until a person confirms it.
-- Copy uses the plain names in VOICE.md, sentence case, and no em dashes or arrows.
+- Copy uses the plain names in VOICE.md, title case for buttons and headings, sentence
+  case for the rest, and no em dashes or arrows.
 
 ## Checks
 

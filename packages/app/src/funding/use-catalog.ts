@@ -115,5 +115,7 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject) {
     ranking,
     retry,
     personalized: !!draft.confirmed?.description.trim(),
+    /** Whether the card to compare with is known yet. Until the device draft opens, `personalized` is a guess. */
+    subjectKnown: !!subject || device.ready,
   };
 }

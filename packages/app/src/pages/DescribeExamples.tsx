@@ -84,7 +84,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
                   type="button"
                   onClick={() => setPhase("paused")}
                 >
-                  Cancel example download
+                  Cancel Example Download
                 </button>
               ) : phase === "ready" ? (
                 <button
@@ -96,7 +96,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
                     setPhase("paused");
                   }}
                 >
-                  Remove example model
+                  Remove Example Model
                 </button>
               ) : (
                 <button
@@ -105,7 +105,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
                   type="button"
                   onClick={() => setPhase("running")}
                 >
-                  {bytes ? "Resume example download" : "Start example download"}
+                  {bytes ? "Resume Example Download" : "Start Example Download"}
                 </button>
               )}
               <button
@@ -114,7 +114,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
                 type="button"
                 onClick={() => setPhase("off")}
               >
-                Not now
+                Not Now
               </button>
             </div>
           </div>
@@ -127,7 +127,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
           type="button"
           onClick={() => setCloudOpen(true)}
         >
-          Cloud consent example
+          Cloud Consent Example
         </button>
       )}
       {message && (
@@ -135,7 +135,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
           {message}
         </p>
       )}
-      <TaskDialog title="Send this step to a cloud assistant?" open={cloudOpen} onClose={() => setCloudOpen(false)}>
+      <TaskDialog title="Send This Step To A Cloud Assistant?" open={cloudOpen} onClose={() => setCloudOpen(false)}>
         <form
           className="rc-stack"
           onSubmit={(event) => {
@@ -186,7 +186,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
           )}
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="primary" type="submit" disabled={!selected}>
-              Simulate this step once
+              Simulate This Step Once
             </button>
             <button
               className="rc-button"
@@ -194,7 +194,7 @@ export function DescribeExamples({ view }: { view: DescribeView }) {
               type="button"
               onClick={() => setCloudOpen(false)}
             >
-              Keep it on this device
+              Keep It On This Device
             </button>
           </div>
         </form>

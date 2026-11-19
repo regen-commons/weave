@@ -30,15 +30,15 @@ export function SetAsideCard() {
   return (
     <Doorway>
       <Heading level={1} size="page">
-        This card belongs to another account
+        This Card Belongs To Another Account
       </Heading>
       <p className="rc-prose">It stays on this device and opens again when that account signs in.</p>
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="button" onClick={() => void startNew()}>
-          Start a new initiative
+          Start A New Initiative
         </button>
         <ButtonLink href={pathTo("your-initiatives")} variant="secondary">
-          Go to Your Initiatives
+          Go To Your Initiatives
         </ButtonLink>
       </div>
       <p className="rc-meta">The other card stays on this device.</p>
