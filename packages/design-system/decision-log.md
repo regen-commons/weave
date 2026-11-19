@@ -544,6 +544,18 @@ The copy itself changed; nothing is transformed in the stylesheet, so a screen r
 
 A test reads the app's buttons and headings and fails on a word that starts small. The steps for starting an initiative are being rebuilt in another branch and are held out of that test by name until they land.
 
+## DL-106: The mycelium is drawn as the website draws it
+
+**Status:** user decision, 18 November 2026, from a mock set beside the website at 1280 and 390 px in both themes. Supersedes DL-066 where scrolling grew tufts on a phone and where a long page had a canvas as tall as itself, and DL-048 where touch never grew one. The app's mycelium had the website's branches and colours and none of its feel: it was drawn at the screen's full sharpness, so its lines were thin and hard; it was as tall as the page; and new growth was cleared and the resting picture put back each frame, so nothing trailed.
+
+Now it is the website's. The canvas is fixed to the window and the page scrolls over it. It holds one canvas pixel for each CSS pixel, so a phone's or a sharp screen's own scaling softens and widens every line, and a long page costs no more to draw than a short one. New growth leaves trails: each frame the picture so far is rubbed out by the website's share, 3.5 percent, and every live tuft is drawn over it again. A mouse grows tufts where it moves, every 45 px, and so does a finger. Growth uses the website's depth 1 on Home and depth 2 on every other page: reach 50 or 60, fork 0.012 or 0.015, and the website's strength and fade for each.
+
+Three things stay the app's own. A light resting network lies under the trails, about twenty seeds in a desk's window and ten in a phone's, so a phone with no mouse is never blank. It keeps DL-071's rule: whole in the margins and at 45 percent under the column of content. New growth is not dimmed there, because it is gone in a few seconds. Where there is no mouse a tuft still grows on its own every few seconds (DL-048). And drawing stops, which the website's never does: once nothing is alive the last of the trails fades faster and is cleared, and nothing runs until something grows again, while the page is hidden, or under reduced motion, where the resting network is drawn at once and nothing moves.
+
+The website fades by filling with its page colour. The app rubs the trails out towards clear instead, so whatever lies behind the canvas shows through and the behaviour needs to know no colour. The window-sized canvas is clipped by the page body, so no thread lies behind the banner, the bars or the footer, as before. The logo's ring is untouched and still drawn sharp: at that size it is the brand mark.
+
+Not verified on a phone: built and captured in desktop Chromium with touch emulation. How the fixed canvas behaves as a phone's address bar comes and goes is the part to look at; it takes the window's largest height so that it should not resize.
+
 ## DL-107: The header's theme switch is outlined to match Sign in
 
 **Status:** user decision from manual QA, 18 November 2026. Changes how the switch of DL-079 is drawn, not what it does. It was a bare glyph beside an outlined Sign in, so the two controls at the end of the bar looked unrelated and the glyph was easy to miss. The user saw two mocks in the live header, at 1280 and 390 px in both themes: an outlined icon button, and a segmented control with System, Light and Dark. They chose the icon button.

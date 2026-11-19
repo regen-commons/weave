@@ -244,10 +244,11 @@
    room for both from the start, two lines on a phone and one when wide, and nothing under it
    moves when the second one comes (DL-092). */
 .rc-home-live { display: grid; justify-items: center; align-content: start; min-block-size: calc(2 * var(--control-sm-height)); }
-/* Mycelium: the website's branching growth, behind a doorway, or behind the whole of Home
-   (DL-046, DL-071). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js
-   draws it in the website's six thread colours, set here, and grows it underneath the content:
-   at the website's own strength in the page's margins, and quieter under the column of content. */
+/* Mycelium: the website's branching growth, behind a region or behind a whole page (DL-046,
+   DL-071, DL-078). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js draws
+   it as the website does, in the website's six thread colours, set in atoms.css: trails that fade
+   where a mouse or a finger moves, over a light resting network that is whole in the page's
+   margins and quieter under the column of content (DL-106). */
 .rc-mycelium {
   position: absolute;
   z-index: -1;
@@ -260,14 +261,22 @@
   -webkit-mask-image: var(--hero-fade);
   mask-image: var(--hero-fade);
 }
-/* Under a whole page: the canvas lies behind everything in the page body. */
+/* Under a whole page the canvas is fixed to the window, as the website's is, and the page scrolls
+   over it. It takes the window's largest height, so a phone's address bar coming and going never
+   resizes it (DL-106). */
 .rc-mycelium[data-extent="page"] {
-  inset: 0;
+  position: fixed;
+  inset: 0 auto auto 0;
   translate: none;
   inline-size: 100%;
+  block-size: 100lvh;
   -webkit-mask-image: none;
   mask-image: none;
 }
+/* The window-sized canvas shows only through the page body: the body clips it, so no thread lies
+   behind the banner, the bars or the footer. Dialogs, menus and tooltips open in the top layer,
+   which the clip does not reach. */
+.rc-page-body:has(> .rc-mycelium[data-extent="page"]) { clip-path: inset(0); }
 /* The threads pass under whatever is on the page. A card and a field cover them with their own
    fill; an outlined button sitting on the page takes the page's fill there, so they pass under it
    too and never through its words. One inside a card, a notice or a dialog sits on that fill and

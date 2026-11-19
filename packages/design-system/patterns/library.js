@@ -71,7 +71,8 @@ for (const button of document.querySelectorAll("[data-open-dialog]")) {
 import { connectSheet } from "../behaviors/sheet.js";
 import { growLogoMark, growMycelium } from "../behaviors/mycelium.js";
 // The home hero's mycelium grows once, as the app's does.
-for (const canvas of document.querySelectorAll("canvas.rc-mycelium")) growMycelium(canvas);
+// Home takes the website's depth 1, every other page depth 2, as the app does.
+for (const canvas of document.querySelectorAll("canvas.rc-mycelium")) growMycelium(canvas, { depth: location.pathname.endsWith("/home.html") ? 1 : 2 });
 for (const canvas of document.querySelectorAll("canvas.rc-logo-mark")) growLogoMark(canvas);
 for (const dialog of document.querySelectorAll("dialog.rc-dialog[data-presentation]")) {
   connectSheet(dialog, { lightDismiss: dialog.dataset.presentation !== "task" });

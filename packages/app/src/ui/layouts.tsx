@@ -40,7 +40,7 @@ export function HomeHero({
   children: ReactNode;
 }) {
   return (
-    <section className="rc-home-hero" aria-labelledby="home-title" data-mycelium-own>
+    <section className="rc-home-hero" aria-labelledby="home-title">
       {children}
       <div className="rc-home-actions">{actions}</div>
       {search}

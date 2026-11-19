@@ -573,3 +573,18 @@ test("what every page shares is in title case: the footer's links, the dialogs' 
     }
   }
 });
+
+test("behind a page the mycelium is fixed to the window and shows only through the page body (DL-106)", () => {
+  const templates = stripComments(read("packages/design-system/css/templates.css"));
+  const page = templates.match(/\.rc-mycelium\[data-extent="page"\] \{([^}]*)\}/)?.[1] ?? "";
+  assert.match(page, /position: fixed;/);
+  // The window's largest height: a phone's address bar coming and going must not resize the canvas.
+  assert.match(page, /block-size: 100lvh;/);
+  assert.match(page, /inline-size: 100%;/);
+  // The page body clips it, so the banner, the bars and the footer have no thread behind them.
+  assert.match(templates, /\n\.rc-page-body:has\(> \.rc-mycelium\[data-extent="page"\]\) \{ clip-path: inset\(0\); \}/);
+  // It stays behind the page's content and takes no pointer.
+  const base = templates.match(/\n\.rc-mycelium \{([^}]*)\}/)?.[1] ?? "";
+  assert.match(base, /z-index: -1;/);
+  assert.match(base, /pointer-events: none;/);
+});

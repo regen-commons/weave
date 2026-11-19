@@ -229,6 +229,11 @@ The tests check that generated files are current, the linter is clean, website v
   trust the page's scroll width.
 - Modify Panel (DL-099). It keeps a block's rhythm and paints nothing at any width: the surface,
   hairline and padding it had from 900 px are removed.
+- Modify Mycelium and the `./mycelium` behaviour (DL-106). Behind a page the canvas is fixed to
+  the window and clipped by the page body; it draws one canvas pixel for each CSS pixel, leaves
+  trails that fade, and grows under a finger as well as a mouse. `growMycelium` takes `depth` and
+  finds the column itself. Removed exports: `densityFor`, `growsFromScroll`, `scrolledEnough`,
+  `SCROLL_SPACING`. The `data-mycelium-own` attribute is no longer read.
 - Modify the voice (DL-105). Buttons and headings use title case, with a capital on every word.
   Every example page's shared chrome and the examples that are not the intake steps follow it.
 

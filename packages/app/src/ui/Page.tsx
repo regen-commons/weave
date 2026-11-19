@@ -48,9 +48,10 @@ export function Page({
         </a>
         <p className="rc-site-banner">Still in development will be live soon</p>
         <AppHeader pathname={pathname} sections={!form} status={status} back={back} />
-        {/* One canvas under every page. It outlives the page, so it grows once and then rests. */}
+        {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
+            network grows once. */}
         <div className="rc-page-body">
-          <Mycelium extent="page" />
+          <Mycelium extent="page" home={matchRoute(pathname)?.name === "home"} />
           <Main key={pathname} pathname={pathname}>
             {children}
           </Main>
