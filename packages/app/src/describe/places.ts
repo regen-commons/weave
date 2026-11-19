@@ -1,5 +1,29 @@
 import { KIND } from "./names.ts";
 
+/**
+ * The words a place is looked for in, made cheap to read whatever was given: the first 20,000
+ * characters, with one kind of line end and a run of spaces as one space. Where an initiative is
+ * is said early, and a file of hundreds of pages is not read for it. A second place stated after
+ * that is not seen, so it does not keep the first from being proposed.
+ */
+const HEAD = 20_000;
+function readable(text: string): string {
+  return text.slice(0, HEAD).replace(/\r\n?/gu, "\n").replace(/[ \t]{2,}/gu, " ");
+}
+/** How far back a sentence's subject is looked for, and how far on a list is. Each match costs no more. */
+const BEFORE = 400;
+const AFTER = 200;
+/** The sentence up to a match, or null when it began further back than is read. */
+function before(text: string, index: number): string | null {
+  const start = Math.max(0, index - BEFORE);
+  const parts = text.slice(start, index).split(/[.!?\n]/u);
+  if (parts.length === 1 && start > 0) return null;
+  return parts.at(-1)!.trimStart();
+}
+/** The words after a match, as far as a list or a cut-off name can be told from them. */
+const after = (text: string, match: RegExpExecArray | RegExpMatchArray) =>
+  text.slice(match.index! + match[0].length, match.index! + match[0].length + AFTER);
+
 /** The card's Where as words state it: up to eight places as written, or global. */
 export interface StatedWhere {
   locations: string[];
@@ -92,7 +116,7 @@ function aboutInitiative(name: string): RegExp {
  * that opens "In Lagos, we". A verb such as "work", "operate", "grow" or "were" never counts.
  */
 const NEAR = new RegExp(
-  String.raw`(?<![\p{L}\p{M}])(?<!(?:[Bb]ased|[Ll]ocated|[Ss]ituated|[Hh]eadquartered)[ \t]+)(?:in|In|across|Across|throughout|from|From|em|Em|no|na|nos|nas|en|En|desde|Desde)[ \t]+(${PLACE})`,
+  String.raw`(?<![\p{L}\p{M}])(?<!(?:[Bb]ased|[Ll]ocated|[Ss]ituated|[Hh]eadquartered)[ \t])(?:in|In|across|Across|throughout|from|From|em|Em|no|na|nos|nas|en|En|desde|Desde)[ \t]+(${PLACE})`,
   "gu",
 );
 /** Words in a description that say the place belongs to someone the initiative works with. */
@@ -179,7 +203,8 @@ const within = (short: string[], long: string[]) =>
  * for the plainer words.
  * Only settled words should be passed, so a half-typed name is never proposed.
  */
-export function statedWhere(text: string, name = ""): StatedWhere {
+export function statedWhere(words: string, name = ""): StatedWhere {
+  const text = readable(words);
   const labelled = new Map<string, string>();
   for (const match of text.matchAll(LABEL)) labelled.set(match[1]!.toLocaleLowerCase(), match[1]!);
   if (labelled.size) return labelled.size === 1 ? labelledWhere([...labelled.values()][0]!) : NONE;
@@ -189,21 +214,22 @@ export function statedWhere(text: string, name = ""): StatedWhere {
   const mentioned: string[] = [];
   const stated: string[] = [];
   for (const match of text.matchAll(LOCATIVE)) {
-    const { place, unclear, list } = placeName(match[1]!, text.slice(match.index + match[0].length));
+    const { place, unclear, list } = placeName(match[1]!, after(text, match));
     if (unclear || list) return NONE;
     mentioned.push(place);
-    const sentence = text.slice(0, match.index).split(/[.!?\n]/u).at(-1)!.trimStart();
-    if (subject.test(sentence)) stated.push(place);
+    const sentence = before(text, match.index);
+    if (sentence !== null && subject.test(sentence)) stated.push(place);
   }
   // The plainer words count only for the initiative itself, so they never add someone else's place.
   const near = nearSubject(name);
   for (const match of text.matchAll(NEAR)) {
-    const after = text.slice(match.index + match[0].length);
-    const { place, unclear, list } = placeName(match[1]!, after);
+    const next = after(text, match);
+    const { place, unclear, list } = placeName(match[1]!, next);
     // "in January", "from The": not a place at all, and not a reason to doubt the others.
     if (!place) continue;
-    const sentence = text.slice(0, match.index).split(/[.!?\n]/u).at(-1)!.trimStart();
-    const opens = !sentence.trim() && /^,?[ \t]+(?:we|our|nós|nosotros)(?![\p{L}\p{M}])/iu.test(after.replace(/^,/u, ", "));
+    const sentence = before(text, match.index);
+    if (sentence === null) continue;
+    const opens = !sentence.trim() && /^,?[ \t]*(?:we|our|nós|nosotros)(?![\p{L}\p{M}])/iu.test(next);
     if (!opens && !(near.test(sentence) && ownDescription(sentence))) continue;
     // "From" names a hometown as often as a base: "students from Unilag". It counts only when the
     // initiative has said it is a kind of group: "a seed library from Lancashire".

@@ -8,18 +8,20 @@ import { wholeWords } from "../intake/keywords.ts";
  * fits, the name is empty: nothing is made up from a description.
  */
 export function statedName(text: string): string {
-  const label = text.match(/^[ \t]*(?:name|nome|nombre)[ \t]*:[ \t]*([^\n]+)$/imu)?.[1];
+  const head = readable(text);
+  const label = head.match(/^[ \t]*(?:name|nome|nombre)[ \t]*:[ \t]*([^\n]+)$/imu)?.[1];
   if (label) return plausible(cut(label)) ?? "";
-  const sentences = text
+  const sentences = head
     .split(/(?<=[.!?])\s+|\n+/u)
     // "Hello, we are Tree Keepers": a greeting is not part of what is said.
     .map((sentence) => sentence.trim().replace(/^(?:hello|hi|hey|olá|ola|oi|hola|buenos[ \t]+días|bom[ \t]+dia)[,!.]?[ \t]+/iu, ""))
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 3)
+    .map((sentence) => sentence.slice(0, SENTENCE));
   for (const sentence of sentences) {
-    const called = sentence.match(CALLED)?.[1];
+    const called = sentence.match(CALLED);
     if (called) {
-      const name = plausible(cut(called));
+      const name = plausible(cut(sentence.slice(called.index! + called[0].length)));
       if (name) return name;
     }
   }
@@ -27,12 +29,24 @@ export function statedName(text: string): string {
     const name = weAre(sentence) ?? atName(sentence) ?? isA(sentence);
     if (name) return name;
   }
-  return firstLine(text);
+  return firstLine(head);
 }
 
-/** "Our project is called X", "we are called X", "we call ourselves X", and the same in Portuguese and Spanish. */
+/**
+ * The words a name is looked for in, made cheap to read whatever was given: a name is stated at
+ * the start, so only the first few thousand characters count. Line ends are one kind and a run
+ * of spaces is one space, so no rule below ever retries across a long run of either.
+ */
+const HEAD = 4000;
+/** No sentence a name is read from is longer than this. */
+const SENTENCE = 300;
+function readable(text: string): string {
+  return text.slice(0, HEAD).replace(/\r\n?/gu, "\n").replace(/[ \t]{2,}/gu, " ");
+}
+
+/** "Our project is called X", "we are called X", "we call ourselves X", and the same in Portuguese and Spanish. The name is what follows. */
 const CALLED = new RegExp(
-  String.raw`(?:^|[\s,])(?:(?:initiative|project|group|organi[sz]ation|collective|network|garden|team|programme|program|association)[ \t]+(?:is[ \t]+)?called|we[ \t]+are[ \t]+called|we['’]re[ \t]+called|we[ \t]+call[ \t]+ourselves|^called|chama-se|se[ \t]+chama|nos[ \t]+chamamos|chamad[oa]|se[ \t]+llama|nos[ \t]+llamamos|llamad[oa])[ \t]+(.+)$`,
+  String.raw`(?:^|[\s,])(?:(?:initiative|project|group|organi[sz]ation|collective|network|garden|team|programme|program|association)[ \t](?:is[ \t])?called|we[ \t]are[ \t]called|we['’]re[ \t]called|we[ \t]call[ \t]ourselves|^called|chama-se|se[ \t]chama|nos[ \t]chamamos|chamad[oa]|se[ \t]llama|nos[ \t]llamamos|llamad[oa])[ \t]`,
   "iu",
 );
 
@@ -62,7 +76,10 @@ const PEOPLE = words(
 
 /** A name as written, or null when the words are not one. */
 function plausible(raw: string): string | null {
-  const name = raw.replace(/[\s.,;:!?]+$/u, "").trim();
+  // Trailing spaces and punctuation, dropped by walking back, which costs one step a character.
+  let end = raw.length;
+  while (end > 0 && /[\s.,;:!?]/u.test(raw[end - 1]!)) end--;
+  const name = raw.slice(0, end).trim();
   if (!name || name.length > 120 || /\/|@|\d{3,}/u.test(name)) return null;
   const parts = name.split(/[ \t]+/u);
   if (parts.length > 12) return null;
@@ -75,17 +92,20 @@ function plausible(raw: string): string | null {
 
 /** "We are X", "We're the X", "Somos a X", "Somos la X", "Nós somos o X". */
 function weAre(sentence: string): string | null {
-  const english = sentence.match(/^(?:we[ \t]+are|we['’]re)[ \t]+(?:the[ \t]+)?(.+)$/iu)?.[1];
   // Portuguese and Spanish take a definite article before a name; English "a" says what kind of group it is.
-  const other = sentence.match(/^(?:nós[ \t]+)?somos[ \t]+(?:(?:o|a|os|as|el|la|los|las)[ \t]+)?(.+)$/iu)?.[1];
-  const raw = english ?? other;
-  return raw ? plausible(cut(raw)) : null;
+  const opening =
+    sentence.match(/^(?:we[ \t]are|we['’]re)[ \t](?:the[ \t])?/iu) ??
+    sentence.match(/^(?:nós[ \t])?somos[ \t](?:(?:o|a|os|as|el|la|los|las)[ \t])?/iu);
+  return opening ? plausible(cut(sentence.slice(opening[0].length))) : null;
 }
 
-/** "At X, we" and "Here at X we". */
+/** "At X, we" and "Here at X we": the name runs from "at" to the first "we" or "our". */
 function atName(sentence: string): string | null {
-  const raw = sentence.match(/^(?:here[ \t]+)?at[ \t]+(.+?),?[ \t]+(?:we|our)(?![\p{L}\p{M}])/iu)?.[1];
-  return raw ? plausible(raw) : null;
+  const opening = sentence.match(/^(?:here[ \t])?at[ \t]/iu);
+  if (!opening) return null;
+  const rest = sentence.slice(opening[0].length);
+  const subject = rest.search(/,?[ \t](?:we|our)(?![\p{L}\p{M}])/iu);
+  return subject > 0 ? plausible(rest.slice(0, subject)) : null;
 }
 
 /** Words that say the subject is an initiative, a group or a place of work, and not a person. */
@@ -95,16 +115,17 @@ export const KIND = wholeWords(
 
 /** "X is a volunteer group", "X é uma cooperativa", "X es un colectivo", "X, a network of", and "X is based in". */
 function isA(sentence: string): string | null {
-  const based = sentence.match(/^(.+?)[ \t]+(?:is|are)[ \t]+(?:based|located|situated|headquartered)[ \t]+in(?![\p{L}\p{M}])/u)?.[1];
-  if (based) return plausible(based);
-  const match =
-    sentence.match(/^(.+?)[ \t]+(?:is|are|é|são|es|son)[ \t]+(?:a|an|the|one[ \t]+of[ \t]+the|um|uma|un|una|o|el|la)[ \t]+(.+)$/u) ??
-    sentence.match(/^(.+?),[ \t]+(?:a|an|the|um|uma|un|una|o|el|la)[ \t]+(.+)$/u);
-  if (!match) return null;
+  // Each shape is found where it first occurs, and the name is what comes before it.
+  const based = sentence.search(/[ \t](?:is|are)[ \t](?:based|located|situated|headquartered)[ \t]in(?![\p{L}\p{M}])/u);
+  if (based > 0) return plausible(sentence.slice(0, based));
+  const verb = sentence.match(/[ \t](?:is|are|é|são|es|son)[ \t](?:a|an|the|one[ \t]of[ \t]the|um|uma|un|una|o|el|la)[ \t]/u);
+  const comma = sentence.match(/,[ \t](?:a|an|the|um|uma|un|una|o|el|la)[ \t]/u);
+  const found = verb && verb.index! > 0 ? verb : comma && comma.index! > 0 ? comma : null;
+  if (!found) return null;
   // What it is said to be must be a kind of initiative, within its first few words.
-  const kind = match[2]!.split(/[ \t]+/u).slice(0, 8).join(" ");
+  const kind = sentence.slice(found.index! + found[0].length).split(/[ \t]/u).slice(0, 8).join(" ");
   if (!KIND.test(kind)) return null;
-  return plausible(match[1]!);
+  return plausible(sentence.slice(0, found.index!));
 }
 
 /** Words that make a first line a sentence rather than a name. */
