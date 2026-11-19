@@ -417,11 +417,25 @@ that no longer exists or names no server is left out, and a lookup that fails
 leaves the refresh unapplied.
 
 Decided by the user on 19 November 2026: self-declared QA and test projects on
-production accounts are left out too. A project is left out when its name has
-"QA" (in capitals), "test" or "tests" as a whole word, or is just "Testing"
-with at most "project" and a number, or when its own words open by calling it a test or QA project or say
-it is not a real project or was made on staging. Mentions such as "soil
-testing", "attested" or "demo" are not signals.
+production accounts are left out too. The rule was narrowed the same day, after
+a review found that a place name or an ordinary sentence could trip it.
+
+- **By name.** The name leads with "QA" in capitals; or it holds nothing but
+  test words, "project" and numbering, such as "Test project" or "Testing 2";
+  or it carries "test", "tests" or "QA" set apart as a label, in brackets or
+  split off by a dash or colon at either end.
+- **By its own words.** A sentence says only that this is a test or QA project,
+  story or entry; or opens with that label in capitals; or opens by naming an
+  automated QA or QA test project, or a QA story or entry; or says that this is
+  not a real project; or says the entry was made on staging or for testing.
+- **Not signals.** "Test" or "QA" as one word of a longer name, such as a place
+  called Test Valley; a pilot described as "a test project"; a group that says
+  it is not a formal organisation; and "soil testing", "attested" or "demo".
+
+The rule prefers showing a test entry it cannot tell from real work over hiding
+real work. A read-only run over the public list of 1,006 projects on
+19 November found the same 14 under the first rule and the narrowed one: 13 by
+name and 1 by its own words.
 
 - A daily refresh traverses the whole listing. Only a complete traversal, with
   every account looked up, replaces what Weave shows: a failed page, a repeated
