@@ -417,10 +417,24 @@
 @media (hover: hover) {
   .rc-menu-option:hover { background: var(--surface-tint); }
 }
+/* The count line: how much of the list is left, and under it one fact about the whole list. Each
+   keeps set room, a line for the count and a line for the fact, two for the fact on a phone, so
+   the bar is one height loading and loaded and the list under it does not move (DL-108). */
+.rc-filter-bar > .rc-meta { display: grid; }
+.rc-filter-bar > .rc-meta > :not(.rc-visually-hidden) { min-block-size: 1lh; }
+@container (width < 37.5rem) {
+  .rc-filter-bar > .rc-meta > [data-part="note"] { min-block-size: 2lh; }
+}
 /* List end: the foot of a long list. It says how much of the list is on the page and holds Show
    More, which the keyboard uses and which waits once the list has stopped filling in on its own
    (DL-101). It reads from the list's start edge, the count first. */
 .rc-list-end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); min-block-size: var(--control-height); }
+/* On a phone the count and Show More cannot share a row, so the end is two rows of set height,
+   the second kept whether or not there is more to show. Its room is then the same loading, with
+   more to come and at the list's last card (DL-108). */
+@container (width < 37.5rem) {
+  .rc-list-end { display: grid; grid-template-rows: minmax(var(--control-height), auto) var(--control-height); align-items: center; justify-items: start; }
+}
 /* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
    it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
 .rc-menu-head { padding: var(--space-1) var(--space-2) var(--space-2); color: var(--text-secondary); overflow-wrap: anywhere; }

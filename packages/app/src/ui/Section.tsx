@@ -7,15 +7,12 @@ export function Section({
   title,
   action,
   note,
-  band,
   until,
   children,
 }: {
   id: string;
   title: string;
   action?: ReactNode;
-  /** Set apart by a tint that spans the window, as a band across the page. */
-  band?: boolean;
   /** Shown on a phone only, where a wide screen's header holds the same thing. */
   until?: "wide";
   /** One or two sentences that say why the section is here. */
@@ -23,7 +20,7 @@ export function Section({
   children?: ReactNode;
 }) {
   return (
-    <section className="rc-section" data-band={band || undefined} data-until={until} aria-labelledby={id}>
+    <section className="rc-section" data-until={until} aria-labelledby={id}>
       <div className="rc-section-head">
         <Heading level={2} size="section" id={id}>
           {title}

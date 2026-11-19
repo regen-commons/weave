@@ -28,9 +28,10 @@ export function OpportunityCard({
   const fund = FundSchema.parse(programFund(entry.fund, entry.program));
   const access = effectiveAccess(fund);
   const sign = accessSign(access);
+  const funder = entry.program && entry.program.name !== fund.displayName ? fund.displayName : "";
   const deadline = fund.deadlineDate ? deadlineSign(fund.deadlineDate, access === "closed", new Date()) : null;
   return (
-    <Card kind="funding">
+    <Card kind="funding" rows="fixed">
       <p className="rc-eyebrow">
         <Icon name="funding" size="sm" />
         {fundingEyebrow(entry.program)}
@@ -38,9 +39,12 @@ export function OpportunityCard({
       <Title className="rc-card-title">
         <Link href={opportunityHref(entry, routeSearch())}>{entry.program?.name ?? fund.displayName}</Link>
       </Title>
-      {entry.program && entry.program.name !== fund.displayName && (
-        <p className="rc-card-meta">{fund.displayName}</p>
-      )}
+      {/* The funder's line keeps its room on every card, so cards are one height (DL-108). It is
+          empty where the name above is already the funder's, and a long name is cut with its whole
+          self one hover away. */}
+      <p className="rc-card-meta" title={funder || undefined}>
+        {funder}
+      </p>
       {result &&
         (result.thematicFit.score === null ? (
           <p className="rc-meta">Fit not assessed</p>
