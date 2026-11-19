@@ -11,6 +11,7 @@ export interface DraftSnapshot {
   /** Every draft stored on this device, as last read or written. The tab's own draft is in `draft`. */
   drafts: readonly DeviceDraft[];
 }
+const UNREAD = "Device storage could not be read. Any saved draft has not been changed. New words stay in this tab only.";
 const STILL_STORING = "Your latest changes were still being stored, so nothing else was opened. Try again.";
 /** Words not stored yet would be left behind by opening another draft, so the tab says so and stays. */
 const UNSTORED =
@@ -27,6 +28,8 @@ export class DraftController {
   /** The stored version this tab last read or wrote. Null while its draft is not stored. */
   private expected: DraftPin | null = null;
   private writable = false;
+  /** The first read of storage failed, and no later one has succeeded. */
+  private unread = false;
   private loading: Promise<void> | undefined;
   private writing: Promise<void> | undefined;
   private dirty = false;
@@ -65,6 +68,7 @@ export class DraftController {
     if (this.loading) return this.loading;
     this.loading = (async () => {
       try {
+        this.unread = false;
         const named = this.pointer.get();
         const saved = await this.repository.load(named);
         // A tab that started a new initiative and has not typed yet names a draft that is not
@@ -86,12 +90,8 @@ export class DraftController {
         }
         await this.refreshList();
       } catch {
-        this.publish({
-          storage: "memory",
-          ready: true,
-          error:
-            "Device storage could not be read. Any saved draft has not been changed. New words stay in this tab only.",
-        });
+        this.unread = true;
+        this.publish({ storage: "memory", ready: true, error: UNREAD });
       }
     })();
     return this.loading;
@@ -100,7 +100,10 @@ export class DraftController {
     const next = DeviceDraftSchema.parse(update(this.snapshot.draft));
     if (next.revision <= this.snapshot.draft.revision) throw new Error("Draft changes need a new revision");
     this.dirty = true;
-    this.publish({ draft: next, storage: this.writable ? "saving" : "memory" });
+    // Words typed while storage is still being read wait for it quietly. Once the read has
+    // failed they stay in this tab, and the page never shows them without saying so.
+    if (this.writable) this.publish({ draft: next, storage: "saving" });
+    else this.publish({ draft: next, storage: "memory", error: this.unread ? (this.snapshot.error ?? UNREAD) : this.snapshot.error });
     if (this.writable) this.startWrite();
     return next;
   }
@@ -177,7 +180,10 @@ export class DraftController {
     const draft = newDraft();
     this.expected = null;
     this.pointer.set(draft.id);
-    this.publish({ draft, storage: "none", error: null });
+    // A first read that failed is still a failure on the new draft: the notice, Try Again and the
+    // text copy stay, because its words would reach memory only.
+    if (this.writable) this.publish({ draft, storage: "none", error: null });
+    else this.publish({ draft, storage: "memory", error: UNREAD });
     return draft;
   }
   /** Opens one of the device's stored drafts in this tab. Throws when it is no longer stored. */
@@ -297,6 +303,27 @@ export class DraftController {
     await this.repository.save(validated, draftPin(stored));
     this.channel?.post({ kind: "saved", id });
     this.publish({ drafts: this.listed(id, validated) });
+    return true;
+  }
+  /**
+   * Moves one of the device's drafts that this tab is not on into the backups: a working copy
+   * that the account's newer version has just replaced under the card's own ID, so the card is
+   * not left as two drafts. The tab's own draft, one waiting for a save's answer and one that
+   * changed meanwhile are left alone. False when nothing was moved.
+   */
+  async retire(id: string): Promise<boolean> {
+    await this.loaded();
+    if (this.snapshot.draft.id === id || !this.repository.discard) return false;
+    const stored = await this.repository.load(id);
+    if (!stored || stored.account.pending) return false;
+    try {
+      await this.repository.discard(draftPin(stored));
+    } catch (error) {
+      if (error instanceof DraftChanged) return false;
+      throw error;
+    }
+    this.channel?.post({ kind: "removed", id });
+    this.publish({ drafts: this.listed(id, null) });
     return true;
   }
   async settled(): Promise<void> {

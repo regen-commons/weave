@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { ABOUT_LIMIT, DeviceDraftSchema, EMPTY_INITIATIVE, addAnswer, newDraft, type DeviceDraft, type Initiative } from "../src/describe/contracts.ts";
 import {
@@ -202,6 +203,60 @@ test("a draft from the earlier guided conversation opens in the box with every a
   assert.ok(changed.composer.endsWith("We also keep bees."));
   const filled = fillFields(changed, suggest(changed), build).draft;
   assert.equal(fieldsForm(filled).name, "Orchard learning circle");
+});
+
+/**
+ * A draft written by the released build's own functions (commit 6498779), as it sat in the
+ * browser: two sent answers, a change typed into the second, a link typed and not yet added, and
+ * half-typed words in the composer, which that build stored on every keystroke. It has no `mark`
+ * and no `filled`.
+ */
+export const releasedDraft = (): unknown => JSON.parse(readFileSync(new URL("./released-draft.json", import.meta.url), "utf8"));
+
+test("a draft the released build stored opens with every answer, its changed answer, its typed link and its half-typed words, and typing loses none", () => {
+  const stored = releasedDraft() as Record<string, unknown>;
+  assert.equal("mark" in stored, false);
+  assert.equal("filled" in stored, false);
+  const draft = DeviceDraftSchema.parse(stored);
+  assert.equal(draft.turns.length, 2);
+  assert.equal(draft.composer, "We also keep bees and teach");
+  const box = saidText(draft);
+  assert.equal(
+    box,
+    [
+      "We are Orchard learning circle, families restoring an orchard.",
+      "Upper Valley and the river towns, Brazil",
+      "We also keep bees and teach",
+      "https://example.org/orchard",
+    ].join("\n\n"),
+    "the answers as last changed, then the half-typed words, then the link",
+  );
+  // The first keystroke moves everything into the box's own text, once.
+  const typed = changeSaid(draft, `${box}!`);
+  assert.deepEqual([typed.turns, typed.answerEdits, typed.pendingLink], [[], {}, ""]);
+  assert.equal(saidText(typed), `${box}!`, "nothing is shown twice and nothing is gone");
+  for (const part of ["families restoring an orchard", "river towns", "keep bees", "https://example.org/orchard"])
+    assert.ok(typed.composer.includes(part), part);
+  // Talk It Out adds to what the box shows, so it keeps them as well.
+  const talked = changeSaid(draft, [saidText(draft), "Students join us."].join(" "));
+  assert.ok(talked.composer.startsWith("We are Orchard learning circle"));
+  assert.ok(talked.composer.endsWith("Students join us."));
+});
+
+test("earlier answers longer than the box are shown whole, and a change that does not fit is refused with nothing removed", () => {
+  let legacy = addAnswer({ ...newDraft(), mode: "conversation" }, "a".repeat(15000));
+  legacy = addAnswer(legacy, "b".repeat(15000));
+  const box = saidText(legacy);
+  assert.equal(box.length, 30002);
+  assert.throws(() => changeSaid(legacy, box.slice(0, -1)), (error) => error instanceof FieldsProblem && /Nothing has been removed/.test(error.message));
+  assert.equal(legacy.turns.length, 2);
+  // Once it fits, the change is taken.
+  assert.equal(changeSaid(legacy, box.slice(0, 20000)).composer.length, 20000);
+});
+
+test("the box returns typed words exactly, with the spaces and line ends still being typed", () => {
+  const typing = changeSaid(newDraft(), "We grow seeds. \n");
+  assert.equal(saidText(typing), "We grow seeds. \n");
 });
 
 test("structuring stays on the device: keyword rules first, an engine may improve them, and a failure keeps the keyword card", async () => {

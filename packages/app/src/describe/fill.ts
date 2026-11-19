@@ -33,17 +33,32 @@ export function fieldsForm(draft: DeviceDraft): RecordForm {
   return draft.form ?? formFrom(previewFields(draft));
 }
 
+/** As many characters as the box and a stored draft's words hold. */
+export const SAID_LIMIT = 20000;
+const BOX_FULL = "The box holds 20,000 characters. Shorten what is here to change it. Nothing has been removed.";
+
 /**
  * What the box holds: the words the person said or typed. A draft from the earlier guided
- * conversation shows its answers there, so nothing it held is lost.
+ * conversation shows everything it held there, in the order it was given: each sent answer as
+ * the person last changed it, then the words still being typed, which that version stored beside
+ * the answers on every keystroke, then a link typed and not yet added. Nothing it held is lost.
  */
 export function saidText(draft: DeviceDraft): string {
-  return draft.composer || draft.turns.map((turn) => turn.text).join("\n\n");
+  const link = draft.pendingLink.trim();
+  // Words being typed are returned exactly, spaces and line ends included.
+  if (!draft.turns.length && !link) return draft.composer;
+  const answers = draft.turns.map((turn) => draft.answerEdits[turn.id]?.trim() || turn.text);
+  return [...answers, draft.composer, link].filter((part) => part.trim()).join("\n\n");
 }
 
-/** The person changed the box. Earlier conversation answers become its text, so they are kept once. */
+/**
+ * The person changed the box. Everything the earlier conversation held is already in the text
+ * the box showed, so it becomes the box's own words and is kept once.
+ */
 export function changeSaid(draft: DeviceDraft, text: string): DeviceDraft {
-  return revise(draft, { composer: text, turns: [], answerEdits: {} }, true);
+  // Earlier answers can add up to more than the box holds. They stay as they are until the text fits.
+  if (text.length > SAID_LIMIT) throw new FieldsProblem(BOX_FULL);
+  return revise(draft, { composer: text, turns: [], answerEdits: {}, pendingLink: "" }, true);
 }
 
 /** Cuts words to a length at the end of a sentence where there is one, otherwise between words. */

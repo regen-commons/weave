@@ -83,23 +83,33 @@ export function belongsToAnotherAccount(
   return chosenBy.length > 0 && !chosenBy.includes(accountId);
 }
 
-export function saveCommand(draft: DeviceDraft, owner: string) {
+/**
+ * A save was asked for a card that belongs to another account. A card is never copied into
+ * another account (DL-055), so nothing is sent and the card stays as it is on the device.
+ */
+export class AnotherAccountsCard extends Error {
+  constructor() {
+    super("This card belongs to another account, so it was not saved. It stays on this device and opens again when that account signs in.");
+  }
+}
+
+export function saveCommand(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
+  // The refusal is here, in the one place every save builds its command, and not only on the
+  // buttons: a return from sign-in, a retry or a page nobody guarded all pass through it.
+  if (belongsToAnotherAccount(draft, owner, chosenBy)) throw new AnotherAccountsCard();
   const document = accountDocument(draft),
     contentKey = JSON.stringify(document),
     saved = draft.account.saved;
-  const same = saved?.owner === owner;
   const pending = draft.account.pending;
   const binding =
     pending?.owner === owner && pending.contentKey === contentKey
       ? pending
       : {
-          id: same
-            ? saved.id
-            : saved || (pending?.owner && pending.owner !== owner) || draft.account.retired?.includes(draft.id)
-              ? crypto.randomUUID()
-              : draft.id,
+          // Past the refusal, a saved card is this account's own and keeps its ID. A card whose ID
+          // was retired by a deletion gets a new one, so the next save never meets the removed ID.
+          id: saved ? saved.id : draft.account.retired?.includes(draft.id) ? crypto.randomUUID() : draft.id,
           owner,
-          revision: same ? saved.revision : 0,
+          revision: saved ? saved.revision : 0,
           contentKey,
           requestId: crypto.randomUUID(),
         };

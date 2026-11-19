@@ -1,9 +1,11 @@
 /// <reference lib="dom" />
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fakeIndexedDB, installIndexedDB } from "./fake-indexeddb.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
+import { changeSaid, saidText } from "../src/describe/fill.ts";
 import { IndexedDraftRepository } from "../src/describe/indexed-repository.ts";
 import { MemoryDraftRepository, REPLACED_KEPT, draftPin, replacedPrefix } from "../src/describe/repository.ts";
 import { memoryPointer, memoryTabs, sessionPointer } from "../src/describe/tabs.ts";
@@ -44,6 +46,29 @@ test("the single draft of an earlier version moves to its own ID in the upgrade,
   const again = new DraftController(new IndexedDraftRepository());
   await again.initialize();
   assert.equal(again.getSnapshot().draft.composer, "Words after the update");
+});
+
+test("a draft the released build left mid-answer comes through the upgrade with every answer, and the first keystroke stores them all", async t => {
+  // Written by the released build's own functions: sent answers, a changed answer, a typed link
+  // and half-typed words, with no `mark` and no `filled`.
+  const released = JSON.parse(readFileSync(new URL("./released-draft.json", import.meta.url), "utf8")) as Pick<DeviceDraft, "id" | "turns" | "answerEdits" | "pendingLink" | "composer">;
+  const fake = fakeIndexedDB({ drafts: [["current", released]] }, 2);
+  installIndexedDB(t, fake);
+  const controller = new DraftController(new IndexedDraftRepository());
+  await controller.initialize();
+  const moved = fake.snapshot().drafts;
+  assert.deepEqual(moved.map(([key]) => key), [released.id], "under its own ID, and no longer under the single key");
+  const { turns, answerEdits, pendingLink, composer } = moved[0]![1] as DeviceDraft;
+  assert.deepEqual({ turns, answerEdits, pendingLink, composer }, { turns: released.turns, answerEdits: released.answerEdits, pendingLink: released.pendingLink, composer: released.composer }, "every word as the released build wrote it");
+  const box = saidText(controller.getSnapshot().draft);
+  const parts = ["families restoring an orchard", "Upper Valley and the river towns, Brazil", "We also keep bees and teach", "https://example.org/orchard"];
+  for (const part of parts) assert.ok(box.includes(part), `the box shows: ${part}`);
+  controller.change((draft) => changeSaid(draft, `${saidText(draft)} more`));
+  await controller.settled();
+  const stored = fake.snapshot().drafts[0]![1] as DeviceDraft;
+  for (const part of parts) assert.ok(stored.composer.includes(part), `stored after a keystroke: ${part}`);
+  assert.ok(stored.composer.endsWith(" more"));
+  assert.equal(fake.snapshot().drafts.length, 1);
 });
 
 test("an upgrade that fails to commit leaves the earlier database exactly as it was", async t => {
@@ -348,6 +373,54 @@ test("Start An Initiative pressed before storage has answered still starts a new
   assert.equal(memory.drafts.get(stored.id)!.composer, "An initiative already on this device", "the other one is untouched");
 });
 
+test("Start An Initiative after a failed first read keeps the failure on screen, and Try Again stores the new words", async t => {
+  const stored = words("Synthetic words stored before the failure");
+  const repository = new MemoryDraftRepository(stored);
+  const load = repository.load.bind(repository);
+  let failing = true;
+  t.mock.method(repository, "load", async (...args: Parameters<typeof load>) => {
+    if (failing) throw new Error("blocked");
+    return load(...args);
+  });
+  const controller = new DraftController(repository, { pointer: memoryPointer() });
+  await controller.initialize();
+  assert.equal(controller.getSnapshot().storage, "memory");
+  assert.match(controller.getSnapshot().error ?? "", /could not be read/);
+  // Starting a new initiative does not make the failure go away.
+  const started = await controller.startNew();
+  assert.equal(controller.getSnapshot().draft.id, started.id);
+  assert.equal(controller.getSnapshot().storage, "memory", "it is not reported as a clean, empty draft");
+  assert.match(controller.getSnapshot().error ?? "", /could not be read/, "the notice, with Try Again and the text copy, stays");
+  // Words typed now are in this tab only, and the page still says so.
+  controller.change((draft) => words("Synthetic words typed after the failure", draft));
+  await controller.settled();
+  assert.equal(controller.getSnapshot().storage, "memory");
+  assert.ok(controller.getSnapshot().error, "words in memory are never shown without the failure");
+  assert.equal(repository.drafts.size, 1, "nothing was written while storage could not be read");
+  // Try Again reads storage, then stores the new words as a draft of their own beside the old one.
+  failing = false;
+  controller.retry();
+  await idle();
+  await controller.settled();
+  assert.equal(controller.getSnapshot().error, null);
+  assert.equal(controller.getSnapshot().storage, "saved");
+  assert.equal(repository.drafts.get(started.id)?.composer, "Synthetic words typed after the failure");
+  assert.equal(repository.drafts.get(stored.id)?.composer, "Synthetic words stored before the failure");
+});
+
+test("words typed while storage is still being read raise no failure", async () => {
+  const slow = slowReads(new MemoryDraftRepository());
+  const controller = new DraftController(slow.repository, { pointer: memoryPointer() });
+  slow.hold();
+  const loading = controller.initialize();
+  controller.change((draft) => words("Synthetic words typed early", draft));
+  assert.equal(controller.getSnapshot().error, null, "a slow read is not a failed one");
+  slow.release();
+  await loading;
+  await controller.settled();
+  assert.deepEqual([controller.getSnapshot().storage, controller.getSnapshot().error], ["saved", null]);
+});
+
 test("a new initiative survives a reload before its first word, and never falls back to another draft", async () => {
   const stored = words("An initiative already on this device");
   const memory = new MemoryDraftRepository(stored);
@@ -425,4 +498,41 @@ test("a stored draft the tab is not on can be changed by its ID, and one that is
   assert.equal(await controller.amend(here.id, (draft) => words("Changed in place", draft)), true);
   assert.equal(controller.getSnapshot().draft.composer, "Changed in place");
   assert.equal(memory.drafts.get(here.id)!.composer, "Changed in place");
+});
+
+test("a working copy the account's version replaced under another ID goes to the backups, and the list keeps one draft for the card", async t => {
+  const owner = "b1000000-0000-4000-8000-000000000001";
+  const bound = (draft: DeviceDraft, pending = false) => revise(draft, { account: {
+    saved: { id: "b3000000-0000-4000-8000-000000000009", owner, revision: 1, contentKey: "{}" },
+    pending: pending ? { id: "b3000000-0000-4000-8000-000000000009", owner, revision: 1, contentKey: "{}", requestId: crypto.randomUUID() } : null,
+  } });
+  const copy = bound(words("Synthetic working copy under its own ID"));
+  const loaded = revise({ ...words("Synthetic newer version from the account"), id: "b3000000-0000-4000-8000-000000000009" }, {});
+  const fake = fakeIndexedDB({}, 3);
+  installIndexedDB(t, fake);
+  const tabs = memoryTabs();
+  const controller = new DraftController(new IndexedDraftRepository(), { pointer: memoryPointer(), channel: tabs.channel() });
+  await controller.initialize();
+  controller.change(() => copy);
+  await controller.settled();
+  const other = new DraftController(new IndexedDraftRepository(), { pointer: memoryPointer(), channel: tabs.channel() });
+  await other.initialize();
+  // The account's version opens under the card's ID: a second draft, with the copy still beside it.
+  await controller.replace(loaded);
+  assert.deepEqual(controller.getSnapshot().drafts.map((draft) => draft.id).sort(), [copy.id, loaded.id].sort());
+  assert.equal(await controller.retire(loaded.id), false, "never the draft the tab is on");
+  assert.equal(await controller.retire(copy.id), true);
+  await idle();
+  assert.deepEqual(fake.snapshot().drafts.map(([key]) => key), [loaded.id], "one draft for the card");
+  assert.deepEqual(controller.getSnapshot().drafts.map((draft) => draft.id), [loaded.id]);
+  assert.deepEqual(other.getSnapshot().drafts.map((draft) => draft.id), [loaded.id], "the other tab's list follows");
+  const kept = await controller.backups();
+  assert.equal(kept.some((backup) => backup.draft.composer === "Synthetic working copy under its own ID"), true, "the copy is a device backup, words and all");
+  assert.equal(await controller.retire(copy.id), false, "gone already");
+  // A copy still waiting for a save's answer is left where it is.
+  const waiting = bound(words("Synthetic copy waiting for a save"), true);
+  await controller.replace(waiting);
+  await controller.replace(loaded);
+  assert.equal(await controller.retire(waiting.id), false);
+  assert.equal(fake.snapshot().drafts.some(([key]) => key === waiting.id), true);
 });

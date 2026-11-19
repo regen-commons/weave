@@ -3,6 +3,7 @@ import { MAX_FILE_BYTES, revise, type RecordForm } from "../describe/contracts.t
 import { useDraft } from "../describe/use-draft.ts";
 import {
   FieldsProblem,
+  SAID_LIMIT,
   changeSaid,
   continueDescribe,
   detailChips,
@@ -185,7 +186,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
           result: (final, interim) => {
             if (abort.signal.aborted) return;
             const text = [base, final, interim].filter(Boolean).join(" ");
-            if (text.length > 20000) {
+            if (text.length > SAID_LIMIT) {
               failed = true;
               abort.abort();
               setListening(false);
@@ -312,7 +313,14 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                 onStart={() => void talk()}
                 onStop={stop}
                 value={said}
-                onChange={(text) => controller.change((current) => changeSaid(current, text))}
+                onChange={(text) => {
+                  try {
+                    controller.change((current) => changeSaid(current, text));
+                  } catch (error) {
+                    if (!(error instanceof FieldsProblem)) throw error;
+                    setStatus(error.message);
+                  }
+                }}
                 boxLabel={speech.state === "none" ? "A few sentences about your initiative" : "What you said, or type a few sentences"}
                 actionLabel="Fill In The Fields"
                 workingLabel="Stop Filling In"

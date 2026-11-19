@@ -151,6 +151,16 @@ export function YourInitiatives() {
     }
     go(pathTo(cardRoute(controller.getSnapshot().draft)));
   }
+  /**
+   * Opens the account's version of a card in place of this browser's working copy. The loaded
+   * version is stored under the card's own ID, which is usually the copy's ID too, so the copy is
+   * backed up and replaced. A copy kept under another ID would stay beside it as a second draft
+   * of the same card, so it goes to the backups as well.
+   */
+  async function openSavedOver(item: DeviceDraft, saved: SavedCard) {
+    await openCard(saved);
+    if (item.id !== saved.id) await controller.retire(item.id);
+  }
   /** One of this browser's initiatives. The badge says what is missing; a saved one says where it is kept. */
   const draftCard = (item: DeviceDraft, saved: SavedCard | null) => {
     const current = item.id === draft.id;
@@ -165,7 +175,7 @@ export function YourInitiatives() {
           <h3 className="rc-card-title">
             {/* A button like its neighbours, so one card does not take the visited link colour. */}
             <button type="button" disabled={busy}
-              onClick={() => void run(() => (saving === "newer-in-account" && saved ? openCard(saved) : openDraft(item)))}>
+              onClick={() => void run(() => (saving === "newer-in-account" && saved ? openSavedOver(item, saved) : openDraft(item)))}>
               {cardName(item)}
             </button>
           </h3>
@@ -184,7 +194,7 @@ export function YourInitiatives() {
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
                 onClick={() => void run(async () => {
-                  await openCard(saved);
+                  await openSavedOver(item, saved);
                   setMessage("The saved version is open. The copy that was on this device is in Device backups in Settings.");
                 })}>
                 Open Saved Version

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { assertAccount, AccountFailure } from "../src/account/client.ts";
-import { accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, saveCommand } from "../src/account/document.ts";
+import { AnotherAccountsCard, accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, saveCommand } from "../src/account/document.ts";
 import { projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { newDraft, revise, DeviceDraftSchema } from "../src/describe/contracts.ts";
 import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
@@ -56,9 +56,9 @@ test("save retries reuse the same request only for the same owner and checked pa
   assert.deepEqual(saveCommand(pending, owner), first);
   const changed = revise(pending, { confirmed: { ...pending.confirmed!, name: "Changed initiative" } });
   assert.notEqual(saveCommand(changed, owner).command.requestId, first.command.requestId);
-  const alternate = saveCommand(pending, other);
-  assert.notEqual(alternate.command.id, saved.id);
-  assert.equal(alternate.command.expectedRevision, 0);
+  // Another account gets no command at all for it: a card is never copied (DL-055).
+  assert.throws(() => saveCommand(pending, other), AnotherAccountsCard);
+  assert.throws(() => saveCommand(revise(draft, { account: { saved: null, pending: first.binding } }), other), AnotherAccountsCard);
   const initial = revise(draft, { account: { saved: null, pending: null } });
   const create = saveCommand(initial, owner);
   assert.equal(create.command.id, draft.id);

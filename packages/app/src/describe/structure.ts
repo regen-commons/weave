@@ -63,7 +63,7 @@ export async function structureWords(
   },
 ): Promise<Structured> {
   // The box is the one source of words. Earlier conversation answers are read as its text.
-  const source: DeviceDraft = { ...draft, composer: saidText(draft), turns: [], answerEdits: {} };
+  const source: DeviceDraft = { ...draft, composer: saidText(draft), turns: [], answerEdits: {}, pendingLink: "" };
   const started = now();
   const result = await keywords(source, signal);
   signal.throwIfAborted();
