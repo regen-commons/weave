@@ -19,8 +19,9 @@ import { keywordExtract } from "../describe/keyword-client.ts";
 import { startSpeech } from "../describe/speech.ts";
 import { deviceEngines, ledgerRows, structureWords } from "../describe/structure.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
+import { SPEECH_PAUSED, speechMode, speechNotStarted, speechProblem, talksHere } from "../describe/speech-setup.ts";
 import { draftText, previewFields } from "../describe/view.ts";
-import { exampleSpeech, type FixtureContext } from "../fixtures.ts";
+import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext } from "../fixtures.ts";
 import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo } from "../routes.ts";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
@@ -57,7 +58,11 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const social = useSocialFixture();
   const openDoor = useAccountDoor();
   const [language, setLanguage] = useState(navigator.language || "en-US");
-  const speech = useSpeechSetup(language, import.meta.env.DEV && examples ? exampleSpeech(examples.speech) : undefined);
+  const speech = useSpeechSetup(
+    language,
+    import.meta.env.DEV && examples ? exampleSpeech(examples.speech) : undefined,
+    import.meta.env.DEV && examples ? exampleConsent(examples.speech) : undefined,
+  );
   const [listening, setListening] = useState(false);
   const [working, setWorking] = useState(false);
   const [status, setStatus] = useState("");
@@ -167,10 +172,21 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   async function talk() {
     setStatus("");
     setProblem("");
+    const mode = speechMode(speech.state);
+    if (!mode) return;
     const base = saidText(controller.getSnapshot().draft);
     // An example pretends to listen. The words are written here, inside the development-only
     // branch, so no example content reaches the production bundle.
     if (import.meta.env.DEV && fixture) {
+      const outcome = exampleOutcome(examples?.speech ?? "ready");
+      if (outcome === "pause") {
+        setStatus(SPEECH_PAUSED);
+        return;
+      }
+      if (outcome) {
+        setStatus(speechProblem(outcome, mode, speech.touch));
+        return;
+      }
       const said = "We are Orchard learning circle. Families share what they learn about the orchard.";
       setListening(true);
       controller.change((current) => changeSaid(current, [base, said].filter(Boolean).join(" ")));
@@ -182,6 +198,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     let failed = false;
     try {
       mic.current = await startSpeech(
+        mode,
         language,
         {
           result: (final, interim) => {
@@ -196,22 +213,24 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             }
             controller.change((current) => changeSaid(current, text));
           },
-          error: () => {
+          error: (code) => {
             failed = true;
-            setStatus("The microphone could not continue. Your words are still here, and you can type in the box.");
+            setStatus(speechProblem(code, mode, speech.touch));
           },
-          end: () => {
+          end: (requested) => {
             setListening(false);
-            // Stop fills the fields from what was said. A failure leaves the words for the person to check first.
-            if (!failed && !abort.signal.aborted && saidText(controller.getSnapshot().draft).trim()) void fill();
+            if (failed || abort.signal.aborted) return;
+            // Stop fills the fields from what was said. A recognizer that ended by itself after a
+            // pause leaves the words for the person to go on or fill in.
+            if (!requested) setStatus(SPEECH_PAUSED);
+            else if (saidText(controller.getSnapshot().draft).trim()) void fill();
           },
         },
-        undefined,
-        abort.signal,
+        { consent: speech.consent, signal: abort.signal },
       );
     } catch {
       setListening(false);
-      if (!abort.signal.aborted) setStatus("Speech is not ready on this device. You can type in the box.");
+      if (!abort.signal.aborted) setStatus(speechNotStarted(mode));
       speech.check();
     }
   }
@@ -253,7 +272,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const offline = view === "offline" || !navigator.onLine;
   // Talking leads while nothing is written yet. After that Continue is the one filled button.
   const fresh = !said.trim() && !Object.values(form).some((value) => value.trim());
-  const talkLeads = fresh && speech.state === "ready";
+  // The browser's speech service leads only once the person has agreed to it on this device.
+  const talkLeads = fresh && (speech.state === "ready" || (speech.state === "browser" && speech.agreed));
   // The way forward is drawn twice and shown once: in its place on a wide screen, in the dock on a
   // phone (DL-089). The dock is outside the form, so Continue names the form it sends.
   const forward = (from?: "wide") => (
@@ -302,7 +322,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                 Say It In Your Own Words
               </Heading>
               <p>
-                {speech.state === "none"
+                {!talksHere(speech.state)
                   ? "Write a few sentences about what you do and where. Weave fills in the fields below, on this device."
                   : "Talk for a minute about what you do and where, or type it. Weave fills in the fields below, on this device."}
               </p>
@@ -322,7 +342,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                     setStatus(error.message);
                   }
                 }}
-                boxLabel={speech.state === "none" ? "A few sentences about your initiative" : "What you said, or type a few sentences"}
+                boxLabel={!talksHere(speech.state) ? "A few sentences about your initiative" : "What you said, or type a few sentences"}
                 actionLabel="Fill In The Fields"
                 workingLabel="Stop Filling In"
                 working={working}

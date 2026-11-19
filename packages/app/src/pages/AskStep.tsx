@@ -4,10 +4,12 @@ import { revise } from "../describe/contracts.ts";
 import { MAX_FILE_BYTES, type Turn } from "../describe/source-contracts.ts";
 import { startSpeech } from "../describe/speech.ts";
 import type { SpeechSetupStore } from "../describe/speech-setup.ts";
+import type { BrowserSpeechConsent } from "../describe/speech-consent.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
+import { SPEECH_PAUSED, speechMode, speechNotStarted, speechProblem } from "../describe/speech-setup.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText } from "../describe/view.ts";
-import { exampleSpeech, type FixtureContext } from "../fixtures.ts";
+import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext, type SpeechExample } from "../fixtures.ts";
 import {
   ASK_KINDS,
   cardsNote,
@@ -75,6 +77,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   const [working, setWorking] = useState<Record<AskKind, boolean>>({ needs: false, offers: false });
   const waiting = working.needs || working.offers;
   const speech = import.meta.env.DEV && example ? exampleSpeech(example.speech) : undefined;
+  const consent = import.meta.env.DEV && example ? exampleConsent(example.speech) : undefined;
   const setupList = speechSetupList(kind, draft);
   useEffect(() => setBlocked(unblock("needs")), [draft.needs]);
   useEffect(() => setBlocked(unblock("offers")), [draft.offers]);
@@ -142,6 +145,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
                 example={entry === kind ? example : undefined}
                 blocker={blocked[entry]}
                 speech={speech}
+                consent={consent}
+                speechExample={example?.speech}
                 // One list offers the speech setup and says when the browser has no speech; the other stays quiet.
                 hostsSetup={entry === (setupList ?? kind)}
                 onWorking={(value) =>
@@ -169,6 +174,8 @@ function AskSection({
   example,
   blocker,
   speech: speechStore,
+  consent,
+  speechExample = "ready",
   hostsSetup,
   onWorking,
 }: {
@@ -179,6 +186,10 @@ function AskSection({
   blocker?: Blocker;
   /** The example world's speech, or this browser's when it is not given. */
   speech?: SpeechSetupStore;
+  /** The example world's agreement to browser speech, or this browser's when it is not given. */
+  consent?: BrowserSpeechConsent;
+  /** Which example browser the page shows, so an example session can fail the way it would. */
+  speechExample?: SpeechExample;
   /** This list is the one that offers to set up speech for the page. */
   hostsSetup: boolean;
   /** True while this list is making cards or listening, so the page holds Continue. */
@@ -193,7 +204,7 @@ function AskSection({
   const [editorError, setEditorError] = useState("");
   const [busy, setBusy] = useState(false);
   const [language, setLanguage] = useState(navigator.language || "en-US");
-  const speech = useSpeechSetup(language, speechStore);
+  const speech = useSpeechSetup(language, speechStore, consent);
   const [listening, setListening] = useState(false);
   const task = useRef<AbortController | null>(null);
   const mic = useRef<{ stop(): void; dispose(): void } | null>(null);
@@ -365,9 +376,20 @@ function AskSection({
   }
   async function talk() {
     setNotice("");
+    const mode = speechMode(speech.state);
+    if (!mode) return;
     const base = controller.getSnapshot().draft[kind].composer;
     // An example pretends to listen, in a development-only branch that production drops.
     if (import.meta.env.DEV && fixture) {
+      const outcome = exampleOutcome(speechExample);
+      if (outcome === "pause") {
+        setNotice(SPEECH_PAUSED);
+        return;
+      }
+      if (outcome) {
+        setNotice(speechProblem(outcome, mode, speech.touch));
+        return;
+      }
       setListening(true);
       const said = need
         ? "We need tools and volunteers for community planting."
@@ -381,6 +403,7 @@ function AskSection({
     let failed = false;
     try {
       mic.current = await startSpeech(
+        mode,
         language,
         {
           result: (final, interim) => {
@@ -395,22 +418,23 @@ function AskSection({
             }
             update((current) => changeStep(current, { composer: text }));
           },
-          error: () => {
+          error: (code) => {
             failed = true;
-            setNotice("The microphone could not continue. Your words are still here, and you can type in the box.");
+            setNotice(speechProblem(code, mode, speech.touch));
           },
-          end: () => {
+          end: (requested) => {
             setListening(false);
-            if (!failed && !abort.signal.aborted && controller.getSnapshot().draft[kind].composer.trim())
-              void addToList("voice");
+            if (failed || abort.signal.aborted) return;
+            // Stop adds what was said. A recognizer that ended by itself leaves the words in the box.
+            if (!requested) setNotice(SPEECH_PAUSED);
+            else if (controller.getSnapshot().draft[kind].composer.trim()) void addToList("voice");
           },
         },
-        undefined,
-        abort.signal,
+        { consent: speech.consent, signal: abort.signal },
       );
     } catch {
       setListening(false);
-      if (!abort.signal.aborted) setNotice("Speech is not ready on this device. You can type in the box.");
+      if (!abort.signal.aborted) setNotice(speechNotStarted(mode));
       speech.check();
     }
   }

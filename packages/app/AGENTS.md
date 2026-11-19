@@ -14,7 +14,10 @@ explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
 returning); `view` selects Describe states; `intake` selects needs, offers and Your
 initiative examples; `projects=none` gives the example person no Certified project;
 `speech` makes the example browser offer speech setup (`setup`), stall in it (`slow`),
-fail it (`fail`) or have no speech on the device (`none`); `drafts=several` gives the
+fail it (`fail`), have no speech recognition (`none`, or `keyboard` on a touch screen), or
+have only its own speech service, before the agreement (`browser`), after it (`agreed`) and
+stopping each way it can (`denied`, `no-mic`, `network`, `blocked`, `pause`,
+`unsupported`); `drafts=several` gives the
 example browser two more initiatives beside the one on screen; and
 `certified=fail` makes the example Certified refuse to create a project or publish.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
@@ -90,9 +93,12 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - The browser model requires an already available capability and a tap. Local
   speech may also ask the browser to install its own speech pack, from a tap, and
   starts only when the browser reports it available on the device: a
-  browser-managed pack is a local capability under D32. Audio stays on the device,
-  so app-downloaded models and cloud calls stay behind their unavailable adapters
-  until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
+  browser-managed pack is a local capability under D32. Where the browser has no
+  speech on the device, its own speech service may be used, only after the person
+  agrees to a notice that it may send their voice away, and never as a silent
+  fallback (`src/describe/speech-consent.ts`, 19 November 2026). Weave records and
+  uploads no audio, so app-downloaded models and cloud calls stay behind their
+  unavailable adapters until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
   files and pages remain explicitly unread, with original bytes retained.
 - Server code belongs in `@weave/api`. A file in `api/` is a single re-export, and
   the entry test fails on anything else.

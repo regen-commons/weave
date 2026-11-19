@@ -11,6 +11,7 @@ import { parseBundle } from "./funding/catalog.ts";
 import type { TeamAsk } from "./funding/team.ts";
 import type { LocalSpeechOptions, LocalSpeechSession, SpeechConstructor } from "./describe/speech.ts";
 import { speechSetupStore, type SpeechSetupStore } from "./describe/speech-setup.ts";
+import { memoryConsent, type BrowserSpeechConsent } from "./describe/speech-consent.ts";
 /**
  * Where the example card stands: nothing yet, on this device, saved privately, saved in a
  * linked project's team workspace, shared for matching, published, or a signed-in return
@@ -71,11 +72,43 @@ export const DESCRIBE_VIEWS: readonly DescribeView[] = [
   "storage-error",
 ];
 /**
- * How the example browser answers about speech on the device: already set up, set up after a tap,
- * a setup that never finishes, a setup that fails, or no speech on the device at all.
+ * How the example browser answers about speech. On the device: already set up (`ready`), set up
+ * after a tap (`setup`), a setup that never finishes (`slow`) or fails (`fail`). No speech
+ * recognition at all, as in Firefox on Android (`none`), and the same on a touch screen
+ * (`keyboard`). Only the browser's own speech service, as in Safari and Chrome on Android: before
+ * the person agrees (`browser`) and after (`agreed`), and agreed sessions that stop with the
+ * microphone refused (`denied`), no microphone (`no-mic`), no connection (`network`), a service
+ * that will not work here (`blocked`), a pause (`pause`) or a language it does not take
+ * (`unsupported`).
  */
-export type SpeechExample = "ready" | "setup" | "slow" | "fail" | "none";
-export const SPEECH_EXAMPLES: readonly SpeechExample[] = ["ready", "setup", "slow", "fail", "none"];
+export type SpeechExample = (typeof SPEECH_EXAMPLES)[number];
+export const SPEECH_EXAMPLES = [
+  "ready",
+  "setup",
+  "slow",
+  "fail",
+  "none",
+  "keyboard",
+  "browser",
+  "agreed",
+  "denied",
+  "no-mic",
+  "network",
+  "blocked",
+  "pause",
+  "unsupported",
+] as const;
+/** The examples where the browser has only its own speech service, and how an agreed session ends. */
+const BROWSER_EXAMPLES: Partial<Record<SpeechExample, string | null>> = {
+  browser: null,
+  agreed: null,
+  denied: "not-allowed",
+  "no-mic": "audio-capture",
+  network: "network",
+  blocked: "service-not-allowed",
+  pause: "pause",
+  unsupported: "language-not-supported",
+};
 export interface FixtureContext {
   intake: IntakeView;
   describe: DescribeView;
@@ -274,7 +307,7 @@ export function readFixtures(search: string): FixtureContext {
   const describe = DESCRIBE_VIEWS.includes(params.get("view") as DescribeView)
     ? (params.get("view") as DescribeView)
     : "fresh";
-  const speech = params.get("speech") as SpeechExample;
+  const speech = params.get("speech");
   const stateValue = params.get("state");
   const state: ListState =
     stateValue === "empty" ||
@@ -339,7 +372,7 @@ export function readFixtures(search: string): FixtureContext {
       : "off",
     describe,
     // The weak device has no speech, unless an example asks for another answer.
-    speech: SPEECH_EXAMPLES.includes(speech) ? speech : describe === "weak" ? "none" : "ready",
+    speech: SPEECH_EXAMPLES.find((example) => example === speech) ?? (describe === "weak" ? "none" : "ready"),
     state,
     asOf: "2026-11-04",
     initiatives: publicRecords,
@@ -411,10 +444,11 @@ const EXAMPLE_SPEECH_LANGUAGES: readonly string[] = ["en-US", "en-GB", "pt-BR", 
 const EXAMPLE_SETUP_MS = 3000;
 
 /** An invented browser recognizer that answers like Chrome's on-device speech, for one example. */
-function exampleRecognizer(example: SpeechExample): SpeechConstructor {
+function exampleRecognizer(example: SpeechExample): SpeechConstructor | null {
+  if (example === "none" || example === "keyboard") return null;
   const installed = new Set<string>(example === "ready" ? EXAMPLE_SPEECH_LANGUAGES : []);
   const installing = new Set<string>();
-  const known = (language: string) => example !== "none" && EXAMPLE_SPEECH_LANGUAGES.includes(language);
+  const known = (language: string) => EXAMPLE_SPEECH_LANGUAGES.includes(language);
   class ExampleRecognizer implements LocalSpeechSession {
     lang = "";
     continuous = false;
@@ -422,10 +456,14 @@ function exampleRecognizer(example: SpeechExample): SpeechConstructor {
     onresult: LocalSpeechSession["onresult"] = null;
     onerror: LocalSpeechSession["onerror"] = null;
     onend: LocalSpeechSession["onend"] = null;
-    declare processLocally: boolean;
     start() {}
     stop() {}
     abort() {}
+  }
+  // The browser's own speech service only, like Safari's: no on-device question at all.
+  if (example in BROWSER_EXAMPLES) return ExampleRecognizer;
+  class OnDevice extends ExampleRecognizer {
+    declare processLocally: boolean;
     static async available({ langs: [language = ""] }: LocalSpeechOptions) {
       if (!known(language)) return "unavailable";
       return installed.has(language) ? "available" : installing.has(language) ? "downloading" : "downloadable";
@@ -444,8 +482,8 @@ function exampleRecognizer(example: SpeechExample): SpeechConstructor {
       );
     }
   }
-  Object.defineProperty(ExampleRecognizer.prototype, "processLocally", { value: true, writable: true });
-  return ExampleRecognizer;
+  Object.defineProperty(OnDevice.prototype, "processLocally", { value: true, writable: true });
+  return OnDevice;
 }
 
 const exampleSpeechStores: Partial<Record<SpeechExample, SpeechSetupStore>> = {};
@@ -454,7 +492,29 @@ const exampleSpeechStores: Partial<Record<SpeechExample, SpeechSetupStore>> = {}
  * slow example says it is taking a while after five seconds rather than two minutes.
  */
 export function exampleSpeech(example: SpeechExample): SpeechSetupStore {
-  return (exampleSpeechStores[example] ??= speechSetupStore({ speech: exampleRecognizer(example), slowAfter: 5000 }));
+  return (exampleSpeechStores[example] ??= speechSetupStore({
+    speech: exampleRecognizer(example),
+    slowAfter: 5000,
+    ...(example === "keyboard" ? { touch: true } : {}),
+  }));
+}
+
+const exampleConsents: Partial<Record<SpeechExample, BrowserSpeechConsent>> = {};
+/**
+ * The example world's agreement to the browser's speech service, held in memory so an example
+ * never changes this browser's real agreement. `browser` starts without it, so the notice shows;
+ * the other browser examples start agreed, so one press shows how the session ends.
+ */
+export function exampleConsent(example: SpeechExample): BrowserSpeechConsent {
+  return (exampleConsents[example] ??= memoryConsent(example in BROWSER_EXAMPLES && example !== "browser"));
+}
+
+/**
+ * How an example session ends after Talk It Out: as the browser reported (an error code), after
+ * a pause, or null when it listens and hears the example words.
+ */
+export function exampleOutcome(example: SpeechExample): string | null {
+  return BROWSER_EXAMPLES[example] ?? null;
 }
 
 /**
