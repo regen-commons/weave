@@ -8,12 +8,20 @@ export class DraftChanged extends Error {
 }
 /** The target of a removal is not on this device as it was shown. Nothing was removed. */
 export class BackupChanged extends Error {
+  /** Drafts an older tab's storage held newer words for, brought across before the removal stopped. */
+  broughtAcross: string[] = [];
   constructor() {
     super("This backup changed or is no longer on this device. Nothing was removed.");
   }
 }
 /** A removal that did not finish as asked, in words safe to show as they are. */
-export class RemovalNotice extends Error {}
+export class RemovalNotice extends Error {
+  /** Drafts an older tab's storage held newer words for, brought across before the removal stopped. */
+  broughtAcross: string[] = [];
+}
+/** The drafts a removal that failed had already brought across, so the tab can still show them. */
+export const broughtAcross = (error: unknown): string[] =>
+  error instanceof RemovalNotice || error instanceof BackupChanged ? error.broughtAcross : [];
 export interface DraftBackup {
   key: string;
   draft: DeviceDraft;

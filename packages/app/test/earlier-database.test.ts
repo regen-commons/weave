@@ -324,14 +324,19 @@ test("with the other answer, no removal here ever changes the released build's d
 test("a removal that cannot reach the released build's copy removes nothing and can be tried again", async t => {
   const start = words("Synthetic words before the update");
   const fake = withReleased(t, start, [[BACKUP, words("Synthetic earlier backup")]]);
-  const repository = new IndexedDraftRepository();
+  // The removal itself fails, after the look has read the older storage.
+  let failNext = false;
+  const repository = new IndexedDraftRepository({ earlier: { read: readEarlier, remove: (removal, signal) => {
+    if (failNext) { failNext = false; fake.earlier.control.failCommit = true; }
+    return removeFromEarlier(removal, signal);
+  } } });
   await repository.bringAcross();
   const before = { here: fake.snapshot(), there: fake.earlier.snapshot() };
   const [backup] = await repository.backups();
-  fake.earlier.control.failCommit = true;
+  failNext = true;
   await assert.rejects(
     repository.deleteBackup(backup!.key, draftPin(backup!.draft)),
-    (error) => error instanceof RemovalNotice && /Nothing was removed/u.test(error.message),
+    (error) => error instanceof RemovalNotice && /could not be removed\. Nothing was removed/u.test(error.message),
   );
   assert.deepEqual({ here: fake.snapshot(), there: fake.earlier.snapshot() }, before);
   // The pin is still checked before anything is touched in either database.
@@ -429,7 +434,7 @@ test("a look that cannot read the released build's database stops the deletion, 
   const before = { here: fake.snapshot(), there: fake.earlier.snapshot() };
   failing = true;
   const [backup] = await repository.backups();
-  await assert.rejects(repository.deleteBackup(backup!.key, draftPin(backup!.draft)), (error) => error instanceof RemovalNotice && /Nothing was removed/u.test(error.message));
+  await assert.rejects(repository.deleteBackup(backup!.key, draftPin(backup!.draft)), (error) => error instanceof RemovalNotice && /this backup was not removed/u.test(error.message));
   assert.deepEqual({ here: fake.snapshot(), there: fake.earlier.snapshot() }, before);
 });
 
@@ -534,7 +539,7 @@ test("every wait on the released database is bounded: a look gives up, and a del
   await assert.rejects(deafToReads.bringAcross(), /did not answer/u, "a look gives up instead of hanging");
   await assert.rejects(
     deafToReads.deleteBackup(backup!.key, draftPin(backup!.draft)),
-    (error) => error instanceof RemovalNotice && /did not answer/u.test(error.message) && /Nothing was removed/u.test(error.message),
+    (error) => error instanceof RemovalNotice && /could not check/u.test(error.message) && /this backup was not removed/u.test(error.message),
   );
   assert.deepEqual({ here: fake.snapshot(), there: fake.earlier.snapshot() }, before);
   // The controller's look carries on without it, and says nothing.
@@ -547,7 +552,7 @@ test("every wait on the released database is bounded: a look gives up, and a del
   const deafToRemoval = new IndexedDraftRepository({ earlierWait: 10, earlier: { read: readEarlier, remove: () => silent() } });
   await assert.rejects(
     deafToRemoval.deleteBackup(backup!.key, draftPin(backup!.draft)),
-    (error) => error instanceof RemovalNotice && /is still here/u.test(error.message) && !/Nothing was removed/u.test(error.message),
+    (error) => error instanceof RemovalNotice && /is still here/u.test(error.message) && /may or may not have been removed/u.test(error.message) && !/Nothing was removed/u.test(error.message),
   );
   assert.deepEqual(fake.snapshot().backups.map(([key]) => key), [BACKUP]);
 });
@@ -601,7 +606,8 @@ test("words an older tab types between the look and the removal are left there a
   }
 });
 
-test("a version that differs only in its bookkeeping makes no backup, and this build's saved state is kept", async t => {
+test("a save's receipt counts as a difference: whichever version is later stays, and the other is kept as a backup", async t => {
+  // 19 November review: a version that differs only in its card binding must never be dropped.
   const owner = "b1000000-0000-4000-8000-000000000001";
   const start = words("Synthetic words before the update");
   const fake = withReleased(t, start);
@@ -609,17 +615,14 @@ test("a version that differs only in its bookkeeping makes no backup, and this b
   await controller.initialize();
   // A save's receipt changes the draft here without a word typed.
   await controller.amend(start.id, (draft) => revise(draft, { account: { saved: { id: start.id, owner, revision: 1, contentKey: "{}" }, pending: null } }));
-  // The older tab changes its own copy the same way, later, with the same words.
+  // The older tab writes the same words later, with no receipt: it never saw the save.
   olderTabWrites(fake, { ...at(start, "2099-01-01T00:00:00.000Z", start.composer), inputVersion: start.inputVersion });
   await controller.lookAgain();
-  assert.deepEqual(backupsHere(fake), [], "the two hold the same words, so there is nothing to keep twice");
-  assert.equal(draftsHere(fake)[0]![1].account.saved?.owner, owner, "the receipt this build holds is not replaced");
+  const kept = backupsHere(fake);
+  assert.equal(kept.length, 1, "the version with the receipt is not dropped");
+  assert.equal(kept[0]![1].account.saved?.owner, owner);
   await controller.lookAgain();
-  assert.deepEqual(backupsHere(fake), []);
-  // A real difference in words is still kept.
-  olderTabWrites(fake, at(at(start, "2099-01-01T00:00:00.000Z", start.composer), "2099-01-01T00:00:09.000Z", "Synthetic different words from the older tab"));
-  await controller.lookAgain();
-  assert.equal(backupsHere(fake).length, 1);
+  assert.equal(backupsHere(fake).length, 1, "and it is kept once");
 });
 
 test("words typed while the first read is still waiting keep the tab on them when the older database answers", async t => {
@@ -640,4 +643,116 @@ test("words typed while the first read is still waiting keep the tab on them whe
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(controller.getSnapshot().draft.composer, "Synthetic words typed during the wait", "the late answer does not move the tab to another draft");
   assert.equal(draftsHere(fake).length, 3);
+});
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/** The released draft as that build stores it: no `mark`, keys in its own order. */
+const releasedShape = () => releasedDraft() as unknown as Record<string, unknown> & DeviceDraft;
+
+test("a version the released build wrote with the same words makes no backup, in the exact shape that build stores", async t => {
+  const released = releasedShape();
+  assert.equal("mark" in released, false);
+  const fake = withReleased(t, released);
+  const controller = tab();
+  await controller.initialize();
+  // This build stores the same words again under new bookkeeping, as loading the same card does.
+  controller.change((draft) => revise(draft, {}, true));
+  await controller.settled();
+  // The older tab does the same: the same words, a later revision and time, and still no mark.
+  olderTabWrites(fake, { ...released, revision: released.revision + 1, updatedAt: "2099-01-01T00:00:00.000Z" } as DeviceDraft);
+  await controller.lookAgain();
+  assert.deepEqual(backupsHere(fake), [], "nothing differs, so nothing is kept twice");
+});
+
+test("a version that differs only in its card binding is never dropped: the later one wins and the other is kept", async t => {
+  const owner = "b1000000-0000-4000-8000-000000000001", card = "b3000000-0000-4000-8000-000000000009";
+  const released = releasedShape();
+  const fake = withReleased(t, { ...released, account: { saved: { id: card, owner, revision: 1, contentKey: "{}" }, pending: null } });
+  const controller = tab();
+  await controller.initialize();
+  controller.change((draft) => revise(draft, {}, true));
+  await controller.settled();
+  // The older tab deleted the saved card: the same words, no binding, and the card's ID retired.
+  olderTabWrites(fake, { ...released, revision: released.revision + 2, updatedAt: "2099-01-01T00:00:00.000Z", account: { saved: null, pending: null, retired: [card] } } as DeviceDraft);
+  await controller.lookAgain();
+  const stored = draftsHere(fake)[0]![1];
+  assert.equal(stored.account.saved, null, "the next Save does not target the deleted card");
+  assert.deepEqual(stored.account.retired, [card]);
+  const kept = backupsHere(fake);
+  assert.equal(kept.length, 1);
+  assert.ok(kept[0]![0].startsWith(betweenBuildsPrefix(released.id)));
+  assert.equal(kept[0]![1].account.saved?.id, card, "this build's version, with its binding, is kept");
+});
+
+test("a deletion has one bound in all, and once it fires the message says only what is certain", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start, [[BACKUP, words("Synthetic earlier backup")]]);
+  await new IndexedDraftRepository().bringAcross();
+  const [backup] = await new IndexedDraftRepository().backups();
+  // A slow look that uses most of the bound, then a removal that does not answer in time.
+  const repository = new IndexedDraftRepository({ earlierWait: 200, earlier: {
+    read: async () => { await sleep(150); return readEarlier(); },
+    remove: async (removal, signal) => { await sleep(120); return removeFromEarlier(removal, signal); },
+  } });
+  const started = performance.now();
+  await assert.rejects(
+    repository.deleteBackup(backup!.key, draftPin(backup!.draft)),
+    (error) => error instanceof RemovalNotice && /may or may not have been removed/u.test(error.message) && /is still here/u.test(error.message),
+  );
+  assert.ok(performance.now() - started < 300, "one bound for the whole deletion, not one for each step");
+  // The late removal is called off, so nothing contradicts what was said.
+  await sleep(150);
+  assert.deepEqual(fake.earlier.snapshot().backups.map(([key]) => key), [BACKUP], "the earlier copy is still there");
+  assert.deepEqual(fake.snapshot().backups.map(([key]) => key), [BACKUP], "and so is this one");
+});
+
+test("words a deletion brought across are shown even when the deletion then fails", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start, [[BACKUP, words("Synthetic earlier backup")]]);
+  const repository = new IndexedDraftRepository({ earlier: { read: readEarlier, remove: async () => { throw new Error("blocked"); } } });
+  const controller = new DraftController(repository, { pointer: memoryPointer() });
+  await controller.initialize();
+  olderTabWrites(fake, at(start, "2099-01-01T00:00:00.000Z", "Synthetic words the older tab typed"));
+  const backup = (await controller.backups()).find((item) => item.key === BACKUP)!;
+  await assert.rejects(controller.deleteBackup(backup), RemovalNotice);
+  assert.equal(controller.getSnapshot().draft.composer, "Synthetic words the older tab typed", "the open tab shows them");
+});
+
+test("a tab still showing the old version that writes over the older tab's words keeps them as a between-builds backup", async t => {
+  const start = words("Synthetic words before the update");
+  const fake = withReleased(t, start);
+  const showing = tab(), looking = tab();
+  await showing.initialize();
+  await looking.initialize();
+  olderTabWrites(fake, at(start, "2099-01-01T00:00:00.000Z", "Synthetic words the older tab typed"));
+  // Another tab of this build brings them across; this one is not told and still shows the old words.
+  await looking.lookAgain();
+  showing.change((draft) => words("Synthetic words typed in the tab that was not told", draft));
+  await showing.settled();
+  const kept = backupsHere(fake);
+  assert.equal(kept.length, 1);
+  assert.ok(kept[0]![0].startsWith(betweenBuildsPrefix(start.id)), `kept outside the cap, not as ${kept[0]![0].slice(0, 9)}`);
+  assert.equal(kept[0]![1].composer, "Synthetic words the older tab typed");
+});
+
+test("after the earlier copy is gone, a failure here says so and does not say that nothing was removed", async t => {
+  for (const failure of ["the last write fails", "the backup changed meanwhile"] as const) {
+    const start = words("Synthetic words before the update");
+    const fake = withReleased(t, start, [[BACKUP, words("Synthetic earlier backup")]]);
+    await new IndexedDraftRepository().bringAcross();
+    const [backup] = await new IndexedDraftRepository().backups();
+    const repository = new IndexedDraftRepository({ earlier: { read: readEarlier, remove: async (removal, signal) => {
+      const done = await removeFromEarlier(removal, signal);
+      if (failure === "the last write fails") fake.control.failCommit = true;
+      else fake.stores.backups!.set(BACKUP, words("Synthetic backup changed meanwhile"));
+      return done;
+    } } });
+    await assert.rejects(repository.deleteBackup(backup!.key, draftPin(backup!.draft)), (error) => {
+      assert.ok(error instanceof RemovalNotice, failure);
+      assert.doesNotMatch(error.message, /Nothing was removed/u, failure);
+      assert.match(error.message, /copy in the earlier storage on this device was removed/u, failure);
+      return true;
+    });
+    assert.deepEqual(fake.earlier.snapshot().backups, [], "its copy there is gone, as the message says");
+  }
 });

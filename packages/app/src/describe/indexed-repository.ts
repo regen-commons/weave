@@ -51,12 +51,33 @@ class Unanswered extends Error {
   }
 }
 /**
- * The same words, files and card, whatever the bookkeeping around them says. A save's receipt, or
- * the same account card loaded in both builds, changes a draft's revision without changing a word.
+ * The keys that are only bookkeeping: when and how often a draft was written, its mark, and the
+ * note of how the last fill ran. Everything else is content. That includes the card binding
+ * (saved, pending, retired), because dropping a version that differs only there would leave a
+ * Save aimed at a card the other tab deleted, and `runs`, the record of what the assistant did,
+ * which the person can read in Settings.
  */
-function sameContent(a: DeviceDraft, b: DeviceDraft): boolean {
+const BOOKKEEPING = new Set(["version", "revision", "inputVersion", "updatedAt", "mark", "proposalVersion", "lastBuild"]);
+/** A value as plain data in one order: keys sorted, absent and undefined alike, a file as its name, type and size. */
+function canonical(value: unknown): unknown {
+  if (value instanceof Blob) return { blob: value.size, type: value.type };
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.keys(value)
+        .filter((key) => (value as Record<string, unknown>)[key] !== undefined)
+        .sort()
+        .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
+    );
+  return value;
+}
+/**
+ * The same words, files, card binding and assistant record, whatever the bookkeeping says. It does
+ * not depend on the order of keys, which differs between the two builds' stored drafts.
+ */
+export function sameContent(a: DeviceDraft, b: DeviceDraft): boolean {
   const content = (draft: DeviceDraft) =>
-    JSON.stringify({ ...draft, revision: 0, inputVersion: 0, proposalVersion: null, updatedAt: "", mark: "", account: null, runs: [], lastBuild: null });
+    JSON.stringify(canonical(Object.fromEntries(Object.entries(draft).filter(([key]) => !BOOKKEEPING.has(key)))));
   return content(a) === content(b);
 }
 
@@ -91,10 +112,12 @@ export class IndexedDraftRepository implements DraftRepository {
    * on it without limit: a look gives up and is tried again later, and a removal says what it
    * could not do.
    */
-  private answered<T>(work: Promise<T>): Promise<T> {
+  private answered<T>(work: Promise<T>, deadline = Date.now() + this.earlierWait, late?: () => void): Promise<T> {
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const late = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Unanswered()), this.earlierWait); });
-    return Promise.race([work, late]).finally(() => clearTimeout(timer));
+    const over = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => { late?.(); reject(new Unanswered()); }, Math.max(0, deadline - Date.now()));
+    });
+    return Promise.race([work, over]).finally(() => clearTimeout(timer));
   }
   private open(): Promise<IDBDatabase> {
     if (!this.connection)
@@ -150,8 +173,8 @@ export class IndexedDraftRepository implements DraftRepository {
     return (await this.copy()).changed;
   }
   /** The copy itself. `backups` counts what it kept as a device backup: a version of the older tab's that lost, or a backup that tab made. */
-  private async copy(): Promise<{ changed: string[]; backups: number }> {
-    const earlier = await this.answered(this.earlier.read());
+  private async copy(deadline?: number): Promise<{ changed: string[]; backups: number }> {
+    const earlier = await this.answered(this.earlier.read(), deadline);
     if (!earlier || (!earlier.drafts.length && !earlier.backups.length)) return { changed: [], backups: 0 };
     const db = await this.open();
     return new Promise((resolve, reject) => {
@@ -324,52 +347,79 @@ export class IndexedDraftRepository implements DraftRepository {
   }
   async deleteBackup(key: string, expected: DraftPin): Promise<DeviceRemoval> {
     const older = { drafts: [] as string[], backups: 0, waiting: false };
-    if (this.removeEarlierCopy) {
-      // A tab of the released build may have typed since the last look. Its words come across
-      // first, so nothing this build has not copied is ever deleted there. Nothing has been
-      // changed anywhere if this fails, and the message says so.
-      try {
-        const found = await this.copy();
-        older.drafts.push(...found.changed);
-        older.backups += found.backups;
-      } catch (error) {
-        throw new RemovalNotice(
-          error instanceof Unanswered
-            ? "The earlier storage on this device did not answer, so it could not be checked. Nothing was removed. Try again."
-            : "The earlier storage on this device could not be checked. Nothing was removed. Try again.",
-        );
-      }
-      const state = await this.remainsWithout(key, expected);
-      if (!state) throw new BackupChanged();
-      // The released build's copy goes before this one, so a failure there leaves this backup in
-      // place to try again. Its draft goes too once nothing of the initiative is kept here, and
-      // only at the version this build has seen.
-      let newer = false;
-      try {
-        ({ newer } = await this.answered(this.earlier.remove({ backupKey: key, draft: state.remains ? null : { id: expected.id, seen: state.seen } })));
-      } catch (error) {
-        // A removal that failed removed nothing, because it is one transaction. One that did not
-        // answer may still finish, so the message does not say that nothing was removed.
-        throw new RemovalNotice(
-          error instanceof Unanswered
-            ? "The earlier storage on this device did not confirm that its copy was removed. This backup is still here. Try again."
-            : "An earlier copy on this device could not be removed. Nothing was removed. Try again.",
-        );
-      }
-      // Typed in between the look and the removal: left as it is there, and brought across. If
-      // it cannot be read now, the removal still finishes, since the person asked for it and
-      // those words are untouched where the older tab stored them. The result says they wait.
-      if (newer) {
+    // What happened in the older tab's storage, so every message below says only what is known.
+    let removedThere = false;
+    try {
+      if (this.removeEarlierCopy) {
+        // One bound for everything the deletion asks of the older storage, not one for each step.
+        const deadline = Date.now() + this.earlierWait;
+        // A tab of the released build may have typed since the last look. Its words come across
+        // first, so nothing this build has not copied is ever deleted there.
         try {
-          const found = await this.copy();
+          const found = await this.copy(deadline);
           older.drafts.push(...found.changed);
           older.backups += found.backups;
         } catch {
-          older.waiting = true;
+          throw new RemovalNotice("Weave could not check the earlier storage on this device, so this backup was not removed. Try again.");
+        }
+        const state = await this.remainsWithout(key, expected);
+        if (!state) throw new BackupChanged();
+        // The released build's copy goes before this one, so a failure there leaves this backup in
+        // place to try again. Its draft goes too once nothing of the initiative is kept here, and
+        // only at the version this build has seen. When the bound is reached first the removal is
+        // called off, so a late commit cannot happen after the message below is shown, except one
+        // already under way, which the message allows for.
+        const stop = new AbortController();
+        let newer = false;
+        try {
+          ({ newer } = await this.answered(
+            this.earlier.remove({ backupKey: key, draft: state.remains ? null : { id: expected.id, seen: state.seen } }, stop.signal),
+            deadline,
+            () => stop.abort(new Unanswered()),
+          ));
+          removedThere = true;
+        } catch (error) {
+          throw new RemovalNotice(
+            error instanceof Unanswered
+              ? "The earlier storage on this device did not answer in time. This backup is still here. Its copy there may or may not have been removed. Try again."
+              : "An earlier copy on this device could not be removed. Nothing was removed. Try again.",
+          );
+        }
+        // Typed in between the look and the removal: left as it is there, and brought across. If
+        // it cannot be read now, the removal still finishes, since the person asked for it and
+        // those words are untouched where the older tab stored them. The result says they wait.
+        if (newer) {
+          try {
+            const found = await this.copy(Math.max(deadline, Date.now() + this.earlierWait / 4));
+            older.drafts.push(...found.changed);
+            older.backups += found.backups;
+          } catch {
+            older.waiting = true;
+          }
         }
       }
+      const found = older.drafts.length > 0 || older.backups > 0 || older.waiting;
+      const kept = await this.removeBackupHere(key, expected);
+      return { removed: [key], kept, ...(found ? { older: { ...older, drafts: [...new Set(older.drafts)] } } : {}) };
+    } catch (error) {
+      // The copy in the older storage is gone, so "nothing was removed" would be untrue.
+      const stopped =
+        removedThere && !(error instanceof RemovalNotice && error.message.includes("copy in the earlier storage"))
+          ? new RemovalNotice(
+              error instanceof BackupChanged
+                ? "Its copy in the earlier storage on this device was removed, but this backup changed meanwhile, so it was kept. Check it and try again."
+                : "Its copy in the earlier storage on this device was removed, but this backup could not be. It is still here. Try again.",
+            )
+          : error instanceof RemovalNotice || error instanceof BackupChanged
+            ? error
+            : new RemovalNotice("This device could not finish the removal. This backup is still here. Try again.");
+      // What came across before the removal stopped is shown all the same.
+      stopped.broughtAcross = [...new Set(older.drafts)];
+      throw stopped;
     }
-    const found = older.drafts.length > 0 || older.backups > 0 || older.waiting;
+  }
+  /** Removes one backup from this build's storage, only if its key holds exactly the pinned draft. Returns how many remain. */
+  private async removeBackupHere(key: string, expected: DraftPin): Promise<number> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction("backups", "readwrite");
@@ -387,7 +437,7 @@ export class IndexedDraftRepository implements DraftRepository {
         const count = store.count();
         count.onsuccess = () => { kept = count.result; };
       };
-      transaction.oncomplete = () => resolve({ removed: [key], kept, ...(found ? { older: { ...older, drafts: [...new Set(older.drafts)] } } : {}) });
+      transaction.oncomplete = () => resolve(kept);
       transaction.onerror = transaction.onabort = () =>
         reject(changed ? new BackupChanged() : new RemovalNotice("This device could not remove the backup. Nothing was removed."));
     });
@@ -459,8 +509,14 @@ export class IndexedDraftRepository implements DraftRepository {
         if (current && mode.opening) backups.put(current.data, backupKey());
         else if (current && !mode.opening && !(mode.expected && pinned(current.data, mode.expected))) {
           const prefix = replacedPrefix(validated.id);
-          const keys = backups.getAllKeys();
-          keys.onsuccess = () => {
+          const keys = backups.getAllKeys(), copied = transaction.objectStore("meta").get(COPIED);
+          copied.onsuccess = () => {
+            // The version being replaced came from an older tab of the released build, which never
+            // takes this build's edits: it is kept outside the cap, as every between-builds version is.
+            if (sameVersion(current.data, seenRecord(copied.result)[validated.id])) {
+              backups.put(current.data, betweenBuildsKey(validated.id));
+              return;
+            }
             // Keys sort by their time, so the first are the oldest.
             const earlier = keys.result.map(String).filter((key) => key.startsWith(prefix)).sort();
             for (const key of earlier.slice(0, Math.max(0, earlier.length - (REPLACED_KEPT - 1)))) backups.delete(key);

@@ -1,5 +1,5 @@
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "./contracts.ts";
-import { DraftChanged, draftPin, pinned, RemovalNotice, type DeviceRemoval, type DraftBackup, type DraftPin, type DraftRepository } from "./repository.ts";
+import { broughtAcross, DraftChanged, draftPin, pinned, RemovalNotice, type DeviceRemoval, type DraftBackup, type DraftPin, type DraftRepository } from "./repository.ts";
 import { memoryPointer, type DraftChannel, type DraftMessage, type DraftPointer } from "./tabs.ts";
 export type DeviceStorage = "loading" | "none" | "saving" | "saved" | "memory";
 export interface DraftSnapshot {
@@ -322,12 +322,16 @@ export class DraftController {
   /** Removes one backup for good. Every draft and every other backup stay. */
   async deleteBackup(backup: DraftBackup): Promise<DeviceRemoval> {
     if (!this.repository.deleteBackup) throw new RemovalNotice("This device cannot remove backups. Nothing was removed.");
-    const result = await this.repository.deleteBackup(backup.key, draftPin(backup.draft));
-    // The removal looked at an older tab's storage first. What it found there is in the list now.
-    for (const id of result.older?.drafts ?? []) {
-      this.channel?.post({ kind: "saved", id });
-      await this.heard({ kind: "saved", id });
+    let result: DeviceRemoval;
+    try {
+      result = await this.repository.deleteBackup(backup.key, draftPin(backup.draft));
+    } catch (error) {
+      // What the removal brought across before it stopped is shown all the same.
+      await this.announce(broughtAcross(error));
+      throw error;
     }
+    // The removal looked at an older tab's storage first. What it found there is in the list now.
+    await this.announce(result.older?.drafts ?? []);
     return result;
   }
   /**
@@ -408,6 +412,13 @@ export class DraftController {
     this.channel?.post({ kind: "removed", id });
     this.publish({ drafts: this.listed(id, null) });
     return true;
+  }
+  /** Tells this tab and the others that these drafts changed in storage. */
+  private async announce(ids: readonly string[]): Promise<void> {
+    for (const id of ids) {
+      this.channel?.post({ kind: "saved", id });
+      await this.heard({ kind: "saved", id });
+    }
   }
   async settled(): Promise<void> {
     await this.writing;

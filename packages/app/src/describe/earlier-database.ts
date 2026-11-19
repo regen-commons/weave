@@ -111,17 +111,24 @@ export interface SeenVersion {
  * says so, for the caller to bring across. One transaction, so it removes all of it or none. A
  * database that is not there holds nothing to remove.
  */
-export async function removeFromEarlier(removal: {
-  backupKey: string;
-  draft: { id: string; seen: SeenVersion | undefined } | null;
-}): Promise<{ newer: boolean }> {
+export async function removeFromEarlier(
+  removal: { backupKey: string; draft: { id: string; seen: SeenVersion | undefined } | null },
+  /** Calls the removal off. Until it commits nothing is removed; after, it has happened. */
+  signal?: AbortSignal,
+): Promise<{ newer: boolean }> {
+  signal?.throwIfAborted();
   const db = await openEarlier();
   if (!db) return { newer: false };
   try {
+    signal?.throwIfAborted();
     const stores = present(db).filter((name) => name !== "meta");
     if (!stores.length) return { newer: false };
     return await new Promise<{ newer: boolean }>((resolve, reject) => {
       const transaction = db.transaction(stores, "readwrite");
+      const stop = () => {
+        try { transaction.abort(); } catch { /* It committed already: the removal happened. */ }
+      };
+      signal?.addEventListener("abort", stop, { once: true });
       let newer = false;
       if (stores.includes("backups")) transaction.objectStore("backups").delete(removal.backupKey);
       if (removal.draft !== null && stores.includes("drafts")) {
@@ -138,8 +145,11 @@ export async function removeFromEarlier(removal: {
             else newer = true;
           });
       }
-      transaction.oncomplete = () => resolve({ newer });
-      transaction.onerror = transaction.onabort = () => reject(new Error("The earlier device storage could not be changed."));
+      transaction.oncomplete = () => { signal?.removeEventListener("abort", stop); resolve({ newer }); };
+      transaction.onerror = transaction.onabort = () => {
+        signal?.removeEventListener("abort", stop);
+        reject(signal?.aborted ? signal.reason : new Error("The earlier device storage could not be changed."));
+      };
     });
   } finally {
     db.close();
