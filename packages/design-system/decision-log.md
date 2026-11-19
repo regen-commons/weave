@@ -328,3 +328,238 @@ remain proposed.
 ## DL-076: Voice input sets up the browser's own speech
 
 **Status:** proposed, 15 November 2026, from the go-live work, after the user decided that day that audio stays on the device. Where the browser can recognize a language on the device but has not set it up for Weave, Voice input offers Set up speech on this device in Speak's place. The tap asks the browser to install its own speech pack ([Browser speech packs](../../docs/platform/open-decisions.md#browser-speech-packs-15-november-2026)); Weave downloads nothing, and no audio leaves the device. One button stays in place from Set up, through Setting up speech, which is busy and keeps the focus, to Speak, so a keyboard user never loses their place. Setup is always secondary: Continue keeps the primary until Speak works, and Talk it through instead stays. The browser reports no progress, so the words say setup is under way, say it again after two minutes, and say plainly when it failed, with the same button to try again. The needs and offers page offers setup once, in the list the route opened unless that list is full. A language without speech keeps its language choice where it was picked, so another can be chosen. Where the browser has no speech on the device, as in Brave 156, Voice input does not show at all. No new classes.
+
+## DL-077: A large desktop gets a wider page and four cards across
+
+**Status:** user decision from manual QA, 18 November 2026. On a large desktop the page stopped at 1120 px and left the rest of the window empty. From 1600 px the page, the app bar and the footer widen to `--page-width-wide` (1440 px), which holds four cards of `--card-min-width` across. Card grids keep their column width when a row is short, so one card is never stretched across the page, and Home's previews show whole rows only: three funding cards and six initiatives, or four and eight on a large desktop. Sections of a page sit 40 px apart on a phone, 56 on a wide screen and 80 on a large desktop. A button stacked by a layout keeps its own width, as it does in an action bar.
+
+## DL-078: The mycelium lies behind every page, and every page fills the window
+
+**Status:** user decision from manual QA, 18 November 2026. Widens DL-053 and DL-071, which kept the mycelium to Home and doorways, and replaces the app dialect's "no canvas on task screens". The page body, everything between the app bar and the footer, is at least as tall as the window under the bar, so a short or loading page fills the screen and the footer starts below it. One canvas lies behind the whole page body on every page and outlives the page, so it grows once when the app opens and then rests. Cards, fields and notices cover the threads; words set on the page have them behind at the quieter strength DL-071 set. The paper grain keeps its own rule: Home's hero and doorways only, never behind inputs or rows. A doorway now sits in the middle of the window.
+
+## DL-079: The app header has a light and dark switch on a wide screen
+
+**Status:** user decision from manual QA, 18 November 2026. Reverses the "no header toggle" rule in DESIGN.md, the app dialect and the app guide. A wide screen's header shows one Icon button that changes between light and dark at once. It shows the theme it changes to, a moon in light and a sun in dark, and says so in words for assistive technology. Choosing the theme the system already has goes back to following the system, so the switch never pins a theme by accident. Settings keeps the full choice, with System, and the two stay in step. A phone's header has no room for it and keeps the gear that opens Settings.
+
+## DL-080: A wide screen shows breadcrumbs, and the back link is a phone's
+
+**Status:** user decision from manual QA, 18 November 2026. Narrows DL-059 and DL-070, which put the way back in the logo's place at every width. On a phone a page that is not a tab still shows the Back link at the start of the app bar. From 900 px the app bar keeps the logo and the sections on every page, and the page shows Breadcrumbs above its title: the pages above it from the route table, then the page itself. The trail follows the structure, not the way the person came, so it is the same on every visit. An eyebrow that only repeats the trail leaves with it in view.
+
+## DL-081: Every list opens the same way and narrows as you type
+
+**Status:** user decision from manual QA, 18 November 2026. Extends DL-061. Funding and all three forms of Initiatives (the public project list, the starter list of public sources and the example list) open with the page's name, one line that says what the list is for, then the same Filter bar in the same place. The list narrows as a person types, so the bar's search has no button; only Home's search, which leads to another page, keeps one. A search that asks the server waits a moment after the last letter and keeps the last results on screen until the next arrive. A list shows only the filters its data can answer: the public project list has search alone, and the starter list filters on kind of support and on what the source lists. Facts about the whole list, such as its source and when it was checked, follow the count, so nothing above the list comes and goes. While a list loads, the bar is already there and card skeletons hold the grid.
+
+## DL-082: A press outside closes every dialog
+
+**Status:** user decision from manual QA, 18 November 2026. Reverses the part of DL-056 that kept a task open under a press outside. Every dialog, a task included, closes on a press outside or Escape, and the focus returns to what opened it. A task whose work is under way, such as a save or a deletion, asks to stay open until it finishes and says why. A press that starts inside a dialog and ends outside it closes nothing.
+
+## DL-083: The explanation of Certified opens in its own dialog
+
+**Status:** user decision from manual QA, 18 November 2026. The explanation was a disclosure that opened in place and pushed the sign-in button down. It is now a quiet button, What is Certified?, that opens an information dialog, also over the account door. Its copy says what Weave does today: Certified handles the email and the code, Weave learns who the person is and keeps no email address, and reading projects and groups takes a separate permission. The account door for a signed-out person is the sign-in offer alone, with Not now; saved cards and device backups stay in Settings. A page that has already said why to sign in goes straight to Certified from its own button.
+
+## DL-084: Settings is a card a group, with the name beside the controls on a wide screen
+
+**Status:** user decision from manual QA, 18 November 2026. Settings was one narrow column at the start of a wide page. Each group is now a Card: its name and one line about it sit beside its controls from 900 px and above them on a phone. Device backups have their own group and list as compact rows, the name, when it last changed and Restore and Delete, with the newest four shown and the rest one press away. Restoring and deleting each ask first in a dialog that names the backup.
+
+## DL-085: The second pass over the manual QA
+
+**Status:** user decision from a second pass over the manual QA, 18 November 2026. It finishes DL-077 to DL-084 where the first pass left the same problem standing somewhere else.
+
+A record page, Your initiative or a team workspace, keeps Saving and sharing beside the whole page: partners and funding sit under the card in the same column, the panel stays under the app bar to the end, and the wheel moves the page over it. The column takes the rest of the width, so needs and offers sit side by side where both fit, and the panel sits beside the column, not at the far edge of a large desktop. Settings keeps a prose column and a form column's width at any size (narrows DL-084).
+
+Words and controls with no card of their own, the fields and lists of the intake steps and the side panel, sit on a Panel on a wide screen, so the mycelium of DL-078 never runs through a label or a hint. A phone, where the mycelium under the one column is at its quietest, is unchanged.
+
+Every page, list and sheet that waits for content holds its shape with a Skeleton, and says what it is waiting for to assistive technology alone (extends DL-081). Progress on a press is never a new line of text that pushes the page down. A question that needs an answer before something is replaced or withdrawn, a new card, loading a saved card, withdrawing from matching, is asked in a dialog (extends DL-082).
+
+Sign in is one press everywhere, the app bar included: it goes to Certified and returns to the same page, and a failure opens the account dialog, which says what went wrong (extends DL-083). The pressed button keeps its label, colours and width and shows a spinner in the label's place.
+
+The steps of describing an initiative show the step bar and no breadcrumbs: they are a sequence, not pages inside one another (narrows DL-080). On a wide screen the first step shows the card filling in beside the fields, and Speak is a large button of its own width.
+
+Every link that leaves Weave goes through one component, which opens a new tab and says so to assistive technology. Every card in a list answers the pointer, and a partner's card keeps its initiative colour; one whose name is plain text keeps the arrow, since its buttons are the targets (DL-064). The card on a device stands for the team workspace of the project it is linked to, which is reached from that card and not listed a second time.
+
+## DL-086: A phone's tab bar is fixed, and its You tab holds the theme and Settings
+
+**Status:** user decision from manual QA on phones, 18 November 2026. Supersedes DL-059 where it kept a Settings gear in a phone's header, and extends DL-079, which left a phone no way to change the theme outside Settings. The maker found the gear awkward beside Sign in, and at 360 px a page where the card is worked on held four things in its bar: the way back without its name, the save status, Sign in and the gear. A phone's bar now holds the save status and, signed out, Sign in at its far end, and nothing else. The You tab holds what a wide screen keeps in its header: a Settings section closes Your Initiatives in every state of the page, signed out included, with the full theme choice (System, Light and Dark) as chips that change it at once, and a link to all settings. That keeps the reason DL-059 gave for the gear, so a signed-out person on the You tab still finds something to set. A wide screen is unchanged. It has the header's switch and the account's menu, so the section does not show there, and the link to Settings at the end of the list shows there only.
+
+The bottom navigation is fixed to the bottom of the window, as a native tab bar is. It was a sticky box at the end of the page, which moved with the bounce at the page's end. The app draws to the screen's edges (`viewport-fit=cover`), so the bar keeps clear of the phone's home indicator, and the bar and the page keep clear of a notch at either side when the phone is turned. The page keeps room for the bar under its footer (`--bottom-nav-height`), and a short page fills the window between the two bars, so what closes it is in view.
+
+On a phone a section's title takes a row and its action the next, at the start edge. Before, the two shared a row whenever they happened to fit, so at 375 px "Funding closing soon" stacked its link and "Recently shared" did not.
+
+## DL-087: Every control answers a press, hover is a pointer's, and the browser's bar takes the theme
+
+**Status:** user decision from manual QA on phones, 18 November 2026. Only a card answered a press. A tapped button, tab or link showed the browser's own flash, and its hover look stayed on after the tap, because hover styles applied on every device. Hover styles are now asked for only where the device hovers (`@media (hover: hover)`). Every control has a pressed state on every device: a button, an icon button and the account button take their hover look, a chip, a tab and a menu row take the tint, and a link takes its hover colour. Buttons and chips you can press also give a little under the press, as a card does, where motion is welcome. The browser's flash is off, and `touch-action: manipulation` is set once in `base.css` for links, buttons, labels, summaries and fields, so a double tap on a control neither zooms the page nor delays the press. A test fails on a hover style outside the media query.
+
+The browser's own bar, and an installed app's status bar, take the page's surface in either theme. The app's `index.html` carries one `theme-color` for each scheme, added by the build from the tokens, and choosing a theme says which one applies. The manifest can name only one colour, so it keeps the light surface until the page is open. On an iPhone the status bar's style in an installed app is not set here: it needs a phone to choose.
+
+## DL-088: A field tells a phone's keyboard what it holds, and a chip's remove button is a full target
+
+**Status:** user decision from manual QA on phones, 18 November 2026. A phone's keyboard was left to guess what a field held. A field now says so in its markup. A name starts each word with a capital, whether it is an initiative's, a fund's or a place's, and the browser's autofill is told an initiative's name is an organisation's, so it stops offering the person's own. The Links field takes one address a line, so it gets the address keys, with capitals, corrections and spelling marks off. Enter is labelled for what it does: Search on a search field, Done on a one-field form that adds to a list. No field labels Enter as Next. The label by itself moves nothing, and Enter in a form's field still sends the form, so it would mislead until a field also moves the focus on.
+
+The remove button on a chip is as wide as the chip is high, 44 px, where it was 32 px. It takes up the chip's own gap and end padding, so a removable chip is exactly as wide as before, and it has a pressed state like every other control (DL-087). The button now starts where the chip's words end, so its focus ring is drawn inside it, clear of the words and of the chip's own ring. A footer row that is a button wraps its words from the start edge, as the links around it do. Before, "What the Assistant Did" centred its second line at 390 px.
+
+## DL-089: On a phone a focused step docks its way forward where the tab bar would be
+
+**Status:** user decision from manual QA on phones, 18 November 2026. A focused step has no tab bar, and its way forward was a small button at the end of a long page: 2.9 screens down on the first step, 3.3 on Check your card and 5.2 on Needs and offers, with the bottom of the screen empty. On a phone the step's way forward now sits in a Dock: one action across the bottom of the window, on a bar built as the tab bar is, fixed, on the page's surface and clear of the home indicator. The first step docks Continue for the four fields and Build my card for the conversation, Check your card docks Keep card and continue, and Needs and offers docks Continue. Every other action stays where it was, at the end of the step.
+
+The dock is a child of the page shell, after the page body and before the footer, so it reads after the step. It cannot sit in the page's main column: that column is a size container, and a fixed bar inside one is held within it. A wide screen is unchanged. It shows the action in its place on the page, so the action is in the markup twice and on screen once: the copy on the page is marked `data-from="wide"`, and the dock is not drawn from 900 px. An action bar left with nothing to show on a phone is not drawn there. The page keeps room for the dock under its footer (`--dock-height`), and a field or a problem that takes the focus stops clear of it.
+
+A docked action can be a screen away from the problem it raises. When Continue or Keep card stops on a problem, the problem is drawn at once and scrolled into view, at any width. While a card is being built the dock shows Building your card, and Cancel building stays with the conversation. A step's short dead ends, such as Describe your initiative first, keep their one link on the page and dock nothing.
+
+## DL-090: On a phone a preview is a row that swipes, and a list card holds only what it has
+
+**Status:** user decision from manual QA on phones, 18 November 2026. Home ran to 9.6 screens at 360 px, and its two previews, Funding closing soon and Recently shared, were 3,793 px of that: nine cards in a column, six of them under an empty picture block. On a phone a preview (`data-preview`) is now one row. It swipes sideways, comes to rest on a card, and shows the next card at the screen's edge, which says there is more. The row runs through the page's gutter to both edges of the screen, and holds every card it was given: hiding cards keeps a grid to whole rows, and a row has no short last row. One card alone takes the row's width. A swipe that reaches either end stays in the row and does not start the browser's way back. The page itself still never scrolls sideways; a preview's row is the one thing that does. While a preview loads, its shapes hold the same row and do not move.
+
+The row is the browser's own scrolling with scroll snap, and no script. It has no arrows, dots or count. It is a short list, eight cards at most, each card's name is a link the keyboard reaches, focus brings a card into view, and the section's own link opens the full list. A finger gets no scrollbar; a mouse keeps it. A wide screen is unchanged, and so is the two-column grid a wider phone or a tablet gets.
+
+A list card on a phone holds only what it has. Under 900 px it keeps no room for a picture it does not have: the placeholder is not drawn, nor the loading shape that held its place. When D30 brings pictures, a card that has one shows it at any width. A card that opens from its name is one target, so a tag in it is a label under the card's own link. Before, each tag was a 44 px button of its own, which a finger aiming for the card could hit, and two tags that wrapped sat 48 px apart. What a tag means is on the record the card opens, and the keyboard still reaches the explanation on the card. A fit line keeps its button, because what it explains is that card, and so does a tag in a card that does not open, where the tag is the only target. In the example world at 360 px, Home is 5.7 screens where it was 9.6, and Initiatives 4.9 where it was 6.7.
+
+## DL-091: A sheet pulls away from its content, and stands on the on-screen keyboard
+
+**Status:** user decision from manual QA on phones, 18 November 2026. A sheet could be pulled away only from its grip and title row. A finger that pulled its content down, the way a native sheet is dismissed, did nothing. Where a sheet's content is at its top, a finger moving down on it now pulls the sheet, by the grip's own rule: past three tenths of the sheet's height or a flick dismisses it, and less settles back. The content keeps every gesture that is its own: content that is scrolled, a finger that starts up or sideways, a second finger, and a finger on a field, which places a caret or picks a value. A finger that moves less than 6 px is still a press, and the sheet starts from where the finger is then, with no jump. The sheet takes the gesture on that move, so nothing scrolls or bounces under it. A flick now has to travel 24 px, on the grip and the title row too: a press that wobbles is quick, and it used to be able to dismiss a sheet. A wide screen's dialog does not move.
+
+A phone draws its keyboard over the bottom of the window and leaves the layout as it was, so a sheet at the bottom edge kept its lower part, and often the field being typed in, under the keys. A sheet now stands on the keyboard. It reads the part of the window still in view, sits at the keyboard's top edge, grows no taller than what is left less a little of the page above it, and keeps the field in view. A cover shorter than 100 px is a browser's own bar and moves nothing, and neither does a page that is zoomed in. Two custom properties carry this, `--sheet-keyboard` and `--sheet-room`. No tokens changed.
+
+Two thirds of the window is still where a sheet stops (DL-060). The second, taller stop that decision set aside was put to the user again with this change, and they kept two thirds. A task's sheet can be pulled away with words typed in it, as a press outside already closes it (DL-082); one whose work is under way still refuses. Both behaviours were checked against a stand-in dialog and with scripted touches on the example world's sheets. Neither has been under a finger or over a real keyboard, which is what DL-060 said a taller stop would need.
+
+## DL-092: Home's hero holds still, a reloaded page returns to its place, and the installed app has shortcuts
+
+**Status:** user decision from manual QA on phones, 18 November 2026. Three small things a native app gets right.
+
+Home's hero shows two counts under its search, initiatives shared and funding closing soon, and each arrives when its own list has loaded. The hero kept room for one line, and a phone shows one count a line (DL-063), so the second count pushed the rest of the page down by 44 px. The hero now keeps room for both from the start: two lines on a phone, one when wide. A hero with one count, or none, has that room empty under it.
+
+Back and Forward already returned a page to where it was left (DL-041), from memory, so a reload started at the top. A phone drops a page that sits in the background and loads it again when the person comes back, which is a reload they did not ask for. Where each page was scrolled is now kept for the tab, in its session storage, and written when the page is hidden or left. A page that is reloaded, or reached again with Back from another site, opens where it was left, without the arrival motion. A first visit still starts at the top. What is kept is a history entry's random key and a number for each of the last 50 pages: no address and no words. It goes when the tab closes.
+
+The installed app's icon offers Funding, Initiatives and Your Initiatives on a long press, by the tab bar's own names. Home is where the icon itself opens. The manifest also states its `id`, the address the app was already known by, so that an installed copy stays the same app if where it starts ever changes. Screenshots for the install sheet are not added: they need real captures of the finished app.
+
+## DL-093: A phone's footer leaves out the pages its tab bar already lists
+
+**Status:** user decision from manual QA on phones, 18 November 2026. On a phone the footer ended every page with three lists, about 790 px of them, and the first, Weave's pages, said what the tab bar says directly under it. Where the tab bar shows, that list is no longer drawn. Data & Privacy and Regen Commons stay, so every page still has the footer and the three information sheets and Settings are where they were. A focused step has no tab bar, so there the list is the way to the sections and stays. A wide screen is unchanged.
+
+One link in that list is not a tab: Describe Your Initiative. On a phone it is Home's first door and it is on the You tab, so nothing is out of reach. The list is marked in the markup (`data-repeats="tabs"`) and still read by search engines and by a wide screen from the same page.
+
+## DL-094: On a phone a page deeper in is pushed on, and the way back pops it off
+
+**Status:** user decision from manual QA on phones, 18 November 2026. Adds to DL-058, which stands: the bars still change at once and hold still. Every change of page was a cross-fade, so going into a page and coming back out of it looked the same as changing section. On a phone a page deeper in now comes on from the end edge while the one it replaces leaves towards the start, and the way back up is the same in reverse. Deeper means under the page on screen: Home to describing an initiative, Your Initiatives to an initiative, an initiative to its partners. Describing an initiative is one way through, so each later step is pushed on as well. A move between sections, or to anywhere the app cannot place, cross-fades as before, and so does every move on a wide screen.
+
+The page travels a short way, `--space-7`, and fades, in the cross-fade's own time. It is not a whole screen's slide: that is what a phone's own back swipe draws, and half of one on a slow phone looks broken. Only the app's own way back, its Back link, is drawn as a pop. The browser's Back and a phone's swipe bring their own motion or none, and the app adds nothing to them, so a page never moves twice. A sheet still slides over its page, which does not change. Reduced motion draws every change at once.
+
+The app names the move on the root, `data-page-move`, while the change is drawn, and the stylesheet does the rest. The motion has not been seen: the browser this was built in does not draw frames. The naming of each move was checked in a page, and the rules by test. It needs a phone to judge.
+
+## DL-095: A tab is pressed, not held like a link, and the install sheet shows the app
+
+**Status:** user decision from manual QA on phones, 18 November 2026. A tab is a link underneath, so a long press on one brought up the phone's menu for links, with a preview of the page, and could select its word or drag it away. A native tab bar does none of that. A tab now takes no link menu on a long press on iOS, its word is not selected, and it is not dragged. Links in a page keep the phone's menu. Android's menu for a link cannot be turned off in a stylesheet and is left alone.
+
+Android's install sheet shows screenshots when an app supplies them, and a plainer prompt when it does not. The manifest now names three phone screens, 720 by 1560 px: Home's top, the three steps and the kinds of support. They are captures of the app's own production build with no example data and no one's initiative in them, so the count in the first is the real catalog's on the day it was taken. They are pictures, so they go out of date: take them again when those three parts of Home change, or when the banner over the page goes. Screens for a wide install dialog are not added.
+
+## DL-096: On a phone Enter moves to the next field
+
+**Status:** user decision from manual QA on phones, 18 November 2026. Changes one line of DL-088, which said no field labels Enter as Next because the label alone moves nothing. Now the form moves. In a form of several fields, Enter in a one-line field goes on to the next field, and that field's key says Next. The four fields of an initiative do this in both places they are drawn, and so does Suggest a fund. Enter in a field of several lines is still a new line, and Enter in a one-line field with no field after it still sends the form, so nothing is sent by a key that says Next.
+
+This is the phone's own keyboard only. With a keyboard on the desk Enter sends the form, as it does everywhere on the web: the app asks whether the pointer is a finger, which is the nearest thing a page can know. A word still being composed keeps Enter for itself, on Safari too. A tablet with a mouse and an on-screen keyboard is the case this gets wrong: its key says Next and Enter sends the form.
+
+## DL-097: A pinned theme is drawn from the first paint, and the security policy does not change
+
+**Status:** user decision from manual QA on phones, 18 November 2026. The app's script is a module, which runs after the page is first drawn. A person who pinned Dark on a phone set to light saw a light page for a moment on every cold start, and the reverse. The usual cure is a few lines of script written into the page itself, and the policy forbids exactly that: `script-src 'self'` lets the page run files from the site and nothing inline. Allowing an inline script means adding its hash to the policy, which must then be kept in step with every change to those lines, or `unsafe-inline`, which gives up the protection altogether.
+
+Neither was needed. The same few lines are a file of the site's own, `theme-boot.js`, loaded in the head before anything is drawn. It reads the pinned theme from where the app stores it and sets the page's theme, its colour scheme and which bar colour applies. The policy is what it was, and a test holds it there: no inline script, no hash, no exception. The cost is one small request before the first paint, which the installed app answers from its own cache. A test runs the file against a stand-in page and holds it to the module that owns the theme, so the two cannot drift.
+
+## DL-098: A page never moves sideways
+
+**Status:** user decision from manual QA on phones, 18 November 2026. On a phone the page could still be pulled a little to one side and spring back, though nothing on Home, Funding or Initiatives is wider than the screen. The root was answering a sideways pull with its own bounce. Now the page and its body clip what would hang over their sides, so there is nothing to pull into view, and under a finger the root gives up its sideways bounce.
+
+It is `clip` and not `hidden`: `hidden` makes a scrolling box, and the app bar would stop sticking inside it. The bounce is given up only where the pointer is a finger, because on a desk the same line turns off the trackpad's swipe back through history. On Android with button navigation, in a browser tab, it also turns off the browser's own swipe back; the Back button is still there.
+
+Two things follow. A row that scrolls sideways on purpose still does, inside its own box (DL-090). And content that overflows the page by mistake is now cut off instead of making the page scroll, and the page's scroll width no longer shows it, so a rendered check for overflow has to compare what is drawn with the window and not trust the page's scroll width. The push and pop of DL-094 move a picture of the page inside the view transition's own layer, which is fixed to the window, so the shift never widens the page; a test holds the keyframes to that layer.
+
+Not verified on a phone: built and measured in desktop Chromium with touch emulation only.
+
+## DL-099: No panel behind a form or a side panel
+
+**Status:** user decision, 18 November 2026. Reverses the part of DL-085 that gave a form or a side panel with no card of its own a surface and a hairline from 900 px. The boxes made a wide screen read as a set of cards with a page somewhere behind them, and the page is the thing the app has in common with the website. Panel still exists and still sets the block's rhythm, and it paints nothing at any width, so a wide screen and a phone now agree.
+
+What keeps the words clear is what DL-071 already set: under the column of content the resting network shows at 45 percent of its strength, and a card, a field or a button still covers the threads that pass under it. New growth from a mouse is bright where it grows, behind labels and hints as well, and is gone within three seconds.
+
+The change is made in the stylesheet only, so the pages that use Panel did not change: the intake steps, the record page's side panel and the team workspace.
+
+## DL-100: Sort opens a menu like the filters, and a menu scrolls to its last row
+
+**Status:** user decision from manual QA, 18 November 2026. Reverses the part of DL-061 that made Sort a native select drawn as a button. It looked like the filter buttons beside it and then opened something else: the browser's own picker, in the browser's type and colours, where every filter opened the system's menu. Sort is now one more button in the bar that opens the same menu, with one order to pick as radios, the way the Closing filter offers one date range. The button still reads "Sort: Closing soon", so the bar looks the same before a press. `rc-sort` and `rc-sort-face` are gone. The cost is the phone's own picker, which a phone no longer opens for Sort; the menu's rows are full 44 px targets.
+
+Four smaller things about the same bar came out of the same review.
+
+- A menu's name, its rows and Done share one inset of 12 px, so a row's tint has room on both sides of its words. A row's inset was 8 px and Done had none.
+- Clear all, in the foot of a phone's Filters sheet, is an outlined button. As a link-style button it had no side padding, and while nothing was chosen it drew as a tinted block the width of its words.
+- A dialog reads from its start edge wherever its markup sits. "What is Certified?" opened centred because its dialog is written inside a centred doorway and took the doorway's alignment. The fix is on `rc-dialog`, so no page has to remember it.
+- A menu taller than its room now scrolls to its last row. Every scroll inside a menu placed the menu again, and placing measures the menu at its full height for a moment, which sent it back to its first row. With the full catalog the Region menu could not reach Done at 1280 by 800 px. The example catalog has three regions, too few to overflow, so the fault did not show there. A scroll inside a menu no longer places it, and placing keeps the menu where the person left it.
+
+## DL-101: A long list fills in as its end comes near, and Initiatives is one flat list
+
+**Status:** user decision from manual QA, 18 November 2026. Funding ended in a "Show more funding" button and the public project list in "Show more projects". Both now end in a List end (`rc-list-end`): a line that says how much of the list is on the page, announced politely, and the next batch arrives as a person scrolls to within about half a screen of it.
+
+Loading on scroll has two known costs, and each has a rule here.
+
+- **The footer.** A list that keeps growing keeps the footer out of reach, and the catalog holds several hundred programs. After three batches the list waits, and Show More brings the next and starts another run of three. The footer is reachable at every pause.
+- **The keyboard.** A person tabbing from card to card would bring more cards without end and never reach what follows the list. While the keyboard's focus is in the list, nothing arrives unasked. Show More is a real button after the last card: pressing it moves focus to the first card it added, and Tab past it goes on to the footer.
+
+The starter list on Initiatives, shown when the public project list is off or empty, was grouped under four headings by what a source lists. It is now one flat grid like every other list, in the catalog's own order. Each card still says what its source lists, and the "What is listed" filter still narrows by it. Indexing more fields to filter the public project list on is a separate change.
+
+Not verified on a phone: built and measured in desktop Chromium, with touch emulation for the phone widths.
+
+## DL-102: The footer spans the window, and the page ends a short step above it
+
+**Status:** user decision from manual QA, 18 November 2026. The footer was a box as wide as the page, so its top line stopped short of the window's edges while the app bar's ran across: 160 to 1280 px in a 1440 px window. It now spans the window as the app bar does, and its contents keep the page's edges and line up with the logo.
+
+The gap above it had three causes. The page's bottom padding (80 px on a wide screen) and the footer's top padding (40 px) added up to 120 px; they are now 40 and 32. An empty status line at the end of the starter list held a row of the page's spacing; it takes room only once it says something. And the page body filled the window under the app bar without counting the site banner, so on a short page the footer started a banner's height below the fold. The banner now has a known height, `--site-banner-height`, which the page body leaves out, on a phone as well.
+
+## DL-103: A funding card counts the days to a deadline that is near
+
+**Status:** user decision from manual QA, 18 November 2026. A card gave its deadline as a date in a tag like any other, "Closes 30 Nov 2026", and the reader did the sum. Within 60 days the tag now counts: "Closes in 12 days", "Closes tomorrow", "Closes today". Further out the date says more than a count and stays. A date that has passed reads "Ended" with its date, whether or not the catalog marks the call closed; it read "Closes" with a past date before.
+
+The deadline tag is strong (`data-emphasis="strong"`): heavier words than the tags beside it. In the last 14 days it is toned as a warning, on its clock and along its start edge. The words carry the meaning and the tone only repeats it. A counted deadline keeps its date in the tag's tooltip, and the opportunity's own page gives it in full.
+
+The card had two clocks, one on the deadline and one on "Sources checked". The second is gone, so the clock means the deadline.
+
+Days are counted to the end of the closing day in UTC, as the Closing filter counts them, so a card and the filter agree on what "within 30 days" holds.
+
+## DL-104: A list's skeleton holds the loaded page's exact room
+
+**Status:** user decision from manual QA, 18 November 2026. Extends DL-081 and DL-085. A loading list drew skeletons, and the page still moved when the list arrived. At 375 px on Funding the grid started at 503 px while loading and 716 px loaded, and a skeleton card was 176 px tall against about 290. Four things did not match, and each now takes its size from the same rules the loaded page uses.
+
+- **Filter controls.** Three blocks of one fixed width stood in for the bar's buttons. The bar now draws its own buttons, disabled, with their own words, so the row is the one that stays.
+- **The count line.** "Loading funding" was one line and the loaded sentence wraps to three on a phone. While the list loads the words are for assistive technology only, and a hold keeps the room of a sentence about as long.
+- **The prompt to describe an initiative.** It waited for the catalog, though it depends only on whether the person has a card. It is there from the first paint. Until the device draft opens, a room holds its exact size.
+- **Cards.** A skeleton card is built from the loaded card's own parts in their own classes: a funding card's eyebrow, two-line title, funder, tags, summary and date; a public project's title, summary, source and date, with no picture, because the loaded card has none.
+
+Two skeleton shapes are new. A hold (`data-shape="hold"`) keeps the room of words by holding words about as long, unseen, in the type of the part it sits in. A room (`data-shape="room"`) keeps a block's room by holding the block itself, unseen. The `control` shape is gone with the blocks it drew.
+
+Measured after the change at 375 px on Funding, in desktop Chromium: the grid starts at 716 px loading and loaded, and a skeleton card is within a few pixels of the median loaded card. Cards differ in what they hold, so a row can still settle by a line.
+
+## DL-105: Buttons and headings use title case
+
+**Status:** user decision, 18 November 2026. Replaces sentence case on buttons and headings, which DL-028 and VOICE.md had set for everything, and widens the two exceptions DL-033 and DL-072 made for the footer's links and a section's name. Every button and every heading now gives each word a capital, short words included: Start An Initiative, Check Your Card, Not Now. Labels, hints and body text stay in sentence case.
+
+Every word takes a capital, with no list of small words left lower, because the example the maker gave capitalises "An" and because a rule with no exceptions is one a person or a test can apply without looking anything up. The footer's What the Assistant Did becomes What The Assistant Did, so the product has one title case and not two.
+
+The copy itself changed; nothing is transformed in the stylesheet, so a screen reader, a copied label and a translation all get the words as written. VOICE.md says what counts as a button and as a heading. Two calls were made while applying it. A control that holds a choice, a filter or a sort, is labelled like the field it stands in for, in sentence case, and so are its choices. And a line that reports something stays a sentence even where it is set like a title, such as The list did not load or Nothing matches these filters: it is a message, not the name of a place.
+
+A test reads the app's buttons and headings and fails on a word that starts small. The steps for starting an initiative are being rebuilt in another branch and are held out of that test by name until they land.
+
+## DL-106: The mycelium is drawn as the website draws it
+
+**Status:** user decision, 18 November 2026, from a mock set beside the website at 1280 and 390 px in both themes. Supersedes DL-066 where scrolling grew tufts on a phone and where a long page had a canvas as tall as itself, and DL-048 where touch never grew one. The app's mycelium had the website's branches and colours and none of its feel: it was drawn at the screen's full sharpness, so its lines were thin and hard; it was as tall as the page; and new growth was cleared and the resting picture put back each frame, so nothing trailed.
+
+Now it is the website's. The canvas is fixed to the window and the page scrolls over it. It holds one canvas pixel for each CSS pixel, so a phone's or a sharp screen's own scaling softens and widens every line, and a long page costs no more to draw than a short one. New growth leaves trails: each frame the picture so far is rubbed out by the website's share, 3.5 percent, and every live tuft is drawn over it again. A mouse grows tufts where it moves, every 45 px, and so does a finger. Growth uses the website's depth 1 on Home and depth 2 on every other page: reach 50 or 60, fork 0.012 or 0.015, and the website's strength and fade for each.
+
+Three things stay the app's own. A light resting network lies under the trails, about twenty seeds in a desk's window and ten in a phone's, so a phone with no mouse is never blank. It keeps DL-071's rule: whole in the margins and at 45 percent under the column of content. New growth is not dimmed there, because it is gone in a few seconds. Where there is no mouse a tuft still grows on its own every few seconds (DL-048). And drawing stops, which the website's never does: once nothing is alive the last of the trails fades faster and is cleared, and nothing runs until something grows again, while the page is hidden, or under reduced motion, where the resting network is drawn at once and nothing moves.
+
+The website fades by filling with its page colour. The app rubs the trails out towards clear instead, so whatever lies behind the canvas shows through and the behaviour needs to know no colour. The window-sized canvas is clipped by the page body, so no thread lies behind the banner, the bars or the footer, as before. The logo's ring is untouched and still drawn sharp: at that size it is the brand mark.
+
+Not verified on a phone: built and captured in desktop Chromium with touch emulation. How the fixed canvas behaves as a phone's address bar comes and goes is the part to look at; it takes the window's largest height so that it should not resize.
+
+## DL-107: The header's theme switch is outlined to match Sign in
+
+**Status:** user decision from manual QA, 18 November 2026. Changes how the switch of DL-079 is drawn, not what it does. It was a bare glyph beside an outlined Sign in, so the two controls at the end of the bar looked unrelated and the glyph was easy to miss. The user saw two mocks in the live header, at 1280 and 390 px in both themes: an outlined icon button, and a segmented control with System, Light and Dark. They chose the icon button.
+
+The switch is now an Icon button with a secondary Button's line and corners (`data-variant="secondary"`) at Sign in's small height (`data-size="sm"`): 44 by 44 px beside Sign in's 44 px. It still shows the theme it changes to, still says so in words for assistive technology, and still goes back to following the system when the two agree. The round tint the bar gave a bare icon button is gone with the bare button.
+
+The segmented control was 136 px wide. It showed System where the icon button cannot, but on a phone it left no room in the bar for the save status or the way back. The full choice, System included, stays in Settings and on a phone's You tab (DL-086). The switch is still a wide screen's: a phone's bar does not draw it.

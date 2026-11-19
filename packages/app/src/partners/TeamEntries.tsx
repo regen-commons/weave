@@ -100,7 +100,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
       {notice && <p role="status">{notice}</p>}
       {(["needs", "offers"] as const).map((kind) => (
         <section className="rc-stack" key={kind} aria-label={kind === "needs" ? "Team needs" : "Team offers"}>
-          <h2 className="rc-heading" data-size="section">{kind === "needs" ? "What you need" : "What you can offer"}</h2>
+          <h2 className="rc-heading" data-size="section">{kind === "needs" ? "What You Need" : "What You Can Offer"}</h2>
           <CardGrid>
             {(saved?.document[kind] ?? []).map((entry) => (
               <li key={entry.id}>
@@ -121,7 +121,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
           {canEdit && !edit && (saved?.document[kind].length ?? 0) < ASK_LIMIT && (
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="secondary" type="button" disabled={!online}
-                onClick={() => open(kind, null)}>{kind === "needs" ? "Add a need" : "Add an offer"}</button>
+                onClick={() => open(kind, null)}>{kind === "needs" ? "Add A Need" : "Add An Offer"}</button>
             </div>
           )}
         </section>
@@ -130,17 +130,17 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
         <section className="rc-stack" aria-label="Edit team entry">
           {!saved && !workspace.projectTitle && <div className="rc-field">
             <label htmlFor="team-title">Initiative name</label>
-            <input className="rc-input" id="team-title" value={title} maxLength={200} disabled={frozen}
+            <input className="rc-input" id="team-title" autoCapitalize="words" autoComplete="organization" value={title} maxLength={200} disabled={frozen}
               onChange={(event) => setTitle(event.target.value)} />
           </div>}
           <AskEditor kind={edit.kind} value={edit.form} error={error} disabled={frozen || !online}
-            saveLabel="Save to team privately"
+            saveLabel="Save To Team Privately"
             onChange={(form) => setEdit({ ...edit, form })}
             onSave={() => void save()}
             onCancel={() => { setEdit(null); setError(""); onEditing(false); }} />
           {pending && <div className="rc-action-bar">
             <button className="rc-button" data-variant="primary" type="button" disabled={busy || !online}
-              onClick={() => void save(pending)}>Retry save</button>
+              onClick={() => void save(pending)}>Retry Save</button>
           </div>}
         </section>
       )}

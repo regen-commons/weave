@@ -4,16 +4,67 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto auto;
   min-block-size: 100dvh;
+  /* The app draws to the screen's edges, so the page keeps clear of a notch at either side when
+     a phone is turned. */
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
 }
 /* Jumps and focus stop clear of the sticky app bar and, on phones, the tab bar. */
 :root:has(.rc-app-header) { scroll-padding-block-start: calc(var(--control-height) + var(--space-4)); }
-:root:has(.rc-bottom-nav) { scroll-padding-block-end: var(--space-8); }
+:root:has(.rc-bottom-nav) { scroll-padding-block-end: calc(var(--space-8) + var(--border-thin) + env(safe-area-inset-bottom)); }
+/* On a phone a focused step's dock takes the tab bar's place. A field that takes the focus, or a
+   problem brought into view, stops a little above it and never against its edge. */
+@media (width < 56.25rem) {
+  :root:has(.rc-dock:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
+}
 
 .rc-page:has(> .rc-site-banner) {
   grid-template-rows: auto auto 1fr auto auto;
 }
+/* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
+   window below it, reads this. */
+.rc-page { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
+/* The site banner's height where a page has one, and nothing where it has none. The page body
+   leaves it out of the window it fills, so the footer starts at the fold and not a banner below
+   it (DL-102). */
+.rc-page { --site-banner-height: 0rem; }
+.rc-page:has(> .rc-site-banner) { --site-banner-height: var(--space-7); }
+/* The tab bar's height on a phone: a tab and the bar's top edge. The bar is fixed to the bottom
+   of the window, so the page keeps that much room under its footer, and the room the phone's
+   home indicator takes, and the footer's last line is never under the bar (DL-086). */
+.rc-page { --bottom-nav-height: calc(var(--space-8) + var(--border-thin)); }
+/* The dock's height on a phone: a control, the bar's padding and its top edge, as the app bar is.
+   The page keeps the same room for it as for the tab bar it stands in for (DL-089). */
+.rc-page { --dock-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
+@media (width < 56.25rem) {
+  .rc-page:has(> .rc-bottom-nav) { padding-block-end: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-dock:not(:empty)) { padding-block-end: calc(var(--dock-height) + env(safe-area-inset-bottom)); }
+  /* Between the two bars a short page fills the window that is left, and no more, so what closes
+     it is in view above the tab bar or the dock. */
+  .rc-page:has(> .rc-bottom-nav) > .rc-page-body { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-dock:not(:empty)) > .rc-page-body { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--dock-height) - env(safe-area-inset-bottom)); }
+}
+/* A large desktop gives the page, the app bar and the footer more of its width, so a list holds
+   four cards across (DL-077). */
+@media (min-width: 100rem) {
+  .rc-page { --page-width: var(--page-width-wide); }
+}
 
+/* Page body: everything between the app bar and the footer. It spans the window and is at least
+   as tall as the window under the bar, so a short or loading page fills the screen and the footer
+   starts below it. The mycelium lies behind the whole of it, on every page (DL-078). */
+.rc-page-body {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height));
+}
+
+/* One line of words in a bar of a known height, which the page body reads (--site-banner-height). */
 .rc-site-banner {
+  display: grid;
+  place-items: center;
+  min-block-size: var(--site-banner-height);
   padding: var(--space-2) var(--gutter);
   border-block-end: var(--border-thin) solid var(--control-line);
   background: var(--surface-tint);
@@ -37,8 +88,14 @@
   inline-size: 100%;
   max-inline-size: var(--page-width);
   margin-inline: auto;
-  padding-block: var(--space-5) var(--space-8);
+  padding-block: var(--space-5) var(--space-6);
   padding-inline: var(--gutter);
+}
+/* A wide screen has room to breathe: more above the title and before the footer. The footer brings
+   its own room above its links, so the page ends a short step before the footer's line and not a
+   long one (DL-102). */
+@media (min-width: 56.25rem) {
+  .rc-main { padding-block: var(--space-6) var(--space-7); }
 }
 
 .rc-stack {
@@ -46,7 +103,16 @@
   gap: var(--space-5);
   min-inline-size: 0;
 }
+/* Sections of a page: 40 px apart on a phone, 56 on a wide screen and 80 on a large desktop. */
 .rc-stack[data-gap="wide"] { gap: var(--space-7); }
+@container (min-width: 56.25rem) {
+  .rc-stack[data-gap="wide"] { gap: var(--space-8); }
+}
+@media (min-width: 100rem) {
+  .rc-stack[data-gap="wide"] { gap: var(--space-9); }
+}
+/* A button keeps its own width where a layout stacks it, as it does in an action bar. */
+:is(.rc-stack, .rc-section, .rc-list-layout, .rc-step-main, .rc-step-aside, .rc-narrow, .rc-empty) > .rc-button { justify-self: start; }
 
 /* Conversation step and finish: one column, then a sticky record beside it. */
 .rc-step-layout {
@@ -63,19 +129,46 @@
   gap: var(--space-6);
   min-inline-size: 0;
 }
+/* A panel that only mirrors the work beside it waits for a wide screen (`data-from="wide"`): on a
+   phone the next step shows the same thing. */
+.rc-step-aside[data-from="wide"] { display: none; }
+/* A record page (`data-main="wide"`) keeps the page's section rhythm between its parts. */
+.rc-step-layout[data-main="wide"] { row-gap: var(--space-7); }
 @container (min-width: 56.25rem) {
+  /* The side panel sits beside the working column, not at the far edge, so the two read as one
+     page however wide the window is. */
   .rc-step-layout {
     grid-template-columns: minmax(0, var(--prose-width)) minmax(0, 22rem);
-    justify-content: space-between;
+    column-gap: var(--space-8);
     align-items: start;
   }
+  /* A record page gives its working column the rest of the width, so the lists in it hold more
+     than one card across. */
+  .rc-step-layout[data-main="wide"] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    row-gap: var(--space-8);
+  }
   .rc-step-layout > * { grid-column: 1; }
+  .rc-step-aside[data-from="wide"] { display: grid; }
+  /* The record beside the work stays whole under the app bar while the page scrolls. One taller
+     than the window scrolls inside itself, so its last row is always in reach, and the wheel moves
+     the page again once the panel has nothing left to scroll. */
   .rc-step-layout > .rc-step-aside {
     position: sticky;
-    inset-block-start: var(--space-5);
+    inset-block-start: calc(var(--app-header-height) + var(--space-5));
     grid-column: 2;
     grid-row: 1 / span 6;
+    max-block-size: calc(100dvh - var(--app-header-height) - 2 * var(--space-5));
+    overflow-y: auto;
   }
+  /* Beside one working column the record takes that column's row alone, so no empty rows follow. */
+  .rc-step-layout:has(> .rc-step-main) > .rc-step-aside { grid-row: 1; }
+  /* Work that carries on below the panel on a phone sits under the first column here, and the
+     panel stays beside both for the length of the page. */
+  .rc-step-layout:has(> .rc-step-main ~ .rc-step-main) > .rc-step-aside { grid-row: 1 / span 2; }
+}
+@media (min-width: 100rem) {
+  .rc-step-layout[data-main="wide"] { row-gap: var(--space-9); }
 }
 
 /* List pages use the available page width; prose retains its own measure. */
@@ -117,9 +210,16 @@
   padding-block: var(--space-6) var(--space-8);
   text-align: center;
 }
+/* A doorway fills the window under the app bar, with its words in the middle, as Home's hero does. */
+.rc-main:has(> .rc-doorway) { grid-template-rows: minmax(0, 1fr); align-content: stretch; padding-block: 0; }
+.rc-doorway { align-content: center; }
 .rc-doorway > :not(.rc-mycelium) { max-inline-size: var(--prose-width); }
 .rc-doorway > .rc-heading[data-size="page"]::after { margin-inline: auto; }
 .rc-doorway > .rc-action-bar { justify-content: center; }
+/* A section can close a doorway's page, as Settings closes the You tab on a phone (DL-086). The
+   doorway keeps the middle of the room that is left, and the section keeps the page's own space
+   above the footer. */
+.rc-main:has(> .rc-doorway) > .rc-section { padding-block-end: var(--space-8); }
 
 .rc-home-hero {
   display: grid;
@@ -140,12 +240,15 @@
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
 /* Signs of life under the search: shared initiatives and funding closing soon. One per line on a
    phone, where the two already fill the row and one more digit would wrap them unevenly, and side
-   by side when wide (DL-063). */
-.rc-home-live { display: grid; justify-items: center; min-block-size: var(--control-sm-height); }
-/* Mycelium: the website's branching growth, behind a doorway, or behind the whole of Home
-   (DL-046, DL-071). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js
-   draws it in the website's six thread colours, set here, and grows it underneath the content:
-   at the website's own strength in the page's margins, and quieter under the column of content. */
+   by side when wide (DL-063). Each count arrives when its own list has loaded, so the hero keeps
+   room for both from the start, two lines on a phone and one when wide, and nothing under it
+   moves when the second one comes (DL-092). */
+.rc-home-live { display: grid; justify-items: center; align-content: start; min-block-size: calc(2 * var(--control-sm-height)); }
+/* Mycelium: the website's branching growth, behind a region or behind a whole page (DL-046,
+   DL-071, DL-078). It takes no pointer and is hidden in forced colours. behaviors/mycelium.js draws
+   it as the website does, in the website's six thread colours, set in atoms.css: trails that fade
+   where a mouse or a finger moves, over a light resting network that is whole in the page's
+   margins and quieter under the column of content (DL-106). */
 .rc-mycelium {
   position: absolute;
   z-index: -1;
@@ -158,20 +261,35 @@
   -webkit-mask-image: var(--hero-fade);
   mask-image: var(--hero-fade);
 }
-/* Under a whole page: the canvas lies behind everything on it. */
-.rc-main:has(.rc-mycelium[data-extent="page"]) { position: relative; isolation: isolate; }
+/* Under a whole page the canvas is fixed to the window, as the website's is, and the page scrolls
+   over it. It takes the window's largest height, so a phone's address bar coming and going never
+   resizes it (DL-106). */
 .rc-mycelium[data-extent="page"] {
-  inset: 0;
+  position: fixed;
+  inset: 0 auto auto 0;
   translate: none;
   inline-size: 100%;
+  block-size: 100lvh;
   -webkit-mask-image: none;
   mask-image: none;
 }
+/* The window-sized canvas shows only through the page body: the body clips it, so no thread lies
+   behind the banner, the bars or the footer. Dialogs, menus and tooltips open in the top layer,
+   which the clip does not reach. */
+.rc-page-body:has(> .rc-mycelium[data-extent="page"]) { clip-path: inset(0); }
 /* The threads pass under whatever is on the page. A card and a field cover them with their own
    fill; an outlined button sitting on the page takes the page's fill there, so they pass under it
    too and never through its words. One inside a card, a notice or a dialog sits on that fill and
    keeps its own clear one. */
-.rc-main:has(.rc-mycelium) .rc-button[data-variant="secondary"]:not(:hover, :disabled, .rc-card *, .rc-notice *, .rc-dialog *) { background: var(--surface); }
+:is(.rc-page-body:has(> .rc-mycelium), .rc-main:has(.rc-mycelium)) .rc-button[data-variant="secondary"]:not(:hover, :disabled, .rc-card *, .rc-notice *, .rc-dialog *, .rc-section[data-band] *) { background: var(--surface); }
+/* Under a finger the hover state stays on after a tap. There the button keeps the page's fill
+   until it is pressed again, so the threads never show through it (DL-087). */
+@media (hover: none) {
+  :is(.rc-page-body:has(> .rc-mycelium), .rc-main:has(.rc-mycelium)) .rc-button[data-variant="secondary"]:hover:not(:active, :disabled, .rc-card *, .rc-notice *, .rc-dialog *, .rc-section[data-band] *) { background: var(--surface); }
+}
+/* A pencil card is clear by design. Sitting on the page it takes the page's fill too, for the same
+   reason: the threads pass under a draft's words, never through them. */
+:is(.rc-page-body:has(> .rc-mycelium), .rc-main:has(.rc-mycelium)) .rc-card[data-pencil]:not(.rc-card *, .rc-notice *, .rc-dialog *, .rc-section[data-band] *) { background: var(--surface); }
 /* The website's paper grain, at its strength, in the same hero only: it never shows against the page.
    It is a file, not an inline data: image, because the app's security policy loads images from the
    site itself only; inline, production refused it and the grain never showed there. */
@@ -198,7 +316,7 @@
 @container (min-width: 37.5rem) {
   .rc-home-hero { padding-block: var(--space-8); gap: var(--space-5); }
   .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
-  .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); }
+  .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
   .rc-home-actions {
     grid-auto-flow: column;
     justify-content: center;
@@ -206,16 +324,84 @@
 }
 @media (forced-colors: active) { .rc-mycelium, .rc-home-hero::before, .rc-doorway::before { display: none; } }
 
-/* Card grid: resilient single column on phones, equal-height cards across wide rows. */
+/* Card grid: resilient single column on phones, equal-height cards across wide rows. Columns keep
+   their width when a row is short, so one card is never stretched across the page. */
 .rc-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min-width)), 1fr));
   gap: var(--space-5);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+/* Two lists that belong together, such as needs and offers: side by side and sharing the width
+   where there is room for both, one under the other where there is not. */
+.rc-card-grid[data-layout="pair"] { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); align-items: start; }
+/* A preview shows whole rows only, so a short last row never leaves one card on its own. It sets
+   its own columns, one to four by the room there is, and hides what would not fill a row:
+   `data-preview="row"` is one row of three, or four on a large desktop, and `rows` is two rows,
+   or six cards on a narrower screen. Cards past the last whole row wait on the full list. */
+.rc-card-grid[data-preview] { grid-template-columns: minmax(0, 1fr); }
+/* On a phone a preview is one row that swipes sideways and comes to rest on a card, so a page of
+   previews is a few screens long and not every card in a column (DL-090). The row holds every
+   card it was given, and the next one shows at the screen's edge, which says there is more. It
+   runs through the page's gutter to both edges of the screen. Only the row moves: the page never
+   scrolls sideways. */
+@container (width < 37.5rem) {
+  .rc-card-grid[data-preview] {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(100% - var(--space-8), var(--card-min-width));
+    gap: var(--space-4);
+    /* The block padding is room for a card's shadow and its focus ring, which the row would cut off. */
+    margin: calc(var(--space-2) * -1) calc(var(--gutter) * -1);
+    padding: var(--space-2) var(--gutter);
+    overflow-x: auto;
+    /* A swipe that reaches either end stays in the row and does not start the browser's way back.
+       Only this axis, so the page still scrolls up and down from a finger that starts on a card. */
+    overscroll-behavior-x: contain;
+    scroll-snap-type: inline mandatory;
+    scroll-padding-inline: var(--gutter);
+  }
+  .rc-card-grid[data-preview] > li { scroll-snap-align: start; }
+  /* One card alone takes the row. */
+  .rc-card-grid[data-preview]:has(> li:only-child) { grid-auto-columns: 100%; }
+  /* The loading shapes hold the row's place and do not move. */
+  .rc-card-grid[data-preview][aria-hidden="true"] { overflow-x: hidden; }
+  /* A finger needs no scrollbar. A mouse keeps it, as its way along the row. */
+  @media (pointer: coarse) {
+    .rc-card-grid[data-preview] { scrollbar-width: none; }
+  }
+}
+@container (37.5rem <= width < 56.25rem) {
+  .rc-card-grid[data-preview] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rc-card-grid[data-preview="row"] > li:nth-child(n + 3),
+  .rc-card-grid[data-preview="rows"] > li:nth-child(n + 7),
+  .rc-card-grid[data-preview="rows"] > li:nth-child(2n + 1):last-child:not(:first-child) { display: none; }
+}
+@media (width < 100rem) {
+  @container (min-width: 56.25rem) {
+    .rc-card-grid[data-preview] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .rc-card-grid[data-preview="row"] > li:nth-child(n + 4),
+    .rc-card-grid[data-preview="rows"] > li:nth-child(n + 7),
+    .rc-card-grid[data-preview="rows"] > li:nth-child(3n + 1):nth-last-child(-n + 2):not(:first-child),
+    .rc-card-grid[data-preview="rows"] > li:nth-child(3n + 1):nth-last-child(-n + 2):not(:first-child) ~ li { display: none; }
+  }
+}
+@media (min-width: 100rem) {
+  .rc-card-grid[data-preview] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rc-card-grid[data-preview="row"] > li:nth-child(n + 5),
+  .rc-card-grid[data-preview="rows"] > li:nth-child(n + 9),
+  .rc-card-grid[data-preview="rows"] > li:nth-child(4n + 1):nth-last-child(-n + 3):not(:first-child),
+  .rc-card-grid[data-preview="rows"] > li:nth-child(4n + 1):nth-last-child(-n + 3):not(:first-child) ~ li { display: none; }
+}
 .rc-card-grid > li { display: flex; min-inline-size: 0; }
+/* Every card in a list answers the pointer, whether its name opens it or its buttons are the
+   targets, so one list does not feel inert beside another. A card whose name is plain text keeps
+   the arrow. The loading shapes do not answer. */
+@media (hover: hover) {
+  .rc-card-grid:not([aria-hidden="true"]) > li > .rc-card:hover { box-shadow: inset 0 var(--border-edge) 0 var(--card-accent), var(--shadow-1); }
+}
 .rc-card-grid > li > .rc-card { inline-size: 100%; }
 @media (prefers-reduced-motion: no-preference) {
   .rc-main { animation: rc-arrive var(--duration-base) var(--ease-out); }
@@ -232,12 +418,39 @@
   ::view-transition-old(root),
   ::view-transition-new(root) { animation-duration: var(--duration-base); animation-timing-function: var(--ease-out); }
 }
+/* On a phone a page that is deeper in comes on from the end edge while the one it replaces leaves
+   towards the start, as a native app pushes a page, and the way back up is the same in reverse
+   (DL-094). The app names the move on the root (`data-page-move`) while it is drawn. The page
+   travels a short way and fades, at the cross-fade's own pace: a whole screen's slide is the
+   phone's own gesture, and half of one on a slow phone looks broken. The bars hold still above
+   it (DL-058). Between sections, and on a wide screen, pages cross-fade as before. */
+:root { --page-shift: var(--space-7); }
+:root:dir(rtl) { --page-shift: calc(var(--space-7) * -1); }
+@media (width < 56.25rem) and (prefers-reduced-motion: no-preference) {
+  :root[data-page-move="push"]::view-transition-old(root) { animation-name: rc-page-out-start; }
+  :root[data-page-move="push"]::view-transition-new(root) { animation-name: rc-page-in-end; }
+  :root[data-page-move="pop"]::view-transition-old(root) { animation-name: rc-page-out-end; }
+  :root[data-page-move="pop"]::view-transition-new(root) { animation-name: rc-page-in-start; }
+}
+@keyframes rc-page-in-end { from { opacity: 0; translate: var(--page-shift) 0; } }
+@keyframes rc-page-out-start { to { opacity: 0; translate: calc(var(--page-shift) * -1) 0; } }
+@keyframes rc-page-in-start { from { opacity: 0; translate: calc(var(--page-shift) * -1) 0; } }
+@keyframes rc-page-out-end { to { opacity: 0; translate: var(--page-shift) 0; } }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*) { animation: none; }
 }
 
 @keyframes rc-card-arrive { from { opacity: 0; transform: translateY(var(--space-3)); } to { opacity: 1; transform: translateY(0); } }
 
-/* Settings groups change in place; leaving has a separate final region. */
-.rc-settings { gap: var(--space-6); }
-.rc-settings-leave { display: grid; gap: var(--space-4); margin-block-start: var(--space-5); padding-block-start: var(--space-5); border-block-start: var(--border-thin) solid var(--control-line); }
+/* Settings: one card a group, changed in place, with Leave last. On a wide screen a group's name
+   and the line about it sit beside its controls, so the page uses its width and the names read
+   down one edge (DL-084). The list keeps a prose column and a form column's width on a large
+   desktop too, so a group's name is never a screen's width from its controls. */
+.rc-settings { display: grid; gap: var(--space-5); min-inline-size: 0; max-inline-size: calc(var(--prose-width) + var(--form-width)); }
+.rc-settings-group { gap: var(--space-4); padding: var(--sheet-padding); }
+.rc-settings-head { display: grid; align-content: start; gap: var(--space-2); }
+.rc-settings-body { display: grid; align-content: start; gap: var(--space-4); min-inline-size: 0; }
+.rc-settings-body > .rc-button { justify-self: start; }
+@container (min-width: 56.25rem) {
+  .rc-settings-group { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--space-7); padding: var(--space-6); }
+}

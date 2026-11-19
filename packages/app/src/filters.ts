@@ -24,6 +24,11 @@ export interface SortChoice {
   readonly options: readonly FacetOption[];
 }
 
+/** The order in force: the one chosen, or the first on offer where the choice is not one of them. */
+export function sortChoice(sort: SortChoice): FacetOption | undefined {
+  return sort.options.find((option) => option.value === sort.value) ?? sort.options[0];
+}
+
 /** The option a "one" facet shows as picked. */
 export function pickedValue(facet: Facet): string {
   return facet.chosen[0] ?? facet.options[0]?.value ?? "";

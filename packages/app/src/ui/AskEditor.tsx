@@ -224,7 +224,7 @@ export function AskEditor({
       )}
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="submit" disabled={disabled}>
-          {saveLabel ?? (kind === "needs" ? "Keep this need" : "Keep this offer")}
+          {saveLabel ?? (kind === "needs" ? "Keep This Need" : "Keep This Offer")}
         </button>
         <button className="rc-button" data-variant="quiet" type="button" disabled={disabled} onClick={onCancel}>
           Cancel

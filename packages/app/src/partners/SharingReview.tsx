@@ -21,7 +21,7 @@ export function SharingReview({ review, action, busy, retry, error, onConfirm, o
 }) {
   const summary = review.summary;
   return (
-    <TaskDialog title={action === "renew" ? "Review renewed sharing" : "Review what you’ll share"} open onClose={onClose}>
+    <TaskDialog title={action === "renew" ? "Review Renewed Sharing" : "Review What You’ll Share"} open onClose={onClose}>
       <div className="rc-stack" aria-busy={busy}>
         <p>Signed-in Weave users can see this initiative summary and the selected entries in their matches. {review.expiresAt ? <>Sharing ends on <MatchingDate value={review.expiresAt} />.</> : "Sharing stays active until closed or withdrawn."}</p>
         <section className="rc-stack" aria-label="Initiative summary">
@@ -53,7 +53,7 @@ export function SharingReview({ review, action, busy, retry, error, onConfirm, o
         {error && <p className="rc-notice" data-tone="warning" role="alert">{error}</p>}
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={onConfirm}>
-            {retry ? "Retry confirmation" : action === "renew" ? "Confirm renewed sharing" : "Share selected entries"}
+            {retry ? "Retry Confirmation" : action === "renew" ? "Confirm Renewed Sharing" : "Share Selected Entries"}
           </button>
         </div>
       </div>

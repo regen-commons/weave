@@ -69,6 +69,8 @@
   border: var(--border-thin) solid var(--line);
   overflow: hidden;
 }
+/* A bar the app fixes to the bottom of the window sits in its frame here. */
+.lib-frame > :is(.rc-bottom-nav, .rc-dock) { position: static; }
 .lib-source {
   font: var(--type-body-sm);
 }

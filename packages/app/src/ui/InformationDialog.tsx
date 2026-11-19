@@ -2,22 +2,20 @@ import { useEffect, useState } from "react";
 import type { AiRun } from "../describe/contracts.ts";
 import { assistantExport } from "../data/export.ts";
 import { downloadJson } from "../data/download.ts";
+import { DATA_POLICY, STORAGE_SUMMARY } from "../data/privacy.ts";
 import { fullDate } from "../home.ts";
+import { COMMONS } from "../links.ts";
+import { Link } from "../router.tsx";
 import { Dialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 /** A run belongs to the part of the card it read, which is finer than the step map. */
 const RUN_LABELS = { initiative: "Initiative", needs: "Needs", offers: "Offers" } as const;
 export type Information = "storage" | "assistant" | "policy";
-const TITLES = { storage: "What we store", assistant: "What the assistant did", policy: "Data policy" };
-const STORAGE = [
-  ["Your draft", "Conversations, unfinished words and files stay in this browser."],
-  ["When you save", "Checked cards go to Regen Commons, linked to your sign-in."],
-  ["Details on your card", "Places are your own words, with no map lookup. Themes are suggestions drawn from your words, not catalog labels."],
-  ["Who can see it", "Saved copies are private. Database administrators can technically access them."],
-  ["Your words", "Read on this device. Cloud models are not connected."],
-  ["Leaving", "Sign-out keeps device copies. Download them in Settings; contact us about account deletion."],
-];
-/** Metadata-only record and concise storage facts over the current page. */
+const TITLES = { storage: "What We Store", assistant: "What The Assistant Did", policy: "Data Policy" };
+/**
+ * Three separate things over the current page: a short answer to what Weave stores, the whole data
+ * policy, and the assistant's metadata-only record.
+ */
 export function InformationDialog({
   information,
   onClose,
@@ -36,8 +34,8 @@ export function InformationDialog({
     <Dialog presentation="information" title={TITLES[information ?? "storage"]} open={!!information} onClose={onClose}>
         {information === "storage" ? (
           <>
-            <dl className="rc-facts">
-              {STORAGE.map(([title, body]) => (
+            <dl className="rc-facts" data-kind="terms">
+              {STORAGE_SUMMARY.map(([title, body]) => (
                 <div key={title}>
                   <dt>{title}</dt>
                   <dd>{body}</dd>
@@ -45,7 +43,7 @@ export function InformationDialog({
               ))}
             </dl>
             <button className="rc-button" data-variant="quiet" type="button" onClick={onPolicy}>
-              Read the full data policy
+              Read The Data Policy
             </button>
           </>
         ) : information === "assistant" ? (
@@ -96,7 +94,7 @@ export function InformationDialog({
                 }
               }}
             >
-              Download assistant record
+              Download Assistant Record
             </button>
             <p className="rc-meta">
               Cloud consent is off because cloud models are not connected. No consent withdrawal is needed for
@@ -105,30 +103,17 @@ export function InformationDialog({
           </>
         ) : (
           <>
+            {DATA_POLICY.map((section) => (
+              <section className="rc-stack" key={section.title}>
+                <h3 className="rc-record-title">{section.title}</h3>
+                {section.body.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </section>
+            ))}
             <p>
-              Signing in sends your email and code to Regen Commons' account service. Saving sends only your
-              checked card, kept needs and offers, and kept funding details to the existing Regen Commons
-              database.
-            </p>
-            <p>
-              Account copies are private to you in the product. Database administrators can technically access
-              them. They are not public profiles or membership applications. Sharing with the community or
-              other networks is not connected.
-            </p>
-            <p>
-              Conversations, files, unfinished edits and assistant records remain on this device. The
-              assistant uses keyword rules or an already available local browser model after your choice. No
-              words are sent to a cloud model.
-            </p>
-            <p>
-              Loading a saved card first backs up the current device draft. Sign-out ends this session and
-              keeps device drafts and backups. Settings can download this device's data, including file bytes;
-              it does not fetch every card saved in your account.
-            </p>
-            <p>
-              Self-service account export and deletion are not connected.{" "}
-              <a href="https://regencommons.com">Contact Regen Commons</a> about account copies. Clearing this
-              site's browser storage removes device copies and cannot recover unsaved work.
+              To ask about your account or the copies saved in it,{" "}
+              <Link href={COMMONS.website}>contact Regen Commons</Link>.
             </p>
           </>
         )}

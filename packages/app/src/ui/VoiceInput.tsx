@@ -81,7 +81,7 @@ export function VoiceInput({
           onClick={speak ? (listening ? onStop : onStart) : controls.action === "set-up" ? onSetUp : undefined}
         >
           <Icon name="mic" />
-          {listening ? "Finish speaking" : speak ? label : controls.label}
+          {listening ? "Finish Speaking" : speak ? label : controls.label}
         </button>
       )}
       {controls.note && (

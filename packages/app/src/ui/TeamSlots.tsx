@@ -13,7 +13,7 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
     return (
       <section className="rc-stack">
         <h3 className="rc-heading" data-size="section">
-          Stronger with a team
+          Stronger With A Team
         </h3>
         <p>
           Partner requirements have not been structured or checked for this call. Check the funder's published
@@ -26,7 +26,7 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
   return (
     <section className="rc-stack" aria-labelledby={`${id}-heading`}>
       <h3 className="rc-heading" data-size="section" id={`${id}-heading`}>
-        Stronger with a team
+        Stronger With A Team
       </h3>
       {!asks.length ? (
         <p>This call asks for no partner. That does not establish eligibility.</p>

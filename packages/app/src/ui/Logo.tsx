@@ -3,10 +3,13 @@ import { growLogoMark } from "@regen-commons/design-system/mycelium";
 import { Link } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 
-/** Logo atom (`rc-logo`): the mark and product name, returning home. On Home it is the current page. */
-export function Logo({ current = false }: { current?: boolean }) {
+/**
+ * Logo atom (`rc-logo`): the mark and product name, returning home. On Home it is the current page.
+ * `from="wide"` shows it on wide screens only, where a phone's app bar has the way back in its place.
+ */
+export function Logo({ current = false, from }: { current?: boolean; from?: "wide" }) {
   return (
-    <Link className="rc-logo" href={pathTo("home")} aria-current={current ? "page" : undefined}>
+    <Link className="rc-logo" href={pathTo("home")} aria-current={current ? "page" : undefined} data-from={from}>
       <LogoMark />
       Weave
     </Link>

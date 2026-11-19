@@ -11,6 +11,15 @@ export function Card({ kind, children }: { kind?: "funding" | "initiative"; chil
     </article>
   );
 }
-export function CardGrid({ children }: { children: ReactNode }) {
-  return <ul className="rc-card-grid">{children}</ul>;
+/**
+ * Card grid template (`rc-card-grid`). A `preview` shows whole rows only: one row, or two with
+ * `rows`. It holds a card more than three to a row needs, for the large desktop's fourth column.
+ * On a phone a preview is one row that swipes sideways and shows every card it holds (DL-090).
+ */
+export function CardGrid({ preview, children }: { preview?: "row" | "rows"; children: ReactNode }) {
+  return (
+    <ul className="rc-card-grid" data-preview={preview}>
+      {children}
+    </ul>
+  );
 }

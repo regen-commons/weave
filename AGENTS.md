@@ -1,7 +1,7 @@
 # Funding Commons and Weave: agent guide
 
-This repository runs the live Funding Commons site and its funder catalog, and is
-growing into Weave, the first version of the Regen Commons platform. This file holds
+This repository runs the live Funding Commons site and its funder catalog, and holds
+Weave, which is part of Regen Commons. This file holds
 the rules every coding agent follows. Read the scoped guide for a surface before
 editing it; its rules refine these. Code and checked-in configuration own
 implementation facts, and the [platform plan](docs/platform/README.md) owns product
@@ -134,8 +134,9 @@ commands you ran and what they showed, including checks you could not run.
 
 Use `humanize-writing` for prose people read, such as docs, pull requests and
 handoffs. Product copy follows [VOICE.md](packages/design-system/brand/VOICE.md):
-sentence case, plain words, no em dashes and no arrows. Lead with the outcome, keep
-code, commands and paths exact, and say what is uncertain or unverified.
+title case for buttons and headings, sentence case for the rest, plain words, no em
+dashes and no arrows. Lead with the outcome, keep code, commands and paths exact, and
+say what is uncertain or unverified.
 
 ## Harness files
 

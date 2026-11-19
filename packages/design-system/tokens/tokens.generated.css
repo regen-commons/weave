@@ -127,6 +127,7 @@
   --tile-card-min-width: 15rem;
   --list-width: 40rem;
   --page-width: 70rem;
+  --page-width-wide: 90rem;
 
   /* Radius */
   --radius-sm: 0.125rem;

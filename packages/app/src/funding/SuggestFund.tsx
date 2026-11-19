@@ -1,4 +1,5 @@
 import { useId, useState, type FormEvent } from "react";
+import { moveOnEnter } from "../ui/next-field.ts";
 import { StatusLine } from "../ui/StatusLine.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 
@@ -28,7 +29,7 @@ export function SuggestFund() {
             type="button"
             onClick={() => setOpen(true)}
           >
-            {sent ? "Suggest another" : "Suggest a fund"}
+            {sent ? "Suggest Another" : "Suggest A Fund"}
           </button>
         }
       >
@@ -36,11 +37,11 @@ export function SuggestFund() {
           ? `Thank you. Regen Commons checks ${sent} against the funder's page before it joins the list.`
           : "Know a fund that is not here?"}
       </StatusLine>
-      <TaskDialog title="Suggest a fund" open={open} onClose={() => setOpen(false)}>
-        <form className="rc-form" onSubmit={send}>
+      <TaskDialog title="Suggest A Fund" open={open} onClose={() => setOpen(false)}>
+        <form className="rc-form" onSubmit={send} onKeyDown={moveOnEnter}>
           <div className="rc-field">
             <label htmlFor={`${id}-name`}>Name of the fund or program</label>
-            <input className="rc-input" id={`${id}-name`} name="name" required maxLength={120} data-task-focus />
+            <input className="rc-input" id={`${id}-name`} name="name" autoCapitalize="words" enterKeyHint="next" required maxLength={120} data-task-focus />
           </div>
           <div className="rc-field">
             <label htmlFor={`${id}-link`}>Link to its page</label>
@@ -52,6 +53,7 @@ export function SuggestFund() {
               id={`${id}-link`}
               name="link"
               type="url"
+              enterKeyHint="next"
               required
               maxLength={500}
               aria-describedby={`${id}-link-hint`}
@@ -72,7 +74,7 @@ export function SuggestFund() {
             />
           </div>
           <button className="rc-button" data-variant="primary" type="submit">
-            Send suggestion
+            Send Suggestion
           </button>
         </form>
       </TaskDialog>

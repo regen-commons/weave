@@ -3,7 +3,7 @@ import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
 import { useDraft } from "../describe/use-draft.ts";
 import { newDraft } from "../describe/contracts.ts";
-import { navigate } from "../router.tsx";
+import { Link, navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import { accountKey, saveBlocker } from "./document.ts";
 import { accountMessage, accountRequest, assertAccount, AccountFailure } from "./client.ts";
@@ -12,13 +12,18 @@ import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnFailed, signInReturnMessage } from "./sign-in.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { DeviceBackups } from "../data/DeviceBackups.tsx";
+import { TaskDialog } from "../ui/TaskDialog.tsx";
+import { SIGN_IN } from "../data/privacy.ts";
 export function AccountSection({
   compact = false,
   autoFocus = false,
   heading = true,
   showLeave = true,
   showBackups = true,
+  notice = "",
   onBeginCard,
+  onNotNow,
+  onSignInStart,
 }: {
   compact?: boolean;
   autoFocus?: boolean;
@@ -27,15 +32,21 @@ export function AccountSection({
   showLeave?: boolean;
   /** Off where the page shows this device's backups in their own place, as Settings does. */
   showBackups?: boolean;
+  /** A sign-in failure from the button that led here, shown as this section's first message. */
+  notice?: string;
   onBeginCard?: () => void;
+  /** The way out of the sign-in offer, where it is asked in a dialog. */
+  onNotNow?: () => void;
+  /** Told as the person leaves for Certified from here, so the place they left can be reopened. */
+  onSignInStart?: () => void;
 }) {
   const id = useId();
   const Title = compact ? "h3" : "h2";
   const { state, refresh, clear, returnResult, acknowledgeReturn, missingRecord, savedCheck } = useAccount();
   const { controller, draft, ready, storage } = useDraft();
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState(() => signInReturnMessage(returnResult));
-  const [failed, setFailed] = useState(() => signInReturnFailed(returnResult));
+  const [message, setMessage] = useState(() => notice || signInReturnMessage(returnResult));
+  const [failed, setFailed] = useState(() => !!notice || signInReturnFailed(returnResult));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
   const [startingCard, setStartingCard] = useState(false);
   const owner = state?.user?.id;
@@ -50,6 +61,10 @@ export function AccountSection({
     setMore(true);
     setStartingCard(false);
   }, [owner]);
+  // The question a dialog is asking. Its title is kept while the dialog closes, so it does not change on the way out.
+  const asking = selected ? "load" : startingCard ? "new" : null;
+  const [asked, setAsked] = useState<"load" | "new">("new");
+  if (asking && asking !== asked) setAsked(asking);
   const key = accountKey(draft),
     saved = draft.account.saved;
   const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key && savedCheck === "present";
@@ -106,7 +121,7 @@ export function AccountSection({
     <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
       {heading && (
         <Title className="rc-heading" data-size="section" id={`${id}-title`}>
-          {compact ? "Save your initiative" : "Your account"}
+          {compact ? "Save Your Initiative" : "Your Account"}
         </Title>
       )}
       {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here. You can save it again.</p>}
@@ -124,7 +139,7 @@ export function AccountSection({
               })
             }
           >
-            Check account access
+            Check Account Access
           </button>
         </>
       ) : !state.available ? (
@@ -132,24 +147,12 @@ export function AccountSection({
       ) : !state.user ? (
         <>
           <p>
-            Sign in with Certified to save your work and open it on another device. Your saved work stays
-            private in Weave.
+            {SIGN_IN.offer}
           </p>
-          <details>
-            <summary className="rc-footer-link">What is saved</summary>
-            <p>
-              Saving keeps your checked card, needs, offers and kept funding details. Conversations, files,
-              unfinished edits and assistant records stay on this device.
-            </p>
-            <p>
-              Signing in does not save, load or share anything. New to Certified? You can join there and come
-              straight back.
-            </p>
-          </details>
-          <AboutCertified />
           <form className="rc-stack" method="post" onSubmit={(event) => {
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();
+            onSignInStart?.();
             void run(() => continueToCertified(controller, window.location.pathname,
               (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
               (target) => window.location.assign(target)));
@@ -157,9 +160,26 @@ export function AccountSection({
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="primary" type="submit" disabled={busy || !ready}
                 data-task-focus={autoFocus || undefined}>
-                Sign in with Certified
+                Sign In With Certified
               </button>
+              {onNotNow && (
+                <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onNotNow}>
+                  Not Now
+                </button>
+              )}
             </div>
+            <p className="rc-meta">
+              {SIGN_IN.effect}
+            </p>
+            <div className="rc-action-bar">
+              <AboutCertified />
+            </div>
+            <details>
+              <summary className="rc-footer-link">What is saved</summary>
+              <p>
+                {SIGN_IN.saved}
+              </p>
+            </details>
             {state.emailHintAvailable && (
               <details>
                 <summary className="rc-footer-link">Add your email (optional)</summary>
@@ -181,11 +201,10 @@ export function AccountSection({
           <details>
             <summary className="rc-footer-link">About saving and this session</summary>
             <p>
-              Save keeps a private copy of your checked card, needs, offers and kept funding details. Files and
-              conversations stay on this device.
+              {SIGN_IN.saved}
             </p>
             <p>
-              This session lasts up to one hour. Sign in again when it ends. Signing out leaves the device
+              {SIGN_IN.session} Signing out leaves the device
               draft and its backups in this browser; clear this site’s browser storage when leaving a shared
               device.
             </p>
@@ -207,7 +226,7 @@ export function AccountSection({
                 disabled={busy || !ready || !key || storage !== "saved"}
                 onClick={() => void run(save)}
               >
-                Save privately
+                Save Privately
               </button>
             )}
             {showLeave && (
@@ -235,22 +254,9 @@ export function AccountSection({
                 setSelection(null);
                 setStartingCard(true);
               }}>
-              Start a new initiative
+              Start A New Initiative
             </button>
           </div>
-          {startingCard && (
-            <section className="rc-notice" data-tone="info" aria-label="Confirm starting a new card">
-              <div className="rc-notice-body">
-                <p>Weave will keep a device backup of this draft, including its conversations and files, before opening a new card.</p>
-                <div className="rc-action-bar">
-                  <button className="rc-button" data-variant="primary" type="button" disabled={busy}
-                    onClick={() => void run(beginCard)}>Back up and start new</button>
-                  <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-                    onClick={() => setStartingCard(false)}>Cancel</button>
-                </div>
-              </div>
-            </section>
-          )}
           {!state.items.length && !extra.length ? (
             <p>No cards saved in this account yet.</p>
           ) : (
@@ -298,7 +304,7 @@ export function AccountSection({
                 })
               }
             >
-              More saved cards
+              More Saved Cards
             </button>
           )}
           <button
@@ -315,48 +321,41 @@ export function AccountSection({
               })
             }
           >
-            Refresh saved cards
+            Refresh Saved Cards
           </button>
         </>
       )}
-      {selected && (
-        <section className="rc-notice" data-tone="warning" aria-label="Confirm loading">
-          <div className="rc-notice-body">
-            <p>
-              Load {selected.name}? The current device draft, including its conversations and files, will be
-              backed up in this browser first. Loading stops if that backup cannot be stored.
-            </p>
-            <div className="rc-action-bar">
-              <button
-                className="rc-button"
-                data-variant="primary"
-                type="button"
-                disabled={busy}
-                onClick={() => void run(load)}
-              >
-                Back up this draft and load
-              </button>
-              <button
-                className="rc-button"
-                data-variant="quiet"
-                type="button"
-                disabled={busy}
-                onClick={() => setSelection(null)}
-              >
-                Cancel loading
-              </button>
-            </div>
+      {/* Both questions are asked in a dialog, so the list they were asked from stays where it is. */}
+      <TaskDialog title={asked === "load" ? "Load This Saved Card?" : "Start A New Initiative?"} open={!!asking}
+        onClose={() => { setSelection(null); setStartingCard(false); }} blockClose={busy}>
+        <div className="rc-stack">
+          <p>
+            {asking === "load" && selected
+              ? `${selected.name} opens on this device. The current device draft, including its conversations and files, is backed up in this browser first. Loading stops if that backup cannot be stored.`
+              : "Weave keeps a device backup of this draft, including its conversations and files, before opening a new card."}
+          </p>
+          {failed && message && <p className="rc-notice" data-tone="warning" role="alert">{message}</p>}
+          <div className="rc-action-bar">
+            <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-task-focus
+              onClick={() => void run(asking === "load" ? load : beginCard)}>
+              {asking === "load" ? "Back Up This Draft And Load" : "Back Up And Start New"}
+            </button>
+            <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => { setSelection(null); setStartingCard(false); }}>
+              Cancel
+            </button>
           </div>
-        </section>
-      )}
+        </div>
+      </TaskDialog>
       {!compact && showBackups && <DeviceBackups disabled={busy} />}
       {compact && (
         <p>
-          <a href="/settings">Saved cards and device backups</a>
+          <Link href={pathTo("settings")}>Saved cards and device backups</Link>
         </p>
       )}
-      {busy && <p role="status">Connecting to your account</p>}
-      {message && (message !== signInReturnMessage("signed-in") || state?.user) && (
+      {/* Said, not drawn: the pressed button shows it is busy, and a new line would push the page down. */}
+      {busy && <p className="rc-visually-hidden" role="status">Connecting to your account</p>}
+      {message && !asking && (message !== signInReturnMessage("signed-in") || state?.user) && (
         <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
           {message}
         </p>

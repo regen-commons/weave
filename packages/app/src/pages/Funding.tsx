@@ -12,6 +12,8 @@ import {
 } from "../funding/select.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
+import { ListEnd, useAddedFocus } from "../ui/ListEnd.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListLayout } from "../ui/layouts.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
@@ -22,6 +24,11 @@ import { fullDate } from "../home.ts";
 import { replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
 import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 import { SuggestFund } from "../funding/SuggestFund.tsx";
+import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { FUNDING_COMMONS } from "../links.ts";
+/** How many cards the list holds at first, and how many each further batch adds. */
+const BATCH = 24;
+
 export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
@@ -29,7 +36,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   );
   const catalog = useCatalog(example);
   const [filters, setFilters] = useState<Filters>(() => readFundingFilters(routeSearch()));
-  const [limit, setLimit] = useState(24),
+  const [limit, setLimit] = useState(BATCH),
     [retried, setRetried] = useState(false);
   const state = fixture?.state;
   const loading = catalog.loading || (state === "loading" && !retried),
@@ -52,33 +59,36 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
     [entries, filters, catalog.results],
   );
   const results = new Map(catalog.results?.map((result) => [result.documentId, result]));
-  useEffect(() => setLimit(24), [filters]);
+  useEffect(() => setLimit(BATCH), [filters]);
+  const added = useAddedFocus(Math.min(limit, selected.length));
   useEffect(() => {
     const params = new URLSearchParams(routeSearch());
     writeFundingFilters(filters, params);
     const query = params.toString();
     replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
   }, [filters]);
+  // What the count line adds about the whole catalog, so nothing above the list comes and goes.
+  const note = !catalog.bundle
+    ? undefined
+    : catalog.ranking
+      ? "Comparing your card with the catalog on this device."
+      : `From ${catalog.bundle.catalog.funds.length} funders. ${
+          researchDate ? `Sources last checked ${fullDate(researchDate)}.` : "Source check date unknown."
+        }${personalized ? " Fit is worked out on this device from keywords." : ""}`;
+  const prompt = (
+    <DescribePrompt>
+      For now every fund is listed without ranking. Check eligibility with the funder before applying.
+    </DescribePrompt>
+  );
   return (
     <ListLayout>
       <Heading level={1} size="page">
         Funding
       </Heading>
-      {!catalog.personalized && (
-        <DescribePrompt>
-          For now every fund is listed without ranking. Check eligibility with the funder before applying.
-        </DescribePrompt>
-      )}
+      <p className="rc-prose">Find support for your next chapter.</p>
       {(state === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
           You are offline. Showing the catalog bundled with this app; the funder's page needs a connection.
-        </p>
-      )}
-      {catalog.bundle && (
-        <p className="rc-meta">
-          {catalog.bundle.catalog.funds.length} funders, {entries.length} program and overview records.{" "}
-          {researchDate ? `Latest source check ${fullDate(researchDate)}.` : "Latest source check date unknown."}{" "}
-          Keyword matching runs on this device; no model download.
         </p>
       )}
       {catalog.bundle?.conditions === null && (
@@ -100,31 +110,25 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                 catalog.retry();
               }}
             >
-              Try again
+              Try Again
             </button>
           </div>
         </section>
       )}
-      {loading ? (
-        <section className="rc-stack" aria-busy="true">
-          <p role="status">Opening the funding catalog</p>
-          <div className="rc-skeleton" />
-          <div className="rc-skeleton" />
-        </section>
-      ) : !entries.length ? (
+      {!loading && !entries.length ? (
         <EmptyState
           title="No funding records available"
           action={
-            <a className="rc-button" data-variant="secondary" href="https://funding-commons.vercel.app/">
-              Browse current funding
-            </a>
+            <ButtonLink variant="secondary" href={FUNDING_COMMONS}>
+              Browse Current Funding
+            </ButtonLink>
           }
         >
           Your initiative is still on this device. Try again or browse the current directory.
         </EmptyState>
       ) : (
         <>
-          {catalog.ranking && <p role="status">Comparing your card with the catalog on this device</p>}
+          {/* The bar is here from the first paint, so the list arrives under it and nothing jumps. */}
           <FilterBar
             noun="funding"
             things="programs and overview records"
@@ -136,13 +140,27 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             onSort={(sort) => setFilters((current) => ({ ...current, sort }))}
             count={selected.length}
             total={entries.length}
+            note={note}
+            loading={loading}
+            reserve="000 of 000 programs and overview records. From 00 funders. Sources last checked 00 September 0000."
             onClear={() => setFilters((current) => ({ ...emptyFundingFilters, sort: current.sort }))}
           />
-          {selected.length ? (
+          {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
+              Until the device draft opens its room is held, unseen, so the list does not move (DL-104). */}
+          {!catalog.subjectKnown ? (
+            <div className="rc-skeleton" data-shape="room" aria-hidden="true">
+              {prompt}
+            </div>
+          ) : (
+            !catalog.personalized && prompt
+          )}
+          {loading ? (
+            <CardGridSkeleton kind="funding" count={BATCH / 2} />
+          ) : selected.length ? (
             <>
               <CardGrid>
-                {selected.slice(0, limit).map((entry) => (
-                  <li key={entry.id}>
+                {selected.slice(0, limit).map((entry, index) => (
+                  <li key={entry.id} {...added.item(index)}>
                     <OpportunityCard
                       entry={entry}
                       result={results.get(entry.id)}
@@ -155,15 +173,17 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                   </li>
                 ))}
               </CardGrid>
-              {selected.length > limit && (
-                <button
-                  className="rc-button"
-                  data-variant="secondary"
-                  type="button"
-                  onClick={() => setLimit((value) => value + 24)}
-                >
-                  Show more funding
-                </button>
+              {/* The list fills in as its end comes near; a new search or filter starts its run again (DL-101). */}
+              {selected.length > BATCH && (
+                <ListEnd
+                  key={JSON.stringify(visibleFilters)}
+                  shown={Math.min(limit, selected.length)}
+                  total={selected.length}
+                  things="programs and overview records"
+                  more={selected.length > limit}
+                  onPress={added.pressed}
+                  onMore={() => setLimit((value) => value + BATCH)}
+                />
               )}
             </>
           ) : (
@@ -173,16 +193,17 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                 <button
                   className="rc-button"
                   data-variant="secondary"
+                  type="button"
                   onClick={() => setFilters(emptyFundingFilters)}
                 >
-                  Clear filters
+                  Clear Filters
                 </button>
               }
             >
               Try fewer filters or another search.
             </EmptyState>
           )}
-          {import.meta.env.DEV && example && <SuggestFund />}
+          {import.meta.env.DEV && example && !loading && <SuggestFund />}
         </>
       )}
       <FundingProfile />

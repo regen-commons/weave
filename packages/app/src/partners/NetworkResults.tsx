@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from "react";
 import type { MatchingEntryKey } from "@weave/api/matching-contract";
 import { CAPITALS } from "../capitals.ts";
+import { Link } from "../router.tsx";
 import { Card, CardGrid } from "../ui/Card.tsx";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
@@ -95,15 +96,18 @@ export function FitGroups<Result>({ results, kindOf, keyOf, level, limit, childr
  * One partner result (DL-064). It leads with how strong the fit is, then who it is, why it fits, the
  * other side's own words, what to check and what the result rests on, using the system's Fit, Tag
  * and Reason patterns. Strength and reasons show only where one of the person's entries is matched;
- * a browsed result claims no fit. The name is plain text, never a link, so opening the source,
- * saving and hiding stay separate targets.
+ * a browsed result claims no fit. On a matched result the name is plain text, never a link, so
+ * opening the source, saving and hiding stay separate targets. A result that is only browsed, as on
+ * Initiatives, opens its source from its name (`href`), as every other card in a list opens.
  */
 export function FitCard({
-  level, name, entry, kind, reciprocal = false, topics = [], kinds = [], unknowns = [], basis, checkPlace = false,
+  level, name, href, entry, kind, reciprocal = false, topics = [], kinds = [], unknowns = [], basis, checkPlace = false,
   actions, children,
 }: {
-  level: 3 | 4 | 5;
+  level: 2 | 3 | 4 | 5;
   name: string;
+  /** The public source the name opens, in a new tab. Left out where the card has its own Open the source. */
+  href?: string;
   /** The person's own need or offer this result is for. Left out where nothing is being matched. */
   entry?: { kind: "need" | "offer"; title: string };
   kind: FitEvidence;
@@ -131,9 +135,9 @@ export function FitCard({
   const unknown = unknownLine(checkPlace ? [...unknowns, "place"] : unknowns);
   const capitals = CAPITALS.filter((capital) => kinds.includes(capital.key));
   return (
-    <Card>
+    <Card kind="initiative">
       {entry && <Fit level={strength} explanation={FIT_BASIS[strength]} />}
-      <Title className="rc-card-title">{name}</Title>
+      <Title className="rc-card-title">{href ? <Link href={href}>{name}</Link> : name}</Title>
       {capitals.length > 0 && (
         <ul className="rc-tag-list" aria-label="Kinds of support">
           {capitals.map((capital) => <li key={capital.key}><Tag capital={capital} /></li>)}
@@ -162,8 +166,8 @@ export function FitCard({
 /** Opens the public source a result rests on, in a new tab. */
 export function SourceLink({ href, name }: { href: string; name: string }) {
   return (
-    <a className="rc-button" data-variant="quiet" data-size="sm" href={href} target="_blank" rel="noopener noreferrer"
-      aria-label={`Open the source: ${name}`}>Open the source</a>
+    <Link className="rc-button" data-variant="quiet" data-size="sm" href={href}
+      aria-label={`Open the source: ${name} (opens in a new tab)`}>Open The Source</Link>
   );
 }
 
@@ -226,7 +230,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 <p className="rc-card-meta">{entryLine(entry.kind, entry.title)}</p>
                 <p className="rc-meta">You hid this result.</p>
                 <div className="rc-action-bar">
-                  {!readOnly && <LeadButton label="Undo hide" name={name} disabled={disabled}
+                  {!readOnly && <LeadButton label="Undo Hide" name={name} disabled={disabled}
                     onClick={() => onRemove(entry, match.candidateId)} />}
                 </div>
               </Card>
@@ -248,7 +252,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
               actions={(evidence.type === "public" || !compact) && (
                 <>
                   {!compact && !readOnly && (
-                    <LeadButton label={lead ? "Remove from saved" : "Save"} name={name}
+                    <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
                       variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
                       onClick={() => lead
                         ? onRemove(entry, match.candidateId)
@@ -273,7 +277,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
       </FitGroups>
       {saved.length > 0 && (
         <section className="rc-section" aria-labelledby={`${id}-saved`}>
-          <Group className="rc-heading" data-size="section" id={`${id}-saved`}>Saved partners</Group>
+          <Group className="rc-heading" data-size="section" id={`${id}-saved`}>Saved Partners</Group>
           <p className="rc-meta">These stay private. Saving sends no invitation.</p>
           <ul className="rc-ask-summary">
             {saved.map((lead) => {
@@ -296,7 +300,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                     </p>
                   )}
                   <div className="rc-action-bar">
-                    {!readOnly && <LeadButton label="Remove from saved" name={name} disabled={disabled}
+                    {!readOnly && <LeadButton label="Remove From Saved" name={name} disabled={disabled}
                       onClick={() => onRemove(lead, lead.candidateId)} />}
                     {match?.evidence.type === "public" && <SourceLink href={match.evidence.sourceUrl} name={name} />}
                   </div>

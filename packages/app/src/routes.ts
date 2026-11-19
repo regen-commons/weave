@@ -36,7 +36,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "home",
     path: "/",
-    title: "Find partners and funding for regenerative work",
+    title: "Find Partners And Funding For Regenerative Work",
     label: "Home",
     form: false,
     section: "home",
@@ -44,18 +44,18 @@ export const ROUTES: readonly Route[] = [
   {
     name: "initiative",
     path: "/start/initiative",
-    title: "Tell us about your initiative",
-    label: "Describe your initiative",
+    title: "Tell Us About Your Initiative",
+    label: "Describe Your Initiative",
     form: true,
     parent: "home",
   },
-  { name: "check-card", path: "/start/initiative/check", title: "Check your card", form: true, parent: "initiative" },
-  { name: "needs", path: "/start/needs", title: "Needs and offers", form: true, parent: "check-card" },
-  { name: "offers", path: "/start/offers", title: "What you can offer", form: true, parent: "needs" },
+  { name: "check-card", path: "/start/initiative/check", title: "Check Your Card", form: true, parent: "initiative" },
+  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, parent: "check-card" },
+  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, parent: "needs" },
   {
     name: "your-initiative",
     path: "/your-initiative",
-    title: "Your initiative",
+    title: "Your Initiative",
     form: false,
     section: "your-initiatives",
     parent: "your-initiatives",
@@ -106,7 +106,7 @@ export const ROUTES: readonly Route[] = [
   {
     name: "team-workspace",
     path: "/workspaces/:id",
-    title: "Your initiative",
+    title: "Your Initiative",
     form: false,
     section: "your-initiatives",
     parent: "your-initiatives",
@@ -114,9 +114,35 @@ export const ROUTES: readonly Route[] = [
 ];
 export const INTAKE_STEPS = [
   { route: "initiative", label: "Initiative" },
-  { route: "needs", label: "Needs and offers" },
-  { route: "your-initiative", label: "Funding and partners" },
+  { route: "needs", label: "Needs And Offers" },
+  { route: "your-initiative", label: "Funding And Partners" },
 ] as const satisfies readonly { route: RouteName; label: string }[];
+/**
+ * How a move between two pages is drawn on a phone (DL-094). A page deeper in is pushed on, the
+ * way back up pops it off, and a move across sections, or to somewhere the app cannot place,
+ * fades as it always did.
+ */
+export type PageMove = "push" | "pop" | "fade";
+export function pageMove(from: string, to: string): PageMove {
+  const [here, there] = [routeAt(from), routeAt(to)];
+  if (!here || !there || here.name === there.name) return "fade";
+  if (above(there).includes(here.name)) return "push";
+  if (above(here).includes(there.name)) return "pop";
+  // Describing an initiative is one way through: a later step is further in, wherever it hangs.
+  const [was, next] = [stepOf(here), stepOf(there)];
+  if (was === -1 || next === -1 || was === next) return "fade";
+  return next > was ? "push" : "pop";
+}
+/** The pages above a page, nearest first. */
+function above(route: Route): RouteName[] {
+  const names: RouteName[] = [];
+  for (let parent = route.parent; parent && !names.includes(parent); parent = ROUTES.find((candidate) => candidate.name === parent)?.parent) names.push(parent);
+  return names;
+}
+/** Which step of describing an initiative a page belongs to: its own, or the one it hangs under. */
+function stepOf(route: Route): number {
+  return [route.name, ...above(route)].map((name) => INTAKE_STEPS.findIndex((step) => step.route === name)).find((index) => index !== -1) ?? -1;
+}
 export function matchRoute(pathname: string): Route | undefined {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   const alias =
@@ -215,8 +241,31 @@ export function backTarget(route: Route | undefined, visit: Visit | null): BackT
   }
   return { label: navLabel(route.parent), href: pathTo(route.parent), hops: 0 };
 }
+export interface Crumb {
+  readonly label: string;
+  readonly href: string;
+}
+/**
+ * The pages above a page, outermost first, for the breadcrumb trail a wide screen shows in place
+ * of the app bar's back link (DL-080). It follows the route table, not the way the person came,
+ * so the trail is the same on every visit. Tabs and sheets have none. Nor do the steps of
+ * describing an initiative: they follow one another, they are not pages inside one another, and the
+ * step bar above their titles already says where the person is.
+ */
+export function breadcrumbTrail(route: Route | undefined): Crumb[] {
+  if (!route?.parent || route.sheet || route.form) return [];
+  const trail: Crumb[] = [];
+  const seen = new Set<RouteName>([route.name]);
+  for (let name: RouteName | undefined = route.parent; name && !seen.has(name); ) {
+    seen.add(name);
+    const parent: Route = ROUTES.find((candidate) => candidate.name === name)!;
+    trail.unshift({ label: navLabel(parent.name), href: parent.path });
+    name = parent.parent;
+  }
+  return trail;
+}
 export function documentTitle(route: Route | undefined): string {
-  return !route ? "Page not found | Weave" : route.name === "home" ? "Weave" : `${route.title} | Weave`;
+  return !route ? "Page Not Found | Weave" : route.name === "home" ? "Weave" : `${route.title} | Weave`;
 }
 const ROUTE_BASE = "https://weave.example.org";
 /** The prototype build keeps the route in the URL fragment. Anything that is not a route opens Home. */

@@ -7,6 +7,7 @@ import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import {
   attachedFiles, backupDeleteWarning, draftTime, deviceRemovalFailure, discardedMessage, discardWarning, removedBackupMessage,
+  backupLine, BACKUPS_SHOWN, listedBackups, restoreWarning,
 } from "../src/describe/device-removal.ts";
 
 type Stores = Record<"drafts" | "backups", Map<string, unknown>>;
@@ -223,6 +224,28 @@ test("the memory repository follows the same exact-match rules", async () => {
   assert.equal(repository.history[0]?.draft, current);
   assert.deepEqual(result.removed, ["current"]);
   assert.equal(result.kept, 3);
+});
+
+test("the backups list is newest first, shows a few and offers the rest, and each row says when and what", () => {
+  const { backups } = drafts();
+  const rows = backups.map(([key, draft], index) => ({
+    key, draft: { ...draft, updatedAt: `2026-11-${String(10 + index).padStart(2, "0")}T09:00:00.000Z` },
+  }));
+  const more = Array.from({ length: 7 }, (_, index) => ({
+    key: `extra-${index}`, draft: { ...rows[0]!.draft, updatedAt: `2026-10-${String(10 + index).padStart(2, "0")}T09:00:00.000Z` },
+  }));
+  const all = [...more, ...rows];
+  const shown = listedBackups(all, false);
+  assert.equal(shown.length, BACKUPS_SHOWN, "a long history never fills the page");
+  assert.equal(shown[0]?.key, rows.at(-1)!.key, "newest first");
+  const every = listedBackups(all, true);
+  assert.equal(every.length, all.length);
+  assert.deepEqual(every.map((row) => row.draft.updatedAt), [...every.map((row) => row.draft.updatedAt)].sort().reverse());
+  assert.equal(all[0]?.key, "extra-0", "the list given is not reordered");
+  const withFiles = backups[1]![1];
+  assert.match(backupLine(withFiles), /^Last changed \d{1,2} [A-Z][a-z]+ \d{4} at \d{2}:\d{2}, 2 attached files$/u);
+  assert.doesNotMatch(backupLine(backups[0]![1]), /attached/u);
+  assert.match(restoreWarning(withFiles), /^This opens the backup untitled draft, last changed .+, with its 2 attached files\. The draft on this device now is kept as a backup first\.$/u);
 });
 
 test("confirmations name the backup, its shown time and its files; result lines count what stayed", () => {

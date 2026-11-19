@@ -34,13 +34,13 @@ export function SaveDeviceToTeam({ workspaceId, onSaved, primary = false }: {
   // A retry sends the request it started with, so the review shows that document.
   const document = pending?.document ?? accountDocument(draft);
   const card = documentCard(document);
-  return <><button className="rc-button" data-variant={primary ? "primary" : "secondary"} type="button" onClick={() => setOpen(true)}>Save your card to this team</button>
-    <TaskDialog title="Save your card to this team" open={open} onClose={() => { if (!busy) setOpen(false); }}>
+  return <><button className="rc-button" data-variant={primary ? "primary" : "secondary"} type="button" onClick={() => setOpen(true)}>Save Your Card To This Team</button>
+    <TaskDialog title="Save Your Card To This Team" open={open} onClose={() => { if (!busy) setOpen(false); }}>
       <div className="rc-stack"><h3 className="rc-heading" data-size="section">{String(document.initiative.name)}</h3>
         <p>Teammates with access will see this card and its funding details. Nothing is shared outside the team.</p>
         {card && <InitiativeRecord named={false} team fields={card.fields} needs={card.needs} offers={card.offers} />}
         <div className="rc-action-bar">
-          <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={() => void save()}>{pending ? "Retry the same save" : "Save to team workspace"}</button>
+          <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={() => void save()}>{pending ? "Retry The Same Save" : "Save To Team Workspace"}</button>
         </div>
         {error && <p role="alert">{error}</p>}
       </div>

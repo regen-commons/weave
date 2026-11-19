@@ -1,50 +1,65 @@
 // Mycelium behaviour shared by React and the static pattern library: the website's branching growth
 // (canvas.js on regencommons.com), with its step, thickness, length, branching, marks and six thread
-// colours, adapted to an application. Small tufts grow all over a region, fork, take the odd
-// circuit-like right angle and leave junction pads and tip bulbs. They come to rest at the strength
-// of the website's growth part way through fading, and drawing stops.
+// colours, adapted to an application (DL-106).
 //
-// Growth runs underneath the page's content, as the website's does (DL-071). The canvas lies behind
-// everything in its region and knows nothing of what is on it: a card, a field or a button covers
-// the threads that pass under it, and words set on the page itself have them behind. That lets one
-// canvas lie under a whole page.
+// It draws as the website does. The canvas holds one canvas pixel for each CSS pixel, so a phone's or
+// a sharp screen's own scaling softens and widens every line. New growth leaves trails: each frame
+// the picture so far is rubbed out a little and every live tuft is drawn over it again, which is the
+// website's loop. A moving mouse grows tufts where it goes, and so does a finger. Growth uses the
+// website's depth 1 on Home and depth 2 everywhere else.
 //
-// New tufts start bright and fade away while they grow, as the website's do. A moving mouse grows
-// them wherever it goes. Where there is no mouse, on a phone, scrolling grows them under the part of
-// the page in view, and one grows on its own every few seconds where the page opens. Under reduced motion the
-// resting network is drawn at once and nothing more grows. Colours come from the canvas's
+// Three things are the app's own. A light resting network lies under the trails, so a phone with no
+// mouse is never blank; it is quieter under the column that holds the content and whole beside it
+// (DL-071). Where there is no mouse a tuft grows on its own every few seconds. And drawing stops:
+// once the last trail has faded nothing runs until something grows again, and nothing runs while
+// the page is hidden or the canvas is off screen. Under reduced motion the resting network is drawn
+// at once and nothing more grows.
+//
+// The canvas lies behind everything in its region and knows nothing of what is on it: a card, a
+// field or a button covers the threads that pass under it. Behind a whole page the stylesheet fixes
+// it to the window, so pages scroll over it, as on the website. Colours come from the canvas's
 // --mycelium-1 to --mycelium-6 custom properties, so the theme decides them. The canvas is
-// decorative: it takes no pointer, and the CSS keeps it behind the page's content.
+// decorative and takes no pointer.
 
 const TAU = Math.PI * 2;
 const RIGHT_ANGLE = Math.PI / 2;
 /** The website's six thread colours, read from the custom properties the CSS sets on the canvas. */
 const COLOURS = 6;
-/** Growth steps per drawn frame: the website's pace. */
-const STEPS_PER_FRAME = 1;
-/** A mouse must travel this far, in CSS pixels, before it grows a new tuft, as on the website. */
-const POINTER_SPACING = 45;
-/** A page must scroll this far, in CSS pixels, before it grows a new tuft where there is no mouse. */
-export const SCROLL_SPACING = 70;
+/**
+ * The website's depths 1 and 2, unchanged: how far a branch reaches, how often it forks, how
+ * strongly a new tuft is drawn each frame and how much of that it loses each frame.
+ */
+export const DEPTHS = {
+  1: { reach: 50, forkRate: 0.012, opacity: 0.22, fadeRate: 0.0014 },
+  2: { reach: 60, forkRate: 0.015, opacity: 0.25, fadeRate: 0.0012 },
+};
+/** The website's fade fill: the share of the trails so far that goes each frame. */
+export const TRAIL_FADE = 0.035;
+/** Once nothing is alive the last of the trails goes faster, so no ghost of them is left. */
+const LAST_FADE = 0.2;
+/** Frames with nothing alive before the fade quickens, and before the trails are cleared. */
+const QUIET_FRAMES = 90;
+const CLEAR_FRAMES = 130;
+/** A mouse or a finger must travel this far, in CSS pixels, before it grows a new tuft, as on the website. */
+const SPACING = 45;
 /** At most this many new tufts live at once, as on the website; the oldest goes first. */
 const LIVE_TUFTS = 30;
-/** Frames a new tuft takes to fade away while it grows, about the website's. */
-const TUFT_LIFE = 160;
-/** How strongly the resting network shows: the website's growth part way through fading. */
+/** The resting network has one seed for about this many CSS pixels of its region. */
+const REST_AREA = { phone: 30000, wide: 48000 };
+/** How strongly the resting network shows. */
 const REST_ALPHA = 0.4;
-/** How strongly a new tuft starts: the website's fresh growth. */
-const FRESH_ALPHA = 0.85;
 /** The share of its strength the resting network keeps under the column that holds the content. */
 const UNDER_CONTENT = 0.45;
 /** The resting network eases to that share over this many CSS pixels inside the column's edges. */
 const EASE = 32;
 /** Without a mouse, a tuft grows on its own after this many milliseconds, plus up to the spread. */
-const OWN_GROWTH_AFTER = 1500;
-const OWN_GROWTH_SPREAD = 1500;
-/** A long page's canvas draws at a lower density before it would hold more pixels than this. */
-const MAX_PIXELS = 6_000_000;
-/** The height the densities were tuned for: a wide screen's hero. */
-const TUNED_HEIGHT = 520;
+const OWN_GROWTH_AFTER = 1800;
+const OWN_GROWTH_SPREAD = 1800;
+/** A region that changes size is drawn again once it has held still this long, in milliseconds. */
+const RESIZE_REST = 160;
+/** Frames a new tuft of the logo takes to fade, and how strongly it starts. */
+const TUFT_LIFE = 160;
+const FRESH_ALPHA = 0.85;
 
 /** A small seeded generator, so the settled network looks the same on every visit and in tests. */
 export function seededRandom(seed) {
@@ -58,17 +73,19 @@ export function seededRandom(seed) {
   };
 }
 
+/** The website's depth for a page: 1 on Home, 2 on every other, whatever else is asked for. */
+export function depthFor(depth) {
+  return depth === 1 ? DEPTHS[1] : DEPTHS[2];
+}
+
 /**
- * How much grows in a region this size: the website's tufts, spread over a hero, and as many again
- * for each further stretch of a longer page. A shorter region grows fewer, so the words on it are
- * no more crowded, down to half a hero's. A phone's region is a quarter as wide, so it grows fewer,
- * a little shorter.
+ * How much rests in a region this size, at a depth: a seed for each stretch of its area, a little
+ * closer together on a phone, where there are no margins to show them whole. Branches reach and
+ * fork as the website's do at that depth.
  */
-export function densityFor(width, height = TUNED_HEIGHT) {
-  const stretch = Math.max(0.5, height / TUNED_HEIGHT);
-  return width < 600
-    ? { seeds: Math.round(9 * stretch), reach: 55, forkRate: 0.015, limit: Math.round(90 * stretch) }
-    : { seeds: Math.round(24 * stretch), reach: 65, forkRate: 0.018, limit: Math.round(300 * stretch) };
+export function restDensity(width, height, depth = DEPTHS[2]) {
+  const seeds = Math.max(4, Math.round((width * height) / (width < 600 ? REST_AREA.phone : REST_AREA.wide)));
+  return { seeds, reach: depth.reach, forkRate: depth.forkRate, limit: seeds * 12 };
 }
 
 function newBranch(x, y, angle, generation, colour, random, reach) {
@@ -94,11 +111,8 @@ function sow(branches, x, y, random, reach, colour = Math.floor(random() * COLOU
   }
 }
 
-/**
- * Seeds a region all over, across its whole width and down its whole height, so the network lies
- * under the content and not only beside it (DL-071).
- */
-export function seedNetwork(width, height, random, density = densityFor(width, height)) {
+/** Seeds a region all over, across its whole width and down its whole height (DL-071). */
+export function seedNetwork(width, height, random, density = restDensity(width, height)) {
   const branches = [];
   for (let i = 0; i < density.seeds; i++) sow(branches, random() * width, height * (0.02 + random() * 0.96), random, density.reach);
   return branches;
@@ -139,13 +153,14 @@ export function advance(branches, width, height, random, density) {
   return growing || branches.length > count;
 }
 
-/**
- * Whether a pointer move may grow a tuft: only a mouse, only where the pointer is fine, and never
- * under reduced motion. A finger never grows one where it touches; on a phone the page's own
- * scrolling does (see growsFromScroll).
- */
+/** Whether a pointer grows the logo: only a mouse, only where the pointer is fine, and never under reduced motion. */
 export function growsFromPointer(pointerType, finePointer, reducedMotion) {
   return pointerType === "mouse" && finePointer && !reducedMotion;
+}
+
+/** Whether a mouse or a finger leaves trails behind the page: always, but for reduced motion. */
+export function growsTrails(reducedMotion) {
+  return !reducedMotion;
 }
 
 /** Whether new tufts grow on their own: only where there is no mouse to grow them, with motion allowed. */
@@ -153,17 +168,30 @@ export function growsOnItsOwn(finePointer, reducedMotion) {
   return !finePointer && !reducedMotion;
 }
 
-/** Whether scrolling grows tufts: where there is no mouse to grow them, with motion allowed (DL-066). */
-export function growsFromScroll(finePointer, reducedMotion) {
-  return !finePointer && !reducedMotion;
+/** Whether a mouse or a finger has travelled far enough since the last tuft to grow another. */
+export function movedEnough(from, to) {
+  return !from || Math.hypot(to.x - from.x, to.y - from.y) >= SPACING;
 }
 
-/** Whether the page has scrolled far enough since the last tuft to grow another. */
-export function scrolledEnough(from, to) {
-  return Math.abs(to - from) >= SCROLL_SPACING;
+/** How strongly a tuft is drawn each frame at an age in frames: the website's opacity, less its fade for each frame. */
+export function tuftStrength(age, depth) {
+  return Math.max(0, depth.opacity - depth.fadeRate * age);
 }
 
-/** How strongly a new tuft shows at an age in frames: bright at first, gone after its life. */
+/**
+ * The share of the trails rubbed out in a frame, after so many frames with nothing alive: the
+ * website's while anything grows and for a while after, then more, so the last of them goes.
+ */
+export function trailFade(quietFrames) {
+  return quietFrames > QUIET_FRAMES ? LAST_FADE : TRAIL_FADE;
+}
+
+/** Whether the trails have had long enough with nothing alive to be cleared, and drawing to stop. */
+export function trailsGone(quietFrames) {
+  return quietFrames > CLEAR_FRAMES;
+}
+
+/** How strongly a new tuft of the logo shows at an age in frames: bright at first, gone after its life. */
 export function tuftAlpha(age) {
   return FRESH_ALPHA * Math.max(0, 1 - age / TUFT_LIFE);
 }
@@ -183,7 +211,17 @@ export function settle(branches, width, height, random, density) {
  */
 export function restShare(x, column) {
   const inside = Math.min(x - column.left, column.right - x);
-  return inside <= 0 ? 1 : 1 - (1 - UNDER_CONTENT) * Math.min(1, inside / EASE);
+  return inside <= 0 ? 1 : UNDER_CONTENT + (1 - UNDER_CONTENT) * (1 - Math.min(1, inside / EASE));
+}
+
+/**
+ * The same shares as the stops of a mask across a region this wide: each a place from 0 to 1 and
+ * the share that shows there. A column too narrow to ease into and out of leaves the region whole.
+ */
+export function restStops(column, width) {
+  if (!(width > 0) || column.right - column.left < 2 * EASE) return [[0, 1], [1, 1]];
+  const at = (x) => Math.min(1, Math.max(0, x / width));
+  return [column.left, column.left + EASE, column.right - EASE, column.right].map((x) => [at(x), restShare(x, column)]);
 }
 
 const whole = () => 1;
@@ -193,7 +231,7 @@ function strength(branch, base) {
   return base * (1 - branch.generation * 0.2);
 }
 
-/** `share` says how much of that strength shows at a place across the region; new tufts show whole. */
+/** `share` says how much of that strength shows at a place across the region. */
 function drawSegment(context, branch, index, colours, base, share = whole) {
   const points = branch.points;
   context.globalAlpha = Math.max(0, strength(branch, base) * share(points[index * 2]));
@@ -229,6 +267,7 @@ function drawMarks(context, branch, colours, base, share = whole) {
   }
 }
 
+/** The logo's way: a segment at a time, so each can take its own strength. */
 function drawNetwork(context, branches, colours, base, share = whole) {
   context.lineCap = "round";
   context.lineJoin = "round";
@@ -239,14 +278,34 @@ function drawNetwork(context, branches, colours, base, share = whole) {
   context.globalAlpha = 1;
 }
 
+/** The website's way: each branch as one line from end to end, with its pad and its bulb. */
+function drawBranches(context, branches, colours, base) {
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  for (const branch of branches) {
+    const points = branch.points;
+    if (points.length < 4 || strength(branch, base) <= 0) continue;
+    context.globalAlpha = Math.min(1, strength(branch, base));
+    context.strokeStyle = colours[branch.colour];
+    context.lineWidth = branch.width;
+    context.beginPath();
+    context.moveTo(points[0], points[1]);
+    for (let i = 2; i < points.length; i += 2) context.lineTo(points[i], points[i + 1]);
+    context.stroke();
+    drawMarks(context, branch, colours, Math.min(1, base));
+  }
+  context.globalAlpha = 1;
+}
+
 /**
  * Starts the growth on a canvas. `within` is the region it lies under, the canvas's parent unless
- * given: a mouse moving anywhere over it grows tufts. `own` is where tufts grow on their own where
- * there is no mouse, the whole of `within` unless an element inside it is marked
- * `data-mycelium-own`. Returns `dispose`, which stops drawing and removes every listener and
- * observer; call it on unmount.
+ * given. `column` is the element that holds the content, or a function that finds it: the element
+ * after the canvas unless given, as a page's column is. The resting network is quieter under it and
+ * whole beside it, and it is found again whenever the region's children change, as they do between
+ * pages. `depth` is the website's depth, or a function that gives it: 1 on Home, 2 anywhere else.
+ * Returns `dispose`, which stops drawing and removes every listener and observer; call it on unmount.
  */
-export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?? canvas } = {}) {
+export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?? canvas, column: holder, depth: depthName = 2 } = {}) {
   const context = canvas.getContext("2d");
   const view = canvas.ownerDocument.defaultView;
   if (!context || !view) return { dispose() {} };
@@ -254,30 +313,31 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   const still = view.matchMedia("(prefers-reduced-motion: reduce)");
   const finePointer = view.matchMedia("(hover: hover) and (pointer: fine)");
   const darkScheme = view.matchMedia("(prefers-color-scheme: dark)");
-  const own = within.querySelector?.("[data-mycelium-own]") ?? within;
+  // Two pictures kept off screen: the resting network, drawn when it changes, and the trails,
+  // rubbed out a little every frame. The canvas on the page shows one over the other.
+  const rest = canvas.ownerDocument.createElement("canvas");
+  const trails = canvas.ownerDocument.createElement("canvas");
+  const restContext = rest.getContext("2d");
+  const trailContext = trails.getContext("2d");
+  if (!restContext || !trailContext) return { dispose() {} };
   const cleanup = [];
+  const depth = () => depthFor(typeof depthName === "function" ? depthName() : depthName);
   let width = 0;
   let height = 0;
-  let ratio = 1;
-  let density = densityFor(0);
-  // The column that holds the content: the region itself, which the canvas may be wider than.
-  let column = { left: 0, right: 0 };
-  const rest = (x) => restShare(x, column);
+  let density = restDensity(0, 0);
   let random = seededRandom(seed);
   let branches = [];
   let tufts = [];
   let colours = [];
-  let settledImage = null;
-  let paints = 0;
+  let trailsDrawn = false;
+  let quiet = 0;
   let disposed = false;
   let frame = 0;
   let shown = !canvas.ownerDocument.hidden;
   let onScreen = true;
-  let ownOnScreen = true;
-  let lastPointer = null;
-  let lastScroll = view.scrollY;
-  let lastBand = null;
+  let lastMove = null;
   let ownTimer = 0;
+  let resizeTimer = 0;
 
   const listen = (target, type, listener, options) => {
     target.addEventListener(type, listener, options);
@@ -293,201 +353,145 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     const box = canvas.getBoundingClientRect();
     width = Math.max(1, Math.round(box.width));
     height = Math.max(1, Math.round(box.height));
-    // A phone draws at a lower density: the threads are thin enough not to need more. So does a
-    // page long enough that its canvas would otherwise hold more pixels than a phone can spare.
-    ratio = Math.min(view.devicePixelRatio || 1, width < 600 ? 1.5 : 2, Math.sqrt(MAX_PIXELS / (width * height)));
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    density = densityFor(width, height);
-    const inner = within === canvas ? box : within.getBoundingClientRect();
-    column = { left: inner.left - box.left, right: inner.right - box.left };
+    // One canvas pixel for each CSS pixel, as the website draws: the screen's own scaling does the
+    // softening, and a long or sharp screen costs no more to draw.
+    for (const surface of [canvas, rest, trails]) {
+      surface.width = width;
+      surface.height = height;
+    }
+    trailsDrawn = false;
+    density = restDensity(width, height, depth());
   }
 
-  /** Keeps one picture of the settled network, closing the one it replaces. */
-  function keep(image) {
-    settledImage?.close?.();
-    settledImage = image;
+  /** The two sides of the column that holds the content, across the canvas. */
+  function columnSides() {
+    const held = (typeof holder === "function" ? holder() : holder) ?? canvas.nextElementSibling ?? within;
+    const box = canvas.getBoundingClientRect();
+    const inner = held === canvas ? box : held.getBoundingClientRect();
+    return { left: inner.left - box.left, right: inner.right - box.left };
   }
 
-  /** Draws the settled network once, keeps it as an image for new tufts to draw over, and rests. */
-  function paintSettled() {
+  /** Draws the resting network into its own picture, quieter under the column that holds the content. */
+  function paintRest() {
+    restContext.clearRect(0, 0, width, height);
+    drawBranches(restContext, branches, colours, REST_ALPHA);
+    const mask = restContext.createLinearGradient(0, 0, width, 0);
+    for (const [place, share] of restStops(columnSides(), width)) mask.addColorStop(place, `rgba(0, 0, 0, ${share})`);
+    restContext.globalCompositeOperation = "destination-in";
+    restContext.fillStyle = mask;
+    restContext.fillRect(0, 0, width, height);
+    restContext.globalCompositeOperation = "source-over";
+  }
+
+  /** Shows the resting network with the trails over it. */
+  function show() {
     context.clearRect(0, 0, width, height);
-    drawNetwork(context, branches, colours, REST_ALPHA, rest);
-    lastBand = null;
-    keep(null);
-    if (typeof view.createImageBitmap !== "function") return;
-    const paint = ++paints;
-    view.createImageBitmap(canvas).then(
-      (image) => {
-        // A later paint, or dispose, may have come first: keep only the newest picture.
-        if (disposed || paint !== paints) image.close();
-        else keep(image);
-      },
-      () => {},
-    );
+    context.drawImage(rest, 0, 0);
+    if (trailsDrawn) context.drawImage(trails, 0, 0);
   }
 
-  function seedAndSettle() {
-    random = seededRandom(seed);
-    branches = settle(seedNetwork(width, height, random, density), width, height, random, density);
-    tufts = [];
-    paintSettled();
-    planOwnGrowth();
-  }
+  const resting = () => !branches.some((branch) => branch.growing);
 
   function stop() {
     if (frame) view.cancelAnimationFrame(frame);
     frame = 0;
   }
 
-  function busy() {
-    return branches.some((branch) => branch.growing) || tufts.length > 0;
-  }
-
   function schedule() {
-    if (frame || !shown || !onScreen || still.matches || !busy()) return;
+    if (frame || disposed || !shown || !onScreen) return;
+    // Under reduced motion the network is sown at rest and nothing grows, so there is never anything to draw.
+    if (resting() && !tufts.length && !trailsDrawn) return;
     frame = view.requestAnimationFrame(tick);
   }
 
-  /** The part of the canvas in the window, with a margin, in the canvas's own coordinates. */
-  function band() {
-    const box = canvas.getBoundingClientRect();
-    const top = Math.max(0, Math.floor(-box.top - 120));
-    const bottom = Math.min(height, Math.ceil(view.innerHeight - box.top + 120));
-    return bottom > top ? { top, bottom } : null;
-  }
-
-  /** Puts the settled picture back over one stretch of the canvas, clearing whatever tufts drew there. */
-  function restore({ top, bottom }) {
-    context.clearRect(0, top, width, bottom - top);
-    if (settledImage) context.drawImage(settledImage, 0, top * ratio, width * ratio, (bottom - top) * ratio, 0, top, width, bottom - top);
-  }
-
-  /** One frame: grow the first network a little, or redraw the settled picture under fading tufts. */
+  /** One frame: grow the resting network a little while it is new, and fade and redraw the trails. */
   function tick() {
     frame = 0;
-    if (branches.some((branch) => branch.growing)) {
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      for (let step = 0; step < STEPS_PER_FRAME; step++) {
-        const before = branches.map((branch) => ({ length: branch.points.length, growing: branch.growing }));
-        const growing = advance(branches, width, height, random, density);
-        branches.forEach((branch, i) => {
-          const was = before[i] ?? { length: 2, growing: true };
-          for (let point = was.length / 2; point < branch.points.length / 2; point++) drawSegment(context, branch, point, colours, REST_ALPHA, rest);
-          // Each pad and bulb is drawn once, as its branch comes to rest.
-          if (was.growing && !branch.growing) drawMarks(context, branch, colours, REST_ALPHA, rest);
-        });
-        if (!growing) break;
-      }
-      context.globalAlpha = 1;
-      if (!branches.some((branch) => branch.growing)) {
-        paintSettled();
-        planOwnGrowth();
-      }
-    } else {
-      // New tufts live beside the window, so only that stretch of a long page is redrawn: the one
-      // drawn last time, in case the page has scrolled since, and the one in view now.
-      const now = band();
-      if (settledImage) {
-        if (lastBand) restore(lastBand);
-        if (now) restore(now);
-      } else {
-        context.clearRect(0, 0, width, height);
-        drawNetwork(context, branches, colours, REST_ALPHA, rest);
-      }
-      lastBand = now;
-      // New tufts grow and fade at once, as the website's do, and leave the resting network as it was.
+    if (!resting()) {
+      advance(branches, width, height, random, density);
+      paintRest();
+    }
+    if (trailsDrawn) {
+      // The website's loop. It fills with the page's colour; this rubs the trails out instead, so
+      // whatever lies behind the canvas shows through and no colour has to be known.
+      quiet = tufts.length ? 0 : quiet + 1;
+      trailContext.globalCompositeOperation = "destination-out";
+      trailContext.fillStyle = `rgba(0, 0, 0, ${trailFade(quiet)})`;
+      trailContext.fillRect(0, 0, width, height);
+      trailContext.globalCompositeOperation = "source-over";
       tufts = tufts.filter((tuft) => {
         tuft.age += 1;
-        const alpha = tuftAlpha(tuft.age);
-        if (alpha <= 0) return false;
-        if (tuft.branches.some((branch) => branch.growing)) advance(tuft.branches, width, height, Math.random, tuft.density);
-        drawNetwork(context, tuft.branches, colours, alpha);
+        const base = tuftStrength(tuft.age, tuft.depth);
+        if (base <= 0) return false;
+        advance(tuft.branches, width, height, Math.random, tuft.density);
+        drawBranches(trailContext, tuft.branches, colours, base);
         return true;
       });
+      if (trailsGone(quiet)) {
+        trailContext.clearRect(0, 0, width, height);
+        trailsDrawn = false;
+        quiet = 0;
+      }
     }
+    show();
     schedule();
   }
 
-  function grow() {
+  /** Seeds the resting network and brings it to rest at once, or leaves it to grow in. */
+  function sowRest(atOnce) {
+    random = seededRandom(seed);
+    branches = seedNetwork(width, height, random, density);
+    if (atOnce) settle(branches, width, height, random, density);
+    tufts = [];
+    quiet = 0;
+    trailContext.clearRect(0, 0, width, height);
+    paintRest();
+    show();
+  }
+
+  function grow(atOnce = false) {
     stop();
     resize();
     readColours();
-    if (still.matches) {
-      seedAndSettle();
-      return;
-    }
-    random = seededRandom(seed);
-    branches = seedNetwork(width, height, random, density);
-    tufts = [];
-    context.clearRect(0, 0, width, height);
+    sowRest(atOnce || still.matches);
     schedule();
+    planOwnGrowth();
   }
 
-  /** Grows a new tuft that starts bright and fades away while it grows. */
+  /** Grows a new tuft that is drawn bright and fades while it grows, as the website's do. */
   function sprout(x, y) {
-    const tuftDensity = { ...density, limit: 16 };
+    const tuftDepth = depth();
     const tuftBranches = [];
-    sow(tuftBranches, x, y, Math.random, tuftDensity.reach);
-    tufts.push({ branches: tuftBranches, age: 0, density: tuftDensity });
+    sow(tuftBranches, x, y, Math.random, tuftDepth.reach);
+    tufts.push({ branches: tuftBranches, age: 0, depth: tuftDepth, density: { reach: tuftDepth.reach, forkRate: tuftDepth.forkRate, limit: 24 } });
     if (tufts.length > LIVE_TUFTS) tufts.shift();
+    trailsDrawn = true;
     schedule();
   }
 
-  /** A mouse moving over the region grows a tuft every little way, under whatever it is over, as on the website. */
-  function onPointerMove(event) {
-    if (!growsFromPointer(event.pointerType, finePointer.matches, still.matches)) return;
-    if (branches.some((branch) => branch.growing)) return;
+  /** A mouse or a finger moving over the region grows a tuft every little way, under whatever it is over. */
+  function onMove(clientX, clientY) {
+    if (!growsTrails(still.matches) || !shown || !onScreen) return;
     const box = canvas.getBoundingClientRect();
-    const x = event.clientX - box.left;
-    const y = event.clientY - box.top;
-    if (lastPointer && Math.hypot(x - lastPointer.x, y - lastPointer.y) < POINTER_SPACING) return;
-    lastPointer = { x, y };
-    sprout(x, y);
-  }
-
-  /** A point anywhere across the canvas between two heights, or nothing when there is no height between them. */
-  function pointBetween(top, bottom) {
-    return bottom > top ? [Math.random() * width, top + Math.random() * (bottom - top)] : null;
-  }
-
-  /** The part of an element that is in the window, in the canvas's own coordinates. */
-  function inView(element) {
-    const box = canvas.getBoundingClientRect();
-    const rect = element.getBoundingClientRect();
-    return [Math.max(0, rect.top, box.top) - box.top, Math.min(view.innerHeight, rect.bottom, box.bottom) - box.top];
+    const at = { x: clientX - box.left, y: clientY - box.top };
+    if (at.x < 0 || at.y < 0 || at.x > box.width || at.y > box.height) return;
+    if (!movedEnough(lastMove, at)) return;
+    lastMove = at;
+    sprout(at.x, at.y);
   }
 
   /**
-   * Where there is no mouse, scrolling grows a tuft every little way, under the part of the page
-   * in view. It waits for the first growth to rest and never grows under reduced motion (DL-066).
-   */
-  function onScroll() {
-    const at = view.scrollY;
-    if (!growsFromScroll(finePointer.matches, still.matches) || !shown) {
-      lastScroll = at;
-      return;
-    }
-    if (!scrolledEnough(lastScroll, at) || branches.some((branch) => branch.growing)) return;
-    lastScroll = at;
-    const point = pointBetween(...inView(canvas));
-    if (point) sprout(...point);
-  }
-
-  /**
-   * Without a mouse, a tuft grows on its own every few seconds where the page opens, while that
-   * part is on screen and the page is shown. It waits for the first growth to rest, and stops under
-   * reduced motion (DL-048).
+   * Without a mouse, a tuft grows on its own every few seconds, somewhere in the part of the canvas
+   * that is in the window, while the page is shown. It stops under reduced motion (DL-048).
    */
   function planOwnGrowth() {
-    if (ownTimer || !shown || !ownOnScreen || !growsOnItsOwn(finePointer.matches, still.matches)) return;
-    if (branches.some((branch) => branch.growing)) return;
+    if (ownTimer || disposed || !shown || !onScreen || !growsOnItsOwn(finePointer.matches, still.matches)) return;
     ownTimer = view.setTimeout(() => {
       ownTimer = 0;
-      const point = pointBetween(...inView(own));
-      if (point) sprout(...point);
+      const box = canvas.getBoundingClientRect();
+      const top = Math.max(0, -box.top);
+      const bottom = Math.min(height, view.innerHeight - box.top);
+      if (bottom > top && resting()) sprout(Math.random() * width, top + Math.random() * (bottom - top));
       planOwnGrowth();
     }, OWN_GROWTH_AFTER + Math.random() * OWN_GROWTH_SPREAD);
   }
@@ -497,24 +501,31 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     ownTimer = 0;
   }
 
-  /** A new theme repaints the same network in the new colours. */
+  /** A new theme draws the same network in the new colours, and lets go of trails in the old ones. */
   function recolour() {
     readColours();
-    if (branches.some((branch) => branch.growing)) settle(branches, width, height, random, density);
-    paintSettled();
+    tufts = [];
+    trailContext.clearRect(0, 0, width, height);
+    trailsDrawn = false;
+    paintRest();
+    show();
   }
 
-  /** The region changed size, as when a list loads into a page: grow the network again, at rest. */
-  function regrow() {
-    stop();
-    resize();
-    seedAndSettle();
+  /** The column that holds the content changed, as it does between pages: the same network, measured again. */
+  function measure() {
+    if (disposed) return;
+    paintRest();
+    show();
   }
 
   grow();
 
-  listen(within, "pointermove", onPointerMove, { passive: true });
-  listen(view, "scroll", onScroll, { passive: true });
+  // The website listens on the window for a mouse and for a finger, and so does this.
+  listen(view, "mousemove", (event) => onMove(event.clientX, event.clientY), { passive: true });
+  listen(view, "touchmove", (event) => {
+    const touch = event.touches[0];
+    if (touch) onMove(touch.clientX, touch.clientY);
+  }, { passive: true });
   listen(canvas.ownerDocument, "visibilitychange", () => {
     shown = !canvas.ownerDocument.hidden;
     if (shown) {
@@ -525,17 +536,10 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
       stopOwnGrowth();
     }
   });
+  // Motion turned off or on: draw it at rest and start again from there.
   listen(still, "change", () => {
-    if (!still.matches) {
-      planOwnGrowth();
-      return;
-    }
-    // Motion turned off: show the rest of the growth at once and draw nothing more.
-    stop();
     stopOwnGrowth();
-    settle(branches, width, height, random, density);
-    tufts = [];
-    paintSettled();
+    grow(true);
   });
   // A mouse plugged in or taken away decides whether tufts grow on their own.
   listen(finePointer, "change", () => {
@@ -549,32 +553,38 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   themeWatch.observe(documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   cleanup.push(() => themeWatch.disconnect());
 
+  // The region's own children change between pages, and the column with them.
+  const columnWatch = new view.MutationObserver(measure);
+  columnWatch.observe(within, { childList: true });
+  cleanup.push(() => columnWatch.disconnect());
+
   if (typeof view.IntersectionObserver === "function") {
     const visibility = new view.IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.target === canvas) onScreen = entry.isIntersecting;
-        if (entry.target === own) ownOnScreen = entry.isIntersecting;
+      for (const entry of entries) onScreen = entry.isIntersecting;
+      if (onScreen) {
+        schedule();
+        planOwnGrowth();
+      } else {
+        stop();
+        stopOwnGrowth();
       }
-      if (onScreen) schedule();
-      else stop();
-      if (ownOnScreen) planOwnGrowth();
-      else stopOwnGrowth();
     });
     visibility.observe(canvas);
-    if (own !== canvas) visibility.observe(own);
     cleanup.push(() => visibility.disconnect());
   }
 
   if (typeof view.ResizeObserver === "function") {
-    let known = { width, height };
+    // A window being dragged to a new size changes it many times: the network is drawn again, at
+    // rest, once the size has held still. A phone's address bar does not change a canvas that is
+    // fixed to the window at its largest height.
     const sizes = new view.ResizeObserver(() => {
       const box = canvas.getBoundingClientRect();
-      const changedWidth = Math.abs(box.width - known.width) > known.width * 0.08;
-      const changedHeight = Math.abs(box.height - known.height) > known.height * 0.15;
-      if (!changedWidth && !changedHeight) return;
-      // A new size grows the network again at rest: a phone's address bar should not restart it.
-      regrow();
-      known = { width, height };
+      if (Math.abs(box.width - width) < 1 && Math.abs(box.height - height) < 1) return;
+      if (resizeTimer) view.clearTimeout(resizeTimer);
+      resizeTimer = view.setTimeout(() => {
+        resizeTimer = 0;
+        if (!disposed) grow(true);
+      }, RESIZE_REST);
     });
     sizes.observe(canvas);
     cleanup.push(() => sizes.disconnect());
@@ -585,8 +595,8 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
       disposed = true;
       stop();
       stopOwnGrowth();
+      if (resizeTimer) view.clearTimeout(resizeTimer);
       for (const undo of cleanup.splice(0)) undo();
-      keep(null);
     },
   };
 }

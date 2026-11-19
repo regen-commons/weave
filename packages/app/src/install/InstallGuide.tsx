@@ -94,7 +94,7 @@ export function InstallGuide() {
                 )
             }
           >
-            Copy this page's address
+            Copy This Page's Address
           </button>
         </div>
       )}

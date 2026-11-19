@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Weave, the first version of the Regen Commons platform: a React 19 PWA built with Vite. Root directory of the Weave Vercel project.",
+  "description": "Weave, part of Regen Commons: a React 19 PWA built with Vite. Root directory of the Weave Vercel project.",
   "scripts": {
     "dev": "node scripts/copy-brand.mjs && vite --port 5173 --strictPort",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && node scripts/copy-brand.mjs && vite build",
