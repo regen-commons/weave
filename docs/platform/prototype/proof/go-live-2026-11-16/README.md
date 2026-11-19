@@ -1,8 +1,9 @@
 # Production go-live evidence, 16 November 2026
 
-Weave went live at `ea2b810` on 16 November and is now at `2893fb1`, from the
-[layout fixes release](#release-of-101-18-november). It followed the
-[polish release](#release-of-95-to-97-18-november) earlier on 18 November and the
+Weave went live at `ea2b810` on 16 November and is now at `3b8df8b`, from the
+[intake redesign release](#release-of-99-and-100-19-november). It followed the
+[layout fixes release](#release-of-101-18-november) and the
+[polish release](#release-of-95-to-97-18-november) on 18 November, and the
 [17 November release](#release-of-85-to-93-17-november). Both previously designated launch-blocker gates passed
 on the verified new production client: negation classification and real A/B
 cross-tab session changes. Sharing remains stopped by the user's direction after
@@ -13,6 +14,57 @@ QA took place on 15 to 16 November 2026, Pacific time. Production proof used the
 user's existing Brave profile. Chromium 156 was reported by the user; the version
 page was blocked, so the exact version was not independently verified. These evidence changes alter no Auth, deployment or catalog settings. The approved production cloud QA cleanup is
 recorded below. Public evidence uses account A and account B only.
+
+## Release of #99 and #100, 19 November
+
+The user approved releasing the "Start an initiative" redesign once the saved-card
+overwrite found in its last review was fixed, and asked to finish the work so they
+could do final QA.
+[Release PR #103](https://github.com/regen-commons/weave/pull/103) merged as
+`3b8df8bb4579fa1c2961deca4dd98a97f7f19f03` at 17:43 UTC on 19 November (9:43 a.m.
+Pacific). Its tree matches `develop` at
+`977aa2d`, the merge of #100.
+
+| Change | What it does |
+|---|---|
+| [#100](https://github.com/regen-commons/weave/pull/100) | Rebuilds "Start an initiative" as three steps: one page to describe an initiative, filled on the device from the person's own words; four needs and four offers; several initiatives in one browser, kept in step across tabs; every "Start An Initiative" starting a new card; and step 3 kept in the flow (DL-110 to DL-114). |
+| [#99](https://github.com/regen-commons/weave/pull/99) | Adds the records of the two 18 November releases below. Docs only. |
+
+The release changes no deployed function, server contract, database schema,
+dependency, security header or deployment configuration. It does change where each
+browser keeps unsaved drafts (DL-114): drafts move to a new IndexedDB database,
+`weave-drafts`, and the released database, `weave-device-drafts`, is copied from and
+never upgraded or created. A tab already open on the earlier build keeps working until
+it is reloaded, and a rollback finds each browser's draft as that build last wrote it.
+
+#100 is critical tier. It went through six independent review rounds before merging,
+and every finding was reproduced with a failing test before it was fixed. Among the
+findings fixed: an automatic reload of hidden tabs that could discard typed words (the
+reload was dropped), a deletion that could remove newer words, keyword rules that could
+run for an hour on long input, and a new card that could reuse a cleared saved card
+and overwrite it on Save.
+
+| Release evidence | Verified result |
+|---|---|
+| Checks before the merge | `bun install --frozen-lockfile`, `bun run ci`, `git diff --exit-code` and `git diff --check` exited 0 on #100's head `d6a2b67`: root tests 150 of 150, `@weave/app` 613 of 613, `@weave/api` 240 passing with 0 failures, design system 70 of 70, harness 78 of 78. #100's seven GitHub checks passed, and the release PR's four passed on `977aa2d`. |
+| Weave production | Vercel reported the deployment for `3b8df8b` complete at 17:46 UTC on 19 November ([status](https://vercel.com/regen-commons/weave/H7sKabndeLfDnvDRzHkLUczQ7yCV)). [Weave](https://weave.regencommons.com) health returned status ok, commit `3b8df8b`, at 17:46 UTC. The deployment was not inspected with the Vercel CLI. |
+| Weave rollback | The deployment that served `2893fb1` before this release ([status](https://vercel.com/regen-commons/weave/81RYzb4MUUS3LERaTBqYGhEQpbip)). No rollback was performed. |
+| Rendered check | Class `production`, the Claude desktop app's built-in Chromium browser at 375 px, signed out, dark theme, with nothing typed so nothing was stored. Both "Start An Initiative" links on Home went to `/start/new` and opened a blank step 1 with the words box, Name, Where you work, About it and one link, and the three-step stepper. Your Initiatives loaded. Neither page scrolled sideways. |
+| Device storage | In that browser, `weave-device-drafts` stayed at version 2 and `weave-drafts` was created at version 1 beside it, as DL-114 intends. |
+| Funding Commons | `Canceled by Ignored Build Step` on `3b8df8b`: skipped as configured, not published. |
+
+**Not proven in production:**
+
+- Filling, adding needs and offers, and step 3 with real words. They were checked on
+  the fixture only.
+- The copy from the released database with a real earlier draft, an older tab writing
+  after the copy, and a deletion reaching the released database. All storage tests run
+  on a fake IndexedDB, and Safari, Firefox and a real phone are untested.
+- Voice and the built-in model, which work only in desktop Chrome.
+- Signing in, saving, sharing and matching. Nothing was signed in, saved, shared or
+  deleted in production.
+
+The user's final QA follows this release.
 
 ## Release of #101, 18 November
 
