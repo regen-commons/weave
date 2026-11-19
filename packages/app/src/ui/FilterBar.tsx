@@ -139,8 +139,8 @@ function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSo
  * On a phone one Filters button opens every filter in a sheet; a wide screen gives each filter its
  * own menu. Choices take effect as they are made, so the sheet's foot only says how many results
  * they leave. While the list loads the bar is already whole: the search works, the filters and Sort
- * are drawn as they will be and wait, and the count line keeps the room its sentence will take
- * (`reserve`), so nothing moves when the list arrives (DL-104).
+ * are drawn as they will be and wait, and the count and the fact under it each keep their line
+ * (`reserve`), so nothing moves when the list arrives (DL-104, DL-108).
  */
 export function FilterBar({
   noun,
@@ -182,7 +182,7 @@ export function FilterBar({
   note?: string;
   /** The list is still arriving: search works, and the filters and the count hold their places. */
   loading?: boolean;
-  /** A sentence about as long as the count line will be, which keeps its room while the list loads. */
+  /** A sentence about as long as `note` will be. It says a note is coming, so its line is there while the list loads. */
   reserve?: string;
   /** Takes off the search and every filter. The sort order stays. */
   onClear(): void;
@@ -193,6 +193,8 @@ export function FilterBar({
   const narrowed = facets.reduce((sum, facet) => sum + narrowing(facet), 0);
   const query = search.trim();
   const controls = facets.length > 0 || !!sort;
+  // The fact under the count: the list's own once it is here, and a sentence about as long until then.
+  const noted = loading ? reserve : note;
   return (
     <section className="rc-filter-bar" aria-label={`Filter ${noun}`} aria-busy={loading || undefined}>
       {/* The list follows each letter; Enter has nothing left to send. */}
@@ -277,19 +279,22 @@ export function FilterBar({
           </button>
         </div>
       )}
+      {/* The count has one line and the fact about the whole list its own line under it. Each keeps
+          set room, so the bar is one height loading and loaded (DL-108). While the list loads the
+          words are for assistive technology and the eye gets the lines' shapes. */}
       <p className="rc-meta">
-        {/* While the list loads the words are for assistive technology; the eye gets the line's room. */}
         <span role="status" aria-atomic="true" className={loading ? "rc-visually-hidden" : undefined}>
           {loading ? `Loading ${noun}` : summary ?? `${count} of ${total} ${things}${note ? "." : ""}`}
         </span>
-        {loading ? (
-          <span className="rc-skeleton" data-shape="hold" aria-hidden="true">
-            {reserve ?? `0 of 0 ${things}`}
+        {loading && (
+          <span aria-hidden="true">
+            <span className="rc-skeleton" data-shape="hold">{`0 of 0 ${things}`}</span>
           </span>
-        ) : note ? (
-          ` ${note}`
-        ) : (
-          ""
+        )}
+        {noted && (
+          <span data-part="note" aria-hidden={loading || undefined}>
+            {loading ? <span className="rc-skeleton" data-shape="hold">{noted}</span> : noted}
+          </span>
         )}
       </p>
       <Dialog presentation="information" title="Filters" open={sheet} leaves onClose={() => setSheet(false)}>

@@ -39,7 +39,7 @@ test("a list that is loading holds its layout with the bar and card skeletons, n
   // The bar's own buttons wait in their row at their own sizes, and the count line keeps its room (DL-104).
   const bar = read("ui/FilterBar.tsx");
   assert.match(bar, /data-filter="one" data-menu type="button" disabled>/u);
-  assert.match(bar, /<span className="rc-skeleton" data-shape="hold" aria-hidden="true">/u);
+  assert.match(bar, /<span aria-hidden="true">\s*<span className="rc-skeleton" data-shape="hold">/u);
   assert.match(bar, /<span role="status" aria-atomic="true" className=\{loading \? "rc-visually-hidden" : undefined\}>/u);
   for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx", "pages/YourInitiative.tsx"])
     assert.match(read(page), /<DraftSkeleton \/>/u, page);
@@ -117,4 +117,56 @@ test("Your Initiatives holds its own cards' shape while it loads, under the head
   assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
   assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
   assert.match(page, /\{loading && \(\s*<Section id="initiatives-certified" title="On Certified">/u, "the heading is there before its cards");
+});
+
+test("a list card keeps set rows, so a card and its skeleton are one height by construction (DL-108)", () => {
+  // The two cards a loading list stands in for ask for fixed rows, and so do their skeletons.
+  assert.match(read("ui/OpportunityCard.tsx"), /<Card kind="funding" rows="fixed">/u);
+  assert.match(read("partners/PublicProjects.tsx"), /<Card kind="initiative" rows="fixed">/u);
+  assert.match(read("ui/Card.tsx"), /data-rows=\{rows\}/u);
+  const skeleton = read("ui/CardSkeleton.tsx");
+  assert.match(skeleton, /data-kind="funding" data-rows="fixed"/u);
+  assert.match(skeleton, /data-kind="initiative" data-rows="fixed"/u);
+  // A funding card's funder line is always there, empty or not, so no card is a line shorter.
+  const card = read("ui/OpportunityCard.tsx");
+  assert.match(card, /<p className="rc-card-meta" title=\{funder \|\| undefined\}>\s*\{funder\}\s*<\/p>/u);
+  assert.doesNotMatch(card, /&& \(\s*<p className="rc-card-meta">/u);
+});
+
+test("a skeleton holds as many cards as the view loads, and the list end has its room from the start (DL-108)", () => {
+  const funding = read("pages/Funding.tsx");
+  assert.match(funding, /<CardGridSkeleton kind="funding" count=\{BATCH\} \/>\s*<ListEndHold things=\{THINGS\} \/>/u);
+  assert.match(funding, /useState\(BATCH\)/u, "the first batch is what the skeleton counted");
+  assert.doesNotMatch(funding, /selected\.length > BATCH &&/u, "a list with cards always has its end");
+  const projects = read("partners/PublicProjects.tsx");
+  assert.equal(projects.match(/<CardGridSkeleton kind="project" count=\{PUBLIC_PROJECT_PAGE_SIZE\} \/>\s*<ListEndHold things="projects" \/>/gu)?.length, 2);
+  assert.match(projects, /list\.status === "ready" && list\.projects\.length > 0 && \(\s*<ListEnd\b/u);
+  assert.match(projects, /list\.status !== "ready" && ready\.projects\.length > 0 && <ListEndHold things="projects" \/>/u, "a search that is loading keeps the end's room");
+  // Home asks each preview for the number it then holds shapes for.
+  const home = read("pages/Home.tsx");
+  assert.match(home, /count=\{preview === "row" \? FUNDING_PREVIEW_COUNT : RECENT_PREVIEW_COUNT\}/u);
+  assert.match(home, /usePublicProjects\("", RECENT_PREVIEW_COUNT, !fixture\)/u);
+  assert.match(read("home.ts"), /\.slice\(0, FUNDING_PREVIEW_COUNT\)/u);
+});
+
+test("the count and the fact about the whole list each keep a line, loading and loaded (DL-108)", () => {
+  const bar = read("ui/FilterBar.tsx");
+  assert.match(bar, /const noted = loading \? reserve : note;/u);
+  assert.match(bar, /\{noted && \(\s*<span data-part="note" aria-hidden=\{loading \|\| undefined\}>/u);
+  assert.doesNotMatch(bar, /` \$\{note\}`/u, "the fact no longer runs on after the count");
+});
+
+test("no section on Home is set apart by a band (DL-109)", () => {
+  assert.doesNotMatch(read("pages/Home.tsx"), /\bband\b/u);
+  assert.doesNotMatch(read("ui/Section.tsx"), /band/u);
+});
+
+test("the prompt to describe an initiative is a plain section, not a notice (DL-109)", () => {
+  const prompt = read("ui/DescribePrompt.tsx");
+  assert.match(prompt, /<Section\b/u);
+  assert.doesNotMatch(prompt, /rc-notice/u);
+  // The list is told what was remembered, and an answer is kept for the next visit.
+  const projects = read("partners/PublicProjects.tsx");
+  assert.match(projects, /listView\(list, indexSeen, expectStarter\)/u);
+  assert.match(projects, /rememberIndex\(deviceStorage\(\), list\.page\);/u);
 });

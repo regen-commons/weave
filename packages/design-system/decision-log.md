@@ -582,6 +582,43 @@ The switch is now an Icon button with a secondary Button's line and corners (`da
 
 The segmented control was 136 px wide. It showed System where the icon button cannot, but on a phone it left no room in the bar for the save status or the way back. The full choice, System included, stays in Settings and on a phone's You tab (DL-086). The switch is still a wide screen's: a phone's bar does not draw it.
 
+## DL-108: List cards keep fixed rows, so a card and its skeleton are one height
+
+**Status:** user decision from manual QA, 19 November 2026. Extends DL-104, which matched a skeleton to the loaded page at one width by tuning it to a typical card. The user still saw the page move. Measured at 1280 px before this change: a funding skeleton card was 282 px and a loaded one 316, twelve skeleton cards became twenty-four, Home's Recently Shared held three shapes and loaded six, and a list's end line arrived with the list and pushed the footer down 72 px.
+
+A typical card cannot be matched, because loaded cards differ: a title runs one line or two, a summary one to three, tags share a row or wrap. So the height is no longer left to the words. A list card can keep fixed rows (`data-rows="fixed"`): two lines for the title at every width, three for the summary, one each for the eyebrow, the line under the title and the foot, two for a line of source and date, and two rows of tags, one tag to a row. The skeleton is built from the same parts with the same rule, so the two are one height by construction and nothing is tuned. Funding cards are 339 px and public project cards 258 px at every width measured, loading and loaded.
+
+What it costs, all of it on the card:
+
+- **Room.** A funding card is 23 px taller at 1280 px than a typical one was, and a card with a short title or summary shows blank lines where the words end.
+- **A funder's line on every funding card.** It is empty where the name above is already the funder's.
+- **Tags one to a row.** The way in and the deadline no longer share a row where they would fit.
+- **Cut lines.** A funder's name longer than its line ends in an ellipsis, with the whole name one hover away, and an eyebrow longer than its line is cut. Two of the first twenty-four cards had a cut funder name at 1280 px. Titles and summaries were already cut at two and three lines.
+
+The same change settles three things outside the card.
+
+- **Counts.** A skeleton holds as many cards as the view loads: Funding's first batch, a page of public projects, and on Home the number each preview asks for. A preview's layout then shows the same whole rows of either.
+- **The list end.** Every list with cards ends in one, with or without more to come, and a loading list holds its room. On a phone the count and Show More cannot share a row, so the end is two rows of set height.
+- **The count line.** The count has a line and the fact about the whole list its own line under it, two on a phone. Running on after the count, the fact wrapped differently loading and loaded. On a wide screen the filter bar is 20 px taller for it.
+
+Measured after, in desktop Chromium at 360, 768, 1280, 1536 and 1600 px, in both themes and with reduced motion: on Funding, Initiatives and Home the filter bar, every list's start, the first cards, every section heading, the list end and the footer are at the same place loading and loaded.
+
+Not held, and why. A card to compare with adds a fit line and a readiness line to funding cards when the ranking finishes, after the list is already on screen; those rows still arrive late. The starter list on Initiatives, shown when the public project list is off, has cards of another kind and its own filters, and the page cannot know which list is coming. The example world's cards are not fixed. Your Initiatives shows funding shapes while it checks an account, and what follows is not a list of funding; that page belongs to the work on starting an initiative.
+
+## DL-109: No section is a band, and a page ends one step above the footer
+
+**Status:** user decision from manual QA, 19 November 2026. Extends DL-099, which took the surface off the panel on the user's word: remove panels, keep the dim. Two sections on Home were still set apart by a tint across the window, the eight kinds of support and Part Of Regen Commons. The band is removed as a pattern (`data-band`), so those sections read as part of the page like the others.
+
+This also closes the gap the user saw above Home's footer. DL-102 cut the paddings there and left them stacked: the band's own 56 px under its last line, then the page's 40 px in the page's colour, then the footer's line. With the band gone a page has one step between its last content and the footer's line, the page's own bottom padding: 40 px on a wide screen and 32 px on a phone, measured the same on Home, Funding, Initiatives and Settings. A page shorter than the window is still as tall as the window (DL-078), so on Your Initiatives signed out the footer starts at the fold.
+
+The callout on Funding that asks a person to describe their initiative was the last such surface. It was drawn as a Notice (`rc-notice` with the info tone), the pattern that also carries warnings, errors and offline messages, where the surface and the toned edge are the signal. Taking the surface off Notice would take it off those too, so the prompt stopped being one: it is a plain Section with its heading, one line and its button, on Funding and on the partner pages. Its heading is a section heading now, in title case. Notice is unchanged.
+
+Three more things were settled with it, on 19 November 2026.
+
+- **A phone's cards.** Fixed rows (DL-108) made a funding card 339 px on a phone, where cards had been about 260 to 290 and DL-090 had shortened them on purpose. On a phone a fixed-row card keeps two summary lines, not three: 314 px for funding and 233 px for a public project, kept and cut at two alike, so the hold is intact. Of the first 24 funding summaries at 360 px, 8 run one line, 15 two and 1 three, so one card in 24 loses a line it showed.
+- **The starter list on Initiatives.** When the public project list is off, the page drew twelve project shapes and then five cards of another kind under a taller filter bar. The starter list needs nothing from the network, so the browser keeps one fact, that the list was off the last time it answered, and a page that expects the starter list shows it at once with no skeleton at all. An answer that the list is on forgets the fact, and a request that fails changes nothing. Nothing about the person is kept.
+- **What still moves there.** The first visit in a browser cannot know, and still shows the project shapes before the starter list. Holding even the filter bar's height on that visit would mean an empty filter row above the public project list for everyone, or a starter list without its two filters. Neither was done.
+
 ## DL-110: Describing is one page, and talking fills it in place
 
 **Status:** user decision from manual QA, 18 November 2026. Amends DL-022, DL-032, DL-038 and DL-076. The numbers DL-098 to DL-109 are left to the manual QA branch, which was writing its own entries at the same time.

@@ -19,11 +19,23 @@ export function useAddedFocus(shown: number) {
   };
 }
 
+/** The list end's room while the list loads, so whatever follows the list is already where it will be (DL-108). */
+export function ListEndHold({ things }: { things: string }) {
+  return (
+    <div className="rc-list-end" aria-hidden="true">
+      <p className="rc-meta">
+        <span className="rc-skeleton" data-shape="hold">{shownLine(0, 1, things)}</span>
+      </p>
+    </div>
+  );
+}
+
 /**
  * List end (`rc-list-end`): the foot of a long list. It says how much of the list is on the page
  * and brings the next batch as a person scrolls near it (DL-101). Show More stays for the
  * keyboard and for when the list has stopped filling in on its own, which it does after a few
- * batches so the footer can be reached. Give it a `key` that changes with the search and filters,
+ * batches so the footer can be reached. Every list that has cards ends in one, with or
+ * without more to come, so its room never comes and goes (DL-108). Give it a `key` that changes with the search and filters,
  * so a new list starts its run again.
  */
 export function ListEnd({ shown, total, things, more, busy = false, failed = false, onMore, onPress }: {

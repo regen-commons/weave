@@ -13,7 +13,7 @@ import {
 import { useCatalog } from "../funding/use-catalog.ts";
 import { CardGrid } from "../ui/Card.tsx";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
-import { ListEnd, useAddedFocus } from "../ui/ListEnd.tsx";
+import { ListEnd, ListEndHold, useAddedFocus } from "../ui/ListEnd.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListLayout } from "../ui/layouts.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
@@ -28,6 +28,8 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { FUNDING_COMMONS } from "../links.ts";
 /** How many cards the list holds at first, and how many each further batch adds. */
 const BATCH = 24;
+/** What the list counts. */
+const THINGS = "programs and overview records";
 
 export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const example = useMemo(
@@ -131,7 +133,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           {/* The bar is here from the first paint, so the list arrives under it and nothing jumps. */}
           <FilterBar
             noun="funding"
-            things="programs and overview records"
+            things={THINGS}
             search={visibleFilters.search}
             onSearch={(search) => setFilters((current) => ({ ...current, search }))}
             facets={fundingFacets(vocabulary, visibleFilters, personalized)}
@@ -142,7 +144,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             total={entries.length}
             note={note}
             loading={loading}
-            reserve="000 of 000 programs and overview records. From 00 funders. Sources last checked 00 September 0000."
+            reserve="From 000 funders. Sources last checked 00 November 0000."
             onClear={() => setFilters((current) => ({ ...emptyFundingFilters, sort: current.sort }))}
           />
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
@@ -155,7 +157,11 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             !catalog.personalized && prompt
           )}
           {loading ? (
-            <CardGridSkeleton kind="funding" count={BATCH / 2} />
+            // As many shapes as the first batch holds, and the list end's room under them (DL-108).
+            <>
+              <CardGridSkeleton kind="funding" count={BATCH} />
+              <ListEndHold things={THINGS} />
+            </>
           ) : selected.length ? (
             <>
               <CardGrid>
@@ -173,18 +179,17 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                   </li>
                 ))}
               </CardGrid>
-              {/* The list fills in as its end comes near; a new search or filter starts its run again (DL-101). */}
-              {selected.length > BATCH && (
-                <ListEnd
-                  key={JSON.stringify(visibleFilters)}
-                  shown={Math.min(limit, selected.length)}
-                  total={selected.length}
-                  things="programs and overview records"
-                  more={selected.length > limit}
-                  onPress={added.pressed}
-                  onMore={() => setLimit((value) => value + BATCH)}
-                />
-              )}
+              {/* The list fills in as its end comes near; a new search or filter starts its run again (DL-101).
+                  Every list with cards has its end, so its room does not come and go (DL-108). */}
+              <ListEnd
+                key={JSON.stringify(visibleFilters)}
+                shown={Math.min(limit, selected.length)}
+                total={selected.length}
+                things={THINGS}
+                more={selected.length > limit}
+                onPress={added.pressed}
+                onMore={() => setLimit((value) => value + BATCH)}
+              />
             </>
           ) : (
             <EmptyState
