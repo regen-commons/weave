@@ -605,6 +605,8 @@ Measured after, in desktop Chromium at 360, 768, 1280, 1536 and 1600 px, in both
 
 Not held, and why. A card to compare with adds a fit line and a readiness line to funding cards when the ranking finishes, after the list is already on screen; those rows still arrive late. The starter list on Initiatives, shown when the public project list is off, has cards of another kind and its own filters, and the page cannot know which list is coming. The example world's cards are not fixed. Your Initiatives shows funding shapes while it checks an account, and what follows is not a list of funding; that page belongs to the work on starting an initiative.
 
+**A card compared with a person's own card, 19 November 2026.** Such a funding card carries two more lines than a plain catalog card: its fit, and how ready the person is to apply. The skeleton had neither, so with a checked card a loaded card measured 427 px against a skeleton of 339 at 1280 px. The skeleton now takes `matched` and draws both lines from the loaded card's own parts. The card page's Funding That Fits uses it, since every card there is compared, and measures 427 px at 1280 px and 402 px at 360 px, loading and loaded. The Funding list still holds the plain shape while it loads for a person who has a checked card.
+
 ## DL-109: No section is a band, and a page ends one step above the footer
 
 **Status:** user decision from manual QA, 19 November 2026. Extends DL-099, which took the surface off the panel on the user's word: remove panels, keep the dim. Two sections on Home were still set apart by a tint across the window, the eight kinds of support and Part Of Regen Commons. The band is removed as a pattern (`data-band`), so those sections read as part of the page like the others.

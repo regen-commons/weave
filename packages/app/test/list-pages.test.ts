@@ -170,3 +170,19 @@ test("the prompt to describe an initiative is a plain section, not a notice (DL-
   assert.match(projects, /listView\(list, indexSeen, expectStarter\)/u);
   assert.match(projects, /rememberIndex\(deviceStorage\(\), list\.page\);/u);
 });
+
+test("a funding list compared with a person's card holds the fit and readiness lines its cards arrive with (DL-108)", () => {
+  // Measured at 1280 px with a checked card: a loaded card is 427 px, and a skeleton without
+  // these two lines is 339.
+  const card = read("ui/OpportunityCard.tsx");
+  assert.match(card, /\{result && <p className="rc-meta">\{result\.readiness\.label\}<\/p>\}/u, "the loaded card's readiness line");
+  assert.match(card, /<Fit\b/u, "and its fit line");
+  const skeleton = read("ui/CardSkeleton.tsx");
+  const funding = skeleton.slice(skeleton.indexOf('if (kind === "funding")'), skeleton.indexOf('if (kind === "own")'));
+  assert.match(funding, /\{matched && \(\s*<span className="rc-tooltip-wrap">\s*<span className="rc-tooltip-trigger">\s*<span className="rc-fit">/u);
+  assert.match(funding, /\{matched && \(\s*<p className="rc-meta">/u);
+  // The card page's funding is always compared with the card.
+  assert.match(read("ui/FirstFunding.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
+  // And the example of that page holds the same shape the live page holds.
+  assert.match(read("pages/YourInitiative.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
+});

@@ -11,7 +11,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
   return (
     <>
       {loading || ranking ? (
-        <CardGridSkeleton kind="funding" count={2} label="Comparing your card with funding on this device" />
+        <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding on this device" />
       ) : error ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">

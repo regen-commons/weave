@@ -111,7 +111,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           <FirstFunding />
         ) : loading ? (
           <>
-            <CardGridSkeleton kind="funding" count={2} label="Comparing your card with funding" />
+            <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding" />
             <button
               className="rc-button"
               data-variant="secondary"
