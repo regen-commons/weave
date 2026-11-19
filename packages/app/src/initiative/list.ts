@@ -92,7 +92,16 @@ export function draftSaving(
 }
 
 /** The one line a draft's entry shows about saving. Empty for `unsaved`, which shows the badge. */
-export function savingLine(saving: DraftSaving, savedOn: string | null): string {
+/**
+ * Where this browser's working copy goes when the account's version is opened over it: into the
+ * device backups, unless it is kept under another ID than its card's and is still waiting for a
+ * save's answer, in which case it is left in the list.
+ */
+export function copyGoesTo(copy: Pick<DeviceDraft, "id" | "account">, saved: { readonly id: string }): "backups" | "list" {
+  return copy.id === saved.id || !copy.account.pending ? "backups" : "list";
+}
+
+export function savingLine(saving: DraftSaving, savedOn: string | null, copy: "backups" | "list" = "backups"): string {
   switch (saving) {
     case "unsaved":
       return "";
@@ -106,7 +115,9 @@ export function savingLine(saving: DraftSaving, savedOn: string | null): string 
       return "A newer version is saved in your account. It opens from here.";
     case "changed-both":
       // Said before the press, because opening the saved version leaves this page.
-      return "Changed on this device and in your account since you saved. Opening the saved version keeps this device's copy.";
+      return `Changed on this device and in your account since you saved. Opening the saved version keeps this device's copy ${
+        copy === "backups" ? "in Device backups, in Settings" : "in this list"
+      }.`;
   }
 }
 

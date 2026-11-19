@@ -38,8 +38,12 @@ export const pinned = (draft: DeviceDraft, pin: DraftPin) =>
 export interface DeviceRemoval {
   removed: string[];
   kept: number;
-  /** Drafts whose newer words were found in an older tab's storage during the removal, and are in the list again. */
-  returned?: string[];
+  /**
+   * What the removal found in an older tab's storage when it looked there first: the drafts whose
+   * newer words are in the list again, how many versions it kept as device backups, and whether
+   * newer words are still waiting there because they could not be read. Absent when it found nothing.
+   */
+  older?: { drafts: string[]; backups: number; waiting: boolean };
 }
 /**
  * How many versions replaced by another tab's edit are kept for one draft. The oldest goes when a

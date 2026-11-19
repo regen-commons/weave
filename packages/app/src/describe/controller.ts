@@ -80,7 +80,8 @@ export class DraftController {
         await this.bringAcross(this.earlierWait);
         const named = this.pointer.get();
         const saved = await this.repository.load(named);
-        this.untouched = named === null && !saved;
+        // Not when words were typed while this read was waiting: the tab is theirs now.
+        this.untouched = named === null && !saved && !this.dirty;
         // A tab that started a new initiative and has not typed yet names a draft that is not
         // stored. It stays on that blank draft across a reload, and never falls back to another one.
         const blank = named && !saved ? { ...newDraft(), id: named } : null;
@@ -323,7 +324,7 @@ export class DraftController {
     if (!this.repository.deleteBackup) throw new RemovalNotice("This device cannot remove backups. Nothing was removed.");
     const result = await this.repository.deleteBackup(backup.key, draftPin(backup.draft));
     // The removal looked at an older tab's storage first. What it found there is in the list now.
-    for (const id of result.returned ?? []) {
+    for (const id of result.older?.drafts ?? []) {
       this.channel?.post({ kind: "saved", id });
       await this.heard({ kind: "saved", id });
     }

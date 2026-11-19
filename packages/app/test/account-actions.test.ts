@@ -10,7 +10,7 @@ import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import { saveForProject } from "../src/initiative/project-save.ts";
-import { saveDeviceCardToTeam } from "../src/partners/team-workspace.ts";
+import { offersDeviceCardToTeam, saveDeviceCardToTeam } from "../src/partners/team-workspace.ts";
 import { projectChoiceKey } from "../src/social/project-choice.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
@@ -228,4 +228,17 @@ test("the account a card belongs to can still copy it into its team, and a retry
   assert.equal(first.saved.id, TEAM);
   await saveDeviceCardToTeam(mine, owner, TEAM, first.command, new AbortController().signal);
   assert.equal(commands[1]!.requestId, commands[0]!.requestId, "the request it started with");
+});
+
+test("another account's card is neither offered to a team nor previewed, and the component asks this rule", () => {
+  assert.equal(offersDeviceCardToTeam({ blocked: false, signedIn: true, setAside: false }), true);
+  assert.equal(offersDeviceCardToTeam({ blocked: false, signedIn: true, setAside: true }), false, "set aside: no button and no preview");
+  assert.equal(offersDeviceCardToTeam({ blocked: true, signedIn: true, setAside: false }), false);
+  assert.equal(offersDeviceCardToTeam({ blocked: false, signedIn: false, setAside: false }), false);
+  // The component returns nothing before it builds the button or reads the card for the preview.
+  const component = readFileSync(new URL("../src/partners/SaveDeviceToTeam.tsx", import.meta.url), "utf8");
+  const gate = component.indexOf("offersDeviceCardToTeam({ blocked: !!saveBlocker(draft), signedIn: !!owner, setAside })) return null;");
+  assert.notEqual(gate, -1);
+  assert.ok(gate < component.indexOf("accountDocument(draft)"), "the card is not read for a preview before the rule is asked");
+  assert.match(component, /const setAside = useSetAside\(\);/u);
 });

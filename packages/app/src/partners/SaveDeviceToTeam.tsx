@@ -6,7 +6,7 @@ import { AnotherAccountsCard, accountDocument, saveBlocker } from "../account/do
 import { useDraft } from "../describe/use-draft.ts";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
-import { documentCard, saveDeviceCardToTeam, type TeamSave } from "./team-workspace.ts";
+import { documentCard, offersDeviceCardToTeam, saveDeviceCardToTeam, type TeamSave } from "./team-workspace.ts";
 
 /** Copying a personal draft into a team is a separate explicit save, never a side effect of linking. */
 export function SaveDeviceToTeam({ workspaceId, onSaved, primary = false }: {
@@ -22,7 +22,7 @@ export function SaveDeviceToTeam({ workspaceId, onSaved, primary = false }: {
   const task = useRef<AbortController | null>(null);
   useEffect(() => () => task.current?.abort(), []);
   // Another account's card is neither offered nor previewed to this one (DL-055). The save refuses it too.
-  if (saveBlocker(draft) || !owner || setAside) return null;
+  if (!owner || !offersDeviceCardToTeam({ blocked: !!saveBlocker(draft), signedIn: !!owner, setAside })) return null;
   async function save() {
     if (busy || !owner) return;
     setBusy(true); setError("");

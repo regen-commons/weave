@@ -44,8 +44,21 @@ export function discardWarning(draft: DeviceDraft): string {
   return `Weave keeps ${draftTitle(draft)} as a device backup first${count ? `, with its ${files(count)}` : ""}, so you can restore it below. A copy saved in your account is not changed.`;
 }
 
+/**
+ * What a removal found when it looked at an older tab's storage first, in a sentence that is true
+ * for each outcome: words that are in the list again, words kept as a backup, and words it could
+ * not read, which are still where the older tab stored them.
+ */
+function olderTabLine(older: DeviceRemoval["older"]): string {
+  if (!older) return "";
+  const lines: string[] = [];
+  if (older.drafts.length) lines.push("An older tab on this device held newer words, and they are in Your Initiatives now.");
+  if (older.backups) lines.push("An older tab on this device held words this build had not seen. They are kept as a device backup.");
+  if (older.waiting) lines.push("An older tab on this device holds newer words that could not be read just now. They are still there, and will appear in Your Initiatives.");
+  return lines.length ? ` ${lines.join(" ")}` : "";
+}
 export const removedBackupMessage = (result: DeviceRemoval) =>
-  `Removed 1 backup. ${backups(result.kept)}${result.returned?.length ? " An older tab on this device held newer words, and they are in Your Initiatives now." : ""}`;
+  `Removed 1 backup. ${backups(result.kept)}${olderTabLine(result.older)}`;
 export const discardedMessage = (result: DeviceRemoval) =>
   `Removed this draft from this device and kept it as a backup you can restore. ${backups(result.kept)}`;
 

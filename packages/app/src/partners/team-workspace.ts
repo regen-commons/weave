@@ -35,6 +35,15 @@ export async function saveTeamWorkspace(workspaceId: string, command: TeamSave, 
 }
 
 /**
+ * Whether the card on this device is offered to a team at all: its button, and the preview of the
+ * card behind it. Never another account's card (DL-055), which is neither offered nor shown to
+ * the person signed in, and never without someone signed in or with a card that cannot be saved yet.
+ */
+export function offersDeviceCardToTeam(card: { blocked: boolean; signedIn: boolean; setAside: boolean }): boolean {
+  return !card.blocked && card.signedIn && !card.setAside;
+}
+
+/**
  * Copies the checked card on this device into a team workspace: the one save that does not go
  * through `saveCommand`, because a team document has no private card ID. It takes its document
  * from `ownDocument` as that one does, so another account's card is refused here too. `retry` is the request

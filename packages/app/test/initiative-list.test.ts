@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver, copyGoesTo } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -103,8 +103,16 @@ test("opening the saved version over a working copy keeps the copy, and the entr
   assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(false)), false);
   // The page leaves for the card on success, so the entry says the copy is kept before the press,
   // in words true whichever way it is kept.
-  assert.match(savingLine("changed-both", null), /Opening the saved version keeps this device's copy\./u);
-  assert.doesNotMatch(savingLine("changed-both", null), /backup/iu);
+  // and says where: in the device backups, or in the list when a save of the copy is still unanswered.
+  const pending = { id: "b3000000-0000-4000-8000-000000000001", owner, revision: 0, contentKey: "{}", requestId: crypto.randomUUID() };
+  const copy = (id: string, waiting: boolean) => ({ id, account: { saved: null, pending: waiting ? pending : null } });
+  assert.equal(copyGoesTo(copy("card", false), { id: "card" }), "backups");
+  assert.equal(copyGoesTo(copy("card", true), { id: "card" }), "backups", "under the card's own ID the load backs it up and replaces it");
+  assert.equal(copyGoesTo(copy("copy", false), { id: "card" }), "backups");
+  assert.equal(copyGoesTo(copy("copy", true), { id: "card" }), "list");
+  assert.match(savingLine("changed-both", null, "backups"), /keeps this device's copy in Device backups, in Settings\./u);
+  assert.match(savingLine("changed-both", null, "list"), /keeps this device's copy in this list\./u);
+  assert.doesNotMatch(savingLine("changed-both", null, "list"), /backup/iu);
   // A load that fails moves nothing.
   calls.length = 0;
   await assert.rejects(openSavedOver({ id: "copy" }, { id: "card" }, async () => { throw new Error("offline"); }, retire(true)), /offline/);

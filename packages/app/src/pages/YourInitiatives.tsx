@@ -4,7 +4,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import { intakeFixture, type FixtureContext } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
 import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver, copyGoesTo } from "../initiative/list.ts";
 import { cardName, cardRoute, NOT_SAVED_YET, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -180,7 +180,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           {kept && !behind ? (
             <p className="rc-card-meta">{status.line}</p>
           ) : saving !== "unsaved" ? (
-            <p className="rc-card-meta">{savingLine(saving, saved ? fullDate(saved.savedOn) : null)}</p>
+            <p className="rc-card-meta">{savingLine(saving, saved ? fullDate(saved.savedOn) : null, saved ? copyGoesTo(item, saved) : undefined)}</p>
           ) : savedSignedOut(item, !!state.identity) ? (
             <p className="rc-card-meta">{SAVED_SIGNED_OUT}</p>
           ) : (
