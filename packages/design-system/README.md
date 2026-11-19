@@ -224,6 +224,10 @@ The tests check that generated files are current, the linter is clean, website v
 - Modify Skeleton (DL-104). Add the `hold` and `room` shapes; remove `control`.
 - Modify Icon button (DL-107): `data-variant="secondary"` and `data-size="sm"`, for an icon
   button beside a small secondary Button. App header no longer rounds an icon button's tint.
+- Modify Card (DL-108): `data-rows="fixed"` gives every part a set number of lines. Filter
+  bar's count line keeps a line for the count and one for the fact under it
+  (`data-part="note"`). List end is two rows of set height on a phone.
+- Remove Section's band, `data-band` (DL-109).
 - Modify the base layer (DL-098). The page and its body clip what would hang over their sides,
   and under a finger the root gives up its sideways bounce. A check for overflow can no longer
   trust the page's scroll width.

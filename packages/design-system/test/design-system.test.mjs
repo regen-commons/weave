@@ -588,3 +588,24 @@ test("behind a page the mycelium is fixed to the window and shows only through t
   assert.match(base, /z-index: -1;/);
   assert.match(base, /pointer-events: none;/);
 });
+
+test("a fixed-row card keeps set lines for every part, so its height does not depend on its words (DL-108)", () => {
+  const molecules = stripComments(read("packages/design-system/css/molecules.css"));
+  const has = (rule) => assert.ok(molecules.includes(rule), rule);
+  has('.rc-card[data-rows="fixed"] > .rc-card-title { min-block-size: 2lh; }');
+  has('.rc-card[data-rows="fixed"] > .rc-card-summary { min-block-size: 3lh; }');
+  // The clamps that cap the same parts are the listing card's own: two lines and three.
+  assert.match(molecules, /\.rc-card\[data-layout="listing"\] \.rc-card-title \{[^}]*line-clamp: 2;/);
+  assert.match(molecules, /\.rc-card-summary \{[^}]*line-clamp: 3;/);
+  assert.match(molecules, /\.rc-card\[data-rows="fixed"\] > :is\(\.rc-eyebrow, \.rc-card-meta, \.rc-time\) \{[^}]*min-block-size: 1lh; max-block-size: 1lh; overflow: hidden; white-space: nowrap;/);
+  assert.match(molecules, /\.rc-card\[data-rows="fixed"\]\[data-kind="initiative"\] > \.rc-meta \{[^}]*min-block-size: 2lh;[^}]*line-clamp: 2;/);
+  assert.match(molecules, /\.rc-card\[data-rows="fixed"\] > \.rc-tag-list \{[^}]*grid-template-rows: repeat\(2, var\(--tag-height\)\);[^}]*block-size: calc\(2 \* var\(--tag-height\) \+ var\(--space-1\)\); overflow: hidden;/);
+});
+
+test("the count line and the list end keep set room, and no section is a band (DL-108, DL-109)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  assert.ok(organisms.includes(".rc-filter-bar > .rc-meta > :not(.rc-visually-hidden) { min-block-size: 1lh; }"));
+  assert.match(organisms, /@container \(width < 37\.5rem\) \{\s*\.rc-filter-bar > \.rc-meta > \[data-part="note"\] \{ min-block-size: 2lh; \}\s*\}/);
+  assert.match(organisms, /@container \(width < 37\.5rem\) \{\s*\.rc-list-end \{[^}]*grid-template-rows: minmax\(var\(--control-height\), auto\) var\(--control-height\);/);
+  for (const file of CSS_FILES) assert.doesNotMatch(read(file), /data-band/, file);
+});

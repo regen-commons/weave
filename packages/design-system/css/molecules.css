@@ -616,6 +616,19 @@ a.rc-save-status:active { color: var(--on-surface); }
   line-clamp: 2;
   overflow: hidden;
 }
+/* Fixed rows (`data-rows="fixed"`): a list card whose every part keeps a set number of lines, so
+   every card of its kind is the same height whatever it holds, and its skeleton, built from the
+   same parts, is that height by construction (DL-108). The title keeps two lines at every width
+   and the summary three. An eyebrow, a line under the title and the foot keep one line each and
+   are cut there. A line of source and date keeps two. Tags sit one to a row, in two rows. */
+.rc-card[data-rows="fixed"] > .rc-card-title { min-block-size: 2lh; }
+.rc-card[data-rows="fixed"] > .rc-card-summary { min-block-size: 3lh; }
+.rc-card[data-rows="fixed"] > :is(.rc-eyebrow, .rc-card-meta, .rc-time) { flex-wrap: nowrap; max-inline-size: 100%; min-block-size: 1lh; max-block-size: 1lh; overflow: hidden; white-space: nowrap; }
+/* A name cut at its line's end says so with an ellipsis. */
+.rc-card[data-rows="fixed"] > .rc-card-meta { display: block; text-overflow: ellipsis; }
+.rc-card[data-rows="fixed"][data-kind="initiative"] > .rc-meta { display: -webkit-box; min-block-size: 2lh; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.rc-card[data-rows="fixed"] > .rc-tag-list { display: grid; grid-template-rows: repeat(2, var(--tag-height)); grid-auto-rows: var(--tag-height); justify-items: start; block-size: calc(2 * var(--tag-height) + var(--space-1)); overflow: hidden; }
+.rc-card[data-rows="fixed"] > .rc-tag-list > * { display: flex; min-inline-size: 0; max-inline-size: 100%; }
 /* Side by side, titles keep two lines so the rows under them line up. In one column they take what they need. */
 @container (min-width: 37.5rem) {
   .rc-card[data-layout="listing"] .rc-card-title { min-block-size: 2lh; }
@@ -702,19 +715,6 @@ a.rc-save-status:active { color: var(--on-surface); }
    phone only (`data-until="wide"`), as the You tab's Settings does (DL-086). */
 @media (min-width: 56.25rem) {
   .rc-section[data-until="wide"] { display: none; }
-}
-/* Band: a section set apart by a tint that spans the window, while its content keeps the page's
-   column (DL-077). The tint is drawn out past the section's sides and clipped to its height, so
-   the section is no wider and nothing scrolls sideways. */
-.rc-section[data-band] {
-  padding-block: var(--space-7);
-  background: var(--surface-tint);
-  color: var(--on-surface-tint);
-  box-shadow: 0 0 0 100vmax var(--surface-tint);
-  clip-path: inset(0 -100vmax);
-}
-@media (min-width: 56.25rem) {
-  .rc-section[data-band] { padding-block: var(--space-8); }
 }
 
 /* Tile card: a large glyph, its framework title and a plain meaning. */
