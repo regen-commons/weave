@@ -5,21 +5,30 @@ type Stores = Partial<Record<StoreName, Map<string, unknown>>>;
 type Seed = Partial<Record<StoreName, [string, unknown][]>>;
 const DELETED = Symbol("deleted");
 
+/** The database this build keeps its drafts in, and the released build's, which it only reads. */
+const DRAFTS = "weave-drafts", EARLIER = "weave-device-drafts";
+/** This build's database has all three stores from its first version. */
+const draftStores = (version: number): StoreName[] => (version > 0 ? ["drafts", "backups", "meta"] : []);
+/** The released build's database: `drafts` at version 1, `backups` from 2. A version 3 exists only where this branch ran before. */
+const earlierStores = (version: number): StoreName[] =>
+  version >= 3 ? ["drafts", "backups", "meta"] : version === 2 ? ["drafts", "backups"] : version === 1 ? ["drafts"] : [];
+
 /**
- * A synthetic IndexedDB: each transaction stages its writes, reads see them, and the whole
+ * One synthetic database: each transaction stages its writes, reads see them, and the whole
  * transaction commits once its requests settle, or aborts and leaves the stores as they were.
  * `failCommit` makes the next commit fail the way a full disk does. Opening at a higher version
- * runs `onupgradeneeded` inside one transaction, as a browser does, so a failed upgrade leaves
- * the earlier version and its data in place. Transactions run one after another in the order they
- * were opened, as a browser runs overlapping write transactions. No browser runs here.
+ * runs `onupgradeneeded` inside one transaction, as a browser does, so a failed or aborted
+ * upgrade leaves the earlier version and its data in place, and a database that did not exist
+ * still does not. Opening with no version opens what is there, and creates version 1 when
+ * nothing is. Transactions run one after another in the order they were opened, as a browser
+ * runs overlapping write transactions.
  */
-export function fakeIndexedDB(seed: Seed = {}, version = 3) {
+function fakeDatabase(seed: Seed, version: number, layout: (version: number) => StoreName[]) {
   const stores: Stores = {};
   for (const name of Object.keys(seed) as StoreName[]) stores[name] = new Map(seed[name]);
-  // A database at version 3 has all three stores. One at version 2 has only the first two.
-  for (const name of (version >= 3 ? ["drafts", "backups", "meta"] : version > 0 ? ["drafts", "backups"] : []) as StoreName[])
-    stores[name] ??= new Map();
-  const control = { failCommit: false, commits: 0, version, opens: 0 };
+  for (const name of layout(version)) stores[name] ??= new Map();
+  /** `connections` counts the ones still open, so a test can hold a reader to closing its own. */
+  const control = { failCommit: false, commits: 0, version, opens: 0, connections: 0 };
   let queue: Promise<void> = Promise.resolve();
   function transaction(created: StoreName[] = [], onDone?: (ok: boolean) => void) {
     const staged = new Map<StoreName, Map<string, unknown>>();
@@ -55,7 +64,8 @@ export function fakeIndexedDB(seed: Seed = {}, version = 3) {
         };
         return {
           get: (key: string) => request(() => structuredClone(view(name).get(key))),
-          put: (value: unknown, key: string) => request(() => { stage(key, structuredClone(value)); return key; }),
+          // A browser copies the value when `put` is called, so a later change to it is not stored.
+          put: (value: unknown, key: string) => { const copy = structuredClone(value); return request(() => { stage(key, copy); return key; }); },
           delete: (key: string) => request(() => { stage(key, DELETED); return undefined; }),
           count: () => request(() => view(name).size),
           getAll: () => request(() => [...view(name).values()].map(value => structuredClone(value))),
@@ -83,43 +93,73 @@ export function fakeIndexedDB(seed: Seed = {}, version = 3) {
     settle();
     return tx;
   }
-  const db = {
-    objectStoreNames: { contains: (name: StoreName) => !!stores[name] },
-    transaction: (_names: string | string[], _mode?: string) => transaction(),
-    close() {},
-    onversionchange: null as (() => void) | null,
+  const connection = () => {
+    let open = true;
+    control.connections++;
+    return {
+      objectStoreNames: { contains: (name: StoreName) => !!stores[name] },
+      transaction: (names: string | string[], _mode?: string) => {
+        // A browser refuses a transaction that names a store the database does not have.
+        for (const name of [names].flat()) if (!stores[name as StoreName]) throw new Error(`NotFoundError: ${name}`);
+        return transaction();
+      },
+      close() { if (open) { open = false; control.connections--; } },
+      onversionchange: null as (() => void) | null,
+    };
   };
-  const factory = { open(_name: string, wanted: number) {
+  function open(wanted?: number) {
     control.opens++;
     const request = {
-      result: db as unknown, transaction: null as ReturnType<typeof transaction> | null,
-      onsuccess: null as (() => void) | null, onerror: null as (() => void) | null, onblocked: null as (() => void) | null,
+      result: undefined as unknown, transaction: null as ReturnType<typeof transaction> | null,
+      onsuccess: null as (() => void) | null, onerror: null as ((event?: { preventDefault(): void }) => void) | null,
+      onblocked: null as (() => void) | null,
       onupgradeneeded: null as ((event: { oldVersion: number }) => void) | null,
     };
     queueMicrotask(() => {
-      if (wanted < control.version) { request.onerror?.(); return; }
-      if (wanted === control.version) { request.onsuccess?.(); return; }
+      const target = wanted ?? (control.version || 1);
+      if (target < control.version) { request.onerror?.({ preventDefault() {} }); return; }
+      if (target === control.version) { request.result = connection(); request.onsuccess?.(); return; }
       const created: StoreName[] = [], oldVersion = control.version;
       const upgrade = transaction(created, (ok) => {
         request.transaction = null;
-        if (ok) { control.version = wanted; request.onsuccess?.(); } else request.onerror?.();
+        if (ok) { control.version = target; request.result = connection(); request.onsuccess?.(); }
+        else request.onerror?.({ preventDefault() {} });
       });
       request.transaction = upgrade;
       request.result = {
-        ...db,
         objectStoreNames: { contains: (name: StoreName) => !!stores[name] || created.includes(name) },
         createObjectStore(name: StoreName) { created.push(name); },
       };
       request.onupgradeneeded?.({ oldVersion });
-      request.result = db;
     });
     return request;
-  } };
+  }
   const entries = (name: StoreName) => [...(stores[name] ?? [])];
   return {
-    factory, stores, control,
+    open, stores, control,
+    /** Whether a database of this name exists at all. One never created, or whose first upgrade was aborted, does not. */
+    exists: () => control.version > 0,
     snapshot: () => structuredClone({ drafts: entries("drafts"), backups: entries("backups"), meta: entries("meta") }),
   };
+}
+
+/**
+ * A synthetic IndexedDB holding this build's database and, as `earlier`, the released build's.
+ * `seed` and `version` describe this build's; by default it is there, empty, at version 1, and
+ * version 0 means it has never been opened. `earlier` is absent unless it is given. No browser
+ * runs here: there are no version-change or blocked events, which a real browser proves.
+ */
+export function fakeIndexedDB(seed: Seed = {}, version = 1, earlier: { seed?: Seed; version?: number } = {}) {
+  const drafts = fakeDatabase(seed, version, draftStores);
+  const released = fakeDatabase(earlier.seed ?? {}, earlier.version ?? (earlier.seed ? 2 : 0), earlierStores);
+  const factory = {
+    open(name: string, wanted?: number) {
+      if (name === DRAFTS) return drafts.open(wanted);
+      if (name === EARLIER) return released.open(wanted);
+      throw new Error(`An unexpected database was opened: ${name}`);
+    },
+  };
+  return { factory, stores: drafts.stores, control: drafts.control, snapshot: drafts.snapshot, earlier: released };
 }
 
 export function installIndexedDB(t: TestContext, fake: ReturnType<typeof fakeIndexedDB>) {

@@ -1,11 +1,9 @@
 /// <reference lib="dom" />
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fakeIndexedDB, installIndexedDB } from "./fake-indexeddb.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { changeSaid, saidText } from "../src/describe/fill.ts";
 import { IndexedDraftRepository } from "../src/describe/indexed-repository.ts";
 import { MemoryDraftRepository, REPLACED_KEPT, draftPin, replacedPrefix } from "../src/describe/repository.ts";
 import { memoryPointer, memoryTabs, sessionPointer } from "../src/describe/tabs.ts";
@@ -13,107 +11,6 @@ import { memoryPointer, memoryTabs, sessionPointer } from "../src/describe/tabs.
 const words = (text: string, from: DeviceDraft = newDraft()) => revise(from, { composer: text }, true);
 /** Lets queued channel messages, reads and writes finish. */
 const idle = () => new Promise((resolve) => setTimeout(resolve, 5));
-const file = (name: string) => ({ id: crypto.randomUUID(), name, type: "text/plain", bytes: 4, blob: new Blob(["byte"]) });
-
-test("the single draft of an earlier version moves to its own ID in the upgrade, with its files and backups, and opens as before", async t => {
-  const existing = revise(words("Synthetic words written before the update"), { attachments: [file("notes.txt")] });
-  const older = words("Synthetic earlier backup");
-  const backups: [string, DeviceDraft][] = [["2026-11-10T10:00:00.000Z:a0000000-0000-4000-8000-000000000001", older]];
-  const fake = fakeIndexedDB({ drafts: [["current", existing]], backups }, 2);
-  installIndexedDB(t, fake);
-  const before = fake.snapshot();
-  const controller = new DraftController(new IndexedDraftRepository());
-  await controller.initialize();
-  assert.equal(fake.control.version, 3);
-  const after = fake.snapshot();
-  assert.deepEqual(after.drafts, [[existing.id, before.drafts[0]![1]]], "the same draft, byte for byte, under its own ID");
-  assert.deepEqual(after.meta, [["last", existing.id]]);
-  assert.deepEqual(after.backups, before.backups, "backups are untouched");
-  const shown = controller.getSnapshot();
-  assert.equal(shown.storage, "saved");
-  assert.equal(shown.error, null);
-  assert.equal(shown.draft.composer, "Synthetic words written before the update");
-  assert.equal(await shown.draft.attachments[0]!.blob.text(), "byte");
-  assert.deepEqual(shown.drafts.map((draft) => draft.id), [existing.id]);
-  // The next edit writes over the migrated draft in place: no second copy and no backup.
-  controller.change((draft) => words("Words after the update", draft));
-  await controller.settled();
-  const edited = fake.snapshot();
-  assert.equal(edited.drafts.length, 1);
-  assert.equal((edited.drafts[0]![1] as DeviceDraft).composer, "Words after the update");
-  assert.deepEqual(edited.backups, before.backups);
-  // Opening again does not run the upgrade twice.
-  const again = new DraftController(new IndexedDraftRepository());
-  await again.initialize();
-  assert.equal(again.getSnapshot().draft.composer, "Words after the update");
-});
-
-test("a draft the released build left mid-answer comes through the upgrade with every answer, and the first keystroke stores them all", async t => {
-  // Written by the released build's own functions: sent answers, a changed answer, a typed link
-  // and half-typed words, with no `mark` and no `filled`.
-  const released = JSON.parse(readFileSync(new URL("./released-draft.json", import.meta.url), "utf8")) as Pick<DeviceDraft, "id" | "turns" | "answerEdits" | "pendingLink" | "composer">;
-  const fake = fakeIndexedDB({ drafts: [["current", released]] }, 2);
-  installIndexedDB(t, fake);
-  const controller = new DraftController(new IndexedDraftRepository());
-  await controller.initialize();
-  const moved = fake.snapshot().drafts;
-  assert.deepEqual(moved.map(([key]) => key), [released.id], "under its own ID, and no longer under the single key");
-  const { turns, answerEdits, pendingLink, composer } = moved[0]![1] as DeviceDraft;
-  assert.deepEqual({ turns, answerEdits, pendingLink, composer }, { turns: released.turns, answerEdits: released.answerEdits, pendingLink: released.pendingLink, composer: released.composer }, "every word as the released build wrote it");
-  const box = saidText(controller.getSnapshot().draft);
-  const parts = ["families restoring an orchard", "Upper Valley and the river towns, Brazil", "We also keep bees and teach", "https://example.org/orchard"];
-  for (const part of parts) assert.ok(box.includes(part), `the box shows: ${part}`);
-  controller.change((draft) => changeSaid(draft, `${saidText(draft)} more`));
-  await controller.settled();
-  const stored = fake.snapshot().drafts[0]![1] as DeviceDraft;
-  for (const part of parts) assert.ok(stored.composer.includes(part), `stored after a keystroke: ${part}`);
-  assert.ok(stored.composer.endsWith(" more"));
-  assert.equal(fake.snapshot().drafts.length, 1);
-});
-
-test("an upgrade that fails to commit leaves the earlier database exactly as it was", async t => {
-  const existing = words("Synthetic words that must survive");
-  const fake = fakeIndexedDB({ drafts: [["current", existing]] }, 2);
-  installIndexedDB(t, fake);
-  const before = fake.snapshot();
-  fake.control.failCommit = true;
-  const controller = new DraftController(new IndexedDraftRepository());
-  await controller.initialize();
-  assert.equal(fake.control.version, 2, "the database stays at its old version");
-  assert.deepEqual(fake.snapshot(), before);
-  assert.equal(controller.getSnapshot().storage, "memory");
-  assert.match(controller.getSnapshot().error ?? "", /has not been changed/);
-  // The next try runs the whole upgrade again and finds the draft.
-  controller.retry();
-  await idle();
-  assert.equal(fake.control.version, 3);
-  assert.equal(controller.getSnapshot().draft.composer, "Synthetic words that must survive");
-  assert.equal(controller.getSnapshot().error, null);
-});
-
-test("a draft the upgrade cannot read stays where it was, and a first visit gets empty stores", async t => {
-  const unreadable = { id: "not-a-draft", composer: "Synthetic words in a shape this version cannot read" };
-  const fake = fakeIndexedDB({ drafts: [["current", unreadable]] }, 2);
-  installIndexedDB(t, fake);
-  const controller = new DraftController(new IndexedDraftRepository());
-  await controller.initialize();
-  assert.deepEqual(fake.snapshot().drafts, [["current", unreadable]], "never moved, changed or deleted");
-  assert.deepEqual(fake.snapshot().meta, []);
-  assert.equal(controller.getSnapshot().storage, "none");
-  assert.deepEqual(controller.getSnapshot().drafts, []);
-  controller.change((draft) => words("A new initiative", draft));
-  await controller.settled();
-  assert.equal(fake.stores.drafts!.get("current"), unreadable);
-  assert.equal(fake.stores.drafts!.size, 2);
-
-  const fresh = fakeIndexedDB({}, 0);
-  installIndexedDB(t, fresh);
-  const first = new DraftController(new IndexedDraftRepository());
-  await first.initialize();
-  assert.equal(fresh.control.version, 3);
-  assert.deepEqual(fresh.snapshot(), { drafts: [], backups: [], meta: [] });
-  assert.equal(first.getSnapshot().storage, "none");
-});
 
 test("a browser holds several drafts: starting an initiative never replaces one, and each tab stays on its own", async t => {
   const fake = fakeIndexedDB();
@@ -508,7 +405,7 @@ test("a working copy the account's version replaced under another ID goes to the
   } });
   const copy = bound(words("Synthetic working copy under its own ID"));
   const loaded = revise({ ...words("Synthetic newer version from the account"), id: "b3000000-0000-4000-8000-000000000009" }, {});
-  const fake = fakeIndexedDB({}, 3);
+  const fake = fakeIndexedDB();
   installIndexedDB(t, fake);
   const tabs = memoryTabs();
   const controller = new DraftController(new IndexedDraftRepository(), { pointer: memoryPointer(), channel: tabs.channel() });

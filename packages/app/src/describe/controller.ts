@@ -69,6 +69,7 @@ export class DraftController {
     this.loading = (async () => {
       try {
         this.unread = false;
+        await this.bringAcross();
         const named = this.pointer.get();
         const saved = await this.repository.load(named);
         // A tab that started a new initiative and has not typed yet names a draft that is not
@@ -164,6 +165,32 @@ export class DraftController {
       this.publish({ draft: stored, storage: "saved", error: null });
     } catch {
       /* The tab keeps what it shows; its next edit still writes. */
+    }
+  }
+  /**
+   * Takes in what the released build's storage holds and this build has not seen. A failure to
+   * read it changes nothing: its draft stays where it is, and the next look tries again.
+   */
+  private async bringAcross(): Promise<string[]> {
+    try {
+      return (await this.repository.bringAcross?.()) ?? [];
+    } catch {
+      return [];
+    }
+  }
+  /**
+   * Looks at the released build's storage again (DL-114). A tab still running that build cannot
+   * tell this one that it wrote, so this build looks: when a tab comes back on screen and when
+   * the list of initiatives is opened. A draft that changed there is shown here unless an edit
+   * is waiting in this tab, and that edit then wins with the other version kept as a backup.
+   */
+  async lookAgain(): Promise<void> {
+    if (!this.repository.bringAcross) return;
+    await this.loaded();
+    if (!this.writable) return;
+    for (const id of await this.bringAcross()) {
+      this.channel?.post({ kind: "saved", id });
+      await this.heard({ kind: "saved", id });
     }
   }
   backups() {

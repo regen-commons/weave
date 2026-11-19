@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { newDraft, revise, type DeviceDraft } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { intakeFixture } from "../fixtures.ts";
@@ -75,6 +75,11 @@ function PhoneSettings() {
 export function YourInitiatives() {
   const social = useSocial();
   const { draft, drafts, controller } = useDraft();
+  // The list is where every initiative on the device is shown, so it is read with whatever an
+  // older tab on the released build has written since (DL-114).
+  useEffect(() => {
+    void controller.lookAgain();
+  }, [controller]);
   const account = useAccount();
   const status = useCardStatus();
   const [busy, setBusy] = useState(false);

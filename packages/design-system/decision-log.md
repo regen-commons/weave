@@ -606,7 +606,7 @@ Nothing saved earlier is cut. A list saved with five stays readable and saveable
 
 ## DL-112: Several initiatives in one browser, and the latest edit wins
 
-**Status:** user decision from manual QA, 18 November 2026. Amends DL-055 and DL-059, R1, R37 and R41.
+**Status:** user decision from manual QA, 18 November 2026. Amends DL-055 and DL-059, R1, R37 and R41. Its storage is amended by DL-114.
 
 The single draft and its vocabulary confused people. The header said "On this device". Your Initiatives had an "On this device" section and a "Saved in Weave" section. Starting an initiative asked to back up the one already there. Two tabs on the same draft stopped the second with "Your latest changes need care" until it was reloaded.
 
@@ -616,7 +616,7 @@ Open tabs stay in step. Each write tells the other tabs which draft changed, and
 
 A saved card that was saved again on another device opens at that newer version from the list when this browser's copy has no changes of its own, with the copy kept as a backup. When both changed, the entry opens this browser's words and offers Open Saved Version beside them. A save's answer goes to the draft that asked for it, by its ID, even if the person has opened another initiative meanwhile. Deleting a saved card releases every draft in the browser that pointed at it. A new initiative stays the tab's draft across a reload before its first word. Another account's card is set aside in Settings as it is on its own pages.
 
-The earlier single draft moves to its own ID when the database is upgraded, inside the upgrade, so it lands whole or the database stays as it was. A draft that cannot be read is left exactly where it is. Messages between tabs name a draft and carry none of its content.
+The earlier single draft is brought across under its own ID. DL-114 replaced the upgrade first written here, before it was released, with a copy into a new database. A draft that cannot be read is left exactly where it is. Messages between tabs name a draft and carry none of its content.
 
 **Review fixes, 19 November 2026.** A draft from the released version keeps everything it held when it opens in the box: each sent answer as last changed, the words still being typed, which that version stored beside the answers, and a link typed and not yet added. They become the box's own text at the first change, once. Answers that add up to more than the box holds are shown whole, and a change that does not fit is refused with nothing removed. When the first read of device storage fails, Start An Initiative keeps the failure on screen with Try Again and the text copy, because the new words would reach memory only. And when the account's newer version opens over a working copy kept under another ID than the card's, that copy goes to the device backups, so the card is one draft.
 
@@ -631,3 +631,21 @@ On the three steps, no button opens something in the page. Add Files opens the f
 After needs and offers the last page keeps the stepper until the card is saved. A step already done is a link back to it on all three steps, and the last step has Back To Needs And Offers.
 
 Button labels and page and section headings in this flow are written in title case, in the copy and not by the style sheet, as DL-105 on the manual QA branch decides for the whole app: every word takes a capital, short words included, as in Fill In The Fields and Say It In Your Own Words. Labels of fields, hints, chips, status lines and body text stay in sentence case, and so does a heading that reports something, such as a notice's.
+
+## DL-114: Several drafts live in a new database, and an update reloads tabs that are not on screen
+
+**Status:** user decision, 19 November 2026 ("New database + reload", and "Yes, delete both" for removals). Amends the storage of DL-112 before it was released.
+
+DL-112 first upgraded the released build's database to keep several drafts. A second review found what that costs. A tab still running the released build closes its connection when the database is upgraded, and every later attempt to open it at the old version fails, so words typed there are never stored. A rollback to the released build fails the same way on every browser that ran the new one. Nothing is deleted in either case, but no draft opens.
+
+Several drafts now live in a database of their own. The released build's database is left at its version and is never upgraded: this build opens it without asking for a version, reads it and closes it. So an older tab keeps storing with no error, and a rollback finds its draft as that build last wrote it. The first run copies that draft and its backups across and deletes nothing. A person who never used the released build ends with no such database at all.
+
+An older tab cannot tell this build that it wrote, so this build looks again: at every start, when a tab comes back on screen and when Your Initiatives opens. Words typed in an older tab after the copy become the draft here. When both builds changed it, the later edit wins by the time each stamped on it, and the other version is kept as a device backup that Settings can restore, as two tabs already do. A draft removed here stays removed, and comes back only if the older tab writes to it again, because that tab still shows it.
+
+The copy never changes the released build's database. A removal the person asks for does: deleting a device backup for good also deletes its copy there, and the draft itself goes once nothing of that initiative is kept here. Otherwise "removed from this device" would be untrue for what was copied, and a rollback would bring back something a person deleted. A removal that can be undone, which keeps a backup, changes nothing there.
+
+What a rollback hides until this build returns: every initiative started in it, every edit made in it to the copied draft, and the backups made in it. They stay in the new database, untouched.
+
+When a new version takes over, the service worker reloads the tabs nobody is looking at, after two seconds and only if they are still hidden. A first install reloads nothing. A tab on screen is never reloaded: the person may be typing or talking, and it moves to the new version at its next load. The worker does not hold its own start-up open for these reloads. A reload is a page load the worker has to answer, and it answers nothing until it has finished starting, so waiting for them deadlocked and hung every page of the site in a real browser before this was changed. The reload is therefore best effort: if the browser stops the worker during the two seconds, nothing is reloaded and the tabs stay on the version they have, which still works. The released build stores the words in its box on every keystroke and on every result while dictating, which is what makes reloading a hidden tab safe. Not protected in a hidden tab: a file still being read, words typed into the add-by-hand box on needs and offers and not yet added, an unsent Suggest A Fund form and a sign-in email not yet sent. That build keeps those on the page only.
+
+Something deleted in an older tab after the copy stays in this build until it is deleted here.

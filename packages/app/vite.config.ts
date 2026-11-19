@@ -120,6 +120,9 @@ export default defineConfig(({ mode }) => {
           // code itself; without them a new version waits until every tab is closed.
           skipWaiting: true,
           clientsClaim: true,
+          // When this worker replaces an older one it reloads the tabs nobody is looking at, so
+          // they leave the older version. A tab on screen is never reloaded (DL-114).
+          importScripts: ["update-tabs.js"],
           globPatterns: ["**/*.{js,mjs,css,html,svg,woff2,webmanifest}", "assets/*.json"],
           // Only the imported public catalog release and screening assets, never device drafts.
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

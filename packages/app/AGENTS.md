@@ -70,6 +70,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   version with the one the tab last saw, and keeps a version another tab wrote as a device
   backup before replacing it. Never add a state that stops a tab or asks it to reload. Storage
   failure must offer text recovery and must not claim the latest changes are saved.
+- Device drafts are in the IndexedDB database `weave-drafts`. Never open the released build's
+  `weave-device-drafts` with a version number or change its shape: an older tab and a rollback
+  still use it (DL-114). `describe/earlier-database.ts` reads it, and the copy deletes nothing.
 - The describe step is one page (DL-110). Words fill the four fields in place through
   `src/describe/fill.ts`, which never writes over a field the person typed or changed.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud

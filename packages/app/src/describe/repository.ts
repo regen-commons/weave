@@ -66,6 +66,11 @@ export const backupKey = () => `${new Date().toISOString()}:${crypto.randomUUID(
 export interface DraftRepository {
   /** One stored draft by its ID, or with `null` the draft written most recently. Null when there is none. */
   load(id?: string | null): Promise<DeviceDraft | null>;
+  /**
+   * Brings across what an earlier build's storage holds and this one has not seen, without
+   * changing that storage. Returns the IDs of the drafts whose stored version changed.
+   */
+  bringAcross?(): Promise<string[]>;
   /** Every draft stored on this device that can be read. */
   list?(): Promise<DeviceDraft[]>;
   backups?(): Promise<DraftBackup[]>;

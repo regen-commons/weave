@@ -510,21 +510,46 @@
   },
   {
    "id": "several-drafts",
-   "behavior": "A browser keeps several initiatives, and an earlier single draft moves to the new storage with nothing lost",
+   "behavior": "A browser keeps several initiatives in a database of its own, and the released build's draft is copied across with nothing deleted, so an older tab and a rollback still work",
    "evidence": [
     {
-     "file": "packages/app/test/drafts.test.ts",
-     "test": "the single draft of an earlier version moves to its own ID in the upgrade, with its files and backups, and opens as before",
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "the released build's draft and backups come across to a new database, and its own database is left exactly as it was",
      "class": "module"
     },
     {
-     "file": "packages/app/test/drafts.test.ts",
-     "test": "an upgrade that fails to commit leaves the earlier database exactly as it was",
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "a first-time visitor ends with this build's empty database and no earlier database at all",
      "class": "module"
     },
     {
-     "file": "packages/app/test/drafts.test.ts",
-     "test": "a draft the upgrade cannot read stays where it was, and a first visit gets empty stores",
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "a copy that cannot be written changes neither database, and the next look completes it",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "a draft the released build left in a shape this build cannot read stays exactly where it is",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "an older tab that keeps writing after the copy: its words become the draft here, with no backup, while this build has not changed it",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "changed in both builds: the later edit wins by its time, and the other version is always kept as a device backup",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "a rollback finds the released build's database as that build last wrote it, and returning finds this build's as it was",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/earlier-database.test.ts",
+     "test": "removing a copied draft for good removes it from the released build's database once nothing of it is kept here",
      "class": "module"
     },
     {

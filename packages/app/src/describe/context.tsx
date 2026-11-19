@@ -57,5 +57,15 @@ export function DraftProvider({ fixture, children }: { fixture?: FixtureContext;
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [controller, !!fixture]);
+  useEffect(() => {
+    if (!!fixture) return;
+    // An older tab still on the released build writes to that build's own storage and cannot say
+    // so. Coming back to this tab is when its words are looked for (DL-114).
+    const look = () => {
+      if (document.visibilityState === "visible") void controller.lookAgain();
+    };
+    document.addEventListener("visibilitychange", look);
+    return () => document.removeEventListener("visibilitychange", look);
+  }, [controller, !!fixture]);
   return <DraftContext.Provider value={{ controller, fixture: !!fixture }}>{children}</DraftContext.Provider>;
 }

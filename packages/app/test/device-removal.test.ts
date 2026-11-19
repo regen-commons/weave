@@ -11,7 +11,7 @@ import {
   backupLine, BACKUPS_SHOWN, listedBackups, restoreWarning,
 } from "../src/describe/device-removal.ts";
 
-/** A version 3 database holding one draft under its own ID, which is also the one written last. */
+/** This build's database holding one draft under its own ID, which is also the one written last. */
 const seeded = (current: DeviceDraft, backups: [string, DeviceDraft][]) =>
   fakeIndexedDB({ drafts: [[current.id, current]], backups, meta: [["last", current.id]] });
 const install = installIndexedDB;
