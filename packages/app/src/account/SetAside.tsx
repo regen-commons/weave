@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from "react";
 import { useDraft } from "../describe/use-draft.ts";
-import { newDraft } from "../describe/contracts.ts";
 import { navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -15,17 +14,17 @@ export function ForThisAccount({ children }: { children: ReactNode }) {
 
 /**
  * Another account's card on this device (DL-055): it stays here and opens again when that account
- * signs in. This account can start its own; replacing the card keeps a device backup of it.
+ * signs in. This account can start its own, which is a draft of its own beside it (DL-112).
  */
 export function SetAsideCard() {
   const { controller } = useDraft();
   const [problem, setProblem] = useState("");
   async function startNew() {
     try {
-      await controller.replace(newDraft());
+      await controller.startNew();
       navigate(pathTo("initiative"));
-    } catch {
-      setProblem("The other card could not be backed up, so nothing changed. Try again.");
+    } catch (error) {
+      setProblem(error instanceof Error ? error.message : "A new initiative could not be started. Try again.");
     }
   }
   return (
@@ -42,7 +41,7 @@ export function SetAsideCard() {
           Go to Your Initiatives
         </ButtonLink>
       </div>
-      <p className="rc-meta">Starting keeps a copy of the other card on this device.</p>
+      <p className="rc-meta">The other card stays on this device.</p>
       {problem && <p role="alert">{problem}</p>}
     </Doorway>
   );

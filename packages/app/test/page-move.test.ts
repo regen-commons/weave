@@ -22,7 +22,7 @@ test("a page under the one on screen is pushed on, and going back up pops it off
 });
 
 test("describing an initiative is one way through: each later step is pushed on", () => {
-  const steps = ["/start/initiative", "/start/initiative/check", "/start/needs", "/start/offers", "/your-initiative"];
+  const steps = ["/start/initiative", "/start/needs", "/start/offers", "/your-initiative"];
   for (let at = 0; at < steps.length - 1; at++) {
     assert.equal(pageMove(steps[at]!, steps[at + 1]!), "push", `${steps[at]} on`);
     assert.equal(pageMove(steps[at + 1]!, steps[at]!), "pop", `${steps[at + 1]} back`);

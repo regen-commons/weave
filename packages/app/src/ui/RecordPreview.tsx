@@ -42,8 +42,8 @@ export function RecordPreview({
       {children}
       {!team && <p className="rc-draft-status">
         {confirmed
-          ? "Card checked. Source words and files stay on this device."
-          : "Draft in this browser. It has not been shared."}
+          ? "Your source words and files stay on this device."
+          : "Not saved yet. Nothing here has been shared."}
       </p>}
     </article>
   );

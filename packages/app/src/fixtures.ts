@@ -1,5 +1,6 @@
 // Development-only invented content. App's import.meta.env.DEV boundary removes it from production.
-import { addAnswer, newDraft, revise } from "./describe/contracts.ts";
+import { newDraft, revise, type DeviceDraft } from "./describe/contracts.ts";
+import { changeSaid, detailChips, editFields, fieldsForm, fillFields, saidText, toggleDetail } from "./describe/fill.ts";
 import { keywordSuggestion } from "./describe/keywords.ts";
 import { confirmDraft } from "./describe/contracts.ts";
 import { emptyAskStep } from "./intake/contracts.ts";
@@ -84,6 +85,8 @@ export interface FixtureContext {
   certified: "ok" | "fail";
   /** Whether the example person already has projects on Certified. */
   projects: "some" | "none";
+  /** How many initiatives the example browser holds: the one on screen, or that and two more. */
+  drafts: "one" | "several";
   asOf: string;
   state: ListState;
   initiatives: readonly ListingRecord[];
@@ -330,6 +333,7 @@ export function readFixtures(search: string): FixtureContext {
     scenario,
     certified: params.get("certified") === "fail" ? "fail" : "ok",
     projects: params.get("projects") === "none" ? "none" : "some",
+    drafts: params.get("drafts") === "several" ? "several" : "one",
     intake: INTAKE_VIEWS.includes(params.get("intake") as IntakeView)
       ? (params.get("intake") as IntakeView)
       : "off",
@@ -352,62 +356,52 @@ export const EXAMPLE_SUBJECT = {
   offers: ["material", "cultural"],
 } as const;
 
+/** What the example person says or types in the box on the describe step. */
+export const EXAMPLE_SAID =
+  "We are Orchard learning circle. We are based in Upper Valley, Brazil. We are a group of families restoring an orchard and sharing skills in soil and water care. We are getting going, and students take part through community research.";
+
 // Public-safe fixtures are kept in memory and never written to the device draft database.
+/**
+ * The describe step's examples (DL-110). Most have words in the box and nothing filled yet.
+ * `manual` is typed straight into the fields, `review` and `correcting` are just after a fill,
+ * with the fields and details in pencil, and `kept` has every suggested detail tapped.
+ */
 export function describeFixture(view: DescribeView) {
   let draft = newDraft();
   if (view === "fresh") return draft;
-  draft = addAnswer(
+  if (view === "manual")
+    return editFields(draft, {
+      name: "Orchard learning circle",
+      where: "Upper Valley, Brazil",
+      about: "A group of families restoring an orchard and sharing skills in soil and water care.",
+      links: "",
+    });
+  draft = changeSaid(
     draft,
-    "We are Orchard learning circle, a group of families restoring an orchard and sharing skills in soil and water care.",
+    view === "long"
+      ? `${EXAMPLE_SAID} ${"Somos a Associação Comunitária de Aprendizagem, Arte e Cuidado das Nascentes e dos Pomares do Vale das Sementes. ".repeat(25)}`
+      : EXAMPLE_SAID,
   );
-  draft = addAnswer(draft, "Upper valley, Brazil");
-  draft = addAnswer(
-    draft,
-    "We are getting going. Families and students take part. We share learning through community research.",
-  );
-  if (view === "long")
-    draft = addAnswer(
-      draft,
-      "Somos a Associação Comunitária de Aprendizagem, Arte e Cuidado das Nascentes e dos Pomares do Vale das Sementes. ".repeat(
-        25,
-      ),
-    );
   if (view === "attached") {
     const blob = new Blob(["Field notes: families care for soil and water."], { type: "text/plain" });
     draft = revise(
       draft,
-      {
-        attachments: [
-          { id: crypto.randomUUID(), name: "field-notes.txt", type: blob.type, bytes: blob.size, blob },
-        ],
-        links: ["https://example.org/orchard"],
-      },
+      { attachments: [{ id: crypto.randomUUID(), name: "field-notes.txt", type: blob.type, bytes: blob.size, blob }] },
       true,
     );
   }
-  if (view === "manual") draft = revise(draft, { mode: "fields" });
-  if (["review", "correcting", "kept"].includes(view)) {
-    const proposal = keywordSuggestion(draft, draft.turns.map((turn) => turn.text).join("\n\n"));
-    draft = revise(draft, {
-      proposal,
-      proposalVersion: draft.inputVersion,
-      derivedEdits:
-        view === "kept"
-          ? {
-              stage: proposal.stage,
-              lenses: proposal.lenses,
-              themes: proposal.themes,
-              beneficiaries: proposal.beneficiaries,
-              languages: proposal.languages,
-            }
-          : {},
-      kept: view === "kept" ? ["stage", "lenses", "themes", "beneficiaries", "languages"] : [],
-    });
+  if (["review", "correcting", "kept", "long"].includes(view)) {
+    const said = saidText(draft);
+    draft = fillFields(draft, keywordSuggestion({ ...draft, turns: [] }, said), {
+      engine: "keywords",
+      unreadFiles: 0,
+      sourceCharacters: said.length,
+      files: [],
+      fallback: false,
+    }).draft;
   }
-  if (view === "correcting")
-    draft = revise(draft, {
-      reviewEdits: { stage: { value: draft.proposal?.stage ?? "", lenses: [], wasKept: false } },
-    });
+  if (view === "correcting") draft = editFields(draft, { ...fieldsForm(draft), where: "Upper Valley; Lower Valley" });
+  if (view === "kept") for (const chip of detailChips(draft)) draft = toggleDetail(draft, chip);
   return draft;
 }
 
@@ -461,6 +455,32 @@ const exampleSpeechStores: Partial<Record<SpeechExample, SpeechSetupStore>> = {}
  */
 export function exampleSpeech(example: SpeechExample): SpeechSetupStore {
   return (exampleSpeechStores[example] ??= speechSetupStore({ speech: exampleRecognizer(example), slowAfter: 5000 }));
+}
+
+/**
+ * Two more initiatives in the example browser, beside the one on screen: one barely started and
+ * one finished. Neither is saved to an account, so each shows the "Not saved yet" badge.
+ */
+export function otherDraftFixtures(): DeviceDraft[] {
+  const started = revise(newDraft(), {
+    mode: "fields",
+    form: { name: "River clean-up crew", where: "Lower valley", about: "", links: "" },
+    publicEdits: { name: "River clean-up crew", locations: ["Lower valley"], isGlobal: false, description: "" },
+    updatedAt: "2026-11-02T09:00:00.000Z",
+  });
+  const finished = intakeFixture("kept", "/your-initiative");
+  const name = "Seed library at the school garden";
+  return [
+    { ...started, updatedAt: "2026-11-02T09:00:00.000Z" },
+    {
+      ...revise(finished, {
+        proposal: { ...finished.proposal!, name },
+        confirmed: { ...finished.confirmed!, name },
+        publicEdits: { ...finished.publicEdits, name },
+      }),
+      updatedAt: "2026-11-01T09:00:00.000Z",
+    },
+  ];
 }
 
 // Step 4 examples seed only an isolated in-memory draft, never IndexedDB.

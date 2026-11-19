@@ -1,5 +1,5 @@
 import type { DeviceDraft } from "./contracts.ts";
-import { BackupChanged, DraftConflict, RemovalNotice, type DeviceRemoval } from "./repository.ts";
+import { BackupChanged, DraftChanged, RemovalNotice, type DeviceRemoval } from "./repository.ts";
 
 /** The name a backup is listed under. Two backups can share it, so it never identifies one. */
 export const draftTitle = (draft: DeviceDraft) => draft.confirmed?.name || draft.proposal?.name || "untitled draft";
@@ -21,11 +21,11 @@ export function backupDeleteWarning(draft: DeviceDraft): string {
   return `This deletes the backup ${draftTitle(draft)}, last changed ${draftTime(draft)}, from this browser${
     count ? ` with its ${files(count)}` : ""}. It cannot be undone.`;
 }
-/** The confirmation for restoring one backup: which one opens, and what happens to the draft here now. */
+/** The confirmation for restoring one backup: which one opens, and what happens to a draft it takes the place of. */
 export function restoreWarning(draft: DeviceDraft): string {
   const count = attachedFiles(draft);
   return `This opens the backup ${draftTitle(draft)}, last changed ${draftTime(draft)}${
-    count ? `, with its ${files(count)}` : ""}. The draft on this device now is kept as a backup first.`;
+    count ? `, with its ${files(count)}` : ""}. A draft it replaces is kept as a backup first.`;
 }
 /** One line under a backup's name: when it last changed and what it holds. */
 export function backupLine(draft: DeviceDraft): string {
@@ -48,8 +48,8 @@ export const removedBackupMessage = (result: DeviceRemoval) => `Removed 1 backup
 export const discardedMessage = (result: DeviceRemoval) =>
   `Removed this draft from this device and kept it as a backup you can restore. ${backups(result.kept)}`;
 
-/** Why nothing was removed. A conflict keeps the existing cross-tab words. */
+/** Why nothing was removed. A draft another tab changed meanwhile keeps that tab's words. */
 export function deviceRemovalFailure(error: unknown): string {
-  if (error instanceof DraftConflict || error instanceof BackupChanged || error instanceof RemovalNotice) return error.message;
+  if (error instanceof DraftChanged || error instanceof BackupChanged || error instanceof RemovalNotice) return error.message;
   return "This device could not finish the removal. Nothing was removed.";
 }

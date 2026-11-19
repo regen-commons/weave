@@ -156,11 +156,14 @@ test("the live screen adapter saves and reloads a private card through the authe
     const saved = controller.getSnapshot().draft.account.saved!;
     assert.equal(saved.id, id); assert.equal(saved.revision, 1);
     assert.ok(service.snapshot().cards.some(item => item.id === id));
-    await controller.replace(revise(newDraft(), { composer: "Another unfinished initiative" }));
+    const other = revise(newDraft(), { composer: "Another unfinished initiative" });
+    await controller.replace(other);
     await service.openCard(id, null);
     assert.equal(controller.getSnapshot().draft.account.saved?.id, id);
     assert.equal(controller.getSnapshot().draft.confirmed?.name, document.initiative.name);
-    assert.equal(repo.history[0]?.draft.composer, "Another unfinished initiative");
+    // The other initiative stays on the device as its own draft; the card's earlier copy is the backup.
+    assert.equal(repo.drafts.get(other.id)?.composer, "Another unfinished initiative");
+    assert.equal(repo.history[0]?.draft.account.saved?.id, id);
     assert.equal(service.snapshot().shared, null);
   } finally { globalThis.fetch = originalFetch; }
 });

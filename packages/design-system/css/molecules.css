@@ -73,6 +73,8 @@
 /* Chip group: one question answered by tapping chips, such as one filter in the Filters sheet.
    The question is the legend of the fieldset around it; a narrower question can follow it. */
 .rc-chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+/* Chips that arrive later, such as suggested details, have their two rows kept for them (DL-110). */
+.rc-chip-group[data-reserve="rows"] { align-content: start; min-block-size: calc(2 * var(--chip-height) + var(--space-2)); }
 .rc-chip-group + fieldset { margin-block-start: var(--space-3); }
 
 /* Choice group: selectable cards for short vocabularies. */

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { editsFromForm } from "../src/describe/forms.ts";
-import { continueWithFields } from "../src/describe/screen.ts";
+import { continueDescribe } from "../src/describe/fill.ts";
 import { fundingFixture, readFixtures } from "../src/fixtures.ts";
 import { catalogEntries } from "../src/funding/catalog.ts";
 import { emptyFundingFilters, filterFunding } from "../src/funding/select.ts";
@@ -109,11 +109,10 @@ test("Home keeps one solid primary: resume a card, open one kept elsewhere, or s
 test("Home's resume link is named for where the card stopped", () => {
   assert.equal(cardRoute(newDraft()), "initiative");
   assert.equal(resumeLabel("initiative"), "Continue your initiative");
-  assert.equal(resumeLabel("check-card"), "Continue your initiative");
 
   // Continue from the four fields confirms the card, so home resumes at needs and offers.
   const form = { name: "Orchard circle", where: "Upper valley", about: "Families share growing skills.", links: "" };
-  const typed = continueWithFields(revise(newDraft(), { form, publicEdits: editsFromForm(form, {}) }, true));
+  const typed = continueDescribe(revise(newDraft(), { form, publicEdits: editsFromForm(form, {}) }, true));
   assert.equal(cardRoute(typed), "needs");
   assert.equal(resumeLabel(cardRoute(typed)), "Continue your initiative");
 

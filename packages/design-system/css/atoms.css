@@ -293,6 +293,9 @@ textarea.rc-input {
   resize: vertical;
   field-sizing: content;
 }
+/* A box that keeps the height of its rows whatever it holds, so words that arrive from speech or
+   from a fill move nothing under it (DL-110). Longer words scroll inside it. */
+textarea.rc-input[data-sizing="fixed"] { field-sizing: fixed; }
 .rc-input[data-kind="code"] {
   min-block-size: var(--control-lg-height);
   font: var(--type-code);
@@ -348,6 +351,15 @@ textarea.rc-input {
   .rc-switch:checked { background: Highlight; }
   .rc-switch:checked::before { background: Canvas; }
 }
+
+/* A dashed field is pencil: Weave filled it from the person's words, and they have not changed it (DL-110). */
+.rc-input[data-pencil] { border-style: dashed; }
+
+/* Status slot: one line of progress, result or problem that keeps its height, so the words can
+   come and go without moving anything under them (DL-085, DL-113). */
+.rc-status-slot { min-block-size: 1lh; margin: 0; }
+.rc-status-slot[data-lines="2"] { min-block-size: 2lh; }
+.rc-action-bar > .rc-status-slot { flex: 1 1 var(--card-min-width); }
 
 /* Chip: a choice you can tap. Keep the native control visible, so selection never depends on colour. */
 .rc-chip {

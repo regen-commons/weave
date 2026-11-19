@@ -1,18 +1,25 @@
-import {
-  EMPTY_INITIATIVE,
-  applyReview,
-  reviewedProposal,
-  type DeviceDraft,
-  type Initiative,
-} from "./contracts.ts";
+import { EMPTY_INITIATIVE, SuggestionSchema, type DeviceDraft, type Initiative } from "./contracts.ts";
+import { keptDetails } from "./details.ts";
 import { stepHasWords, stepText } from "../intake/state.ts";
-import { keywordSuggestion } from "./keywords.ts";
+/**
+ * The card as it stands before Continue: the four fields as they read, and the details the
+ * person kept. Words in the box that have not been put into the fields are not on it, and
+ * neither is a suggestion still in pencil (DL-110). A card loaded from an account or built
+ * earlier supplies the fields the person has not changed.
+ */
 export function previewFields(draft: DeviceDraft): Initiative {
-  if (draft.mode === "fields") return applyReview(draft, { ...EMPTY_INITIATIVE, ...draft.publicEdits });
-  if (draft.proposal && draft.proposalVersion === draft.inputVersion) return reviewedProposal(draft)!;
-  // The answer being typed shows as it is, but a place is proposed only from answers already added.
-  const added = draft.turns.map((turn) => turn.text);
-  return applyReview(draft, keywordSuggestion(draft, [...added, draft.composer].join("\n\n"), added.join("\n\n")));
+  const base = draft.proposal ?? EMPTY_INITIATIVE;
+  return SuggestionSchema.parse({
+    ...EMPTY_INITIATIVE,
+    name: base.name,
+    description: base.description,
+    locations: base.locations,
+    isGlobal: base.isGlobal,
+    ...draft.publicEdits,
+    links: [...draft.links],
+    ...keptDetails(draft),
+    confidence: base.confidence,
+  });
 }
 export function hasDraft(draft: DeviceDraft): boolean {
   return !!(
@@ -48,4 +55,3 @@ export function draftText(draft: DeviceDraft): string {
     .filter(Boolean)
     .join("\n\n");
 }
-export const emptyFields = () => ({ ...EMPTY_INITIATIVE });

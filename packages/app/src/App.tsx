@@ -10,7 +10,6 @@ import { DraftProvider } from "./describe/context.tsx";
 import { useDraft } from "./describe/use-draft.ts";
 import { hasDraft } from "./describe/view.ts";
 import { Describe } from "./pages/Describe.tsx";
-import { CheckCard } from "./pages/CheckCard.tsx";
 import { Home } from "./pages/Home.tsx";
 import { AskStep } from "./pages/AskStep.tsx";
 import { YourInitiative } from "./pages/YourInitiative.tsx";
@@ -60,8 +59,6 @@ function content(route: Route, fixture?: FixtureContext) {
     // The card's own pages open only for the account it belongs to (DL-055).
     case "initiative":
       return <ForThisAccount><Describe fixture={fixture} /></ForThisAccount>;
-    case "check-card":
-      return <ForThisAccount><CheckCard /></ForThisAccount>;
     case "needs":
     case "offers":
       return <ForThisAccount><AskStep key={route.name} kind={route.name} fixture={fixture} /></ForThisAccount>;
@@ -252,7 +249,6 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     setAside: !!setAside,
     accountSaved: accountSaved || (import.meta.env.DEV && !!fixture && !!social?.state.saved),
     storage: device.storage,
-    hasCard: hasDraft(device.draft),
   });
   return (
     <Page

@@ -1,25 +1,44 @@
 import { DeviceDraftSchema, newDraft, type DeviceDraft } from "./contracts.ts";
-import { DraftConflict, draftPin, RemovalNotice, type DeviceRemoval, type DraftBackup, type DraftRepository } from "./repository.ts";
-export type DeviceStorage = "loading" | "none" | "saving" | "saved" | "memory" | "conflict";
+import { DraftChanged, draftPin, pinned, RemovalNotice, type DeviceRemoval, type DraftBackup, type DraftPin, type DraftRepository } from "./repository.ts";
+import { memoryPointer, type DraftChannel, type DraftMessage, type DraftPointer } from "./tabs.ts";
+export type DeviceStorage = "loading" | "none" | "saving" | "saved" | "memory";
 export interface DraftSnapshot {
+  /** The draft this tab is working on. */
   draft: DeviceDraft;
   storage: DeviceStorage;
   error: string | null;
   ready: boolean;
+  /** Every draft stored on this device, as last read or written. The tab's own draft is in `draft`. */
+  drafts: readonly DeviceDraft[];
 }
-/** One writer per tab. IndexedDB compares the last stored revision before replacing a draft. */
+const STILL_STORING = "Your latest changes were still being stored, so nothing else was opened. Try again.";
+/** Words not stored yet would be left behind by opening another draft, so the tab says so and stays. */
+const UNSTORED =
+  "Your latest changes are not stored on this device yet. Keep this tab open, copy your draft or try again.";
+/**
+ * One tab's work on one of the device's drafts. Each edit is written under the draft's own ID, and
+ * the latest edit wins: a version another tab wrote in between is kept as a backup by the
+ * repository, with no warning (DL-112). Tabs tell each other about writes, so a tab that is not in
+ * the middle of an edit shows the newest version.
+ */
 export class DraftController {
-  private snapshot: DraftSnapshot = { draft: newDraft(), storage: "loading", error: null, ready: false };
+  private snapshot: DraftSnapshot = { draft: newDraft(), storage: "loading", error: null, ready: false, drafts: [] };
   private listeners = new Set<() => void>();
-  private expected: number | null = null;
+  /** The stored version this tab last read or wrote. Null while its draft is not stored. */
+  private expected: DraftPin | null = null;
   private writable = false;
   private loading: Promise<void> | undefined;
   private writing: Promise<void> | undefined;
   private dirty = false;
-  constructor(privateRepo: DraftRepository) {
-    this.repository = privateRepo;
-  }
   private repository: DraftRepository;
+  private pointer: DraftPointer;
+  private channel: DraftChannel | undefined;
+  private listening = false;
+  constructor(repository: DraftRepository, tabs: { pointer?: DraftPointer; channel?: DraftChannel } = {}) {
+    this.repository = repository;
+    this.pointer = tabs.pointer ?? memoryPointer();
+    this.channel = tabs.channel;
+  }
   getSnapshot = (): DraftSnapshot => this.snapshot;
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -29,28 +48,43 @@ export class DraftController {
     this.snapshot = { ...this.snapshot, ...change };
     for (const listener of this.listeners) listener();
   }
+  /** The list with one stored draft added, replaced or taken out. */
+  private listed(id: string, draft: DeviceDraft | null): DeviceDraft[] {
+    const rest = this.snapshot.drafts.filter((item) => item.id !== id);
+    return draft ? [...rest, draft] : rest;
+  }
+  private async refreshList(): Promise<void> {
+    try {
+      const drafts = await this.repository.list?.();
+      if (drafts) this.publish({ drafts });
+    } catch {
+      /* The list keeps what it last read; the tab's own draft is not affected. */
+    }
+  }
   initialize(): Promise<void> {
     if (this.loading) return this.loading;
     this.loading = (async () => {
       try {
-        const saved = await this.repository.load();
-        if (this.dirty && saved) {
-          this.publish({
-            ready: true,
-            storage: "conflict",
-            error: "Your words in this tab are still here. Copy them before loading a saved draft.",
-          });
-          return;
-        }
-        this.expected = saved?.revision ?? null;
+        const named = this.pointer.get();
+        const saved = await this.repository.load(named);
+        // A tab that started a new initiative and has not typed yet names a draft that is not
+        // stored. It stays on that blank draft across a reload, and never falls back to another one.
+        const blank = named && !saved ? { ...newDraft(), id: named } : null;
         this.writable = true;
-        this.publish({
-          draft: saved ?? this.snapshot.draft,
-          storage: this.dirty ? "saving" : saved ? "saved" : "none",
-          error: null,
-          ready: true,
-        });
-        if (this.dirty) this.startWrite();
+        if (!this.listening && this.channel) {
+          this.listening = true;
+          this.channel.listen((message) => void this.heard(message));
+        }
+        // Words typed before storage answered are a draft of their own. The stored one stays in the list.
+        if (this.dirty) {
+          this.publish({ storage: "saving", error: null, ready: true });
+          this.startWrite();
+        } else {
+          this.expected = saved ? draftPin(saved) : null;
+          if (saved) this.pointer.set(saved.id);
+          this.publish({ draft: saved ?? blank ?? this.snapshot.draft, storage: saved ? "saved" : "none", error: null, ready: true });
+        }
+        await this.refreshList();
       } catch {
         this.publish({
           storage: "memory",
@@ -66,10 +100,7 @@ export class DraftController {
     const next = DeviceDraftSchema.parse(update(this.snapshot.draft));
     if (next.revision <= this.snapshot.draft.revision) throw new Error("Draft changes need a new revision");
     this.dirty = true;
-    this.publish({
-      draft: next,
-      storage: this.writable ? "saving" : this.snapshot.storage === "conflict" ? "conflict" : "memory",
-    });
+    this.publish({ draft: next, storage: this.writable ? "saving" : "memory" });
     if (this.writable) this.startWrite();
     return next;
   }
@@ -80,19 +111,23 @@ export class DraftController {
         const draft = this.snapshot.draft;
         try {
           await this.repository.save(draft, this.expected);
-          this.expected = draft.revision;
-          if (this.snapshot.draft.revision === draft.revision) {
-            this.dirty = false;
-            this.publish({ storage: "saved", error: null });
+          // Only the draft the tab is still on moves the tab's own bookkeeping.
+          const here = this.snapshot.draft.id === draft.id;
+          if (here) {
+            this.expected = draftPin(draft);
+            this.pointer.set(draft.id);
           }
-        } catch (error) {
-          const conflict = error instanceof DraftConflict;
-          if (conflict) this.writable = false;
+          this.channel?.post({ kind: "saved", id: draft.id });
+          const drafts = this.listed(draft.id, draft);
+          if (this.snapshot.draft === draft || !here) {
+            this.dirty = false;
+            this.publish({ storage: "saved", error: null, drafts });
+          } else this.publish({ drafts });
+        } catch {
           this.publish({
-            storage: conflict ? "conflict" : "memory",
-            error: conflict
-              ? error.message
-              : "The latest changes could not be stored. Keep this tab open, remove a large file or copy your draft text.",
+            storage: "memory",
+            error:
+              "The latest changes could not be stored. Keep this tab open, remove a large file or copy your draft text.",
           });
           break;
         }
@@ -101,11 +136,78 @@ export class DraftController {
       this.writing = undefined;
     });
   }
+  /**
+   * Another tab wrote or removed a draft. The list is read again. When it is this tab's draft and
+   * no edit here is waiting to be written, the tab shows the stored version; an edit that is
+   * waiting is the latest one, so it is written and wins.
+   */
+  private async heard(message: DraftMessage): Promise<void> {
+    await this.refreshList();
+    const before = this.snapshot.draft;
+    if (message.id !== before.id || this.dirty || this.writing || !this.writable) return;
+    try {
+      const stored = await this.repository.load(message.id);
+      if (this.snapshot.draft !== before || this.dirty) return;
+      if (!stored) {
+        // Removed in another tab: this tab starts clean, and the removed draft is in the backups.
+        if (this.expected === null) return;
+        this.expected = null;
+        this.pointer.set(null);
+        this.publish({ draft: newDraft(), storage: "none", error: null });
+        return;
+      }
+      if (this.expected && pinned(stored, this.expected)) return;
+      this.expected = draftPin(stored);
+      this.publish({ draft: stored, storage: "saved", error: null });
+    } catch {
+      /* The tab keeps what it shows; its next edit still writes. */
+    }
+  }
   backups() {
     return this.repository.backups?.() ?? Promise.resolve([]);
   }
+  /**
+   * Starts a new initiative in this tab. The draft the tab was on stays stored under its own ID,
+   * so nothing is backed up and nothing is asked. The new one is stored at its first edit.
+   */
+  async startNew(): Promise<DeviceDraft> {
+    await this.loaded();
+    await this.settled();
+    if (this.dirty) throw new Error(UNSTORED);
+    const draft = newDraft();
+    this.expected = null;
+    this.pointer.set(draft.id);
+    this.publish({ draft, storage: "none", error: null });
+    return draft;
+  }
+  /** Opens one of the device's stored drafts in this tab. Throws when it is no longer stored. */
+  async open(id: string): Promise<DeviceDraft> {
+    await this.loaded();
+    if (this.snapshot.draft.id === id) return this.snapshot.draft;
+    await this.settled();
+    if (this.dirty) throw new Error(UNSTORED);
+    const before = this.snapshot.draft;
+    const stored = await this.repository.load(id);
+    // Words that arrived while the other draft was being read belong to the draft on screen. The
+    // tab stays on it, so they are stored and shown where they were typed.
+    if (this.dirty || this.writing || this.snapshot.draft !== before) throw new Error(STILL_STORING);
+    if (!stored) {
+      await this.refreshList();
+      throw new Error("This draft is no longer on this device.");
+    }
+    this.expected = draftPin(stored);
+    this.pointer.set(stored.id);
+    this.publish({ draft: stored, storage: "saved", error: null, drafts: this.listed(stored.id, stored) });
+    return stored;
+  }
+  /**
+   * Opens `next` in this tab in place of whatever its ID holds on the device: a loaded account
+   * card or a restored backup. A stored version under the same ID is backed up first. A draft
+   * with another ID, the tab's own included, is not touched.
+   */
   async replace(next: DeviceDraft, signal?: AbortSignal): Promise<void> {
     signal?.throwIfAborted();
+    await this.loaded();
     const previous = this.snapshot.draft;
     await this.settled();
     signal?.throwIfAborted();
@@ -115,69 +217,100 @@ export class DraftController {
       );
     const validated = DeviceDraftSchema.parse({
       ...next,
-      revision: previous.revision + 1,
+      revision: Math.max(previous.revision, next.revision) + 1,
+      mark: crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
     });
     // The repository checks cancellation until its atomic commit. A completed commit is device work.
-    await this.repository.replace(validated, this.expected, signal);
-    // Another edit during the transaction remains visible and will conflict safely on its next write.
+    await this.repository.replace(validated, signal);
+    this.channel?.post({ kind: "saved", id: validated.id });
+    // Words typed during the transaction stay this tab's draft. They are the latest edit, so
+    // they are written next, and the version just stored is then kept as a backup.
     if (this.snapshot.draft !== previous) {
-      this.writable = false;
-      this.publish({
-        storage: "conflict",
-        error: "Your latest words are still in this tab. A device backup was kept before loading.",
-      });
-      throw new DraftConflict();
+      this.publish({ drafts: this.listed(validated.id, validated) });
+      this.dirty = true;
+      this.startWrite();
+      throw new Error("Your latest words are still in this tab, so nothing else was opened. Try again.");
     }
-    this.expected = validated.revision;
-    this.publish({ draft: validated, storage: "saved", error: null });
+    this.expected = draftPin(validated);
+    this.pointer.set(validated.id);
+    this.publish({ draft: validated, storage: "saved", error: null, drafts: this.listed(validated.id, validated) });
   }
-  /** Removes one backup for good. The current draft and every other backup stay. */
+  /** Removes one backup for good. Every draft and every other backup stay. */
   async deleteBackup(backup: DraftBackup): Promise<DeviceRemoval> {
     if (!this.repository.deleteBackup) throw new RemovalNotice("This device cannot remove backups. Nothing was removed.");
     return this.repository.deleteBackup(backup.key, draftPin(backup.draft));
   }
   /**
-   * Removes the current draft from this device after keeping it as a backup. Another tab's
-   * newer draft, or words typed meanwhile, stop it: they stay, and nothing is removed.
+   * Removes this tab's draft from the device after keeping it as a backup. A version another tab
+   * wrote meanwhile, or words typed meanwhile, stop it: they stay, and nothing is removed.
    */
   async discardCurrent(): Promise<DeviceRemoval & { backup: string }> {
+    await this.loaded();
     const previous = this.snapshot.draft;
     await this.settled();
-    if (!this.writable || this.dirty || this.snapshot.draft !== previous || this.expected === null || !this.repository.discardCurrent)
+    if (!this.writable || this.dirty || this.snapshot.draft !== previous || this.expected === null || !this.repository.discard)
       throw new RemovalNotice("The device draft changed or is not stored yet. Keep this tab open and try again. Nothing was removed.");
     // A save still waiting for its answer would otherwise bind whatever draft follows to its card.
     if (previous.account.pending)
       throw new RemovalNotice("A save to your account is not confirmed yet. Save again or wait for it to finish, then remove this draft. Nothing was removed.");
     let result: DeviceRemoval & { backup: string };
     try {
-      result = await this.repository.discardCurrent(draftPin(previous));
+      result = await this.repository.discard(draftPin(previous));
     } catch (error) {
-      if (error instanceof DraftConflict) {
-        this.writable = false;
-        this.publish({ storage: "conflict", error: error.message });
-      }
+      // Another tab's version is what the device holds now, so this tab shows it.
+      if (error instanceof DraftChanged) await this.heard({ kind: "saved", id: previous.id });
       throw error;
     }
+    this.channel?.post({ kind: "removed", id: previous.id });
     if (this.snapshot.draft !== previous) {
-      // Words typed during the removal stay in this tab; they are not written over the removal.
-      const notice = "Your latest words are still in this tab. The removed draft was kept as a device backup.";
-      this.writable = false;
-      this.publish({ storage: "conflict", error: notice });
-      throw new RemovalNotice(notice);
+      // Words typed during the removal are the latest edit: they are written again as this draft.
+      if (this.expected && pinned(previous, this.expected)) this.expected = null;
+      this.publish({ drafts: this.listed(previous.id, null) });
+      this.dirty = true;
+      this.startWrite();
+      throw new RemovalNotice("Your latest words are still in this tab and stay on this device. The earlier version was kept as a device backup.");
     }
     this.expected = null;
-    this.publish({ draft: newDraft(), storage: "none", error: null });
+    this.pointer.set(null);
+    this.publish({ draft: newDraft(), storage: "none", error: null, drafts: this.listed(previous.id, null) });
     return result;
+  }
+  /**
+   * Changes one of the device's drafts by its ID, whether or not this tab is on it: a save's
+   * receipt for a draft the person has since left, or a saved card removed from the account.
+   * `update` returns null to leave the draft as it is. False when it is gone or left alone.
+   */
+  async amend(id: string, update: (draft: DeviceDraft) => DeviceDraft | null): Promise<boolean> {
+    await this.loaded();
+    if (this.snapshot.draft.id === id) {
+      const next = update(this.snapshot.draft);
+      if (!next) return false;
+      this.change(() => next);
+      await this.settled();
+      return true;
+    }
+    const stored = await this.repository.load(id);
+    const next = stored && update(stored);
+    if (!stored || !next) return false;
+    const validated = DeviceDraftSchema.parse(next);
+    await this.repository.save(validated, draftPin(stored));
+    this.channel?.post({ kind: "saved", id });
+    this.publish({ drafts: this.listed(id, validated) });
+    return true;
   }
   async settled(): Promise<void> {
     await this.writing;
+  }
+  /** The first read of device storage has answered, so the tab knows which draft it is on. */
+  private async loaded(): Promise<void> {
+    await this.loading;
   }
   retry(): void {
     if (this.writable) {
       this.publish({ storage: "saving", error: null });
       this.startWrite();
-    } else if (this.snapshot.storage !== "conflict") {
+    } else {
       this.loading = undefined;
       void this.initialize();
     }

@@ -17,7 +17,6 @@ import { publicFacts } from "./words.ts";
 const TITLES: Record<ShareIntent, string> = { share: "Share for matching", publish: "Publish on Certified" };
 const CARD_STEPS: Partial<Record<RouteName, string>> = {
   initiative: "Describe your initiative",
-  "check-card": "Check your card",
   needs: "Add needs and offers",
 };
 

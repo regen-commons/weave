@@ -1,4 +1,5 @@
 import {
+  ASK_DESCRIPTION_LIMIT,
   ASK_LIMIT,
   EMPTY_ASK,
   type AskChunk,
@@ -117,8 +118,9 @@ export function keywordExtraction(chunks: AskChunk[], kind: AskKind): AskExtract
       sourceKey: chunk.key,
       value: {
         ...EMPTY_ASK,
-        title: text.slice(0, 140),
-        description: text.slice(0, 600),
+        // A card's title starts with a capital, as a label does. The rest is the person's words.
+        title: text.slice(0, 140).replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase()),
+        description: text.slice(0, ASK_DESCRIPTION_LIMIT),
         capitalForms,
         placeScope: /\b(anywhere|online|remote|em qualquer lugar)\b/iu.test(text)
           ? ("anywhere" as const)

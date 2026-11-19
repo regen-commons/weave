@@ -16,10 +16,7 @@ import { ThemeSwitch } from "./ThemeSwitch.tsx";
 /** Short enough to sit beside the logo on a phone. The card's own page says the rest. */
 const STATUS_TEXT: Record<Exclude<SaveStatus, "none">, string> = {
   account: "Saved",
-  device: "On this device",
-  saving: "Saving",
   memory: "Not saved",
-  conflict: "Changed elsewhere",
 };
 export function AppHeader({
   pathname,

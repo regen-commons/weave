@@ -8,32 +8,47 @@
  "flows": [
   {
    "id": "describe-form",
-   "behavior": "Describe through the four fields, with refusals that store nothing",
+   "behavior": "Describe through the four fields on one page, with one Continue and refusals that store nothing",
    "evidence": [
     {
-     "file": "packages/app/test/describe.test.ts",
-     "test": "describe opens on the four fields, and on the conversation only when chosen or already used",
+     "file": "packages/app/test/fill.test.ts",
+     "test": "typing alone makes a card: the four fields, one Continue, and plain words when something is missing",
      "class": "module"
     },
     {
-     "file": "packages/app/test/describe.test.ts",
-     "test": "Continue refuses a missing name, too many places and unsafe links in plain words, and stores nothing",
+     "file": "packages/app/test/fill.test.ts",
+     "test": "tapped details are kept, a second tap lets go, one stage replaces another, and none is needed to continue",
      "class": "module"
     },
     {
-     "file": "packages/app/test/check-card.test.ts",
-     "test": "Keep card confirms the four fields as they read and every pencil detail in one tap",
+     "file": "packages/app/test/fill.test.ts",
+     "test": "a saved card with several links and 800 characters stays readable and saveable through the one-link field",
      "class": "module"
     }
    ]
   },
   {
    "id": "describe-conversation",
-   "behavior": "Describe through a typed conversation without inventing facts",
+   "behavior": "Describe by saying or typing a few sentences that fill the fields in place, without inventing facts",
    "evidence": [
     {
-     "file": "packages/app/test/describe.test.ts",
-     "test": "Talk it through keeps what was typed, lets the conversation fill blank fields, and a build clears the raw field text",
+     "file": "packages/app/test/fill.test.ts",
+     "test": "a fill puts the words into the four fields in place, marks each one, and suggests details in pencil",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/fill.test.ts",
+     "test": "a fill never writes over a field the person typed or changed, and refills only what it filled before",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/fill.test.ts",
+     "test": "structuring stays on the device: keyword rules first, an engine may improve them, and a failure keeps the keyword card",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/fill.test.ts",
+     "test": "a draft from the earlier guided conversation opens in the box with every answer, and loses none",
      "class": "module"
     },
     {
@@ -43,9 +58,8 @@
     },
     {
      "file": "packages/app/test/describe.test.ts",
-     "test": "the typed conversation proposes a stated place by the same rule, and its Where answer wins",
-     "class": "module",
-     "landsWith": "claude/fix-pdf-structured-place"
+     "test": "words in the box propose a stated place by the same rule, and nothing is on the card before a fill",
+     "class": "module"
     }
    ]
   },
@@ -88,8 +102,8 @@
    "behavior": "Source fields survive correction, Keep, removed suggestions and reload",
    "evidence": [
     {
-     "file": "packages/app/test/check-card.test.ts",
-     "test": "a removed detail stays removed through Keep card, and a corrected one keeps the correction",
+     "file": "packages/app/test/describe.test.ts",
+     "test": "a Where read from the person's words stays in pencil until they change it",
      "class": "module"
     },
     {
@@ -288,12 +302,12 @@
     },
     {
      "file": "packages/app/test/account.test.ts",
-     "test": "failed backup and a competing tab preserve the visible draft",
+     "test": "a failed backup keeps the visible draft, and another tab's version of a card is backed up before a load replaces it",
      "class": "module"
     },
     {
      "file": "packages/app/test/describe.test.ts",
-     "test": "device writes serialize newer input and reject a second tab's stale revision",
+     "test": "device writes serialize newer input, and a second tab's new initiative is a draft of its own",
      "class": "module"
     }
    ]
@@ -491,6 +505,150 @@
      "test": "a snapshot with no usable research date says so instead of inventing one",
      "class": "module",
      "landsWith": "codex/fix-catalog-snapshot-date"
+    }
+   ]
+  },
+  {
+   "id": "several-drafts",
+   "behavior": "A browser keeps several initiatives, and an earlier single draft moves to the new storage with nothing lost",
+   "evidence": [
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "the single draft of an earlier version moves to its own ID in the upgrade, with its files and backups, and opens as before",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "an upgrade that fails to commit leaves the earlier database exactly as it was",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "a draft the upgrade cannot read stays where it was, and a first visit gets empty stores",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "a browser holds several drafts: starting an initiative never replaces one, and each tab stays on its own",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "words that could not be stored are never left behind by starting or opening another draft",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "Start An Initiative pressed before storage has answered still starts a new one",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "a new initiative survives a reload before its first word, and never falls back to another draft",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "words that arrive while another draft is opening stay with the draft on screen, stored or reported",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "a stored draft the tab is not on can be changed by its ID, and one that is gone or declined is left alone",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "two-tabs",
+   "behavior": "Two tabs on one initiative stay in step, the latest edit wins, and the replaced version is kept as a backup with no warning",
+   "evidence": [
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "two tabs on one draft stay in step: an idle tab shows the other's edit, with no warning and no backup",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "two tabs editing at once: the latest edit wins and the replaced version is kept quietly as a backup",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "a tab that missed every message still cannot lose the other tab's words, and replaced versions are capped",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "the real adapter keeps at most three replaced versions and never writes over a draft it cannot read",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/drafts.test.ts",
+     "test": "removing a draft in one tab clears it from the other tab's screen and list, and keeps it as a backup",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "four-needs-and-offers",
+   "behavior": "Four needs and four offers can be added, and a list saved with five stays readable and saveable",
+   "evidence": [
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "a list stored with five stays readable and saveable, and takes no fifth again once one is removed",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "a description written now is held to 200 characters, and an earlier longer one stays as it is",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/intake.test.ts",
+     "test": "words whose reading failed go back into the box, and the list is as it was",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/src/account.test.ts",
+     "test": "a card saved under the earlier limits stays saveable: five needs, five offers, six links and long answers",
+     "class": "module"
+    }
+   ]
+  },
+  {
+   "id": "one-list",
+   "behavior": "Your Initiatives is one list that never calls a saved card unsaved, opens a newer account version, and keeps saves and deletions attached to the right draft",
+   "evidence": [
+    {
+     "file": "packages/app/test/initiative-list.test.ts",
+     "test": "a draft and the card it was saved as are one entry, a workspace card is never listed alone, and two copies never double it",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/initiative-list.test.ts",
+     "test": "the entry says where a draft stands against its saved card, and never calls a saved one unsaved",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/initiative-list.test.ts",
+     "test": "a project a draft already stands for is that draft: by this account's choice, or by suggestions read from its page",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/delete-card.test.ts",
+     "test": "a save answered after the person opened another initiative is bound to the draft that asked, and to no other",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/delete-card.test.ts",
+     "test": "deleting a saved card releases every draft on this device that points at it, not only the tab's",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/fill.test.ts",
+     "test": "the one link field keeps its own slot: clearing it leaves it empty, and typing never changes a link kept from an earlier save",
+     "class": "module"
     }
    ]
   }

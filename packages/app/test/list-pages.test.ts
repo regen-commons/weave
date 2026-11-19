@@ -37,7 +37,7 @@ test("a list that is loading holds its layout with the bar and card skeletons, n
   for (const page of ["pages/Funding.tsx", "pages/ListPage.tsx", "partners/PublicProjects.tsx", "pages/Home.tsx"])
     assert.match(read(page), /<CardGridSkeleton\b/u, page);
   assert.match(read("ui/FilterBar.tsx"), /data-shape="control"/u);
-  for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx", "pages/CheckCard.tsx", "pages/YourInitiative.tsx"])
+  for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx", "pages/YourInitiative.tsx"])
     assert.match(read(page), /<DraftSkeleton \/>/u, page);
 });
 

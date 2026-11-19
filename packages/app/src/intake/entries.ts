@@ -1,4 +1,4 @@
-import { ASK_LIMIT, CapitalFormSchema, EMPTY_ASK, type AskItem, type AskStep } from "./contracts.ts";
+import { ASK_DESCRIPTION_LIMIT, ASK_LIMIT, ASK_LIMIT_HELP, CapitalFormSchema, EMPTY_ASK, type AskItem, type AskStep } from "./contracts.ts";
 import { suggestKinds } from "./keywords.ts";
 import { activeItems, changeStep, fingerprint } from "./state.ts";
 
@@ -11,7 +11,7 @@ type Kind = AskItem["value"]["capitalForms"][number];
 export function addEntry(step: AskStep, words: string): AskStep {
   const text = words.trim().replace(/\s+/gu, " ");
   if (!text) throw new Error("Write a few words first.");
-  if (activeItems(step).length >= ASK_LIMIT) throw new Error("Five is the limit. Remove one to add another.");
+  if (activeItems(step).length >= ASK_LIMIT) throw new Error(ASK_LIMIT_HELP);
   const print = fingerprint(text);
   if (activeItems(step).some((item) => item.fingerprint === print))
     throw new Error("That is already on your list.");
@@ -23,7 +23,7 @@ export function addEntry(step: AskStep, words: string): AskStep {
       ...EMPTY_ASK,
       // A long entry keeps its opening words as the title, cut between words; the rest stays in the description.
       title: text.length > 140 ? text.slice(0, 140).replace(/\s+\S*$/u, "") : text,
-      description: text.length > 140 ? text.slice(0, 600) : null,
+      description: text.length > 140 ? text.slice(0, ASK_DESCRIPTION_LIMIT) : null,
       capitalForms: suggestKinds(text),
     },
     decision: "pencil",

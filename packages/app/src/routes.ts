@@ -4,7 +4,6 @@ import { uuid } from "@weave/api/account-contract";
 export type RouteName =
   | "home"
   | "initiative"
-  | "check-card"
   | "needs"
   | "offers"
   | "your-initiative"
@@ -44,14 +43,13 @@ export const ROUTES: readonly Route[] = [
   {
     name: "initiative",
     path: "/start/initiative",
-    title: "Tell us about your initiative",
+    title: "Tell Us About Your Initiative",
     label: "Describe your initiative",
     form: true,
     parent: "home",
   },
-  { name: "check-card", path: "/start/initiative/check", title: "Check your card", form: true, parent: "initiative" },
-  { name: "needs", path: "/start/needs", title: "Needs and offers", form: true, parent: "check-card" },
-  { name: "offers", path: "/start/offers", title: "What you can offer", form: true, parent: "needs" },
+  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, parent: "initiative" },
+  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, parent: "needs" },
   {
     name: "your-initiative",
     path: "/your-initiative",
@@ -152,7 +150,10 @@ export function matchRoute(pathname: string): Route | undefined {
         ? "/funding"
         : path === "/start/finish"
           ? "/your-initiative"
-          : path;
+          : // The describe step is one page now (DL-110). The page that checked the card is gone.
+            path === "/start/initiative/check"
+            ? "/start/initiative"
+            : path;
   for (const route of ROUTES) {
     if (!route.path.includes(":id")) {
       if (route.path === alias) return route;
@@ -289,7 +290,7 @@ export function fixtureHref(href: string, search: string, enabled: boolean): str
   if (!enabled || !href.startsWith("/") || href.startsWith("//")) return href;
   const url = new URL(href, ROUTE_BASE);
   const source = new URLSearchParams(search);
-  for (const key of ["fixture", "state", "view", "intake", "certified", "projects", "speech"]) {
+  for (const key of ["fixture", "state", "view", "intake", "certified", "projects", "speech", "drafts"]) {
     const value = source.get(key);
     if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
   }

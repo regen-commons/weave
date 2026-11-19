@@ -131,83 +131,83 @@ export function speechSetupStore({
   };
 }
 
-/** What Voice input shows for where speech stands. */
-export interface VoiceControls {
-  /** Where the browser cannot recognize speech on the device, Voice input does not show at all. */
-  readonly shown: boolean;
-  /** Its one button: Speak, the offer to set up speech, or the setup under way. */
-  readonly action: "speak" | "set-up" | "setting-up" | null;
-  /** What the button says when it is not Speak. */
+/** What Talk it out shows in its button's place and in the one line under it (DL-110). */
+export interface TalkControls {
+  /** The one button, or null where a plain line or nothing stands in its place. */
+  readonly action: "talk" | "stop" | "set-up" | "setting-up" | null;
   readonly label: string;
-  /** One plain sentence under the button, or nothing. */
+  /** One plain sentence in the reserved line under the button. Empty when there is nothing to say. */
   readonly note: string;
+  /** Another language may work, so the language choice is offered. */
+  readonly language: boolean;
 }
-const SET_UP = "Set up speech on this device";
-const SETTING_UP = "Setting up speech";
-const HIDDEN: VoiceControls = { shown: false, action: null, label: "", note: "" };
+/** Said in one plain line where the browser has no speech on the device. The typed path is the same box. */
+export const NO_SPEECH = "Talking needs speech on this device, and this browser does not offer it. You can type instead.";
 
 /**
- * The words and the one button for each state. The setup keeps one button in one place, so the
- * focus stays on it from Set up to Speak. `setUpHere` is true on the page that asked for the
- * setup, which alone says that speech is ready. While the browser answers for a newly chosen
- * language (`asking`), only the language choice shows, in the place the last answer gave it.
+ * The button and the line for each state of speech. The button keeps its place from Set up to
+ * Talk it out to Stop, so pressing it never moves the page. Where the browser has no speech on
+ * the device (Brave, Safari, Chrome on Android: DL-076), a plain line says so in the button's
+ * place; the option is never hidden without a word.
  */
-export function voiceControls(
+export function talkControls(
   state: SpeechSetupState,
   {
     listening = false,
     setUpHere = false,
     asking = false,
-  }: { listening?: boolean; setUpHere?: boolean; asking?: boolean } = {},
-): VoiceControls {
+    secondary = false,
+  }: {
+    listening?: boolean;
+    setUpHere?: boolean;
+    asking?: boolean;
+    /**
+     * A second Talk it out on the same page. The first offers the speech setup and says the one
+     * line about a browser without speech, so this one shows nothing until talking works.
+     */
+    secondary?: boolean;
+  } = {},
+): TalkControls {
   if (listening)
-    return { shown: true, action: "speak", label: "", note: "Listening on this device. Audio is not sent to a server." };
-  if (asking) return { ...HIDDEN, shown: voiceControls(state).shown };
+    return { action: "stop", label: "Stop", note: "Listening on this device. Audio is not sent to a server.", language: false };
+  if (secondary && (asking || state !== "ready")) return { action: null, label: "", note: "", language: false };
+  if (asking) return { action: null, label: "", note: "Checking speech for this language.", language: true };
   switch (state) {
     case "checking":
+      return { action: null, label: "", note: "", language: false };
     case "none":
-      return HIDDEN;
+      return { action: null, label: "", note: NO_SPEECH, language: false };
     case "language":
       return {
-        shown: true,
         action: null,
         label: "",
-        note: "Local speech is not available for this language. You can type below.",
+        note: "Speech on this device does not cover this language. Choose another, or type instead.",
+        language: true,
       };
     case "offer":
       return {
-        shown: true,
         action: "set-up",
-        label: SET_UP,
+        label: "Set Up Speech On This Device",
         note: "Your browser may download speech files for this language first. Audio stays on this device.",
+        language: true,
       };
     case "installing":
-      return {
-        shown: true,
-        action: "setting-up",
-        label: SETTING_UP,
-        note: "Setting up speech on this device. You can type while you wait.",
-      };
+      return { action: "setting-up", label: "Setting Up Speech", note: "Setting up speech on this device. You can type while you wait.", language: false };
     case "slow":
       return {
-        shown: true,
         action: "setting-up",
-        label: SETTING_UP,
-        note: "Still setting up. Your browser does not say how long it takes; you can type in the meantime.",
+        label: "Setting Up Speech",
+        note: "Still setting up. Your browser does not say how long it takes. You can type in the meantime.",
+        language: false,
       };
     case "failed":
       return {
-        shown: true,
         action: "set-up",
-        label: SET_UP,
-        note: "Your browser could not set up speech on this device. You can type below or try again.",
+        label: "Set Up Speech On This Device",
+        note: "Your browser could not set up speech on this device. You can type instead, or try again.",
+        language: true,
       };
     case "ready":
-      return {
-        shown: true,
-        action: "speak",
-        label: "",
-        note: setUpHere ? "Speech is ready. Audio stays on this device." : "",
-      };
+      return { action: "talk", label: "Talk It Out", note: setUpHere ? "Speech is ready. Audio stays on this device." : "", language: true };
   }
 }

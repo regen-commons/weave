@@ -1,11 +1,17 @@
 import { useEffect, useMemo, type ReactNode } from "react";
 import type { FixtureContext } from "../fixtures.ts";
-import { describeFixture, intakeFixture } from "../fixtures.ts";
+import { describeFixture, intakeFixture, otherDraftFixtures } from "../fixtures.ts";
 import { confirmDraft } from "./contracts.ts";
 import { DraftController } from "./controller.ts";
 import { MemoryDraftRepository } from "./repository.ts";
 import { IndexedDraftRepository } from "./indexed-repository.ts";
-const device = new DraftController(new IndexedDraftRepository());
+import { broadcastChannel, sessionPointer } from "./tabs.ts";
+// One controller for the tab. Its pointer keeps the tab on its draft across a reload, and the
+// channel tells the browser's other tabs about each write (DL-112).
+const device = new DraftController(new IndexedDraftRepository(), {
+  pointer: sessionPointer(() => (typeof window === "undefined" ? undefined : window.sessionStorage)),
+  channel: broadcastChannel(),
+});
 import { DraftContext } from "./draft-context.ts";
 import { routePath } from "../router.tsx";
 export function DraftProvider({ fixture, children }: { fixture?: FixtureContext; children: ReactNode }) {
@@ -22,11 +28,13 @@ export function DraftProvider({ fixture, children }: { fixture?: FixtureContext;
               : fixture.scenario === "visitor" || fixture.scenario === "returning"
                 ? describeFixture("fresh")
                 : intakeFixture("kept", path),
+        fixture.drafts === "several" ? otherDraftFixtures() : [],
       );
       return new DraftController(
         fixture.describe === "storage-error" || fixture.intake === "storage-error"
           ? {
-              load: () => memory.load(),
+              load: (id) => memory.load(id),
+              list: () => memory.list(),
               save: async () => {
                 throw new Error("Example storage failure");
               },
@@ -35,7 +43,7 @@ export function DraftProvider({ fixture, children }: { fixture?: FixtureContext;
       );
     }
     return device;
-  }, [fixture?.describe, fixture?.intake, fixture?.scenario, !!fixture]);
+  }, [fixture?.describe, fixture?.intake, fixture?.scenario, fixture?.drafts, !!fixture]);
   useEffect(() => {
     void controller.initialize();
   }, [controller]);
@@ -43,7 +51,7 @@ export function DraftProvider({ fixture, children }: { fixture?: FixtureContext;
     if (!!fixture) return;
     const warn = (event: BeforeUnloadEvent) => {
       const current = controller.getSnapshot();
-      if (["saving", "memory", "conflict"].includes(current.storage) && current.draft.revision > 0)
+      if (["saving", "memory"].includes(current.storage) && current.draft.revision > 0)
         event.preventDefault();
     };
     window.addEventListener("beforeunload", warn);

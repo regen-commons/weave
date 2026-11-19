@@ -204,7 +204,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
               title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe your initiative",
               note: "Four short fields.",
             },
-            { title: "Add what you need and can offer", note: "Up to five of each." },
+            { title: "Add what you need and can offer", note: "Up to four of each." },
             {
               // The maker's wording, chosen over "fit", which the results pages keep (DL-063).
               title: "See funding and partners that align",

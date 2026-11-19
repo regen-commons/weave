@@ -101,7 +101,7 @@ export function PartnerDiscovery({ mode, search = "", onSearch }: {
         save={!preview && (
           <button className="rc-button" data-variant={label === "Save" ? "secondary" : "quiet"} data-size="sm"
             type="button" aria-label={`${label}: ${evidence.project}`}
-            disabled={!ready || storage === "saving" || storage === "conflict"}
+            disabled={!ready || storage === "saving"}
             onClick={() => void toggleLead(evidence.id)}>{label}</button>
         )} />
     );

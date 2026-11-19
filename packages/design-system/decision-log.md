@@ -96,9 +96,13 @@ The entries below place the maker's two [prototype reviews](../../docs/platform/
 
 **Status:** locked (maker, 4 November 2026). Review row 13. One short question at a time; a large Speak button first when available, typing below, and files or links available throughout. Words remain editable and the card fills in beside the conversation. Build my card reads the gathered input on the device, then opens the check step with derived details in pencil. Keyword and manual paths work without a downloaded model. Replaces the version 3 form and live preview. See [PRD 6.1 and 6.2](../../docs/platform/04-prd.md#61-principles) and the implemented [Describe and review contracts](COMPONENTS.md#describe-and-review-contracts). The fixed-script versus model-chosen question policy remains D36; Step 3 uses labelled guided questions.
 
+**Amended by DL-110, 18 November 2026.** Describing is one page: a person says or types a few sentences and the four fields fill in place. The guided conversation of one question at a time and the separate check step are gone.
+
 ## DL-023: Needs and offers carry every applicable kind, five of each at most
 
-**Status:** locked (maker, 4 November 2026). Review rows 14 and 15. Need and offer cards appear beside the conversation with Keep, Change and Remove, a counter and a maximum of five of each. If extraction hears more, show the first five and say so. Every applicable kind is shown alike and selectable; there is no primary kind. See [PRD 6.2 and R3](../../docs/platform/04-prd.md#62-the-three-step-conversation). Step 4 implements [Ask card and Ask list guidance](COMPONENTS.md#needs-offers-and-finish-contracts), the conversation and Finish composition, and aligns the technical contracts to five active cards and all eight kinds. Kept corrections and removals survive rebuilding; unknown kinds need correction before Keep.
+**Status:** locked (maker, 4 November 2026). Review rows 14 and 15. Need and offer cards appear beside the conversation with Keep, Change and Remove, a counter and a maximum of five of each. If extraction hears more, show the first five and say so. Every applicable kind is shown alike and selectable; there is no primary kind. See [PRD 6.2 and R3](../../docs/platform/04-prd.md#62-the-three-steps). Step 4 implements [Ask card and Ask list guidance](COMPONENTS.md#needs-offers-and-finish-contracts), the conversation and Finish composition, and aligns the technical contracts to five active cards and all eight kinds. Kept corrections and removals survive rebuilding; unknown kinds need correction before Keep.
+
+**Amended by DL-111, 18 November 2026.** Four of each can be added. A list saved with five stays readable and saveable.
 
 ## DL-024: One filter bar and separate list pages
 
@@ -151,6 +155,8 @@ remain proposed.
 
 **Status:** maker's call, 10 November 2026, applying the agreed first-release architecture to the interface; the council items it touches stay open. It replaces four parts of DL-031: saving on the way back from sign-in, the one status line, the audience ladder and the hand-off to a Certified page for publishing. Signing in with Certified only identifies the person. Save is its own tap and says where the initiative goes: private saves, or the team workspace of a linked group project once that workspace is open. A Certified project is linked or created as its own step, and linking brings the name, place, description and links from Certified. Sharing needs and offers for matching and publishing them on Certified are separate actions in Weave, each with a review of the exact entries, fields and audience before anything leaves. The entries open ticked and any can be unticked, and a first publish starts from what is already shared. Withdrawing a listing is asked for and confirmed later, and its row says so until Certified confirms. Your initiative carries one row per action. The optional email stays, as a closed disclosure in the live account section. Describe is one screen with one Continue, and needs and offers are one page with two lists. Home has two doors: start an initiative, or open a saved one. Partner suggestions start with a linked project, come as direct fits and possible fits, and offer no introductions; searching what other teams shared also needs one shared need or offer. When a finished step removes the control that held the focus, the line that states the outcome takes it, else the page heading. The Certified side stays a labelled development example until its service contracts exist. No new classes: the one page reuses Card grid, Ask list and Ask card.
 
+**Amended by DL-110 and DL-112, 18 November 2026.** Describe keeps its one Continue, and the Check your card page it could lead to is gone. A person can keep several initiatives in one browser, and Your Initiatives lists them with their saved ones in one list. Sign-in, Save, Share and Publish stay separate taps.
+
 ## DL-033: One footer on every page, with title case links
 
 **Status:** maker's call, 10 November 2026, from the maker's second design review; the council items it touches stay open. Every page carries the same footer: three short lists named Weave, Data & Privacy and Regen Commons. The slim row that focused steps used is gone, because a footer that changes between pages reads as a different place; a page only leaves out the link to itself. Data & Privacy replaces Your data and holds What We Store, What the Assistant Did, Data Policy and Settings; Data Policy moved there from the Regen Commons list. Regen Commons lists the website, membership, the YouTube channel and the forum space on the Regen Coordination hub. Who runs the YouTube channel is still to be confirmed, because the website does not link to it yet. Footer labels use title case: the one exception to sentence case in VOICE.md, for footer links only. In development the example world's one label sits under the links (DL-039). Removed: the slim variant and the footer row part.
@@ -174,6 +180,8 @@ remain proposed.
 ## DL-038: Voice leads where the device can transcribe
 
 **Status:** maker's call, 10 November 2026, from the maker's second design review; the council items it touches stay open. Speaking is the easiest way to say what an initiative is, needs and can offer. Where the device can transcribe speech, Voice input sits above the four fields of a new initiative and takes the primary until something is typed, and it leads each of the needs and offers lists until the list is full. Speaking opens the conversation already listening. Otherwise the typed path stays first and Talk it through instead opens the conversation. The stepper keeps its three steps on one row on a phone. What Certified is has one explanation, a short disclosure with a link to Certified's own page, wherever sign-in is offered: the sign-in task, Your initiatives and Settings. Settings gains Install Weave on your phone, with steps for iPhone or iPad and Android, and says that an installed app on an iPhone or iPad starts empty. No new classes.
+
+**Amended by DL-110, 18 November 2026.** Voice still leads, as Talk It Out at the top of the one describe page and of each list. Speaking no longer opens a conversation: the words appear in a box on the same page. Where the browser has no speech on the device, one plain line says so.
 
 ## DL-039: One label for the example world, no funders among initiatives, four types of work
 
@@ -245,6 +253,8 @@ remain proposed.
 
 **Status:** maker's call, 11 November 2026. The card on a device belongs to the account that saved it, or is saving it, and a card nobody has saved belongs to the account that opened it from its Certified project in this browser session. Any other card belongs to whoever uses the device. When a different account signs in, the card is set aside: it stays on the device, untouched, and leaves that account's lists, Home's resume, the header's save status, partner suggestions and funding fit. Your initiatives ends with one quiet line saying a card from another account is on this device and opens again when that account signs in. The card's own pages and steps show a doorway instead, with Start a new initiative, which keeps a device backup of the other card. A card is never copied into another account. A card nobody owns that matches one of the person's projects still asks before linking, as the duplicate prompt always has; for the account it belongs to, a card linked to a project stands for that project, so the project is listed once.
 
+**Amended by DL-112, 18 November 2026.** A browser can hold several drafts. Each one follows this rule on its own, and Start A New Initiative from the doorway makes a draft beside the other account's card, with no backup needed.
+
 ## DL-056: Dialogs keep clear of the window
 
 **Status:** maker's call, 11 November 2026, from the maker's review of every dialog. A long dialog reached the window's top and bottom edges in a narrow column. On a wide screen a dialog now keeps room above and below it, 8 percent of the window's height from 24 to 80 px, and grows no taller than `--dialog-height` (720 px); longer content scrolls under its title row, which stays in place. Information and tasks read at `--prose-width` (576 px) instead of the form width, so long text runs wider and shorter, and a record keeps `--list-width` (DL-035). `--dialog-padding` (32 px) surrounds the content on wide screens; phones keep the bottom sheet as it was. A button in a dialog keeps its own width, as it does in an action bar, so a lone action no longer stretches across. Fieldsets lose the browser's frame everywhere and a legend reads as a field label, which removes the boxed list from Share for matching. The cloud consent example moves to the shared task dialog, so it has the title row and Close and a press outside no longer dismisses a decision, and the account door no longer repeats its own title as a heading. New tokens: `--dialog-height`, `--dialog-padding`.
@@ -260,6 +270,8 @@ remain proposed.
 ## DL-059: Settings sits in the header, and the save status shows only where the card is worked on
 
 **Status:** maker's call, 12 November 2026, from a round of feedback settled by questions. Settings works signed out, but its only doors were a button at the end of Your initiatives when signed in and a footer link, so a signed-out person on the You tab found nothing to set. The header also said how the card was saved (Saved, On this device) on every page once a card existed, beside lists where nothing was being edited, and the maker could not tell what it meant there. The header's far end now holds a gear that opens Settings from every page, signed in or out, after Sign in while signed out. It is the Icon button used as a link, named Settings for assistive technology, and it marks its own page. A gear is one of the few icons people read without a word, the one case the Icon rule allows. The save status shows only on the pages where the card is worked on: the describe steps, Check your card, needs and offers, and Your initiative. Everywhere else the header says nothing about saving; Home's hero line and the card's own page still do. A team workspace and another account's card stay silent, as before (DL-047, DL-055). The alternatives were the gear with no status anywhere, and both on every page, which puts three things beside the logo on a phone. From Krug: what people use often stays close at hand, and the rest sits a tap away on an obvious path. From Dirksen: a sign that never changes stops being seen. Two icons join the sprite, `settings` and `filter`. No tokens changed.
+
+**Amended by DL-112, 18 November 2026.** The header no longer says On this device, Saving or Changed elsewhere. It says Saved when the account holds the card, and Not saved when this browser could not store the latest changes.
 
 ## DL-060: A phone sheet stops at two thirds of the window
 
@@ -328,6 +340,8 @@ remain proposed.
 ## DL-076: Voice input sets up the browser's own speech
 
 **Status:** proposed, 15 November 2026, from the go-live work, after the user decided that day that audio stays on the device. Where the browser can recognize a language on the device but has not set it up for Weave, Voice input offers Set up speech on this device in Speak's place. The tap asks the browser to install its own speech pack ([Browser speech packs](../../docs/platform/open-decisions.md#browser-speech-packs-15-november-2026)); Weave downloads nothing, and no audio leaves the device. One button stays in place from Set up, through Setting up speech, which is busy and keeps the focus, to Speak, so a keyboard user never loses their place. Setup is always secondary: Continue keeps the primary until Speak works, and Talk it through instead stays. The browser reports no progress, so the words say setup is under way, say it again after two minutes, and say plainly when it failed, with the same button to try again. The needs and offers page offers setup once, in the list the route opened unless that list is full. A language without speech keeps its language choice where it was picked, so another can be chosen. Where the browser has no speech on the device, as in Brave 156, Voice input does not show at all. No new classes.
+
+**Amended by DL-110, 18 November 2026.** The setup keeps one button in place, now from Set Up Speech On This Device to Talk It Out to Stop. Where the browser has no speech on the device, the page says so in one line where the button would be, and no longer shows nothing.
 
 ## DL-077: A large desktop gets a wider page and four cards across
 
@@ -462,3 +476,53 @@ This is the phone's own keyboard only. With a keyboard on the desk Enter sends t
 **Status:** user decision from manual QA on phones, 18 November 2026. The app's script is a module, which runs after the page is first drawn. A person who pinned Dark on a phone set to light saw a light page for a moment on every cold start, and the reverse. The usual cure is a few lines of script written into the page itself, and the policy forbids exactly that: `script-src 'self'` lets the page run files from the site and nothing inline. Allowing an inline script means adding its hash to the policy, which must then be kept in step with every change to those lines, or `unsafe-inline`, which gives up the protection altogether.
 
 Neither was needed. The same few lines are a file of the site's own, `theme-boot.js`, loaded in the head before anything is drawn. It reads the pinned theme from where the app stores it and sets the page's theme, its colour scheme and which bar colour applies. The policy is what it was, and a test holds it there: no inline script, no hash, no exception. The cost is one small request before the first paint, which the installed app answers from its own cache. A test runs the file against a stand-in page and holds it to the module that owns the theme, so the two cannot drift.
+
+## DL-110: Describing is one page, and talking fills it in place
+
+**Status:** user decision from manual QA, 18 November 2026. Amends DL-022, DL-032, DL-038 and DL-076. The numbers DL-098 to DL-109 are left to the manual QA branch, which was writing its own entries at the same time.
+
+The start flow had too many steps. The voice option was a second way in that opened a conversation of one question at a time, built a card and sent the person to a page called Check your card. In Brave, Safari and Chrome on Android, where the browser has no speech on the device, the option simply was not there, and nothing said why.
+
+Describe is now one page. Talk It Out sits at the top. Pressed, the button becomes Stop in place, and the words appear in a box whose rows are always there. On Stop the four fields under it (Name, Where you work, About it, Website or main link) fill in place. A field Weave filled is in pencil, dashed and marked "From what you said.", until the person changes it. A fill never writes over a field the person typed or changed, and it only proposes a link the person gave. A person who cannot or will not speak types a few sentences in the same box and presses Fill In The Fields, which does the same thing.
+
+Stage, type of work, themes, who it serves and languages are suggested details: optional chips under the fields, dashed until tapped. A tapped chip is kept. One left in pencil is not on the card, and none is needed to continue. One Continue goes on to needs and offers. The guided conversation and the Check your card page are gone, and a link to the old check page opens the describe page. A draft from the earlier conversation shows its answers in the box, so nothing it held is lost.
+
+Structuring stays on the device (D32): the keyword rules always run, and the browser's built-in model improves on them where it is already there. No call leaves the device. Consented cloud structuring (D35) is a later change, and `describe/structure.ts` takes a list of engines so it can be added as one more without changing the page.
+
+Where the browser has no speech on the device, the page says so in one plain line where the button would be: "Talking needs speech on this device, and this browser does not offer it. You can type instead." Where two lists share a page, the first says it and the second stays quiet.
+
+## DL-111: Four needs and four offers, short answers, one link
+
+**Status:** user decision from manual QA, 18 November 2026. Amends DL-023 and R3.
+
+There were too many fields and the answers ran long. A list of five needs and five offers, each with a description of up to 600 characters, an About it of up to 800 and a box for six links asked more than a first visit should.
+
+A person can add four needs and four offers. About it takes up to 400 characters and a need or offer's description up to 200, with a count that appears near the limit. One field, Website or main link, replaces the box of six lines. The disclosure "Longer answers, files and links" and every 20,000-character answer box are gone.
+
+Nothing saved earlier is cut. A list saved with five stays readable and saveable, but a fifth cannot be added, and a list of five that loses one is then full at four. A card saved with several links keeps them all: the field shows the first and says how many more are kept. The field has its own slot, so clearing it leaves it empty and never pulls a kept link in to be changed by the next keystroke. An About it or a description longer than the new limit stays as it is until the person changes it. The server keeps its earlier limits for the same reason, so it accepts five, six links, 800 and 600 characters. It cannot tell an old list of five from a new one, so the limit of four is held where a card is added, in the app.
+
+## DL-112: Several initiatives in one browser, and the latest edit wins
+
+**Status:** user decision from manual QA, 18 November 2026. Amends DL-055 and DL-059, R1, R37 and R41.
+
+The single draft and its vocabulary confused people. The header said "On this device". Your Initiatives had an "On this device" section and a "Saved in Weave" section. Starting an initiative asked to back up the one already there. Two tabs on the same draft stopped the second with "Your latest changes need care" until it was reloaded.
+
+A browser now keeps several drafts, signed in or not, each under its own ID. Start An Initiative always makes a new one and asks nothing, because nothing is replaced. Your Initiatives is one list: the browser's drafts, private saves and team workspaces together. A card that exists only in this browser carries a "Not saved yet" badge. A draft and the card it was saved as are one entry. The header's "On this device" label is gone. An account card is still changed only by an explicit Save.
+
+Open tabs stay in step. Each write tells the other tabs which draft changed, and a tab with no edit waiting shows the new version. When two tabs edit the same draft at once, the latest edit wins, the replaced version is kept as a device backup that Settings can restore, and nobody is warned or stopped. At most three replaced versions are kept for one draft. A failure to store on this device is still said plainly, with the text to copy.
+
+A saved card that was saved again on another device opens at that newer version from the list when this browser's copy has no changes of its own, with the copy kept as a backup. When both changed, the entry opens this browser's words and offers Open Saved Version beside them. A save's answer goes to the draft that asked for it, by its ID, even if the person has opened another initiative meanwhile. Deleting a saved card releases every draft in the browser that pointed at it. A new initiative stays the tab's draft across a reload before its first word. Another account's card is set aside in Settings as it is on its own pages.
+
+The earlier single draft moves to its own ID when the database is upgraded, inside the upgrade, so it lands whole or the database stays as it was. A draft that cannot be read is left exactly where it is. Messages between tabs name a draft and carry none of its content.
+
+## DL-113: Nothing moves when it is pressed, and the last step stays in the flow
+
+**Status:** user decision from manual QA, 18 November 2026. Extends DL-083 and DL-085.
+
+Buttons on the start flow pushed the page down: disclosures for files, languages, longer answers and kinds of support, an editor that opened inside the list, and lines of progress and error that appeared under a press.
+
+On the three steps, no button opens something in the page. Add Files opens the file picker directly. A need or offer's details are changed in a dialog. The speaking language is chosen in a dialog. Progress, results and problems are written in a Status slot, a place that keeps its height whether or not it has words. The box for spoken or typed words and the About it field keep their rows, so a fill moves nothing under them. Chips that arrive after a fill have two rows kept for them.
+
+After needs and offers the last page keeps the stepper until the card is saved. A step already done is a link back to it on all three steps, and the last step has Back To Needs And Offers.
+
+Button labels and page and section headings in this flow are written in title case, in the copy and not by the style sheet, as DL-105 on the manual QA branch decides for the whole app: every word takes a capital, short words included, as in Fill In The Fields and Say It In Your Own Words. Labels of fields, hints, chips, status lines and body text stay in sentence case, and so does a heading that reports something, such as a notice's.

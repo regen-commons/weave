@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDocument, record } from "@weave/api/account-contract";
-import { deletableCards, deleteFailure, deleteSavedCard, deletedMessage, forgetSavedCard } from "../src/account/delete-card.ts";
+import { deletableCards, deleteFailure, deleteSavedCard, deletedMessage, draftsBoundTo, forgetSavedCard } from "../src/account/delete-card.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { loadedDraft, saveCommand } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
@@ -178,19 +178,65 @@ test("a draft with an unconfirmed save is never removed, so a save answer cannot
   } finally { held.restore(); }
 });
 
-test("a save answer for a draft that was replaced meanwhile binds nothing and says so", async () => {
-  const { controller } = await device({ composer: "Edited words" });
+test("a save answered after the person opened another initiative is bound to the draft that asked, and to no other", async () => {
+  const { controller, repository, draft } = await device({ composer: "Edited words" });
   const held = heldSave();
   try {
     const saving = saveAccountCard(controller, owner, async () => {});
     await new Promise((resolve) => setTimeout(resolve, 20));
-    await controller.replace(revise(newDraft(), { composer: "Different initiative" }));
+    // The person starts something else while the save is in flight. The first draft stays stored.
+    await controller.startNew();
+    controller.change((current) => revise(current, { composer: "Different initiative" }));
+    await controller.settled();
+    const elsewhere = controller.getSnapshot().draft;
+    held.release();
+    await saving;
+    const asked = repository.drafts.get(draft.id)!;
+    assert.equal(asked.account.pending, null, "nothing is left waiting");
+    assert.equal(asked.account.saved?.revision, 4, "the draft that asked holds the receipt");
+    assert.equal(asked.composer, "Edited words");
+    assert.equal(controller.getSnapshot().draft.id, elsewhere.id, "the tab stays where the person went");
+    assert.equal(controller.getSnapshot().draft.account.saved, null, "the other initiative is never bound to the saved card");
+    assert.equal(controller.getSnapshot().drafts.find((item) => item.id === draft.id)?.account.saved?.revision, 4, "and the list knows");
+  } finally { held.restore(); }
+});
+
+test("a save answer for a draft that was restored over meanwhile binds nothing and says so", async () => {
+  const { controller, draft } = await device({ composer: "Edited words" });
+  const held = heldSave();
+  try {
+    const saving = saveAccountCard(controller, owner, async () => {});
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    // An earlier version of the same draft is restored: it never asked for this save.
+    await controller.replace(revise(draft, { composer: "Restored earlier words" }));
     held.release();
     await assert.rejects(saving, SaveDetached);
     const after = controller.getSnapshot().draft;
-    assert.equal(after.composer, "Different initiative");
-    assert.equal(after.account.saved, null, "the replacement is never bound to the saved card");
+    assert.equal(after.composer, "Restored earlier words");
+    assert.equal(after.account.saved?.revision, 3, "the restored version keeps the binding it had, not the new receipt");
+    assert.equal(after.account.pending, null);
   } finally { held.restore(); }
+});
+
+test("deleting a saved card releases every draft on this device that points at it, not only the tab's", async () => {
+  const bound = revise(loadedDraft(saved, owner), { composer: "A copy of the card, not open in this tab" });
+  const elsewhere = revise(newDraft(), { composer: "The initiative this tab is on" });
+  const repository = new MemoryDraftRepository(elsewhere, [bound]), controller = new DraftController(repository);
+  await controller.initialize();
+  assert.equal(controller.getSnapshot().draft.id, elsewhere.id);
+  assert.deepEqual(draftsBoundTo(controller, saved.id), [bound.id]);
+  const result = await deleteSavedCard(controller, { id: saved.id, revision: 3 }, crypto.randomUUID(), async () => deleted());
+  assert.equal(result.device, "unbound", "a draft on this device was bound, so the result says so");
+  const released = repository.drafts.get(bound.id)!;
+  assert.deepEqual(released.account, { saved: null, pending: null, retired: [saved.id] });
+  assert.equal(released.composer, "A copy of the card, not open in this tab", "its words stay");
+  assert.equal(controller.getSnapshot().draft.composer, "The initiative this tab is on", "the tab is not moved");
+  assert.deepEqual(repository.drafts.get(elsewhere.id)!.account, elsewhere.account);
+  // The dialog marks every card that a draft here stands for, by ID.
+  const listed = [{ id: saved.id, name: "A", savedOn: "2026-11-15", revision: 3 }, { id: other, name: "B", savedOn: "2026-11-15", revision: 1 }];
+  assert.deepEqual(deletableCards(listed, [], [saved.id, other]).map((card) => card.onDevice), [true, true]);
+  assert.deepEqual(deletableCards(listed, [], saved.id).map((card) => card.onDevice), [true, false]);
+  assert.deepEqual(deletableCards(listed, [], null).map((card) => card.onDevice), [false, false]);
 });
 
 test("a save refused because its card was deleted releases the device draft for a new save", async () => {

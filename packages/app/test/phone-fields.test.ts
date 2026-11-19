@@ -32,26 +32,24 @@ test("a name starts each word with a capital, and an initiative's name is offere
   assert.ok(has(field("funding/SuggestFund.tsx", "id={`${id}-name`}"), 'autoCapitalize="words"'));
 });
 
-test("the links field gets the address keys, with capitals, corrections and spelling marks off", () => {
-  const links = field("ui/RecordFields.tsx", "id={`${id}-links`}");
-  for (const attribute of ['inputMode="url"', 'autoCapitalize="none"', 'autoCorrect="off"', "spellCheck={false}"])
-    assert.ok(has(links, attribute), `the links field has ${attribute}`);
+test("the link field gets the address keys, with capitals, corrections and spelling marks off", () => {
+  const links = field("ui/RecordFields.tsx", "id={`${id}-link`}");
+  for (const attribute of ['type="url"', 'inputMode="url"', 'autoCapitalize="none"', 'autoCorrect="off"', "spellCheck={false}"])
+    assert.ok(has(links, attribute), `the link field has ${attribute}`);
   // Sentences are what a description wants, so About keeps the keyboard's own behaviour.
   assert.doesNotMatch(field("ui/RecordFields.tsx", "id={`${id}-about`}"), /autoCapitalize|inputMode|spellCheck/u);
 });
 
-test("a one-field form that adds to a list labels Enter as Done", () => {
-  const adds = [
-    field("pages/AskStep.tsx", 'id={part("add")}'),
-    field("pages/AskStep.tsx", 'id={part("link")}'),
-    field("pages/Describe.tsx", 'id="describe-link"'),
-  ];
-  for (const add of adds) assert.ok(has(add, 'enterKeyHint="done"'));
+test("the last one-line field of the describe step labels Enter as Done, and as Next when details follow it", () => {
+  // The link is the last field while there are no suggested details, and Enter there sends the form.
+  assert.ok(has(field("ui/RecordFields.tsx", "id={`${id}-link`}"), 'enterKeyHint={last'));
+  assert.ok(source("ui/RecordFields.tsx").includes('enterKeyHint={last ? "done" : "next"}'));
+  assert.ok(source("pages/Describe.tsx").includes("last={chips.length === 0}"));
 });
 
 test("a one-line field with a field after it labels Enter as Next, and a field Enter writes in does not (DL-096)", () => {
   // The form these sit in moves the focus on, which next-field.test.ts holds it to.
   for (const id of ["id={`${id}-name`}", "id={`${id}-where`}"]) assert.ok(has(field("ui/RecordFields.tsx", id), 'enterKeyHint="next"'), id);
-  for (const id of ["id={`${id}-about`}", "id={`${id}-links`}"]) assert.doesNotMatch(field("ui/RecordFields.tsx", id), /enterKeyHint/u, id);
+  assert.doesNotMatch(field("ui/RecordFields.tsx", "id={`${id}-about`}"), /enterKeyHint/u, "Enter in About it is a new line");
   for (const id of ["id={`${id}-name`}", "id={`${id}-link`}"]) assert.ok(has(field("funding/SuggestFund.tsx", id), 'enterKeyHint="next"'), id);
 });

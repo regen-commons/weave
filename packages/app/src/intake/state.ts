@@ -1,6 +1,8 @@
 import { LinkSchema, type Attachment, type Turn } from "../describe/source-contracts.ts";
 import {
+  ASK_DESCRIPTION_LIMIT,
   ASK_LIMIT,
+  ASK_LIMIT_HELP,
   AskStepSchema,
   AskSchema,
   AskSuggestionSchema,
@@ -76,6 +78,49 @@ export function commitPending(step: AskStep, kind: AskKind, via: Turn["via"] = "
   if (next.composer.trim()) next = answerStep(next, kind, next.composer, via);
   return next;
 }
+/**
+ * Reading the words failed or was stopped: they go back into the box, and the list is as it was
+ * before they were added, so nothing waits on words the person can no longer see.
+ */
+export function returnWords(step: AskStep, turnId: string): AskStep {
+  const turn = step.turns.find((item) => item.id === turnId);
+  if (!turn) return step;
+  const inputVersion = step.inputVersion + 1;
+  return AskStepSchema.parse({
+    ...step,
+    turns: step.turns.filter((item) => item.id !== turnId),
+    composer: step.composer.trim() ? step.composer : turn.text,
+    inputVersion,
+    builtVersion: step.builtVersion === null ? null : inputVersion,
+    reviewedVersion: null,
+  });
+}
+/** True while a list from the earlier guided conversation holds an unfinished answer change or link. */
+export const hasEarlierInput = (step: AskStep): boolean =>
+  Object.keys(step.answerEdits).length > 0 || !!step.pendingLink.trim();
+/**
+ * Settles what the earlier guided conversation left open, which this page no longer shows: a
+ * changed answer is kept as changed, a complete link is kept, and anything else typed there
+ * goes into the box, so nothing is lost and nothing hidden can hold the page.
+ */
+export function settleEarlierInput(step: AskStep): AskStep {
+  if (!hasEarlierInput(step)) return step;
+  const pending = step.pendingLink.trim();
+  const link = LinkSchema.safeParse(pending);
+  const room = step.links.length < 6;
+  const kept = link.success && room;
+  return changeStep(
+    step,
+    {
+      turns: step.turns.map((turn) => ({ ...turn, text: step.answerEdits[turn.id]?.trim() || turn.text })),
+      answerEdits: {},
+      pendingLink: "",
+      links: kept ? [...new Set([...step.links, link.data])] : step.links,
+      composer: pending && !kept ? [step.composer, pending].filter(Boolean).join(" ") : step.composer,
+    },
+    true,
+  );
+}
 export function keepLink(step: AskStep): AskStep {
   const link = LinkSchema.parse(step.pendingLink.trim());
   return changeStep(step, { links: [...new Set([...step.links, link])], pendingLink: "" }, true);
@@ -89,7 +134,8 @@ export function reconcile(step: AskStep, result: AskExtraction): AskStep {
       !keys.has(item.sourceKey) && !prints.has(fingerprint(item.value.description || item.value.title)),
   );
   const kept = fixed.filter((item) => item.decision !== "removed").length;
-  const added: AskItem[] = candidates.slice(0, ASK_LIMIT - kept).map((item) => ({
+  // A list stored with five is already past the limit, so it takes no more.
+  const added: AskItem[] = candidates.slice(0, Math.max(0, ASK_LIMIT - kept)).map((item) => ({
     id:
       step.items.find((old) => old.sourceKey === item.sourceKey && old.decision === "pencil")?.id ??
       crypto.randomUUID(),
@@ -112,7 +158,7 @@ export function decide(step: AskStep, id: string, decision: AskItem["decision"])
   const restored =
     item.decision === "removed" && decision === "pencil" ? (item.decisionBeforeRemove ?? "pencil") : decision;
   if (item.decision === "removed" && decision !== "removed" && activeItems(step).length >= ASK_LIMIT)
-    throw new Error("Five is the limit. Remove another card before undoing this removal.");
+    throw new Error("Four is the limit. Remove another card before undoing this removal.");
   return changeStep(step, {
     items: step.items.map((current) =>
       current.id === id
@@ -183,10 +229,12 @@ export function parseAskForm(form: AskForm, kind: AskKind, allowUnclassified = t
 export function keepEditor(step: AskStep, kind: AskKind): AskStep {
   if (!step.editor) throw new Error("Open a card to change it.");
   const value = parseAskForm(step.editor.form, kind);
-  if (!step.editor.id && activeItems(step).length >= ASK_LIMIT)
-    throw new Error("Five is the limit. Remove one to add another.");
+  if (!step.editor.id && activeItems(step).length >= ASK_LIMIT) throw new Error(ASK_LIMIT_HELP);
   const old = step.items.find((item) => item.id === step.editor!.id);
   if (step.editor.id && !old) throw new Error("This card changed. Cancel the editor and open it again.");
+  // A description written before the shorter limit stays as it is; a new or changed one fits it.
+  if ((value.description?.length ?? 0) > ASK_DESCRIPTION_LIMIT && value.description !== old?.value.description)
+    throw new Error(`Keep the description to ${ASK_DESCRIPTION_LIMIT} characters or fewer.`);
   const item: AskItem = {
     id: old?.id ?? crypto.randomUUID(),
     sourceKey: old?.sourceKey ?? null,

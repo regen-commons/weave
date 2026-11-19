@@ -236,7 +236,7 @@ export function Settings() {
       {/* Backups and removal stay here even when no draft is left on the device, so recovery stays in reach. */}
       <SettingsSection
         title="Device backups"
-        note="Earlier drafts and their files, kept only in this browser. Restoring one backs up the current draft first."
+        note="Earlier drafts and their files, kept only in this browser. Restoring one opens it as its own draft, and a draft it replaces is backed up first."
       >
         <DeviceBackups manage disabled={busy} />
       </SettingsSection>

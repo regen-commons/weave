@@ -7,7 +7,8 @@ import { Icon } from "./Icon.tsx";
 /**
  * Ask card molecule: one need or offer in the person's words, with its kinds of support as
  * chips. A dashed chip, or a whole dashed card, is a suggestion until the page's Continue
- * keeps it, so the card has no Keep of its own.
+ * keeps it, so the card has no Keep of its own. A kind is taken off here and put on in Change
+ * Details, which opens over the page, so nothing on the card opens and pushes the list (DL-113).
  */
 export function AskCard({
   item,
@@ -41,14 +42,13 @@ export function AskCard({
           disabled={disabled}
           onClick={onUndo}
         >
-          Undo remove
+          Undo Remove
         </button>
       </div>
     );
   const pencil = item.decision === "pencil";
   const suggested = suggestedEntry(item);
   const chosen = CAPITALS.filter((capital) => item.value.capitalForms.includes(capital.key));
-  const addable = CAPITALS.filter((capital) => !item.value.capitalForms.includes(capital.key));
   const extras = askExtras(item.value, kind);
   return (
     <article
@@ -90,32 +90,6 @@ export function AskCard({
       ) : (
         <p className="rc-meta">No kind of support yet</p>
       )}
-      {addable.length > 0 && (
-        <details>
-          <summary className="rc-footer-link" id={entryId(item.id, "kinds")}>
-            Add a kind of support
-          </summary>
-          <ul className="rc-tag-list" aria-label="Kinds of support you can add">
-            {addable.map((capital) => (
-              <li key={capital.key}>
-                <button
-                  className="rc-chip"
-                  type="button"
-                  data-capital={capital.key}
-                  id={entryId(item.id, `kind-${capital.key}-add`)}
-                  disabled={disabled}
-                  onClick={() => onKind(capital.key)}
-                >
-                  <span className="rc-tile" data-state="empty" aria-hidden="true">
-                    {capital.glyph}
-                  </span>
-                  {capital.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
       {extras && <p className="rc-ask-terms">{extras}</p>}
       {item.value.purpose && kind === "needs" && <p className="rc-meta">{item.value.purpose}</p>}
       {item.value.audience && kind === "offers" && <p className="rc-meta">For {item.value.audience}</p>}
@@ -130,7 +104,7 @@ export function AskCard({
             id={entryId(item.id, "more")}
             onClick={onMore}
           >
-            More details
+            Change Details
           </button>
           <button
             className="rc-button"
