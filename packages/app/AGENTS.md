@@ -73,6 +73,8 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - Device drafts are in the IndexedDB database `weave-drafts`. Never open the released build's
   `weave-device-drafts` with a version number or change its shape: an older tab and a rollback
   still use it (DL-114). `describe/earlier-database.ts` reads it, and the copy deletes nothing.
+  Never reload a tab from the service worker: an older build holds some words only on its page,
+  and a worker cannot see them. Two builds side by side after a release is expected.
 - The describe step is one page (DL-110). Words fill the four fields in place through
   `src/describe/fill.ts`, which never writes over a field the person typed or changed.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud

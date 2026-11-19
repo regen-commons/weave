@@ -673,9 +673,9 @@ After needs and offers the last page keeps the stepper until the card is saved. 
 
 Button labels and page and section headings in this flow are written in title case, in the copy and not by the style sheet, as DL-105 on the manual QA branch decides for the whole app: every word takes a capital, short words included, as in Fill In The Fields and Say It In Your Own Words. Labels of fields, hints, chips, status lines and body text stay in sentence case, and so does a heading that reports something, such as a notice's.
 
-## DL-114: Several drafts live in a new database, and an update reloads tabs that are not on screen
+## DL-114: Several drafts live in a new database, and an older tab is left as it is
 
-**Status:** user decision, 19 November 2026 ("New database + reload", and "Yes, delete both" for removals). Amends the storage of DL-112 before it was released.
+**Status:** user decision, 19 November 2026 ("New database + reload", and "Yes, delete both" for removals). The reload was then built, reviewed and dropped the same day ("Drop the reload"); its record is at the end of this entry. Amends the storage of DL-112 before it was released.
 
 DL-112 first upgraded the released build's database to keep several drafts. A second review found what that costs. A tab still running the released build closes its connection when the database is upgraded, and every later attempt to open it at the old version fails, so words typed there are never stored. A rollback to the released build fails the same way on every browser that ran the new one. Nothing is deleted in either case, but no draft opens.
 
@@ -687,7 +687,16 @@ The copy never changes the released build's database. A removal the person asks 
 
 What a rollback hides until this build returns: every initiative started in it, every edit made in it to the copied draft, and the backups made in it. They stay in the new database, untouched.
 
-When a new version takes over, the service worker reloads the tabs nobody is looking at, after two seconds and only if they are still hidden. A first install reloads nothing. A tab on screen is never reloaded: the person may be typing or talking, and it moves to the new version at its next load. The worker does not hold its own start-up open for these reloads. A reload is a page load the worker has to answer, and it answers nothing until it has finished starting, so waiting for them deadlocked and hung every page of the site in a real browser before this was changed. The reload is therefore best effort: if the browser stops the worker during the two seconds, nothing is reloaded and the tabs stay on the version they have, which still works. The released build stores the words in its box on every keystroke and on every result while dictating, which is what makes reloading a hidden tab safe. Not protected in a hidden tab: a file still being read, words typed into the add-by-hand box on needs and offers and not yet added, an unsent Suggest A Fund form and a sign-in email not yet sent. That build keeps those on the page only.
+**What an older tab does after a release.** Nothing reloads it. It keeps the app it loaded until the person reloads or reopens it, it keeps storing to that build's own database with no error, and this build picks its words up at its next look. The one thing a person might notice is two tabs showing different screens, one from each build. That is the normal state for a while after any release, and not only for a tab left open: measured on production on 19 November, a returning browser was served the earlier build from the service worker's cache through two page loads, and showed the new build on the load after the worker had updated.
+
+**The reload that was dropped, and why.** This entry first had the service worker reload tabs that were not on screen, two seconds after a new version took over, so that older tabs would not linger. It was built and then removed before release, and should not be added back without this record.
+
+- It could discard words. The released build stores its main box on every keystroke, but it keeps the words typed into the add-by-hand box on needs and offers on the page until they are added, and a tab whose storage has failed holds its words nowhere else and tells the person to keep it open. Typing a need and then opening Weave in a second tab hides the first tab and triggers the update, and two seconds later the first tab was reloaded and those words were gone. That is an ordinary thing to do.
+- A worker cannot tell. It sees whether a tab is hidden, not what its page holds, and the released build cannot be asked.
+- It was not needed. With a database of its own, this build leaves an older tab working, so the reload only shortened how long such a tab lives.
+- It had two faults of its own, found on the way. Holding the worker's start-up open for the reloads deadlocked, because a reload is a page load the worker cannot answer until it has started, and every page of the site hung in a real browser. And it reloaded a tab at the address the worker knew for it, which after a move inside the app is not always the page on screen.
+
+A reload that cannot lose words has to ask the page: the worker posts a message, and only a tab that answers that it holds nothing unstored reloads itself, at its own address. No answer means no reload. The released build would never answer, so that design does nothing for this release and could only begin to work between two later versions. It would be a change of its own.
 
 Something deleted in an older tab after the copy stays in this build until it is deleted here.
 
