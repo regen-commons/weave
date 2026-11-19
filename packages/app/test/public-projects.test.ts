@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  countLine, firstPage, indexLine, listView, nextPage, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
+  countLine, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage, rememberIndex, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
   searchQuery, SEARCH_PAUSE_MS, sharedLabel, showsIndex,
 } from "../src/partners/public-projects.ts";
 
@@ -90,4 +90,30 @@ test("the count and freshness lines are whole sentences that say what the list i
   assert.equal(indexLine({ ...index, status: "stale" }, date), "Last checked on 2026-11-15. The list may be out of date.");
   assert.equal(indexLine({ ...index, status: "partial", checkedAt: null }, date),
     "The latest check did not finish, so some projects may be missing.");
+});
+
+test("a browser that last heard the list is off opens on the starter list, with no skeleton to jump from (DL-109)", () => {
+  const kept = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => kept.get(key) ?? null,
+    setItem: (key: string, value: string) => void kept.set(key, value),
+    removeItem: (key: string) => void kept.delete(key),
+  };
+  const off: PublicProjectPage = { index: { status: "off", checkedAt: null, total: 0 }, projects: [], next: null };
+  assert.equal(expectsStarter(storage), false, "nothing remembered: the list is expected");
+  assert.equal(listView({ status: "loading", q: "" }, false, expectsStarter(storage)), "loading");
+  rememberIndex(storage, off);
+  assert.equal(kept.get(INDEX_OFF_KEY), "1");
+  assert.equal(listView({ status: "loading", q: "" }, false, expectsStarter(storage)), "starter");
+  // Once the list has been seen in this visit, a search keeps it on screen whatever was remembered.
+  assert.equal(listView({ status: "loading", q: "soil" }, true, true), "index");
+  // An answer that the list is on forgets it; an answer always decides, whatever was expected.
+  rememberIndex(storage, page([card(1)], 1));
+  assert.equal(kept.has(INDEX_OFF_KEY), false);
+  assert.equal(listView(firstPage("", page([card(1)], 1)), false, true), "index");
+  // A browser that refuses storage is not an error: it expects the list.
+  const refuses = { getItem: () => { throw new Error("denied"); }, setItem: () => { throw new Error("denied"); }, removeItem: () => {} };
+  assert.equal(expectsStarter(refuses), false);
+  assert.doesNotThrow(() => rememberIndex(refuses, off));
+  assert.equal(expectsStarter(null), false);
 });

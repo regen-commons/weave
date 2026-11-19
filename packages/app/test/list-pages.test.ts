@@ -148,3 +148,13 @@ test("no section on Home is set apart by a band (DL-109)", () => {
   assert.doesNotMatch(read("pages/Home.tsx"), /\bband\b/u);
   assert.doesNotMatch(read("ui/Section.tsx"), /band/u);
 });
+
+test("the prompt to describe an initiative is a plain section, not a notice (DL-109)", () => {
+  const prompt = read("ui/DescribePrompt.tsx");
+  assert.match(prompt, /<Section\b/u);
+  assert.doesNotMatch(prompt, /rc-notice/u);
+  // The list is told what was remembered, and an answer is kept for the next visit.
+  const projects = read("partners/PublicProjects.tsx");
+  assert.match(projects, /listView\(list, indexSeen, expectStarter\)/u);
+  assert.match(projects, /rememberIndex\(deviceStorage\(\), list\.page\);/u);
+});

@@ -6,6 +6,7 @@ import { resumeLabel } from "../home.ts";
 import { cardRoute } from "../initiative/status.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "./ButtonLink.tsx";
+import { Section } from "./Section.tsx";
 
 /**
  * The one prompt for a list that is not fitted to an initiative yet. Funding and Partners both
@@ -19,19 +20,19 @@ export function DescribePrompt({ children }: { children: ReactNode }) {
   // Another account's card is not this person's to finish (DL-055).
   const started = hasDraft(draft) && !setAside;
   const route = started ? cardRoute(draft) : "initiative";
+  // A plain section, not a Notice: it is part of the page, and a Notice's surface and toned edge
+  // are kept for what warns or reports (DL-109).
   return (
-    <section className="rc-notice" data-tone="info" aria-labelledby={id}>
-      <div className="rc-notice-body">
-        <h2 className="rc-notice-title" id={id}>
-          {started ? "Finish describing your initiative to see what fits" : "Describe your initiative to see what fits"}
-        </h2>
-        <p>{children}</p>
-        <div className="rc-action-bar">
-          <ButtonLink href={pathTo(route)} variant="primary">
-            {started ? resumeLabel(route) : "Describe Your Initiative"}
-          </ButtonLink>
-        </div>
+    <Section
+      id={id}
+      title={started ? "Finish Describing Your Initiative To See What Fits" : "Describe Your Initiative To See What Fits"}
+      note={children}
+    >
+      <div className="rc-action-bar">
+        <ButtonLink href={pathTo(route)} variant="primary">
+          {started ? resumeLabel(route) : "Describe Your Initiative"}
+        </ButtonLink>
       </div>
-    </section>
+    </Section>
   );
 }

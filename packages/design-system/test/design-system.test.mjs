@@ -609,3 +609,8 @@ test("the count line and the list end keep set room, and no section is a band (D
   assert.match(organisms, /@container \(width < 37\.5rem\) \{\s*\.rc-list-end \{[^}]*grid-template-rows: minmax\(var\(--control-height\), auto\) var\(--control-height\);/);
   for (const file of CSS_FILES) assert.doesNotMatch(read(file), /data-band/, file);
 });
+
+test("on a phone a fixed-row card keeps two summary lines, kept and cut alike (DL-109)", () => {
+  const molecules = stripComments(read("packages/design-system/css/molecules.css"));
+  assert.match(molecules, /@container \(width < 37\.5rem\) \{\s*\.rc-card\[data-rows="fixed"\] > \.rc-card-summary \{ min-block-size: 2lh; -webkit-line-clamp: 2; line-clamp: 2; \}\s*\}/);
+});

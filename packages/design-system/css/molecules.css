@@ -629,6 +629,11 @@ a.rc-save-status:active { color: var(--on-surface); }
 .rc-card[data-rows="fixed"][data-kind="initiative"] > .rc-meta { display: -webkit-box; min-block-size: 2lh; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .rc-card[data-rows="fixed"] > .rc-tag-list { display: grid; grid-template-rows: repeat(2, var(--tag-height)); grid-auto-rows: var(--tag-height); justify-items: start; block-size: calc(2 * var(--tag-height) + var(--space-1)); overflow: hidden; }
 .rc-card[data-rows="fixed"] > .rc-tag-list > * { display: flex; min-inline-size: 0; max-inline-size: 100%; }
+/* On a phone a list card is shorter (DL-090): its summary keeps two lines, not three. It is
+   kept and cut at two alike, so the card is still one height loading and loaded (DL-109). */
+@container (width < 37.5rem) {
+  .rc-card[data-rows="fixed"] > .rc-card-summary { min-block-size: 2lh; -webkit-line-clamp: 2; line-clamp: 2; }
+}
 /* Side by side, titles keep two lines so the rows under them line up. In one column they take what they need. */
 @container (min-width: 37.5rem) {
   .rc-card[data-layout="listing"] .rc-card-title { min-block-size: 2lh; }
