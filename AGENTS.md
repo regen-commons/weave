@@ -1,7 +1,7 @@
 # Funding Commons and Weave: agent guide
 
-This repository runs the live Funding Commons site and its funder catalog, and is
-growing into Weave, the first version of the Regen Commons platform. This file holds
+This repository runs the live Funding Commons site and its funder catalog, and holds
+Weave, which is part of Regen Commons. This file holds
 the rules every coding agent follows. Read the scoped guide for a surface before
 editing it; its rules refine these. Code and checked-in configuration own
 implementation facts, and the [platform plan](docs/platform/README.md) owns product

@@ -10,10 +10,20 @@ Funding suggestions come from a researched catalog of about 700 funders and need
 sign-in. Partner suggestions start from a project on [Certified](https://certified.one).
 Your draft stays on your device until you choose to save it.
 
-Weave is the first version of the [Regen Commons](https://regencommons.com) platform,
-a shared home for the regenerative movement.
+Weave is part of [Regen Commons](https://regencommons.com), a shared home for the
+regenerative movement.
 
 [Open Weave](https://weave.regencommons.com) · [Read the platform plan](docs/platform/README.md)
+
+## Funding Commons
+
+Weave grew out of Funding Commons, a funding directory that went live in October 2026.
+It is still online at [funding-commons.vercel.app](https://funding-commons.vercel.app),
+where you can browse about 700 funders, rank them against your project on your own
+device and see which deadlines are coming up. Its funder catalog lives in this
+repository and is still kept up to date, and Weave's Funding page reads the same
+catalog. Funding Commons deploys from `codex/funding-commons-demo`, separately from
+Weave.
 
 ## What is in this repository
 
@@ -23,7 +33,7 @@ a shared home for the regenerative movement.
 | [`packages/api`](packages/api/AGENTS.md) | The server functions behind the app: sign-in, saving, sharing and matching |
 | [`packages/design-system`](packages/design-system/README.md) | The Regen Commons brand, voice, CSS and pattern library, with tokens generated from [DESIGN.md](DESIGN.md) |
 | [`research/`](research/AGENTS.md), `scripts/`, `tests/` | The funder catalog: evidence from official sources, the importer and its checks |
-| `dist/`, `serve.mjs` | Funding Commons, the funding directory Weave grew from, still live at [funding-commons.vercel.app](https://funding-commons.vercel.app) |
+| `dist/`, `serve.mjs` | The Funding Commons site |
 | `supabase/` | Database changes for the platform |
 | [`docs/platform`](docs/platform/README.md) | The plan: proposal, product requirements, technical spec and open decisions |
 
