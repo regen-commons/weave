@@ -123,6 +123,13 @@ const AccountSyncSchema = z.strictObject({
    */
   retired: z.array(z.string().uuid()).max(20).optional(),
 });
+/**
+ * As many characters as a draft's words can hold once stored. The box takes far fewer by typing
+ * or talking (`SAID_LIMIT` in fill.ts). A draft from the released build can hold more than that
+ * across its sent answers, and they become the box's own words, so the stored field has room
+ * for all of them. The bound is only there so stored data is never unbounded.
+ */
+export const STORED_SAID_LIMIT = 2_000_000;
 export const DeviceDraftSchema = z.strictObject({
   version: z.literal(1),
   id: z.string().uuid(),
@@ -138,7 +145,7 @@ export const DeviceDraftSchema = z.strictObject({
   pendingLink: z.string().max(2048),
   answerEdits: z.record(z.string().uuid(), z.string().max(20000)),
   reviewEdits: z.partialRecord(DerivedKeySchema, ReviewEditorSchema),
-  composer: z.string().max(20000),
+  composer: z.string().max(STORED_SAID_LIMIT),
   turns: z.array(TurnSchema),
   links: z.array(LinkSchema).max(6),
   attachments: z.array(AttachmentSchema),

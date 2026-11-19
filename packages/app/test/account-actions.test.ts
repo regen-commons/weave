@@ -10,6 +10,7 @@ import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import { saveForProject } from "../src/initiative/project-save.ts";
+import { saveDeviceCardToTeam } from "../src/partners/team-workspace.ts";
 import { projectChoiceKey } from "../src/social/project-choice.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
@@ -137,10 +138,12 @@ test("the account panel's completed Save and Load retain their intended behavior
 // so it holds whichever button, dialog or return from sign-in reaches it.
 const other = "b1000000-0000-4000-8000-000000000002";
 const refused = (error: unknown) => error instanceof AnotherAccountsCard && /belongs to another account/u.test(error.message);
-/** The save entry points: the account panel's Save, and the reviewed save behind Save Privately, sharing and linking. */
+/** Every way a card on this device reaches the server: the account panel's Save, the reviewed save behind Save Privately, sharing and linking, and the copy into a team workspace. */
+const TEAM = "b4000000-0000-4000-8000-000000000001";
 const entryPoints: readonly [name: string, save: (controller: DraftController) => Promise<unknown>][] = [
   ["the account panel's Save", (controller) => saveAccountCard(controller, owner, async () => {})],
   ["the reviewed save", (controller) => saveForProject(controller, owner, new AbortController().signal)],
+  ["the save of a device card to a team", (controller) => saveDeviceCardToTeam(controller.getSnapshot().draft, owner, TEAM, null, new AbortController().signal)],
 ];
 /** Another account's card as it sits on a shared device, in each way a card can belong to someone. */
 function theirCards(): readonly [state: string, draft: DeviceDraft][] {
@@ -210,4 +213,19 @@ test("the account a card belongs to still saves it, after another account was re
   assert.equal(commands.length, 1);
   assert.deepEqual([commands[0]!.accountId, commands[0]!.id], [owner, saved.id], "the same card, in the same account");
   assert.equal(controller.getSnapshot().draft.account.saved?.owner, owner);
+});
+
+test("the account a card belongs to can still copy it into its team, and a retry sends the same request", async t => {
+  const commands: Record<string, unknown>[] = [];
+  t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
+    const command = JSON.parse(String(options?.body));
+    commands.push(command);
+    return Response.json({ saved: { ...saved, id: TEAM, revision: 1, document: command.document } });
+  });
+  const mine = loadedDraft(saved, owner);
+  const first = await saveDeviceCardToTeam(mine, owner, TEAM, null, new AbortController().signal);
+  assert.deepEqual([commands[0]!.action, commands[0]!.workspaceId, commands[0]!.expectedRevision], ["team_save", TEAM, 0]);
+  assert.equal(first.saved.id, TEAM);
+  await saveDeviceCardToTeam(mine, owner, TEAM, first.command, new AbortController().signal);
+  assert.equal(commands[1]!.requestId, commands[0]!.requestId, "the request it started with");
 });

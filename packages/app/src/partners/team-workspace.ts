@@ -1,7 +1,9 @@
 import { parseTeamDocument, parseTeamSaved, parseTeamWorkspace, type AccountDocument, type SavedInitiative } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
 import { emptyFundingForm } from "../funding/contracts.ts";
-import { SuggestionSchema, type Initiative } from "../describe/contracts.ts";
+import { SuggestionSchema, type DeviceDraft, type Initiative } from "../describe/contracts.ts";
+import { ownDocument } from "../account/document.ts";
+import { sessionChoosers } from "../social/project-choice.ts";
 import { AskSuggestionSchema, type AskFields } from "../intake/contracts.ts";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { beginConsentReturn, cancelConsentReturn, currentConsentReturn, finishConsentReturn, takeConsentReturn } from "../initiative/consent-return.ts";
@@ -30,6 +32,24 @@ export async function saveTeamWorkspace(workspaceId: string, command: TeamSave, 
   } catch {
     throw new AccountFailure("project_workspace_unavailable");
   }
+}
+
+/**
+ * Copies the checked card on this device into a team workspace: the one save that does not go
+ * through `saveCommand`, because a team document has no private card ID. It takes its document
+ * from `ownDocument` as that one does, so another account's card is refused here too. `retry` is the request
+ * a failed attempt started with, sent again unchanged. `started` is told the request before it
+ * is sent, so a failure can be retried.
+ */
+export async function saveDeviceCardToTeam(
+  draft: DeviceDraft, owner: string, workspaceId: string, retry: TeamSave | null, signal: AbortSignal,
+  started: (command: TeamSave) => void = () => {},
+) {
+  // Checked on a retry too: the request was built for this card, and the card must still be this account's.
+  const document = parseTeamDocument(ownDocument(draft, owner, sessionChoosers(draft.id)));
+  const command = retry ?? { expectedRevision: 0, requestId: crypto.randomUUID(), document };
+  started(command);
+  return { command, saved: await saveTeamWorkspace(workspaceId, command, signal) };
 }
 
 export function initialTeamDocument(name: string): AccountDocument {

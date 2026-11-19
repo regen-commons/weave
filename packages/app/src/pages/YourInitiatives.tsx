@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { newDraft, revise, type DeviceDraft } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { intakeFixture } from "../fixtures.ts";
+import { intakeFixture, type FixtureContext } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
 import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject } from "../initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver, savedVersionOpened } from "../initiative/list.ts";
 import { cardName, cardRoute, NOT_SAVED_YET, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -72,7 +72,7 @@ function PhoneSettings() {
  * carries a button. Starting an initiative always makes a new one and asks nothing.
  * The live adapter reads projects and granted workspaces; development examples use the same layout.
  */
-export function YourInitiatives() {
+export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const social = useSocial();
   const { draft, drafts, controller } = useDraft();
   // The list is where every initiative on the device is shown, so it is read with whatever an
@@ -156,16 +156,9 @@ export function YourInitiatives() {
     }
     go(pathTo(cardRoute(controller.getSnapshot().draft)));
   }
-  /**
-   * Opens the account's version of a card in place of this browser's working copy. The loaded
-   * version is stored under the card's own ID, which is usually the copy's ID too, so the copy is
-   * backed up and replaced. A copy kept under another ID would stay beside it as a second draft
-   * of the same card, so it goes to the backups as well.
-   */
-  async function openSavedOver(item: DeviceDraft, saved: SavedCard) {
-    await openCard(saved);
-    if (item.id !== saved.id) await controller.retire(item.id);
-  }
+  /** Opens the account's version over this browser's working copy, and says where the copy went only when asked. */
+  const openOver = (item: DeviceDraft, saved: SavedCard) =>
+    openSavedOver(item, saved, () => openCard(saved), (id) => controller.retire(id));
   /** One of this browser's initiatives. The badge says what is missing; a saved one says where it is kept. */
   const draftCard = (item: DeviceDraft, saved: SavedCard | null) => {
     const current = item.id === draft.id;
@@ -180,7 +173,7 @@ export function YourInitiatives() {
           <h3 className="rc-card-title">
             {/* A button like its neighbours, so one card does not take the visited link colour. */}
             <button type="button" disabled={busy}
-              onClick={() => void run(() => (saving === "newer-in-account" && saved ? openSavedOver(item, saved) : openDraft(item)))}>
+              onClick={() => void run(async () => { if (saving === "newer-in-account" && saved) await openOver(item, saved); else await openDraft(item); })}>
               {cardName(item)}
             </button>
           </h3>
@@ -199,8 +192,7 @@ export function YourInitiatives() {
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
                 onClick={() => void run(async () => {
-                  await openSavedOver(item, saved);
-                  setMessage("The saved version is open. The copy that was on this device is in Device backups in Settings.");
+                  setMessage(savedVersionOpened(await openOver(item, saved)));
                 })}>
                 Open Saved Version
               </button>
@@ -224,8 +216,11 @@ export function YourInitiatives() {
       Start An Initiative
     </button>
   );
+  // An example can hold the page in its loading state, so the shape it keeps can be seen and measured.
+  const exampleLoading = import.meta.env.DEV && !live && fixture?.state === "loading";
+  const loading = !!social.loading || exampleLoading;
   // Whether anyone is signed in is not known yet: hold the page's shape instead of guessing a state.
-  const checking = live && social.loading && !state.identity;
+  const checking = (live || (import.meta.env.DEV && !!fixture)) && loading && !state.identity;
   if (!state.identity && !listed.length && !checking)
     return (
       <>
@@ -261,7 +256,7 @@ export function YourInitiatives() {
             <p className="rc-visually-hidden" role="status">
               Checking your account
             </p>
-            <CardGridSkeleton kind="funding" />
+            <CardGridSkeleton kind="own" count={2} />
           </div>
         ) : (
           // The card above is already here and usable, so signing in is an offer, never a gate.
@@ -293,9 +288,10 @@ export function YourInitiatives() {
   const entries = initiativeEntries(listed, state.cards, savedId,
     (card) => !(state.workspaces ?? []).some(record => record.workspaceId === card.id));
   const savedHere = new Set(listed.map(savedId).filter((id): id is string => !!id));
-  const workspaces = state.workspaces ?? state.records.filter(record => record.workspace);
+  // While projects are still being read there are none to list yet, in the account as in an example.
+  const workspaces = exampleLoading ? [] : (state.workspaces ?? state.records.filter(record => record.workspace));
   // A project that a draft here already stands for is listed once, as that draft.
-  const records = state.records.filter((record) => !record.workspace && record.uri !== project?.uri
+  const records = (exampleLoading ? [] : state.records).filter((record) => !record.workspace && record.uri !== project?.uri
     && !listed.some((item) => standsForProject(item, record.uri, chosenProject(item))));
   // A draft already stands for its own personal workspace, and the tab's draft for its project's team workspace.
   const listedWorkspaces = workspaces.filter(record => record !== deviceWorkspace
@@ -305,7 +301,7 @@ export function YourInitiatives() {
   const removable = service.deleteCard
     ? deletableCards(state.cards, (state.workspaces ?? []).map(record => record.workspaceId), [...savedHere])
     : [];
-  const empty = total === 0 && !social.loading && !social.problem;
+  const empty = total === 0 && !loading && !social.problem;
   async function openCard(card: SavedCard) {
     if (live) { await service.openCard(card.id, null); go(pathTo("your-initiative")); return; }
     if (import.meta.env.DEV) {
@@ -410,13 +406,16 @@ export function YourInitiatives() {
         {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
           onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
       </div>}
-      {social.loading && (
-        <div aria-busy="true">
-          <p className="rc-visually-hidden" role="status">
-            Checking your Certified projects
-          </p>
-          <CardGridSkeleton kind="funding" />
-        </div>
+      {/* The shape of the section that arrives: its heading, then cards of this page's own kind. */}
+      {loading && (
+        <Section id="initiatives-certified" title="On Certified">
+          <div aria-busy="true">
+            <p className="rc-visually-hidden" role="status">
+              Checking your Certified projects
+            </p>
+            <CardGridSkeleton kind="own" count={2} />
+          </div>
+        </Section>
       )}
       {/* A failed read is not an empty list, so it says so with its retry, and the lists below stay. */}
       {social.problem && (
@@ -450,7 +449,7 @@ export function YourInitiatives() {
           Your Certified projects and what you save in Weave appear here.
         </EmptyState>
       )}
-      {records.length > 0 && (
+      {records.length > 0 && !loading && (
         <Section id="initiatives-certified" title="On Certified">
           <CardGrid>
             {records.map((record) => (
@@ -468,7 +467,7 @@ export function YourInitiatives() {
           </CardGrid>
         </Section>
       )}
-      {total > 0 && records.length === 0 && workspaces.length === 0 && !project && !social.loading && !social.problem && (
+      {total > 0 && records.length === 0 && workspaces.length === 0 && !project && !loading && !social.problem && (
         <p className="rc-meta">You have no project on Certified yet.</p>
       )}
       <div className="rc-action-bar">

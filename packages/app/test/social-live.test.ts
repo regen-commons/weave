@@ -6,7 +6,8 @@ import { createLiveSocialService } from "../src/social/live.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { DeviceDraftSchema, newDraft, revise } from "../src/describe/contracts.ts";
-import { loadedDraft } from "../src/account/document.ts";
+import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../src/account/document.ts";
+import { projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { draftWithRecord } from "../src/initiative/import.ts";
 import { likelyDuplicate } from "../src/initiative/duplicates.ts";
 import { publicCard } from "../src/initiative/status.ts";
@@ -38,9 +39,11 @@ async function fixture(id = FIXTURE_TEAM_ADMIN) {
   const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => {
     const result = await request(); return { ...account, items: result.items as AccountState["items"] };
   },
-    storage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => { stored.set(key, value); }, removeItem: key => { stored.delete(key); } },
+    // As session storage is: its keys can be listed, which is how a card's choosers are read.
+    storage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => { stored.set(key, value); }, removeItem: key => { stored.delete(key); },
+      get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null },
     openWorkspace: id => { opened.push(id); }, signIn: async () => {}, signedOut: () => {} });
-  return { service, controller, repo, bodies, opened, request };
+  return { service, controller, repo, bodies, opened, request, stored };
 }
 
 test("the agreed initiative list reads Certified projects and authorized workspaces without saving or sharing", async () => {
@@ -340,4 +343,37 @@ test("an edit while a link is being stored preserves the newer words and require
   finish.resolve(); await assert.rejects(linking, /device card changed/);
   assert.equal(repo.value?.composer, "Newer private words");
   assert.equal(service.snapshot().project, null); assert.ok(hint());
+});
+
+test("a card another account opened from its project takes no project choice from this account, so it stays set aside (DL-055)", async () => {
+  // Account A opened this unsaved card from its Certified project in this tab and signed out.
+  // Account B signs in on the same tab. The card is set aside for B, and must stay so whatever B opens.
+  const { service, controller, stored, bodies } = await fixture(FIXTURE_TEAM_ADMIN);
+  const theirs = controller.getSnapshot().draft;
+  stored.set(projectChoiceKey(FIXTURE_GROUP_MEMBER, theirs.id), "at://did:plc:example/org.example.project/theirs");
+  const storage = { get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null };
+  const setAside = () => belongsToAnotherAccount(controller.getSnapshot().draft, FIXTURE_TEAM_ADMIN, projectChoosers(storage, theirs.id));
+  assert.equal(setAside(), true);
+  await service.reload();
+  const workspace = service.snapshot().workspaces!.find((item) => item.workspaceId)!;
+  // Opening a team workspace is allowed, and records nothing against the other account's card.
+  await service.openWorkspace(workspace.uri, null);
+  assert.deepEqual(projectChoosers(storage, theirs.id), [FIXTURE_GROUP_MEMBER], "no second chooser is written");
+  assert.equal(setAside(), true, "the card is still set aside");
+  // Linking a project would write this account's project into that card. It is refused whole.
+  const before = bodies.length;
+  await assert.rejects(service.linkProject(workspace.uri), AnotherAccountsCard);
+  assert.equal(controller.getSnapshot().draft, theirs, "the card is untouched");
+  assert.equal(bodies.length, before, "and nothing was asked of the server");
+  assert.deepEqual(projectChoosers(storage, theirs.id), [FIXTURE_GROUP_MEMBER]);
+  assert.equal(setAside(), true);
+});
+
+test("a card that is this account's to use still takes its project choice", async () => {
+  const { service, controller, stored } = await fixture(FIXTURE_TEAM_ADMIN);
+  const mine = controller.getSnapshot().draft;
+  await service.reload();
+  const workspace = service.snapshot().workspaces!.find((item) => item.workspaceId)!;
+  await service.openWorkspace(workspace.uri, null);
+  assert.equal(stored.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, mine.id)), workspace.uri);
 });

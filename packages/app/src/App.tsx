@@ -89,7 +89,7 @@ function content(route: Route, fixture?: FixtureContext) {
     case "your-initiative":
       return <ForThisAccount><YourInitiative fixture={fixture} /></ForThisAccount>;
     case "your-initiatives":
-      return <YourInitiatives />;
+      return <YourInitiatives fixture={fixture} />;
   }
 }
 /** A record's sheet. It outlives its route for a moment, so it can leave with its motion. */

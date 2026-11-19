@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { ABOUT_LIMIT, DeviceDraftSchema, EMPTY_INITIATIVE, addAnswer, newDraft, type DeviceDraft, type Initiative } from "../src/describe/contracts.ts";
+import { ABOUT_LIMIT, DeviceDraftSchema, EMPTY_INITIATIVE, addAnswer, newDraft, revise, type DeviceDraft, type Initiative } from "../src/describe/contracts.ts";
 import {
   FieldsProblem,
+  SAID_LIMIT,
+  boxNote,
   changeSaid,
   clip,
   continueDescribe,
@@ -20,7 +22,7 @@ import {
   toggleDetail,
   withMainLink,
 } from "../src/describe/fill.ts";
-import { keywordSuggestion } from "../src/describe/keywords.ts";
+import { collectSource, fromSource, keywordSuggestion } from "../src/describe/keywords.ts";
 import { ledgerRows, structureWords, type StructureEngine } from "../src/describe/structure.ts";
 import { previewFields } from "../src/describe/view.ts";
 import { loadedDraft, accountDocument } from "../src/account/document.ts";
@@ -243,15 +245,54 @@ test("a draft the released build stored opens with every answer, its changed ans
   assert.ok(talked.composer.endsWith("Students join us."));
 });
 
-test("earlier answers longer than the box are shown whole, and a change that does not fit is refused with nothing removed", () => {
+test("earlier answers longer than the box can be shortened a character at a time, and only adding to them is refused", () => {
   let legacy = addAnswer({ ...newDraft(), mode: "conversation" }, "a".repeat(15000));
   legacy = addAnswer(legacy, "b".repeat(15000));
   const box = saidText(legacy);
   assert.equal(box.length, 30002);
-  assert.throws(() => changeSaid(legacy, box.slice(0, -1)), (error) => error instanceof FieldsProblem && /Nothing has been removed/.test(error.message));
+  // One backspace: still far over what the box takes, and accepted, because it is shorter.
+  const shorter = changeSaid(legacy, box.slice(0, -1));
+  assert.equal(saidText(shorter), box.slice(0, -1), "the box holds exactly what was left");
+  assert.deepEqual([shorter.turns, shorter.composer.length], [[], 30001]);
+  assert.equal(DeviceDraftSchema.safeParse(shorter).success, true, "and the draft can be stored");
+  // Trimming goes on from there, one press after another, and a correction of the same length is taken too.
+  const again = changeSaid(shorter, saidText(shorter).slice(1));
+  assert.equal(saidText(again).length, 30000);
+  assert.equal(saidText(changeSaid(again, `c${saidText(again).slice(1)}`)).length, 30000);
+  // Adding is refused while it is over the limit, and nothing is removed.
+  for (const draft of [legacy, shorter])
+    assert.throws(() => changeSaid(draft, `${saidText(draft)}c`), (error) => error instanceof FieldsProblem && /Nothing has been removed/.test(error.message));
   assert.equal(legacy.turns.length, 2);
-  // Once it fits, the change is taken.
-  assert.equal(changeSaid(legacy, box.slice(0, 20000)).composer.length, 20000);
+  // The page says why typing adds nothing, and stops saying it once the words fit.
+  assert.match(boxNote(box), /shorten/u);
+  assert.equal(boxNote(box.slice(0, SAID_LIMIT)), "");
+  assert.equal(saidText(changeSaid(legacy, box.slice(0, SAID_LIMIT))).length, SAID_LIMIT);
+});
+
+test("half-typed words and a typed link that pass the limit together can still be trimmed", () => {
+  // The released build let the box and the link field each fill up, so the two can add up to more.
+  const full = revise(newDraft(), { composer: "w".repeat(20000), pendingLink: `https://example.org/${"p".repeat(2000)}` }, true);
+  const box = saidText(full);
+  assert.ok(box.length > SAID_LIMIT);
+  assert.equal(saidText(changeSaid(full, box.slice(0, -1))), box.slice(0, -1));
+});
+
+test("filling the fields never fails on length: the rules read over-long earlier answers as the worker does", async () => {
+  let legacy = addAnswer({ ...newDraft(), mode: "conversation" }, `We are Orchard learning circle. We are based in Upper Valley, Brazil. ${"We restore orchards. ".repeat(700)}`);
+  legacy = addAnswer(legacy, "We share skills in soil and water care. ".repeat(400));
+  assert.ok(saidText(legacy).length > SAID_LIMIT);
+  const result = await structureWords(legacy, new AbortController().signal, {
+    // What `keyword-worker.ts` does with the draft it is sent: validate it, then read it.
+    keywords: async (source) => {
+      const draft = DeviceDraftSchema.parse(source);
+      return fromSource(draft, await collectSource(draft));
+    },
+  });
+  assert.equal(result.suggestion.name, "Orchard learning circle");
+  assert.deepEqual(result.suggestion.locations, ["Upper Valley, Brazil"]);
+  const filled = fillFields(legacy, result.suggestion, result.lastBuild).draft;
+  assert.equal(fieldsForm(filled).name, "Orchard learning circle");
+  assert.equal(saidText(filled).length, saidText(legacy).length, "and the words in the box are all still there");
 });
 
 test("the box returns typed words exactly, with the spaces and line ends still being typed", () => {

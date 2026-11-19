@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver, savedVersionOpened } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -86,4 +86,26 @@ test("a project a draft already stands for is that draft: by this account's choi
   const suggested = revise(plain, { needs: { ...needs, items: needs.items.map((item) => ({ ...item, sourceKey: `${projectSource(uri)}:0` })) } });
   assert.equal(standsForProject(suggested, uri, null), true, "in a new tab the choice is gone, the suggestions are not");
   assert.equal(standsForProject(suggested, another, null), false);
+});
+
+test("opening the saved version over a working copy says truthfully where the copy went", async () => {
+  const calls: string[] = [];
+  const open = async () => { calls.push("open"); };
+  const retire = (kept: boolean) => async (id: string) => { calls.push(`retire ${id}`); return kept; };
+  // The copy has the card's own ID: loading the saved version backed it up and replaced it.
+  assert.equal(await openSavedOver({ id: "card" }, { id: "card" }, open, retire(false)), true);
+  assert.deepEqual(calls, ["open"], "there is no second draft to move");
+  // The copy is under another ID, so it is moved to the backups after the load.
+  calls.length = 0;
+  assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(true)), true);
+  assert.deepEqual(calls, ["open", "retire copy"]);
+  // A copy still waiting for a save's answer is left where it is, and the page must not claim otherwise.
+  assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(false)), false);
+  assert.match(savedVersionOpened(true), /is in Device backups/u);
+  assert.doesNotMatch(savedVersionOpened(false), /backups/iu);
+  assert.match(savedVersionOpened(false), /still in your list/u);
+  // A load that fails moves nothing.
+  calls.length = 0;
+  await assert.rejects(openSavedOver({ id: "copy" }, { id: "card" }, async () => { throw new Error("offline"); }, retire(true)), /offline/);
+  assert.deepEqual(calls, []);
 });

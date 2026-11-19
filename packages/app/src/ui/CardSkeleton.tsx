@@ -9,7 +9,7 @@ function Hold({ children }: { children: ReactNode }) {
   );
 }
 
-type SkeletonKind = "funding" | "initiative" | "project" | "partner";
+type SkeletonKind = "funding" | "initiative" | "project" | "partner" | "own";
 
 /**
  * One card's shape, built from the parts the loaded card has, in their own classes, so each part
@@ -42,6 +42,19 @@ function SkeletonCard({ kind }: { kind: SkeletonKind }) {
         </p>
         <p className="rc-time">
           <Hold>Sources checked 00 November 0000</Hold>
+        </p>
+      </div>
+    );
+  // One of a person's own initiatives or Certified projects in Your Initiatives: a name and a
+  // line or two about where it is kept. It is far shorter than a funding card.
+  if (kind === "own")
+    return (
+      <div className="rc-card" data-layout="listing">
+        <p className="rc-card-title">
+          <Hold>Name of a project</Hold>
+        </p>
+        <p className="rc-card-meta">
+          <Hold>You are a member of the group that runs it. It has no team workspace in Weave yet.</Hold>
         </p>
       </div>
     );

@@ -4,6 +4,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import {
   FieldsProblem,
   SAID_LIMIT,
+  boxNote,
   changeSaid,
   continueDescribe,
   detailChips,
@@ -327,7 +328,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                 working={working}
                 onAction={() => void fill()}
                 onCancel={() => task.current?.abort()}
-                status={status}
+                status={status || boxNote(said)}
                 lead={talkLeads}
               />
             </section>}

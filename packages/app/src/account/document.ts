@@ -93,11 +93,19 @@ export class AnotherAccountsCard extends Error {
   }
 }
 
-export function saveCommand(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
-  // The refusal is here, in the one place every save builds its command, and not only on the
-  // buttons: a return from sign-in, a retry or a page nobody guarded all pass through it.
+/**
+ * The card on this device as an account would hold it, for the account it belongs to and for no
+ * other. Every save takes its document from here, a private save and a copy into a team alike,
+ * so the refusal is in the save itself and not only on the buttons: a return from sign-in, a
+ * retry or a page nobody guarded all pass through it.
+ */
+export function ownDocument(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
   if (belongsToAnotherAccount(draft, owner, chosenBy)) throw new AnotherAccountsCard();
-  const document = accountDocument(draft),
+  return accountDocument(draft);
+}
+
+export function saveCommand(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
+  const document = ownDocument(draft, owner, chosenBy),
     contentKey = JSON.stringify(document),
     saved = draft.account.saved;
   const pending = draft.account.pending;

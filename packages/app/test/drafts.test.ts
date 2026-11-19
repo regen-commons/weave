@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { fakeIndexedDB, installIndexedDB } from "./fake-indexeddb.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
+import { FieldsProblem, changeSaid, saidText } from "../src/describe/fill.ts";
 import { IndexedDraftRepository } from "../src/describe/indexed-repository.ts";
 import { MemoryDraftRepository, REPLACED_KEPT, draftPin, replacedPrefix } from "../src/describe/repository.ts";
 import { memoryPointer, memoryTabs, sessionPointer } from "../src/describe/tabs.ts";
@@ -316,6 +317,55 @@ test("words typed while storage is still being read raise no failure", async () 
   await loading;
   await controller.settled();
   assert.deepEqual([controller.getSnapshot().storage, controller.getSnapshot().error], ["saved", null]);
+});
+
+test("a change to the box that is refused leaves the tab's draft, and what is stored, exactly as they were", async () => {
+  // What the page relies on when it catches the refusal and shows its sentence.
+  const memory = new MemoryDraftRepository(revise(newDraft(), { turns: [
+    { id: crypto.randomUUID(), prompt: "First", text: "a".repeat(15000), via: "typed" },
+    { id: crypto.randomUUID(), prompt: "Second", text: "b".repeat(15000), via: "typed" },
+  ] }, true));
+  const controller = new DraftController(memory, { pointer: memoryPointer() });
+  await controller.initialize();
+  const before = controller.getSnapshot();
+  assert.throws(() => controller.change((draft) => changeSaid(draft, `${saidText(draft)} and more`)), FieldsProblem);
+  assert.equal(controller.getSnapshot(), before, "nothing is published: no unsaved state and no notice");
+  await controller.settled();
+  assert.equal(memory.value!.turns.length, 2);
+  // The same box, one character shorter, is stored.
+  controller.change((draft) => changeSaid(draft, saidText(draft).slice(0, -1)));
+  await controller.settled();
+  assert.deepEqual([controller.getSnapshot().storage, memory.value!.composer.length], ["saved", 30001]);
+});
+
+test("opening a draft after a failed first read keeps the failure on screen, and a second failed try says so again", async t => {
+  const a = words("Synthetic draft A"), b = words("Synthetic draft B");
+  const repository = new MemoryDraftRepository(a, [b]);
+  const load = repository.load.bind(repository);
+  let failing = true;
+  t.mock.method(repository, "load", async (...args: Parameters<typeof load>) => {
+    // Only the first read fails: storage answers by the time the person presses a draft.
+    if (failing) { failing = false; throw new Error("blocked"); }
+    return load(...args);
+  });
+  const controller = new DraftController(repository, { pointer: memoryPointer() });
+  await controller.initialize();
+  assert.match(controller.getSnapshot().error ?? "", /could not be read/);
+  const before = controller.getSnapshot();
+  await assert.rejects(controller.open(b.id), /could not be read/);
+  assert.equal(controller.getSnapshot(), before, "the tab is not put on a draft it cannot store, and the notice stays");
+  // Try Again fails again: the failure is still said, not cleared.
+  failing = true;
+  controller.retry();
+  await idle();
+  assert.equal(controller.getSnapshot().storage, "memory");
+  assert.match(controller.getSnapshot().error ?? "", /could not be read/);
+  // Once storage reads, the draft opens and stores.
+  controller.retry();
+  await idle();
+  assert.equal(controller.getSnapshot().error, null);
+  await controller.open(b.id);
+  assert.deepEqual([controller.getSnapshot().draft.id, controller.getSnapshot().storage, controller.getSnapshot().error], [b.id, "saved", null]);
 });
 
 test("a new initiative survives a reload before its first word, and never falls back to another draft", async () => {

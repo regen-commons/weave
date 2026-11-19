@@ -217,6 +217,9 @@ export class DraftController {
   async open(id: string): Promise<DeviceDraft> {
     await this.loaded();
     if (this.snapshot.draft.id === id) return this.snapshot.draft;
+    // While the first read of storage has not succeeded, the tab cannot store a draft it opens,
+    // so it does not open one as if it could. The failure and its Try Again stay on screen.
+    if (!this.writable) throw new Error(UNREAD);
     await this.settled();
     if (this.dirty) throw new Error(UNSTORED);
     const before = this.snapshot.draft;

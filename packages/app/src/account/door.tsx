@@ -8,7 +8,7 @@ import { PrivateSaveAction } from "./PrivateSaveAction.tsx";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { AccountSection } from "./AccountSection.tsx";
-import { doorOnReturn } from "./sign-in.ts";
+import { doorOnReturn, doorShows } from "./sign-in.ts";
 import { useSetAside } from "./set-aside.ts";
 /** Opens the door. `problem` is a sign-in failure from the page that sent the person here, said at the door. */
 const DoorContext = createContext<((intent?: DoorIntent, problem?: string) => void) | null>(null);
@@ -77,7 +77,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
                 navigate(fixtureHref(pathTo("your-initiatives"), routeSearch(), true));
             }}
           />
-        ) : account.state?.user && intent === "keep" && setAside ? (
+        ) : intent !== null && doorShows(intent, !!account.state?.user, setAside) === "another-accounts-card" ? (
           // Signed in as someone else than the card's account, as on a shared device after a
           // sign-in that began at Save: the card is not offered to this account (DL-055).
           <div className="rc-stack">
@@ -89,7 +89,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
               </button>
             </div>
           </div>
-        ) : account.state?.user && intent === "keep" ? (
+        ) : intent !== null && doorShows(intent, !!account.state?.user, setAside) === "save" ? (
           <div className="rc-stack"><p>{status.line}</p>
             {status.save && <><p className="rc-meta">{status.save.note}</p>
               <PrivateSaveAction onFailed={setMessage} onSaved={() => setIntent(null)}>{status.save.label}</PrivateSaveAction></>}

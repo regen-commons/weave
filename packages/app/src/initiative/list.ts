@@ -121,3 +121,28 @@ export function standsForProject(draft: DeviceDraft, uri: string, chosenUri: str
     draft[kind].items.some((item) => item.sourceKey?.startsWith(source)),
   );
 }
+
+/**
+ * Opens the account's version of a card in place of this browser's working copy, and returns
+ * whether that copy is now a device backup. The loaded version is stored under the card's own
+ * ID, which is usually the copy's ID too: the load then backs the copy up and replaces it. A
+ * copy kept under another ID would stay beside it as a second draft of the same card, so it is
+ * moved to the backups, unless it is waiting for a save's answer or changed meanwhile, in which
+ * case it stays in the list.
+ */
+export async function openSavedOver(
+  copy: { readonly id: string },
+  saved: { readonly id: string },
+  open: () => Promise<void>,
+  retire: (id: string) => Promise<boolean>,
+): Promise<boolean> {
+  await open();
+  return copy.id === saved.id ? true : retire(copy.id);
+}
+
+/** What the page says once the saved version is open: where the copy that was here went. */
+export function savedVersionOpened(backedUp: boolean): string {
+  return backedUp
+    ? "The saved version is open. The copy that was on this device is in Device backups in Settings."
+    : "The saved version is open. The copy that was on this device is still in your list.";
+}

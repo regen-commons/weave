@@ -1,4 +1,4 @@
-import type { AiRun, DeviceDraft, Initiative } from "./contracts.ts";
+import { STORED_SAID_LIMIT, type AiRun, type DeviceDraft, type Initiative } from "./contracts.ts";
 import { availableBrowser, browserExtract } from "./engines.ts";
 import { saidText } from "./fill.ts";
 import type { KeywordResult } from "./keywords.ts";
@@ -62,8 +62,10 @@ export async function structureWords(
     now?(): number;
   },
 ): Promise<Structured> {
-  // The box is the one source of words. Earlier conversation answers are read as its text.
-  const source: DeviceDraft = { ...draft, composer: saidText(draft), turns: [], answerEdits: {}, pendingLink: "" };
+  // The box is the one source of words. Earlier conversation answers are read as its text, which
+  // can be longer than the box takes. Length alone never stops a fill: the rules read as much as
+  // a draft's words field holds.
+  const source: DeviceDraft = { ...draft, composer: saidText(draft).slice(0, STORED_SAID_LIMIT), turns: [], answerEdits: {}, pendingLink: "" };
   const started = now();
   const result = await keywords(source, signal);
   signal.throwIfAborted();

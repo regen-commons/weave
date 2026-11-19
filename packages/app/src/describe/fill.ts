@@ -1,6 +1,7 @@
 import {
   ABOUT_LIMIT,
   EMPTY_INITIATIVE,
+  STORED_SAID_LIMIT,
   LENS_LABELS,
   LensSchema,
   LinkSchema,
@@ -33,9 +34,9 @@ export function fieldsForm(draft: DeviceDraft): RecordForm {
   return draft.form ?? formFrom(previewFields(draft));
 }
 
-/** As many characters as the box and a stored draft's words hold. */
+/** As many characters as the box takes by typing or talking. */
 export const SAID_LIMIT = 20000;
-const BOX_FULL = "The box holds 20,000 characters. Shorten what is here to change it. Nothing has been removed.";
+const BOX_FULL = "The box takes 20,000 characters, and this would be more. You can shorten what is here. Nothing has been removed.";
 
 /**
  * What the box holds: the words the person said or typed. A draft from the earlier guided
@@ -56,9 +57,18 @@ export function saidText(draft: DeviceDraft): string {
  * the box showed, so it becomes the box's own words and is kept once.
  */
 export function changeSaid(draft: DeviceDraft, text: string): DeviceDraft {
-  // Earlier answers can add up to more than the box holds. They stay as they are until the text fits.
-  if (text.length > SAID_LIMIT) throw new FieldsProblem(BOX_FULL);
+  // Earlier answers can add up to more than the box takes. A change that does not make them
+  // longer is always accepted, so they can be trimmed a character at a time. Only adding is refused.
+  if (text.length > SAID_LIMIT && (text.length > saidText(draft).length || text.length > STORED_SAID_LIMIT))
+    throw new FieldsProblem(BOX_FULL);
   return revise(draft, { composer: text, turns: [], answerEdits: {}, pendingLink: "" }, true);
+}
+
+/** What the page says under a box that holds more than it takes, so typing that adds nothing is explained. */
+export function boxNote(said: string): string {
+  return said.length > SAID_LIMIT
+    ? "This is more than the box takes, so you can shorten it but not add to it. Fill In The Fields still reads it."
+    : "";
 }
 
 /** Cuts words to a length at the end of a sentence where there is one, otherwise between words. */

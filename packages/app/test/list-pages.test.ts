@@ -106,3 +106,15 @@ test("Sort opens the same menu the filters open, and the sheet's Clear all is a 
   assert.match(menu, /type="radio"/u);
   assert.match(bar, /data-variant="secondary"\s+type="button"\s+disabled=\{!query && choices\.length === 0\}\s+onClick=\{onClear\}/u);
 });
+
+test("Your Initiatives holds its own cards' shape while it loads, under the heading that arrives, and never a funding card's", () => {
+  const skeleton = read("ui/CardSkeleton.tsx");
+  const own = skeleton.slice(skeleton.indexOf('if (kind === "own")'), skeleton.indexOf('if (kind === "project")'));
+  // A name and a line about where it is kept, as the loaded card has. Measured at 1280 px: 140 against 160.
+  for (const part of ["rc-card-title", "rc-card-meta"]) assert.match(own, new RegExp(`className="${part}"`, "u"), part);
+  for (const part of ["rc-eyebrow", "rc-tag-list", "rc-card-summary", "rc-time"]) assert.doesNotMatch(own, new RegExp(`className="${part}"`, "u"), part);
+  const page = read("pages/YourInitiatives.tsx");
+  assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
+  assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
+  assert.match(page, /\{loading && \(\s*<Section id="initiatives-certified" title="On Certified">/u, "the heading is there before its cards");
+});
