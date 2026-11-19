@@ -6,8 +6,10 @@ import type { FixtureContext } from "../fixtures.ts";
 import { EMPTY_FILTERS, applyListFacet, listFacets, listSorts, selectRecords, type CapitalKey } from "../listing.ts";
 import { currentRoute, navigate, routeSearch } from "../router.tsx";
 import { pathTo, routeWith } from "../routes.ts";
+import { FUNDING_COMMONS } from "../links.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { FilterBar } from "../ui/FilterBar.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
@@ -41,10 +43,18 @@ export function ListPage({
       };
   const selected = selectRecords(records, visibleFilters, subject);
   const partners = kind === "partners";
+  // Every list opens the same way: its name, one line that says what it is for, then its filter bar.
+  const opening =
+    kind === "funding"
+      ? "Find support for your next chapter."
+      : partners
+        ? "Find people whose work complements yours."
+        : "See the work people are sharing.";
   if (!fixture && kind !== "funding") {
     return (
       <ListLayout>
         <Heading level={1} size="page">{title}</Heading>
+        <p className="rc-prose">{opening}</p>
         {partners ? <PartnerExperience mode="matches" /> : <PublicProjects />}
       </ListLayout>
     );
@@ -57,13 +67,7 @@ export function ListPage({
       <Heading level={1} size="page">
         {title}
       </Heading>
-      <p className="rc-prose">
-        {kind === "funding"
-          ? "Find support for your next chapter."
-          : partners
-            ? "Find people whose work complements yours."
-            : "See the work people are sharing."}
-      </p>
+      <p className="rc-prose">{opening}</p>
       {fixture?.state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
@@ -74,11 +78,22 @@ export function ListPage({
             </button>
           </div>
         </section>
-      ) : fixture?.state === "loading" ? (
+      ) : fixture?.state === "loading" && !partners ? (
         <section className="rc-stack" aria-busy="true" aria-label="Loading list">
-          <p role="status">Loading</p>
-          <div className="rc-skeleton" />
-          <div className="rc-skeleton" />
+          <FilterBar
+            noun={kind === "funding" ? "funds" : "initiatives"}
+            search={visibleFilters.search}
+            onSearch={(search) => setFilters((current) => ({ ...current, search }))}
+            facets={listFacets(visibleFilters, [])}
+            onFacet={() => {}}
+            sort={{ value: visibleFilters.sort, options: listSorts(personalized) }}
+            onSort={() => {}}
+            count={0}
+            total={0}
+            loading
+            onClear={() => {}}
+          />
+          <CardGridSkeleton kind={kind === "funding" ? "funding" : "initiative"} count={6} />
         </section>
       ) : partners ? (
         <ExamplePartners />
@@ -88,7 +103,7 @@ export function ListPage({
           action={
             <ButtonLink
               variant="primary"
-              href={kind === "funding" ? "https://funding-commons.vercel.app/" : pathTo("initiative")}
+              href={kind === "funding" ? FUNDING_COMMONS : pathTo("initiative")}
             >
               {kind === "funding" ? "Browse current funding" : "Describe your initiative"}
             </ButtonLink>

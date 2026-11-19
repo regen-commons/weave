@@ -3,8 +3,10 @@ import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react"
 
 /**
  * The one native dialog: a centred modal on a wide screen and a bottom sheet on a phone, where the
- * grip and the title row pull it away. Focus containment, Escape and the return to the invoker are
- * the browser's own. A press outside closes everything but a task, which must not close by accident.
+ * grip, the title row and the content at its top pull it away, and it stands on the on-screen
+ * keyboard (DL-091). Focus containment, Escape and the return to the invoker are the browser's
+ * own. A press outside closes every dialog, a task included (DL-082); one whose work is under way
+ * asks to stay open with `blockClose` and says why.
  */
 export function Dialog({
   ref,
@@ -33,17 +35,16 @@ export function Dialog({
   const dialog = ref ?? own;
   const sheet = useRef<Sheet | null>(null);
   const id = useId();
-  const lightDismiss = presentation !== "task";
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;
-    const connected = connectSheet(element, { lightDismiss });
+    const connected = connectSheet(element, { lightDismiss: true });
     sheet.current = connected;
     return () => {
       sheet.current = null;
       connected.dispose();
     };
-  }, [dialog, lightDismiss]);
+  }, [dialog]);
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;

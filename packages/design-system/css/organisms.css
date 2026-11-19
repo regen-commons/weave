@@ -33,6 +33,14 @@
 .rc-app-header-lead > .rc-logo { flex: none; }
 /* A flex box takes its baseline from the name's words; as a block it would take the arrow's foot. */
 .rc-app-header-lead > .rc-back { display: flex; flex: 0 1 auto; }
+/* The way back is a phone's: a wide screen keeps the logo there and shows Breadcrumbs above the
+   page's title (DL-080). */
+.rc-app-header-lead > .rc-logo[data-from="wide"] { display: none; }
+@media (min-width: 56.25rem) {
+  .rc-app-header-lead:has(> .rc-back) { flex: none; }
+  .rc-app-header-lead > .rc-back { display: none; }
+  .rc-app-header-lead > .rc-logo[data-from="wide"] { display: inline-flex; }
+}
 /* The header's sections size to their words with equal space between them, and the logo, which
    goes home, keeps the same space from the first (DL-049). Only the phone's bottom bar has equal
    tabs. */
@@ -54,7 +62,10 @@
   /* A tab name stays on one line; the save status gives way first. */
   white-space: nowrap;
 }
-.rc-app-nav > a:hover { color: var(--on-surface); }
+.rc-app-nav > a:active { color: var(--on-surface); }
+@media (hover: hover) {
+  .rc-app-nav > a:hover { color: var(--on-surface); }
+}
 /* The current tab keeps the same weight, so no tab changes width; its bar and colour mark it. */
 .rc-app-nav > a[aria-current="page"] {
   border-block-end-color: var(--section-accent, var(--action));
@@ -66,27 +77,37 @@
 /* Between pages the page cross-fades as one picture, and the app header and the bottom
    navigation change at once above it. Each has its own name at every width, so neither fades,
    slides or disappears under the page while it changes, and the current section's bar never
-   moves from one section to the next (DL-058). */
+   moves from one section to the next (DL-058). The dock of a focused step changes the same way. */
 .rc-app-header { view-transition-name: rc-app-header; }
 .rc-bottom-nav { view-transition-name: rc-bottom-nav; }
+.rc-dock { view-transition-name: rc-dock; }
 ::view-transition-old(rc-app-header),
-::view-transition-old(rc-bottom-nav) { display: none; }
+::view-transition-old(rc-bottom-nav),
+::view-transition-old(rc-dock) { display: none; }
 ::view-transition-group(rc-app-header),
-::view-transition-group(rc-bottom-nav) { z-index: var(--layer-sticky); animation: none; }
+::view-transition-group(rc-bottom-nav),
+::view-transition-group(rc-dock) { z-index: var(--layer-sticky); animation: none; }
 ::view-transition-new(rc-app-header),
-::view-transition-new(rc-bottom-nav) { animation: none; }
+::view-transition-new(rc-bottom-nav),
+::view-transition-new(rc-dock) { animation: none; }
 
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
    quarter of the narrowest phone; with very large text a label wraps inside its own tab. */
+/* The bar is fixed to the bottom of the window, as a native tab bar is: it does not move with the
+   page or with the bounce at the page's end. It keeps clear of the phone's home indicator, and of
+   a notch at either side when the phone is turned. The page keeps room for it under its footer
+   (`--bottom-nav-height` in templates.css, DL-086). */
 .rc-bottom-nav {
-  position: sticky;
+  position: fixed;
+  inset-inline: 0;
   inset-block-end: 0;
   z-index: var(--layer-sticky);
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
   padding-block-end: env(safe-area-inset-bottom);
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
   border-block-start: var(--border-thin) solid var(--control-line);
   background: var(--surface);
 }
@@ -110,6 +131,11 @@
   border-block-start-color: var(--section-accent, var(--action));
   color: var(--on-surface);
 }
+/* A pressed tab answers at once, before its page arrives (DL-087). */
+.rc-bottom-nav > a:active { background: var(--surface-tint); color: var(--on-surface-tint); }
+/* A tab is a control, not a link to press and hold: a long press brings up no preview or menu of
+   a link's on a phone, and selects no word (DL-095). */
+.rc-bottom-nav > a { -webkit-touch-callout: none; user-select: none; }
 /* The current tab's icon takes its section's accent, as a native tab bar tints it (DL-051). */
 .rc-bottom-nav > a[aria-current="page"] .rc-icon { color: var(--section-accent, var(--action)); }
 /* In forced colours a transparent bar would show on every tab, so only the current tab keeps one. */
@@ -120,6 +146,30 @@
 }
 @media (min-width: 56.25rem) {
   .rc-bottom-nav { display: none; }
+}
+
+/* Dock: a focused step has no tab bar, so on a phone its way forward takes that place. One action
+   spans the bottom of the window, on a bar built as the tab bar is: fixed, on the page's surface,
+   clear of the home indicator and of a notch at either side. It is a child of the page shell and
+   not of the page's main column, which is a size container and would hold a fixed bar inside
+   itself. A wide screen shows the action in its place on the page, so the dock is not drawn there,
+   and an empty dock is not drawn anywhere. The page keeps room for it under its footer
+   (`--dock-height` in templates.css, DL-089). */
+.rc-dock { display: none; }
+@media (width < 56.25rem) {
+  .rc-dock:not(:empty) {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: var(--layer-sticky);
+    display: grid;
+    padding-block: var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom));
+    padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
+    border-block-start: var(--border-thin) solid var(--control-line);
+    background: var(--surface);
+  }
+  /* The action spans a phone. On a wider one it stops at a form's width, at the page's start edge. */
+  .rc-dock > * { inline-size: 100%; max-inline-size: var(--form-width); }
 }
 
 /* Guide panel: the conversation for one step. */
@@ -203,6 +253,10 @@
 .rc-dialog {
   /* How far a finger has pulled the sheet down. behaviors/sheet.js writes it while dragging. */
   --sheet-drag: 0;
+  /* How much of the window's bottom the on-screen keyboard covers, and how much of the window is
+     still in view. behaviors/sheet.js writes both while a keyboard is up. */
+  --sheet-keyboard: 0;
+  --sheet-room: 100dvh;
   /* Room above and below a centred dialog: 8 percent of the window's height, from 24 to 80 px. */
   --dialog-inset: clamp(var(--space-5), 8dvh, var(--space-9));
   /* The padding in use, which the sticky title row also reads. A bottom sheet uses --sheet-padding. */
@@ -297,10 +351,9 @@
 .rc-app-header-state > .rc-save-status { min-inline-size: 0; }
 .rc-app-header-state > .rc-save-status > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button, .rc-app-header-state > .rc-account { flex: none; }
-/* The gear has no box of its own to see, so its glyph, not the clear space around it, meets the
-   page's edge, as the logo's mark does at the other end. Its tint, under a mouse or on Settings
-   itself, is a round one about the glyph, so it reads as a mark on the gear and not a box off the edge. */
-.rc-app-header-state > .rc-icon-button { margin-inline-end: calc((var(--icon-size) - var(--control-height)) / 2); border-radius: var(--radius-full); }
+/* An icon button in the bar, the switch between light and dark, has no box of its own to see, so
+   its tint under a mouse is a round one about the glyph. */
+.rc-app-header-state > .rc-icon-button { border-radius: var(--radius-full); }
 /* On a phone, a page where the card is worked on says how it is saved and, signed out, offers
    Sign in beside that. The name of the page behind has no room there, so the way back keeps its
    arrow alone, as a native bar does when its title is crowded. Its name is still read out. */
@@ -315,11 +368,11 @@
   .rc-app-header { flex-wrap: wrap; }
   .rc-app-header-state { margin-inline-start: auto; }
 }
-/* A phone keeps Settings one tap away as a gear. A wide screen has room for the account's own
-   menu, which holds Settings, so there the gear leaves and the menu's button arrives (DL-070). */
+/* A wide screen has room for the switch between light and dark and for the account's own menu,
+   which holds Settings (DL-070, DL-079). A phone's bar holds neither: its You tab has the theme
+   and the way to Settings (DL-086). */
 .rc-app-header-state > [data-from="wide"] { display: none; }
 @media (min-width: 56.25rem) {
-  .rc-app-header-state > [data-until="wide"] { display: none; }
   .rc-app-header-state > [data-from="wide"] { display: inline-grid; }
 }
 /* The same filter bar on every list (DL-061). Menus hold native checks, not ARIA menu items. */
@@ -362,7 +415,10 @@
 .rc-menu:has(.rc-menu-options[data-columns="2"]) { min-inline-size: min(var(--form-width), calc(100vw - var(--space-6))); }
 .rc-menu-group > legend { font: var(--type-title-sm); margin-block-end: var(--space-2); }
 .rc-menu-option { display: flex; align-items: center; min-block-size: var(--control-sm-height); gap: var(--space-2); padding-inline: var(--space-2); cursor: pointer; }
-.rc-menu-option:hover { background: var(--surface-tint); }
+.rc-menu-option:active { background: var(--surface-tint); }
+@media (hover: hover) {
+  .rc-menu-option:hover { background: var(--surface-tint); }
+}
 /* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
    it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
 .rc-menu-head { padding: var(--space-1) var(--space-2) var(--space-2); color: var(--text-secondary); overflow-wrap: anywhere; }
@@ -383,7 +439,10 @@
   text-decoration: none;
   cursor: pointer;
 }
-.rc-menu-item:hover:not([aria-busy="true"]) { background: var(--surface-tint); }
+.rc-menu-item:active:not([aria-busy="true"]) { background: var(--surface-tint); }
+@media (hover: hover) {
+  .rc-menu-item:hover:not([aria-busy="true"]) { background: var(--surface-tint); }
+}
 /* A row that is under way says so and keeps the focus, which a disabled button would drop. */
 .rc-menu-item[aria-busy="true"] { color: var(--text-muted); cursor: progress; }
 .rc-menu-item[aria-current="page"] { font: var(--type-label-md); }
@@ -403,20 +462,31 @@
 }
 .rc-footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--space-11)), 1fr)); gap: var(--space-5); }
 .rc-footer-title { font: var(--type-title-sm); }
+/* The list of Weave's pages says what a phone's tab bar already says, right above the bar. It is
+   not drawn where the bar shows. A focused step has no bar, so there the list is its way to the
+   sections and stays (DL-093). */
+@media (width < 56.25rem) {
+  .rc-page:has(> .rc-bottom-nav) .rc-footer-grid > [data-repeats="tabs"] { display: none; }
+}
 .rc-footer ul { padding: 0; list-style: none; }
-.rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-decoration: underline; cursor: pointer; }
+/* A footer row that is a button wraps from its start edge, like the links around it. */
+.rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-align: start; text-decoration: underline; cursor: pointer; }
+.rc-footer-link:active { color: var(--link-hover); }
 /* Bottom sheet: on a phone every presented dialog rises from the bottom edge and can be pulled back
    down. It stops at two thirds of the window, a record included, so a third of the page stays in
-   view above it to press, and a long one scrolls under its title row (DL-060). */
+   view above it to press, and a long one scrolls under its title row (DL-060). Where the
+   on-screen keyboard covers the bottom of the window, sheet.js says by how much
+   (--sheet-keyboard) and how much of the window is still in view (--sheet-room): the sheet
+   stands on the keyboard and fits in what is left, with a little of the page above it (DL-091). */
 @media (max-width: 37.5rem) {
   .rc-dialog[data-presentation] {
     --dialog-space: var(--sheet-padding);
-    inset: auto 0 0;
+    inset: auto 0 var(--sheet-keyboard);
     inline-size: 100%;
     max-inline-size: 100%;
     margin: 0;
     --dialog-end: max(var(--sheet-padding), env(safe-area-inset-bottom));
-    max-block-size: calc(100dvh * 2 / 3);
+    max-block-size: min(100dvh * 2 / 3, var(--sheet-room) - var(--space-5));
     padding-block-end: var(--dialog-end);
     border-end-start-radius: 0;
     border-end-end-radius: 0;
@@ -494,13 +564,17 @@
 .rc-conversation-panel { display: grid; align-content: start; gap: var(--space-5); min-block-size: var(--form-width); }
 .rc-voice-input { display: grid; gap: var(--space-2); }
 .rc-voice-input > .rc-button { justify-content: center; min-block-size: var(--space-9); }
+/* On a wide screen the action is a large button of its own width, not a bar across the column. */
+@container (min-width: 56.25rem) {
+  .rc-voice-input > .rc-button { justify-self: start; min-inline-size: var(--space-11); min-block-size: var(--control-lg-height); }
+}
 .rc-voice-transcript { min-block-size: var(--space-7); font: var(--type-reading-lg); white-space: pre-wrap; overflow-wrap: anywhere; }
 .rc-review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
 .rc-review-grid > .rc-proposal { align-content: start; }
 .rc-review-grid .rc-action-bar { margin-block-start: auto; }
 .rc-draft-preview { display: grid; gap: var(--space-4); overflow-wrap: anywhere; }
 .rc-draft-preview .rc-card-title { font: var(--type-headline-md); }
-.rc-draft-preview .rc-card-summary { display: block; overflow: visible; }
+.rc-draft-preview .rc-card-summary { display: block; overflow: visible; max-inline-size: var(--prose-width); }
 .rc-draft-status { display: flex; align-items: start; gap: var(--space-2); font: var(--type-body-sm); color: var(--text-muted); }
 /* Ask list and share card use the same card vocabulary on intake and finish. */
 .rc-ask-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }

@@ -10,6 +10,8 @@ import { MatchDetails } from "./NetworkResults.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import { projectSuggestions, rankCertifiedSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
 import { requestPublicEvidence } from "./matching-client.ts";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
+import { ButtonLink } from "../ui/ButtonLink.tsx";
 
 type SnapshotState = { workspaceId: string } & (
   | { status: "ready"; snapshot: PublicEvidenceSnapshot }
@@ -106,7 +108,7 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
             ? "Link an available Certified project to see suggestions."
             : current.code === "project_consent_required" ? "Confirm Certified project access to see suggestions."
               : "Public Certified evidence is unavailable right now."}</p>
-        ) : !matches ? <p role="status">Checking public Certified evidence</p> : (
+        ) : !matches ? <CardGridSkeleton kind="partner" count={compact ? 2 : 3} label="Checking public Certified evidence" /> : (
           <>
             <p className="rc-meta">
               Compared on this device with a limited set of public Certified projects.
@@ -172,9 +174,9 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
       {sources.length > 0 && (
         <div className="rc-action-bar">
           {sources.map((url, index) => (
-            <a key={url} className="rc-button" data-variant="secondary" href={url} target="_blank" rel="noopener noreferrer">
+            <ButtonLink key={url} href={url} variant="secondary">
               {sources.length > 1 ? `View source ${index + 1}` : "View source"}
-            </a>
+            </ButtonLink>
           ))}
         </div>
       )}

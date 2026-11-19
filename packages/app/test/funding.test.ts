@@ -35,7 +35,7 @@ import {
   fundingVocabulary,
 } from "../src/funding/facets.ts";
 import { fundingSearch } from "../src/funding/catalog.ts";
-import { CLOSING_SOON_DAYS, fundingPreviews } from "../src/home.ts";
+import { CLOSING_SOON_DAYS, fundingPreviews, FUNDING_PREVIEW_COUNT } from "../src/home.ts";
 import { fundingSourceUrl } from "../src/funding/source.ts";
 import {
   DeviceDraftSchema,
@@ -195,7 +195,7 @@ test("on the real catalog, Home previews the soonest open calls and counts the F
   const { upcoming, closingSoon } = fundingPreviews(entries, at);
   const listed = filterFunding(entries, { ...emptyFundingFilters, closing: String(CLOSING_SOON_DAYS) }, null, at);
   assert.equal(closingSoon, listed.length);
-  assert.ok(upcoming.length > 0 && upcoming.length <= 3);
+  assert.ok(upcoming.length > 0 && upcoming.length <= FUNDING_PREVIEW_COUNT);
   const left = upcoming.map((entry) => timeToClose(entry, at));
   assert.ok(left.every((time) => time >= 0), "only calls still open");
   assert.deepEqual(left, [...left].sort((a, b) => a - b), "soonest first");

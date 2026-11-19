@@ -8,112 +8,167 @@
 <div class="rc-page" data-section="your-initiatives">
 <a class="rc-skip-link" href="#main">Skip to content</a>
       <header class="rc-app-header">
-        <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="your-initiatives.html" aria-label="Back to Your Initiatives"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#back" /></svg><span>Your Initiatives</span></a></nav>
+        <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="your-initiatives.html" aria-label="Back to Your Initiatives"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#back" /></svg><span>Your Initiatives</span></a></nav><a class="rc-logo" data-from="wide" href="home.html"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
         <nav class="rc-app-nav" aria-label="Main">
           <a href="initiatives.html">Initiatives</a>
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
         </nav></div>
-        <div class="rc-app-header-state"><a class="rc-icon-button" href="settings.html" aria-label="Settings" aria-current="page" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" aria-current="page" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+        <div class="rc-app-header-state"><button class="rc-icon-button" type="button" data-from="wide" aria-label="Use dark theme"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#moon"/></svg></button><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" aria-current="page" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
       </header>
-      <main class="rc-main" id="main">
-        <div class="rc-narrow rc-settings">
+      <div class="rc-page-body">
+<canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
+<main class="rc-main" id="main">
+        <nav class="rc-breadcrumbs" aria-label="Breadcrumb" data-from="wide">
+          <ol>
+            <li><a href="your-initiatives.html">Your Initiatives</a></li>
+            <li aria-current="page">Settings</li>
+          </ol>
+        </nav>
+        <div class="rc-settings">
           <h1 class="rc-heading" data-size="page">Settings</h1>
-          <section class="rc-stack" aria-labelledby="settings-initiative">
-            <h2 class="rc-heading" data-size="section" id="settings-initiative">Your initiative</h2>
-            <div class="rc-status-line">
-              <p class="rc-save-status" role="status"><span><strong>Orchard learning circle</strong>. Saved privately in Weave. Only you can see it.</span></p>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-initiative">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-initiative">Your initiative</h2>
+              <p class="rc-meta">The card kept on this device.</p>
+            </div>
+            <div class="rc-settings-body">
+              <div class="rc-status-line">
+                <p class="rc-save-status" role="status"><span><strong>Orchard learning circle</strong>. Saved privately in Weave. Only you can see it.</span></p>
+                <div class="rc-action-bar">
+                  <a class="rc-button" data-variant="secondary" data-size="sm" href="saved.html">Open</a>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-account">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-account">Account</h2>
+              <p class="rc-meta">You sign in with Certified.</p>
+            </div>
+            <div class="rc-settings-body">
+              <p>Signed in with Certified as orchard.certified.one. No email is stored.</p>
+              <p class="rc-meta">Reminders and updates will ask for a way to reach you when you turn one on.</p>
               <div class="rc-action-bar">
-                <a class="rc-button" data-variant="secondary" data-size="sm" href="saved.html">Open</a>
+                <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-certified">What is Certified?</button>
               </div>
             </div>
           </section>
-          <section class="rc-stack" aria-labelledby="settings-account">
-            <h2 class="rc-heading" data-size="section" id="settings-account">Account</h2>
-            <p>Signed in with Certified as orchard.certified.one. No email is stored.</p>
-            <p class="rc-meta">Reminders and updates will ask for a way to reach you when you turn one on.</p>
-            <details>
-              <summary class="rc-footer-link">What is Certified?</summary>
-              <div class="rc-stack">
-                <dl class="rc-facts">
-                  <div>
-                    <dt>What it is</dt>
-                    <dd>A free account for your profile and your work that does not belong to any one app. The Hypercerts Foundation runs it.</dd>
-                  </div>
-                  <div>
-                    <dt>Why Weave uses it</dt>
-                    <dd>So you do not need a separate Weave account. The same sign-in works in other apps that use Certified.</dd>
-                  </div>
-                  <div>
-                    <dt>How you sign in</dt>
-                    <dd>With your email address. Certified sends you a code, so there is no password. If you are new, you can join there and come straight back.</dd>
-                  </div>
-                  <div>
-                    <dt>What Weave learns</dt>
-                    <dd>Who you are on Certified, and nothing else. Weave does not keep an email address from sign-in, and you do not need a public project there.</dd>
-                  </div>
-                </dl>
-                <p><a href="https://certified.app/welcome" target="_blank" rel="noopener noreferrer">Read more on Certified</a></p>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-appearance">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-appearance">Appearance</h2>
+              <p class="rc-meta">Light, dark, or the same as this device.</p>
+            </div>
+            <div class="rc-settings-body">
+              <div class="rc-field">
+                <label for="theme">Theme</label>
+                <select class="rc-input" id="theme">
+                  <option value="system">System</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
               </div>
-            </details>
-          </section>
-          <section class="rc-stack" aria-labelledby="settings-assistant">
-            <h2 class="rc-heading" data-size="section" id="settings-assistant">Assistant</h2>
-            <p>Keyword rules run on this device. No model download is needed.</p>
-            <p class="rc-meta">Downloaded and cloud models are not connected. No words are sent to a cloud model.</p>
-            <div class="rc-action-bar">
-              <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-assistant">What the assistant did</button>
             </div>
           </section>
-          <section class="rc-stack" aria-labelledby="settings-appearance">
-            <h2 class="rc-heading" data-size="section" id="settings-appearance">Appearance</h2>
-            <div class="rc-field">
-              <label for="theme">Appearance</label>
-              <p class="rc-hint" id="theme-hint">Choose a theme for this device.</p>
-              <select class="rc-input" id="theme" aria-describedby="theme-hint">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-assistant">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-assistant">Assistant</h2>
+              <p class="rc-meta">How your words are read.</p>
+            </div>
+            <div class="rc-settings-body">
+              <p>Keyword rules run on this device. No model download is needed.</p>
+              <p class="rc-meta">Downloaded and cloud models are not connected. No words are sent to a cloud model.</p>
+              <div class="rc-action-bar">
+                <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-assistant">What the assistant did</button>
+              </div>
             </div>
           </section>
-          <section class="rc-stack" aria-labelledby="settings-install">
-            <h2 class="rc-heading" data-size="section" id="settings-install">Install Weave on your phone</h2>
-            <p>Add Weave to your home screen and it opens like an app, full screen.</p>
-            <ol class="rc-numbered-list">
-              <li class="rc-numbered-item">
-                <span class="rc-numbered-number" aria-hidden="true">1</span>
-                <h3 class="rc-numbered-title"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#share"/></svg>Tap Share</h3>
-                <p class="rc-meta">In your browser's toolbar. If it is not there, tap the three dots first.</p>
-              </li>
-              <li class="rc-numbered-item">
-                <span class="rc-numbered-number" aria-hidden="true">2</span>
-                <h3 class="rc-numbered-title"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#add-box"/></svg>Tap Add to Home Screen</h3>
-                <p class="rc-meta">Scroll down the list to find it, then tap Add.</p>
-              </li>
-            </ol>
-            <p class="rc-meta">Save your initiative first. The installed app starts empty, so sign in there to open it.</p>
-          </section>
-          <section class="rc-stack" aria-labelledby="settings-data">
-            <h2 class="rc-heading" data-size="section" id="settings-data">Your data</h2>
-            <p>Download this device's current draft, unfinished words, files, assistant records and backups. It does not fetch other account cards. Keep the file private.</p>
-            <div class="rc-action-bar">
-              <button class="rc-button" data-variant="secondary" type="button">Download device data</button>
-              <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-data">What we store</button>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-install">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-install">Install Weave on your phone</h2>
+              <p class="rc-meta">It opens like an app, full screen.</p>
+            </div>
+            <div class="rc-settings-body">
+              <ol class="rc-numbered-list">
+                <li class="rc-numbered-item">
+                  <span class="rc-numbered-number" aria-hidden="true">1</span>
+                  <h3 class="rc-numbered-title"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#share"/></svg>Tap Share</h3>
+                  <p class="rc-meta">In your browser's toolbar. If it is not there, tap the three dots first.</p>
+                </li>
+                <li class="rc-numbered-item">
+                  <span class="rc-numbered-number" aria-hidden="true">2</span>
+                  <h3 class="rc-numbered-title"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#add-box"/></svg>Tap Add to Home Screen</h3>
+                  <p class="rc-meta">Scroll down the list to find it, then tap Add.</p>
+                </li>
+              </ol>
+              <p class="rc-meta">Save your initiative first. The installed app starts empty, so sign in there to open it.</p>
             </div>
           </section>
-          <section class="rc-settings-leave" aria-labelledby="settings-leave">
-            <h2 class="rc-heading" data-size="section" id="settings-leave">Leave</h2>
-            <div class="rc-action-bar">
-              <button class="rc-button" data-variant="secondary" type="button">Sign out</button>
-              <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-delete">Delete your account</button>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-data">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-data">Your data</h2>
+              <p class="rc-meta">A copy of what this device holds.</p>
+            </div>
+            <div class="rc-settings-body">
+              <p>Download this device's draft, unfinished words, files, assistant records and backups. Cards saved in your account are not included. Keep the file private.</p>
+              <div class="rc-action-bar">
+                <button class="rc-button" data-variant="secondary" type="button">Download device data</button>
+                <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-data">What we store</button>
+                <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-policy">Data policy</button>
+              </div>
+            </div>
+          </section>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-backups">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-backups">Device backups</h2>
+              <p class="rc-meta">Earlier drafts and their files, kept only in this browser. Restoring one backs up the current draft first.</p>
+            </div>
+            <div class="rc-settings-body">
+              <ul class="rc-record-list">
+                <li class="rc-record-row" data-layout="actions">
+                  <div class="rc-record-text">
+                    <p class="rc-record-title">Orchard learning circle</p>
+                    <p class="rc-meta">Last changed 12 November 2026 at 16:40, 2 attached files</p>
+                  </div>
+                  <div class="rc-action-bar">
+                    <button class="rc-button" data-variant="secondary" data-size="sm" type="button" aria-label="Restore Orchard learning circle, 12 November 2026 at 16:40">Restore</button>
+                    <button class="rc-button" data-variant="quiet" data-size="sm" type="button" aria-label="Delete this backup: Orchard learning circle, 12 November 2026 at 16:40">Delete</button>
+                  </div>
+                </li>
+                <li class="rc-record-row" data-layout="actions">
+                  <div class="rc-record-text">
+                    <p class="rc-record-title">A seed library for the upper valley, with a long working name</p>
+                    <p class="rc-meta">Last changed 3 November 2026 at 09:15</p>
+                  </div>
+                  <div class="rc-action-bar">
+                    <button class="rc-button" data-variant="secondary" data-size="sm" type="button" aria-label="Restore A seed library for the upper valley, 3 November 2026 at 09:15">Restore</button>
+                    <button class="rc-button" data-variant="quiet" data-size="sm" type="button" aria-label="Delete this backup: A seed library for the upper valley, 3 November 2026 at 09:15">Delete</button>
+                  </div>
+                </li>
+              </ul>
+              <div class="rc-action-bar">
+                <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Show all 7 backups</button>
+              </div>
+            </div>
+          </section>
+          <section class="rc-card rc-settings-group" aria-labelledby="settings-leave">
+            <div class="rc-settings-head">
+              <h2 class="rc-heading" data-size="section" id="settings-leave">Leave</h2>
+              <p class="rc-meta">Signing out keeps what is on this device.</p>
+            </div>
+            <div class="rc-settings-body">
+              <div class="rc-action-bar">
+                <button class="rc-button" data-variant="secondary" type="button">Sign out</button>
+                <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-delete">Delete your account</button>
+              </div>
             </div>
           </section>
         </div>
       </main>
+</div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
@@ -148,6 +203,33 @@
         <a href="funding.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>Funding</a>
         <a href="your-initiatives.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>You</a>
       </nav>
+      <dialog class="rc-dialog" data-presentation="information" id="example-certified" aria-labelledby="example-certified-title">
+        <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
+        <div class="rc-dialog-body">
+          <div class="rc-dialog-head" data-sheet-handle>
+            <h2 class="rc-dialog-title" id="example-certified-title">What is Certified?</h2>
+            <form method="dialog">
+              <button class="rc-button" data-variant="secondary" type="submit">Close</button>
+            </form>
+          </div>
+          <p>Certified is the account you sign in to Weave with.</p>
+          <dl class="rc-facts" data-kind="terms">
+            <div>
+              <dt>What it is</dt>
+              <dd>A free account for your profile and your work. It does not belong to Weave or to any one app. The Hypercerts Foundation runs it.</dd>
+            </div>
+            <div>
+              <dt>How you sign in</dt>
+              <dd>Certified emails you a code, so there is no password. If you are new, you can join there and come straight back.</dd>
+            </div>
+            <div>
+              <dt>What Weave learns</dt>
+              <dd>Who you are on Certified, so your saved work is yours. Weave does not keep an email address from sign-in.</dd>
+            </div>
+          </dl>
+          <p><a href="https://certified.app/welcome" target="_blank" rel="noopener noreferrer">Read more on Certified</a></p>
+        </div>
+      </dialog>
       <dialog class="rc-dialog" data-presentation="information" id="example-data" aria-labelledby="example-data-title">
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
@@ -157,33 +239,33 @@
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
           </div>
-          <dl class="rc-facts">
+          <dl class="rc-facts" data-kind="terms">
             <div>
-              <dt>Your draft</dt>
-              <dd>Conversations, unfinished words and files stay in this browser.</dd>
+              <dt>On this device</dt>
+              <dd>Your draft, conversations, files and backups stay in this browser until you save.</dd>
             </div>
             <div>
               <dt>When you save</dt>
-              <dd>Checked cards go to Regen Commons, linked to your sign-in.</dd>
+              <dd>Your checked card, the needs and offers you kept and your funding details go to the Regen Commons database, linked to your Certified sign-in. Conversations and files are not sent.</dd>
             </div>
             <div>
-              <dt>Details on your card</dt>
-              <dd>Places are your own words, with no map lookup. Themes are suggestions drawn from your words, not catalog labels.</dd>
+              <dt>Who can read a saved copy</dt>
+              <dd>In Weave, only you, and teammates you give access to a team workspace. Saved copies are not encrypted, so the people who run the Regen Commons database could read them.</dd>
             </div>
             <div>
-              <dt>Who can see it</dt>
-              <dd>Saved copies are private. Database administrators can technically access them.</dd>
+              <dt>Sharing and publishing</dt>
+              <dd>Nothing is shared until you choose it, and you see what leaves first. Sharing for matching reaches signed-in people whose entries fit yours. Publishing on Certified is public.</dd>
             </div>
             <div>
-              <dt>Your words</dt>
-              <dd>Read on this device. Cloud models are not connected.</dd>
+              <dt>The assistant</dt>
+              <dd>It reads your words on this device. Nothing is sent to a cloud model.</dd>
             </div>
             <div>
               <dt>Leaving</dt>
-              <dd>Sign-out keeps device copies. You can download them or delete your account in Settings.</dd>
+              <dd>Signing out keeps what is on this device. You can download it and delete backups in Settings, and delete a saved card in Your Initiatives. Deleting a whole account is not available yet.</dd>
             </div>
           </dl>
-          <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-policy">Read the full data policy</button>
+          <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-policy">Read the data policy</button>
         </div>
       </dialog>
       <dialog class="rc-dialog" data-presentation="information" id="example-assistant" aria-labelledby="example-assistant-title">

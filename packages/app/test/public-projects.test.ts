@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  countLine, firstPage, indexLine, listView, nextPage, publicProjectsPath, requestPublicProjects, sharedLabel, showsIndex,
+  countLine, firstPage, indexLine, listView, nextPage, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
+  searchQuery, SEARCH_PAUSE_MS, sharedLabel, showsIndex,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:fixture${"a".repeat(13)}aaa${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -20,6 +21,14 @@ test("each page has one same-origin address, with the search trimmed and bounded
   assert.equal(publicProjectsPath("  river   soil "), "/api/public-projects?q=river+soil");
   assert.equal(publicProjectsPath("", "abc", 3), "/api/public-projects?cursor=abc&limit=3");
   assert.equal(publicProjectsPath("x".repeat(150)).length, "/api/public-projects?q=".length + 100);
+});
+
+test("a typed search is trimmed, single spaced and bounded before it reaches the list (DL-081)", () => {
+  assert.equal(searchQuery("  river   soil  "), "river soil");
+  assert.equal(searchQuery("\n"), "");
+  assert.equal(searchQuery("x".repeat(150)).length, PUBLIC_PROJECT_QUERY_MAX);
+  assert.equal(publicProjectsPath(searchQuery(" river ")), "/api/public-projects?q=river");
+  assert.ok(SEARCH_PAUSE_MS >= 200 && SEARCH_PAUSE_MS <= 500, "long enough to send one request, short enough to feel live");
 });
 
 test("a page is read without credentials and refused unless it is valid", async () => {

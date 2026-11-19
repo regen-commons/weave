@@ -12,6 +12,7 @@ import {
 } from "../funding/select.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListLayout } from "../ui/layouts.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
@@ -22,6 +23,8 @@ import { fullDate } from "../home.ts";
 import { replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
 import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 import { SuggestFund } from "../funding/SuggestFund.tsx";
+import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { FUNDING_COMMONS } from "../links.ts";
 export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
@@ -59,26 +62,23 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
     const query = params.toString();
     replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
   }, [filters]);
+  // What the count line adds about the whole catalog, so nothing above the list comes and goes.
+  const note = !catalog.bundle
+    ? undefined
+    : catalog.ranking
+      ? "Comparing your card with the catalog on this device."
+      : `From ${catalog.bundle.catalog.funds.length} funders. ${
+          researchDate ? `Sources last checked ${fullDate(researchDate)}.` : "Source check date unknown."
+        }${personalized ? " Fit is worked out on this device from keywords." : ""}`;
   return (
     <ListLayout>
       <Heading level={1} size="page">
         Funding
       </Heading>
-      {!catalog.personalized && (
-        <DescribePrompt>
-          For now every fund is listed without ranking. Check eligibility with the funder before applying.
-        </DescribePrompt>
-      )}
+      <p className="rc-prose">Find support for your next chapter.</p>
       {(state === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
           You are offline. Showing the catalog bundled with this app; the funder's page needs a connection.
-        </p>
-      )}
-      {catalog.bundle && (
-        <p className="rc-meta">
-          {catalog.bundle.catalog.funds.length} funders, {entries.length} program and overview records.{" "}
-          {researchDate ? `Latest source check ${fullDate(researchDate)}.` : "Latest source check date unknown."}{" "}
-          Keyword matching runs on this device; no model download.
         </p>
       )}
       {catalog.bundle?.conditions === null && (
@@ -105,26 +105,20 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           </div>
         </section>
       )}
-      {loading ? (
-        <section className="rc-stack" aria-busy="true">
-          <p role="status">Opening the funding catalog</p>
-          <div className="rc-skeleton" />
-          <div className="rc-skeleton" />
-        </section>
-      ) : !entries.length ? (
+      {!loading && !entries.length ? (
         <EmptyState
           title="No funding records available"
           action={
-            <a className="rc-button" data-variant="secondary" href="https://funding-commons.vercel.app/">
+            <ButtonLink variant="secondary" href={FUNDING_COMMONS}>
               Browse current funding
-            </a>
+            </ButtonLink>
           }
         >
           Your initiative is still on this device. Try again or browse the current directory.
         </EmptyState>
       ) : (
         <>
-          {catalog.ranking && <p role="status">Comparing your card with the catalog on this device</p>}
+          {/* The bar is here from the first paint, so the list arrives under it and nothing jumps. */}
           <FilterBar
             noun="funding"
             things="programs and overview records"
@@ -136,9 +130,18 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             onSort={(sort) => setFilters((current) => ({ ...current, sort }))}
             count={selected.length}
             total={entries.length}
+            note={note}
+            loading={loading}
             onClear={() => setFilters((current) => ({ ...emptyFundingFilters, sort: current.sort }))}
           />
-          {selected.length ? (
+          {!loading && !catalog.personalized && (
+            <DescribePrompt>
+              For now every fund is listed without ranking. Check eligibility with the funder before applying.
+            </DescribePrompt>
+          )}
+          {loading ? (
+            <CardGridSkeleton kind="funding" count={6} />
+          ) : selected.length ? (
             <>
               <CardGrid>
                 {selected.slice(0, limit).map((entry) => (
@@ -173,6 +176,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                 <button
                   className="rc-button"
                   data-variant="secondary"
+                  type="button"
                   onClick={() => setFilters(emptyFundingFilters)}
                 >
                   Clear filters
@@ -182,7 +186,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
               Try fewer filters or another search.
             </EmptyState>
           )}
-          {import.meta.env.DEV && example && <SuggestFund />}
+          {import.meta.env.DEV && example && !loading && <SuggestFund />}
         </>
       )}
       <FundingProfile />

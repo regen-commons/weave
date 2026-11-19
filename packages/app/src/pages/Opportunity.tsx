@@ -20,6 +20,7 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { Fit } from "../ui/Fit.tsx";
+import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 
 /**
  * One funding opportunity, opened over the page the person was on. `search` is the query it was
@@ -62,7 +63,7 @@ export function Opportunity({
     return (
       <DetailSheet title={title} state={sheet}>
         {catalog.loading ? (
-          <p role="status">Opening the catalog copy</p>
+          <LinesSkeleton label="Opening the catalog copy" panel />
         ) : (
           <>
             <p>
@@ -139,15 +140,9 @@ export function Opportunity({
           </ButtonLink>
         )}
         {url && (
-          <a
-            className="rc-button"
-            data-variant={described ? "primary" : "secondary"}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <ButtonLink href={url} variant={described ? "primary" : "secondary"}>
             Open the funder's page
-          </a>
+          </ButtonLink>
         )}
         {import.meta.env.DEV && example && (
           <SocialAction intent={{ kind: "remind", id: entry.program?.id ?? fundId, name: title }} />
@@ -159,7 +154,7 @@ export function Opportunity({
           Why it fits
         </h3>
         {catalog.ranking ? (
-          <p role="status">Comparing your card on this device</p>
+          <LinesSkeleton label="Comparing your card on this device" lines={2} />
         ) : result ? (
           <>
             {result.thematicFit.score === null ? (
@@ -282,8 +277,7 @@ export function Opportunity({
       </section>
       {fixture?.state === "loading" && !retried ? (
         <section className="rc-stack">
-          <p role="status">Opening team slots</p>
-          <div className="rc-skeleton" />
+          <LinesSkeleton label="Opening team slots" lines={2} />
           <button className="rc-button" data-variant="secondary" type="button" onClick={() => setRetried(true)}>
             Show team slots
           </button>

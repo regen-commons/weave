@@ -1,3 +1,4 @@
+import { Link } from "../router.tsx";
 import { Media } from "./Media.tsx";
 /** Renders supplied preview content. Never fetches the destination in the browser. */
 export function LinkPreview({
@@ -13,9 +14,7 @@ export function LinkPreview({
     <div className="rc-link-preview">
       <Media thumb />
       <div className="rc-link-preview-text">
-        <a href={url} rel="noopener noreferrer">
-          {title}
-        </a>
+        <Link href={url}>{title}</Link>
         <p className="rc-meta">{description}</p>
       </div>
     </div>

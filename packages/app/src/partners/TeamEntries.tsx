@@ -130,7 +130,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
         <section className="rc-stack" aria-label="Edit team entry">
           {!saved && !workspace.projectTitle && <div className="rc-field">
             <label htmlFor="team-title">Initiative name</label>
-            <input className="rc-input" id="team-title" value={title} maxLength={200} disabled={frozen}
+            <input className="rc-input" id="team-title" autoCapitalize="words" autoComplete="organization" value={title} maxLength={200} disabled={frozen}
               onChange={(event) => setTitle(event.target.value)} />
           </div>}
           <AskEditor kind={edit.kind} value={edit.form} error={error} disabled={frozen || !online}

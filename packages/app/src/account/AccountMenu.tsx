@@ -11,7 +11,7 @@ import { signOut } from "./sign-out.ts";
 /**
  * The account's menu in the app header on a wide screen (DL-070): who is signed in, the two
  * places that are theirs, and Sign out. It renders the Account button (`rc-account`) and a Menu
- * (`rc-menu`). A phone has no room for it and keeps the You tab and the Settings gear.
+ * (`rc-menu`). A phone has no room for it: its You tab holds the account and Settings (DL-086).
  */
 export function AccountMenu({
   current,

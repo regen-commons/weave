@@ -180,6 +180,38 @@ The tests check that generated files are current, the linter is clean, website v
 - The paper grain is a file, `brand/grain.svg`, instead of an inline `data:` image. The app's
   security policy allows images from the site itself only, so production refused the inline
   grain and it never showed there; the app's production build no longer inlines assets.
+- Modify stable patterns for phones (DL-086). Bottom navigation is fixed to the bottom of
+  the window, clear of the home indicator, and the Page shell keeps room for it. App header
+  loses the Settings gear and the `data-until="wide"` variant of its state. Section stacks
+  its heading and action on a phone and adds `data-until="wide"`. Action bar adds
+  `data-from="wide"` on a child. Doorway can be followed by a Section.
+- Modify every control for touch (DL-087). Hover styles sit inside `@media (hover: hover)`,
+  and Button, Icon button, Account button, Chip, Bottom navigation, Menu, Tabs, Back link,
+  Breadcrumbs, Logo and the footer's links gain a pressed state. `base.css` clears the tap
+  flash and sets `touch-action: manipulation` once.
+- Add Dock, stable (DL-089): a focused step's way forward on a phone, fixed where the tab bar
+  would be. Page shell keeps room for it. Action bar is not drawn on a phone when every action
+  in it waits for a wide screen. The count of patterns goes up by one.
+- Fix two phone targets (DL-088). Chip's remove button is 44 px wide where it was 32 px, at
+  the same chip width, and gains a pressed state and a focus ring drawn inside it. A footer
+  link that is a button wraps from its start edge.
+- Modify Card grid and Card for phones (DL-090). A preview (`data-preview`) is one row that
+  swipes sideways and rests on a card, and shows every card it was given. Under 900 px a list
+  card does not draw the Media placeholder or the Skeleton shape that holds its place, and a
+  tag in a card that opens is a label under the card's link.
+- Modify Dialog's sheet behaviour (DL-091). `./sheet` also pulls a sheet away from its
+  content where that is at its top, and stands it on the on-screen keyboard through two
+  custom properties, `--sheet-keyboard` and `--sheet-room`. A flick now has to travel 24 px,
+  so a press that wobbles on the grip or the title row no longer dismisses a sheet.
+- Add push and pop for pages on a phone (DL-094). `templates.css` gains four keyframes and
+  reads `data-page-move` on the root, which the app sets while a change of page is drawn.
+  Wide screens, and moves between sections, cross-fade as before.
+- Modify Bottom navigation (DL-095). A tab takes no link menu on a long press and its word is
+  not selected.
+- Modify Footer for phones (DL-093). The list of Weave's pages carries `data-repeats="tabs"`
+  and is not drawn under 900 px on a page that has the tab bar.
+- Fix Home hero's live line (DL-092). `rc-home-live` keeps room for both counts, two lines on
+  a phone and one when wide, so the page under the hero no longer moves when a count arrives.
 
 ### Unreleased, Step 8
 

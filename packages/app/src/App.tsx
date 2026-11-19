@@ -33,6 +33,7 @@ import {
   routeSearch,
   settleScroll,
   usePathname,
+  wasReturn,
   wroteQuietly,
 } from "./router.tsx";
 import {
@@ -50,6 +51,7 @@ import { Page } from "./ui/Page.tsx";
 import { FixtureControls } from "./ui/FixtureControls.tsx";
 import { Heading } from "./ui/Heading.tsx";
 import { NarrowLayout } from "./ui/layouts.tsx";
+import { DraftSkeleton } from "./ui/CardSkeleton.tsx";
 
 function content(route: Route, fixture?: FixtureContext) {
   switch (route.name) {
@@ -155,7 +157,7 @@ export function App() {
       : undefined;
   if (returning) return <div className="rc-page"><main className="rc-main" id="main" tabIndex={-1}>
     <NarrowLayout><Heading level={1} size="page">Returning to Weave</Heading>
-      <p role="status">Finishing Certified permissions.</p></NarrowLayout>
+      <DraftSkeleton label="Finishing Certified permissions" /></NarrowLayout>
   </main></div>;
   return (
     <DraftProvider fixture={fixture}>
@@ -228,6 +230,10 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     if (!sheetRoute) pageBack.current = { path: pagePath, target: back };
   });
   const last = useRef({ location, pagePath, sheet: !!sheetRoute });
+  // A page that was reloaded, or dropped in the background and loaded again, opens where it was left.
+  useEffect(() => {
+    if (wasReturn()) settleScroll();
+  }, []);
   useEffect(() => {
     // An open sheet names the document itself.
     if (!sheetRoute) document.title = documentTitle(pageRoute);

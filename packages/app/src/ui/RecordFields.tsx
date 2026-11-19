@@ -1,6 +1,11 @@
 import { useId } from "react";
 import type { RecordForm } from "../describe/contracts.ts";
-/** The four public fields, shared by direct entry and review. Raw incomplete text stays editable. */
+/**
+ * The four public fields, shared by direct entry and review. Raw incomplete text stays editable.
+ * Each tells a phone's keyboard what it holds: names start each word with a capital, and links get
+ * the address keys with no capitals and no corrections. The two one-line fields label Enter as
+ * Next, and the form they sit in moves the focus on (`moveOnEnter`, DL-096).
+ */
 export function RecordFields({ value, onChange }: { value: RecordForm; onChange(value: RecordForm): void }) {
   const id = useId();
   return (
@@ -10,6 +15,9 @@ export function RecordFields({ value, onChange }: { value: RecordForm; onChange(
         <input
           className="rc-input"
           id={`${id}-name`}
+          autoCapitalize="words"
+          autoComplete="organization"
+          enterKeyHint="next"
           value={value.name}
           maxLength={200}
           required
@@ -25,6 +33,8 @@ export function RecordFields({ value, onChange }: { value: RecordForm; onChange(
           className="rc-input"
           id={`${id}-where`}
           aria-describedby={`${id}-where-hint`}
+          autoCapitalize="words"
+          enterKeyHint="next"
           value={value.where}
           maxLength={2000}
           onChange={(event) => onChange({ ...value, where: event.target.value })}
@@ -54,6 +64,10 @@ export function RecordFields({ value, onChange }: { value: RecordForm; onChange(
           className="rc-input"
           id={`${id}-links`}
           aria-describedby={`${id}-links-hint`}
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={value.links}
           rows={2}
           maxLength={14000}

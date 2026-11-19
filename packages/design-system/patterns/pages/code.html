@@ -27,8 +27,10 @@
   <a class="rc-skip-link" href="#main">Skip to content</a>
   <header class="rc-app-header">
     <div class="rc-app-header-lead"><a class="rc-logo" href="home.html"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a></div>
-    <div class="rc-app-header-state"><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
+    <div class="rc-app-header-state"></div>
   </header>
+  <div class="rc-page-body">
+  <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
   <main class="rc-main" id="main">
     <div class="rc-narrow">
       <h1 class="rc-heading" data-size="page">Enter your code</h1>
@@ -54,9 +56,10 @@
         <form class="rc-code-panel" method="dialog"><div class="rc-field"><label for="task-code">Example code</label><input class="rc-input" data-kind="code" id="task-code" inputmode="numeric" autocomplete="one-time-code" minlength="8" maxlength="8" required></div><button class="rc-button" data-variant="primary" type="submit">Keep the example</button></form>
       </div></dialog>
     </div>
-  </main><footer class="rc-footer">
+  </main>
+  </div><footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>

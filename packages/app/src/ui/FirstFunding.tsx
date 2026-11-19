@@ -1,6 +1,7 @@
 import { useCatalog, type FundingSubject } from "../funding/use-catalog.ts";
 import { catalogEntries } from "../funding/catalog.ts";
 import { CardGrid } from "./Card.tsx";
+import { CardGridSkeleton } from "./CardSkeleton.tsx";
 import { OpportunityCard } from "./OpportunityCard.tsx";
 import { ButtonLink } from "./ButtonLink.tsx";
 export function FirstFunding({ subject }: { subject?: FundingSubject }) {
@@ -10,7 +11,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
   return (
     <>
       {loading || ranking ? (
-        <p role="status">Comparing your card with funding on this device</p>
+        <CardGridSkeleton kind="funding" count={2} label="Comparing your card with funding on this device" />
       ) : error ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">

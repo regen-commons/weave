@@ -14,6 +14,8 @@ import { previewSecurityHeaders } from "./dev/security-headers.ts";
 import { answerApiRequest, type LoadEntry } from "./dev/api-bridge.ts";
 import { fontPreloads } from "./dev/font-preloads.ts";
 import { linkPreviews } from "./dev/link-previews.ts";
+import { appManifest } from "./dev/manifest.ts";
+import { themeColor } from "./dev/theme-color.ts";
 import { isolateFixtureProjectOAuth } from "./dev/fixture-oauth-isolation.ts";
 
 /**
@@ -100,30 +102,12 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       apiRoutes(),
-      // After the preloads, so each section's copy of index.html carries them too.
-      ...(prototype ? [] : [fontPreloads(), linkPreviews()]),
+      // After the preloads and the theme colours, so each section's copy of index.html carries them too.
+      ...(prototype ? [] : [fontPreloads(), themeColor(), linkPreviews()]),
       ...(prototype ? [] : [VitePWA({
         registerType: "autoUpdate",
         injectRegister: "script",
-        manifest: {
-          name: "Weave",
-          short_name: "Weave",
-          description: "Find partners and funding for regenerative work.",
-          lang: "en",
-          start_url: "/",
-          scope: "/",
-          display: "standalone",
-          // The manifest cannot read CSS, so its colours come from the generated tokens.
-          background_color: tokens.themes.light.surface,
-          theme_color: tokens.themes.light.surface,
-          // A home screen wants a picture at its own sizes; a maskable one may be cut to a circle.
-          icons: [
-            { src: "/brand/logo/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-            { src: "/brand/logo/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-            { src: "/brand/logo/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-            { src: "/brand/logo/mark.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-          ],
-        },
+        manifest: appManifest(tokens.themes.light.surface),
         workbox: {
           // The plugin turns these on for autoUpdate only when it injects the register
           // code itself; without them a new version waits until every tab is closed.

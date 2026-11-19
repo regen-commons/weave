@@ -8,6 +8,7 @@ import { InformationContext } from "../ui/information-context.ts";
 import { useSocialFixture } from "./context.tsx";
 import { EXAMPLE_HANDLE } from "./fixture.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
+import { SIGN_IN } from "../data/privacy.ts";
 
 export type DoorIntent = "keep" | "sign-in" | "certified";
 export type DoorResult = "saved" | "signed-in" | "cancelled";
@@ -105,7 +106,7 @@ export function ExampleDoor({
         <h3 className="rc-heading" data-size="section">
           Continue to Weave as {EXAMPLE_HANDLE}?
         </h3>
-        <p className="rc-meta">Weave learns who you are on Certified and nothing else.</p>
+        <p className="rc-meta">Weave learns who you are on Certified. It does not get your email address.</p>
         <div className="rc-action-bar">
           <button
             className="rc-button"
@@ -136,10 +137,8 @@ export function ExampleDoor({
   return (
     <div className="rc-stack" ref={body}>
       <p>
-        {reason ??
-          "Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave."}
+        {reason ?? SIGN_IN.offer}
       </p>
-      <AboutCertified />
       <div className="rc-action-bar">
         <button
           className="rc-button"
@@ -153,6 +152,10 @@ export function ExampleDoor({
         <button className="rc-button" data-variant="quiet" type="button" onClick={() => onDone("cancelled")}>
           Not now
         </button>
+      </div>
+      <p className="rc-meta">{SIGN_IN.effect}</p>
+      <div className="rc-action-bar">
+        <AboutCertified />
         {information && (
           <button className="rc-button" data-variant="quiet" type="button" onClick={() => information("storage")}>
             What is saved

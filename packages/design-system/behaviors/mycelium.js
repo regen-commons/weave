@@ -241,12 +241,14 @@ function drawNetwork(context, branches, colours, base, share = whole) {
 
 /**
  * Starts the growth on a canvas. `within` is the region it lies under, the canvas's parent unless
- * given: a mouse moving anywhere over it grows tufts. `own` is where tufts grow on their own where
+ * given: a mouse moving anywhere over it grows tufts. `column` is the element that holds the
+ * content, or a function that finds it, `within` unless given: the resting network is quieter
+ * under it and whole beside it, so a canvas behind a whole page names the page's column. `own` is where tufts grow on their own where
  * there is no mouse, the whole of `within` unless an element inside it is marked
  * `data-mycelium-own`. Returns `dispose`, which stops drawing and removes every listener and
  * observer; call it on unmount.
  */
-export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?? canvas } = {}) {
+export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?? canvas, column: holder = within } = {}) {
   const context = canvas.getContext("2d");
   const view = canvas.ownerDocument.defaultView;
   if (!context || !view) return { dispose() {} };
@@ -300,7 +302,10 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     canvas.height = Math.round(height * ratio);
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     density = densityFor(width, height);
-    const inner = within === canvas ? box : within.getBoundingClientRect();
+    // The column may be named by a function, where the element that holds the content changes
+    // while the canvas stays, as a page's does between pages.
+    const held = (typeof holder === "function" ? holder() : holder) ?? within;
+    const inner = held === canvas ? box : held.getBoundingClientRect();
     column = { left: inner.left - box.left, right: inner.right - box.left };
   }
 

@@ -23,6 +23,9 @@ import { fixtureHref, INTAKE_STEPS, pathTo } from "../routes.ts";
 import { useSocialFixture } from "../social/context.tsx";
 import { publicFacts } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { revealProblem } from "../ui/dock.ts";
+import { Dock } from "../ui/Dock.tsx";
+import { moveOnEnter } from "../ui/next-field.ts";
 import { DetailEditor } from "../ui/DetailEditor.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Facts } from "../ui/Facts.tsx";
@@ -30,8 +33,11 @@ import { Heading } from "../ui/Heading.tsx";
 import { Stack } from "../ui/layouts.tsx";
 import { RecordFields } from "../ui/RecordFields.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
+import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
 const DETAILS = Object.keys(DERIVED_LABELS) as DerivedKey[];
+const FORM_ID = "check-card-form";
+const PROBLEM_ID = "check-card-problem";
 
 /**
  * The check card. The person sees what the app proposed and keeps, changes or removes it before
@@ -147,19 +153,33 @@ export function CheckCard() {
   }
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // The press may come from a phone's dock, a screen away from where the problem is written.
+    const stop = (text: string) => revealProblem(PROBLEM_ID, () => setProblem({ revision: draft.revision, text }));
     if (editing) {
-      setProblem({ revision: draft.revision, text: "Keep or cancel the open detail first." });
+      stop("Keep or cancel the open detail first.");
       return;
     }
     let next: DeviceDraft;
     try {
       next = controller.change((current) => keepCard(current, !!(import.meta.env.DEV && linked)));
     } catch (error) {
-      setProblem({ revision: draft.revision, text: keepProblem(error) });
+      stop(keepProblem(error));
       return;
     }
     navigate(fixtureHref(pathTo(cardRoute(next)), routeSearch(), import.meta.env.DEV));
   }
+  /** The step's way forward: in its place on a wide screen, in the dock on a phone (DL-089). */
+  const forward = (from?: "wide") =>
+    import.meta.env.DEV && linked && settled ? (
+      <ButtonLink href={pathTo(route)} variant="primary" from={from}>
+        {route === "your-initiative" ? "Back to your initiative" : "Continue"}
+      </ButtonLink>
+    ) : (
+      // The dock is outside the form, so the button names the form it sends.
+      <button className="rc-button" data-variant="primary" data-from={from} type="submit" form={FORM_ID}>
+        {pending.length ? "Keep card and continue" : "Continue"}
+      </button>
+    );
   return (
     <Stack>
       <Stepper steps={INTAKE_STEPS.map((step) => step.label)} current={0} />
@@ -173,7 +193,7 @@ export function CheckCard() {
         onRetry={() => controller.retry()}
       />
       {!ready ? (
-        <p role="status">Opening your device draft</p>
+        <DraftSkeleton />
       ) : view === "describe" || !fields || !form ? (
         <>
           <p>Describe your initiative first.</p>
@@ -195,7 +215,7 @@ export function CheckCard() {
           </div>
         </>
       ) : (
-        <form className="rc-form" onSubmit={submit}>
+        <form className="rc-form" id={FORM_ID} onSubmit={submit} onKeyDown={moveOnEnter}>
           {build?.fallback && (
             <p className="rc-notice" data-tone="warning">
               The browser model could not finish, so keyword rules built this card. Your words are kept.
@@ -291,28 +311,19 @@ export function CheckCard() {
             </p>
           )}
           {problem?.revision === draft.revision && (
-            <p className="rc-error" role="alert">
+            <p className="rc-error" role="alert" id={PROBLEM_ID}>
               {problem.text}
             </p>
           )}
           <div className="rc-action-bar">
-            {import.meta.env.DEV && linked && settled ? (
-              <ButtonLink href={pathTo(route)} variant="primary">
-                {route === "your-initiative" ? "Back to your initiative" : "Continue"}
+            {forward("wide")}
+            {!(import.meta.env.DEV && linked) && hasConversation(draft) && (
+              <ButtonLink href={pathTo("initiative")} variant="quiet">
+                Add or change your words
               </ButtonLink>
-            ) : (
-              <>
-                <button className="rc-button" data-variant="primary" type="submit">
-                  {pending.length ? "Keep card and continue" : "Continue"}
-                </button>
-                {!(import.meta.env.DEV && linked) && hasConversation(draft) && (
-                  <ButtonLink href={pathTo("initiative")} variant="quiet">
-                    Add or change your words
-                  </ButtonLink>
-                )}
-              </>
             )}
           </div>
+          <Dock>{forward()}</Dock>
         </form>
       )}
     </Stack>

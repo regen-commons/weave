@@ -21,6 +21,24 @@ export function backupDeleteWarning(draft: DeviceDraft): string {
   return `This deletes the backup ${draftTitle(draft)}, last changed ${draftTime(draft)}, from this browser${
     count ? ` with its ${files(count)}` : ""}. It cannot be undone.`;
 }
+/** The confirmation for restoring one backup: which one opens, and what happens to the draft here now. */
+export function restoreWarning(draft: DeviceDraft): string {
+  const count = attachedFiles(draft);
+  return `This opens the backup ${draftTitle(draft)}, last changed ${draftTime(draft)}${
+    count ? `, with its ${files(count)}` : ""}. The draft on this device now is kept as a backup first.`;
+}
+/** One line under a backup's name: when it last changed and what it holds. */
+export function backupLine(draft: DeviceDraft): string {
+  const count = attachedFiles(draft);
+  return `Last changed ${draftTime(draft)}${count ? `, ${files(count)}` : ""}`;
+}
+/** How many backups the list shows before it offers the rest, so a long history never fills the page. */
+export const BACKUPS_SHOWN = 4;
+/** Backups newest first, by when each draft last changed, and only the first few unless all are asked for. */
+export function listedBackups<T extends { draft: DeviceDraft }>(backups: readonly T[], all: boolean): T[] {
+  const newest = [...backups].sort((a, b) => b.draft.updatedAt.localeCompare(a.draft.updatedAt));
+  return all ? newest : newest.slice(0, BACKUPS_SHOWN);
+}
 export function discardWarning(draft: DeviceDraft): string {
   const count = attachedFiles(draft);
   return `Weave keeps ${draftTitle(draft)} as a device backup first${count ? `, with its ${files(count)}` : ""}, so you can restore it below. A copy saved in your account is not changed.`;

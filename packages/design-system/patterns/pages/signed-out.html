@@ -32,11 +32,12 @@
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
         </nav></div>
-    <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
+    <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button></div>
   </header>
-  <main class="rc-main" id="main">
+  <div class="rc-page-body">
+<canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
+<main class="rc-main" id="main">
     <div class="rc-doorway">
-      <canvas class="rc-mycelium" aria-hidden="true"></canvas>
       <h1 class="rc-heading" data-size="page">Your Initiatives</h1>
       <p class="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>
       <div class="rc-action-bar">
@@ -44,9 +45,24 @@
         <a class="rc-button" data-variant="secondary" href="describe.html">Describe a new initiative</a>
       </div>
     </div>
-  </main><footer class="rc-footer">
+    <section class="rc-section" data-until="wide" aria-labelledby="initiatives-settings">
+      <div class="rc-section-head">
+        <h2 class="rc-heading" data-size="section" id="initiatives-settings">Settings</h2>
+        <a class="rc-button" data-variant="quiet" data-size="sm" href="settings.html">All settings</a>
+      </div>
+      <fieldset>
+        <legend>Theme</legend>
+        <div class="rc-chip-group">
+          <label class="rc-chip"><input class="rc-check" type="radio" name="theme" checked>System</label>
+          <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Light</label>
+          <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Dark</label>
+        </div>
+      </fieldset>
+    </section>
+  </main>
+</div><footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>

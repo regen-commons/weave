@@ -44,6 +44,8 @@
   background: var(--section-accent, var(--action));
 }
 .rc-heading[data-size="section"] { font: var(--type-headline-sm); }
+/* A heading can carry the sign of what it lists, such as needs or offers, beside its words. */
+.rc-heading:has(> .rc-icon) { display: flex; align-items: center; gap: var(--space-2); }
 .rc-heading[data-size="hero"] {
   font: var(--type-headline-display);
   font-size: clamp(var(--size-headline-lg), 1.5rem + 5vw, var(--size-headline-hero));
@@ -57,6 +59,11 @@
   font: var(--type-label-sm);
   letter-spacing: normal;
   color: var(--section-accent-text, var(--text-accent));
+}
+
+/* One that only repeats a wide screen's breadcrumbs leaves with them in view. */
+@media (min-width: 56.25rem) {
+  .rc-eyebrow[data-until="wide"] { display: none; }
 }
 
 .rc-prose {
@@ -97,8 +104,11 @@
   text-decoration: none;
 }
 .rc-logo:visited { color: var(--on-surface); }
-.rc-logo:hover { color: var(--link-hover); }
-.rc-logo:hover .rc-logo-mark { border-color: var(--section-accent, var(--link)); }
+.rc-logo:active { color: var(--link-hover); }
+@media (hover: hover) {
+  .rc-logo:hover { color: var(--link-hover); }
+  .rc-logo:hover .rc-logo-mark { border-color: var(--section-accent, var(--link)); }
+}
 /* The website's six thread colours, for the hero's mycelium and the logo's ring. */
 .rc-mycelium, .rc-logo-mark {
   --mycelium-1: var(--forest);
@@ -136,7 +146,6 @@
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  touch-action: manipulation;
 }
 .rc-button:visited { color: var(--on-surface); }
 .rc-button[data-size="sm"] {
@@ -154,13 +163,15 @@
   background: var(--action);
   color: var(--on-action);
 }
-.rc-button[data-variant="primary"]:hover:not(:disabled, [aria-busy="true"]) {
+/* Pressed, a button takes the look a pointer over it gives, on every device. The hover looks
+   themselves follow the variants, for devices that hover (DL-087). */
+.rc-button[data-variant="primary"]:active:not(:disabled, [aria-busy="true"]) {
   background: var(--action-hover);
   color: var(--on-action-hover);
 }
 
 .rc-button[data-variant="secondary"] { border-color: var(--control-line); }
-.rc-button[data-variant="secondary"]:hover:not(:disabled, [aria-busy="true"]) {
+.rc-button[data-variant="secondary"]:active:not(:disabled, [aria-busy="true"]) {
   background: var(--surface-tint);
   border-color: var(--on-surface);
 }
@@ -174,7 +185,7 @@
   text-decoration: underline;
   text-underline-offset: 0.18em;
 }
-.rc-button[data-variant="quiet"]:hover:not(:disabled, [aria-busy="true"]) {
+.rc-button[data-variant="quiet"]:active:not(:disabled, [aria-busy="true"]) {
   color: var(--link-hover);
   text-decoration-thickness: var(--border-thick);
 }
@@ -184,9 +195,27 @@
   background: var(--danger);
   color: var(--on-danger);
 }
-.rc-button[data-variant="danger"]:hover:not(:disabled, [aria-busy="true"]) {
+.rc-button[data-variant="danger"]:active:not(:disabled, [aria-busy="true"]) {
   background: var(--danger-hover);
   color: var(--on-danger-hover);
+}
+@media (hover: hover) {
+  .rc-button[data-variant="primary"]:hover:not(:disabled, [aria-busy="true"]) {
+    background: var(--action-hover);
+    color: var(--on-action-hover);
+  }
+  .rc-button[data-variant="secondary"]:hover:not(:disabled, [aria-busy="true"]) {
+    background: var(--surface-tint);
+    border-color: var(--on-surface);
+  }
+  .rc-button[data-variant="quiet"]:hover:not(:disabled, [aria-busy="true"]) {
+    color: var(--link-hover);
+    text-decoration-thickness: var(--border-thick);
+  }
+  .rc-button[data-variant="danger"]:hover:not(:disabled, [aria-busy="true"]) {
+    background: var(--danger-hover);
+    color: var(--on-danger-hover);
+  }
 }
 
 .rc-button:disabled {
@@ -196,6 +225,12 @@
   cursor: not-allowed;
 }
 .rc-button[aria-busy="true"] { cursor: progress; }
+/* A busy button that must not move what is beside it (`data-busy="keep"`) keeps its label, its
+   colours and its width while a press is carried out. Its spinner takes the label's place; the
+   label stays in the accessibility tree, so the button's name does not change either. */
+.rc-button[data-busy="keep"] { position: relative; }
+.rc-button[data-busy="keep"] > .rc-spinner { position: absolute; inset: 0; margin: auto; }
+.rc-button[data-busy="keep"]:has(> .rc-spinner) > :not(.rc-spinner) { opacity: 0; }
 
 /* Icon button: always carries an accessible name. */
 .rc-icon-button {
@@ -209,11 +244,16 @@
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  touch-action: manipulation;
 }
-.rc-icon-button:hover:not(:disabled) {
+.rc-icon-button:active:not(:disabled) {
   background: var(--surface-tint);
   color: var(--on-surface);
+}
+@media (hover: hover) {
+  .rc-icon-button:hover:not(:disabled) {
+    background: var(--surface-tint);
+    color: var(--on-surface);
+  }
 }
 /* As a link, it marks the page it leads to once the person is there, as Settings does in the app header. */
 .rc-icon-button[aria-current="page"] { background: var(--surface-tint); color: var(--on-surface); }
@@ -237,7 +277,9 @@
   color: var(--text-muted);
   opacity: 1;
 }
-.rc-input:hover:not(:disabled) { border-color: var(--on-field); }
+@media (hover: hover) {
+  .rc-input:hover:not(:disabled) { border-color: var(--on-field); }
+}
 .rc-input:disabled {
   background: var(--surface-tint);
   color: var(--text-muted);
@@ -331,6 +373,11 @@ textarea.rc-input {
   outline: var(--border-edge) solid var(--focus);
   outline-offset: var(--border-thick);
 }
+/* A chip you can press answers the press. One that only shows a value does not. */
+:is(label, button, a).rc-chip:active {
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
 /* A chip that is a button wraps long values from its start edge, like the label chips around it. */
 button.rc-chip {
   padding-block: var(--space-1);
@@ -346,17 +393,28 @@ button.rc-chip {
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
 }
+/* The remove button is a full target as wide as the chip is high. It takes up the chip's gap and
+   end padding, so the chip is no wider for it. */
 .rc-chip-remove {
   display: inline-grid;
   place-items: center;
-  min-inline-size: var(--space-6);
+  min-inline-size: var(--chip-height);
   min-block-size: var(--chip-height);
-  margin-inline-end: calc(var(--space-2) * -1);
+  margin-inline: calc(var(--space-2) * -1) calc(var(--chip-padding) * -1);
   padding: 0;
   border: 0;
+  border-radius: var(--chip-radius);
   background: transparent;
   color: inherit;
   cursor: pointer;
+}
+.rc-chip-remove:active:not(:disabled) {
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+}
+/* Its focus ring sits inside the target, clear of the chip's words and of the chip's own ring. */
+.rc-chip-remove:focus-visible {
+  outline-offset: calc(var(--border-edge) * -1);
 }
 
 /* Tag: a label you read, never tap. */
@@ -499,6 +557,13 @@ button.rc-chip {
   border-radius: var(--radius-sm);
   background: var(--surface-tint);
 }
+/* Shapes: the parts of what is loading, at their sizes, so the layout holds when it arrives. */
+.rc-skeleton[data-shape="title"] { block-size: var(--space-6); inline-size: 70%; }
+.rc-skeleton[data-shape="line"] { block-size: var(--space-4); }
+.rc-skeleton[data-shape="short"] { block-size: var(--space-4); inline-size: 45%; }
+.rc-skeleton[data-shape="media"] { aspect-ratio: 16 / 9; block-size: auto; }
+.rc-skeleton[data-shape="control"] { inline-size: var(--space-10); block-size: var(--control-height); border-radius: var(--control-radius); }
+.rc-skeleton[data-shape="panel"] { block-size: var(--space-11); }
 @media (prefers-reduced-motion: no-preference) {
   .rc-skeleton { animation: rc-pulse calc(var(--duration-slow) * 5) ease-in-out infinite alternate; }
 }
@@ -555,9 +620,18 @@ button.rc-chip {
   color: var(--on-surface-raised);
   font: var(--type-title-sm);
   cursor: pointer;
-  touch-action: manipulation;
 }
-.rc-account:hover, .rc-account[aria-expanded="true"] { border-color: var(--on-surface); background: var(--surface-tint); color: var(--on-surface-tint); }
+.rc-account:active, .rc-account[aria-expanded="true"] { border-color: var(--on-surface); background: var(--surface-tint); color: var(--on-surface-tint); }
+@media (hover: hover) {
+  .rc-account:hover { border-color: var(--on-surface); background: var(--surface-tint); color: var(--on-surface-tint); }
+}
+/* A pressed control gives a little under the press, where motion is welcome (DL-087). Its colours
+   change at once; only the give is eased. */
+@media (prefers-reduced-motion: no-preference) {
+  .rc-button, .rc-icon-button, .rc-account, .rc-chip { transition: scale var(--duration-fast) var(--ease-out); }
+  :is(.rc-button, .rc-icon-button, .rc-account):active:not(:disabled, [aria-busy="true"]),
+  :is(label, button, a).rc-chip:active { scale: 0.98; }
+}
 /* Types of work: the capital recipe with a line icon in place of the glyph tile (DL-065). Colour
    only groups them; the word and the icon say which. A type with no hue of its own keeps the outline. */
 .rc-tag[data-kind="work"] { border: var(--border-thin) solid var(--control-line); background: transparent; color: inherit; }

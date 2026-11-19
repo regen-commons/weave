@@ -5,13 +5,14 @@ export interface Mycelium {
 /**
  * Grows the website's mycelium on a decorative canvas behind a region or a whole page. It grows
  * all over, underneath the content of `within` (the canvas's parent unless given), then settles
- * and stops drawing; at rest it shows whole in the margins and quieter under that column. New
+ * and stops drawing; at rest it shows whole in the margins and quieter under `column`, the element
+ * that holds the content, or a function that finds it (`within` unless given). New
  * tufts start bright and fade: a mouse grows them wherever it moves; without a mouse, scrolling
  * grows them under the part in view, and one grows on its own every few seconds inside the element
  * marked `data-mycelium-own`. Reduced motion draws it at rest. Colours come from the canvas's
  * --mycelium-1 to --mycelium-6. Dispose on unmount.
  */
-export function growMycelium(canvas: HTMLCanvasElement, options?: { seed?: number; within?: Element }): Mycelium;
+export function growMycelium(canvas: HTMLCanvasElement, options?: { seed?: number; within?: Element; column?: Element | (() => Element | null) }): Mycelium;
 
 export interface Density {
   readonly seeds: number;

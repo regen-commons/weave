@@ -46,6 +46,7 @@ import { AskCard } from "../ui/AskCard.tsx";
 import { AskEditor } from "../ui/AskEditor.tsx";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { Dock } from "../ui/Dock.tsx";
 import { Conversation } from "../ui/Conversation.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
@@ -54,6 +55,7 @@ import { Stack } from "../ui/layouts.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
 import { VoiceInput } from "../ui/VoiceInput.tsx";
+import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
 type Blocked = Partial<Record<AskKind, Blocker>>;
 
@@ -110,6 +112,20 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
     const first = ASK_KINDS.find((entry) => result.blocked[entry]);
     if (first) document.getElementById(`ask-${first}-blocker`)?.focus();
   }
+  /** The step's way forward: in its place on a wide screen, in the dock on a phone (DL-089). */
+  const forward = (from?: "wide") => (
+    <button
+      className="rc-button"
+      data-variant="primary"
+      data-from={from}
+      type="button"
+      disabled={waiting}
+      aria-busy={waiting || undefined}
+      onClick={next}
+    >
+      Continue
+    </button>
+  );
   return (
     <Stack>
       <Stepper steps={INTAKE_STEPS.map((step) => step.label)} current={1} />
@@ -125,7 +141,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
         onRetry={() => controller.retry()}
       />
       {!ready ? (
-        <p role="status">Opening your device draft</p>
+        <DraftSkeleton />
       ) : (
         <>
           {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
@@ -133,7 +149,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
               You are offline. Your words and cards stay on this device.
             </p>
           )}
-          <div className="rc-card-grid">
+          {/* The two lists share the row on a wide screen. */}
+          <div className="rc-card-grid" data-layout="pair">
             {ASK_KINDS.map((entry) => (
               <AskSection
                 key={entry}
@@ -151,20 +168,12 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
             ))}
           </div>
           <div className="rc-action-bar">
-            <button
-              className="rc-button"
-              data-variant="primary"
-              type="button"
-              disabled={waiting}
-              aria-busy={waiting || undefined}
-              onClick={next}
-            >
-              Continue
-            </button>
+            {forward("wide")}
             <ButtonLink href={pathTo(typedCard(draft) ? "initiative" : "check-card")} variant="quiet">
               Back
             </ButtonLink>
           </div>
+          <Dock>{forward()}</Dock>
         </>
       )}
     </Stack>
@@ -623,6 +632,7 @@ function AskSection({
             className="rc-input"
             type="url"
             id={part("link")}
+            enterKeyHint="done"
             required
             maxLength={2048}
             value={step.pendingLink}
@@ -649,7 +659,7 @@ function AskSection({
     </>
   );
   return (
-    <section className="rc-stack" aria-labelledby={part("title")}>
+    <section className="rc-panel" aria-labelledby={part("title")}>
       <div className="rc-ask-head">
         <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
           {need ? "What you need" : "What you can offer"}
@@ -695,6 +705,7 @@ function AskSection({
               className="rc-input"
               type="text"
               id={part("add")}
+              enterKeyHint="done"
               maxLength={600}
               value={words}
               disabled={held}

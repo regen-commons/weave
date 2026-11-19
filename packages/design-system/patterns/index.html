@@ -186,6 +186,8 @@
         <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#pencil-note"/></svg>pencil-note</li>
         <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#need"/></svg>need</li>
         <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#offer"/></svg>offer</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#sun"/></svg>sun</li>
+        <li><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../brand/icons.svg#moon"/></svg>moon</li>
       </ul>
     </article>
   </section>
@@ -224,6 +226,7 @@
           <button class="rc-button" data-variant="primary" data-size="lg" type="button">One action on a focused screen</button>
           <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Dense</button>
           <button class="rc-button" data-variant="primary" aria-busy="true" type="button"><span class="rc-spinner" aria-hidden="true"></span>Sending</button>
+          <button class="rc-button" data-variant="secondary" data-busy="keep" aria-busy="true" aria-disabled="true" type="button"><span>Sign in with Certified</span><span class="rc-spinner" aria-hidden="true"></span></button>
           <button class="rc-button" data-variant="primary" disabled type="button">Unavailable</button>
         </div>
         <button class="rc-button" data-variant="secondary" data-width="full" type="button">Full width on phones</button>
@@ -317,6 +320,16 @@
         <span class="rc-time" data-stale><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#alert"/></svg>May be out of date</span>
         <span class="rc-spinner" aria-hidden="true"></span>
         <span class="rc-skeleton" style="inline-size: var(--space-10)"></span>
+      </div>
+      <p class="lib-note">A skeleton takes the shape of what is loading, so the layout holds when it arrives: a title, lines, a control, and a card in the grid it will fill (DL-081).</p>
+      <div class="lib-stage" data-example>
+        <div class="rc-card" data-layout="listing" style="inline-size: var(--card-min-width)" aria-hidden="true">
+          <span class="rc-skeleton" data-shape="title"></span>
+          <span class="rc-skeleton" data-shape="short"></span>
+          <span class="rc-skeleton" data-shape="line"></span>
+          <span class="rc-skeleton" data-shape="line"></span>
+        </div>
+        <span class="rc-skeleton" data-shape="control"></span>
       </div>
     </article>
 
@@ -562,13 +575,17 @@
 
     <article class="lib-pattern" id="breadcrumbs">
       <h3>Breadcrumbs, facts and empty state</h3>
-      <p class="lib-note">Breadcrumbs suit the place hierarchy. Facts state consent and privacy terms in plain words. An empty state is a first screen with one thing to do.</p>
+      <p class="lib-note">Breadcrumbs suit the place hierarchy, and show the pages above a page on a wide screen, where a phone has the Back link (DL-080). Facts state consent and privacy terms in plain words; as terms, the question leads. An empty state is a first screen with one thing to do.</p>
       <div class="lib-stage" data-example>
         <nav class="rc-breadcrumbs" aria-label="Where you are"><ol><li><a href="#breadcrumbs">Tocantins basin</a></li><li><a href="#breadcrumbs">Rio das Almas</a></li><li aria-current="page">Upper valley</li></ol></nav>
         <dl class="rc-facts">
           <div><dt>Who runs it</dt><dd>Example Provider, under a no-retention agreement</dd></div>
           <div><dt>What is sent</dt><dd>Only the text you just wrote</dd></div>
           <div><dt>How long it is kept</dt><dd>Not kept after the reply</dd></div>
+        </dl>
+        <dl class="rc-facts" data-kind="terms">
+          <div><dt>On this device</dt><dd>Your draft, conversations, files and backups stay in this browser until you save.</dd></div>
+          <div><dt>Who can read a saved copy</dt><dd>In Weave, only you, and teammates you give access to a team workspace.</dd></div>
         </dl>
         <section class="rc-empty" aria-labelledby="empty-example">
           <h4 id="empty-example" class="rc-empty-title">No partners here yet</h4>
@@ -584,7 +601,7 @@
       <div class="lib-frame" data-example>
         <header class="rc-app-header">
           <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="#back-link" aria-label="Back to Your Initiatives"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#back"/></svg><span>Your Initiatives</span></a></nav></div>
-          <div class="rc-app-header-state"><p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg><span>Saved</span></p><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="back-link-account-menu" data-popup="back-link-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="back-link-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+          <div class="rc-app-header-state"><p class="rc-save-status" data-state="account"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../brand/icons.svg#done"/></svg><span>Saved</span></p><button class="rc-account" type="button" aria-label="Account" popovertarget="back-link-account-menu" data-popup="back-link-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="back-link-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
         </header>
       </div>
     </article>
@@ -622,6 +639,20 @@
         </section>
       </div>
     </article>
+
+    <article class="lib-pattern" id="panel">
+      <h3>Panel</h3>
+      <p class="lib-note">The page's own surface behind words and controls that have no card of their own, such as a form or a side panel, so the mycelium behind the page does not run through them. It is flat with a hairline from 900 px, so cards inside it still stand out. A phone keeps the block as it is.</p>
+      <div class="lib-stage" data-example>
+        <div class="rc-panel">
+          <div class="rc-field">
+            <label for="panel-example-name">Name</label>
+            <p class="rc-hint" id="panel-example-hint">What people call your initiative.</p>
+            <input class="rc-input" id="panel-example-name" type="text" aria-describedby="panel-example-hint">
+          </div>
+        </div>
+      </div>
+    </article>
   </section>
 
   <section class="lib-level" id="organisms" aria-labelledby="organisms-title">
@@ -629,7 +660,7 @@
 
     <article class="lib-pattern" id="app-header">
       <h3>App header and bottom navigation</h3>
-      <p class="lib-note">The product name sits top-left and returns home. Four sections sit in the header on wide screens and at the bottom on phones. The name and the sections sit on one baseline, and the controls at the far end sit on the bar's centre line and meet the page's edge. Signed out, the header offers Sign in. On a phone a gear opens Settings and the You tab holds the account. On a wide screen a signed-in person has the Account button in the gear's place: it opens a small menu with Your Initiatives, Settings and Sign out. Form pages keep only the name and helpful status. The header stays at the top as the page scrolls, and on a page that is not a section the Back link takes the name's place. Tapping the section you are on brings its page to the top.</p>
+      <p class="lib-note">The product name sits top-left and returns home. Four sections sit in the header on wide screens and at the bottom on phones. The name and the sections sit on one baseline, and the controls at the far end sit on the bar's centre line and meet the page's edge. Signed out, the header offers Sign in. On a phone the You tab holds the account, the theme and the way to Settings. On a wide screen a signed-in person has the Account button at the far end: it opens a small menu with Your Initiatives, Settings and Sign out. Form pages keep only the name and helpful status. The header stays at the top as the page scrolls, and on a page that is not a section the Back link takes the name's place. Tapping the section you are on brings its page to the top.</p>
       <div class="lib-frame" data-example>
         <header class="rc-app-header">
           <div class="rc-app-header-lead"><a class="rc-logo" href="#app-header"><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a>
@@ -639,7 +670,7 @@
             <a href="#app-header">Funding</a>
             <a href="#app-header">Your Initiatives</a>
           </nav></div>
-          <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a></div>
+          <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button></div>
         </header>
         <nav class="rc-bottom-nav" aria-label="Example phone navigation">
           <a href="#app-header"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#home"/></svg>Home</a>
@@ -658,8 +689,16 @@
             <a href="#app-header">Funding</a>
             <a href="#app-header">Your Initiatives</a>
           </nav></div>
-          <div class="rc-app-header-state"><a class="rc-icon-button" href="#app-header" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="app-header-account-menu" data-popup="app-header-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="app-header-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+          <div class="rc-app-header-state"><button class="rc-account" type="button" aria-label="Account" popovertarget="app-header-account-menu" data-popup="app-header-account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="app-header-account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="#app-header" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="#app-header" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
         </header>
+      </div>
+    </article>
+
+    <article class="lib-pattern" id="dock">
+      <h3>Dock</h3>
+      <p class="lib-note">A focused step has no tabs. On a phone its way forward docks where they would be: one action across the bottom of the window, clear of the home indicator. A wide screen shows the same action in its place on the page, marked <code>data-from="wide"</code>, so the dock is drawn on a phone only. Narrow this window to see it.</p>
+      <div class="lib-frame" data-example>
+        <div class="rc-dock"><button class="rc-button" data-variant="primary" type="button">Continue</button></div>
       </div>
     </article>
 
@@ -669,7 +708,7 @@
       <div class="lib-frame" data-example>
         <footer class="rc-footer">
           <div class="rc-footer-grid">
-            <section>
+            <section data-repeats="tabs">
               <h4 class="rc-footer-title">Weave</h4>
               <ul>
                 <li><a class="rc-footer-link" href="#footer">Describe Your Initiative</a></li>

@@ -6,7 +6,10 @@ import { continueWithFields } from "../src/describe/screen.ts";
 import { fundingFixture, readFixtures } from "../src/fixtures.ts";
 import { catalogEntries } from "../src/funding/catalog.ts";
 import { emptyFundingFilters, filterFunding } from "../src/funding/select.ts";
-import { CLOSING_SOON_DAYS, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel } from "../src/home.ts";
+import {
+  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel,
+  resumeLabel,
+} from "../src/home.ts";
 import { cardRoute } from "../src/initiative/status.ts";
 import type { ListingRecord } from "../src/listing.ts";
 
@@ -26,7 +29,7 @@ const record = (id: string, fields: Partial<ListingRecord> = {}): ListingRecord 
   ...fields,
 });
 
-test("Home uses public sharing dates, excludes unpublished/future rows and keeps the latest three", () => {
+test("Home uses public sharing dates, excludes unpublished/future rows and keeps the newest first", () => {
   const records = Object.freeze([
     record("confirmed-today", { sharedOn: "2026-10-01" }),
     record("newly-shared", { sharedOn: "2026-11-04", confirmed: "2026-09-01" }),
@@ -39,10 +42,22 @@ test("Home uses public sharing dates, excludes unpublished/future rows and keeps
   const result = homePreviews(records, "2026-11-04");
   assert.deepEqual(
     result.recent.map((item) => item.id),
-    ["newly-shared", "second", "third"],
+    ["newly-shared", "second", "third", "confirmed-today"],
   );
   assert.equal(result.sharedCount, 4);
   assert.deepEqual(records, before);
+});
+
+test("Home holds two rows of shared initiatives and one of funding at a large desktop's four across", () => {
+  // The card grid shows whole rows only: six and three where three fit, eight and four where four do.
+  assert.equal(RECENT_PREVIEW_COUNT, 8);
+  assert.equal(FUNDING_PREVIEW_COUNT, 4);
+  const many = Array.from({ length: 12 }, (_, index) =>
+    record(`shared-${index}`, { sharedOn: `2026-10-${String(index + 1).padStart(2, "0")}` }));
+  const { recent, sharedCount } = homePreviews(many, "2026-11-04");
+  assert.equal(recent.length, RECENT_PREVIEW_COUNT, "more than three, so a wide screen shows six");
+  assert.equal(recent[0]?.id, "shared-11", "newest first");
+  assert.equal(sharedCount, 12);
 });
 
 /** Catalog entries made the way the example world makes them, closing on the given dates. */
@@ -55,7 +70,7 @@ const fundsClosing = (dates: Record<string, string | undefined>) =>
   );
 const noon = new Date("2026-11-04T12:00:00Z");
 
-test("Home shows the three open calls that close soonest, today included, never ranked by fit", () => {
+test("Home shows the open calls that close soonest, today included, never ranked by fit", () => {
   const entries = fundsClosing({
     later: "2027-01-15",
     tomorrow: "2026-11-05",
@@ -66,8 +81,9 @@ test("Home shows the three open calls that close soonest, today included, never 
   });
   assert.deepEqual(
     fundingPreviews(entries, noon).upcoming.map((entry) => entry.fund.id),
-    ["today", "tomorrow", "month-end"],
+    ["today", "tomorrow", "month-end", "later"],
   );
+  assert.equal(fundingPreviews(entries, noon).upcoming.length, FUNDING_PREVIEW_COUNT);
 });
 
 test("Home has no invented records or activity when no feed is supplied", () => {

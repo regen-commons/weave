@@ -7,10 +7,17 @@ export type { PublicProjectCard, PublicProjectPage };
 export const PUBLIC_PROJECT_QUERY_MAX = 100;
 const TIMEOUT_MS = 8000;
 
+/** A search as the list reads it: trimmed, single spaces, no longer than the list accepts. */
+export function searchQuery(typed: string): string {
+  return typed.trim().replace(/\s+/gu, " ").slice(0, PUBLIC_PROJECT_QUERY_MAX);
+}
+/** How long the list waits after the last letter before it searches, so typing sends one request. */
+export const SEARCH_PAUSE_MS = 300;
+
 /** The same-origin address of one page. Parameters keep one order, so each page has one cached copy. */
 export function publicProjectsPath(q: string, cursor: string | null = null, limit = PUBLIC_PROJECT_PAGE_SIZE): string {
   const params = new URLSearchParams();
-  const search = q.trim().replace(/\s+/gu, " ").slice(0, PUBLIC_PROJECT_QUERY_MAX);
+  const search = searchQuery(q);
   if (search) params.set("q", search);
   if (cursor) params.set("cursor", cursor);
   if (limit !== PUBLIC_PROJECT_PAGE_SIZE) params.set("limit", String(limit));

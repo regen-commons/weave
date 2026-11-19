@@ -5,10 +5,12 @@ import { useDraft } from "../describe/use-draft.ts";
 import { fundingFixture, type FixtureContext } from "../fixtures.ts";
 import { catalogEntries } from "../funding/catalog.ts";
 import { useCatalogBundle } from "../funding/use-catalog.ts";
-import { CLOSING_SOON_DAYS, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
+import {
+  CLOSING_SOON_DAYS, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel,
+} from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
-import { currentRoute, navigate, routeSearch } from "../router.tsx";
+import { currentRoute, Link, navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo, routeWith } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
@@ -17,11 +19,11 @@ import { teamWorkspacePath } from "../routes.ts";
 import { BUILDER, COMMONS, EIGHT_FORMS_OF_CAPITAL } from "../links.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { HomeHero, Stack } from "../ui/layouts.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
-import { Mycelium } from "../ui/Mycelium.tsx";
 import { NumberedList } from "../ui/NumberedList.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { Section } from "../ui/Section.tsx";
@@ -43,7 +45,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
   const previews = homePreviews(fixture?.initiatives ?? [], asOf);
   // Without the example world, Recently shared lists the newest public Certified projects.
-  const { list: published, retry: retryPublished } = usePublicProjects("", 3, !fixture);
+  const { list: published, retry: retryPublished } = usePublicProjects("", RECENT_PREVIEW_COUNT, !fixture);
   const publishedReady = published.status === "ready" ? published : null;
   const recent = fixture ? previews.recent : [];
   const sharedCount = fixture ? previews.sharedCount : publishedReady?.page.index.total ?? 0;
@@ -87,17 +89,16 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
     if (catalog.failed) catalog.retry();
     if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
   }
-  const skeleton = (
-    <div className="rc-stack" aria-busy="true">
-      <p role="status">Loading</p>
-      <div className="rc-skeleton" />
-      <div className="rc-skeleton" />
+  const skeleton = (kind: "funding" | "initiative", preview: "row" | "rows") => (
+    <div aria-busy="true">
+      <p className="rc-visually-hidden" role="status">
+        Loading
+      </p>
+      <CardGridSkeleton kind={kind} preview={preview} />
     </div>
   );
   return (
     <Stack wide>
-      {/* One canvas under the whole page; it grows around everything below (DL-066). */}
-      <Mycelium extent="page" />
       <HomeHero
         actions={
           <>
@@ -128,6 +129,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
                 type="search"
                 id="home-search"
                 name="q"
+                enterKeyHint="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -214,11 +216,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="kinds"
+        band
         title="Money is one of eight kinds of support"
         note={
           <>
             An initiative also runs on skills, relationships, land and culture. Every need and offer in
-            Weave names its kind, an idea from <a href={EIGHT_FORMS_OF_CAPITAL}>the eight forms of capital</a>.
+            Weave names its kind, an idea from <Link href={EIGHT_FORMS_OF_CAPITAL}>the eight forms of capital</Link>.
           </>
         }
       >
@@ -234,9 +237,9 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
         }
       >
         {fundingLoading ? (
-          skeleton
+          skeleton("funding", "row")
         ) : upcoming.length && !fundingFailed ? (
-          <CardGrid>
+          <CardGrid preview="row">
             {upcoming.map((entry) => (
               <li key={entry.id}>
                 <OpportunityCard entry={entry} level={3} />
@@ -266,9 +269,9 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
         }
       >
         {loading || (!fixture && published.status === "loading") ? (
-          skeleton
+          skeleton("initiative", "rows")
         ) : publishedReady && publishedReady.projects.length ? (
-          <CardGrid>
+          <CardGrid preview="rows">
             {publishedReady.projects.map((project) => (
               <li key={project.uri}>
                 <PublicProjectCard project={project} level={3} />
@@ -276,7 +279,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             ))}
           </CardGrid>
         ) : recent.length && !failed ? (
-          <CardGrid>
+          <CardGrid preview="rows">
             {recent.map((record) => (
               <li key={record.id}>
                 <ListingCard record={record} level={3} />
@@ -309,6 +312,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="commons"
+        band
         title="Part of Regen Commons"
         note={
           <>
@@ -327,7 +331,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           </ButtonLink>
         </div>
         <p className="rc-meta">
-          Weave is built by <a href={BUILDER.href}>{BUILDER.name}</a>.
+          Weave is built by <Link href={BUILDER.href}>{BUILDER.name}</Link>.
         </p>
       </Section>
     </Stack>

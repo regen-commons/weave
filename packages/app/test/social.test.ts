@@ -10,7 +10,7 @@ import {
   WATER_NOTES_RECORD,
 } from "../src/social/fixture.ts";
 import { exposureLabel, shareGate } from "../src/social/gate.ts";
-import { projectOpening } from "../src/social/project-open.ts";
+import { deviceTeamWorkspace, projectOpening } from "../src/social/project-open.ts";
 import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, workspaceLine } from "../src/social/words.ts";
 
 const card = {
@@ -313,4 +313,16 @@ test("opening a project from Your Initiatives asks before an unlinked device car
   assert.equal(projectOpening({ workspace: false }, { card: true, linked: true }), "start",
     "a card already linked to another project stays with it, and the project starts its own");
   assert.equal(projectOpening({ workspace: false }, { card: false, linked: false }), "start");
+});
+
+test("the card on a device stands for its project's team workspace, so one initiative is listed once", () => {
+  const team = { uri: "at://group/orchard", group: "Upper valley growers" };
+  const other = { uri: "at://group/seeds", group: "Valley seed library" };
+  const personal = { uri: "at://me/orchard", group: null };
+  assert.equal(deviceTeamWorkspace({ uri: team.uri }, [other, team, personal]), team);
+  // A personal workspace is the card's own save, which the list already folds into the card.
+  assert.equal(deviceTeamWorkspace({ uri: personal.uri }, [other, team, personal]), undefined);
+  // Another project's team, or no linked project at all, keeps every row.
+  assert.equal(deviceTeamWorkspace({ uri: "at://group/water" }, [other, team]), undefined);
+  assert.equal(deviceTeamWorkspace(null, [other, team]), undefined);
 });

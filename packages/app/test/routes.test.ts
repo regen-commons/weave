@@ -16,6 +16,7 @@ import {
   ROUTES,
   sheetBackground,
   splitRoute,
+  breadcrumbTrail,
 } from "../src/routes.ts";
 
 test("each route has a unique path and name; device and team routes use the same initiative page title", () => {
@@ -101,6 +102,22 @@ test("a sheet sits over the page it opened from, or over its list when opened fr
   // Another sheet cannot be the page underneath.
   assert.deepEqual(sheetBackground(fund, { from: "/initiatives/orchard", hops: 1 }), { route: "/funding", hops: 0 });
   assert.deepEqual(sheetBackground(matchRoute("/initiatives/orchard")!, null), { route: "/initiatives", hops: 0 });
+});
+test("a wide screen's breadcrumbs follow the route table, outermost first, and tabs, sheets and intake steps have none (DL-080)", () => {
+  for (const path of ["/", "/funding", "/initiatives", "/your-initiatives", "/funding/water", "/initiatives/orchard"])
+    assert.deepEqual(breadcrumbTrail(matchRoute(path)), [], path);
+  // The steps of describing an initiative are a sequence the step bar already shows, not a hierarchy.
+  for (const route of ROUTES.filter((route) => route.form))
+    assert.deepEqual(breadcrumbTrail(route), [], route.path);
+  assert.deepEqual(breadcrumbTrail(undefined), []);
+  assert.deepEqual(breadcrumbTrail(matchRoute("/settings")), [{ label: "Your Initiatives", href: "/your-initiatives" }]);
+  assert.deepEqual(breadcrumbTrail(matchRoute("/partners")), [
+    { label: "Your Initiatives", href: "/your-initiatives" },
+    { label: "Your initiative", href: "/your-initiative" },
+  ]);
+  // The trail is the structure, so the way a person came never changes it; the back link's does.
+  assert.equal(backTarget(matchRoute("/settings"), { from: "/funding", hops: 1 })?.label, "Funding");
+  assert.equal(breadcrumbTrail(matchRoute("/settings"))[0]?.label, "Your Initiatives");
 });
 test("the back link returns to where the person came from, otherwise one level up", () => {
   // Tabs have no back link, and a sheet closes instead.

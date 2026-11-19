@@ -40,7 +40,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development; and the public Certified project list on Initiatives and Home, with the starter sources as its fallback |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |
-| `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads that the dev server and the build add to `index.html`, and the link previews: one copy of `index.html` for each section, written by the build |
+| `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads, the theme colours and the theme's first-paint script (`public/theme-boot.js`) that the dev server and the build add to `index.html`, the link previews: one copy of `index.html` for each section, written by the build, and the installed app's manifest with its shortcuts and its install-sheet screenshots (`public/install/screens/`, captured from a build with no example data) |
 | `scripts/share-images/` | Renders the link-preview pictures in `public/share/` and the home-screen icons with a local browser. The pictures are committed; run it after changing a headline or a template |
 | `public/brand/` | Copied from the design system by `scripts/copy-brand.mjs`; ignored by Git |
 | `vercel.json` | The Weave project's build, rewrites, security headers and caching |
@@ -54,7 +54,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   names, no em dashes or arrows. Every page has one `h1`, and the tab title echoes it,
   except on home, whose tab shows the product name alone.
 - TypeScript follows the [TypeScript rules](../../.claude/rules/typescript.md).
-- The theme follows the system. There is no theme toggle in the header.
+- The theme follows the system until a person chooses one: in Settings, with the header's switch
+  on a wide screen (DL-079), or on a phone's You tab (DL-086). All three read and write it through
+  `src/theme.ts`, which also says which of index.html's two `theme-color` tags applies (DL-087).
 - Signing in only identifies the person. Saving, sharing for matching and publishing are
   separate taps with their own rows. Sharing and publishing first show what leaves and
   who sees it, and a refusal changes nothing (DL-032).

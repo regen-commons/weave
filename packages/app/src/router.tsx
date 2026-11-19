@@ -4,9 +4,13 @@
 // path, so the app runs from one static file inside a review page.
 import { useSyncExternalStore, type AnchorHTMLAttributes, type MouseEvent } from "react";
 
-import { fixtureHref, matchRoute, nextVisit, readVisit, routeFromFragment, splitRoute, type Visit } from "./routes.ts";
+import {
+  fixtureHref, matchRoute, nextVisit, pageMove, readVisit, routeFromFragment, splitRoute, type PageMove, type Visit,
+} from "./routes.ts";
 
 import { flushSync } from "react-dom";
+import { leavesWeave } from "./links.ts";
+import { readPositions, remember, resumesPage, writePositions } from "./scroll-memory.ts";
 
 const listeners = new Set<() => void>();
 
@@ -22,10 +26,19 @@ const address = (route: string): string => (__WEAVE_PROTOTYPE__ ? `#${route}` : 
 
 /**
  * Back and Forward return a page to where the person left it, as native apps do. Each history
- * entry carries a key, and where each one was scrolled lives in memory, so a reload starts at the
- * top. The key only has to be unique in this tab.
+ * entry carries a key, and where each one was scrolled is kept for the tab, so a page that is
+ * reloaded, or that a phone dropped in the background, comes back there too (DL-092). The key
+ * only has to be unique in this tab.
  */
-const positions = new Map<string, number>();
+function tabStorage(): Storage | null {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+const stored = tabStorage();
+const positions = stored ? readPositions(stored) : new Map<string, number>();
 let made = 0;
 const newKey = (): string => `${Date.now().toString(36)}-${(made++).toString(36)}`;
 let entry = "";
@@ -42,25 +55,78 @@ function returned(): void {
   const next = entryKey();
   // In the prototype a Back also fires a hash change, which is the same move.
   if (next === entry) return;
-  positions.set(entry, window.scrollY);
+  remember(positions, entry, window.scrollY);
   entry = next;
   returning = true;
 }
 window.history.scrollRestoration = "manual";
 entry = entryKey();
-// Registered before any page listens, so the move is known by the time the page renders.
-window.addEventListener("popstate", returned);
-if (__WEAVE_PROTOTYPE__) window.addEventListener("hashchange", returned);
+// A load can be a return as well: a reload, or Back from another site, to a page this tab knows.
+const [load] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+returning = resumesPage(load?.type) && positions.has(entry);
+// Written when the page is hidden or left: the last moment a phone promises before it drops a page.
+function keepPositions(): void {
+  remember(positions, entry, window.scrollY);
+  const storage = tabStorage();
+  if (storage) writePositions(storage, positions);
+}
+window.addEventListener("pagehide", keepPositions);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") keepPositions();
+});
+
+const isSheet = (route: string): boolean => !!matchRoute(splitRoute(route).pathname)?.sheet;
+function notify(): void {
+  for (const listener of listeners) listener();
+}
+/**
+ * Draws a change of page: a cross-fade, or on a phone a push or a pop (DL-094). The move is named on
+ * the root while the change is drawn, which is all the stylesheet needs. A sheet slides over its
+ * page and away again and the page under it does not change, so that is drawn at once, as is
+ * every change where motion is reduced or the browser has no view transitions.
+ */
+let drawing = 0;
+function draw(update: () => void, from: string, to: string): void {
+  const still = isSheet(from) || isSheet(to) || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (still || !document.startViewTransition) {
+    update();
+    return;
+  }
+  const root = document.documentElement;
+  const move: PageMove = pageMove(from, to);
+  const mine = ++drawing;
+  if (move === "fade") delete root.dataset.pageMove;
+  else root.dataset.pageMove = move;
+  const transition = document.startViewTransition(() => flushSync(update));
+  // A transition cut short by the next move, or by the window changing, is not an error.
+  transition.ready.catch(() => undefined);
+  // The next move may already have named its own.
+  const clear = () => {
+    if (mine === drawing) delete root.dataset.pageMove;
+  };
+  transition.finished.then(clear, clear);
+}
+
+/** The page on screen, so a step through history knows what it left. */
+let shown = currentRoute();
+/** Set by the app's own way back. The browser's Back, and a phone's swipe, bring their own motion or none. */
+let ownBack = false;
+function stepped(): void {
+  returned();
+  const from = shown;
+  shown = currentRoute();
+  const own = ownBack;
+  ownBack = false;
+  if (own && from !== shown) draw(notify, from, shown);
+  else notify();
+}
+// One listener for the whole app, so the move is known by the time any page renders.
+window.addEventListener("popstate", stepped);
+if (__WEAVE_PROTOTYPE__) window.addEventListener("hashchange", stepped);
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  window.addEventListener("popstate", listener);
-  if (__WEAVE_PROTOTYPE__) window.addEventListener("hashchange", listener);
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("popstate", listener);
-    if (__WEAVE_PROTOTYPE__) window.removeEventListener("hashchange", listener);
-  };
+  return () => void listeners.delete(listener);
 }
 
 /** The current route, kept in step with links and the back button. */
@@ -70,30 +136,28 @@ export function usePathname(): string {
 
 /** How the page on screen was reached, read from its history entry. */
 export const currentVisit = (): Visit | null => readVisit(window.history.state);
-const isSheet = (route: string): boolean => !!matchRoute(splitRoute(route).pathname)?.sheet;
 
 export function navigate(to: string, replace = false): void {
   const here = currentRoute();
   if (to === here) return;
   const visit = nextVisit(here, currentVisit(), to, replace);
-  positions.set(entry, window.scrollY);
+  remember(positions, entry, window.scrollY);
   const key = replace ? entry : newKey();
   const update = () => {
     window.history[replace ? "replaceState" : "pushState"]({ ...visit, key }, "", address(to));
     entry = key;
     returning = false;
-    for (const listener of listeners) listener();
+    shown = to;
+    notify();
   };
-  // A sheet slides over its page and away again; the page under it does not change.
-  const sheet = isSheet(here) || isSheet(to);
-  if (!sheet && document.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    // A transition cut short by the next move, or by the window changing, is not an error.
-    document.startViewTransition(() => flushSync(update)).ready.catch(() => undefined);
-  } else update();
+  draw(update, here, to);
 }
 
-/** Steps back through history, as the back link and a closing sheet do. */
+/** Steps back through history, as the back link and a closing sheet do. The step is the app's own, so a phone draws it as a pop. */
 export function goBack(hops: number): void {
+  ownBack = true;
+  // A step with nowhere to go fires nothing, and must not leave the next Back looking like this one.
+  window.setTimeout(() => (ownBack = false), 1000);
   window.history.go(-hops);
 }
 
@@ -101,8 +165,8 @@ export function goBack(hops: number): void {
 export const wasReturn = (): boolean => returning;
 
 /**
- * Puts the page where it belongs after a move: a new page starts at the top, and Back or Forward
- * returns to where the person left it. A list can still be filling in, so it keeps trying for a
+ * Puts the page where it belongs after a move: a new page starts at the top, and Back, Forward or
+ * a reload returns to where the person left it. A list can still be filling in, so it keeps trying for a
  * moment until the page is long enough.
  */
 export function settleScroll(): void {
@@ -133,15 +197,20 @@ export const wroteQuietly = (route: string): boolean => route === quietRoute;
 export function replaceRouteQuietly(route: string): void {
   window.history.replaceState(window.history.state, "", address(route));
   quietRoute = currentRoute();
+  shown = quietRoute;
 }
 
 type LinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
 
-/** A plain anchor that changes page without a reload when it points inside the app. */
-export function Link({ href, onClick, ...props }: LinkProps) {
+/**
+ * A plain anchor that changes page without a reload when it points inside the app. A link to
+ * another site opens in a new tab and says so to assistive technology.
+ */
+export function Link({ href, onClick, children, ...props }: LinkProps) {
   href = fixtureHref(href, routeSearch(), import.meta.env.DEV);
-  // Other sites, mail links and downloads load the ordinary way.
+  // Mail links and downloads load the ordinary way.
   const inApp = href.startsWith("/") && !href.startsWith("//") && props.download === undefined;
+  const outside = leavesWeave(href);
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     onClick?.(event);
     const modified = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
@@ -149,5 +218,15 @@ export function Link({ href, onClick, ...props }: LinkProps) {
     event.preventDefault();
     navigate(href);
   }
-  return <a href={inApp ? address(href) : href} onClick={handleClick} {...props} />;
+  return (
+    <a
+      href={inApp ? address(href) : href}
+      onClick={handleClick}
+      {...(outside ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      {...props}
+    >
+      {children}
+      {outside && <span className="rc-visually-hidden"> (opens in a new tab)</span>}
+    </a>
+  );
 }

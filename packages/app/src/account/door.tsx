@@ -8,23 +8,48 @@ import { PrivateSaveAction } from "./PrivateSaveAction.tsx";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { AccountSection } from "./AccountSection.tsx";
-import { isSignInReturn } from "./sign-in.ts";
-const DoorContext = createContext<((intent?: DoorIntent) => void) | null>(null);
+import { doorOnReturn } from "./sign-in.ts";
+/** Opens the door. `problem` is a sign-in failure from the page that sent the person here, said at the door. */
+const DoorContext = createContext<((intent?: DoorIntent, problem?: string) => void) | null>(null);
+/**
+ * Kept for one trip to Certified: the person left from the door while saving, so the door reopens on
+ * the way back. A sign-in from the app bar or a page leaves nothing here and returns to the page alone.
+ */
+const SAVING_KEY = "weave.door.saving";
+function leftWhileSaving(): boolean {
+  try {
+    return window.sessionStorage.getItem(SAVING_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function markSaving(saving: boolean): void {
+  try {
+    if (saving) window.sessionStorage.setItem(SAVING_KEY, "1");
+    else window.sessionStorage.removeItem(SAVING_KEY);
+  } catch {
+    // Storage is off: the page returns without reopening the door, and Save is still one press away.
+  }
+}
 /** The one account door. Sign-in returns to the task; saving stays a separate choice. */
 export function AccountDoorProvider({ children }: { children: ReactNode }) {
   const social = useSocialFixture();
   const account = useAccount();
   const status = useCardStatus();
   const [message, setMessage] = useState("");
-  // Coming back from Certified reopens the door where the person left it, unless the page shows the account itself.
+  const [problem, setProblem] = useState("");
+  // Coming back from Certified reopens the door where the person left it to save, unless the page
+  // shows the account itself. A sign-in that did not start at the door comes back to the page alone.
   const [intent, setIntent] = useState<DoorIntent | null>(() =>
-    isSignInReturn(new URLSearchParams(window.location.search).get("account")) &&
-    ![pathTo("settings"), pathTo("your-initiatives")].includes(window.location.pathname) &&
-    matchRoute(window.location.pathname)?.name !== "team-workspace"
-      ? "keep"
-      : null,
+    doorOnReturn(
+      new URLSearchParams(window.location.search).get("account"),
+      leftWhileSaving(),
+      [pathTo("settings"), pathTo("your-initiatives")].includes(window.location.pathname) ||
+        matchRoute(window.location.pathname)?.name === "team-workspace",
+    ),
   );
   useEffect(() => {
+    markSaving(false);
     const url = new URL(window.location.href);
     if (url.searchParams.has("account")) {
       url.searchParams.delete("account");
@@ -32,7 +57,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
     }
   }, []);
   return (
-    <DoorContext.Provider value={(next = "keep") => setIntent(next)}>
+    <DoorContext.Provider value={(next = "keep", note = "") => { setProblem(note); setIntent(next); }}>
       {children}
       <TaskDialog
         title={intent === "sign-in" || intent === "certified" ? "Sign in" : "Save your initiative"}
@@ -57,7 +82,9 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
             {message && <p role="alert">{message}</p>}
           </div>
         ) : (
-          <AccountSection autoFocus heading={false} onBeginCard={() => setIntent(null)} />
+          // Signed out, the door is the sign-in offer alone. Saved cards and backups are in Settings.
+          <AccountSection autoFocus heading={false} showBackups={false} notice={problem} onBeginCard={() => setIntent(null)}
+            onNotNow={() => setIntent(null)} onSignInStart={() => markSaving(intent === "keep")} />
         )}
       </TaskDialog>
     </DoorContext.Provider>

@@ -42,8 +42,10 @@
       <a class="rc-skip-link" href="#main">Skip to content</a>
       <header class="rc-app-header">
         <div class="rc-app-header-lead"><nav class="rc-back" aria-label="Back"><a class="rc-back-link" href="needs.html" aria-label="Back to Needs and offers"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#back"/></svg><span>Needs and offers</span></a></nav></div>
-        <div class="rc-app-header-state"><p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg><span>On this device</span></p><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
+        <div class="rc-app-header-state"><p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg><span>On this device</span></p><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button></div>
       </header>
+      <div class="rc-page-body">
+      <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
       <main class="rc-main" id="main">
         <h1 class="rc-heading" data-size="page">What can your initiative offer?</h1>
         <div class="rc-step-layout">
@@ -345,9 +347,10 @@
           </aside>
         </div>
       </main>
+      </div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>

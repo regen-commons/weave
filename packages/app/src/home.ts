@@ -12,6 +12,14 @@ function calendarDay(value: string | undefined): number | undefined {
     : undefined;
 }
 
+/**
+ * How many cards a Home preview holds: one row of funding and two rows of shared initiatives, at the
+ * four a row of a large desktop. The card grid shows whole rows only, so a narrower screen shows
+ * three and six.
+ */
+export const FUNDING_PREVIEW_COUNT = 4;
+export const RECENT_PREVIEW_COUNT = 8;
+
 /** Funding counts as closing soon within this many days, the Funding page's first closing filter. */
 export const CLOSING_SOON_DAYS = 30;
 
@@ -25,12 +33,12 @@ export function homePreviews(initiatives: readonly ListingRecord[], asOf: string
   });
   const recent = [...shared]
     .sort((a, b) => b.sharedOn!.localeCompare(a.sharedOn!) || a.title.localeCompare(b.title))
-    .slice(0, 3);
+    .slice(0, RECENT_PREVIEW_COUNT);
   return { recent, sharedCount: shared.length };
 }
 
 /**
- * What Home shows of the funding catalog: the three open calls that close soonest, never ranked by
+ * What Home shows of the funding catalog: the open calls that close soonest, never ranked by
  * fit, and how many close within the Funding page's first closing filter. Both use the filter's own
  * rule, so the hero's number matches the list its link opens.
  */
@@ -46,7 +54,7 @@ export function fundingPreviews(entries: readonly Entry[], now: Date) {
         a.entry.fund.displayName.localeCompare(b.entry.fund.displayName) ||
         (a.entry.program?.name ?? "").localeCompare(b.entry.program?.name ?? ""),
     )
-    .slice(0, 3)
+    .slice(0, FUNDING_PREVIEW_COUNT)
     .map(({ entry }) => entry);
   const closingSoon = open.filter(({ left }) => left <= CLOSING_SOON_DAYS * DAY).length;
   return { upcoming, closingSoon };

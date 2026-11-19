@@ -11,6 +11,7 @@ import { LinkPreview } from "../ui/LinkPreview.tsx";
 import { Media } from "../ui/Media.tsx";
 import { PublicAsks } from "../ui/PublicAsks.tsx";
 import { WorkTag } from "../ui/WorkTag.tsx";
+import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 
 /**
  * One shared initiative, opened over the page the person was on. Public records only: the
@@ -38,10 +39,7 @@ export function RecordDetail({
   return (
     <DetailSheet title={title} state={sheet}>
       {state === "loading" ? (
-        <section aria-busy="true" aria-label="Loading initiative" className="rc-stack">
-          <p role="status">Loading initiative</p>
-          <div className="rc-skeleton" />
-        </section>
+        <LinesSkeleton label="Loading initiative" panel />
       ) : state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">

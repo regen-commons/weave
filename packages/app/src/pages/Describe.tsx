@@ -32,10 +32,13 @@ import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, INTAKE_STEPS, pathTo } from "../routes.ts";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { revealProblem } from "../ui/dock.ts";
+import { Dock } from "../ui/Dock.tsx";
+import { moveOnEnter } from "../ui/next-field.ts";
 import { Conversation } from "../ui/Conversation.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
-import { NarrowLayout, StepLayout, Stack } from "../ui/layouts.tsx";
+import { NarrowLayout, Panel, StepLayout, Stack } from "../ui/layouts.tsx";
 import { RecordFields } from "../ui/RecordFields.tsx";
 import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { Stepper } from "../ui/Stepper.tsx";
@@ -43,6 +46,10 @@ import { VoiceInput } from "../ui/VoiceInput.tsx";
 import { DescribeExamples } from "./DescribeExamples.tsx";
 import { useSocialFixture } from "../social/context.tsx";
 import { useAccountDoor } from "../account/door.tsx";
+import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
+
+const FIELDS_ID = "describe-fields";
+const PROBLEM_ID = "describe-problem";
 
 /** The one file input of the step. Its label and hint say what happens to a file in the view it sits in. */
 function FileField({
@@ -394,7 +401,10 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     try {
       next = controller.change(continueWithFields);
     } catch (error) {
-      setProblem(error instanceof FieldsProblem ? error.message : "Check the four fields and try again.");
+      // The press may come from a phone's dock, a screen away from where the problem is written.
+      revealProblem(PROBLEM_ID, () =>
+        setProblem(error instanceof FieldsProblem ? error.message : "Check the four fields and try again."),
+      );
       return;
     }
     navigate(fixtureHref(pathTo(afterFields(next)), routeSearch(), import.meta.env.DEV));
@@ -435,6 +445,44 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       {notice}
     </p>
   );
+  // Each way forward is drawn twice and shown once: in its place on a wide screen, in the dock on a
+  // phone (DL-089). The dock is outside the form, so Continue names the form it sends.
+  const continueAction = (from?: "wide") => (
+    <button
+      className="rc-button"
+      data-variant={lead.primary === "continue" ? "primary" : "secondary"}
+      data-from={from}
+      type="submit"
+      form={FIELDS_ID}
+    >
+      Continue
+    </button>
+  );
+  const buildAction = (from?: "wide") => (
+    <button
+      className="rc-button"
+      data-variant="primary"
+      // The dock holds one control at its usual height.
+      data-size={from ? "lg" : undefined}
+      data-from={from}
+      type="button"
+      aria-busy={busy}
+      disabled={
+        busy ||
+        listening ||
+        !(
+          draft.turns.length ||
+          draft.composer.trim() ||
+          draft.pendingLink.trim() ||
+          draft.attachments.length ||
+          draft.links.length
+        )
+      }
+      onClick={() => void build()}
+    >
+      {busy ? "Building your card" : "Build my card"}
+    </button>
+  );
   return (
     <Stack>
       <Stepper steps={INTAKE_STEPS.map((step) => step.label)} current={0} />
@@ -462,9 +510,12 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
         </div>
       )}
       {!ready ? (
-        <p role="status">Opening your device draft</p>
+        <DraftSkeleton />
       ) : shown === "fields" ? (
-        <NarrowLayout>
+        // On a wide screen the card fills in beside the fields as they are typed. A phone shows it at the next step.
+        <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
+          {/* The fields sit on a panel, so the mycelium behind the page does not run through labels and hints. */}
+          <Panel>
           {offline && (
             <p className="rc-notice" data-tone="info">
               You are offline. Your details stay on this device.
@@ -491,7 +542,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               />
             </>
           )}
-          <form className="rc-form" onSubmit={continueFields}>
+          <form className="rc-form" id={FIELDS_ID} onSubmit={continueFields} onKeyDown={moveOnEnter}>
             {lead.speech && (
               <Heading level={2} size="section">
                 Or type it
@@ -499,24 +550,19 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             )}
             <RecordFields value={form} onChange={changeForm} />
             {problem && (
-              <p className="rc-error" role="alert">
+              <p className="rc-error" role="alert" id={PROBLEM_ID}>
                 {problem}
               </p>
             )}
             <div className="rc-action-bar">
-              <button
-                className="rc-button"
-                data-variant={lead.primary === "continue" ? "primary" : "secondary"}
-                type="submit"
-              >
-                Continue
-              </button>
+              {continueAction("wide")}
               {lead.speech !== "speak" && (
                 <button className="rc-button" data-variant="secondary" type="button" onClick={talk}>
                   Talk it through instead
                 </button>
               )}
             </div>
+            <Dock>{continueAction()}</Dock>
           </form>
           <details>
             <summary className="rc-footer-link">Add files</summary>
@@ -534,9 +580,12 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             onRemoveLink={removeLink}
           />
           {status}
-        </NarrowLayout>
+          </Panel>
+        </StepLayout>
       ) : (
         <StepLayout aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
+          {/* The conversation sits on a panel, so the mycelium behind the page does not run through it. */}
+          <Panel>
           {offline && (
             <p className="rc-notice" data-tone="info">
               You are offline. This conversation stays on this device.
@@ -690,6 +739,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                   type="url"
                   id="describe-link"
                   aria-describedby="describe-link-hint"
+                  enterKeyHint="done"
                   value={link}
                   maxLength={2048}
                   onChange={(event) =>
@@ -709,27 +759,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               onRemoveLink={removeLink}
             />
             <div className="rc-action-bar">
-              <button
-                className="rc-button"
-                data-variant="primary"
-                data-size="lg"
-                type="button"
-                aria-busy={busy}
-                disabled={
-                  busy ||
-                  listening ||
-                  !(
-                    draft.turns.length ||
-                    draft.composer.trim() ||
-                    draft.pendingLink.trim() ||
-                    draft.attachments.length ||
-                    draft.links.length
-                  )
-                }
-                onClick={() => void build()}
-              >
-                {busy ? "Building your card" : "Build my card"}
-              </button>
+              {buildAction("wide")}
               {busy && (
                 <button
                   className="rc-button"
@@ -748,6 +778,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                 Use the four fields
               </button>
             </div>
+            <Dock>{buildAction()}</Dock>
           </section>
           {status}
           {draft.proposal && draft.proposalVersion === draft.inputVersion && (
@@ -755,6 +786,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               Check your card
             </ButtonLink>
           )}
+          </Panel>
         </StepLayout>
       )}
     </Stack>

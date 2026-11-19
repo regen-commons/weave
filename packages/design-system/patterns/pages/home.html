@@ -50,11 +50,12 @@
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html">Your Initiatives</a>
         </nav></div>
-        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
+        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button></div>
       </header>
+      <div class="rc-page-body">
+      <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
       <main class="rc-main" id="main">
         <div class="rc-stack" data-gap="wide">
-          <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
           <section class="rc-home-hero" aria-labelledby="home-title" data-mycelium-own>
             <h1 class="rc-heading" data-size="hero" id="home-title">
               Find partners and funding for <em>regenerative work</em>
@@ -268,13 +269,13 @@
               <h2 id="soon" class="rc-heading" data-size="section">Funding closing soon</h2>
               <a class="rc-button" data-variant="quiet" data-size="sm" href="funding.html">See all funding</a>
             </div>
-            <ul class="rc-card-grid">
+            <ul class="rc-card-grid" data-preview="row">
               <li>
                 <article class="rc-card" data-layout="listing" data-kind="funding">
                   <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>US$ 15,000</p>
                   <h3 class="rc-card-title"><a href="opportunity.html">Headwater learning grant</a></h3>
                   <p class="rc-card-meta">Brazil</p>
-                  <ul class="rc-tag-list" aria-label="Deadline"><li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2026-11-30">30 Nov 2026</time>, 26 days left</span></li></ul>
+                  <ul class="rc-tag-list" aria-label="Deadline"><li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg><span>Closes <time datetime="2026-11-30">30 Nov 2026</time>, 26 days left</span></span></li></ul>
                   <p class="rc-card-summary">Funding for community work. Check eligibility with the funder.</p>
                   <p class="rc-time"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Confirmed <time datetime="2026-10-12">12 October 2026</time></p>
                 </article>
@@ -284,7 +285,7 @@
                   <p class="rc-eyebrow"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>US$ 20,000</p>
                   <h3 class="rc-card-title"><a href="opportunity.html">Shared tools fund</a></h3>
                   <p class="rc-card-meta">Kenya</p>
-                  <ul class="rc-tag-list" aria-label="Deadline"><li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2027-01-15">15 Jan 2027</time>, 72 days left</span></li></ul>
+                  <ul class="rc-tag-list" aria-label="Deadline"><li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg><span>Closes <time datetime="2027-01-15">15 Jan 2027</time>, 72 days left</span></span></li></ul>
                   <p class="rc-card-summary">Funding for community work. Check eligibility with the funder.</p>
                   <p class="rc-time"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Confirmed <time datetime="2026-10-20">20 October 2026</time></p>
                 </article>
@@ -293,7 +294,7 @@
                 <article class="rc-card" data-layout="listing">
                   <h3 class="rc-card-title"><a href="opportunity.html">Culture and care award</a></h3>
                   <p class="rc-card-meta">Portugal</p>
-                  <ul class="rc-tag-list" aria-label="Deadline"><li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2027-02-28">28 Feb 2027</time>, 116 days left</span></li></ul>
+                  <ul class="rc-tag-list" aria-label="Deadline"><li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg><span>Closes <time datetime="2027-02-28">28 Feb 2027</time>, 116 days left</span></span></li></ul>
                   <p class="rc-card-summary">Funding for community work. Check eligibility with the funder.</p>
                   <p class="rc-time"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Confirmed <time datetime="2026-10-27">27 October 2026</time></p>
                 </article>
@@ -305,7 +306,7 @@
               <h2 id="recent" class="rc-heading" data-size="section">Recently shared</h2>
               <a class="rc-button" data-variant="quiet" data-size="sm" href="initiatives.html">Browse all initiatives</a>
             </div>
-            <ul class="rc-card-grid">
+            <ul class="rc-card-grid" data-preview="rows">
               <li>
                 <article class="rc-card" data-layout="listing" data-kind="initiative">
                   <div class="rc-media" role="img" aria-label="No image yet"><svg class="rc-icon" data-size="lg" aria-hidden="true"><use href="../../brand/icons.svg#sprout" /></svg></div>
@@ -351,9 +352,10 @@
           </section>
         </div>
       </main>
+      </div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>

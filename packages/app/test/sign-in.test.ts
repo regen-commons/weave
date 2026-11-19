@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { signInResults } from "@weave/api/account-contract";
-import { continueToCertified, isSignInReturn, signInReturnFailed, signInReturnMessage } from "../src/account/sign-in.ts";
+import { continueToCertified, doorOnReturn, isSignInReturn, signInReturnFailed, signInReturnMessage } from "../src/account/sign-in.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
@@ -60,4 +60,22 @@ test("every callback result has a fixed message; only a finished sign-in is not 
     assert.equal(signInReturnMessage(other), "");
     assert.equal(signInReturnFailed(other), false);
   }
+});
+
+test("coming back from Certified opens a dialog only to finish saving or to say sign-in did not finish (DL-085)", () => {
+  // Signed in from the app bar or a page: the page alone, with no dialog nobody asked for.
+  assert.equal(doorOnReturn("signed-in", false, false), null);
+  // Left from the save dialog: back to it, whether or not the sign-in finished.
+  assert.equal(doorOnReturn("signed-in", true, false), "keep");
+  for (const failed of signInResults.filter((result) => result !== "signed-in")) {
+    assert.equal(doorOnReturn(failed, true, false), "keep", failed);
+    // A sign-in that did not finish is never silent: the sign-in dialog says why.
+    assert.equal(doorOnReturn(failed, false, false), "sign-in", failed);
+    // A page that shows the account says it in place.
+    assert.equal(doorOnReturn(failed, false, true), null, failed);
+  }
+  assert.equal(doorOnReturn("signed-in", true, true), null);
+  // An ordinary visit opens nothing.
+  assert.equal(doorOnReturn(null, true, false), null);
+  assert.equal(doorOnReturn("anything-else", false, false), null);
 });

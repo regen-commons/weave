@@ -56,7 +56,21 @@
   text-underline-offset: 0.18em;
 }
 :where(a:visited) { color: var(--link-visited); }
-:where(a:hover) { color: var(--link-hover); }
+/* A hover style is for a pointer that can hover. Under a finger it would stay on after the tap,
+   so it is asked for only where the device hovers. A press has its own state on every device
+   (DL-087). */
+@media (hover: hover) {
+  :where(a:hover) { color: var(--link-hover); }
+}
+:where(a:active) { color: var(--link-hover); }
+
+/* Under a finger each control answers a press with its own pressed state, so the browser's flash
+   over a tapped link or button is off, and a double tap on a control neither zooms the page nor
+   delays the press (DL-087). */
+:where(a, button, input, select, textarea, summary, label) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: var(--border-edge) solid var(--focus);

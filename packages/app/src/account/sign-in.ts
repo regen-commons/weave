@@ -38,3 +38,14 @@ export const isSignInReturn = (result: string | null): result is SignInResult =>
 export const signInReturnMessage = (result: string | null): string => isSignInReturn(result) ? returnMessages[result] : "";
 /** Every return except a finished sign-in leaves the person signed out, with sign-in offered again. */
 export const signInReturnFailed = (result: string | null): boolean => isSignInReturn(result) && result !== "signed-in";
+/**
+ * Which account dialog, if any, opens when the person comes back from Certified. One who left from
+ * the dialog while saving comes back to it. A sign-in from the app bar or a page comes back to the
+ * page alone, unless it did not finish: then the sign-in dialog opens and says why. A page that
+ * shows the account itself, such as Settings, says all of this in place.
+ */
+export function doorOnReturn(result: string | null, leftWhileSaving: boolean, accountPage: boolean): "keep" | "sign-in" | null {
+  if (!isSignInReturn(result) || accountPage) return null;
+  if (leftWhileSaving) return "keep";
+  return signInReturnFailed(result) ? "sign-in" : null;
+}

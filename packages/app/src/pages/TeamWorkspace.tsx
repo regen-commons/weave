@@ -20,12 +20,13 @@ import { SuggestionSchema } from "../describe/contracts.ts";
 import { AskSuggestionSchema } from "../intake/contracts.ts";
 import { Section } from "../ui/Section.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
-import { StepLayout } from "../ui/layouts.tsx";
+import { Panel, Stack, StepLayout } from "../ui/layouts.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { FirstFunding } from "../ui/FirstFunding.tsx";
 import { loadedDraft } from "../account/document.ts";
 import { LiveExposure } from "../social/LiveExposure.tsx";
 import { rememberWorkspace } from "../initiative/workspace-resume.ts";
+import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
 const subscribeOnline = (notify: () => void) => {
   window.addEventListener("online", notify);
@@ -42,7 +43,7 @@ export function TeamWorkspace({ workspaceId }: { workspaceId: string }) {
   const { state } = useAccount();
   return (
     <div className="rc-stack">
-      {state === null ? <><WorkspaceHeading /><p role="status">Checking your account</p></>
+      {state === null ? <><WorkspaceHeading /><DraftSkeleton label="Checking your account" /></>
         : !state.user ? <><WorkspaceHeading /><WorkspaceSignIn workspaceId={workspaceId} available={state.available} /></>
           : <WorkspaceContent key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} />}
     </div>
@@ -166,7 +167,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       </div>
     </div>
   );
-  if (loaded === undefined) return <><WorkspaceHeading /><p role="status">Opening the team workspace</p></>;
+  if (loaded === undefined) return <><WorkspaceHeading /><DraftSkeleton label="Opening the team workspace" /></>;
   const saved = loaded.saved;
   const readOnly = loaded.accessRole === "viewer";
   // Copying this device's checked card is offered while the team has nothing saved. When that card
@@ -181,7 +182,17 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       <WorkspaceHeading name={String(saved?.document.initiative.name ?? loaded.projectTitle ?? "Team initiative")}
         role={loaded.accessRole} />
       {!online && <p role="status">You’re offline. Reconnect to save or change sharing.</p>}
-      <StepLayout aside={<>
+      {/* Under the record on a wide screen and after Saving and sharing on a phone, so the panel stays
+          beside the whole page. */}
+      <StepLayout wide more={saved ? <Stack wide>
+          <CertifiedSuggestions workspaceId={workspaceId} queries={queries} compact={false} online={online}
+            onAccessLost={loseAccess} />
+          <SavedMatching key={saved.revision} refreshVersion={matchVersion} active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
+            document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
+            compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
+            fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
+          <Section id="team-funding" title="Funding that fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
+      </Stack> : undefined} aside={<Panel>
         <Section id="saving-sharing" title="Saving and sharing">
           <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>
             {saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}
@@ -195,7 +206,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
           {loaded.accessRole === "admin" && loaded.projectUri && <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
             onClick={() => setPanel("teammates")}>Manage teammates</button>}
         </div></Section>}
-      </>}>
+      </Panel>}>
         {saved && fields ? <InitiativeRecord named={false} fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
           offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
           : <p>No needs or offers saved yet.{readOnly ? " An editor can add them." : ""}</p>}
@@ -207,17 +218,6 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
           onEditing={value => { setEditing(value); setCloseNotice(""); }} onAccessLost={loseAccess} />}
         {panel === "teammates" && loaded.accessRole === "admin" && loaded.projectUri && <WorkspaceAccess workspaceId={workspaceId} projectUri={loaded.projectUri} expanded />}
       </TaskDialog>
-      {saved && (
-        <>
-          <CertifiedSuggestions workspaceId={workspaceId} queries={queries} compact={false} online={online}
-            onAccessLost={loseAccess} />
-          <SavedMatching key={saved.revision} refreshVersion={matchVersion} active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
-            document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
-            compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
-            fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
-          <Section id="team-funding" title="Funding that fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
-        </>
-      )}
     </>
   );
 }

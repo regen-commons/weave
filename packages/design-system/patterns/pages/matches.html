@@ -32,8 +32,10 @@
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
         </nav></div>
-    <div class="rc-app-header-state"><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+    <div class="rc-app-header-state"><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
   </header>
+  <div class="rc-page-body">
+  <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
   <main class="rc-main" id="main">
     <div class="rc-list-layout">
       <h1 class="rc-heading" data-size="page">Partners for you</h1>
@@ -97,9 +99,10 @@
       </section>
       <p class="rc-meta"><a href="matches-empty.html">See this page with no matches</a></p>
     </div>
-  </main><footer class="rc-footer">
+  </main>
+  </div><footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>

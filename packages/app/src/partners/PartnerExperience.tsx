@@ -10,6 +10,8 @@ import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { NetworkResults } from "./NetworkResults.tsx";
 import { MatchingFeedback } from "./MatchingFeedback.tsx";
+import { TaskDialog } from "../ui/TaskDialog.tsx";
+import { CardGridSkeleton, LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { CertifiedSuggestions } from "./CertifiedSuggestions.tsx";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { MatchingDate, SharingReview } from "./SharingReview.tsx";
@@ -132,6 +134,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   const eligible = entries.filter((entry) =>
     !readOnly && entry.classified && entry.status === "open" && ["private", "needs_review", "withdrawn"].includes(entry.sharing));
   const selection = eligible.filter((entry) => selected === null || selected.includes(selectionKey(entry)));
+  const withdrawing = entries.find((entry) => selectionKey(entry) === withdrawal);
   const reviewing = synced && !stale && network.preview && (
     !network.pending || network.pending.action === network.preview.action
   ) ? network.preview : null;
@@ -151,6 +154,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
         })} />);
   if (presentation === "results") return <div className="rc-stack">
     <MatchingFeedback {...network} online={online} readOnly={readOnly} noticeRef={notice}
+      first={state === null ? <CardGridSkeleton kind="partner" label="Checking partners" /> : undefined}
       onRetry={command => void network.mutate(command)} onRefresh={network.refresh} refreshBlocked={blocked} />
     {!network.loading && !sharedEntries(entries).length && <p className="rc-meta">To search what other teams have shared, share at least one open need or offer.</p>}
     {results}
@@ -174,7 +178,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
         <button className="rc-button" data-variant="quiet" type="button" disabled={blocked} onClick={network.refresh}>Check again</button>
       </div>
       <MatchingFeedback {...network} online={online} readOnly={readOnly} reviewing={!!reviewing} noticeRef={notice}
-        onRetry={command => void network.mutate(command)} />
+        first={state === null ? <LinesSkeleton label="Checking partners" /> : undefined} onRetry={command => void network.mutate(command)} />
       {state && !stale && (
         <>
           {entries.length ? (
@@ -208,16 +212,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
                               aria-label={`Renew sharing for ${entry.title}`}
                               onClick={() => void network.review([entryReference(entry)], "renew")}>Renew sharing</button>
                           )}
-                          {withdrawable && withdrawal === selectionKey(entry) ? (
-                            <>
-                              <button className="rc-button" data-variant="danger" type="button" disabled={blocked} autoFocus
-                                onClick={() => {
-                                  setWithdrawal(null);
-                                  void network.mutate({ action: "withdraw", input: { entries: [entryReference(entry)], requestId: crypto.randomUUID() } });
-                                }}>Confirm withdrawal</button>
-                              <button className="rc-button" data-variant="quiet" type="button" onClick={() => setWithdrawal(null)}>Cancel</button>
-                            </>
-                          ) : withdrawable && (
+                          {withdrawable && (
                             <button className="rc-button" data-variant="quiet" type="button" disabled={blocked}
                               aria-label={`Withdraw ${entry.title} from matching`}
                               onClick={() => setWithdrawal(selectionKey(entry))}>Withdraw from matching</button>
@@ -228,6 +223,22 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
                   );
                 })}
               </ul>
+              {/* Asked in a dialog, so the row's buttons stay where they are. */}
+              <TaskDialog title="Withdraw from matching?" open={withdrawing !== undefined} onClose={() => setWithdrawal(null)}>
+                {withdrawing && (
+                  <div className="rc-stack">
+                    <p>{withdrawing.title} leaves matching, so people signed in will not see it. You can share it again later.</p>
+                    <div className="rc-action-bar">
+                      <button className="rc-button" data-variant="danger" type="button" disabled={blocked}
+                        onClick={() => {
+                          setWithdrawal(null);
+                          void network.mutate({ action: "withdraw", input: { entries: [entryReference(withdrawing)], requestId: crypto.randomUUID() } });
+                        }}>Withdraw from matching</button>
+                      <button className="rc-button" data-variant="quiet" type="button" data-task-focus onClick={() => setWithdrawal(null)}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </TaskDialog>
               {!!eligible.length && (
                 <div className="rc-action-bar">
                   <button className="rc-button" data-variant="primary" type="button" disabled={blocked || !synced || !selection.length}
