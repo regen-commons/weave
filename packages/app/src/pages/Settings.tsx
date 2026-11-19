@@ -76,7 +76,7 @@ export function Settings() {
           <>
             <p>No initiative on this device yet.</p>
             <div className="rc-action-bar">
-              <ButtonLink href={pathTo("initiative")} variant="secondary">
+              <ButtonLink href={pathTo("new-initiative")} variant="secondary">
                 Describe Your Initiative
               </ButtonLink>
             </div>

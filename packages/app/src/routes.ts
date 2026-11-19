@@ -3,6 +3,7 @@ import { uuid } from "@weave/api/account-contract";
 /** Stable page keys; visible names follow the approved prototype. */
 export type RouteName =
   | "home"
+  | "new-initiative"
   | "initiative"
   | "needs"
   | "offers"
@@ -39,6 +40,14 @@ export const ROUTES: readonly Route[] = [
     label: "Home",
     form: false,
     section: "home",
+  },
+  {
+    // Starts a new card, then shows step 1 at its own address. Every "Start An Initiative" comes here.
+    name: "new-initiative",
+    path: "/start/new",
+    title: "Start An Initiative",
+    form: true,
+    parent: "home",
   },
   {
     name: "initiative",

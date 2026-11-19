@@ -183,7 +183,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               : "Describe your initiative and your card appears here."}
           </p>
           <div className="rc-action-bar">
-            <ButtonLink href={pathTo(cardRoute(draft))} variant="primary">
+            <ButtonLink href={hasDraft(draft) ? pathTo(cardRoute(draft)) : pathTo("new-initiative")} variant="primary">
               {hasDraft(draft) ? "Continue Your Card" : "Describe Your Initiative"}
             </ButtonLink>
           </div>

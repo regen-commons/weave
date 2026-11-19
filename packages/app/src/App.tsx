@@ -10,6 +10,7 @@ import { DraftProvider } from "./describe/context.tsx";
 import { useDraft } from "./describe/use-draft.ts";
 import { hasDraft } from "./describe/view.ts";
 import { Describe } from "./pages/Describe.tsx";
+import { StartNew } from "./pages/StartNew.tsx";
 import { Home } from "./pages/Home.tsx";
 import { AskStep } from "./pages/AskStep.tsx";
 import { YourInitiative } from "./pages/YourInitiative.tsx";
@@ -57,6 +58,9 @@ function content(route: Route, fixture?: FixtureContext) {
     case "home":
       return <Home fixture={fixture} />;
     // The card's own pages open only for the account it belongs to (DL-055).
+    case "new-initiative":
+      // Not behind ForThisAccount: a new card is this account's own, whatever card the tab was on.
+      return <StartNew />;
     case "initiative":
       return <ForThisAccount><Describe fixture={fixture} /></ForThisAccount>;
     case "needs":

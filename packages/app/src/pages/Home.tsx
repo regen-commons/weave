@@ -109,7 +109,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
               </ButtonLink>
             )}
             {doors.start && (
-              <ButtonLink href={pathTo("initiative")} variant={doors.start} size="lg">
+              <ButtonLink href={pathTo("new-initiative")} variant={doors.start} size="lg">
                 Start An Initiative
               </ButtonLink>
             )}
@@ -301,7 +301,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <EmptyState
             title={failed ? "Shared initiatives did not load" : "No shared initiatives here yet"}
             action={
-              <ButtonLink href={pathTo("initiative")} variant="secondary">
+              <ButtonLink href={pathTo("new-initiative")} variant="secondary">
                 Start An Initiative
               </ButtonLink>
             }

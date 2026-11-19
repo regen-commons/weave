@@ -39,9 +39,10 @@ test("the frame has four tabs, detail sheets, the person's initiative pages and 
   assert.equal(matchRoute("/your-initiatives")?.title, "Your Initiatives");
   // The describe step is one page (DL-110). A link to the page that checked the card opens it.
   assert.equal(matchRoute("/start/initiative/check")?.name, "initiative");
+  // The address every "Start An Initiative" opens is the first focused step too: it shows step 1.
   assert.deepEqual(
     ROUTES.filter((route) => route.form).map((route) => route.name),
-    ["initiative", "needs", "offers"],
+    ["new-initiative", "initiative", "needs", "offers"],
   );
   // A tab is a page with a section and no page above it. Pages under a tab keep it marked.
   assert.deepEqual(
