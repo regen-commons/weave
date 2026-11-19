@@ -20,6 +20,7 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { Fit } from "../ui/Fit.tsx";
+import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 
 /**
  * One funding opportunity, opened over the page the person was on. `search` is the query it was
@@ -53,8 +54,8 @@ export function Opportunity({
     team = query.get("team");
   const entry = catalog.bundle ? findEntry(catalogEntries(catalog.bundle), fundId, programId) : undefined;
   const title = catalog.loading
-    ? "Opening opportunity"
-    : (entry?.program?.name ?? entry?.fund.displayName ?? "Opportunity not available");
+    ? "Opening Opportunity"
+    : (entry?.program?.name ?? entry?.fund.displayName ?? "Opportunity Not Available");
   useEffect(() => {
     if (sheet.open) document.title = `${title} | Weave`;
   }, [title, sheet.open]);
@@ -62,7 +63,7 @@ export function Opportunity({
     return (
       <DetailSheet title={title} state={sheet}>
         {catalog.loading ? (
-          <p role="status">Opening the catalog copy</p>
+          <LinesSkeleton label="Opening the catalog copy" panel />
         ) : (
           <>
             <p>
@@ -71,7 +72,7 @@ export function Opportunity({
             </p>
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="secondary" type="button" onClick={catalog.retry}>
-                Try again
+                Try Again
               </button>
             </div>
           </>
@@ -114,7 +115,7 @@ export function Opportunity({
                 catalog.retry();
               }}
             >
-              Try again
+              Try Again
             </button>
           </div>
         </section>
@@ -135,19 +136,13 @@ export function Opportunity({
       <div className="rc-action-bar">
         {!described && (
           <ButtonLink href={pathTo("initiative")} variant="primary">
-            Describe your initiative
+            Describe Your Initiative
           </ButtonLink>
         )}
         {url && (
-          <a
-            className="rc-button"
-            data-variant={described ? "primary" : "secondary"}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open the funder's page
-          </a>
+          <ButtonLink href={url} variant={described ? "primary" : "secondary"}>
+            Open The Funder's Page
+          </ButtonLink>
         )}
         {import.meta.env.DEV && example && (
           <SocialAction intent={{ kind: "remind", id: entry.program?.id ?? fundId, name: title }} />
@@ -156,10 +151,10 @@ export function Opportunity({
       {!url && <p className="rc-meta">The source link needs checking, so no link is offered.</p>}
       <section className="rc-stack">
         <h3 className="rc-heading" data-size="section">
-          Why it fits
+          Why It Fits
         </h3>
         {catalog.ranking ? (
-          <p role="status">Comparing your card on this device</p>
+          <LinesSkeleton label="Comparing your card on this device" lines={2} />
         ) : result ? (
           <>
             {result.thematicFit.score === null ? (
@@ -197,7 +192,7 @@ export function Opportunity({
       </section>
       <section className="rc-stack">
         <h3 className="rc-heading" data-size="section">
-          Before you apply
+          Before You Apply
         </h3>
         <dl className="rc-facts">
           <div>
@@ -267,7 +262,7 @@ export function Opportunity({
         })}
         {program?.unknowns.length ? (
           <>
-            <h4 className="rc-card-title">What still needs checking</h4>
+            <h4 className="rc-card-title">What Still Needs Checking</h4>
             <ul className="rc-reasons">
               {program.unknowns.map((unknown, index) => (
                 <li key={index}>{unknown}</li>
@@ -282,10 +277,9 @@ export function Opportunity({
       </section>
       {fixture?.state === "loading" && !retried ? (
         <section className="rc-stack">
-          <p role="status">Opening team slots</p>
-          <div className="rc-skeleton" />
+          <LinesSkeleton label="Opening team slots" lines={2} />
           <button className="rc-button" data-variant="secondary" type="button" onClick={() => setRetried(true)}>
-            Show team slots
+            Show Team Slots
           </button>
         </section>
       ) : (

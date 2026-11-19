@@ -71,7 +71,7 @@ export function DuplicateNotice() {
           </p>
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="secondary" type="button" disabled={busy} onClick={() => void use()}>
-              Use this project
+              Use This Project
             </button>
             <button
               className="rc-button"
@@ -83,7 +83,7 @@ export function DuplicateNotice() {
                 setAnswered((count) => count + 1);
               }}
             >
-              It's a different initiative
+              It's A Different Initiative
             </button>
           </div>
         </div>

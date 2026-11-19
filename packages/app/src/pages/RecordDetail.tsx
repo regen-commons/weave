@@ -11,6 +11,7 @@ import { LinkPreview } from "../ui/LinkPreview.tsx";
 import { Media } from "../ui/Media.tsx";
 import { PublicAsks } from "../ui/PublicAsks.tsx";
 import { WorkTag } from "../ui/WorkTag.tsx";
+import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 
 /**
  * One shared initiative, opened over the page the person was on. Public records only: the
@@ -28,7 +29,7 @@ export function RecordDetail({
   const available = import.meta.env.DEV && !!fixture;
   const shown = available ? record : undefined;
   const state = fixture?.state;
-  const title = shown?.title ?? "Initiative not available";
+  const title = shown?.title ?? "Initiative Not Available";
   useEffect(() => {
     if (sheet.open) document.title = `${title} | Weave`;
   }, [title, sheet.open]);
@@ -38,17 +39,14 @@ export function RecordDetail({
   return (
     <DetailSheet title={title} state={sheet}>
       {state === "loading" ? (
-        <section aria-busy="true" aria-label="Loading initiative" className="rc-stack">
-          <p role="status">Loading initiative</p>
-          <div className="rc-skeleton" />
-        </section>
+        <LinesSkeleton label="Loading initiative" panel />
       ) : state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
             <h3 className="rc-notice-title">The initiative did not load</h3>
             <p>Your device card is safe.</p>
             <button type="button" className="rc-button" data-variant="secondary" onClick={retry}>
-              Try again
+              Try Again
             </button>
           </div>
         </section>
@@ -75,7 +73,7 @@ export function RecordDetail({
           <PublicAsks kind="offers" asks={shown.publicDetails?.offers ?? []} />
           <section className="rc-stack">
             <h3 className="rc-heading" data-size="section">
-              Get in touch
+              Get In Touch
             </h3>
             <p>Weave makes no introductions yet. Their links may say how to reach them.</p>
             {shown.publicDetails?.links.length ? (

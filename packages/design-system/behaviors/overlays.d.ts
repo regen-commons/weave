@@ -28,3 +28,9 @@ export function inlinePlacement(input: {
   gap: number;
   align?: string | undefined;
 }): number;
+
+/**
+ * Whether a scroll somewhere in the window moves an open panel: any scroll but one inside the
+ * panel itself, which must keep its own scroll position.
+ */
+export function scrollMovesPanel(scrolled: EventTarget | null, panel: Pick<Node, "contains">): boolean;

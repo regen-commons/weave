@@ -8,6 +8,7 @@ import { InformationContext } from "../ui/information-context.ts";
 import { useSocialFixture } from "./context.tsx";
 import { EXAMPLE_HANDLE } from "./fixture.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
+import { SIGN_IN } from "../data/privacy.ts";
 
 export type DoorIntent = "keep" | "sign-in" | "certified";
 export type DoorResult = "saved" | "signed-in" | "cancelled";
@@ -71,7 +72,7 @@ export function ExampleDoor({
             <div className="rc-action-bar">
               <ExampleSave focus onSaved={() => onDone("saved")} onFailed={setMessage} />
               <button className="rc-button" data-variant="quiet" type="button" onClick={() => onDone("signed-in")}>
-                Not now
+                Not Now
               </button>
             </div>
           </>
@@ -103,9 +104,9 @@ export function ExampleDoor({
       <div className="rc-stack" aria-busy={busy} ref={body}>
         <p className="rc-eyebrow">Certified</p>
         <h3 className="rc-heading" data-size="section">
-          Continue to Weave as {EXAMPLE_HANDLE}?
+          Continue To Weave As {EXAMPLE_HANDLE}?
         </h3>
-        <p className="rc-meta">Weave learns who you are on Certified and nothing else.</p>
+        <p className="rc-meta">Weave learns who you are on Certified. It does not get your email address.</p>
         <div className="rc-action-bar">
           <button
             className="rc-button"
@@ -115,7 +116,7 @@ export function ExampleDoor({
             disabled={busy}
             onClick={() => void comeBack()}
           >
-            Continue as {EXAMPLE_HANDLE}
+            Continue As {EXAMPLE_HANDLE}
           </button>
           <button
             className="rc-button"
@@ -136,10 +137,8 @@ export function ExampleDoor({
   return (
     <div className="rc-stack" ref={body}>
       <p>
-        {reason ??
-          "Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave."}
+        {reason ?? SIGN_IN.offer}
       </p>
-      <AboutCertified />
       <div className="rc-action-bar">
         <button
           className="rc-button"
@@ -148,14 +147,18 @@ export function ExampleDoor({
           data-task-focus
           onClick={() => setStep("certified")}
         >
-          Sign in with Certified
+          Sign In With Certified
         </button>
         <button className="rc-button" data-variant="quiet" type="button" onClick={() => onDone("cancelled")}>
-          Not now
+          Not Now
         </button>
+      </div>
+      <p className="rc-meta">{SIGN_IN.effect}</p>
+      <div className="rc-action-bar">
+        <AboutCertified />
         {information && (
           <button className="rc-button" data-variant="quiet" type="button" onClick={() => information("storage")}>
-            What is saved
+            What Is Saved
           </button>
         )}
       </div>

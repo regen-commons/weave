@@ -47,7 +47,7 @@ export function Conversation({
                 </div>
                 <div className="rc-action-bar">
                   <button className="rc-button" data-variant="secondary" type="submit">
-                    Keep changes
+                    Keep Changes
                   </button>
                   <button
                     className="rc-button"
@@ -70,7 +70,7 @@ export function Conversation({
                   type="button"
                   onClick={() => onDraftEdit(turn.id, turn.text)}
                 >
-                  Edit your words
+                  Edit Your Words
                 </button>
               </>
             )}

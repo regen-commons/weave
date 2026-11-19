@@ -49,9 +49,11 @@
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
         </nav></div>
-        <div class="rc-app-header-state"><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" aria-current="page" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign out</button></div></div>
+        <div class="rc-app-header-state"><button class="rc-account" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" aria-current="page" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign Out</button></div></div>
       </header>
-      <main class="rc-main" id="main">
+      <div class="rc-page-body">
+<canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
+<main class="rc-main" id="main">
         <div class="rc-list-layout">
           <h1 class="rc-heading" data-size="page">Your Initiatives</h1>
           <section class="rc-section" aria-labelledby="initiatives-weave">
@@ -96,17 +98,32 @@
           <p class="rc-meta">Opening another initiative backs up the card on this device first.</p>
           <div class="rc-action-bar">
             <button class="rc-button" data-variant="quiet" type="button">Start a new initiative</button>
-            <a class="rc-button" data-variant="quiet" href="settings.html">Settings</a>
+            <a class="rc-button" data-variant="quiet" href="settings.html" data-from="wide">Settings</a>
           </div>
+          <section class="rc-section" data-until="wide" aria-labelledby="initiatives-settings">
+            <div class="rc-section-head">
+              <h2 class="rc-heading" data-size="section" id="initiatives-settings">Settings</h2>
+              <a class="rc-button" data-variant="quiet" data-size="sm" href="settings.html">All settings</a>
+            </div>
+            <fieldset>
+              <legend>Theme</legend>
+              <div class="rc-chip-group">
+                <label class="rc-chip"><input class="rc-check" type="radio" name="theme" checked>System</label>
+                <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Light</label>
+                <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Dark</label>
+              </div>
+            </fieldset>
+          </section>
           <div class="rc-action-bar">
             <p class="rc-meta">Signed in as orchard.certified.one.</p>
             <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Sign out</button>
           </div>
         </div>
       </main>
+</div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
@@ -118,7 +135,7 @@
             <h2 class="rc-footer-title">Data &amp; Privacy</h2>
             <ul>
               <li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What We Store</button></li>
-              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the Assistant Did</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What The Assistant Did</button></li>
               <li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data Policy</button></li>
               <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
             </ul>
@@ -145,7 +162,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+            <h2 class="rc-dialog-title" id="example-data-title">What We Store</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
@@ -157,7 +174,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+            <h2 class="rc-dialog-title" id="example-assistant-title">What The Assistant Did</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
@@ -169,7 +186,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+            <h2 class="rc-dialog-title" id="example-policy-title">Data Policy</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>

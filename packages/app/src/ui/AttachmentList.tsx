@@ -1,4 +1,5 @@
 import type { Attachment } from "../describe/contracts.ts";
+import { Link } from "../router.tsx";
 /** Local file and link references. No preview fetch is implied. */
 export function AttachmentList({
   files,
@@ -43,9 +44,10 @@ export function AttachmentList({
       {links.map((link) => (
         <li className="rc-attachment" key={link}>
           <div>
-            <a href={link} target="_blank" rel="noopener noreferrer">
+            {/* A kept link is whatever was typed, so it opens apart from this page even where it is not a full address. */}
+            <Link href={link} target="_blank" rel="noopener noreferrer">
               {link}
-            </a>
+            </Link>
             <p className="rc-meta">Link kept here. Its page has not been read.</p>
           </div>
           <button

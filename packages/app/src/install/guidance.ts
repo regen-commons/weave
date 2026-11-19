@@ -57,11 +57,11 @@ export const INSTALL_STEPS: Readonly<Record<"ios" | "android" | "in-app", readon
     { icon: "add-box", title: "Tap Add to Home Screen", note: "Scroll down the list to find it, then tap Add." },
   ],
   android: [
-    { icon: "more", title: "Tap the three dots", note: "At the top of your browser, beside the address." },
+    { icon: "more", title: "Tap The Three Dots", note: "At the top of your browser, beside the address." },
     { icon: "add-box", title: "Tap Install app", note: "It may say Add to Home screen." },
   ],
   "in-app": [
-    { icon: "more", title: "Open this app's menu", note: "Usually three dots, at the top or bottom of the screen." },
+    { icon: "more", title: "Open This App's Menu", note: "Usually three dots, at the top or bottom of the screen." },
     { icon: "globe", title: "Choose Open in browser", note: "It may name Safari or Chrome. Then come back to this page." },
   ],
 };

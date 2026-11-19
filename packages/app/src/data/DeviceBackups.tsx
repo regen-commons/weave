@@ -3,28 +3,35 @@ import { useDraft } from "../describe/use-draft.ts";
 import { hasDraft } from "../describe/view.ts";
 import type { DraftBackup } from "../describe/repository.ts";
 import {
-  attachedFiles,
   backupDeleteWarning,
+  backupLine,
+  BACKUPS_SHOWN,
   deviceRemovalFailure,
   discardedMessage,
   discardWarning,
   draftTime,
   draftTitle,
+  listedBackups,
   removedBackupMessage,
+  restoreWarning,
 } from "../describe/device-removal.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 
+type Step = { kind: "restore" | "delete"; backup: DraftBackup } | { kind: "current" };
+const TITLES = { restore: "Restore This Backup?", delete: "Delete This Backup?", current: "Remove This Draft From This Device?" };
+
 /**
- * This browser's backups. Each one restores after backing up the current draft. With `manage`,
- * each can also be deleted for good, and the current draft removed after it is kept as a backup.
- * Every removal names exactly what it shows: the stored key and the draft's ID, revision and time.
+ * This browser's backups, one compact row each: the name, when it last changed, and Restore and
+ * Delete. A long history shows its newest few and offers the rest. Restoring backs up the current
+ * draft first, and deleting is for good; each asks first and names exactly what it acts on. With
+ * `manage`, the current draft can also be removed after it is kept as a backup.
  */
 export function DeviceBackups({ manage = false, disabled = false }: { manage?: boolean; disabled?: boolean }) {
   const id = useId();
   const { controller, draft, ready } = useDraft();
   const [backups, setBackups] = useState<DraftBackup[]>([]);
-  const [restoring, setRestoring] = useState<DraftBackup | null>(null);
-  const [removing, setRemoving] = useState<{ kind: "backup"; backup: DraftBackup } | { kind: "current" } | null>(null);
+  const [all, setAll] = useState(false);
+  const [step, setStep] = useState<Step | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ text: string; failed: boolean } | null>(null);
   const reload = () => controller.backups().then(setBackups, () => {});
@@ -39,69 +46,61 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
     } catch (error) {
       setResult({ text: deviceRemovalFailure(error), failed: true });
     } finally {
-      setRemoving(null);
+      setStep(null);
       setBusy(false);
       await reload();
     }
   }
   const current = manage && hasDraft(draft);
-  if (!backups.length && !current && !result) return null;
+  // Settings has a place for backups whether or not there are any; elsewhere an empty list is left out.
+  if (!backups.length && !current && !result && !manage) return null;
+  const listed = listedBackups(backups, all);
+  const ask = (next: Step) => { setResult(null); setStep(next); };
   return (
-    <section className="rc-stack" aria-labelledby={`${id}-backups`} aria-busy={busy}>
-      <h3 className="rc-heading" data-size="section" id={`${id}-backups`}>
-        Device backups
-      </h3>
-      <p>
-        These drafts and their files are kept only in this browser. Restoring one backs up the current
-        draft first.
-      </p>
-      {backups.length > 0 && (
-        <ul className="rc-stack">
-          {backups.map((item) => (
-            <li key={item.key} className="rc-stack">
-              <div className="rc-action-bar">
-                <button className="rc-button" data-variant="secondary" type="button" disabled={busy || disabled}
-                  onClick={() => { setRestoring(item); setResult(null); }}>
-                  Restore {draftTitle(item.draft)}, {draftTime(item.draft)}
-                </button>
-                {manage && (
-                  <button className="rc-button" data-variant="quiet" type="button" disabled={busy || disabled}
-                    aria-label={`Delete this backup: ${draftTitle(item.draft)}, ${draftTime(item.draft)}`}
-                    onClick={() => { setRestoring(null); setResult(null); setRemoving({ kind: "backup", backup: item }); }}>
-                    Delete this backup
+    <section className="rc-stack" aria-label="Device backups" aria-busy={busy}>
+      {backups.length > 0 ? (
+        <ul className="rc-record-list" id={`${id}-list`}>
+          {listed.map((item) => {
+            const name = `${draftTitle(item.draft)}, ${draftTime(item.draft)}`;
+            return (
+              <li key={item.key} className="rc-record-row" data-layout="actions">
+                <div className="rc-record-text">
+                  <p className="rc-record-title">{draftTitle(item.draft)}</p>
+                  <p className="rc-meta">{backupLine(item.draft)}</p>
+                </div>
+                <div className="rc-action-bar">
+                  <button className="rc-button" data-variant="secondary" data-size="sm" type="button"
+                    disabled={busy || disabled} aria-label={`Restore ${name}`}
+                    onClick={() => ask({ kind: "restore", backup: item })}>
+                    Restore
                   </button>
-                )}
-              </div>
-              {attachedFiles(item.draft) > 0 && (
-                <p className="rc-meta">
-                  {attachedFiles(item.draft) === 1 ? "1 attached file" : `${attachedFiles(item.draft)} attached files`}
-                </p>
-              )}
-            </li>
-          ))}
+                  <button className="rc-button" data-variant="quiet" data-size="sm" type="button"
+                    disabled={busy || disabled} aria-label={`Delete this backup: ${name}`}
+                    onClick={() => ask({ kind: "delete", backup: item })}>
+                    Delete
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
+      ) : (
+        <p className="rc-meta">No backups on this device yet.</p>
       )}
-      {restoring && (
+      {(backups.length > BACKUPS_SHOWN || current) && (
         <div className="rc-action-bar">
-          <button className="rc-button" data-variant="primary" type="button" disabled={busy}
-            onClick={() => void run(async () => {
-              await controller.replace(restoring.draft);
-              setRestoring(null);
-              return "Device backup restored. The previous draft was backed up first.";
-            })}>
-            Back up this draft and restore
-          </button>
-          <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={() => setRestoring(null)}>
-            Cancel restoring
-          </button>
-        </div>
-      )}
-      {current && (
-        <div className="rc-action-bar">
-          <button className="rc-button" data-variant="quiet" type="button" disabled={busy || disabled || !ready}
-            onClick={() => { setRestoring(null); setResult(null); setRemoving({ kind: "current" }); }}>
-            Remove this draft from this device
-          </button>
+          {backups.length > BACKUPS_SHOWN && (
+            <button className="rc-button" data-variant="quiet" data-size="sm" type="button"
+              aria-expanded={all} aria-controls={`${id}-list`} onClick={() => setAll((value) => !value)}>
+              {all ? "Show Fewer Backups" : `Show All ${backups.length} Backups`}
+            </button>
+          )}
+          {current && (
+            <button className="rc-button" data-variant="quiet" data-size="sm" type="button"
+              disabled={busy || disabled || !ready} onClick={() => ask({ kind: "current" })}>
+              Remove This Draft From This Device
+            </button>
+          )}
         </div>
       )}
       {result && (
@@ -109,25 +108,36 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
           {result.text}
         </p>
       )}
-      <TaskDialog
-        title={removing?.kind === "current" ? "Remove this draft from this device?" : "Delete this backup?"}
-        open={!!removing}
-        onClose={() => setRemoving(null)}
-        blockClose={busy}
-      >
-        {removing && (
+      <TaskDialog title={TITLES[step?.kind ?? "delete"]} open={!!step} onClose={() => setStep(null)} blockClose={busy}>
+        {step && (
           <div className="rc-stack">
-            <p>{removing.kind === "current" ? discardWarning(draft) : backupDeleteWarning(removing.backup.draft)}</p>
-            {busy && <p role="status">Removing</p>}
+            <p>
+              {step.kind === "current"
+                ? discardWarning(draft)
+                : step.kind === "restore"
+                  ? restoreWarning(step.backup.draft)
+                  : backupDeleteWarning(step.backup.draft)}
+            </p>
+            {busy && <p role="status">{step.kind === "restore" ? "Restoring" : "Removing"}</p>}
             <div className="rc-action-bar">
-              <button className="rc-button" data-variant="danger" type="button" disabled={busy}
-                onClick={() => void run(async () => removing.kind === "current"
-                  ? discardedMessage(await controller.discardCurrent())
-                  : removedBackupMessage(await controller.deleteBackup(removing.backup)))}>
-                {removing.kind === "current" ? "Remove from this device" : "Delete this backup"}
-              </button>
-              <button className="rc-button" data-variant="quiet" type="button" disabled={busy} data-task-focus
-                onClick={() => setRemoving(null)}>
+              {step.kind === "restore" ? (
+                <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-task-focus
+                  onClick={() => void run(async () => {
+                    await controller.replace(step.backup.draft);
+                    return "Device backup restored. The previous draft was backed up first.";
+                  })}>
+                  Back Up This Draft And Restore
+                </button>
+              ) : (
+                <button className="rc-button" data-variant="danger" type="button" disabled={busy}
+                  onClick={() => void run(async () => step.kind === "current"
+                    ? discardedMessage(await controller.discardCurrent())
+                    : removedBackupMessage(await controller.deleteBackup(step.backup)))}>
+                  {step.kind === "current" ? "Remove From This Device" : "Delete This Backup"}
+                </button>
+              )}
+              <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                data-task-focus={step.kind === "restore" ? undefined : true} onClick={() => setStep(null)}>
                 Cancel
               </button>
             </div>

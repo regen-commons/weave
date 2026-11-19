@@ -1,12 +1,15 @@
 import { InformationContext } from "./information-context.ts";
 import { useState, type ReactNode } from "react";
-import { matchRoute, type BackTarget, type RouteName } from "../routes.ts";
+import { breadcrumbTrail, matchRoute, navLabel, type BackTarget, type RouteName } from "../routes.ts";
 import type { SaveStatus } from "../initiative/header-status.ts";
 import { AppHeader } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
 import { BottomNav } from "./BottomNav.tsx";
+import { DockContext } from "./dock.ts";
+import { Breadcrumbs } from "./Breadcrumbs.tsx";
 import { Footer } from "./Footer.tsx";
 import { InformationDialog, type Information } from "./InformationDialog.tsx";
+import { Mycelium } from "./Mycelium.tsx";
 export function Page({
   pathname,
   form,
@@ -34,8 +37,10 @@ export function Page({
   children: ReactNode;
 }) {
   const [information, setInformation] = useState<Information | null>(null);
+  const [dock, setDock] = useState<HTMLElement | null>(null);
   return (
     <InformationContext.Provider value={setInformation}>
+      <DockContext.Provider value={dock}>
       {/* The section sets its accent: the current tab's bar, the page's eyebrow and step numbers (DL-050). */}
       <div className="rc-page" data-section={matchRoute(pathname)?.section}>
         <a className="rc-skip-link" href="#main">
@@ -43,7 +48,17 @@ export function Page({
         </a>
         <p className="rc-site-banner">Still in development will be live soon</p>
         <AppHeader pathname={pathname} sections={!form} status={status} back={back} />
-        <Main key={pathname}>{children}</Main>
+        {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
+            network grows once. */}
+        <div className="rc-page-body">
+          <Mycelium extent="page" home={matchRoute(pathname)?.name === "home"} />
+          <Main key={pathname} pathname={pathname}>
+            {children}
+          </Main>
+        </div>
+        {/* A focused step has no tabs. On a phone its way forward docks where they would be, and
+            reads after the step and before the footer (DL-089). */}
+        {form && <div className="rc-dock" ref={setDock} />}
         <Footer current={current} onInformation={setInformation}>
           {after}
         </Footer>
@@ -56,15 +71,19 @@ export function Page({
         />
         {sheet}
       </div>
+      </DockContext.Provider>
     </InformationContext.Provider>
   );
 }
 
 /** The page's content. A page reached with Back or Forward shows as the person left it, without arriving again. */
-function Main({ children }: { children: ReactNode }) {
+function Main({ pathname, children }: { pathname: string; children: ReactNode }) {
   const [returned] = useState(wasReturn);
+  const route = matchRoute(pathname);
+  const trail = breadcrumbTrail(route);
   return (
     <main className="rc-main" id="main" tabIndex={-1} data-move={returned ? "return" : undefined}>
+      {route && trail.length > 0 && <Breadcrumbs trail={trail} current={navLabel(route.name)} />}
       {children}
     </main>
   );

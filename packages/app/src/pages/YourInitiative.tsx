@@ -16,6 +16,7 @@ import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
 import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { pathTo } from "../routes.ts";
+import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
@@ -25,13 +26,14 @@ import { useSocialFixture, useSocial } from "../social/context.tsx";
 import { waitingAction, waitingLine } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton, DraftSkeleton } from "../ui/CardSkeleton.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { FirstFunding } from "../ui/FirstFunding.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
 import { Section } from "../ui/Section.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
-import { Stack, StepLayout } from "../ui/layouts.tsx";
+import { Panel, Stack, StepLayout } from "../ui/layouts.tsx";
 
 /**
  * The page a person comes back to. The initiative comes first. Beside it, or under it on a phone,
@@ -64,21 +66,103 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const handoff = signedInId ? readEditorHandoff(editorStorage(() => window.sessionStorage), signedInId, draft.id) : null;
   // Only steps that are open get a row, and only the next one gets the filled button.
   const steps = openSteps(status, project?.workspace ?? null);
+  // What follows the record on a phone. On a wide screen it sits under the card, with Saving and
+  // sharing beside both for the length of the page.
+  const below = (
+    <Stack wide>
+      {(view === "offline" || !navigator.onLine) && (
+        <p className="rc-notice" data-tone="info">
+          You are offline. Your checked card remains on this device.
+        </p>
+      )}
+      {failed && (
+        <section className="rc-notice" data-tone="warning" aria-label="Funding did not load">
+          <div className="rc-notice-body">
+            <p>Funding did not load. Your card is safe.</p>
+            <div className="rc-action-bar">
+              <button
+                className="rc-button"
+                data-variant="secondary"
+                type="button"
+                onClick={() => setRetrying(true)}
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+      <Section id="finish-partners" title="Partners for you">
+        {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
+      </Section>
+      <Section
+        id="finish-funding"
+        title="Funding that fits"
+        action={
+          funds.length > 0 && !loading ? (
+            <ButtonLink href={pathTo("funding")} variant="quiet">
+              See all funding
+            </ButtonLink>
+          ) : undefined
+        }
+      >
+        {!examples ? (
+          <FirstFunding />
+        ) : loading ? (
+          <>
+            <CardGridSkeleton kind="funding" count={2} label="Comparing your card with funding" />
+            <button
+              className="rc-button"
+              data-variant="secondary"
+              type="button"
+              onClick={() => setRetrying(true)}
+            >
+              Show funding
+            </button>
+          </>
+        ) : funds.length ? (
+          <CardGrid>
+            {funds.map((record) => (
+              <li key={record.id}>
+                <ListingCard record={record} personalized level={3} />
+              </li>
+            ))}
+          </CardGrid>
+        ) : (
+          <>
+            <p>No funding fits your card yet. You can browse the full directory.</p>
+            <div className="rc-action-bar">
+              <ButtonLink href={FUNDING_COMMONS} variant="secondary">
+                Browse the funding catalog
+              </ButtonLink>
+            </div>
+          </>
+        )}
+      </Section>
+    </Stack>
+  );
   return (
-    <Stack>
-      {/* Once the card is checked the page names the initiative, echoing the name that led here. */}
-      {ready && checked && <p className="rc-eyebrow">Your initiative</p>}
-      <Heading level={1} size="page">
-        {ready && checked ? cardName(draft) : "Your initiative"}
-      </Heading>
-      <DraftNotice
-        error={error}
-        text={draftText(draft)}
-        conflict={storage === "conflict"}
-        onRetry={() => controller.retry()}
-      />
+    <Stack wide>
+      <Stack>
+        {/* Once the card is checked the page names the initiative, echoing the name that led here.
+            A wide screen's breadcrumbs already say which page this is. */}
+        {ready && checked && (
+          <p className="rc-eyebrow" data-until="wide">
+            Your initiative
+          </p>
+        )}
+        <Heading level={1} size="page">
+          {ready && checked ? cardName(draft) : "Your initiative"}
+        </Heading>
+        <DraftNotice
+          error={error}
+          text={draftText(draft)}
+          conflict={storage === "conflict"}
+          onRetry={() => controller.retry()}
+        />
+      </Stack>
       {!ready ? (
-        <p role="status">Opening your device draft</p>
+        <DraftSkeleton />
       ) : !checked ? (
         <>
           <p>
@@ -96,8 +180,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
       ) : (
         <>
           <StepLayout
+            wide
+            more={below}
             aside={
-              <>
+              <Panel>
                 <Section id="saving-sharing" title="Saving and sharing">
                   <DuplicateNotice />
                   <StatusLine
@@ -167,7 +253,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     </ButtonLink>
                   </div>
                 </nav>
-              </>
+              </Panel>
             }
           >
             {/* Suggestions from the project page wait off the card, which shows kept entries only. */}
@@ -184,85 +270,6 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
             )}
             <InitiativeRecord named={false} fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
           </StepLayout>
-          {(view === "offline" || !navigator.onLine) && (
-            <p className="rc-notice" data-tone="info">
-              You are offline. Your checked card remains on this device.
-            </p>
-          )}
-          {failed && (
-            <section className="rc-notice" data-tone="warning" aria-label="Funding did not load">
-              <div className="rc-notice-body">
-                <p>Funding did not load. Your card is safe.</p>
-                <div className="rc-action-bar">
-                  <button
-                    className="rc-button"
-                    data-variant="secondary"
-                    type="button"
-                    onClick={() => setRetrying(true)}
-                  >
-                    Try again
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
-          <Section id="finish-partners" title="Partners for you">
-            {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
-          </Section>
-          <Section
-            id="finish-funding"
-            title="Funding that fits"
-            action={
-              funds.length > 0 && !loading ? (
-                <ButtonLink href={pathTo("funding")} variant="quiet">
-                  See all funding
-                </ButtonLink>
-              ) : undefined
-            }
-          >
-            {!examples ? (
-              <FirstFunding />
-            ) : loading ? (
-              <>
-                <p className="rc-guide-status" role="status">
-                  Comparing your card with funding
-                </p>
-                <div className="rc-skeleton" aria-hidden="true" />
-                <button
-                  className="rc-button"
-                  data-variant="secondary"
-                  type="button"
-                  onClick={() => setRetrying(true)}
-                >
-                  Show funding
-                </button>
-              </>
-            ) : funds.length ? (
-              <CardGrid>
-                {funds.map((record) => (
-                  <li key={record.id}>
-                    <ListingCard record={record} personalized level={3} />
-                  </li>
-                ))}
-              </CardGrid>
-            ) : (
-              <>
-                <p>No funding fits your card yet. You can browse the full directory.</p>
-                <div className="rc-action-bar">
-                  <a
-                    className="rc-button"
-                    data-variant="secondary"
-                    href="https://funding-commons.vercel.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Browse the funding catalog
-                  </a>
-                </div>
-              </>
-            )}
-          </Section>
-
         </>
       )}
     </Stack>

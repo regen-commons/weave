@@ -51,7 +51,7 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
             })
           }
         >
-          {saved ? "Remove from saved" : "Save"}
+          {saved ? "Remove From Saved" : "Save"}
         </button>
         {message && (
           <p className="rc-meta" role={failed ? "alert" : "status"}>
@@ -71,9 +71,9 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
         disabled={completed}
         onClick={() => setOpen(true)}
       >
-        {completed ? "Reminder on" : "Remind me"}
+        {completed ? "Reminder On" : "Remind Me"}
       </button>
-      <TaskDialog title="Remind me" open={open} onClose={() => setOpen(false)}>
+      <TaskDialog title="Remind Me" open={open} onClose={() => setOpen(false)}>
         {completed ? (
           <p role="status">Reminder on for {intent.name}.</p>
         ) : !state.identity ? (
@@ -92,7 +92,7 @@ export function SocialAction({ intent }: { intent: SocialIntent }) {
               disabled={busy}
               onClick={() => void run(() => service.remind(intent.id))}
             >
-              Turn on the reminder
+              Turn On The Reminder
             </button>
           </div>
         )}

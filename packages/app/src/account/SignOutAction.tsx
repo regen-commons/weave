@@ -4,7 +4,7 @@ import { useAccount } from "./context.tsx";
 import { signOut as endSession } from "./sign-out.ts";
 /** Sign out as a button with its own notice. The rule for when identity leaves the screen is in sign-out.ts. */
 export function SignOutAction({
-  label = "Sign out",
+  label = "Sign Out",
   onResult,
   disabled = false,
   onBusyChange,
@@ -48,7 +48,7 @@ export function SignOutAction({
           disabled={busy || disabled}
           onClick={() => void signOut()}
         >
-          {busy ? "Signing out" : label}
+          {busy ? "Signing Out" : label}
         </button>
       ) : (
         <p>You are signed out.</p>

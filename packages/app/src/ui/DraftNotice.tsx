@@ -31,11 +31,11 @@ export function DraftNotice({
         <div className="rc-action-bar">
           {!conflict && (
             <button className="rc-button" data-variant="secondary" type="button" onClick={onRetry}>
-              Try device storage again
+              Try Device Storage Again
             </button>
           )}
           <button className="rc-button" data-variant="secondary" type="button" onClick={copy}>
-            Copy draft text
+            Copy Draft Text
           </button>
           <button
             className="rc-button"
@@ -43,7 +43,7 @@ export function DraftNotice({
             type="button"
             onClick={() => setShowText((value) => !value)}
           >
-            {showText ? "Hide text copy" : "Show text copy"}
+            {showText ? "Hide Text Copy" : "Show Text Copy"}
           </button>
         </div>
         <p className="rc-meta">

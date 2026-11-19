@@ -46,12 +46,14 @@ the app, the website, the steward desk or email.
 - React components in `packages/app/src/ui` stay thin: they render the system's
   markup and `rc-` classes and own no visual CSS (DL-015). Name them by structure,
   such as `Card`, never by content.
-- The theme follows the operating system. A theme control belongs in settings, never
-  in the app header.
+- The theme follows the operating system by default. Settings has the full choice, the app
+  header's switch on a wide screen changes between light and dark (DL-079), and a phone's You
+  tab has the full choice (DL-086).
 - Colour never carries meaning alone. Pair it with a word, an icon, a shape or a
   position, as the capital tiles do.
 - Anything the assistant suggested shows in pencil until a person confirms it.
-- Copy uses the plain names in VOICE.md, sentence case, and no em dashes or arrows.
+- Copy uses the plain names in VOICE.md, title case for buttons and headings, sentence
+  case for the rest, and no em dashes or arrows.
 
 ## Checks
 

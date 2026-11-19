@@ -1,38 +1,40 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fullDate } from "../home.ts";
-import { replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
-import { pathTo } from "../routes.ts";
+import { Link, replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
 import { Card, CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
+import { FilterBar } from "../ui/FilterBar.tsx";
+import { keepFocusOnPage } from "../ui/focus.ts";
+import { ListEnd, useAddedFocus } from "../ui/ListEnd.tsx";
 import { Icon } from "../ui/Icon.tsx";
-import { SourceLink } from "./NetworkResults.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
-  countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
-  listView, type PublicProjectCard as Project, type PublicProjectList,
+  countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
+  listView, searchQuery, SEARCH_PAUSE_MS, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
 
 const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
 
 /**
  * One listed public Certified project: its name, its own words, when it was shared and where it comes
- * from. The name is plain text, as on other public results, so opening the source stays one target.
+ * from. The card opens the project's public record from its name, in a new tab, so it has the one
+ * target every card in a list has.
  */
 export function PublicProjectCard({ project, level }: { project: Project; level: 2 | 3 }) {
   const Title = level === 3 ? "h3" : "h2";
   return (
     <Card kind="initiative">
-      <Title className="rc-card-title">{project.name}</Title>
+      <Title className="rc-card-title">
+        <Link href={project.sourceUrl}>{project.name}</Link>
+      </Title>
       <p className="rc-card-summary">{project.passages.join(" ")}</p>
+      <p className="rc-meta">Source: Certified, checked on <MatchingDate value={project.checkedAt} />.</p>
       <p className="rc-time">
         <Icon name="clock" size="sm" />
         Shared <MatchingDate value={project.sharedAt} />
       </p>
-      <p className="rc-meta">Source: Certified, checked on <MatchingDate value={project.checkedAt} />.</p>
-      <div className="rc-action-bar">
-        <SourceLink href={project.sourceUrl} name={project.name} />
-      </div>
     </Card>
   );
 }
@@ -69,58 +71,74 @@ export function usePublicProjects(q: string, limit?: number, enabled = true) {
   return { list, more, retry: () => setAttempt((count) => count + 1) };
 }
 
+/** The words typed, once typing has paused, so a search asks the list once. */
+function usePaused(value: string, ms: number): string {
+  const [paused, setPaused] = useState(value);
+  useEffect(() => {
+    if (value === paused) return;
+    const timer = window.setTimeout(() => setPaused(value), ms);
+    return () => window.clearTimeout(timer);
+  }, [value, paused, ms]);
+  return paused;
+}
+
 /**
  * The Initiatives page body: every listed public Certified project, newest first, with search and more
  * pages. An empty index, or one that does not answer, shows the starter list of public sources instead.
+ * Both lists sit under the same filter bar, and the list follows the search as it is typed (DL-081).
  */
 export function PublicProjects() {
-  const id = useId();
   // The search lives in the page and is written into its address quietly, as Funding's filters are,
   // so searching keeps focus and scroll where they are.
-  const [q, setQ] = useState(() => (new URLSearchParams(routeSearch()).get("q") ?? "").trim().slice(0, PUBLIC_PROJECT_QUERY_MAX));
-  const [search, setSearch] = useState(q);
-  const field = useRef<HTMLInputElement | null>(null);
+  const [search, setSearch] = useState(() => searchQuery(new URLSearchParams(routeSearch()).get("q") ?? ""));
+  const q = usePaused(searchQuery(search), SEARCH_PAUSE_MS);
   useEffect(() => {
     replaceRouteQuietly(q ? `${routePath()}?${new URLSearchParams({ q })}` : routePath());
   }, [q]);
   const { list, more, retry } = usePublicProjects(q);
   // Whether a page has shown the list is switched on, so later searches keep the index while they load.
   const [indexSeen, setIndexSeen] = useState(false);
+  // The last list that arrived stays on screen while the next search loads, so the cards do not blink.
+  const [arrived, setArrived] = useState<Extract<PublicProjectList, { status: "ready" }> | null>(null);
   useEffect(() => {
-    if (list.status === "ready" && list.page.index.status !== "off") setIndexSeen(true);
+    if (list.status !== "ready") return;
+    setArrived(list);
+    if (list.page.index.status !== "off") setIndexSeen(true);
   }, [list]);
   const view = listView(list, indexSeen);
-  // Focus moves to the first project "Show more" added, so a keyboard user keeps their place.
-  const [focusAt, setFocusAt] = useState<number | null>(null);
-  const added = useRef<HTMLLIElement | null>(null);
+  const ready = list.status === "ready" ? list : arrived;
+  const waiting = list.status === "loading";
+  // Focus moves to the first project a press of Show More added, so a keyboard user keeps their place.
   const shown = list.status === "ready" ? list.projects.length : 0;
-  useEffect(() => {
-    if (focusAt === null || shown <= focusAt) return;
-    added.current?.focus();
-    setFocusAt(null);
-  }, [shown, focusAt]);
+  const added = useAddedFocus(shown);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setQ(search.trim().replace(/\s+/gu, " "));
-  }
   function clear() {
     setSearch("");
-    setQ("");
-    field.current?.focus();
+    keepFocusOnPage();
   }
-  function showMore() {
-    if (list.status !== "ready" || list.more === "loading") return;
-    setFocusAt(list.projects.length);
-    more();
-  }
+  const bar = (loading: boolean) => (
+    <FilterBar
+      noun="initiatives"
+      search={search}
+      onSearch={setSearch}
+      maxLength={PUBLIC_PROJECT_QUERY_MAX}
+      facets={[]}
+      onFacet={() => {}}
+      count={ready?.projects.length ?? 0}
+      total={ready?.page.index.total ?? 0}
+      summary={ready ? countLine(ready.page.index.total, ready.q !== "") : undefined}
+      note={ready ? indexLine(ready.page.index, day) : undefined}
+      loading={loading}
+      reserve="0,000 projects shared on Certified. Checked on 00 September 0000."
+      onClear={clear}
+    />
+  );
 
   if (view === "loading") {
     return (
       <div className="rc-stack" aria-busy="true">
-        <p className="rc-meta" role="status">Loading projects</p>
-        <div className="rc-skeleton" />
-        <div className="rc-skeleton" />
+        {bar(true)}
+        <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
       </div>
     );
   }
@@ -131,40 +149,25 @@ export function PublicProjects() {
           <section className="rc-notice" data-tone="warning">
             <div className="rc-notice-body">
               <h2 className="rc-notice-title">Projects from Certified did not load</h2>
-              <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>Try again</button>
+              <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>Try Again</button>
             </div>
           </section>
         )}
-        <PartnerDiscovery mode="browse" />
+        <PartnerDiscovery mode="browse" search={search} onSearch={setSearch} />
       </div>
     );
   }
   return (
-    <div className="rc-stack">
-      <p className="rc-prose">Projects shared publicly on Certified. Weave checks them every day.</p>
-      <form className="rc-field" role="search" onSubmit={submit} action={pathTo("initiatives")}>
-        <label htmlFor={`${id}-search`}>Search projects</label>
-        <div className="rc-search rc-inline-field">
-          <input className="rc-input" type="search" id={`${id}-search`} name="q" maxLength={PUBLIC_PROJECT_QUERY_MAX}
-            ref={field} value={search} onChange={(event) => setSearch(event.target.value)} />
-          <button className="rc-button" data-variant="secondary" type="submit">Search</button>
-        </div>
-      </form>
-      <p className="rc-meta">
-        <span role="status">{list.status === "ready" ? countLine(list.page.index.total, q !== "") : "Loading projects"}</span>
-        {list.status === "ready" && ` ${indexLine(list.page.index, day)}`}
-      </p>
-      {list.status !== "ready" ? (
-        <div className="rc-stack" aria-busy="true">
-          <div className="rc-skeleton" />
-          <div className="rc-skeleton" />
-        </div>
+    <div className="rc-stack" aria-busy={waiting || undefined}>
+      {bar(!ready)}
+      {!ready ? (
+        <CardGridSkeleton kind="project" count={PUBLIC_PROJECT_PAGE_SIZE} />
       ) : (
         <>
-          {list.projects.length ? (
+          {ready.projects.length ? (
             <CardGrid>
-              {list.projects.map((project, index) => (
-                <li key={project.uri} tabIndex={-1} ref={index === focusAt ? added : undefined}>
+              {ready.projects.map((project, index) => (
+                <li key={project.uri} {...added.item(index)}>
                   <PublicProjectCard project={project} level={2} />
                 </li>
               ))}
@@ -173,20 +176,26 @@ export function PublicProjects() {
             <EmptyState
               title="No projects match your search"
               action={
-                <button className="rc-button" data-variant="secondary" type="button" onClick={clear}>Clear search</button>
+                <button className="rc-button" data-variant="secondary" type="button" onClick={clear}>Clear Search</button>
               }
             >
               Try other words, or clear the search to see every project.
             </EmptyState>
           )}
-          {list.page.next && (
-            <div className="rc-action-bar">
-              {/* aria-disabled, not disabled, so the button keeps keyboard focus while the next page loads. */}
-              <button className="rc-button" data-variant="secondary" type="button" aria-disabled={list.more === "loading"}
-                onClick={showMore}>{list.more === "loading" ? "Loading more projects" : "Show more projects"}</button>
-            </div>
+          {/* The list fills in as its end comes near, and a new search starts its run again (DL-101). */}
+          {list.status === "ready" && (list.page.next || list.projects.length > PUBLIC_PROJECT_PAGE_SIZE) && (
+            <ListEnd
+              key={list.q}
+              shown={list.projects.length}
+              total={Math.max(list.page.index.total, list.projects.length)}
+              things="projects"
+              more={!!list.page.next}
+              busy={list.more === "loading"}
+              failed={list.more === "failed"}
+              onPress={added.pressed}
+              onMore={more}
+            />
           )}
-          {list.more === "failed" && <p role="alert">More projects did not load. Try again.</p>}
         </>
       )}
     </div>

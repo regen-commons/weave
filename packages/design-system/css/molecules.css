@@ -259,7 +259,9 @@
   cursor: pointer;
 }
 .rc-card-title > a:visited { color: var(--link-visited); }
-.rc-card-title > :is(a, button):hover { text-decoration: underline; }
+@media (hover: hover) {
+  .rc-card-title > :is(a, button):hover { text-decoration: underline; }
+}
 .rc-card-title > :is(a, button)::after {
   content: "";
   position: absolute;
@@ -378,6 +380,8 @@
   min-inline-size: 0;
 }
 .rc-notice-title { font: var(--type-title-sm); }
+/* A notice can span a wide page; its words keep a readable measure. */
+.rc-notice-body > p { max-inline-size: var(--prose-width); }
 /* Actions in a notice sit a step below its words. */
 .rc-notice-body > .rc-action-bar {
   margin-block-start: var(--space-2);
@@ -426,7 +430,10 @@
   font: var(--type-body-md);
   text-decoration: none;
 }
-.rc-tabs > a:hover { color: var(--on-surface); }
+.rc-tabs > a:active { color: var(--on-surface); }
+@media (hover: hover) {
+  .rc-tabs > a:hover { color: var(--on-surface); }
+}
 @media (forced-colors: active) {
   .rc-tabs > a:not([aria-current="page"]) { border-color: Canvas; }
   .rc-tabs > a[aria-current="page"] { border-block-start-color: Highlight; }
@@ -452,6 +459,13 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
+}
+/* An action a phone offers somewhere else on the page waits for a wide screen (`data-from="wide"`):
+   in the You tab's Settings section, or in a focused step's dock. A bar left with nothing to show
+   on a phone is not drawn there, so it leaves no gap. */
+@media (width < 56.25rem) {
+  .rc-action-bar > [data-from="wide"] { display: none; }
+  .rc-action-bar:not(:has(> :not([data-from="wide"]))) { display: none; }
 }
 
 /* Progress: what is happening, how far along, and how to stop it. */
@@ -499,7 +513,10 @@ a.rc-save-status {
   min-block-size: var(--control-sm-height);
   color: var(--text-secondary);
 }
-a.rc-save-status:hover { color: var(--on-surface); }
+a.rc-save-status:active { color: var(--on-surface); }
+@media (hover: hover) {
+  a.rc-save-status:hover { color: var(--on-surface); }
+}
 .rc-save-status[data-state="account"] .rc-icon { color: var(--state-success); }
 
 /* Search: a box, a button and the word Search. */
@@ -529,6 +546,16 @@ a.rc-save-status:hover { color: var(--on-surface); }
   color: var(--text-muted);
 }
 .rc-breadcrumbs [aria-current="page"] { font: var(--type-label-md); }
+.rc-breadcrumbs a { color: var(--text-secondary); }
+.rc-breadcrumbs a:active { color: var(--on-surface); }
+@media (hover: hover) {
+  .rc-breadcrumbs a:hover { color: var(--on-surface); }
+}
+/* Above a page's title on a wide screen only: a phone's app bar has the Back link (DL-080). */
+.rc-breadcrumbs[data-from="wide"] { display: none; }
+@media (min-width: 56.25rem) {
+  .rc-breadcrumbs[data-from="wide"] { display: block; }
+}
 
 /* Back link: the one way back on a page that is not a tab, at the start of the app bar where a
    native app keeps it. It names the page it returns to; a long name gives way to the bar. */
@@ -546,7 +573,10 @@ a.rc-save-status:hover { color: var(--on-surface); }
 }
 .rc-back-link > .rc-icon { flex: none; }
 .rc-back-link > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rc-back-link:hover { text-decoration: underline; }
+.rc-back-link:active { text-decoration: underline; }
+@media (hover: hover) {
+  .rc-back-link:hover { text-decoration: underline; }
+}
 
 /* Facts: plain terms for consent and privacy. */
 .rc-facts {
@@ -562,6 +592,9 @@ a.rc-save-status:hover { color: var(--on-surface); }
   font: var(--type-body-sm);
   color: var(--text-muted);
 }
+/* Terms: questions and their answers, where the question is what a person scans for. */
+.rc-facts[data-kind="terms"] { gap: var(--space-4); }
+.rc-facts[data-kind="terms"] dt { font: var(--type-title-sm); color: inherit; }
 
 /* Empty state: a first screen with one thing to do. */
 .rc-empty {
@@ -590,6 +623,17 @@ a.rc-save-status:hover { color: var(--on-surface); }
 /* The last line sits at the foot, so cards in a row end together. */
 .rc-card[data-layout="listing"] > :last-child { margin-block-start: auto; }
 .rc-card .rc-tooltip-wrap { position: relative; z-index: 1; }
+/* On a phone a list card holds only what it has (DL-090): it keeps no room for a picture it does
+   not have. Where the card opens from its name it is one target, so a tag in it is a label under
+   the card's own link and not a button of its own a finger could hit by mistake. What the tag
+   means is on the record the card opens, and the keyboard still reaches it here. A fit line keeps
+   its button, because what it explains is this card, and so does a tag in a card that does not
+   open, where the tag is the only target there is. */
+@media (width < 56.25rem) {
+  .rc-card[data-layout="listing"] > :is(.rc-media:not(:has(> img)), .rc-skeleton[data-shape="media"]) { display: none; }
+  .rc-card[data-layout="listing"]:has(.rc-card-title > :is(a, button)) .rc-tag-list .rc-tooltip-wrap { position: static; }
+  .rc-card[data-layout="listing"]:has(.rc-card-title > :is(a, button)) .rc-tag-list .rc-tooltip-trigger { min-block-size: 0; }
+}
 /* Equal-height field and action; stacking preserves both on small screens. */
 .rc-inline-field { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .rc-inline-field > .rc-input { flex: 1; min-inline-size: 0; }
@@ -642,9 +686,36 @@ a.rc-save-status:hover { color: var(--on-surface); }
 .rc-link-preview-text > a { font: var(--type-title-sm); }
 
 /* Section: a heading, optional browse action and its related content. */
+/* Panel: a block of words and controls that has no card of its own, such as a form or a side
+   panel. It keeps the block's rhythm and paints nothing, at any width: the words sit on the page
+   itself, where the mycelium behind them rests at its quieter strength (DL-071, DL-099). */
+.rc-panel { display: grid; align-content: start; gap: var(--space-5); min-inline-size: 0; }
 .rc-section { display: grid; gap: var(--space-4); min-inline-size: 0; }
 .rc-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+/* On a phone the title takes a row and its action the next, at the start edge, so no section's
+   action sits beside its title only because the two happen to fit (DL-086). */
+@container (width < 37.5rem) {
+  .rc-section-head { display: grid; justify-items: start; }
+}
 .rc-section-note { max-inline-size: var(--prose-width); color: var(--text-secondary); }
+/* A section a wide screen has no need of, because its header holds the same thing, shows on a
+   phone only (`data-until="wide"`), as the You tab's Settings does (DL-086). */
+@media (min-width: 56.25rem) {
+  .rc-section[data-until="wide"] { display: none; }
+}
+/* Band: a section set apart by a tint that spans the window, while its content keeps the page's
+   column (DL-077). The tint is drawn out past the section's sides and clipped to its height, so
+   the section is no wider and nothing scrolls sideways. */
+.rc-section[data-band] {
+  padding-block: var(--space-7);
+  background: var(--surface-tint);
+  color: var(--on-surface-tint);
+  box-shadow: 0 0 0 100vmax var(--surface-tint);
+  clip-path: inset(0 -100vmax);
+}
+@media (min-width: 56.25rem) {
+  .rc-section[data-band] { padding-block: var(--space-8); }
+}
 
 /* Tile card: a large glyph, its framework title and a plain meaning. */
 .rc-tile-card {
@@ -689,3 +760,9 @@ a.rc-save-status:hover { color: var(--on-surface); }
 .rc-record-row { display: flex; align-items: start; gap: var(--space-3); }
 .rc-record-text { display: grid; min-inline-size: 0; gap: var(--space-1); overflow-wrap: anywhere; }
 .rc-record-title { font: var(--type-title-sm); }
+/* A row with its own actions, such as a device backup's Restore and Delete: the words take the
+   room and wrap, and the actions keep their size at the row's end, or under the words on a phone. */
+.rc-record-row[data-layout="actions"] { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+.rc-record-row[data-layout="actions"] > .rc-record-text { flex: 1 1 var(--tile-card-min-width); }
+.rc-record-row[data-layout="actions"] > .rc-action-bar { flex: none; gap: var(--space-2); }
+.rc-record-row[data-layout="actions"] + .rc-record-row[data-layout="actions"] { padding-block-start: var(--space-4); border-block-start: var(--border-thin) solid var(--line-subtle); }

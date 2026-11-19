@@ -4,7 +4,7 @@ import { pathTo, type RouteName } from "../routes.ts";
 import { Link } from "../router.tsx";
 import type { Information } from "./InformationDialog.tsx";
 
-// Footer links are the one place the app uses title case (DL-033).
+// Footer links are in title case, as every button and heading is (DL-033, DL-105).
 const PAGES: readonly { name: RouteName; label: string }[] = [
   { name: "initiative", label: "Describe Your Initiative" },
   { name: "initiatives", label: "Initiatives" },
@@ -13,7 +13,7 @@ const PAGES: readonly { name: RouteName; label: string }[] = [
 ];
 const INFORMATION: readonly { kind: Information; label: string }[] = [
   { kind: "storage", label: "What We Store" },
-  { kind: "assistant", label: "What the Assistant Did" },
+  { kind: "assistant", label: "What The Assistant Did" },
   { kind: "policy", label: "Data Policy" },
 ];
 const COMMONS_LINKS = [
@@ -23,7 +23,11 @@ const COMMONS_LINKS = [
   { href: COMMONS.forum, label: "Forum" },
 ] as const;
 
-/** Footer organism (`rc-footer`): the same on every page, without the link to the page the person is on. */
+/**
+ * Footer organism (`rc-footer`): the same on every page, without the link to the page the person is
+ * on. Its list of Weave's pages repeats a phone's tab bar, so it is marked as that and not drawn
+ * where the tab bar shows (DL-093).
+ */
 export function Footer({
   current,
   onInformation,
@@ -37,7 +41,7 @@ export function Footer({
   return (
     <footer className="rc-footer">
       <div className="rc-footer-grid">
-        <section>
+        <section data-repeats="tabs">
           <h2 className="rc-footer-title">Weave</h2>
           <ul>
             {PAGES.filter((page) => page.name !== current).map((page) => (
@@ -73,9 +77,9 @@ export function Footer({
           <ul>
             {COMMONS_LINKS.map((link) => (
               <li key={link.label}>
-                <a className="rc-footer-link" href={link.href}>
+                <Link className="rc-footer-link" href={link.href}>
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

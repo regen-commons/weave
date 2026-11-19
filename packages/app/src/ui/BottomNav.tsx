@@ -21,6 +21,8 @@ export function BottomNav({ pathname }: { pathname: string }) {
           key={section.route}
           href={pathTo(section.route)}
           aria-current={section.route === current ? "page" : undefined}
+          // A tab is pressed, not dragged away like a link.
+          draggable={false}
           onClick={(event) => tabPress(event, section.route, pathname)}
         >
           <Icon name={section.icon} />

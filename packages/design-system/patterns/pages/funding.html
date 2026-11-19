@@ -21,8 +21,10 @@
           <a href="funding.html" aria-current="page">Funding</a>
           <a href="your-initiatives.html">Your Initiatives</a>
         </nav></div>
-        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
+        <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
       </header>
+      <div class="rc-page-body">
+      <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
       <main class="rc-main" id="main" data-list-example>
         <div class="rc-list-layout">
           <h1 class="rc-heading" data-size="page">Funding</h1>
@@ -53,12 +55,16 @@
                 </fieldset>
                 <button class="rc-button" data-variant="quiet" type="button" data-close-popover>Done</button>
               </div>
-              <div class="rc-button rc-sort" data-variant="secondary">
-                <label class="rc-sort-face" for="funding-sort">Sort<span aria-hidden="true">: Name A to Z</span></label>
-                <select id="funding-sort" data-example-sort>
-                  <option value="name">Name A to Z</option>
-                  <option value="reverse">Name Z to A</option>
-                </select>
+              <button class="rc-button" data-variant="secondary" type="button" popovertarget="funding-sort" data-popup="funding-sort" data-example-sort-face>Sort: Name A to Z</button>
+              <div class="rc-menu" id="funding-sort" popover>
+                <fieldset class="rc-menu-group">
+                  <legend>Sort</legend>
+                  <div class="rc-menu-options">
+                    <label class="rc-menu-option"><input class="rc-check" type="radio" name="funding-sort" value="name" checked data-example-sort />Name A to Z</label>
+                    <label class="rc-menu-option"><input class="rc-check" type="radio" name="funding-sort" value="reverse" data-example-sort />Name Z to A</label>
+                  </div>
+                </fieldset>
+                <button class="rc-button" data-variant="quiet" type="button" data-close-popover>Done</button>
               </div>
             </div>
             <div class="rc-active-filters" data-example-chips></div>
@@ -79,8 +85,8 @@
                 </div>
               </fieldset>
               <div class="rc-dialog-foot">
-                <button class="rc-button" data-variant="quiet" type="button" data-example-clear>Clear all</button>
-                <button class="rc-button" data-variant="primary" type="submit" form="funding-filters-close">Show results</button>
+                <button class="rc-button" data-variant="secondary" type="button" data-example-clear>Clear All</button>
+                <button class="rc-button" data-variant="primary" type="submit" form="funding-filters-close">Show Results</button>
               </div>
             </div>
           </dialog>
@@ -105,7 +111,7 @@
                 >
                 <p class="rc-team-line">Partner requirements are unknown in this example.</p><p class="rc-card-meta">Brazil</p>
                 <ul class="rc-tag-list" aria-label="How to apply">
-                  <li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2026-11-30">30 Nov 2026</time></span></li>
+                  <li><span class="rc-tag" data-emphasis="strong" data-tone="warning"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg><time datetime="2026-11-30" title="30 November 2026">Closes in 12 days</time></span></li>
                 </ul>
                 <ul class="rc-tag-list" aria-label="Type of work">
                   <li>
@@ -152,7 +158,7 @@
                 >
                 <p class="rc-card-meta">Kenya</p>
                 <ul class="rc-tag-list" aria-label="How to apply">
-                  <li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2027-01-15">15 Jan 2027</time></span></li>
+                  <li><span class="rc-tag" data-emphasis="strong"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2027-01-15">15 Jan 2027</time></span></li>
                 </ul>
                 <ul class="rc-tag-list" aria-label="Type of work">
                   <li>
@@ -203,7 +209,7 @@
                 >
                 <p class="rc-card-meta">Brazil</p>
                 <ul class="rc-tag-list" aria-label="How to apply">
-                  <li><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2027-02-28">28 Feb 2027</time></span></li>
+                  <li><span class="rc-tag" data-emphasis="strong"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes <time datetime="2027-02-28">28 Feb 2027</time></span></li>
                 </ul>
                 <ul class="rc-tag-list" aria-label="Type of work">
                   <li>
@@ -231,6 +237,10 @@
               </article>
             </li>
           </ul>
+          <div class="rc-list-end">
+            <p class="rc-meta" role="status">Showing 3 of 12 examples.</p>
+            <button class="rc-button" data-variant="secondary" type="button">Show More</button>
+          </div>
           <div class="rc-link-preview">
             <div class="rc-media" data-size="thumb">
               <svg class="rc-icon" data-size="sm" aria-hidden="true">
@@ -244,9 +254,10 @@
           </div>
         </div>
       </main>
+      </div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
@@ -258,7 +269,7 @@
             <h2 class="rc-footer-title">Data &amp; Privacy</h2>
             <ul>
               <li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What We Store</button></li>
-              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the Assistant Did</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What The Assistant Did</button></li>
               <li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data Policy</button></li>
               <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
             </ul>
@@ -285,7 +296,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+            <h2 class="rc-dialog-title" id="example-data-title">What We Store</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
@@ -297,7 +308,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+            <h2 class="rc-dialog-title" id="example-assistant-title">What The Assistant Did</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
@@ -309,7 +320,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+            <h2 class="rc-dialog-title" id="example-policy-title">Data Policy</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>

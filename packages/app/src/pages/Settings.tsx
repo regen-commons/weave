@@ -6,9 +6,11 @@ import { useDraft } from "../describe/use-draft.ts";
 import { revise } from "../describe/contracts.ts";
 import { deviceExport } from "../data/export.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
-import { applyTheme, readTheme, type Theme } from "../theme.ts";
+import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
+import { useTheme } from "../ui/ThemeSwitch.tsx";
+import { SignInButton } from "../account/SignInButton.tsx";
+import { COMMONS } from "../links.ts";
 import { useSocialFixture } from "../social/context.tsx";
-import { useAccountDoor } from "../account/door.tsx";
 import { hasDraft } from "../describe/view.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
@@ -23,8 +25,9 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { InstallGuide } from "../install/InstallGuide.tsx";
 import { DeviceBackups } from "../data/DeviceBackups.tsx";
+import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
 export function Settings() {
-  const [theme, setTheme] = useState(readTheme);
+  const { theme } = useTheme();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -33,7 +36,6 @@ export function Settings() {
   const account = useAccount();
   const example = useSocialFixture();
   const status = useCardStatus();
-  const openDoor = useAccountDoor();
   const information = useInformation();
   const accountTask = !(import.meta.env.DEV && example) && hasDraft(draft);
   async function perform(action: () => Promise<void>) {
@@ -55,35 +57,33 @@ export function Settings() {
     }
   }
   return (
-    <div className="rc-narrow rc-settings">
+    <div className="rc-settings">
       <Heading level={1} size="page">
         Settings
       </Heading>
-      <SettingsSection title="Your initiative">
+      <SettingsSection title="Your Initiative" note="The card kept on this device.">
         {hasDraft(draft) ? (
-          <>
-            <StatusLine
-              actions={
-                <ButtonLink href={pathTo(cardRoute(draft))} variant="secondary" size="sm">
-                  Open
-                </ButtonLink>
-              }
-            >
-              <strong>{cardName(draft)}</strong>. {status.line}
-            </StatusLine>
-          </>
+          <StatusLine
+            actions={
+              <ButtonLink href={pathTo(cardRoute(draft))} variant="secondary" size="sm">
+                Open
+              </ButtonLink>
+            }
+          >
+            <strong>{cardName(draft)}</strong>. {status.line}
+          </StatusLine>
         ) : (
           <>
             <p>No initiative on this device yet.</p>
             <div className="rc-action-bar">
               <ButtonLink href={pathTo("initiative")} variant="secondary">
-                Describe your initiative
+                Describe Your Initiative
               </ButtonLink>
             </div>
           </>
         )}
       </SettingsSection>
-      <SettingsSection title="Account">
+      <SettingsSection title="Account" note="You sign in with Certified.">
         {import.meta.env.DEV && example ? (
           example.state.identity ? (
             <>
@@ -91,44 +91,67 @@ export function Settings() {
               <p className="rc-meta">
                 Reminders and updates will ask for a way to reach you when you turn one on.
               </p>
+              <div className="rc-action-bar">
+                <AboutCertified />
+              </div>
             </>
           ) : (
             <>
               <p>Not signed in. Your initiative stays on this device until you save it.</p>
               <div className="rc-action-bar">
-                <button
-                  className="rc-button"
-                  data-variant="secondary"
-                  type="button"
-                  onClick={() => openDoor("sign-in")}
-                >
-                  Sign in with Certified
-                </button>
+                <SignInButton variant="secondary" />
+                <AboutCertified />
               </div>
+              <SignInReturnNotice />
             </>
           )
         ) : (
           <>
-            {/* With a card on this device, the account's saved cards, saving and backups live here, once. */}
+            {/* With a card on this device, the account's saved cards and saving live here, once. */}
             {accountTask ? (
               <AccountSection showLeave={false} heading={false} showBackups={false} />
+            ) : account.state?.user ? (
+              <p>Signed in with Certified.</p>
             ) : (
-              <p>
-                {account.state?.user
-                  ? "Signed in with Certified."
-                  : "Sign in with Certified when you want a private saved copy."}
-              </p>
+              <>
+                <p>Not signed in. Sign in with Certified when you want a private saved copy.</p>
+                <div className="rc-action-bar">
+                  <SignInButton variant="secondary" />
+                </div>
+                <SignInReturnNotice />
+              </>
             )}
             <p className="rc-meta">
               Certified handles sign-in. Weave does not keep an email address from sign-in. Reminders and
               introductions will need separate contact details and permission.
             </p>
+            {/* The sign-in offer already explains Certified, so the explanation shows once. */}
+            {!(accountTask && account.state?.available && !account.state.user) && (
+              <div className="rc-action-bar">
+                <AboutCertified />
+              </div>
+            )}
           </>
         )}
-        {/* The sign-in offer already explains Certified, so the explanation shows once. */}
-        {!(accountTask && account.state?.available && !account.state.user) && <AboutCertified />}
       </SettingsSection>
-      <SettingsSection title="Assistant">
+      <SettingsSection title="Appearance" note="Light, dark, or the same as this device.">
+        <div className="rc-field">
+          <label htmlFor="appearance">Theme</label>
+          <select
+            className="rc-input"
+            id="appearance"
+            value={theme}
+            onChange={(event) => applyTheme(event.target.value as Theme)}
+          >
+            {THEME_CHOICES.map((choice) => (
+              <option key={choice.value} value={choice.value}>
+                {choice.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </SettingsSection>
+      <SettingsSection title="Assistant" note="How your words are read.">
         <p>
           {draft.assistant === "browser"
             ? "Browser model selected. It runs only when already available and you build a card."
@@ -147,7 +170,7 @@ export function Settings() {
               type="button"
               onClick={() => controller.change((current) => revise(current, { assistant: "keywords" }))}
             >
-              Use keywords instead
+              Use Keywords Instead
             </button>
           )}
           <button
@@ -156,40 +179,17 @@ export function Settings() {
             type="button"
             onClick={() => information("assistant")}
           >
-            What the assistant did
+            What The Assistant Did
           </button>
         </div>
       </SettingsSection>
-      <SettingsSection title="Appearance">
-        <div className="rc-field">
-          <label htmlFor="appearance">Appearance</label>
-          <p className="rc-hint" id="appearance-hint">
-            Choose a theme for this device.
-          </p>
-          <select
-            className="rc-input"
-            id="appearance"
-            aria-describedby="appearance-hint"
-            value={theme}
-            onChange={(event) => {
-              const value = event.target.value as Theme;
-              setTheme(value);
-              applyTheme(value);
-            }}
-          >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </div>
-      </SettingsSection>
-      <SettingsSection title="Install Weave on your phone">
+      <SettingsSection title="Install Weave On Your Phone" note="It opens like an app, full screen.">
         <InstallGuide />
       </SettingsSection>
-      <SettingsSection title="Your data">
+      <SettingsSection title="Your Data" note="A copy of what this device holds.">
         <p>
-          Download this device's current draft, unfinished words, files, assistant records and backups. It
-          does not fetch other account cards. Keep the file private.
+          Download this device's draft, unfinished words, files, assistant records and backups. Cards
+          saved in your account are not included. Keep the file private.
         </p>
         <div className="rc-action-bar">
           <button
@@ -213,7 +213,7 @@ export function Settings() {
               })
             }
           >
-            {busy ? "Preparing your data" : "Download device data"}
+            {busy ? "Preparing Your Data" : "Download Device Data"}
           </button>
           <button
             className="rc-button"
@@ -221,14 +221,27 @@ export function Settings() {
             type="button"
             onClick={() => information("storage")}
           >
-            What we store
+            What We Store
+          </button>
+          <button
+            className="rc-button"
+            data-variant="quiet"
+            type="button"
+            onClick={() => information("policy")}
+          >
+            Data Policy
           </button>
         </div>
-        {/* Backups and removal stay here even when no draft is left on the device, so recovery stays in reach. */}
+      </SettingsSection>
+      {/* Backups and removal stay here even when no draft is left on the device, so recovery stays in reach. */}
+      <SettingsSection
+        title="Device Backups"
+        note="Earlier drafts and their files, kept only in this browser. Restoring one backs up the current draft first."
+      >
         <DeviceBackups manage disabled={busy} />
       </SettingsSection>
       {!(import.meta.env.DEV && example && !example.state.identity) && (
-        <SettingsSection title="Leave" leave>
+        <SettingsSection title="Leave" note="Signing out keeps what is on this device.">
           {import.meta.env.DEV && example ? (
             <>
               <div className="rc-action-bar">
@@ -245,7 +258,7 @@ export function Settings() {
                     })
                   }
                 >
-                  Sign out
+                  Sign Out
                 </button>
                 <button
                   className="rc-button"
@@ -254,7 +267,7 @@ export function Settings() {
                   disabled={busy}
                   onClick={() => setDeleting(true)}
                 >
-                  Delete your account
+                  Delete Your Account
                 </button>
               </div>
               {(status.state === "shared" || status.state === "published") && (
@@ -267,16 +280,16 @@ export function Settings() {
           ) : (
             <>
               <SignOutAction
-                label="Sign out of this device"
+                label="Sign Out Of This Device"
                 onResult={(text, error) => {
                   setMessage(text);
                   setFailed(error);
                 }}
               />
               <p className="rc-meta">
-                Self-service account deletion is not connected yet.{" "}
-                <a href="https://regencommons.com">Contact Regen Commons</a> about deleting account copies.
-                Sign-out keeps this device's draft and backups.
+                Deleting a whole account is not available in Weave yet. You can delete a saved card in{" "}
+                <Link href={pathTo("your-initiatives")}>Your Initiatives</Link>, and{" "}
+                <Link href={COMMONS.website}>contact Regen Commons</Link> about the rest.
               </p>
             </>
           )}
@@ -288,7 +301,7 @@ export function Settings() {
         </p>
       )}
       {import.meta.env.DEV && example && (
-        <TaskDialog title="Delete your account?" open={deleting} onClose={() => setDeleting(false)}>
+        <TaskDialog title="Delete Your Account?" open={deleting} onClose={() => setDeleting(false)}>
           <p>
             This deletes the initiatives you saved privately in Weave and takes back anything you shared.
             Your Certified account is not deleted, and the card on this device stays.
@@ -307,7 +320,7 @@ export function Settings() {
               })
             }
           >
-            Delete my account
+            Delete My Account
           </button>
         </TaskDialog>
       )}

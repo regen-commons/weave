@@ -18,6 +18,7 @@ import { FitCard, FitGroups } from "./NetworkResults.tsx";
 import { EvidenceCard } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import { DescribePrompt } from "../ui/DescribePrompt.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 
 /** One result in the example world: an invented team that shared in Weave, or a real public source. */
 type ExampleFit =
@@ -55,7 +56,7 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
     ...rankLocalPartners(query, PUBLIC_PARTNER_EVIDENCE).map((match) => ({ from: "public" as const, match })),
   ], [draft, shared, search, query]);
 
-  if (!ready) return <p role="status">Opening your draft</p>;
+  if (!ready) return <CardGridSkeleton kind="partner" count={compact ? 2 : 3} label="Opening your draft" />;
   if (access === "unlinked") {
     // Without a card there is nothing to link yet, so the page asks for the same thing Funding does.
     if (!draft.confirmed)
@@ -65,10 +66,10 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
         {/* On the initiative page the saving and sharing section already carries this step. */}
         {!compact && (
           <ButtonLink href={pathTo("your-initiatives")} variant="primary">
-            Link or create a project
+            Link Or Create A Project
           </ButtonLink>
         )}
-        <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse all initiatives</ButtonLink>
+        <ButtonLink href={pathTo("initiatives")} variant="quiet">Browse All Initiatives</ButtonLink>
       </ShareCard>
     );
   }
@@ -110,7 +111,7 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
       {(access === "public" || compact) && (
         <div className="rc-action-bar">
           {access === "public" && <ShareAction variant="secondary" />}
-          {compact && <ButtonLink href={pathTo("partners")} variant="secondary">See all partners</ButtonLink>}
+          {compact && <ButtonLink href={pathTo("partners")} variant="secondary">See All Partners</ButtonLink>}
         </div>
       )}
     </div>

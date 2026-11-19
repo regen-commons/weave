@@ -8,11 +8,11 @@ export function NotFound() {
   return (
     <Doorway>
       <Heading level={1} size="page">
-        Page not found
+        Page Not Found
       </Heading>
       <p className="rc-prose">Nothing lives at this address. Check it, or start again from the home page.</p>
       <ButtonLink href={pathTo("home")} variant="primary">
-        Go to the home page
+        Go To The Home Page
       </ButtonLink>
     </Doorway>
   );

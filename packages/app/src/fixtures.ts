@@ -192,6 +192,22 @@ const initiatives: readonly ListingRecord[] = [
     confirmed: "2026-11-01",
     sharedOn: "2026-11-02",
   },
+  {
+    id: "mangrove-nursery",
+    kind: "initiative",
+    title: "Mangrove nursery network",
+    description: "Fishing families raise mangrove seedlings and replant the estuary one tide line at a time.",
+    country: "Kenya",
+    place: "Coast estuary, Kenya",
+    work: ["Place-based", "Research"],
+    stage: "sprout",
+    needs: ["financial", "intellectual"],
+    offers: ["living", "social"],
+    fit: "possible",
+    reasons: ["Offers seedlings."],
+    confirmed: "2026-10-28",
+    sharedOn: "2026-10-27",
+  },
 ];
 const funding: readonly ListingRecord[] = [
   {

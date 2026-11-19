@@ -5,10 +5,12 @@ import { useDraft } from "../describe/use-draft.ts";
 import { fundingFixture, type FixtureContext } from "../fixtures.ts";
 import { catalogEntries } from "../funding/catalog.ts";
 import { useCatalogBundle } from "../funding/use-catalog.ts";
-import { CLOSING_SOON_DAYS, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel } from "../home.ts";
+import {
+  CLOSING_SOON_DAYS, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel,
+} from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
-import { currentRoute, navigate, routeSearch } from "../router.tsx";
+import { currentRoute, Link, navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo, routeWith } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
@@ -17,11 +19,11 @@ import { teamWorkspacePath } from "../routes.ts";
 import { BUILDER, COMMONS, EIGHT_FORMS_OF_CAPITAL } from "../links.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
+import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { HomeHero, Stack } from "../ui/layouts.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
-import { Mycelium } from "../ui/Mycelium.tsx";
 import { NumberedList } from "../ui/NumberedList.tsx";
 import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { Section } from "../ui/Section.tsx";
@@ -43,7 +45,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
   const previews = homePreviews(fixture?.initiatives ?? [], asOf);
   // Without the example world, Recently shared lists the newest public Certified projects.
-  const { list: published, retry: retryPublished } = usePublicProjects("", 3, !fixture);
+  const { list: published, retry: retryPublished } = usePublicProjects("", RECENT_PREVIEW_COUNT, !fixture);
   const publishedReady = published.status === "ready" ? published : null;
   const recent = fixture ? previews.recent : [];
   const sharedCount = fixture ? previews.sharedCount : publishedReady?.page.index.total ?? 0;
@@ -87,28 +89,27 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
     if (catalog.failed) catalog.retry();
     if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
   }
-  const skeleton = (
-    <div className="rc-stack" aria-busy="true">
-      <p role="status">Loading</p>
-      <div className="rc-skeleton" />
-      <div className="rc-skeleton" />
+  const skeleton = (kind: "funding" | "initiative" | "project", preview: "row" | "rows") => (
+    <div aria-busy="true">
+      <p className="rc-visually-hidden" role="status">
+        Loading
+      </p>
+      <CardGridSkeleton kind={kind} preview={preview} />
     </div>
   );
   return (
     <Stack wide>
-      {/* One canvas under the whole page; it grows around everything below (DL-066). */}
-      <Mycelium extent="page" />
       <HomeHero
         actions={
           <>
             {doors.resume && (
               <ButtonLink href={resume?.workspaceId ? teamWorkspacePath(resume.workspaceId) : pathTo(route)} variant="primary" size="lg">
-                {resume ? "Continue your initiative" : resumeLabel(route)}
+                {resume ? "Continue Your Initiative" : resumeLabel(route)}
               </ButtonLink>
             )}
             {doors.start && (
               <ButtonLink href={pathTo("initiative")} variant={doors.start} size="lg">
-                Start an initiative
+                Start An Initiative
               </ButtonLink>
             )}
             {/* Choosing a Certified project exists only in the example world, so only its door names Certified. */}
@@ -128,6 +129,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
                 type="search"
                 id="home-search"
                 name="q"
+                enterKeyHint="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -144,7 +146,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             <>
               {sharedCount > 0 && (
                 <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-                  {fixture ? `${sharedCount} ${sharedCount === 1 ? "initiative" : "initiatives"} shared` : sharedLabel(sharedCount)}
+                  {fixture ? `${sharedCount} ${sharedCount === 1 ? "Initiative" : "Initiatives"} Shared` : sharedLabel(sharedCount)}
                 </ButtonLink>
               )}
               {/* Opens Funding on the same deadlines it counts, soonest first. */}
@@ -154,7 +156,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
                   variant="quiet"
                   size="sm"
                 >
-                  {closingSoon} {closingSoon === 1 ? "fund" : "funds"} closing soon
+                  {closingSoon} {closingSoon === 1 ? "Fund" : "Funds"} Closing Soon
                 </ButtonLink>
               )}
             </>
@@ -168,7 +170,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             </span>
           ) : (
             <>
-              Find partners and funding for <em>regenerative work</em>
+              Find Partners And Funding For <em>Regenerative Work</em>
             </>
           )}
         </Heading>
@@ -190,22 +192,22 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <div className="rc-notice-body">
             <h2 className="rc-notice-title">The latest did not load</h2>
             <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>
-              Try again
+              Try Again
             </button>
           </div>
         </section>
       )}
-      <Section id="how" title="Three steps">
+      <Section id="how" title="Three Steps">
         <NumberedList
           items={[
             {
-              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe your initiative",
+              title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe Your Initiative",
               note: "Four short fields.",
             },
-            { title: "Add what you need and can offer", note: "Up to five of each." },
+            { title: "Add What You Need And Can Offer", note: "Up to five of each." },
             {
               // The maker's wording, chosen over "fit", which the results pages keep (DL-063).
-              title: "See funding and partners that align",
+              title: "See Funding And Partners That Align",
               // The step names two things, and only one of them works signed out.
               note: "Funding needs no sign-in. Partners start with a Certified project.",
             },
@@ -214,11 +216,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="kinds"
-        title="Money is one of eight kinds of support"
+        band
+        title="Money Is One Of Eight Kinds Of Support"
         note={
           <>
             An initiative also runs on skills, relationships, land and culture. Every need and offer in
-            Weave names its kind, an idea from <a href={EIGHT_FORMS_OF_CAPITAL}>the eight forms of capital</a>.
+            Weave names its kind, an idea from <Link href={EIGHT_FORMS_OF_CAPITAL}>the eight forms of capital</Link>.
           </>
         }
       >
@@ -226,17 +229,17 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="soon"
-        title="Funding closing soon"
+        title="Funding Closing Soon"
         action={
           <ButtonLink href={pathTo("funding")} variant="quiet" size="sm">
-            See all funding
+            See All Funding
           </ButtonLink>
         }
       >
         {fundingLoading ? (
-          skeleton
+          skeleton("funding", "row")
         ) : upcoming.length && !fundingFailed ? (
-          <CardGrid>
+          <CardGrid preview="row">
             {upcoming.map((entry) => (
               <li key={entry.id}>
                 <OpportunityCard entry={entry} level={3} />
@@ -248,7 +251,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             title={fundingFailed ? "Funding did not load" : "No closing dates coming up"}
             action={
               <ButtonLink href={pathTo("funding")} variant="quiet">
-                Browse funding
+                Browse Funding
               </ButtonLink>
             }
           >
@@ -258,17 +261,17 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="recent"
-        title="Recently shared"
+        title="Recently Shared"
         action={
           <ButtonLink href={pathTo("initiatives")} variant="quiet" size="sm">
-            Browse all initiatives
+            Browse All Initiatives
           </ButtonLink>
         }
       >
         {loading || (!fixture && published.status === "loading") ? (
-          skeleton
+          skeleton(fixture ? "initiative" : "project", "rows")
         ) : publishedReady && publishedReady.projects.length ? (
-          <CardGrid>
+          <CardGrid preview="rows">
             {publishedReady.projects.map((project) => (
               <li key={project.uri}>
                 <PublicProjectCard project={project} level={3} />
@@ -276,7 +279,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             ))}
           </CardGrid>
         ) : recent.length && !failed ? (
-          <CardGrid>
+          <CardGrid preview="rows">
             {recent.map((record) => (
               <li key={record.id}>
                 <ListingCard record={record} level={3} />
@@ -288,7 +291,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             title="Shared initiatives did not load"
             action={
               <button className="rc-button" data-variant="secondary" type="button" onClick={retryPublished}>
-                Try again
+                Try Again
               </button>
             }
           >
@@ -299,7 +302,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             title={failed ? "Shared initiatives did not load" : "No shared initiatives here yet"}
             action={
               <ButtonLink href={pathTo("initiative")} variant="secondary">
-                Start an initiative
+                Start An Initiative
               </ButtonLink>
             }
           >
@@ -309,7 +312,8 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       </Section>
       <Section
         id="commons"
-        title="Part of Regen Commons"
+        band
+        title="Part Of Regen Commons"
         note={
           <>
             Regen Commons is a shared home for the regenerative movement. Across places and practices, people
@@ -320,14 +324,14 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       >
         <div className="rc-action-bar">
           <ButtonLink href={COMMONS.learn} variant="secondary">
-            Learn about Regen Commons
+            Learn About Regen Commons
           </ButtonLink>
           <ButtonLink href={COMMONS.membership} variant="secondary">
-            Become a member
+            Become A Member
           </ButtonLink>
         </div>
         <p className="rc-meta">
-          Weave is built by <a href={BUILDER.href}>{BUILDER.name}</a>.
+          Weave is built by <Link href={BUILDER.href}>{BUILDER.name}</Link>.
         </p>
       </Section>
     </Stack>

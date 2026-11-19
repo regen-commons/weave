@@ -34,5 +34,7 @@ export const ICON_NAMES = [
   "share",
   "add-box",
   "more",
+  "sun",
+  "moon",
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

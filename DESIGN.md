@@ -176,6 +176,7 @@ spacing:
   tile-card-min-width: 240px
   list-width: 640px
   page-width: 1120px
+  page-width-wide: 1440px
 components:
   surface: { backgroundColor: "{colors.soil-100}", textColor: "{colors.soil-900}" }
   surface-dark: { backgroundColor: "{colors.loam-950}", textColor: "{colors.soil-150}" }
@@ -400,7 +401,7 @@ Use each form's framework name as its title, the plain meaning beneath, and exam
 
 ### Themes
 
-The theme follows the operating system by default. `data-theme="light"` or `data-theme="dark"` pins it, on the root element or on any section. The website pins dark on its root, so it looks the same as today. A theme control belongs in settings, with System, Light and Dark options. It does not sit in the page header of the app.
+The theme follows the operating system by default. `data-theme="light"` or `data-theme="dark"` pins it, on the root element or on any section. The website pins dark on its root, so it looks the same as today. Settings has the full choice, with System, Light and Dark options. On a wide screen the app header also has a switch between light and dark, which goes back to following the system when the two agree (DL-079). A phone's header has no room for it, so its You tab offers the full choice (DL-086).
 
 Tokens are generated into explicit theme blocks instead of using `light-dark()`. The website relies on RGB triplets and non-colour theme values that `light-dark()` cannot express, and these blocks also work on older phones. Generation removes the cost of repeating values.
 
@@ -426,7 +427,7 @@ Tokens are generated into explicit theme blocks instead of using `light-dark()`.
 - 12 px is the floor. Nothing is smaller, including on the website when it adopts this scale.
 - Each screen uses two weights in the task layer: 400 and 600. Fraunces uses its own weights in titles. Weight 300 appears only from 48 px up.
 - Space Grotesk is for tasks and data. Source Serif is for reading, from 16 px up. Fraunces is for titles, never for controls.
-- Buttons and labels use sentence case. No decorative labels above headings; a factual label stays only when the heading cannot carry it (DL-028).
+- Buttons and headings use title case, with a capital on every word: Start An Initiative. Labels, hints and body text use sentence case. [VOICE.md](packages/design-system/brand/VOICE.md#mechanics) says which is which (DL-105). No decorative labels above headings; a factual label stays only when the heading cannot carry it (DL-028).
 - Prose stays within 45 to 75 characters per line (`--prose-width`). Left-align text. Centre three lines at most. Right-align numbers.
 - Fonts are subset to Latin. Yoruba and Vietnamese marks fall back to the system face until [latin-ext subsets](packages/design-system/decision-log.md) are added.
 - Text never changes face once it is drawn. Every face uses `font-display: optional` with a fallback matched to its size, and each surface has the faces it draws first ready before it draws: the app and the pattern library preload them. The clickable prototype carries them inside its stylesheet and draws them with `font-display: block`, because inlined faces are decoded after the first paint and `optional` would keep the fallback. Never load the faces from a service with `display=swap` (DL-057).
@@ -435,11 +436,16 @@ Tokens are generated into explicit theme blocks instead of using `light-dark()`.
 
 Spacing comes from one scale: 4, 8, 12, 16, 24, 32, 40, 56, 80, 112, 160 px, as `--space-1` to `--space-11`. Neighbouring steps differ by at least 25 percent, so a choice is never subtle.
 
-- Design for 360 px first. Partners, Funding and Initiatives use card grids on wide screens, with columns at least `--card-min-width` (18 rem). Cards in a row share a height and keep actions at the bottom.
+- Design for 360 px first. Partners, Funding and Initiatives use card grids on wide screens, with columns at least `--card-min-width` (18 rem). Cards in a row share a height and keep actions at the bottom, and columns keep their width when a row is short.
+- From 1600 px the page, the app bar and the footer widen from `--page-width` to `--page-width-wide` (1440 px), so a list holds four cards across (DL-077).
+- Every page is at least as tall as the window under the app bar, so a short or loading page fills the screen and the footer starts below it (DL-078) The site banner, where a page has one, is left out of that window, and the footer spans the window as the app bar does (DL-102).
+- A side panel beside a page's column sits next to that column, not at the window's far edge, and stays under the app bar for the length of the page. A record page's column takes the rest of the width (DL-085).
+- A phone's tab bar is fixed to the bottom of the window. The bar and the page keep clear of the home indicator and of a notch at either side, the page keeps room for the bar under its footer, and a short page fills the window between the two bars (DL-086). A focused step has no tab bar, so on a phone its way forward docks in that place: one action across the bottom of the window (DL-089).
+- A page never scrolls sideways. On a phone a preview of a list is the one thing that does: a row that swipes, rests on a card and shows the next card at the screen's edge (DL-090).
 - Every page shares the logo's left edge. Only home heroes and empty states may centre; narrow tasks stay at that edge.
 - Prefer container queries, so a pattern adapts to its slot. Use `--form-width`, `--prose-width`, `--list-width` and `--page-width` as limits, not percentages.
 - Put more space around a group than inside it. Inside a group use `--space-2`. Between groups use `--space-5` or more.
-- Page gutter is `--gutter`, 16 px at 360. Section rhythm is 56, 80 and 112 px by width.
+- Page gutter is `--gutter`, 16 px at 360. Sections of a page sit 40 px apart on a phone, 56 on a wide screen and 80 on a large desktop.
 - Controls are 48 px high. 44 px is the smallest target, for dense toolbars. A field and its paired button both use `--control-lg-height` (56 px). Keep the steps of a flow at a steady height.
 - Text must survive 200 percent zoom and the largest browser text size without clipping.
 
@@ -455,11 +461,11 @@ There are five levels, tied to distance from the page. Light themes use shadows 
 | 3 | `--shadow-3` | Popovers, sheets |
 | 4 | `--shadow-4` | Dialogs |
 
-Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain sits behind one region per page at most: Home's hero, or a doorway, a page with nothing to fill in and no list, such as signing in to Your Initiatives or a missing page (DL-053). The mycelium grows behind a doorway and under the whole of Home, underneath the page's content (DL-071). A card, a field or a button covers the threads that pass under it, and an outlined button on the page takes the page's fill there. Words set on the page itself have threads behind them, so at rest the network shows whole only in the page's margins and at under half that strength beneath the column of content. New tufts, from a mouse or from scrolling on a phone, are bright wherever they grow and gone within three seconds. The grain never sits behind inputs or rows, and both rest under reduced motion.
+Inputs use `--shadow-inset` to read as recessed. Use space or a surface step before reaching for a border, and keep hairlines under five per screen. The website's paper grain sits behind one region per page at most: Home's hero, or a doorway, a page with nothing to fill in and no list, such as signing in to Your Initiatives or a missing page (DL-053). The mycelium lies behind every page, underneath the page's content (DL-071, DL-078). A card, a field or a button covers the threads that pass under it, and an outlined button on the page takes the page's fill there. Words set on the page itself have threads behind them, so at rest the network shows whole only in the page's margins and at under half that strength beneath the column of content. A form or a side panel with no card of its own sits on the page itself, with no surface behind it, at every width: the quieter strength under the column is what keeps its labels and hints clear (DL-099). It is drawn as the website draws it: fixed to the window with the page scrolling over it, one canvas pixel for each CSS pixel so a sharp screen softens its lines, and a light resting network under the trails a mouse or a finger leaves, which are bright wherever they grow and fade within a few seconds (DL-106). The grain never sits behind inputs or rows, and both rest under reduced motion.
 
 ### Motion
 
-Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. The app header and the bottom navigation never fade or move between pages: they change at once above the cross-fade (DL-058). Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: on Home and on doorways it grows once and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them. Without a mouse, as on a phone, scrolling grows them beside the part of the page in view, and one grows on its own every few seconds while the hero is on screen (DL-048, DL-066). Under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
+Motion explains what changed: pages cross-fade, cards arrive together and linked cards lift on hover. The app header and the bottom navigation never fade or move between pages: they change at once above the cross-fade (DL-058). On a phone a page deeper in is pushed on from the end edge and the way back up pops it off, a short way and at the cross-fade's pace; a move between sections still cross-fades, as every move does on a wide screen (DL-094). Use `--duration-fast`, `--duration-base`, `--duration-slow` and `--ease-out`. All animation and transitions stop under reduced motion. The mycelium is the only decorative motion: behind every page it grows once, when the app opens, and rests, and new tufts start bright and fade, as on the website. The logo's ring grows a little mycelium once when the app opens and rests; a mouse over the logo fills the ring, and the new growth fades when it leaves (DL-054). A moving mouse grows them, and so does a finger where it moves. Without a mouse one also grows on its own every few seconds (DL-048, DL-106). Once the last trail has faded nothing is drawn until something grows again. Under reduced motion it is drawn at rest. Start a new page at the top with its heading focused; keep phone heroes short (DL-029).
 
 ## Shapes
 
@@ -476,14 +482,14 @@ Border widths mean something: 1 px divides, 2 px marks selection or emphasis, 3 
 
 [COMPONENTS.md](packages/design-system/COMPONENTS.md) lists every pattern with its level, status, parts and content limits. The [pattern library](packages/design-system/patterns/index.html) shows them running. CSS lives in [packages/design-system/css](packages/design-system/css/) and uses cascade layers: `tokens`, `base`, `atoms`, `molecules`, `organisms`, `templates`.
 
-- **Buttons** rank actions. One solid primary per region, an outlined secondary, a link-style quiet action. The danger fill appears only on the confirming step of a destructive action.
+- **Buttons** rank actions. One solid primary per region, an outlined secondary, a link-style quiet action. The danger fill appears only on the confirming step of a destructive action. A pressed control takes its hover look on every device, and a button, a chip and a card give a little under the press. Hover looks are asked for only where the device hovers, so none stays on after a tap (DL-087).
 - **Fields** put the label above the control, the hint between them and the error below, using an icon, words and a 2 px edge. Hints are never placeholders.
 - **Cards** have one bold element, the title. Initiative, need, offer, opportunity, partner and partnership differ only in which slots they fill.
 - **Proposals** show values the assistant suggested in pencil. Nothing derived is applied without a person confirming it.
 - **Conversation** asks one short thing at a time. A large local Speak action comes first when available, with typing and attachments below. The card fills in beside the conversation on wide screens and follows it on phones. Build my card opens review: four public fields and derived details with Keep, Change and Remove. Confirmed corrections stay fixed across builds; Remove offers Undo. Full words remain on the device even when the public description is shortened.
 - **Needs and offers** use the same Ask card, with all applicable kinds of support shown alike. Keep, Change and Remove are explicit decisions. Each list has a counter and at most five active cards; overflow stays in the source words and is named. Undo respects the same limit. Finish brings funding, a count-only Share card and the person's checked card together; unavailable feeds keep their counts unknown.
 - **Local assistant choices** explain privacy before asking for a tap. A download needs an exact size, cancellation, resumption and removal. Keyword and manual entry remain usable meanwhile. An unavailable service is shown only as a labelled development example, never as a working production choice.
-- **Dialogs** hold one thing to read or one decision. On a wide screen a dialog keeps clear of the window: room above and below of 8 percent of the window's height, from 24 to 80 px, and never taller than `--dialog-height` (720 px), so a long one scrolls under its title row and the window still shows around it. Information and tasks read at `--prose-width`, a record at `--list-width`, with `--dialog-padding` (32 px) inside. Buttons keep their own width. On phones every dialog is a bottom sheet with `--sheet-padding` (DL-056). A sheet stops at two thirds of the window, a record included, and scrolls under its title row, so a third of the page stays in view above it to press (DL-060).
+- **Dialogs** hold one thing to read or one decision. A press outside or Escape closes any of them, a task included, and the focus returns to what opened it; a task whose work is under way stays open and says why (DL-082). On a wide screen a dialog keeps clear of the window: room above and below of 8 percent of the window's height, from 24 to 80 px, and never taller than `--dialog-height` (720 px), so a long one scrolls under its title row and the window still shows around it. Information and tasks read at `--prose-width`, a record at `--list-width`, with `--dialog-padding` (32 px) inside. Buttons keep their own width. On phones every dialog is a bottom sheet with `--sheet-padding` (DL-056). A sheet stops at two thirds of the window, a record included, and scrolls under its title row, so a third of the page stays in view above it to press (DL-060). A finger pulls a sheet away from its grip, its title row, or its content where that is at its top, and a sheet stands on the on-screen keyboard so the field being typed in stays in view (DL-091).
 - **Empty states** act as a first screen: a short headline, one line of guidance, one action, and no filters.
 - **Funding** keeps thematic fit apart from readiness and research priority. Visitors browse without invented fit. Program source dates, unknowns and eligibility checks remain visible. Team slots show requirements and count distinct asks and selected initiatives; private initiatives see counts only. Example coverage never establishes eligibility or changes the solo rubric.
 
@@ -569,10 +575,10 @@ Report the result in the handoff. The [checklist](packages/design-system/princip
 
 - Do use role tokens. Don't use hex values, ramp steps or brand names in component CSS.
 - Do give each region one solid primary action. Don't let two solid buttons compete.
-- Do follow the system theme by default. Don't hardcode a default theme or add a header toggle to the app.
+- Do follow the system theme by default. Don't hardcode a default theme.
 - Do show pencil for anything the assistant suggested. Don't apply a derived value without confirmation.
 - Do ask for an email only when it does something for the person. Don't put a wall, a modal or a pre-checked box in front of value.
-- Do write labels in sentence case with plain words. Don't use tiny tracked capitals on buttons.
+- Do write buttons and headings in title case and labels in sentence case, with plain words. Don't use tiny tracked capitals on buttons.
 - Do use the capital tile and word together. Don't use colour alone to tell capitals, stages, needs or offers apart.
 - Do show empty, loading, error and offline states. Don't show controls that do not work yet.
 - Don't use streaks, countdowns, leaderboards or invented urgency. People come here to do shared work, not to be hooked.

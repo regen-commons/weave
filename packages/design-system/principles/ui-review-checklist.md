@@ -49,7 +49,7 @@ Use the [five-minute review](../../../DESIGN.md#how-we-follow-them) for every UI
 - [ ] The gap inside a group is at most half the gap between groups. (R)
 - [ ] Wide lists use card grids with columns at least 18 rem and equal heights, sharing the logo's left edge.
 - [ ] A field and its paired button use the large control height; flow steps keep a steady height.
-- [ ] At 360 px there is no horizontal scroll, the gutter is 16 px and widths use limits. (R)
+- [ ] At 360 px the page has no horizontal scroll, the gutter is 16 px and widths use limits. A preview's row is the one thing that swipes sideways (DL-090). (R)
 - [ ] Text meets 4.5:1 on its rendered background. Large text and control boundaries meet 3:1. (R, K)
 - [ ] Meaning survives greyscale and colour-blind simulation, with a word, icon or shape alongside colour. (R)
 - [ ] Cards are lighter than the page in both themes, and only the five shadow levels appear. (R)

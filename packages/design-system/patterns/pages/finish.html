@@ -32,8 +32,10 @@
           <a href="funding.html">Funding</a>
           <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
         </nav></div>
-    <div class="rc-app-header-state"><p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg><span>On this device</span></p><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign in</button><a class="rc-icon-button" href="settings.html" aria-label="Settings" data-until="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#settings"/></svg></a></div>
+    <div class="rc-app-header-state"><p class="rc-save-status" data-state="device"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device"/></svg><span>On this device</span></p><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
   </header>
+  <div class="rc-page-body">
+  <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
   <main class="rc-main" id="main">
     <div class="rc-step-layout">
         <h1 class="rc-heading" data-size="page">Who could work with you</h1>
@@ -107,9 +109,10 @@
           </ul>
         </section>
     </div>
-  </main><footer class="rc-footer">
+  </main>
+  </div><footer class="rc-footer">
         <div class="rc-footer-grid">
-          <section>
+          <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
@@ -122,7 +125,7 @@
             <h2 class="rc-footer-title">Data &amp; Privacy</h2>
             <ul>
               <li><button class="rc-footer-link" type="button" data-open-dialog="example-data">What We Store</button></li>
-              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What the Assistant Did</button></li>
+              <li><button class="rc-footer-link" type="button" data-open-dialog="example-assistant">What The Assistant Did</button></li>
               <li><button class="rc-footer-link" type="button" data-open-dialog="example-policy">Data Policy</button></li>
               <li><a class="rc-footer-link" href="settings.html">Settings</a></li>
             </ul>
@@ -142,7 +145,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-data-title">What we store</h2>
+            <h2 class="rc-dialog-title" id="example-data-title">What We Store</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
@@ -154,7 +157,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-assistant-title">What the assistant did</h2>
+            <h2 class="rc-dialog-title" id="example-assistant-title">What The Assistant Did</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>
@@ -166,7 +169,7 @@
         <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
         <div class="rc-dialog-body">
           <div class="rc-dialog-head" data-sheet-handle>
-            <h2 class="rc-dialog-title" id="example-policy-title">Data policy</h2>
+            <h2 class="rc-dialog-title" id="example-policy-title">Data Policy</h2>
             <form method="dialog">
               <button class="rc-button" data-variant="secondary" type="submit">Close</button>
             </form>

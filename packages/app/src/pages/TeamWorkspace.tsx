@@ -20,12 +20,13 @@ import { SuggestionSchema } from "../describe/contracts.ts";
 import { AskSuggestionSchema } from "../intake/contracts.ts";
 import { Section } from "../ui/Section.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
-import { StepLayout } from "../ui/layouts.tsx";
+import { Panel, Stack, StepLayout } from "../ui/layouts.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { FirstFunding } from "../ui/FirstFunding.tsx";
 import { loadedDraft } from "../account/document.ts";
 import { LiveExposure } from "../social/LiveExposure.tsx";
 import { rememberWorkspace } from "../initiative/workspace-resume.ts";
+import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
 const subscribeOnline = (notify: () => void) => {
   window.addEventListener("online", notify);
@@ -42,7 +43,7 @@ export function TeamWorkspace({ workspaceId }: { workspaceId: string }) {
   const { state } = useAccount();
   return (
     <div className="rc-stack">
-      {state === null ? <><WorkspaceHeading /><p role="status">Checking your account</p></>
+      {state === null ? <><WorkspaceHeading /><DraftSkeleton label="Checking your account" /></>
         : !state.user ? <><WorkspaceHeading /><WorkspaceSignIn workspaceId={workspaceId} available={state.available} /></>
           : <WorkspaceContent key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} />}
     </div>
@@ -61,7 +62,7 @@ function WorkspaceHeading({ name, role }: { name?: string; role?: TeamWorkspaceS
   return (
     <div className="rc-stack">
       {name && <p className="rc-eyebrow">Team workspace</p>}
-      <Heading level={1} size="page">{name ?? "Team workspace"}</Heading>
+      <Heading level={1} size="page">{name ?? "Team Workspace"}</Heading>
       {role && <p>{ROLE_LINE[role]}</p>}
     </div>
   );
@@ -87,7 +88,7 @@ function WorkspaceSignIn({ workspaceId, available }: { workspaceId: string; avai
       {status === "failed" && <p role="status">Sign-in could not start. Try again.</p>}
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="button"
-          disabled={!ready || status === "starting"} onClick={() => void signIn()}>Sign in with Certified</button>
+          disabled={!ready || status === "starting"} onClick={() => void signIn()}>Sign In With Certified</button>
       </div>
     </div>
   );
@@ -150,7 +151,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       {access === "failed" && <p role="status">Certified access could not be confirmed. Try again.</p>}
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="button" disabled={access === "starting"}
-          onClick={() => void confirmAccess()}>Confirm Certified access</button>
+          onClick={() => void confirmAccess()}>Confirm Certified Access</button>
       </div>
     </div>
   );
@@ -162,11 +163,11 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       <p role="status">The workspace could not be opened.</p>
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="secondary" type="button"
-          onClick={() => { setLoaded(undefined); setAttempt((value) => value + 1); }}>Try again</button>
+          onClick={() => { setLoaded(undefined); setAttempt((value) => value + 1); }}>Try Again</button>
       </div>
     </div>
   );
-  if (loaded === undefined) return <><WorkspaceHeading /><p role="status">Opening the team workspace</p></>;
+  if (loaded === undefined) return <><WorkspaceHeading /><DraftSkeleton label="Opening the team workspace" /></>;
   const saved = loaded.saved;
   const readOnly = loaded.accessRole === "viewer";
   // Copying this device's checked card is offered while the team has nothing saved. When that card
@@ -181,43 +182,42 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       <WorkspaceHeading name={String(saved?.document.initiative.name ?? loaded.projectTitle ?? "Team initiative")}
         role={loaded.accessRole} />
       {!online && <p role="status">You’re offline. Reconnect to save or change sharing.</p>}
-      <StepLayout aside={<>
-        <Section id="saving-sharing" title="Saving and sharing">
-          <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>
-            {saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}
-          </StatusLine>
-          {saved && <LiveExposure saved={saved} owner={owner} team readOnly={readOnly || editing} online={online}
-            onExpired={() => loseAccess("sign_in_required")} onChanged={() => setMatchVersion(v => v + 1)} />}
-        </Section>
-        {!readOnly && <Section id="change-team" title="Change it"><div className="rc-action-bar" data-layout="rows">
-          <button className="rc-button" data-variant={saved || ownCard ? "quiet" : "primary"} type="button" disabled={!online}
-            onClick={() => setPanel("entries")}>Change needs and offers</button>
-          {loaded.accessRole === "admin" && loaded.projectUri && <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
-            onClick={() => setPanel("teammates")}>Manage teammates</button>}
-        </div></Section>}
-      </>}>
-        {saved && fields ? <InitiativeRecord named={false} fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
-          offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
-          : <p>No needs or offers saved yet.{readOnly ? " An editor can add them." : ""}</p>}
-      </StepLayout>
-      <TaskDialog title={panel === "teammates" ? "Manage teammates" : "Needs and offers"} open={panel !== null} onClose={() => setPanel(null)}
-        blockClose={editing} onCloseBlocked={() => setCloseNotice("Save or cancel your entry before closing. Your changes are still here.")}>
-        {closeNotice && <p role="status">{closeNotice}</p>}
-        {panel === "entries" && <TeamEntries workspaceId={workspaceId} workspace={loaded} online={online} onSaved={saveResult}
-          onEditing={value => { setEditing(value); setCloseNotice(""); }} onAccessLost={loseAccess} />}
-        {panel === "teammates" && loaded.accessRole === "admin" && loaded.projectUri && <WorkspaceAccess workspaceId={workspaceId} projectUri={loaded.projectUri} expanded />}
-      </TaskDialog>
-      {saved && (
-        <>
+      {/* Under the record on a wide screen and after Saving and sharing on a phone, so the panel stays
+          beside the whole page. */}
+      <StepLayout wide more={saved ? <Stack wide>
           <CertifiedSuggestions workspaceId={workspaceId} queries={queries} compact={false} online={online}
             onAccessLost={loseAccess} />
           <SavedMatching key={saved.revision} refreshVersion={matchVersion} active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
             document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
             compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
             fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
-          <Section id="team-funding" title="Funding that fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
-        </>
-      )}
+          <Section id="team-funding" title="Funding That Fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
+      </Stack> : undefined} aside={<Panel>
+        <Section id="saving-sharing" title="Saving And Sharing">
+          <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>
+            {saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}
+          </StatusLine>
+          {saved && <LiveExposure saved={saved} owner={owner} team readOnly={readOnly || editing} online={online}
+            onExpired={() => loseAccess("sign_in_required")} onChanged={() => setMatchVersion(v => v + 1)} />}
+        </Section>
+        {!readOnly && <Section id="change-team" title="Change It"><div className="rc-action-bar" data-layout="rows">
+          <button className="rc-button" data-variant={saved || ownCard ? "quiet" : "primary"} type="button" disabled={!online}
+            onClick={() => setPanel("entries")}>Change Needs And Offers</button>
+          {loaded.accessRole === "admin" && loaded.projectUri && <button className="rc-button" data-variant="quiet" type="button" disabled={!online}
+            onClick={() => setPanel("teammates")}>Manage Teammates</button>}
+        </div></Section>}
+      </Panel>}>
+        {saved && fields ? <InitiativeRecord named={false} fields={fields} team needs={saved.document.needs.map(entry => AskSuggestionSchema.parse(entry.value))}
+          offers={saved.document.offers.map(entry => AskSuggestionSchema.parse(entry.value))} />
+          : <p>No needs or offers saved yet.{readOnly ? " An editor can add them." : ""}</p>}
+      </StepLayout>
+      <TaskDialog title={panel === "teammates" ? "Manage Teammates" : "Needs And Offers"} open={panel !== null} onClose={() => setPanel(null)}
+        blockClose={editing} onCloseBlocked={() => setCloseNotice("Save or cancel your entry before closing. Your changes are still here.")}>
+        {closeNotice && <p role="status">{closeNotice}</p>}
+        {panel === "entries" && <TeamEntries workspaceId={workspaceId} workspace={loaded} online={online} onSaved={saveResult}
+          onEditing={value => { setEditing(value); setCloseNotice(""); }} onAccessLost={loseAccess} />}
+        {panel === "teammates" && loaded.accessRole === "admin" && loaded.projectUri && <WorkspaceAccess workspaceId={workspaceId} projectUri={loaded.projectUri} expanded />}
+      </TaskDialog>
     </>
   );
 }
