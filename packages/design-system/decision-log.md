@@ -765,3 +765,21 @@ A card linked by an earlier build is linked once more from its own page. What th
 Two things follow that are meant. The choice is a note of what the person chose and never an access grant: the server still checks the project on every command, and a project the account can no longer open links to nothing. And DL-055's rule for an unsaved card now holds for as long as the card is on the device: it belongs to the account that opened it from its project, so on a shared device it stays set aside for the next account after the first one's tab is closed. Before, it passed to whoever used the device next once the session ended. The draft's stored shape did not change, because an older tab reads drafts strictly and would refuse a field it does not know.
 
 Not done: removing a card from the device does not remove its choice, which holds an account's identifier and a public project address and no words. A card that carries a project's suggestions and is not linked still keeps that project out of On Certified, as before, until the person links it from the card's page. Where the browser turns a write to device storage away, the choice lasts until the page is reloaded.
+
+## DL-120: A public project card says who shared it and where, and the list filters on kind of group
+
+**Status:** maker's QA, 19 November 2026. Extends DL-081 and DL-108. The QA asked for more on the Initiatives cards than a name and a description, "such as tags", and for filters on the list.
+
+A list shows only the filters its data can answer (DL-081), so the first step was to see what the data holds. A read of the 100 newest listed projects on 19 November found no tags, keywords, work scope or contributors on any of them. The publisher's display name was on 96, a place on 30, the kind of group the publisher says it is on 33, a banner picture on 79 and languages on 4. About 15 of the 100 were QA or test records.
+
+- **One more line on the card.** Under its name, a card says who shared the project: the display name on the publisher's Certified profile. After a place icon, it gives the place label the publisher set for the project. The line is there on every card, empty where the project names neither, so cards stay one height. A line too long for the card ends in an ellipsis, with the whole line one hover away and in words for a screen reader. A public project card is now 291 px at 1280 px and 266 px at 360 px, up from 258 and 233, and its skeleton has the same line.
+- **The place is the publisher's own label.** It is shown as written and is never read as a country or region. It is shown only when the listing carries the exact version of the place the project's record pins, so a newer or different place never stands in for it.
+- **Search reads them too.** The search box finds a project by its publisher's name or its place as well as its own words.
+- **One filter: Kind of group.** It comes from the kinds the publisher's Certified organization names, such as Nonprofit. It offers only the kinds the list holds, most common first, and Any kind clears it. A project whose publisher names no kind is left out while a kind is chosen. A list whose publishers name no kind, or a server from before this change, offers no filter. The kind is written into the page's address, as Funding's filters are. On a phone it is in the Filters sheet, whose Show button counts every match, not just the cards loaded so far.
+- **No tags filter and no place filter.** No record has tags. A place filter would treat a free label as a country or region.
+
+Pictures wait on D30, and an organization's links are never shown as the project's own. Hiding QA and test records is a separate question.
+
+Whether the filter stays is the maker's call: it rests on the 33 in 100 projects whose publisher names a kind of group, and the coverage should be measured again on production after the first refresh with this change.
+
+Not held, and why. Before the first page answers, the bar draws Kind of group waiting, so the bar does not grow when the list arrives. If the list then names no kinds, that row goes away when it answers. That happens only with a server from before this change or a list where no publisher names a kind, and neither is the expected state.

@@ -11,24 +11,44 @@ import { Icon } from "../ui/Icon.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
-  countLine, firstPage, indexLine, nextPage, PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
-  expectsStarter, listView, rememberIndex, searchQuery, SEARCH_PAUSE_MS, type PublicProjectCard as Project, type PublicProjectList,
+  chosenOrganizationType, countLine, emptyList, firstPage, indexLine, nextPage, ORGANIZATION_TYPE_KEY, organizationTypeFacets,
+  PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects, expectsStarter, listView,
+  rememberIndex, searchQuery, SEARCH_PAUSE_MS, sharedByLine, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
 
 const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
 
 /**
- * One listed public Certified project: its name, its own words, when it was shared and where it comes
- * from. The card opens the project's public record from its name, in a new tab, so it has the one
- * target every card in a list has.
+ * One listed public Certified project: its name, who shared it and where, its own words, when it was
+ * shared and where it comes from. The card opens the project's public record from its name, in a new
+ * tab, so it has the one target every card in a list has.
  */
 export function PublicProjectCard({ project, level }: { project: Project; level: 2 | 3 }) {
   const Title = level === 3 ? "h3" : "h2";
+  const line = sharedByLine(project);
   return (
     <Card kind="initiative" rows="fixed">
       <Title className="rc-card-title">
         <Link href={project.sourceUrl}>{project.name}</Link>
       </Title>
+      {/* Who shared it and where keep one line on every card, so cards are one height (DL-108). It is
+          empty where the project names neither, and a line cut at its end is whole one hover away.
+          The place is the publisher's own label, shown as it is. */}
+      <p className="rc-card-meta" title={line || undefined}>
+        {project.publisher && (
+          <>
+            <span className="rc-visually-hidden">Shared by </span>
+            {project.publisher}
+          </>
+        )}
+        {project.place && (
+          <>
+            <Icon name="place" size="sm" />
+            <span className="rc-visually-hidden">{project.publisher ? ". Place: " : "Place: "}</span>
+            {project.place}
+          </>
+        )}
+      </p>
       <p className="rc-card-summary">{project.passages.join(" ")}</p>
       <p className="rc-meta">Source: Certified, checked on <MatchingDate value={project.checkedAt} />.</p>
       <p className="rc-time">
@@ -39,30 +59,35 @@ export function PublicProjectCard({ project, level }: { project: Project; level:
   );
 }
 
-/** The first page for a search, then further pages on request. `enabled: false` reads nothing. */
-export function usePublicProjects(q: string, limit?: number, enabled = true) {
-  const [list, setList] = useState<PublicProjectList>({ status: enabled ? "loading" : "failed", q });
+/**
+ * The first page for a search and kind of group, then further pages on request. `enabled: false` reads
+ * nothing.
+ */
+export function usePublicProjects(q: string, limit?: number, enabled = true, organizationType?: string) {
+  const asked = { q, ...(organizationType ? { organizationType } : {}) };
+  const [list, setList] = useState<PublicProjectList>({ status: enabled ? "loading" : "failed", ...asked });
   const [attempt, setAttempt] = useState(0);
   const pending = useRef<AbortController | null>(null);
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
-    setList({ status: "loading", q });
-    requestPublicProjects(publicProjectsPath(q, null, limit), controller.signal)
-      .then((page) => { if (!controller.signal.aborted) setList(firstPage(q, page)); })
-      .catch(() => { if (!controller.signal.aborted) setList({ status: "failed", q }); });
+    setList({ status: "loading", ...asked });
+    requestPublicProjects(publicProjectsPath(q, null, limit, organizationType ?? null), controller.signal)
+      .then((page) => { if (!controller.signal.aborted) setList(firstPage(q, page, organizationType)); })
+      .catch(() => { if (!controller.signal.aborted) setList({ status: "failed", ...asked }); });
     return () => {
       controller.abort();
       pending.current?.abort();
     };
-  }, [q, limit, enabled, attempt]);
+  }, [q, organizationType, limit, enabled, attempt]);
   function more() {
     if (list.status !== "ready" || !list.page.next || list.more === "loading") return;
     const controller = pending.current = new AbortController();
     setList({ ...list, more: "loading" });
-    requestPublicProjects(publicProjectsPath(q, list.page.next, limit), controller.signal)
+    requestPublicProjects(publicProjectsPath(q, list.page.next, limit, organizationType ?? null), controller.signal)
       .then((page) => {
-        if (!controller.signal.aborted) setList((latest) => latest.q === q ? nextPage(latest, page) : latest);
+        if (!controller.signal.aborted)
+          setList((latest) => latest.q === q && latest.organizationType === organizationType ? nextPage(latest, page) : latest);
       })
       .catch(() => {
         if (!controller.signal.aborted) setList((latest) => latest.status === "ready" ? { ...latest, more: "failed" } : latest);
@@ -100,11 +125,16 @@ export function PublicProjects() {
   // The search lives in the page and is written into its address quietly, as Funding's filters are,
   // so searching keeps focus and scroll where they are.
   const [search, setSearch] = useState(() => searchQuery(new URLSearchParams(routeSearch()).get("q") ?? ""));
+  const [organizationType, setOrganizationType] = useState(() => chosenOrganizationType(routeSearch()));
   const q = usePaused(searchQuery(search), SEARCH_PAUSE_MS);
   useEffect(() => {
-    replaceRouteQuietly(q ? `${routePath()}?${new URLSearchParams({ q })}` : routePath());
-  }, [q]);
-  const { list, more, retry } = usePublicProjects(q);
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (organizationType) params.set(ORGANIZATION_TYPE_KEY, organizationType);
+    const query = params.toString();
+    replaceRouteQuietly(query ? `${routePath()}?${query}` : routePath());
+  }, [q, organizationType]);
+  const { list, more, retry } = usePublicProjects(q, undefined, true, organizationType ?? undefined);
   // Whether a page has shown the list is switched on, so later searches keep the index while they load.
   const [indexSeen, setIndexSeen] = useState(false);
   // The last list that arrived stays on screen while the next search loads, so the cards do not blink.
@@ -120,25 +150,31 @@ export function PublicProjects() {
   const view = listView(list, indexSeen, expectStarter);
   const ready = list.status === "ready" ? list : arrived;
   const waiting = list.status === "loading";
+  const empty = emptyList(!!ready && ready.q !== "", !!ready?.organizationType);
   // Focus moves to the first project a press of Show More added, so a keyboard user keeps their place.
   const shown = list.status === "ready" ? list.projects.length : 0;
   const added = useAddedFocus(shown);
 
   function clear() {
     setSearch("");
+    setOrganizationType(null);
     keepFocusOnPage();
   }
+  // The kinds on offer are the whole list's, whatever the search, so the menu stays put while a person types.
+  const facets = organizationTypeFacets(ready ? ready.page.index.organizationTypes : "waiting", organizationType);
+  const filtered = !!ready?.organizationType;
   const bar = (loading: boolean) => (
     <FilterBar
       noun="initiatives"
       search={search}
       onSearch={setSearch}
       maxLength={PUBLIC_PROJECT_QUERY_MAX}
-      facets={[]}
-      onFacet={() => {}}
-      count={ready?.projects.length ?? 0}
+      facets={facets}
+      onFacet={(_key, chosen) => setOrganizationType(chosen[0] ?? null)}
+      // The list comes a page at a time, so the sheet's Show button counts every match, not the cards loaded.
+      count={ready?.page.index.total ?? 0}
       total={ready?.page.index.total ?? 0}
-      summary={ready ? countLine(ready.page.index.total, ready.q !== "") : undefined}
+      summary={ready ? countLine(ready.page.index.total, ready.q !== "", filtered) : undefined}
       note={ready ? indexLine(ready.page.index, day) : undefined}
       loading={loading}
       reserve="Checked on 00 November 0000."
@@ -190,12 +226,12 @@ export function PublicProjects() {
             </CardGrid>
           ) : (
             <EmptyState
-              title="No projects match your search"
+              title={empty.title}
               action={
-                <button className="rc-button" data-variant="secondary" type="button" onClick={clear}>Clear Search</button>
+                <button className="rc-button" data-variant="secondary" type="button" onClick={clear}>{empty.action}</button>
               }
             >
-              Try other words, or clear the search to see every project.
+              {empty.body}
             </EmptyState>
           )}
           {/* The list fills in as its end comes near, and a new search starts its run again (DL-101). Every
@@ -203,7 +239,7 @@ export function PublicProjects() {
           {list.status !== "ready" && ready.projects.length > 0 && <ListEndHold things="projects" />}
           {list.status === "ready" && list.projects.length > 0 && (
             <ListEnd
-              key={list.q}
+              key={`${list.q} ${list.organizationType ?? ""}`}
               shown={list.projects.length}
               total={Math.max(list.page.index.total, list.projects.length)}
               things="projects"

@@ -2,7 +2,7 @@ import postgres from "postgres";
 import { connectRestrictedIndexDatabase, shownProject } from "./project-index-db.ts";
 import { partnerLexicalText } from "./partner-matcher.ts";
 import { expandPartnerText } from "./partner-concepts.ts";
-import { PROJECT_EXTRACTION_VERSION } from "./project-index-source.ts";
+import { NO_PROJECT_FACTS, PROJECT_EXTRACTION_VERSION } from "./project-index-source.ts";
 import type { ProjectCheckpoint, ProjectIndexStore } from "./project-index.ts";
 
 type CheckpointRow = {
@@ -60,10 +60,12 @@ export async function connectProjectIndex(url: string, options: { ca?: string } 
           returning revision::text, next_offset as offset,
             (extract(epoch from retry_after) * 1000)::double precision as "retryAfter"
         `;
+        // A withdrawn project keeps nothing of its own words or its card, only the history the tombstone checks read.
         await tx`
           update private.weave_project_index_source
           set status = 'restricted', permission_until = least(permission_until, now()),
-            embedding_model = null, error_code = 'permission_removed'
+            embedding_model = null, error_code = 'permission_removed',
+            publisher_name = null, place_name = null, organization_types = '{}'
           where not (project_uri = any(${manifest.permissions.map(({ uri }) => uri)}::text[]))
         `;
         await tx`
@@ -136,16 +138,24 @@ export async function connectProjectIndex(url: string, options: { ca?: string } 
         const retainHistory = read.status !== "indexed";
         const keepOld = read.status === "failed"
           && (read.code === "source_unavailable" || read.code === "source_rate_limited");
+        // The card's facts follow the evidence: written on every indexed read, even when the passages are
+        // unchanged, kept with them through a transient failure and cleared whenever they are deleted.
+        const facts = read.status === "indexed" ? read.facts : NO_PROJECT_FACTS;
         await tx`
           insert into private.weave_project_index_source as s (
-            project_uri, status, permission_until, cid, content_hash, extraction_version, checked_at, fetched_at, error_code, embedding_model, source_indexed_at
+            project_uri, status, permission_until, cid, content_hash, extraction_version, checked_at, fetched_at, error_code, embedding_model, source_indexed_at,
+            publisher_name, place_name, organization_types
           ) values (
             ${permission.uri}, ${read.status}, ${permission.redisplayUntil},
             ${read.status === "indexed" ? read.cid : null}, ${read.status === "indexed" ? read.contentHash : null},
             ${read.status === "indexed" ? PROJECT_EXTRACTION_VERSION : null}, ${checkedAt},
             ${read.status === "indexed" ? read.fetchedAt : null}, ${read.status === "indexed" ? null : read.code},
-            ${embedding?.modelVersion ?? null}, ${read.status === "indexed" ? read.sourceIndexedAt : null}
+            ${embedding?.modelVersion ?? null}, ${read.status === "indexed" ? read.sourceIndexedAt : null},
+            ${facts.publisher}, ${facts.place}, ${facts.organizationTypes}::text[]
           ) on conflict (project_uri) do update set
+            publisher_name = case when ${keepOld} then s.publisher_name else excluded.publisher_name end,
+            place_name = case when ${keepOld} then s.place_name else excluded.place_name end,
+            organization_types = case when ${keepOld} then s.organization_types else excluded.organization_types end,
             status = case when ${keepOld} and s.status in ('missing', 'restricted') then s.status else excluded.status end,
             permission_until =
               case when ${keepOld} then least(s.permission_until, excluded.permission_until) else excluded.permission_until end,

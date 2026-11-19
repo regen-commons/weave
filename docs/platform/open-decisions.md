@@ -476,6 +476,19 @@ found the same 14 under the first rule and after each narrowing: 13 by name and
   dates, and links to the record. Records that carry contact details or markup
   in their title are skipped. Projects with no usable description text are
   indexed but not listed.
+- Amended 19 November 2026, after the maker's QA asked for more on each card
+  and for filters ([DL-120](../../packages/design-system/decision-log.md#dl-120-a-public-project-card-says-who-shared-it-and-where-and-the-list-filters-on-kind-of-group)):
+  a card also says who shared the project, from the display name on the
+  publisher's Certified profile, and the place label the publisher set. The
+  place is shown only when the listing carries the exact version the record
+  pins, and it is context only, never a country or region. The list can be
+  searched by both and filtered on the kind of group the publisher's
+  organization names, such as nonprofit. A name, place or kind that is
+  missing, too long, or carries a link, contact details or control characters
+  is left out, and the project is still shown. These come from records other
+  than the project's own, so each refresh rewrites them and a withdrawal
+  deletes them with the passages. Pictures still wait on D30, and an
+  organization's links are never shown as the project's.
 - The Initiatives page and Home's Recently shared read the index. When the
   index is empty or does not answer, the Initiatives page shows the starter
   list of public sources instead.

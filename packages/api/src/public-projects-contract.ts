@@ -14,15 +14,32 @@ const controls = /[\p{Cc}\p{Cf}]/u;
 const marks = /\p{M}/gu;
 export const searchText = (value: string) => value.normalize("NFKD").replace(marks, "").toLowerCase();
 
+/**
+ * A kind of group a publisher's Certified organization says it is, as the index stores it: lower case
+ * words joined by hyphens, such as `nonprofit`. Upstream values are free text, so the list offers only
+ * the kinds its projects carry.
+ */
+const organizationTypePattern = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
+const ORGANIZATION_TYPE_MAX = 40;
+/** The most kinds one project's publisher keeps. */
+export const ORGANIZATION_TYPES_MAX = 5;
+/** The most kinds a page offers to filter on. */
+export const ORGANIZATION_TYPE_OPTIONS_MAX = 24;
+export const isOrganizationType = (value: unknown): value is string =>
+  typeof value === "string" && value.length <= ORGANIZATION_TYPE_MAX && organizationTypePattern.test(value);
+
 export type PublicProjectCursor = { sharedAt: string; uri: string };
 export type PublicProjectQuery = {
   /** The search as typed, trimmed. Empty lists every project. */
   q: string;
-  /** Normalized words that must each appear in a project's name or description. */
+  /** Normalized words that must each appear in a project's name, publisher, place or description. */
   terms: string[];
+  /** Only projects whose publisher says it is this kind of group. Projects that say nothing are left out. */
+  organizationType: string | null;
   cursor: PublicProjectCursor | null;
   limit: number;
 };
+const QUERY_KEYS = ["q", "organizationType", "cursor", "limit"];
 
 export function searchTerms(q: string): string[] {
   return [...new Set(searchText(q).split(/\s+/u).filter(Boolean))].slice(0, maxTerms);
@@ -53,18 +70,25 @@ function decodeCursor(value: string): PublicProjectCursor {
   try { return { sharedAt, uri: parseProjectUri(uri).uri }; } catch { throw Error("invalid_project_query"); }
 }
 
-/** Accepts only `q`, `cursor` and `limit`, each at most once, so every cached page has one address. */
+/**
+ * Accepts only `q`, `organizationType`, `cursor` and `limit`, each at most once, so every cached page
+ * has one address.
+ */
 export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
   const keys = [...url.searchParams.keys()];
-  if (keys.some((key) => !["q", "cursor", "limit"].includes(key)) || new Set(keys).size !== keys.length)
+  if (keys.some((key) => !QUERY_KEYS.includes(key)) || new Set(keys).size !== keys.length)
     throw Error("invalid_project_query");
   const q = (url.searchParams.get("q") ?? "").trim().replace(/\s+/gu, " ");
   if (q.length > maxQuery || controls.test(q)) throw Error("invalid_project_query");
+  const organizationType = url.searchParams.get("organizationType");
+  if (organizationType !== null && !isOrganizationType(organizationType)) throw Error("invalid_project_query");
   const limitText = url.searchParams.get("limit");
   const limit = limitText === null ? PUBLIC_PROJECT_PAGE_SIZE : /^\d{1,2}$/u.test(limitText) ? Number(limitText) : NaN;
   if (!Number.isInteger(limit) || limit < 1 || limit > PUBLIC_PROJECT_PAGE_MAX) throw Error("invalid_project_query");
   const cursorText = url.searchParams.get("cursor");
-  return { q, terms: searchTerms(q), cursor: cursorText === null ? null : decodeCursor(cursorText), limit };
+  return {
+    q, terms: searchTerms(q), organizationType, cursor: cursorText === null ? null : decodeCursor(cursorText), limit,
+  };
 }
 
 export type PublicProjectCard = {
@@ -77,6 +101,10 @@ export type PublicProjectCard = {
   /** When Weave last read the project. */
   checkedAt: string;
   sourceUrl: string;
+  /** Who shared it: the display name on the publisher's Certified profile. Absent when it has none. */
+  publisher?: string;
+  /** Where it is, as its publisher labelled the place. Context only, never a country or region. */
+  place?: string;
 };
 export type PublicProjectPage = {
   index: {
@@ -86,8 +114,13 @@ export type PublicProjectPage = {
      */
     status: "bounded" | "partial" | "stale" | "off";
     checkedAt: string | null;
-    /** Projects matching the search, or all shown projects without one. */
+    /** Projects matching the search and filter, or all shown projects without them. */
     total: number;
+    /**
+     * The kinds of group the shown projects' publishers name, most common first, whatever the search.
+     * A list that names none, or a server from before the filter, leaves it out, and the app offers no filter.
+     */
+    organizationTypes?: string[];
   };
   projects: PublicProjectCard[];
   next: string | null;
@@ -105,6 +138,8 @@ function sourceUrl(value: unknown): string {
   // The list links only to the public read API the index came from.
   return url.origin === "https://api.hypercerts.dev" && !url.username && !url.password ? url.href : fail();
 }
+/** The longest publisher name or place label a card carries. The index leaves out a longer one, never cuts it. */
+export const PROJECT_LABEL_MAX = 120;
 function card(value: unknown): PublicProjectCard {
   if (!value || typeof value !== "object") return fail();
   const o = value as Record<string, unknown>;
@@ -114,7 +149,16 @@ function card(value: unknown): PublicProjectCard {
   return {
     uri, name: text(o.name, 300), passages: o.passages.map((passage) => text(passage, 600)),
     sharedAt: isoDate(o.sharedAt), checkedAt: isoDate(o.checkedAt), sourceUrl: sourceUrl(o.sourceUrl),
+    // Absent from a server that predates them. Present, they must be valid like every other part.
+    ...(o.publisher === undefined ? {} : { publisher: text(o.publisher, PROJECT_LABEL_MAX) }),
+    ...(o.place === undefined ? {} : { place: text(o.place, PROJECT_LABEL_MAX) }),
   };
+}
+
+function organizationTypes(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > ORGANIZATION_TYPE_OPTIONS_MAX || !value.every(isOrganizationType)
+    || new Set(value).size !== value.length) return fail();
+  return value;
 }
 
 export function parsePublicProjectPage(value: unknown): PublicProjectPage {
@@ -128,5 +172,11 @@ export function parsePublicProjectPage(value: unknown): PublicProjectPage {
   const projects = o.projects.map(card);
   if (new Set(projects.map(({ uri }) => uri)).size !== projects.length || projects.length > total) return fail();
   const next = o.next === null ? null : text(o.next, maxCursor);
-  return { index: { status, checkedAt: index.checkedAt === null ? null : isoDate(index.checkedAt), total }, projects, next };
+  return {
+    index: {
+      status, checkedAt: index.checkedAt === null ? null : isoDate(index.checkedAt), total,
+      ...(index.organizationTypes === undefined ? {} : { organizationTypes: organizationTypes(index.organizationTypes) }),
+    },
+    projects, next,
+  };
 }

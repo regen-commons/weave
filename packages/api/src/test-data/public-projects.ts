@@ -16,26 +16,96 @@ export type ViewOptions = {
   indexedAt?: string | null;
   unlisted?: "organization" | "legacy" | "collection";
   title?: string;
+  /** The display name on the publisher's profile; any value, to test what is refused. */
+  publisher?: unknown;
+  /** The place's name, pinned by the record and hydrated beside it. */
+  place?: unknown;
+  /** The publisher organization's `organizationType`. */
+  organizationTypes?: unknown;
 };
+export const placeUri = (n: number) => `at://${projectDid(n)}/app.certified.location/place${n}`;
+export const placeCid = (n: number) => `bafyrei${"p".repeat(36)}${letters(n)}aaaa`;
 export function projectView(n: number, options: ViewOptions = {}) {
   const did = projectDid(n);
-  const organization = options.unlisted === "organization" || options.unlisted === "legacy" ? {
+  const listed = options.unlisted === "organization" ? { visibility: "unlisted" }
+    : options.unlisted === "legacy" ? { unlisted: true } : {};
+  const organization = options.unlisted === "organization" || options.unlisted === "legacy" || options.organizationTypes !== undefined ? {
     did, uri: `at://${did}/app.certified.actor.organization/self`,
-    record: { $type: "app.certified.actor.organization",
-      ...(options.unlisted === "organization" ? { visibility: "unlisted" } : { unlisted: true }) },
+    record: { $type: "app.certified.actor.organization", ...listed,
+      ...(options.organizationTypes === undefined ? {} : { organizationType: options.organizationTypes }) },
   } : null;
+  const profile = options.publisher === undefined ? null : {
+    did, uri: `at://${did}/app.certified.actor.profile/self`,
+    record: { $type: "app.certified.actor.profile", displayName: options.publisher },
+  };
   const short = options.short === undefined
     ? `We restore wetlands along river ${letters(n)}. Volunteers monitor water quality each season.`
     : options.short;
+  const pinned = { $type: "com.atproto.repo.strongRef", uri: placeUri(n), cid: placeCid(n) };
   return {
     uri: projectUri(n), cid: projectCid(n, options.version), did,
     indexedAt: options.indexedAt === undefined ? "2026-11-14T00:00:00Z" : options.indexedAt,
-    author: { did, organization },
+    author: { did, profile, organization },
+    ...(options.place === undefined ? {} : {
+      location: { uri: pinned.uri, cid: pinned.cid, record: { $type: "app.certified.location", name: options.place } },
+    }),
     record: {
       $type: "org.hypercerts.collection", type: "project", title: options.title ?? projectName(n),
       createdAt: options.createdAt ?? `2026-10-${String(1 + (n % 28)).padStart(2, "0")}T12:00:00Z`,
       ...(options.unlisted === "collection" ? { visibility: "unlisted" } : {}),
       ...(short === null ? {} : { shortDescription: short }),
+      ...(options.place === undefined ? {} : { location: pinned }),
+    },
+  };
+}
+
+/**
+ * One listing item with everything a card reads, in the shape the 19 November 2026 read of the 100 newest
+ * listed projects found: the publisher's profile and organization under `author`, and the place the record
+ * pins with a strong reference hydrated at the item's top level. The content is invented. It also carries
+ * fields Weave must not show, a banner picture and the organization's links.
+ */
+export function realisticProjectView() {
+  const did = "did:plc:fixturelagoaseedlibraryq";
+  const place = { uri: `at://${did}/app.certified.location/3m6bq4lagoa2c`, cid: `bafyrei${"l".repeat(52)}` };
+  return {
+    uri: `at://${did}/org.hypercerts.collection/3m6bq4seedlib`,
+    cid: `bafyrei${"s".repeat(52)}`,
+    did,
+    indexedAt: "2026-11-18T09:41:27.512Z",
+    author: {
+      did,
+      handle: "lagoa-seeds.certified.one",
+      profile: {
+        did, uri: `at://${did}/app.certified.actor.profile/self`, cid: `bafyrei${"r".repeat(52)}`,
+        record: {
+          $type: "app.certified.actor.profile", displayName: "Lagoa Seed Library",
+          description: "Neighbours who keep and share seed.", createdAt: "2026-09-02T10:00:00.000Z",
+        },
+      },
+      organization: {
+        did, uri: `at://${did}/app.certified.actor.organization/self`, cid: `bafyrei${"o".repeat(52)}`,
+        record: {
+          $type: "app.certified.actor.organization", organizationType: ["nonprofit"], visibility: "public",
+          urls: [{ url: "https://seeds.example.org", label: "Website" }], createdAt: "2026-09-02T10:00:00.000Z",
+        },
+      },
+    },
+    location: {
+      ...place,
+      record: {
+        $type: "app.certified.location", lpVersion: "1.0.0", srs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+        locationType: "coordinate-decimal", location: { string: "-46.63, -23.55" }, name: "São Paulo, Brazil",
+        createdAt: "2026-09-02T10:05:00.000Z",
+      },
+    },
+    record: {
+      $type: "org.hypercerts.collection", type: "project", title: "Community seed library",
+      shortDescription: "We keep heirloom seed in a shared library. Neighbours borrow seed in spring and return seed after harvest.",
+      banner: { $type: "blob", ref: { $link: `bafkrei${"b".repeat(52)}` }, mimeType: "image/jpeg", size: 182044 },
+      location: { $type: "com.atproto.repo.strongRef", ...place },
+      langs: ["pt", "en"],
+      createdAt: "2026-09-03T14:20:00.000Z",
     },
   };
 }

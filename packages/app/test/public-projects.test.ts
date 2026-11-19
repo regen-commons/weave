@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  countLine, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage, rememberIndex, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
-  searchQuery, SEARCH_PAUSE_MS, sharedLabel, showsIndex,
+  chosenOrganizationType, countLine, emptyList, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage,
+  organizationTypeFacets, organizationTypeLabel, rememberIndex, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
+  searchQuery, SEARCH_PAUSE_MS, sharedByLine, sharedLabel, showsIndex,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:fixture${"a".repeat(13)}aaa${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -116,4 +117,55 @@ test("a browser that last heard the list is off opens on the starter list, with 
   assert.equal(expectsStarter(refuses), false);
   assert.doesNotThrow(() => rememberIndex(refuses, off));
   assert.equal(expectsStarter(null), false);
+});
+
+test("a kind of group goes into the page's address in one place, and only one the list can read", () => {
+  assert.equal(publicProjectsPath("soil", "abc", 3, "nonprofit"), "/api/public-projects?q=soil&organizationType=nonprofit&cursor=abc&limit=3");
+  assert.equal(publicProjectsPath("", null, undefined, "community-group"), "/api/public-projects?organizationType=community-group");
+  for (const unreadable of ["Nonprofit", "non profit", "", "x".repeat(41), null])
+    assert.equal(publicProjectsPath("", null, undefined, unreadable), "/api/public-projects", String(unreadable));
+  assert.equal(chosenOrganizationType("?q=soil&organizationType=nonprofit"), "nonprofit");
+  for (const search of ["", "?organizationType=", "?organizationType=Non%20Profit", "?kind=nonprofit"])
+    assert.equal(chosenOrganizationType(search), null, search);
+});
+
+test("the filter offers only the kinds the list names, keeps a chosen one on offer, and waits with the list (DL-081, DL-108)", () => {
+  assert.deepEqual(organizationTypeFacets(undefined, null), [], "a list from before the filter has none");
+  assert.deepEqual(organizationTypeFacets([], null), [], "a list whose publishers name no kind has none");
+  const [facet] = organizationTypeFacets(["nonprofit", "community-group"], null);
+  assert.deepEqual(facet, {
+    key: "organizationType", label: "Kind of group", kind: "one", chosen: [],
+    options: [{ value: "", label: "Any kind" }, { value: "nonprofit", label: "Nonprofit" }, { value: "community-group", label: "Community group" }],
+  });
+  // A kind from an address the list no longer names still shows, so it can be taken off.
+  const [kept] = organizationTypeFacets(["nonprofit"], "cooperative");
+  assert.deepEqual([kept?.chosen, kept?.options.map(({ value }) => value)], [["cooperative"], ["", "nonprofit", "cooperative"]]);
+  // Before the first page answers, the bar draws the filter waiting, so it does not grow when the list arrives.
+  const [waiting] = organizationTypeFacets("waiting", null);
+  assert.deepEqual([waiting?.label, waiting?.options.map(({ label }) => label)], ["Kind of group", ["Any kind"]]);
+  assert.equal(organizationTypeLabel("nonprofit"), "Nonprofit");
+  assert.equal(organizationTypeLabel("for-profit-company"), "For profit company");
+});
+
+test("a list narrowed by a kind of group says so, and an empty one offers to clear it", () => {
+  assert.equal(countLine(3, false, true), "3 projects match your filter.");
+  assert.equal(countLine(1, true, true), "1 project matches your search and filter.");
+  assert.equal(countLine(1208, false, false), "1,208 projects shared on Certified.");
+  assert.deepEqual(emptyList(true, false), { title: "No projects match your search",
+    body: "Try other words, or clear the search to see every project.", action: "Clear Search" });
+  assert.deepEqual(emptyList(false, true), { title: "No projects match this filter",
+    body: "Try another kind of group, or clear the filters to see every project.", action: "Clear Filters" });
+  assert.equal(emptyList(true, true).title, "No projects match your search and filter");
+  // A kind that matches nothing still shows the index and its empty state, not the starter list.
+  const none = firstPage("", page([], 0), "dao");
+  assert.deepEqual([showsIndex(none), none.status === "ready" && none.organizationType], [true, "dao"]);
+  assert.equal(showsIndex(firstPage("", page([], 0))), false);
+});
+
+test("the line under a card's name says who shared it and where, in words for the whole line", () => {
+  assert.equal(sharedByLine({ publisher: "Lagoa Seed Library", place: "São Paulo, Brazil" }),
+    "Shared by Lagoa Seed Library. Place: São Paulo, Brazil.");
+  assert.equal(sharedByLine({ publisher: "Riverkeepers" }), "Shared by Riverkeepers.");
+  assert.equal(sharedByLine({ place: "Awka, Nigeria" }), "Place: Awka, Nigeria.");
+  assert.equal(sharedByLine({}), "");
 });
