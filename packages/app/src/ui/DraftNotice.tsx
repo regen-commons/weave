@@ -1,14 +1,16 @@
 import { useState } from "react";
-/** Storage failure Notice. A text copy is explicit and never claims to back up file bytes. */
+/**
+ * Shown only when this browser could not store the latest changes. A text copy is explicit and
+ * never claims to back up file bytes. Two tabs on one draft never raise it: the latest edit wins
+ * and the other version is kept as a backup (DL-112).
+ */
 export function DraftNotice({
   error,
   text,
-  conflict,
   onRetry,
 }: {
   error: string | null;
   text: string;
-  conflict: boolean;
   onRetry(): void;
 }) {
   const [showText, setShowText] = useState(false);
@@ -26,14 +28,12 @@ export function DraftNotice({
   return (
     <section className="rc-notice" data-tone="warning" role="status">
       <div className="rc-notice-body">
-        <h2 className="rc-notice-title">Your latest changes need care</h2>
+        <h2 className="rc-notice-title">Not stored on this device yet</h2>
         <p>{error}</p>
         <div className="rc-action-bar">
-          {!conflict && (
-            <button className="rc-button" data-variant="secondary" type="button" onClick={onRetry}>
-              Try Device Storage Again
-            </button>
-          )}
+          <button className="rc-button" data-variant="secondary" type="button" onClick={onRetry}>
+            Try Again
+          </button>
           <button className="rc-button" data-variant="secondary" type="button" onClick={copy}>
             Copy Draft Text
           </button>

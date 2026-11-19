@@ -27,6 +27,7 @@ import { waitingAction, waitingLine } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { CardGridSkeleton, DraftSkeleton } from "../ui/CardSkeleton.tsx";
+import { IntakeStepper } from "../ui/Stepper.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { FirstFunding } from "../ui/FirstFunding.tsx";
 import { Heading } from "../ui/Heading.tsx";
@@ -45,7 +46,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const liveSocial = useSocial();
   const account = useAccount();
   const [matchVersion, setMatchVersion] = useState(0);
-  const { draft, ready, storage, error, controller } = useDraft();
+  const { draft, ready, error, controller } = useDraft();
   const status = useCardStatus();
   const [saveMessage, setSaveMessage] = useState("");
   const [retrying, setRetrying] = useState(false);
@@ -86,22 +87,22 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                 type="button"
                 onClick={() => setRetrying(true)}
               >
-                Try again
+                Try Again
               </button>
             </div>
           </div>
         </section>
       )}
-      <Section id="finish-partners" title="Partners for you">
+      <Section id="finish-partners" title="Partners For You">
         {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
       </Section>
       <Section
         id="finish-funding"
-        title="Funding that fits"
+        title="Funding That Fits"
         action={
           funds.length > 0 && !loading ? (
             <ButtonLink href={pathTo("funding")} variant="quiet">
-              See all funding
+              See All Funding
             </ButtonLink>
           ) : undefined
         }
@@ -110,14 +111,14 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           <FirstFunding />
         ) : loading ? (
           <>
-            <CardGridSkeleton kind="funding" count={2} label="Comparing your card with funding" />
+            <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding" />
             <button
               className="rc-button"
               data-variant="secondary"
               type="button"
               onClick={() => setRetrying(true)}
             >
-              Show funding
+              Show Funding
             </button>
           </>
         ) : funds.length ? (
@@ -133,7 +134,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
             <p>No funding fits your card yet. You can browse the full directory.</p>
             <div className="rc-action-bar">
               <ButtonLink href={FUNDING_COMMONS} variant="secondary">
-                Browse the funding catalog
+                Browse The Funding Catalog
               </ButtonLink>
             </div>
           </>
@@ -141,9 +142,13 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
       </Section>
     </Stack>
   );
+  // The third step of starting an initiative, until the card is saved: the stepper stays, and the
+  // steps done are ways back (DL-113). A saved card is a page to come back to, with no steps.
+  const inFlow = ready && checked && (status.state === "device" || status.state === "memory");
   return (
     <Stack wide>
       <Stack>
+        {inFlow && <IntakeStepper current={2} />}
         {/* Once the card is checked the page names the initiative, echoing the name that led here.
             A wide screen's breadcrumbs already say which page this is. */}
         {ready && checked && (
@@ -152,14 +157,20 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           </p>
         )}
         <Heading level={1} size="page">
-          {ready && checked ? cardName(draft) : "Your initiative"}
+          {ready && checked ? cardName(draft) : "Your Initiative"}
         </Heading>
         <DraftNotice
           error={error}
           text={draftText(draft)}
-          conflict={storage === "conflict"}
           onRetry={() => controller.retry()}
         />
+        {inFlow && (
+          <div className="rc-action-bar">
+            <ButtonLink href={pathTo("needs")} variant="quiet">
+              Back To Needs And Offers
+            </ButtonLink>
+          </div>
+        )}
       </Stack>
       {!ready ? (
         <DraftSkeleton />
@@ -172,8 +183,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               : "Describe your initiative and your card appears here."}
           </p>
           <div className="rc-action-bar">
-            <ButtonLink href={pathTo(cardRoute(draft))} variant="primary">
-              {hasDraft(draft) ? "Continue your card" : "Describe your initiative"}
+            <ButtonLink href={hasDraft(draft) ? pathTo(cardRoute(draft)) : pathTo("new-initiative")} variant="primary">
+              {hasDraft(draft) ? "Continue Your Card" : "Describe Your Initiative"}
             </ButtonLink>
           </div>
         </>
@@ -184,7 +195,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
             more={below}
             aside={
               <Panel>
-                <Section id="saving-sharing" title="Saving and sharing">
+                <Section id="saving-sharing" title="Saving And Sharing">
                   <DuplicateNotice />
                   <StatusLine
                     actions={
@@ -215,8 +226,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                         : "Not linked to a Certified project yet."}
                     </StatusLine>
                   )}
-                  {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open team workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
-                  {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open saved initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
+                  {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
+                  {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
                   {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
                     readOnly={status.unsaved} onExpired={account.clear} onChanged={() => setMatchVersion(v => v + 1)} />}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
@@ -242,14 +253,14 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                 </Section>
                 <nav className="rc-section" aria-labelledby="change-it">
                   <Heading level={2} size="section" id="change-it">
-                    Change it
+                    Change It
                   </Heading>
                   <div className="rc-action-bar" data-layout="rows">
-                    <ButtonLink href={pathTo("check-card")} variant="quiet">
-                      Change your card
+                    <ButtonLink href={pathTo("initiative")} variant="quiet">
+                      Change Your Card
                     </ButtonLink>
                     <ButtonLink href={pathTo("needs")} variant="quiet">
-                      Change needs and offers
+                      Change Needs And Offers
                     </ButtonLink>
                   </div>
                 </nav>

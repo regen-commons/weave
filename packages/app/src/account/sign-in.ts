@@ -49,3 +49,14 @@ export function doorOnReturn(result: string | null, leftWhileSaving: boolean, ac
   if (leftWhileSaving) return "keep";
   return signInReturnFailed(result) ? "sign-in" : null;
 }
+
+/**
+ * What the account dialog shows for the card on this device. Saving is offered only to someone
+ * signed in whose card it is. A card that belongs to another account is said to be theirs and is
+ * never offered (DL-055), which matters most after a sign-in that began at Save on a shared
+ * device. Anyone else gets the sign-in offer alone.
+ */
+export function doorShows(intent: "keep" | "sign-in" | "certified", signedIn: boolean, setAside: boolean): "save" | "another-accounts-card" | "sign-in" {
+  if (!signedIn || intent !== "keep") return "sign-in";
+  return setAside ? "another-accounts-card" : "save";
+}

@@ -21,6 +21,7 @@ import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { Fit } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
+import { useDescribeDoor } from "../ui/describe-door.ts";
 
 /**
  * One funding opportunity, opened over the page the person was on. `search` is the query it was
@@ -49,6 +50,8 @@ export function Opportunity({
     // Another account's card keeps its answers to itself (DL-055).
     setAside = useSetAside();
   const [retried, setRetried] = useState(false);
+  // Continue the card in progress, or start one: this page never reopens a card under a "describe" label.
+  const door = useDescribeDoor();
   const query = new URLSearchParams(search);
   const programId = query.get("program"),
     team = query.get("team");
@@ -135,8 +138,8 @@ export function Opportunity({
       )}
       <div className="rc-action-bar">
         {!described && (
-          <ButtonLink href={pathTo("initiative")} variant="primary">
-            Describe Your Initiative
+          <ButtonLink href={door.href} variant="primary">
+            {door.label}
           </ButtonLink>
         )}
         {url && (

@@ -50,20 +50,25 @@ test("with the live account, the line says where the card is kept and the one sa
     publishing: null,
   });
   const draft = revise(newDraft(), { composer: "a few words" });
-  assert.equal(cardStatus(draft, "saved", null, "signed-out").line, "On this device only.");
-  assert.equal(cardStatus(draft, "saving", null, "signed-out").line, "Saving on this device.");
-  assert.equal(cardStatus(draft, "memory", null, "signed-out").line, "Not saved on this device.");
-  assert.equal(cardStatus(draft, "conflict", null, "signed-out").state, "conflict");
+  assert.equal(cardStatus(draft, "saved", null, "signed-out").line, "Not saved yet.");
+  assert.equal(cardStatus(draft, "saving", null, "signed-out").line, "Not saved yet.", "a write in progress is not a state to read");
+  assert.equal(cardStatus(draft, "memory", null, "signed-out").line, "Not stored on this device yet.");
+  // A card some account saved never says it was not saved, even while nobody is signed in.
+  const savedBefore = revise(draft, {
+    account: { saved: { id: crypto.randomUUID(), owner: crypto.randomUUID(), revision: 1, contentKey: "{}" }, pending: null },
+  });
+  assert.equal(cardStatus(savedBefore, "saved", null, "signed-out").line, "Saved to an account. Sign in to open the saved copy.");
+  assert.equal(cardStatus(savedBefore, "saved", null, "none").line, "Not saved yet.", "signed in, the account answers for itself");
   assert.equal(cardStatus(draft, "saved", null, "none").save, null, "an unchecked card has nothing to save yet");
 
   const signedOut = cardStatus(complete, "saved", null, "signed-out");
   assert.equal(signedOut.state, "device");
-  assert.deepEqual(signedOut.save, { needs: "sign-in", label: "Sign in to save", note: "" });
+  assert.deepEqual(signedOut.save, { needs: "sign-in", label: "Sign In To Save", note: "" });
   assert.deepEqual([signedOut.sharing, signedOut.publishing], [null, null], "no row for a service that is not built");
 
   const signedIn = cardStatus(complete, "saved", null, "none");
   assert.equal(signedIn.state, "device", "signing in alone saves nothing");
-  assert.deepEqual(signedIn.save, { needs: "save", label: "Save privately", note: PRIVATE_NOTE });
+  assert.deepEqual(signedIn.save, { needs: "save", label: "Save Privately", note: PRIVATE_NOTE });
 
   const current = cardStatus(complete, "saved", null, "current");
   assert.deepEqual(
@@ -73,7 +78,7 @@ test("with the live account, the line says where the card is kept and the one sa
   const changed = cardStatus(complete, "saved", null, "changed");
   assert.deepEqual(
     [changed.state, changed.line, changed.unsaved, changed.save?.label],
-    ["saved", "Changed on this device since you saved.", true, "Save changes"],
+    ["saved", "Changed on this device since you saved.", true, "Save Changes"],
   );
 });
 
@@ -115,7 +120,7 @@ test("signing in, saving privately and changing the card are three separate stat
   await example.signIn();
   const signedIn = cardStatus(complete, "saved", example.snapshot(), "signed-out");
   assert.equal(signedIn.state, "device", "signing in alone saves nothing");
-  assert.deepEqual(signedIn.save, { needs: "save", label: "Save privately", note: PRIVATE_NOTE });
+  assert.deepEqual(signedIn.save, { needs: "save", label: "Save Privately", note: PRIVATE_NOTE });
 
   await example.save(cardName(complete), "private", publicKey(complete));
   const kept = cardStatus(complete, "saved", example.snapshot(), "signed-out");
@@ -126,7 +131,7 @@ test("signing in, saving privately and changing the card are three separate stat
   const edited = cardStatus(renamed, "saved", example.snapshot(), "signed-out");
   assert.deepEqual(
     [edited.line, edited.unsaved, edited.save?.label, edited.save?.note],
-    ["Changed on this device since you saved.", true, "Save changes", PRIVATE_NOTE],
+    ["Changed on this device since you saved.", true, "Save Changes", PRIVATE_NOTE],
   );
 
   const seeded = createSocialFixture("private", "2026-11-04");
@@ -171,7 +176,7 @@ test("a linked project decides where a save goes and what sharing and publishing
   const approved = cardStatus(complete, "saved", waiting.snapshot(), "signed-out");
   assert.deepEqual(approved.save, {
     needs: "save",
-    label: "Save to team workspace",
+    label: "Save To Team Workspace",
     note: "Teammates with access to the Valley seed keepers workspace can see it. Files and conversations stay on this device.",
   });
   assert.equal(approved.line, "Saved privately in Weave. Only you can see it.", "approval moves nothing by itself");
@@ -340,7 +345,8 @@ test("what leaves the team is the four public details and the chosen entries, co
 
 test("the card opens where it is waiting", () => {
   assert.equal(cardRoute(newDraft()), "initiative");
-  assert.equal(cardRoute(revise(newDraft(), { proposal: complete.confirmed, proposalVersion: 0 })), "check-card");
+  // A card that is not confirmed yet waits on the one describe page (DL-110).
+  assert.equal(cardRoute(revise(newDraft(), { proposal: complete.confirmed, proposalVersion: 0 })), "initiative");
   assert.equal(cardRoute(complete), "your-initiative");
   assert.equal(cardName(newDraft()), "Your initiative");
   assert.equal(cardName(complete), complete.confirmed!.name);
@@ -350,7 +356,7 @@ test("a record from Certified becomes a card with its four fields in ink and not
   const draft = draftFromRecord(SEED_LIBRARY_RECORD);
   assert.deepEqual(pendingDetails(draft), []);
   assert.equal(draft.form?.name, "Seed library of the upper valley");
-  assert.equal(cardRoute(draft), "check-card");
+  assert.equal(cardRoute(draft), "initiative");
   const confirmed = confirmDraft(draft).confirmed!;
   assert.equal(confirmed.name, SEED_LIBRARY_RECORD.name);
   assert.deepEqual(confirmed.locations, ["Upper valley, Brazil"]);

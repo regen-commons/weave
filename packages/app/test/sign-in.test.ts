@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { signInResults } from "@weave/api/account-contract";
-import { continueToCertified, doorOnReturn, isSignInReturn, signInReturnFailed, signInReturnMessage } from "../src/account/sign-in.ts";
+import { continueToCertified, doorOnReturn, isSignInReturn, signInReturnFailed, signInReturnMessage, doorShows } from "../src/account/sign-in.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
@@ -78,4 +78,14 @@ test("coming back from Certified opens a dialog only to finish saving or to say 
   // An ordinary visit opens nothing.
   assert.equal(doorOnReturn(null, true, false), null);
   assert.equal(doorOnReturn("anything-else", false, false), null);
+});
+
+test("the account dialog offers Save only to the account the card belongs to (DL-055)", () => {
+  // Back from a sign-in that began at Save, as account B on a device holding account A's card.
+  assert.equal(doorShows("keep", true, true), "another-accounts-card");
+  assert.equal(doorShows("keep", true, false), "save");
+  // Signed out, nothing is set aside and nothing is offered but the sign-in.
+  assert.equal(doorShows("keep", false, false), "sign-in");
+  for (const intent of ["sign-in", "certified"] as const)
+    for (const setAside of [true, false]) assert.equal(doorShows(intent, true, setAside), "sign-in");
 });

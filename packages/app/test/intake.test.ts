@@ -9,6 +9,7 @@ import {
   revise,
 } from "../src/describe/contracts.ts";
 import {
+  ASK_DESCRIPTION_LIMIT,
   AskSchema,
   AskStepSchema,
   CapitalFormSchema,
@@ -26,8 +27,11 @@ import {
   keepEditor,
   keepLink,
   question,
+  hasEarlierInput,
   reconcile,
+  returnWords,
   reviewStep,
+  settleEarlierInput,
 } from "../src/intake/state.ts";
 import { candidateChunks, chunksFrom, keywordExtraction, suggestEntryKinds, suggestKinds } from "../src/intake/keywords.ts";
 import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
@@ -98,25 +102,25 @@ test("all eight kinds can apply together and keyword mode never invents a kind o
   assert.equal(unknown.urgency, null);
   assert.equal(AskSchema.safeParse(unknown).success, false);
 });
-test("overflow keeps only five cards in source order and preserved words can supply the next card after removal", () => {
+test("overflow keeps only four cards in source order and preserved words can supply the next card after removal", () => {
   let step = build(
     answerStep(emptyAskStep(), "needs", "Seeds; Tools; Data; Skills; Partners; Cultural stories; Care"),
   );
-  assert.equal(activeItems(step).length, 5);
+  assert.equal(activeItems(step).length, 4);
   assert.equal(step.heard, 7);
-  assert.equal(step.omitted, 2);
+  assert.equal(step.omitted, 3);
   assert.deepEqual(
     activeItems(step).map((item) => item.value.title),
-    ["Seeds", "Tools", "Data", "Skills", "Partners"],
+    ["Seeds", "Tools", "Data", "Skills"],
   );
   step = decide(step, step.items[0]!.id, "removed");
   step = build(step);
-  assert.equal(activeItems(step).length, 5);
-  assert.ok(activeItems(step).some((item) => item.value.title === "Cultural stories"));
+  assert.equal(activeItems(step).length, 4);
+  assert.ok(activeItems(step).some((item) => item.value.title === "Partners"));
   assert.ok(!activeItems(step).some((item) => item.value.title === "Seeds"));
   assert.throws(
     () => decide(step, step.items.find((item) => item.decision === "removed")!.id, "pencil"),
-    /Five/,
+    /Four/,
   );
   assert.ok(step.turns[0]!.text.endsWith("Care"));
 });
@@ -201,20 +205,73 @@ test("manual entry validates amounts, all kinds and exclusive open terms while p
     AskSchema.parse({ ...step.items[0]!.value, amount: { min: 20, max: 10, currency: "USD" } }),
   );
 });
-test("manual entry and undo enforce the same five-card rule; invalid mutations leave the step intact", () => {
+test("manual entry and undo enforce the same four-card rule; invalid mutations leave the step intact", () => {
   let step = allKept(build(answerStep(emptyAskStep(), "needs", "Seeds; Tools; Data; Skills; Partners")));
   const original = step;
   step = changeStep(step, {
     editor: { id: null, form: { ...formFromAsk(), title: "One more", capitalForms: ["social"] } },
   });
-  assert.throws(() => keepEditor(step, "needs"), /Five/);
-  assert.equal(activeItems(original).length, 5);
+  assert.throws(() => keepEditor(step, "needs"), /Four/);
+  assert.equal(activeItems(original).length, 4);
+  // Two more would pass the stored limit of five, which no list may do.
   assert.throws(() =>
     AskStepSchema.parse({
       ...original,
-      items: [...original.items, { ...original.items[0], id: crypto.randomUUID() }],
+      items: [
+        ...original.items,
+        { ...original.items[0], id: crypto.randomUUID() },
+        { ...original.items[0], id: crypto.randomUUID() },
+      ],
     }),
   );
+});
+test("a list stored with five stays readable and saveable, and takes no fifth again once one is removed", () => {
+  // A card saved before the limit moved to four: five kept needs.
+  const four = allKept(build(answerStep(emptyAskStep(), "needs", "Seeds; Tools; Data; Skills")));
+  const fifth = { ...four.items[0]!, id: crypto.randomUUID(), fingerprint: "partners", value: { ...four.items[0]!.value, title: "Partners" } };
+  const five = AskStepSchema.parse({ ...four, items: [...four.items, fifth] });
+  assert.equal(activeItems(five).length, 5);
+  assert.equal(sectionCount(five), "5 of 4");
+  // Readable and saveable: it passes review, and each card can still be changed and kept.
+  assert.equal(reviewStep(five).reviewedVersion, five.inputVersion);
+  const edited = keepEditor(
+    changeStep(five, { editor: { id: fifth.id, form: { ...formFromAsk(fifth.value), title: "Partners nearby" } } }),
+    "needs",
+  );
+  assert.equal(activeItems(edited).length, 5);
+  assert.equal(edited.items.at(-1)!.value.title, "Partners nearby");
+  assert.equal(continueStep(five).ok, true);
+  // No way adds another: by hand, from the editor, or from words.
+  assert.throws(() => addEntry(five, "One more"), /Four is the limit/);
+  assert.throws(
+    () => keepEditor(changeStep(five, { editor: { id: null, form: { ...formFromAsk(), title: "One more" } } }), "needs"),
+    /Four is the limit/,
+  );
+  const heard = build(answerStep(five, "needs", "A greenhouse"));
+  assert.equal(activeItems(heard).length, 5);
+  assert.ok(!heard.items.some((item) => item.value.title === "A greenhouse"));
+  // Removing one leaves four, which is full: the fifth place does not come back.
+  const removed = decide(five, fifth.id, "removed");
+  assert.equal(activeItems(removed).length, 4);
+  assert.throws(() => addEntry(removed, "One more"), /Four is the limit/);
+  assert.throws(() => decide(removed, fifth.id, "pencil"), /Four is the limit/);
+});
+test("a description written now is held to 200 characters, and an earlier longer one stays as it is", () => {
+  const step = allKept(build(answerStep(emptyAskStep(), "needs", "Seeds")));
+  const item = step.items[0]!;
+  const long = "d".repeat(ASK_DESCRIPTION_LIMIT + 1);
+  const open = (current: typeof step, description: string, title = current.items[0]!.value.title) =>
+    changeStep(current, { editor: { id: item.id, form: { ...formFromAsk(current.items[0]!.value), description, title } } });
+  assert.throws(() => keepEditor(open(step, long), "needs"), /200 characters/);
+  assert.equal(keepEditor(open(step, "d".repeat(ASK_DESCRIPTION_LIMIT)), "needs").items[0]!.value.description!.length, 200);
+  // An earlier card with 600 characters: other fields can change while the description stays.
+  const earlier = AskStepSchema.parse({ ...step, items: [{ ...item, value: { ...item.value, description: "e".repeat(600) } }] });
+  const kept = keepEditor(open(earlier, "e".repeat(600), "Seeds for spring"), "needs");
+  assert.equal(kept.items[0]!.value.title, "Seeds for spring");
+  assert.equal(kept.items[0]!.value.description!.length, 600);
+  assert.throws(() => keepEditor(open(earlier, `${"e".repeat(599)}!`), "needs"), /200 characters/);
+  // Words and quick adds are cut to the limit.
+  assert.equal(keywordExtraction([{ key: "a:0", text: "w".repeat(500) }], "needs").items[0]!.value.description!.length, 200);
 });
 test("unfinished answer/link/editor input survives storage and text recovery without silently committing other fields", async () => {
   let step = seed();
@@ -491,12 +548,12 @@ test("quick add keeps the person's words, suggests kinds in pencil and guards th
   step = addEntry(step, long);
   assert.equal(step.items[1]!.value.title.length, 139);
   assert.ok(step.items[1]!.value.title.endsWith("Help"));
-  assert.equal(step.items[1]!.value.description, long);
+  assert.equal(step.items[1]!.value.description, long.slice(0, 200));
   assert.equal(addEntry(emptyAskStep(), "x".repeat(200)).items[0]!.value.title.length, 140);
-  for (const words of ["A truck", "A map", "A workshop"]) step = addEntry(step, words);
-  assert.throws(() => addEntry(step, "One more"), /Five/);
+  for (const words of ["A truck", "A map"]) step = addEntry(step, words);
+  assert.throws(() => addEntry(step, "One more"), /Four/);
   step = decide(step, entry.id, "removed");
-  assert.equal(activeItems(addEntry(step, "One more")).length, 5);
+  assert.equal(activeItems(addEntry(step, "One more")).length, 4);
 });
 test("kinds are added and removed one at a time, in a stable order, and money leaves with Financial", () => {
   let step = addEntry(emptyAskStep(), "Something unusual we cannot classify");
@@ -551,39 +608,39 @@ test("making cards from a conversation never drops or repeats an entry added by 
   );
   assert.equal(step.items[0]!.sourceKey, null);
   assert.equal(step.items[0]!.decision, "pencil");
-  for (const words of ["One", "Two"]) step = addEntry(step, words);
-  assert.throws(() => addEntry(step, "Three"), /Five/);
+  step = addEntry(step, "One");
+  assert.throws(() => addEntry(step, "Two"), /Four/);
   step = build(changeStep(step, { items: step.items.filter((item) => item.sourceKey === null) }));
-  assert.equal(activeItems(step).length, 5);
-  assert.equal(activeItems(step).filter((item) => item.sourceKey === null).length, 3);
+  assert.equal(activeItems(step).length, 4);
+  assert.equal(activeItems(step).filter((item) => item.sourceKey === null).length, 2);
 });
 
 test("the needs and offers page counts its lists and says what dashed means", () => {
   const empty = emptyAskStep();
-  assert.equal(sectionCount(empty), "0 of 5");
+  assert.equal(sectionCount(empty), "0 of 4");
   assert.equal(pencilHint(empty), "");
   assert.equal(pencilHint(addEntry(empty, "Something unusual we cannot classify")), "");
   const quick = addEntry(empty, "Seedlings");
-  assert.equal(sectionCount(quick), "1 of 5");
+  assert.equal(sectionCount(quick), "1 of 4");
   assert.equal(suggestedEntry(quick.items[0]!), false);
   assert.equal(pencilHint(quick), "Dashed kinds are suggestions. Remove any that are wrong.");
   assert.equal(pencilHint(keepPending(quick)), "");
   const made = seed();
   assert.equal(suggestedEntry(made.items[0]!), true);
   assert.equal(pencilHint(made), "Dashed cards and kinds are suggestions. Remove any that are wrong.");
-  assert.equal(sectionCount(decide(made, made.items[0]!.id, "removed")), `${made.items.length - 1} of 5`);
+  assert.equal(sectionCount(decide(made, made.items[0]!.id, "removed")), `${made.items.length - 1} of 4`);
   assert.equal(entryId("x", "details"), "ask-x-details");
 });
 
 test("the page says when words still wait for cards", () => {
   assert.equal(
     cardsNote(answerStep(emptyAskStep(), "needs", "Native seedlings")),
-    "Make cards from your words, then continue.",
+    "Your words or files changed. Press Add To List to read them, then continue.",
   );
   const made = seed();
   assert.equal(cardsNote(made), "");
   const stale = commitPending(changeStep(made, { composer: "New words" }, true), "needs");
-  assert.equal(cardsNote(stale), "Your words changed. Make cards again, then continue.");
+  assert.equal(cardsNote(stale), "Your words or files changed. Press Add To List to read them, then continue.");
   assert.equal(cardsNote(changeStep(stale, { mode: "manual" })), "");
 });
 
@@ -597,9 +654,10 @@ test("continue keeps every pencil entry in both lists, or changes neither", () =
     assert.equal(done.steps[kind].reviewedVersion, done.steps[kind].inputVersion);
   }
   assert.equal(continueBoth({ needs: emptyAskStep(), offers: emptyAskStep() }).ok, true);
-  assert.deepEqual(continueBoth({ needs, offers }, { needs: "", offers: "Tools" }), {
+  // Words still in the box stop the page at that list, so nothing typed is left behind unseen.
+  assert.deepEqual(continueBoth({ needs, offers: changeStep(offers, { composer: "Tools" }) }), {
     ok: false,
-    blocked: { offers: { where: "add", message: "Add what you typed or clear it, then continue." } },
+    blocked: { offers: { where: "talk", message: "Add what is in the box to your list, or clear the box, then continue." } },
   });
   const blocker = (step: AskStep) => {
     const result = continueStep(step);
@@ -610,22 +668,74 @@ test("continue keeps every pencil entry in both lists, or changes neither", () =
     where: "editor",
     message: "Keep or cancel the details you have open, then continue.",
   });
-  assert.deepEqual(blocker(changeStep(needs, { composer: "More words" }, true)), {
+  assert.deepEqual(blocker(changeStep(needs, { composer: "More words" })), {
     where: "talk",
-    message: "Make cards from your answer or clear it, then continue.",
+    message: "Add what is in the box to your list, or clear the box, then continue.",
   });
-  assert.deepEqual(blocker(changeStep(changeStep(needs, { mode: "manual" }), { composer: "Notes" }, true)), {
+  assert.deepEqual(blocker(commitPending(changeStep(needs, { composer: "New words" }), "needs")), {
     where: "talk",
-    message: "Keep your notes or clear them, then continue.",
+    message: "Your words or files changed. Press Add To List to read them, then continue.",
   });
-  assert.deepEqual(blocker(changeStep(needs, { pendingLink: "https://example.org" }, true)), {
-    where: "talk",
-    message: "Add the link or clear it, then continue.",
+  // Typing in the box is not a change to the list, so clearing it lets the page continue.
+  assert.equal(continueStep(changeStep(changeStep(needs, { composer: "Half a thought" }), { composer: "" })).ok, true);
+});
+
+test("words whose reading failed go back into the box, and the list is as it was", () => {
+  const made = allKept(seed());
+  assert.equal(continueStep(made).ok, true);
+  const added = commitPending(changeStep(made, { composer: "A greenhouse; a water tank" }), "needs", "voice");
+  const turn = added.turns.at(-1)!;
+  assert.equal(added.composer, "");
+  assert.equal(continueStep(added).ok, false, "words added and not read hold the page");
+  const back = returnWords(added, turn.id);
+  assert.equal(back.composer, "A greenhouse; a water tank");
+  assert.deepEqual(back.turns, made.turns);
+  assert.deepEqual(back.items, made.items);
+  assert.equal(cardsNote(back), "", "nothing waits on words the person cannot see");
+  // The words are in the box, so the page still asks what to do with them, and clearing them continues.
+  assert.equal(continueStep(back).ok, false);
+  assert.equal(continueStep(changeStep(back, { composer: "" })).ok, true);
+  assert.equal(returnWords(made, crypto.randomUUID()), made, "an unknown turn changes nothing");
+  // Words typed meanwhile are kept, and the returned ones are not written over them.
+  assert.equal(returnWords(changeStep(added, { composer: "Typed meanwhile" }), turn.id).composer, "Typed meanwhile");
+});
+
+test("a full list whose words were not read can read them again, and then continues", () => {
+  // Four kept cards, and words that were added but whose reading never finished.
+  const full = allKept(build(answerStep(emptyAskStep(), "needs", "Seeds; Tools; Data; Skills")));
+  assert.equal(activeItems(full).length, 4);
+  const stale = commitPending(changeStep(full, { composer: "A greenhouse" }), "needs");
+  assert.notEqual(cardsNote(stale), "", "the page says words are waiting, so Add To List stays usable on a full list");
+  assert.equal(continueStep(stale).ok, false);
+  // Reading again adds nothing to a full list, and the list is then current.
+  const read = build(stale);
+  assert.equal(activeItems(read).length, 4);
+  assert.deepEqual(activeItems(read).map((item) => item.value.title), ["Seeds", "Tools", "Data", "Skills"]);
+  assert.equal(cardsNote(read), "");
+  assert.equal(continueStep(read).ok, true, "nothing hidden holds the page");
+});
+
+test("what the earlier guided conversation left open is settled once, and nothing is lost", () => {
+  const made = seed();
+  const turn = made.turns[0]!;
+  assert.equal(hasEarlierInput(made), false);
+  assert.equal(settleEarlierInput(made), made);
+  const open = changeStep(made, {
+    answerEdits: { [turn.id]: "  A changed answer  " },
+    pendingLink: "https://example.org/notes",
+    composer: "Half a thought",
   });
-  assert.deepEqual(blocker(commitPending(changeStep(needs, { composer: "New words" }, true), "needs")), {
-    where: "talk",
-    message: "Your words changed. Make cards again, then continue.",
-  });
+  assert.equal(hasEarlierInput(open), true);
+  const settled = settleEarlierInput(open);
+  assert.equal(hasEarlierInput(settled), false);
+  assert.equal(settled.turns[0]!.text, "A changed answer", "the changed answer is kept as changed");
+  assert.deepEqual(settled.links, ["https://example.org/notes"], "a complete link is kept");
+  assert.equal(settled.composer, "Half a thought");
+  // A link that is not complete is not a link yet: its text goes into the box, where it can be seen.
+  const half = settleEarlierInput(changeStep(made, { pendingLink: "example.org/notes", answerEdits: { [turn.id]: "   " } }));
+  assert.deepEqual(half.links, []);
+  assert.equal(half.composer, "example.org/notes");
+  assert.equal(half.turns[0]!.text, turn.text, "an emptied answer keeps its earlier words");
 });
 
 test("changing a kind keeps a suggested card, so making cards again does not undo it", () => {
@@ -644,20 +754,11 @@ test("changing a kind keeps a suggested card, so making cards again does not und
   assert.equal(changeKind(quick, quick.items[0]!.id, "financial").items[0]!.decision, "pencil");
 });
 
-test("focus stays in its row after a kind is added or removed", () => {
+test("focus stays in its row after a kind is removed, and goes to Change Details after the last one", () => {
   assert.equal(kindFocus("x", ["living", "social"], "living"), "ask-x-kind-social-remove");
   assert.equal(kindFocus("x", ["living", "social"], "social"), "ask-x-kind-living-remove");
-  assert.equal(kindFocus("x", ["living"], "living"), "ask-x-kinds");
-  assert.equal(kindFocus("x", ["living"], "material"), "ask-x-kind-intellectual-add");
-  assert.equal(kindFocus("x", ["living"], "spiritual"), "ask-x-kind-cultural-add");
-  assert.equal(
-    kindFocus(
-      "x",
-      CapitalFormSchema.options.filter((option) => option !== "spiritual"),
-      "spiritual",
-    ),
-    "ask-x-kind-spiritual-remove",
-  );
+  assert.equal(kindFocus("x", ["living", "material", "social"], "material"), "ask-x-kind-social-remove");
+  assert.equal(kindFocus("x", ["living"], "living"), "ask-x-more", "a kind is put back in Change Details");
 });
 
 test("a card shows only the details a person added", () => {

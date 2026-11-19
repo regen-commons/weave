@@ -29,5 +29,5 @@ function AccountConsentButton({ action }: { action: ProjectConsentAction }) {
     } catch { if (!signal.aborted) { setError("Permission could not start. Keep this page open and try again."); setBusy(false); } }
   }
   return <div className="rc-stack"><button className="rc-button" data-variant="secondary" type="button"
-    disabled={busy} onClick={() => void allow()}>Allow Certified project access</button>{error && <p role="alert">{error}</p>}</div>;
+    disabled={busy} onClick={() => void allow()}>Allow Certified Project Access</button>{error && <p role="alert">{error}</p>}</div>;
 }

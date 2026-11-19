@@ -27,7 +27,7 @@ export function ProjectEditorStep({ onCancel, onCreated }: { onCancel(): void; o
   try { earlier = storage?.getItem(projectCreationKey(owner, draft.id)) !== null && storage !== undefined; }
   catch { earlier = true; }
   if (earlier && social.mode === "live") return <div className="rc-stack"><NewProject onDone={onCreated} />
-    <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Keep working in Weave</button></div>;
+    <button className="rc-button" data-variant="quiet" type="button" onClick={onCancel}>Keep Working In Weave</button></div>;
   const pending = readEditorHandoff(storage, owner, draft.id);
   async function leave() {
     const signal = lifetime.current?.signal;
@@ -65,8 +65,8 @@ export function ProjectEditorStep({ onCancel, onCreated }: { onCancel(): void; o
     </details>
     <div className="rc-action-bar">
       <button className="rc-button" data-variant="primary" type="button" disabled={busy || social.loading || !!social.problem}
-        onClick={() => void leave()}>Continue to {PROJECT_EDITORS[editor].name}</button>
-      <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onCancel}>Keep working in Weave</button>
+        onClick={() => void leave()}>Continue To {PROJECT_EDITORS[editor].name}</button>
+      <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onCancel}>Keep Working In Weave</button>
     </div>
     {message && <p className="rc-notice" data-tone="warning" role="status">{message}</p>}
   </section>;

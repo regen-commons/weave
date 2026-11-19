@@ -4,7 +4,7 @@ import { beginEditorHandoff, editorHandoffKey, finishEditorHandoff, PROJECT_EDIT
 import { projectCreationKey, submitProjectCreate } from "../src/initiative/project-creation.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { DraftController } from "../src/describe/controller.ts";
-import { DraftConflict, MemoryDraftRepository } from "../src/describe/repository.ts";
+import { MemoryDraftRepository } from "../src/describe/repository.ts";
 
 const owner = "10000000-0000-4000-8000-000000000001", other = "10000000-0000-4000-8000-000000000002";
 function storage() {
@@ -66,8 +66,8 @@ test("an editor return is scoped to its account and original draft and is not an
   assert.equal(controller.getSnapshot().draft, draft, "finishing a hint never changes the draft");
 });
 
-test("storage failure and competing-tab conflicts block departure without losing the latest words", async () => {
-  for (const failure of [Error("quota"), new DraftConflict()]) {
+test("a storage failure blocks departure without losing the latest words", async () => {
+  for (const failure of [Error("quota"), Error("blocked")]) {
     const original = revise(newDraft(), { composer: "Earlier words" });
     const controller = new DraftController({ load: async () => original, save: async () => { throw failure; } });
     await controller.initialize(); controller.change(draft => revise(draft, { composer: "Keep the latest words" }));

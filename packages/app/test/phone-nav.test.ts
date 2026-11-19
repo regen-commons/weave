@@ -67,8 +67,8 @@ test("the footer marks the one list a phone's tab bar repeats, and its fifth pag
   const footer = source("ui/Footer.tsx");
   assert.match(footer, /<section data-repeats="tabs">\s*<h2 className="rc-footer-title">Weave<\/h2>/u);
   assert.equal(footer.split("data-repeats").length - 1, 1, "Data & Privacy and Regen Commons are not marked");
-  // The tab bar has no tab for describing an initiative. Home's first door opens it.
-  assert.match(source("pages/Home.tsx"), /<ButtonLink href=\{pathTo\("initiative"\)\} variant=\{doors\.start\} size="lg">\s*Start An Initiative/u);
+  // The tab bar has no tab for starting an initiative. Home's first door starts one.
+  assert.match(source("pages/Home.tsx"), /<ButtonLink href=\{pathTo\("new-initiative"\)\} variant=\{doors\.start\} size="lg">\s*Start An Initiative/u);
 });
 
 test("a tab is not dragged away like a link (DL-095)", () => {

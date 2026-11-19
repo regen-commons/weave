@@ -1,6 +1,4 @@
 import { CAPITALS } from "../capitals.ts";
-import type { DeviceDraft } from "../describe/contracts.ts";
-import { offersSetup, type SpeechSetupState } from "../describe/speech-setup.ts";
 import { ASK_LIMIT, type AskItem, type AskKind, type AskStep } from "./contracts.ts";
 import { keepPending, toggleKind } from "./entries.ts";
 import { activeItems, decide, fromProjectPage, reviewStep } from "./state.ts";
@@ -21,23 +19,7 @@ export function speechSetupList(opened: AskKind, steps: Readonly<Record<AskKind,
   );
 }
 
-/**
- * Where a list's Voice input sits: at the top while it leads, which is Speak, the page's one offer
- * to set up speech, or the language choice after a language without speech was picked there; in
- * the conversation where only the language choice can help; or nowhere, as in a full list or a
- * browser without speech on the device.
- */
-export function listVoice(
-  state: SpeechSetupState,
-  { full, hostsSetup, listening }: { full: boolean; hostsSetup: boolean; listening: boolean },
-): "top" | "conversation" | null {
-  if (listening) return "top";
-  if (full) return null;
-  if (state === "ready" || (hostsSetup && (offersSetup(state) || state === "language"))) return "top";
-  return state === "language" ? "conversation" : null;
-}
-
-/** "2 of 5": how many entries a list holds against the limit, as one phrase. */
+/** "2 of 4": how many entries a list holds against the limit, as one phrase. */
 export const sectionCount = (step: AskStep): string => `${activeItems(step).length} of ${ASK_LIMIT}`;
 
 /**
@@ -51,13 +33,6 @@ export const suggestedEntry = (item: AskItem): boolean =>
 export const suggestionSource = (item: AskItem): string =>
   fromProjectPage(item) ? "Suggested from your project page" : "Suggested from your words";
 
-/**
- * A list on a card made without the assistant starts by hand while the person has no words or
- * entries there. Suggestions from a project page are not theirs, so they do not change it.
- */
-export const startsByHand = (step: AskStep, assistant: DeviceDraft["assistant"]): boolean =>
-  assistant === "none" && step.mode !== "manual" && !step.turns.length && step.items.every(fromProjectPage);
-
 /** The element id of one part of an entry card, so focus can return to it after a change. */
 export const entryId = (id: string, part: string): string => `ask-${id}-${part}`;
 
@@ -70,25 +45,19 @@ export function pencilHint(step: AskStep): string {
   return "";
 }
 
-/** What to say when a conversation's words changed since cards were last made. Empty when they are current. */
+/**
+ * What to say when words or files were added and have not been read into the list yet, as after
+ * a reading that failed. Add To List reads them again. Empty when the list is current.
+ */
 export function cardsNote(step: AskStep): string {
   const hasSource = step.turns.length > 0 || step.attachments.length > 0;
   if (step.mode !== "conversation" || !hasSource || step.builtVersion === step.inputVersion) return "";
-  return step.builtVersion === null
-    ? "Make cards from your words, then continue."
-    : "Your words changed. Make cards again, then continue.";
+  return "Your words or files changed. Press Add To List to read them, then continue.";
 }
-
-/** The conversation behind "Longer answers, files and links" holds unfinished work, so it starts open. */
-export const talkWaiting = (step: AskStep): boolean =>
-  !!step.composer.trim() ||
-  !!step.pendingLink.trim() ||
-  Object.keys(step.answerEdits).length > 0 ||
-  !!cardsNote(step);
 
 /** Why a list cannot continue yet, and the part of its section that holds the unfinished work. */
 export interface Blocker {
-  readonly where: "add" | "editor" | "talk" | "list";
+  readonly where: "editor" | "talk" | "list";
   readonly message: string;
 }
 export type StepResult =
@@ -101,17 +70,8 @@ export type ContinueResult =
 function blockerFor(step: AskStep, error: unknown): Blocker {
   if (step.editor)
     return { where: "editor", message: "Keep or cancel the details you have open, then continue." };
-  if (Object.keys(step.answerEdits).length)
-    return { where: "talk", message: "Keep or cancel the answer you are changing, then continue." };
   if (step.composer.trim())
-    return {
-      where: "talk",
-      message:
-        step.mode === "manual"
-          ? "Keep your notes or clear them, then continue."
-          : "Make cards from your answer or clear it, then continue.",
-    };
-  if (step.pendingLink.trim()) return { where: "talk", message: "Add the link or clear it, then continue." };
+    return { where: "talk", message: "Add what is in the box to your list, or clear the box, then continue." };
   const stale = cardsNote(step);
   if (stale) return { where: "talk", message: stale };
   return {
@@ -125,12 +85,10 @@ function blockerFor(step: AskStep, error: unknown): Blocker {
 
 /**
  * Continue for one list: every entry still in pencil is kept, then the list is checked.
- * Words typed into quick add and not added yet stop it, so a person sees the entry and its
- * suggested kinds before Continue confirms them.
+ * Words still in the box stop it, so a person sees each entry and its suggested kinds before
+ * Continue confirms them.
  */
-export function continueStep(step: AskStep, words = ""): StepResult {
-  if (words.trim())
-    return { ok: false, blocker: { where: "add", message: "Add what you typed or clear it, then continue." } };
+export function continueStep(step: AskStep): StepResult {
   try {
     return { ok: true, step: reviewStep(keepPending(step)) };
   } catch (error) {
@@ -139,12 +97,9 @@ export function continueStep(step: AskStep, words = ""): StepResult {
 }
 
 /** Continue for the page. Both lists pass together or neither is changed. */
-export function continueBoth(
-  steps: Readonly<Record<AskKind, AskStep>>,
-  words: Readonly<Record<AskKind, string>> = { needs: "", offers: "" },
-): ContinueResult {
-  const needs = continueStep(steps.needs, words.needs);
-  const offers = continueStep(steps.offers, words.offers);
+export function continueBoth(steps: Readonly<Record<AskKind, AskStep>>): ContinueResult {
+  const needs = continueStep(steps.needs);
+  const offers = continueStep(steps.offers);
   if (needs.ok && offers.ok) return { ok: true, steps: { needs: needs.step, offers: offers.step } };
   return {
     ok: false,
@@ -156,8 +111,8 @@ export function continueBoth(
 }
 
 /**
- * Adds or removes one kind of support from the card. Making cards again replaces every
- * conversation card still in pencil, so a change to one keeps it and the change survives.
+ * Removes one kind of support from the card, or puts it back. Reading words again replaces every
+ * suggested card still in pencil, so a change to one keeps it and the change survives.
  */
 export function changeKind(step: AskStep, id: string, kind: CapitalForm): AskStep {
   const item = step.items.find((current) => current.id === id);
@@ -166,17 +121,14 @@ export function changeKind(step: AskStep, id: string, kind: CapitalForm): AskSte
 }
 
 /**
- * Where focus goes after a kind is added or removed. The control that was pressed leaves its
- * row, so focus moves to the next one in that row, then the one before, then the control
- * that brings the kind back.
+ * Where focus goes after a kind is removed from a card. The control that was pressed leaves its
+ * row, so focus moves to the next kind in that row, then the one before, then Change Details,
+ * where a kind is put back.
  */
 export function kindFocus(id: string, chosen: readonly CapitalForm[], kind: CapitalForm): string {
   const order = CAPITALS.map((capital) => capital.key);
-  const removing = chosen.includes(kind);
-  const row = order.filter((key) => key !== kind && chosen.includes(key) === removing);
+  const row = order.filter((key) => key !== kind && chosen.includes(key));
   const at = order.indexOf(kind);
-  const neighbour =
-    row.find((key) => order.indexOf(key) > at) ?? row.findLast((key) => order.indexOf(key) < at);
-  if (neighbour) return entryId(id, `kind-${neighbour}-${removing ? "remove" : "add"}`);
-  return removing ? entryId(id, "kinds") : entryId(id, `kind-${kind}-remove`);
+  const neighbour = row.find((key) => order.indexOf(key) > at) ?? row.findLast((key) => order.indexOf(key) < at);
+  return neighbour ? entryId(id, `kind-${neighbour}-remove`) : entryId(id, "more");
 }

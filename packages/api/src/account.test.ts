@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { once } from "node:events";
 import { createAccountHandlers, GET } from "./account.ts";
 import { createSupabaseAccountProvider, AccountError, type AccountProvider } from "./account-provider.ts";
-import { parseDocument, parseSaved, parseSavedAsk } from "./account-contract.ts";
+import { ASK_LIMIT, STORED_ASK_LIMIT, parseDocument, parseSaved, parseSavedAsk } from "./account-contract.ts";
 const document = parseDocument(
   JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")),
 );
@@ -273,6 +273,40 @@ test("private save and load round-trip unclassified entries while matching still
   assert.deepEqual(parseSaved(receipt), receipt);
   assert.deepEqual(calls, ["save_initiative", "load_initiative"]);
   assert.throws(() => parseSavedAsk(need), /invalid_data/u);
+});
+
+test("a card saved under the earlier limits stays saveable: five needs, five offers, six links and long answers", async () => {
+  assert.equal(ASK_LIMIT, 4);
+  assert.equal(STORED_ASK_LIMIT, 5);
+  const need = document.needs[0];
+  assert.ok(need);
+  const many = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({
+      id: `b7000000-0000-4000-8000-00000000000${index}`,
+      value: { ...need.value, title: `Synthetic entry ${index}`, description: "d".repeat(600) },
+    }));
+  const links = Array.from({ length: 6 }, (_, index) => `https://example.test/page-${index}`);
+  const older = {
+    ...document,
+    initiative: { ...document.initiative, links, description: "a".repeat(800) },
+    needs: many(5),
+    offers: many(5),
+  };
+  const checked = parseDocument(older);
+  assert.equal(checked.needs.length, 5);
+  assert.equal(checked.offers.length, 5);
+  assert.deepEqual(checked.initiative.links, links);
+  // The save handler accepts the same document, so the card can be saved again unchanged.
+  const { handlers } = fixture();
+  const result = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 1, document: older }));
+  assert.equal(result.status, 200);
+  // One past the stored limit is refused, for lists and for links.
+  assert.throws(() => parseDocument({ ...older, needs: many(6) }), /invalid_data/u);
+  assert.throws(() => parseDocument({ ...older, offers: many(6) }), /invalid_data/u);
+  assert.throws(
+    () => parseDocument({ ...older, initiative: { ...older.initiative, links: [...links, "https://example.test/page-6"] } }),
+    /invalid_data/u,
+  );
 });
 
 test("a saved card carries any type of work the app offers, learning included, and nothing else", () => {

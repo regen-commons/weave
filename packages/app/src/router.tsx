@@ -137,7 +137,12 @@ export function usePathname(): string {
 /** How the page on screen was reached, read from its history entry. */
 export const currentVisit = (): Visit | null => readVisit(window.history.state);
 
-export function navigate(to: string, replace = false): void {
+/**
+ * Moves to `to`. `still` moves without a page transition: for an address that stands for another,
+ * such as /start/new for step 1 of a new card, there is no move to draw, and a transition would
+ * wait for a frame that a tab opened in the background does not draw until it is shown.
+ */
+export function navigate(to: string, replace = false, still = false): void {
   const here = currentRoute();
   if (to === here) return;
   const visit = nextVisit(here, currentVisit(), to, replace);
@@ -150,7 +155,8 @@ export function navigate(to: string, replace = false): void {
     shown = to;
     notify();
   };
-  draw(update, here, to);
+  if (still) update();
+  else draw(update, here, to);
 }
 
 /** Steps back through history, as the back link and a closing sheet do. The step is the app's own, so a phone draws it as a pop. */

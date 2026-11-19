@@ -6,7 +6,8 @@ import type { Information } from "./InformationDialog.tsx";
 
 // Footer links are in title case, as every button and heading is (DL-033, DL-105).
 const PAGES: readonly { name: RouteName; label: string }[] = [
-  { name: "initiative", label: "Describe Your Initiative" },
+  // Always a new card: the one in progress is reached from Your Initiatives.
+  { name: "new-initiative", label: "Start An Initiative" },
   { name: "initiatives", label: "Initiatives" },
   { name: "funding", label: "Funding" },
   { name: "your-initiatives", label: "Your Initiatives" },

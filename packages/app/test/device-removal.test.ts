@@ -1,8 +1,9 @@
 /// <reference lib="dom" />
 import assert from "node:assert/strict";
-import { test, type TestContext } from "node:test";
+import { test } from "node:test";
+import { fakeIndexedDB, installIndexedDB } from "./fake-indexeddb.ts";
 import { IndexedDraftRepository } from "../src/describe/indexed-repository.ts";
-import { BackupChanged, DraftConflict, MemoryDraftRepository, RemovalNotice, draftPin, type DraftRepository } from "../src/describe/repository.ts";
+import { BackupChanged, DraftChanged, MemoryDraftRepository, RemovalNotice, draftPin, type DraftRepository } from "../src/describe/repository.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import {
@@ -10,86 +11,10 @@ import {
   backupLine, BACKUPS_SHOWN, listedBackups, restoreWarning,
 } from "../src/describe/device-removal.ts";
 
-type Stores = Record<"drafts" | "backups", Map<string, unknown>>;
-/**
- * A synthetic IndexedDB: each transaction stages its writes, reads see them, and the whole
- * transaction commits once its requests settle, or aborts and leaves the stores as they were.
- * `failCommit` makes the next commit fail the way a full disk does.
- */
-function fakeIndexedDB(seed: Partial<Record<keyof Stores, [string, unknown][]>> = {}) {
-  const stores: Stores = { drafts: new Map(seed.drafts ?? []), backups: new Map(seed.backups ?? []) };
-  const control = { failCommit: false, commits: 0 };
-  const db = {
-    objectStoreNames: { contains: () => true },
-    transaction(_names: string | string[], _mode?: string) {
-      const staged = new Map<string, Map<string, unknown>>();
-      const DELETED = Symbol("deleted");
-      let pending = 0, finished = false;
-      const view = (name: keyof Stores) => {
-        const merged = new Map(stores[name]);
-        for (const [key, value] of staged.get(name) ?? []) if (value === DELETED) merged.delete(key); else merged.set(key, value);
-        return new Map([...merged].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
-      };
-      const tx = {
-        oncomplete: null as (() => void) | null, onerror: null as (() => void) | null, onabort: null as (() => void) | null,
-        objectStore(name: keyof Stores) {
-          const stage = (key: string, value: unknown) => {
-            if (!staged.has(name)) staged.set(name, new Map());
-            staged.get(name)!.set(key, value);
-          };
-          const request = <T,>(read: () => T) => {
-            pending++;
-            const result = { result: undefined as T | undefined, onsuccess: null as (() => void) | null };
-            queueMicrotask(() => {
-              if (finished) return;
-              result.result = read();
-              pending--;
-              result.onsuccess?.();
-              settle();
-            });
-            return result;
-          };
-          return {
-            get: (key: string) => request(() => structuredClone(view(name).get(key))),
-            put: (value: unknown, key: string) => request(() => { stage(key, structuredClone(value)); return key; }),
-            delete: (key: string) => request(() => { stage(key, DELETED); return undefined; }),
-            count: () => request(() => view(name).size),
-            getAll: () => request(() => [...view(name).values()].map(value => structuredClone(value))),
-            getAllKeys: () => request(() => [...view(name).keys()]),
-          };
-        },
-        abort() {
-          if (finished) throw new Error("InvalidStateError");
-          finished = true; staged.clear();
-          queueMicrotask(() => tx.onabort?.());
-        },
-      };
-      const settle = () => queueMicrotask(() => {
-        if (pending || finished) return;
-        finished = true;
-        if (control.failCommit) { control.failCommit = false; tx.onerror?.(); tx.onabort?.(); return; }
-        for (const [name, changes] of staged)
-          for (const [key, value] of changes)
-            if (value === DELETED) stores[name as keyof Stores].delete(key); else stores[name as keyof Stores].set(key, value);
-        control.commits++;
-        tx.oncomplete?.();
-      });
-      settle();
-      return tx;
-    },
-  };
-  const factory = { open() {
-    const request = { result: db, onsuccess: null as (() => void) | null, onupgradeneeded: null as (() => void) | null };
-    queueMicrotask(() => request.onsuccess?.());
-    return request;
-  } };
-  return { factory, stores, control, snapshot: () => structuredClone({ drafts: [...stores.drafts], backups: [...stores.backups] }) };
-}
-function install(t: TestContext, fake: ReturnType<typeof fakeIndexedDB>) {
-  const previous = Object.getOwnPropertyDescriptor(globalThis, "indexedDB");
-  Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: fake.factory });
-  t.after(() => { if (previous) Object.defineProperty(globalThis, "indexedDB", previous); else Reflect.deleteProperty(globalThis, "indexedDB"); });
-}
+/** This build's database holding one draft under its own ID, which is also the one written last. */
+const seeded = (current: DeviceDraft, backups: [string, DeviceDraft][]) =>
+  fakeIndexedDB({ drafts: [[current.id, current]], backups, meta: [["last", current.id]] });
+const install = installIndexedDB;
 function drafts() {
   const file = (name: string) => ({ id: crypto.randomUUID(), name, type: "text/plain", bytes: 4, blob: new Blob(["byte"]) });
   const current = revise(newDraft(), { composer: "Synthetic current words", attachments: [file("current.txt")] });
@@ -104,7 +29,7 @@ function drafts() {
 
 test("deleting one backup by its exact key and pin removes only it; the draft and other backups stay identical", async t => {
   const { current, backups } = drafts();
-  const fake = fakeIndexedDB({ drafts: [["current", current]], backups });
+  const fake = seeded(current, backups);
   install(t, fake);
   const before = fake.snapshot(), repository = new IndexedDraftRepository();
   const [key, draft] = backups[1]!;
@@ -117,7 +42,7 @@ test("deleting one backup by its exact key and pin removes only it; the draft an
 
 test("a wrong key, ID, revision or time removes nothing and says the backup changed", async t => {
   const { current, backups } = drafts();
-  const fake = fakeIndexedDB({ drafts: [["current", current]], backups });
+  const fake = seeded(current, backups);
   install(t, fake);
   const before = fake.snapshot(), repository = new IndexedDraftRepository();
   const [key, draft] = backups[0]!;
@@ -137,19 +62,20 @@ test("a wrong key, ID, revision or time removes nothing and says the backup chan
 
 test("removing the current draft keeps it as a backup in the same commit, and restoring it brings it back", async t => {
   const { current, backups } = drafts();
-  const fake = fakeIndexedDB({ drafts: [["current", current]], backups });
+  const fake = seeded(current, backups);
   install(t, fake);
   const before = fake.snapshot(), controller = new DraftController(new IndexedDraftRepository());
   await controller.initialize();
   const commits = fake.control.commits;
   const result = await controller.discardCurrent();
   assert.equal(fake.control.commits, commits + 1, "one transaction");
-  assert.deepEqual(result.removed, ["current"]);
+  assert.deepEqual(result.removed, [current.id]);
   assert.equal(result.kept, 4);
   const after = fake.snapshot();
-  assert.deepEqual(after.drafts, [], "the current key is removed, never replaced by a blank draft");
+  assert.deepEqual(after.drafts, [], "the draft's key is removed, never replaced by a blank draft");
+  assert.deepEqual(after.meta, [], "nothing names the removed draft as the one to open");
   assert.deepEqual(after.backups.filter(([key]) => key !== result.backup), before.backups);
-  assert.deepEqual(fake.stores.backups.get(result.backup), before.drafts[0]![1]);
+  assert.deepEqual(fake.stores.backups!.get(result.backup), before.drafts[0]![1]);
   assert.equal(controller.getSnapshot().storage, "none");
   assert.equal(controller.getSnapshot().draft.composer, "");
   assert.equal(discardedMessage(result), "Removed this draft from this device and kept it as a backup you can restore. 4 backups kept.");
@@ -160,25 +86,26 @@ test("removing the current draft keeps it as a backup in the same commit, and re
   assert.equal((await new IndexedDraftRepository().load())?.composer, "Synthetic current words");
 });
 
-test("a draft another tab changed is not removed, and this tab shows the existing conflict words", async t => {
+test("a draft another tab changed is not removed, and this tab shows that tab's version without a warning", async t => {
   const { current, backups } = drafts();
-  const fake = fakeIndexedDB({ drafts: [["current", current]], backups });
+  const fake = seeded(current, backups);
   install(t, fake);
   const controller = new DraftController(new IndexedDraftRepository());
   await controller.initialize();
   const elsewhere = revise(current, { composer: "Words typed in another tab" });
-  fake.stores.drafts.set("current", elsewhere);
+  fake.stores.drafts!.set(current.id, elsewhere);
   const before = fake.snapshot();
-  await assert.rejects(controller.discardCurrent(), error => error instanceof DraftConflict);
+  await assert.rejects(controller.discardCurrent(), error => error instanceof DraftChanged);
   assert.deepEqual(fake.snapshot(), before);
-  assert.equal(controller.getSnapshot().storage, "conflict");
-  assert.equal(controller.getSnapshot().error, "Another tab changed this draft. Copy your words before reloading.");
-  assert.equal(controller.getSnapshot().draft.composer, "Synthetic current words", "this tab's words stay visible");
+  assert.equal(deviceRemovalFailure(new DraftChanged()), "This draft changed on this device since it was shown. Nothing was removed.");
+  assert.equal(controller.getSnapshot().storage, "saved");
+  assert.equal(controller.getSnapshot().error, null);
+  assert.equal(controller.getSnapshot().draft.composer, "Words typed in another tab", "the tab shows what the device holds");
 });
 
 test("a storage failure during removal reports it honestly and leaves every record in place", async t => {
   const { current, backups } = drafts();
-  const fake = fakeIndexedDB({ drafts: [["current", current]], backups });
+  const fake = seeded(current, backups);
   install(t, fake);
   const before = fake.snapshot(), controller = new DraftController(new IndexedDraftRepository());
   await controller.initialize();
@@ -200,7 +127,7 @@ test("unstored or unsettled words are never removed", async () => {
   await controller.initialize();
   await assert.rejects(controller.discardCurrent(), error => error instanceof RemovalNotice, "nothing is stored yet");
   const failing: DraftRepository = { load: async () => revise(newDraft(), { composer: "Stored words" }),
-    save: async () => { throw new Error("Synthetic storage failure"); }, discardCurrent: async () => { throw new Error("unreachable"); } };
+    save: async () => { throw new Error("Synthetic storage failure"); }, discard: async () => { throw new Error("unreachable"); } };
   const stuck = new DraftController(failing);
   await stuck.initialize();
   stuck.change(draft => revise(draft, { composer: "Unstored words" }));
@@ -217,12 +144,13 @@ test("the memory repository follows the same exact-match rules", async () => {
   await assert.rejects(repository.deleteBackup(key, { ...draftPin(draft), revision: 99 }), BackupChanged);
   assert.equal(repository.history.length, 3);
   assert.deepEqual(await repository.deleteBackup(key, draftPin(draft)), { removed: [key], kept: 2 });
-  await assert.rejects(repository.discardCurrent({ ...draftPin(current), updatedAt: "2020-01-01T00:00:00.000Z" }), DraftConflict);
+  await assert.rejects(repository.discard({ ...draftPin(current), updatedAt: "2020-01-01T00:00:00.000Z" }), DraftChanged);
   assert.equal(repository.value, current);
-  const result = await repository.discardCurrent(draftPin(current));
+  const result = await repository.discard(draftPin(current));
   assert.equal(repository.value, null);
+  assert.deepEqual(await repository.list(), []);
   assert.equal(repository.history[0]?.draft, current);
-  assert.deepEqual(result.removed, ["current"]);
+  assert.deepEqual(result.removed, [current.id]);
   assert.equal(result.kept, 3);
 });
 
@@ -245,7 +173,7 @@ test("the backups list is newest first, shows a few and offers the rest, and eac
   const withFiles = backups[1]![1];
   assert.match(backupLine(withFiles), /^Last changed \d{1,2} [A-Z][a-z]+ \d{4} at \d{2}:\d{2}, 2 attached files$/u);
   assert.doesNotMatch(backupLine(backups[0]![1]), /attached/u);
-  assert.match(restoreWarning(withFiles), /^This opens the backup untitled draft, last changed .+, with its 2 attached files\. The draft on this device now is kept as a backup first\.$/u);
+  assert.match(restoreWarning(withFiles), /^This opens the backup untitled draft, last changed .+, with its 2 attached files\. A draft it replaces is kept as a backup first\.$/u);
 });
 
 test("confirmations name the backup, its shown time and its files; result lines count what stayed", () => {

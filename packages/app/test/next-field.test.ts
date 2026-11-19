@@ -51,14 +51,14 @@ test("the focus goes to the next field that is filled in, past buttons and anyth
 
 test("a field promises Next only in a form that moves the focus on, and only on a phone's own keyboard", () => {
   const source = (path: string) => readFileSync(fileURLToPath(new URL(`../src/${path}`, import.meta.url)), "utf8");
-  // The four fields are drawn in two forms, and Suggest a fund has its own three.
-  for (const file of ["pages/Describe.tsx", "pages/CheckCard.tsx", "funding/SuggestFund.tsx"])
+  // The four fields are drawn in one form, and Suggest a fund has its own three.
+  for (const file of ["pages/Describe.tsx", "funding/SuggestFund.tsx"])
     assert.match(source(file), /<form className="rc-form"[^>]*onKeyDown=\{moveOnEnter\}>/u, `${file} moves the focus on`);
   const fields = source("ui/RecordFields.tsx");
   assert.equal(fields.split('enterKeyHint="next"').length - 1, 2, "Name and Where, the two one-line fields");
   assert.equal(source("funding/SuggestFund.tsx").split('enterKeyHint="next"').length - 1, 2, "the fund's name and its link");
   // No other file promises it.
-  for (const file of ["pages/Describe.tsx", "pages/CheckCard.tsx", "pages/AskStep.tsx", "pages/Home.tsx", "ui/FilterBar.tsx"])
+  for (const file of ["pages/Describe.tsx", "pages/AskStep.tsx", "pages/Home.tsx", "ui/FilterBar.tsx"])
     assert.doesNotMatch(source(file), /enterKeyHint="next"/u, file);
   const behaviour = source("ui/next-field.ts");
   assert.ok(behaviour.includes('window.matchMedia("(pointer: coarse)").matches'), "a keyboard on the desk still sends the form");

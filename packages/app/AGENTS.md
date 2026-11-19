@@ -14,7 +14,8 @@ explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
 returning); `view` selects Describe states; `intake` selects needs, offers and Your
 initiative examples; `projects=none` gives the example person no Certified project;
 `speech` makes the example browser offer speech setup (`setup`), stall in it (`slow`),
-fail it (`fail`) or have no speech on the device (`none`); and
+fail it (`fail`) or have no speech on the device (`none`); `drafts=several` gives the
+example browser two more initiatives beside the one on screen; and
 `certified=fail` makes the example Certified refuse to create a project or publish.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
 `docs/platform/prototype/preview`; that build alone sets `__WEAVE_PROTOTYPE__`, keeps routes in
@@ -33,7 +34,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/router.tsx` | The small history router and `Link` |
 | `src/ui/` | Thin components, one per design-system pattern, named by structure |
 | `src/pages/` | Pages composed from `src/ui` |
-| `src/describe/` | Validated device draft, IndexedDB writer and local extraction adapters |
+| `src/describe/` | Validated device drafts, the IndexedDB store of several drafts and its tab sync, the fill that puts words into the four fields, and local extraction adapters |
 | `src/intake/` | Need/offer contracts, review rules, local extraction and checked-card text |
 | `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, and a card started from a Certified project |
 | `src/social/` | Shared initiative/project screens, the live account and project adapter, sharing/publication dialogs, and development-only example services. Reminders and account deletion remain examples. |
@@ -63,12 +64,26 @@ production. Account saving uses the same-origin API and stays unavailable until 
   who sees it, and a refusal changes nothing (DL-032).
 - Drafts stay on the device until the person saves. The browser uses same-origin account endpoints; the server calls Supabase only after configuration. The content security policy in `vercel.json` allows only this origin. Widen it only
   with the change that needs it, such as the Supabase project or model files.
-- Keep raw unfinished answers, links and review edits in the device draft. Compare
-  stored revisions before writing; preserve both tabs' words on a conflict. Storage
+- Keep the words a person said or typed, their files and unfinished edits in the device draft. A
+  browser keeps several drafts, each under its own ID, and Start An Initiative never replaces
+  one (DL-112). Two tabs on one draft follow latest edit wins: a write compares the stored
+  version with the one the tab last saw, and keeps a version another tab wrote as a device
+  backup before replacing it. Never add a state that stops a tab or asks it to reload. Storage
   failure must offer text recovery and must not claim the latest changes are saved.
-- Needs and offers share the five-card rule and all eight kinds. Keep and manual
-  correction freeze a card; rebuilding preserves those choices and removed source
-  chunks. Linking a Certified project adds pencil entries from its description
+- Device drafts are in the IndexedDB database `weave-drafts`. Never open the released build's
+  `weave-device-drafts` with a version number or change its shape: an older tab and a rollback
+  still use it (DL-114). `describe/earlier-database.ts` reads it, and the copy deletes nothing.
+  Never reload a tab from the service worker: an older build holds some words only on its page,
+  and a worker cannot see them. Two builds side by side after a release is expected.
+- The describe step is one page (DL-110). Words fill the four fields in place through
+  `src/describe/fill.ts`, which never writes over a field the person typed or changed.
+  Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud
+  engine waits for D35 and its own consent. On the three steps nothing opens in the page when
+  pressed: use a Status slot for progress and problems, and a dialog for a choice (DL-113).
+- Needs and offers share the four-card rule and all eight kinds (DL-111). `ASK_LIMIT` is
+  what adding checks; a list stored with five stays valid, and the server keeps the earlier
+  stored limits so saved cards still save. Keep and manual correction freeze a card; reading
+  words again preserves those choices and removed source chunks. Linking a Certified project adds pencil entries from its description
   (`src/intake/project-page.ts`), once per project; rebuilding keeps them, and
   they wait without unchecking a list the person already checked. Empty steps may continue; unfinished or unreviewed steps may not. Keep
   the old Describe draft readable when extending its schema.

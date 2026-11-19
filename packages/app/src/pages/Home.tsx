@@ -109,7 +109,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
               </ButtonLink>
             )}
             {doors.start && (
-              <ButtonLink href={pathTo("initiative")} variant={doors.start} size="lg">
+              <ButtonLink href={pathTo("new-initiative")} variant={doors.start} size="lg">
                 Start An Initiative
               </ButtonLink>
             )}
@@ -205,7 +205,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
               title: long ? "Conte sobre a sua iniciativa e o trabalho que fazem juntos" : "Describe Your Initiative",
               note: "Four short fields.",
             },
-            { title: "Add What You Need And Can Offer", note: "Up to five of each." },
+            { title: "Add What You Need And Can Offer", note: "Up to four of each." },
             {
               // The maker's wording, chosen over "fit", which the results pages keep (DL-063).
               title: "See Funding And Partners That Align",
@@ -301,7 +301,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
           <EmptyState
             title={failed ? "Shared initiatives did not load" : "No shared initiatives here yet"}
             action={
-              <ButtonLink href={pathTo("initiative")} variant="secondary">
+              <ButtonLink href={pathTo("new-initiative")} variant="secondary">
                 Start An Initiative
               </ButtonLink>
             }

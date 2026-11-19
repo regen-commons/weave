@@ -49,12 +49,12 @@ export function NewProject({ onDone }: { onDone(): void }) {
   }
   if (!pending) return <p role="alert">{error || "The earlier creation request could not be read. Check your projects on Certified before creating anything else. Your device work is still here."}</p>;
   return <form className="rc-stack" onSubmit={event => { event.preventDefault(); void create(); }}>
-    <h3 className="rc-heading" data-size="section">Check the earlier creation</h3>
+    <h3 className="rc-heading" data-size="section">Check The Earlier Creation</h3>
     <p>An earlier Weave request may already have created {pending.publicProfile.title}. Check it before using another editor.</p>
     <details><summary className="rc-footer-link">Earlier request details</summary>
       <p>{pending.publicProfile.description}</p><p>{pending.groupLabel}</p>
     </details>
-    <button className="rc-button" data-variant="primary" type="submit" disabled={busy}>Check creation again</button>
+    <button className="rc-button" data-variant="primary" type="submit" disabled={busy}>Check Creation Again</button>
     {consent && <ConsentButton action="create-project" />}
     {error && <p role="status">{error}</p>}
   </form>;

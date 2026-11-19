@@ -2,12 +2,12 @@
 import { parseSummaries, record, uuid, type InitiativeSummary } from "@weave/api/account-contract";
 import type { AccountState } from "../account/client.ts";
 import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
-import { loadedDraft } from "../account/document.ts";
+import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
 import { deleteSavedCard } from "../account/delete-card.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
-import { projectChoiceKey } from "./project-choice.ts";
+import { projectChoiceKey, projectChoosers } from "./project-choice.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
 import { draftWithRecord } from "../initiative/import.ts";
 import { finishEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -24,7 +24,7 @@ export type LiveSocialService = Pick<SocialService,
 };
 type Group = { groupDid: string; role: "owner" | "admin" | "member"; displayName?: string; handle?: string };
 type Options = { account: AccountState; controller: DraftController; refreshAccount(): Promise<AccountState>;
-  request?: typeof accountRequest; storage?: Pick<Storage, "getItem" | "setItem" | "removeItem">;
+  request?: typeof accountRequest; storage?: Pick<Storage, "getItem" | "setItem" | "removeItem"> & Partial<Pick<Storage, "length" | "key">>;
   openWorkspace(id: string): void; signIn(): Promise<void>; signedOut(): void };
 
 /**
@@ -72,7 +72,18 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   const emit = () => { if (!lifetime.signal.aborted) for (const notify of listeners) notify(); };
   const checked = () => { lifetime.signal.throwIfAborted(); if (!owner) throw new AccountFailure("sign_in_required"); return owner; };
   async function post(body: unknown) { checked(); const result = await request("", body, "/api/projects", lifetime.signal); checked(); return result; }
+  /**
+   * True when the tab's card belongs to another account than this one (DL-055): it was saved by
+   * another, or another opened it from its Certified project in this browser session.
+   */
+  const setAside = () => {
+    const draft = options.controller.getSnapshot().draft;
+    return belongsToAnotherAccount(draft, owner, options.storage?.key ? projectChoosers(options.storage as Pick<Storage, "length" | "key">, draft.id) : []);
+  };
   function select(uri: string) {
+    // A project choice is recorded against the tab's card. A card that is set aside takes none
+    // from this account: a second chooser would make it read as shared and lift its set-aside.
+    if (setAside()) return;
     selected = { scope: key(), uri };
     try { options.storage?.setItem(key(), uri); } catch { /* This tab retains the selection; no authority is cached. */ }
   }
@@ -205,6 +216,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     },
     async linkProject(uri, signal) {
       signal?.throwIfAborted();
+      // Linking writes the project's details into the tab's card, so another account's card is refused before anything is asked.
+      if (setAside()) throw new AnotherAccountsCard();
       const chosen = find(uri); if (!chosen) throw Error("Check your Certified projects again before linking.");
       const before = options.controller.getSnapshot().draft;
       const result = await post({ action: "lookup", projectUri: uri });
@@ -230,7 +243,11 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     async openWorkspace(uri) {
       const p = find(uri); if (!p?.workspaceId) throw Error("Check the workspace list again.");
       await post({ action: "team_load", workspaceId: p.workspaceId });
-      const link = projectLink(p); select(uri); state = { ...state, project: link }; emit();
+      const link = projectLink(p);
+      // The project becomes the tab's card's project only when that card is this account's. With
+      // another account's card in the tab the workspace still opens, and nothing is recorded
+      // against the card or shown as its project.
+      if (!setAside()) { select(uri); state = { ...state, project: link }; emit(); }
       options.openWorkspace(p.workspaceId); return link;
     },
     async openCard(id) {

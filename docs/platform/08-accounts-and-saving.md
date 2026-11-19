@@ -21,15 +21,17 @@ requirements.
 
 | State | Storage and access | Meaning |
 |---|---|---|
-| Device draft | This browser's local storage, subject to device/browser access | Includes working text, files and unfinished edits; no account required. |
+| Device draft | This browser's local storage, subject to device/browser access | Includes working text, files and unfinished edits; no account required. A browser can hold several, each an initiative of its own, and each shows "Not saved yet" until it is saved (DL-112). |
 | Saved privately | Owner-authorized Weave database record | Checked initiative, kept needs/offers and funding answers only; available to the same Certified identity on another device. |
 | Saved to a team workspace (target) | Weave database, accessible to teammates with workspace read access | Saved needs and offers are visible to the team before sharing. Personal saves outside the workspace stay personal. |
 | Shared for matching | Selected current entries and an approved initiative summary | Any workspace editor can preview and explicitly share what signed-in Weave users can see. Saving alone does not share. |
 
 Saving the checked document does not back up conversation transcripts, files,
 unfinished alternatives or AI history. Show this limit where the person saves.
-Loading a saved initiative first backs up the complete current device draft and
-files. If backup fails, leave the active draft unchanged. Database administrators
+Loading a saved initiative opens it as a device draft under the saved card's own
+ID. Other device drafts are not touched. If this browser already holds a copy of
+that card, the copy and its files are backed up first, and if that backup fails
+the load stops and nothing changes. Database administrators
 can technically access stored data; owner-only product access is not end-to-end
 encryption.
 
@@ -62,9 +64,9 @@ use the active session or choose Sign in with Certified. The same stable identit
 must reach the same account UUID and saved initiatives, including from another
 browser. A changed handle does not create a new account.
 
-Choose Load explicitly from Your saved initiatives. Preserve the current device
-work before replacement, and show conflicts or errors without losing either
-version. Switching initiatives uses the same session. Signing out ends the Weave
+Choose Load explicitly from Your saved initiatives. Loading replaces only this
+browser's own copy of that card, after backing it up, and errors lose neither
+version. An account card is changed only by an explicit Save. Switching initiatives uses the same session. Signing out ends the Weave
 session; it does not erase device drafts/backups or claim to sign out of every
 Certified application. Device-data clearing remains a separate explicit action.
 
@@ -173,7 +175,8 @@ Certified membership synchronization remains a validation item.
 | Wrong Certified identity | Sign out and use the correct Certified identity. Never merge by email, handle, project link or a caller-supplied account ID. |
 | Unexpected identity conflict | Fail without account merging or moving saved rows. Keep the draft and offer a non-disclosing support route. |
 | Lost save response | Retry the same command with the same request ID; reconcile the saved revision without duplication. |
-| Stale revision or changed draft in another tab | Preserve both versions and require comparison before replacement. |
+| Changed draft in another tab | The latest edit wins. The replaced version is kept as a device backup that Settings can restore, at most three for one draft, with no warning and nothing stopped. Open tabs show the newest version when they have no edit of their own waiting (DL-112). |
+| Stale revision of a saved card | The account refuses the save, and the person opens the card's latest version from Your Initiatives. The device draft is kept. |
 | Session expires | Keep the draft; reauthenticate through Certified and explicitly retry Save/Load. |
 | A Certified group workspace has no active Weave admin | The verified current Certified group owner can explicitly recover admin access. Weave records the grant and preserves the team's work. |
 | Certified confirms a teammate's removal from a group | Suspend their team workspace access. Preserve their personal saves. Existing team shares and listings stay active when other authorized teammates remain. If the person rejoins, a workspace admin can review access. |

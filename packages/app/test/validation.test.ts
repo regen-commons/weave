@@ -16,6 +16,6 @@ test("device and extraction schemas validate without probing blocked code genera
     modelConstraint(AskExtractionSchema);
     process.stdout.write(JSON.stringify({ probes }));
   `;
-  const result = JSON.parse(execFileSync(process.execPath, ["--input-type=module", "--eval", script], { encoding: "utf8" }));
+  const result = JSON.parse(execFileSync(process.execPath, ["--conditions=source", "--input-type=module", "--eval", script], { encoding: "utf8" }));
   assert.equal(result.probes, 0, "A caught eval attempt still violates the page CSP");
 });

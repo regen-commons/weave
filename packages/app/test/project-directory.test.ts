@@ -26,18 +26,18 @@ test("a first personal project starts from actual public fields, with empty revi
   assert.deepEqual(result.initiative.links,[]); assert.deepEqual(result.needs,[]); assert.deepEqual(result.offers,[]);
 });
 
-test("initializing a personal project backs up unfinished words and files, while a complete card retains its checked needs",async()=>{
+test("initializing a personal project leaves unfinished words and files as their own draft, while a complete card retains its checked needs",async()=>{
   const before=revise(newDraft(),{composer:"Unfinished private words"});
   const repo=new MemoryDraftRepository(before), controller=new DraftController(repo); await controller.initialize();
   await preparePersonalProject(controller,project,new AbortController().signal);
-  assert.equal(repo.history[0]?.draft.composer,"Unfinished private words");
+  assert.equal(repo.drafts.get(before.id),before); assert.equal(repo.history.length,0);
   assert.equal(controller.getSnapshot().draft.confirmed?.name,project.title);
   const complete=loadedDraft(saved,owner), retained=new MemoryDraftRepository(complete), current=new DraftController(retained);
   await current.initialize(); await preparePersonalProject(current,project,new AbortController().signal);
   assert.deepEqual(accountDocument(current.getSnapshot().draft),document); assert.equal(retained.history.length,0);
 });
 
-test("opening a personal workspace fetches its exact saved identity and backs up the unrelated current draft",async()=>{
+test("opening a personal workspace fetches its exact saved identity and leaves the unrelated draft stored as it was",async()=>{
   const initial=revise(newDraft(),{composer:"Keep this current draft"}),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo);
   await controller.initialize(); const original=globalThis.fetch;
   globalThis.fetch=async (path,init)=>{
@@ -47,7 +47,7 @@ test("opening a personal workspace fetches its exact saved identity and backs up
   try {
     await loadPersonalProject(controller,saved.id,owner,new AbortController().signal);
     assert.equal(controller.getSnapshot().draft.account.saved?.id,saved.id);
-    assert.equal(repo.history[0]?.draft.composer,"Keep this current draft");
+    assert.equal(repo.drafts.get(initial.id),initial); assert.equal(repo.history.length,0);
   } finally {globalThis.fetch=original;}
 });
 
@@ -132,11 +132,11 @@ test("connecting an existing personal project opens its canonical save without c
     await connectPersonalProject(controller,owner,project,new AbortController().signal);
     assert.deepEqual(calls,["/api/projects",`/api/account?id=${saved.id}`]);
     assert.equal(controller.getSnapshot().draft.account.saved?.id,saved.id);
-    assert.equal(repo.history[0]?.draft.composer,initial.composer);
+    assert.equal(repo.drafts.get(initial.id)?.composer,initial.composer); assert.equal(repo.history.length,0);
   } finally {globalThis.fetch=original;}
 });
 
-test("a competing personal link loads the winner and retains the newly saved card as a backup",async()=>{
+test("a competing personal link loads the winner and keeps the newly saved card on the device",async()=>{
   const initial=personalProjectDraft(project),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo);
   await controller.initialize();const original=globalThis.fetch;let projectCalls=0,privateSave:string|undefined;
   globalThis.fetch=async (path,init)=>{
@@ -155,7 +155,7 @@ test("a competing personal link loads the winner and retains the newly saved car
   try {
     await connectPersonalProject(controller,owner,project,new AbortController().signal);
     assert.equal(projectCalls,2);assert.equal(controller.getSnapshot().draft.account.saved?.id,saved.id);
-    assert.ok(repo.history.some(b=>b.draft.account.saved?.id===privateSave));
+    assert.ok([...repo.drafts.values()].some(draft=>draft.account.saved?.id===privateSave));
   } finally {globalThis.fetch=original;}
 });
 

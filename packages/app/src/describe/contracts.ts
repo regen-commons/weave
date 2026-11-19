@@ -87,6 +87,14 @@ export const RunSchema = z.strictObject({
   latencyMs: z.number().int().min(0),
 });
 export type AiRun = z.infer<typeof RunSchema>;
+/**
+ * How long About it can be when written now (DL-111). A card saved before that may hold up to
+ * 800 characters, which the schemas still accept so it stays readable and saveable.
+ */
+export const ABOUT_LIMIT = 400;
+/** The four public fields as the describe step shows them. */
+export const FieldKeySchema = z.enum(["name", "where", "about", "links"]);
+export type FieldKey = z.infer<typeof FieldKeySchema>;
 export const RecordFormSchema = z.strictObject({
   name: z.string().max(200),
   where: z.string().max(2000),
@@ -115,16 +123,29 @@ const AccountSyncSchema = z.strictObject({
    */
   retired: z.array(z.string().uuid()).max(20).optional(),
 });
+/**
+ * As many characters as a draft's words can hold once stored. The box takes far fewer by typing
+ * or talking (`SAID_LIMIT` in fill.ts). A draft from the released build can hold more than that
+ * across its sent answers, and they become the box's own words, so the stored field has room
+ * for all of them. The bound is only there so stored data is never unbounded.
+ */
+export const STORED_SAID_LIMIT = 2_000_000;
 export const DeviceDraftSchema = z.strictObject({
   version: z.literal(1),
   id: z.string().uuid(),
   revision: z.number().int().min(0),
+  /**
+   * A random mark for this exact revision. Two tabs that change the same revision in the same
+   * millisecond write the same number and time, and only this tells their versions apart (DL-112).
+   * Drafts stored before it have none.
+   */
+  mark: z.string().uuid().optional(),
   inputVersion: z.number().int().min(0),
   updatedAt: z.string().datetime(),
   pendingLink: z.string().max(2048),
   answerEdits: z.record(z.string().uuid(), z.string().max(20000)),
   reviewEdits: z.partialRecord(DerivedKeySchema, ReviewEditorSchema),
-  composer: z.string().max(20000),
+  composer: z.string().max(STORED_SAID_LIMIT),
   turns: z.array(TurnSchema),
   links: z.array(LinkSchema).max(6),
   attachments: z.array(AttachmentSchema),
@@ -147,6 +168,11 @@ export const DeviceDraftSchema = z.strictObject({
     .nullable(),
   confirmed: InitiativeSchema.nullable(),
   form: RecordFormSchema.nullable(),
+  /**
+   * The fields that still hold what Weave filled in from the person's words. A field leaves the
+   * list when the person changes it, and a later fill never writes over one that left (DL-110).
+   */
+  filled: z.array(FieldKeySchema).max(4).default([]),
   runs: z.array(RunSchema),
   mode: z.enum(["conversation", "fields"]),
   needs: AskStepSchema.default(emptyAskStep),
@@ -172,6 +198,7 @@ export function newDraft(): DeviceDraft {
     version: 1,
     id: crypto.randomUUID(),
     revision: 0,
+    mark: crypto.randomUUID(),
     inputVersion: 0,
     updatedAt: new Date().toISOString(),
     pendingLink: "",
@@ -192,8 +219,9 @@ export function newDraft(): DeviceDraft {
     lastBuild: null,
     confirmed: null,
     form: null,
+    filled: [],
     runs: [],
-    mode: "conversation",
+    mode: "fields",
     needs: emptyAskStep(),
     offers: emptyAskStep(),
     funding: emptyFundingDetails(),
@@ -212,6 +240,7 @@ export function revise(draft: DeviceDraft, change: Partial<DeviceDraft>, input =
     publicEdits,
     form: form && change.links ? { ...form, links: links.join("\n") } : form,
     revision: draft.revision + 1,
+    mark: crypto.randomUUID(),
     updatedAt: new Date().toISOString(),
     ...(input ? { inputVersion: draft.inputVersion + 1, confirmed: null } : {}),
   });
@@ -251,17 +280,6 @@ export function pendingDetails(draft: DeviceDraft): DerivedKey[] {
       (key === "stage" ? fields.stage !== null : fields[key].length > 0),
   );
 }
-/** Keep card: one confirmation turns every pending detail to ink (T5). Removed details stay removed. */
-export function keepPendingDetails(draft: DeviceDraft): DeviceDraft {
-  const fields = reviewedProposal(draft);
-  const pending = pendingDetails(draft);
-  if (!fields || !pending.length) return draft;
-  return revise(draft, {
-    kept: [...new Set([...draft.kept, ...pending])],
-    derivedEdits: { ...draft.derivedEdits, ...Object.fromEntries(pending.map((key) => [key, fields[key]])) },
-    confirmed: null,
-  });
-}
 export function confirmDraft(draft: DeviceDraft): DeviceDraft {
   if (draft.proposalVersion !== draft.inputVersion)
     throw new Error("Your words changed. Build the card again before continuing.");
@@ -282,9 +300,4 @@ export function modelConstraint(contract: z.ZodType = SuggestionSchema): Record<
   };
   removeLengths(schema);
   return schema;
-}
-
-export function assertBuildCurrent(draft: DeviceDraft, inputVersion: number, signal: AbortSignal): void {
-  signal.throwIfAborted();
-  if (draft.inputVersion !== inputVersion) throw new DOMException("Words changed", "AbortError");
 }

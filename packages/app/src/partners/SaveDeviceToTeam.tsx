@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { parseTeamDocument, type SavedInitiative } from "@weave/api/account-contract";
-import { accountDocument, saveBlocker } from "../account/document.ts";
+import type { SavedInitiative } from "@weave/api/account-contract";
+import { useAccount } from "../account/context.tsx";
+import { useSetAside } from "../account/set-aside.ts";
+import { AnotherAccountsCard, accountDocument, saveBlocker } from "../account/document.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
-import { documentCard, saveTeamWorkspace, type TeamSave } from "./team-workspace.ts";
+import { documentCard, offersDeviceCardToTeam, saveDeviceCardToTeam, type TeamSave } from "./team-workspace.ts";
 
 /** Copying a personal draft into a team is a separate explicit save, never a side effect of linking. */
 export function SaveDeviceToTeam({ workspaceId, onSaved, primary = false }: {
@@ -13,22 +15,28 @@ export function SaveDeviceToTeam({ workspaceId, onSaved, primary = false }: {
   primary?: boolean;
 }) {
   const { draft } = useDraft();
+  const owner = useAccount().state?.user?.id;
+  const setAside = useSetAside();
   const [open, setOpen] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [pending, setPending] = useState<TeamSave | null>(null);
   const task = useRef<AbortController | null>(null);
   useEffect(() => () => task.current?.abort(), []);
-  if (saveBlocker(draft)) return null;
+  // Another account's card is neither offered nor previewed to this one (DL-055). The save refuses it too.
+  if (!owner || !offersDeviceCardToTeam({ blocked: !!saveBlocker(draft), signedIn: !!owner, setAside })) return null;
   async function save() {
-    if (busy) return;
+    if (busy || !owner) return;
     setBusy(true); setError("");
     const controller = new AbortController(); task.current = controller;
     try {
-      const command = pending ?? { expectedRevision: 0, requestId: crypto.randomUUID(), document: parseTeamDocument(accountDocument(draft)) };
-      setPending(command);
-      const saved = await saveTeamWorkspace(workspaceId, command, controller.signal);
+      const { saved } = await saveDeviceCardToTeam(draft, owner, workspaceId, pending, controller.signal, setPending);
       controller.signal.throwIfAborted();
       setPending(null); setOpen(false); onSaved(saved);
-    } catch { if (!controller.signal.aborted) setError("The team save could not be confirmed. Retry the same request. Your device card is still here."); }
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      // Another account's card is refused in the save itself. There is nothing to retry.
+      if (error instanceof AnotherAccountsCard) { setPending(null); setError(error.message); }
+      else setError("The team save could not be confirmed. Retry the same request. Your device card is still here.");
+    }
     finally { if (!controller.signal.aborted) setBusy(false); }
   }
   // A retry sends the request it started with, so the review shows that document.

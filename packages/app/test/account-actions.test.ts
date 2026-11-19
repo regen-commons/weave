@@ -4,11 +4,14 @@ import { test } from "node:test";
 import { parseDocument } from "@weave/api/account-contract";
 import { saveAccountCard, loadAccountCard } from "../src/account/actions.ts";
 import { AccountFailure } from "../src/account/client.ts";
-import { loadedDraft } from "../src/account/document.ts";
+import { AnotherAccountsCard, loadedDraft, saveCommand } from "../src/account/document.ts";
 import { AccountSession } from "../src/account/session.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
-import { revise } from "../src/describe/contracts.ts";
+import { revise, type DeviceDraft } from "../src/describe/contracts.ts";
+import { saveForProject } from "../src/initiative/project-save.ts";
+import { offersDeviceCardToTeam, saveDeviceCardToTeam } from "../src/partners/team-workspace.ts";
+import { projectChoiceKey } from "../src/social/project-choice.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
 const document = parseDocument(JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8")));
@@ -129,4 +132,113 @@ test("the account panel's completed Save and Load retain their intended behavior
   assert.equal(controller.getSnapshot().draft, committed);
   assert.equal(repository.value?.id, committed.id);
   assert.deepEqual(await controller.backups(), backups);
+});
+
+// A card is never copied into another account (DL-055). The refusal is in the save path itself,
+// so it holds whichever button, dialog or return from sign-in reaches it.
+const other = "b1000000-0000-4000-8000-000000000002";
+const refused = (error: unknown) => error instanceof AnotherAccountsCard && /belongs to another account/u.test(error.message);
+/** Every way a card on this device reaches the server: the account panel's Save, the reviewed save behind Save Privately, sharing and linking, and the copy into a team workspace. */
+const TEAM = "b4000000-0000-4000-8000-000000000001";
+const entryPoints: readonly [name: string, save: (controller: DraftController) => Promise<unknown>][] = [
+  ["the account panel's Save", (controller) => saveAccountCard(controller, owner, async () => {})],
+  ["the reviewed save", (controller) => saveForProject(controller, owner, new AbortController().signal)],
+  ["the save of a device card to a team", (controller) => saveDeviceCardToTeam(controller.getSnapshot().draft, owner, TEAM, null, new AbortController().signal)],
+];
+/** Another account's card as it sits on a shared device, in each way a card can belong to someone. */
+function theirCards(): readonly [state: string, draft: DeviceDraft][] {
+  const theirs = loadedDraft(saved, other);
+  const binding = saveCommand(revise(theirs, { account: { saved: null, pending: null } }), other).binding;
+  return [
+    ["saved by another account", theirs],
+    ["saved by another account and changed since", revise(theirs, { confirmed: { ...theirs.confirmed!, name: "Changed synthetic card" } })],
+    ["being saved by another account", revise(theirs, { account: { saved: null, pending: binding } })],
+  ];
+}
+
+test("no save path copies another account's card: each refuses, sends nothing and leaves the card with its owner (DL-055)", async t => {
+  let posts = 0;
+  t.mock.method(globalThis, "fetch", async () => { posts++; return Response.json({ saved }); });
+  for (const [state, theirs] of theirCards())
+    for (const [name, save] of entryPoints) {
+      const repository = new MemoryDraftRepository(theirs), controller = new DraftController(repository);
+      await controller.initialize();
+      await assert.rejects(save(controller), refused, `${name} refuses a card ${state}`);
+      await controller.settled();
+      assert.equal(posts, 0, `${name} sends nothing for a card ${state}`);
+      assert.deepEqual(controller.getSnapshot().draft, theirs, `${name} leaves a card ${state} untouched in the tab`);
+      assert.deepEqual(repository.value, theirs, "and on the device: no new card ID, no pending save for this account");
+    }
+});
+
+test("a card nobody saved, opened from another account's Certified project, is refused the same way", async t => {
+  let posts = 0;
+  t.mock.method(globalThis, "fetch", async () => { posts++; return Response.json({ saved }); });
+  const unsaved = revise(loadedDraft(saved, other), { account: { saved: null, pending: null } });
+  // The other account's choice of project for this card, as this browser session holds it.
+  const keys = [projectChoiceKey(other, unsaved.id)];
+  const window = { sessionStorage: { length: keys.length, key: (index: number) => keys[index] ?? null } };
+  const scope = globalThis as { window?: unknown };
+  scope.window = window;
+  t.after(() => { delete scope.window; });
+  for (const [name, save] of entryPoints) {
+    const repository = new MemoryDraftRepository(unsaved), controller = new DraftController(repository);
+    await controller.initialize();
+    await assert.rejects(save(controller), refused, name);
+    assert.equal(posts, 0, name);
+    assert.deepEqual(repository.value, unsaved, name);
+  }
+  // Once this account has chosen it too, or nobody has, the card is this account's to save.
+  keys.push(projectChoiceKey(owner, unsaved.id));
+  window.sessionStorage.length = keys.length;
+  assert.equal(saveCommand(unsaved, owner, [other, owner]).command.accountId, owner);
+  assert.equal(saveCommand(unsaved, owner).command.id, unsaved.id);
+  assert.throws(() => saveCommand(unsaved, owner, [other]), refused);
+});
+
+test("the account a card belongs to still saves it, after another account was refused", async t => {
+  const commands: Record<string, unknown>[] = [];
+  t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
+    const command = JSON.parse(String(options?.body));
+    commands.push(command);
+    return Response.json({ saved: { ...saved, id: command.id, revision: command.expectedRevision + 1, document: command.document } });
+  });
+  const mine = loadedDraft(saved, owner);
+  const changed = revise(mine, { confirmed: { ...mine.confirmed!, name: "Changed synthetic card" } });
+  const controller = new DraftController(new MemoryDraftRepository(changed));
+  await controller.initialize();
+  await assert.rejects(saveForProject(controller, other, new AbortController().signal), refused);
+  assert.equal(commands.length, 0);
+  await saveAccountCard(controller, owner, async () => {});
+  assert.equal(commands.length, 1);
+  assert.deepEqual([commands[0]!.accountId, commands[0]!.id], [owner, saved.id], "the same card, in the same account");
+  assert.equal(controller.getSnapshot().draft.account.saved?.owner, owner);
+});
+
+test("the account a card belongs to can still copy it into its team, and a retry sends the same request", async t => {
+  const commands: Record<string, unknown>[] = [];
+  t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
+    const command = JSON.parse(String(options?.body));
+    commands.push(command);
+    return Response.json({ saved: { ...saved, id: TEAM, revision: 1, document: command.document } });
+  });
+  const mine = loadedDraft(saved, owner);
+  const first = await saveDeviceCardToTeam(mine, owner, TEAM, null, new AbortController().signal);
+  assert.deepEqual([commands[0]!.action, commands[0]!.workspaceId, commands[0]!.expectedRevision], ["team_save", TEAM, 0]);
+  assert.equal(first.saved.id, TEAM);
+  await saveDeviceCardToTeam(mine, owner, TEAM, first.command, new AbortController().signal);
+  assert.equal(commands[1]!.requestId, commands[0]!.requestId, "the request it started with");
+});
+
+test("another account's card is neither offered to a team nor previewed, and the component asks this rule", () => {
+  assert.equal(offersDeviceCardToTeam({ blocked: false, signedIn: true, setAside: false }), true);
+  assert.equal(offersDeviceCardToTeam({ blocked: false, signedIn: true, setAside: true }), false, "set aside: no button and no preview");
+  assert.equal(offersDeviceCardToTeam({ blocked: true, signedIn: true, setAside: false }), false);
+  assert.equal(offersDeviceCardToTeam({ blocked: false, signedIn: false, setAside: false }), false);
+  // The component returns nothing before it builds the button or reads the card for the preview.
+  const component = readFileSync(new URL("../src/partners/SaveDeviceToTeam.tsx", import.meta.url), "utf8");
+  const gate = component.indexOf("offersDeviceCardToTeam({ blocked: !!saveBlocker(draft), signedIn: !!owner, setAside })) return null;");
+  assert.notEqual(gate, -1);
+  assert.ok(gate < component.indexOf("accountDocument(draft)"), "the card is not read for a preview before the rule is asked");
+  assert.match(component, /const setAside = useSetAside\(\);/u);
 });

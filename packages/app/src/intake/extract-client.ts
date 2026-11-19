@@ -78,7 +78,7 @@ export async function extractAsks(step: AskStep, kind: AskKind, signal: AbortSig
         JSON.stringify(candidates),
         signal,
         AskExtractionSchema,
-        `Extract only the ${kind} stated in these source chunks. Return up to five cards in source order and the total heard. Copy each sourceKey exactly from a chunk key. All eight capitalForms may apply; there is no primary kind. Leave unknown kinds empty. Never guess currency or amounts, timeframe, capacity or beneficiaries. Defaults are anywhere, open terms, open status; all output will be reviewed`,
+        `Extract only the ${kind} stated in these source chunks. Return up to four cards in source order and the total heard. Copy each sourceKey exactly from a chunk key. All eight capitalForms may apply; there is no primary kind. Leave unknown kinds empty. Never guess currency or amounts, timeframe, capacity or beneficiaries. Defaults are anywhere, open terms, open status; all output will be reviewed`,
       );
       signal.throwIfAborted();
       parseExtraction(result, candidates);

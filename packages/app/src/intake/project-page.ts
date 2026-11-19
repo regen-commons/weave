@@ -1,4 +1,5 @@
 import {
+  ASK_DESCRIPTION_LIMIT,
   ASK_LIMIT,
   AskStepSchema,
   AskSuggestionSchema,
@@ -89,7 +90,7 @@ function entry(text: string, kind: AskKind): AskFields | null {
     ...EMPTY_ASK,
     // A long statement keeps its opening words as the title, cut between words, and all of it below.
     title: long ? title.slice(0, 140).replace(/\s+\S*$/u, "") : title,
-    description: long ? words.slice(0, 600) : null,
+    description: long ? words.slice(0, ASK_DESCRIPTION_LIMIT) : null,
     capitalForms: suggestKinds(words),
   });
   return value.success ? value.data : null;

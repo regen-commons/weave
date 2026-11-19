@@ -45,7 +45,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
       const document = saved?.document ?? initialTeamDocument(title);
       const value = parseAskForm(edit.form, edit.kind, true);
       const entries = document[edit.kind];
-      if (!edit.id && entries.length >= ASK_LIMIT) throw Error("Five is the limit for each kind.");
+      if (!edit.id && entries.length >= ASK_LIMIT) throw Error("Four is the limit for each kind.");
       const id = edit.id ?? crypto.randomUUID();
       const updated = edit.id ? entries.map((entry) => entry.id === id ? { id, value } : entry) : [...entries, { id, value }];
       const changed: AccountDocument = parseTeamDocument({ ...document, [edit.kind]: updated });

@@ -1,0 +1,196 @@
+import { useEffect, useId, useRef, useState } from "react";
+import { talkControls } from "../describe/speech-setup.ts";
+import type { SpeechSetup } from "../describe/use-speech.ts";
+import { Icon } from "./Icon.tsx";
+import { TaskDialog } from "./TaskDialog.tsx";
+
+const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN", "ar-SA", "zh-CN"];
+
+/**
+ * Talk it out (`rc-voice-input`, DL-110): one button, one box and one action. The button turns
+ * into Stop in place while the browser listens on the device, and the words appear in the box,
+ * whose space is always there. A person who cannot or will not speak types into the same box.
+ * The action then structures the words, and its result is said in the line under it, which keeps
+ * its height. Nothing on the page moves when any of them is pressed.
+ */
+export function TalkItOut({
+  speech,
+  listening,
+  language,
+  onLanguage,
+  onStart,
+  onStop,
+  value,
+  onChange,
+  boxLabel,
+  hint,
+  rows = 4,
+  maxLength = 20000,
+  actionLabel,
+  workingLabel,
+  working,
+  onAction,
+  onCancel,
+  status,
+  statusId,
+  problem,
+  lead = false,
+  disabled = false,
+  actionReady = false,
+  secondary = false,
+}: {
+  speech: SpeechSetup;
+  listening: boolean;
+  language: string;
+  onLanguage(value: string): void;
+  onStart(): void;
+  onStop(): void;
+  /** The words in the box: what was said, or what the person typed. */
+  value: string;
+  onChange(value: string): void;
+  boxLabel: string;
+  hint?: string;
+  rows?: number;
+  maxLength?: number;
+  /** What the action does with the words, such as "Fill In The Fields". */
+  actionLabel: string;
+  /** What the same button says while it works. Pressing it then stops the work. */
+  workingLabel: string;
+  working: boolean;
+  onAction(): void;
+  onCancel(): void;
+  /** One line about what the action did. */
+  status: string;
+  statusId?: string;
+  /** Why the page could not go on from here. It takes the status line's place, as an alert. */
+  problem?: string;
+  /** The filled button on a page that has nothing typed yet. One primary at a time. */
+  lead?: boolean;
+  /** Hold a new start, as on a full list. Stopping always works, and the box can still be changed or cleared. */
+  disabled?: boolean;
+  /** The action has something to work on even with an empty box, such as files added but not read. */
+  actionReady?: boolean;
+  /**
+   * A second Talk it out on the same page. The first one offers the speech setup and says the
+   * one line about a browser without speech, so this one stays quiet until talking works.
+   */
+  secondary?: boolean;
+}) {
+  const id = useId();
+  const [choosing, setChoosing] = useState(false);
+  const box = useRef<HTMLTextAreaElement>(null);
+  // While listening, the newest words stay in view inside the box.
+  useEffect(() => {
+    if (listening && box.current) box.current.scrollTop = box.current.scrollHeight;
+  }, [listening, value]);
+  const controls = talkControls(speech.state, { listening, setUpHere: speech.setUpHere, asking: speech.asking, secondary });
+  const names = new Intl.DisplayNames(["en"], { type: "language" });
+  const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
+  const press =
+    controls.action === "stop" ? onStop : controls.action === "talk" ? onStart : controls.action === "set-up" ? speech.setUp : undefined;
+  return (
+    <div className="rc-voice-input">
+      <div className="rc-voice-slot">
+        {controls.action && (
+          <button
+            className="rc-button"
+            data-variant={controls.action === "talk" && lead ? "primary" : "secondary"}
+            data-size="lg"
+            type="button"
+            aria-pressed={controls.action === "talk" || controls.action === "stop" ? listening : undefined}
+            // Under way, the button keeps the focus, which a disabled button would drop.
+            aria-busy={controls.action === "setting-up" || undefined}
+            disabled={controls.action === "talk" && (disabled || working)}
+            onClick={press}
+          >
+            <Icon name="mic" />
+            {controls.label}
+          </button>
+        )}
+        <div className="rc-voice-aside">
+          <p className="rc-meta" role="status">
+            {controls.note}
+          </p>
+          {/* The language choice shows where it can help and there is room: not while a longer line explains a setup. */}
+          {controls.language && (!controls.note || !controls.action) && (
+            <button className="rc-button" data-variant="quiet" data-size="sm" type="button" onClick={() => setChoosing(true)}>
+              Speaking In {names.of(language) ?? language}
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="rc-field">
+        <label htmlFor={`${id}-box`}>{listening ? "Listening" : boxLabel}</label>
+        {hint && (
+          <p className="rc-hint" id={`${id}-hint`}>
+            {hint}
+          </p>
+        )}
+        <textarea
+          className="rc-input rc-voice-transcript"
+          id={`${id}-box`}
+          aria-describedby={hint ? `${id}-hint` : undefined}
+          ref={box}
+          rows={rows}
+          data-sizing="fixed"
+          maxLength={maxLength}
+          value={value}
+          readOnly={listening}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
+      <div className="rc-action-bar">
+        <button
+          className="rc-button"
+          data-variant="secondary"
+          type="button"
+          aria-busy={working || undefined}
+          // A full list takes no new words, but words or files already added can still be read again.
+          disabled={!working && (listening || !(actionReady || (!disabled && value.trim())))}
+          onClick={working ? onCancel : onAction}
+        >
+          {working ? workingLabel : actionLabel}
+        </button>
+        <p
+          className={problem ? "rc-error rc-status-slot" : "rc-meta rc-status-slot"}
+          data-lines="2"
+          role={problem ? "alert" : "status"}
+          id={statusId}
+          tabIndex={statusId ? -1 : undefined}
+        >
+          {problem || status}
+        </p>
+      </div>
+      {/* Asked in a dialog, so choosing a language never pushes the page down. */}
+      <TaskDialog title="Speaking Language" open={choosing} onClose={() => setChoosing(false)}>
+        <div className="rc-stack">
+          <div className="rc-field">
+            <label htmlFor={`${id}-language`}>The language you will speak in</label>
+            <p className="rc-hint" id={`${id}-language-hint`}>
+              Speech is recognized on this device, one language at a time.
+            </p>
+            <select
+              className="rc-input"
+              id={`${id}-language`}
+              aria-describedby={`${id}-language-hint`}
+              value={language}
+              data-task-focus
+              onChange={(event) => onLanguage(event.target.value)}
+            >
+              {languages.map((code) => (
+                <option key={code} value={code}>
+                  {names.of(code) ?? code}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="rc-action-bar">
+            <button className="rc-button" data-variant="primary" type="button" onClick={() => setChoosing(false)}>
+              Done
+            </button>
+          </div>
+        </div>
+      </TaskDialog>
+    </div>
+  );
+}

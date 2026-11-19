@@ -1,9 +1,17 @@
+import { ASK_LIMIT, STORED_ASK_LIMIT } from "@weave/api/account-contract";
 import { z } from "../validation.ts";
 import { CAPITALS } from "../capitals.ts";
 import { AttachmentSchema, FileReadSchema, TurnSchema, LinkSchema } from "../describe/source-contracts.ts";
 
 export type AskKind = "needs" | "offers";
-export const ASK_LIMIT = 5;
+/**
+ * Four needs and four offers can be added (DL-111). A list stored under the earlier limit of
+ * five stays valid, so the stored limit is what the schema checks and `ASK_LIMIT` is what adding checks.
+ */
+export { ASK_LIMIT, STORED_ASK_LIMIT };
+export const ASK_LIMIT_HELP = "Four is the limit. Remove one to add another.";
+/** How long a need or offer's description can be when written now. Earlier ones may be longer. */
+export const ASK_DESCRIPTION_LIMIT = 200;
 export const CapitalFormSchema = z.enum(CAPITALS.map((capital) => capital.key));
 export const ExchangeTermSchema = z.enum(["gift", "exchange", "paid", "commitment", "open"]);
 export const ScopeSchema = z.enum(["here", "region", "anywhere"]);
@@ -138,8 +146,8 @@ export const AskStepSchema = z
       .nullable(),
   })
   .refine(
-    (step) => step.items.filter((item) => item.decision !== "removed").length <= ASK_LIMIT,
-    "Five is the limit.",
+    (step) => step.items.filter((item) => item.decision !== "removed").length <= STORED_ASK_LIMIT,
+    "Four is the limit.",
   )
   .refine(
     (step) => new Set(step.items.map((item) => item.id)).size === step.items.length,
@@ -168,12 +176,12 @@ export function emptyAskStep(): AskStep {
 }
 export const AskExtractionSchema = z
   .strictObject({
-    items: z.array(z.strictObject({ sourceKey: z.string().max(100), value: AskSuggestionSchema })).max(5),
+    items: z.array(z.strictObject({ sourceKey: z.string().max(100), value: AskSuggestionSchema })).max(ASK_LIMIT),
     heard: z.number().int().nonnegative(),
   })
   .refine(
     (result) => result.items.length === Math.min(result.heard, ASK_LIMIT),
-    "Return every heard card up to the five-card limit.",
+    "Return every heard card up to the four-card limit.",
   );
 export type AskExtraction = z.infer<typeof AskExtractionSchema>;
 export const AskChunkSchema = z.strictObject({ key: z.string().max(100), text: z.string() });

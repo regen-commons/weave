@@ -15,6 +15,7 @@ import { FilterBar } from "../ui/FilterBar.tsx";
 import { ListingCard } from "../ui/ListingCard.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { ListLayout } from "../ui/layouts.tsx";
+import { useDescribeDoor } from "../ui/describe-door.ts";
 
 export function ListPage({
   title,
@@ -27,6 +28,7 @@ export function ListPage({
   fixture?: FixtureContext;
   subject?: { needs: readonly CapitalKey[]; offers: readonly CapitalKey[] };
 }) {
+  const door = useDescribeDoor();
   const [filters, setFilters] = useState(() => ({
     ...EMPTY_FILTERS,
     search: new URLSearchParams(routeSearch()).get("q") ?? "",
@@ -103,9 +105,9 @@ export function ListPage({
           action={
             <ButtonLink
               variant="primary"
-              href={kind === "funding" ? FUNDING_COMMONS : pathTo("initiative")}
+              href={kind === "funding" ? FUNDING_COMMONS : door.href}
             >
-              {kind === "funding" ? "Browse Current Funding" : "Describe Your Initiative"}
+              {kind === "funding" ? "Browse Current Funding" : door.label}
             </ButtonLink>
           }
         >
