@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AccountSection } from "../account/AccountSection.tsx";
 import { SignOutAction } from "../account/SignOutAction.tsx";
 import { useAccount } from "../account/context.tsx";
@@ -7,6 +7,9 @@ import { revise } from "../describe/contracts.ts";
 import { deviceExport } from "../data/export.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
+import { deviceConsent } from "../describe/speech-consent.ts";
+import { useBrowserSpeechAgreement } from "../describe/use-speech.ts";
+import { SPEECH_SETTING } from "../describe/speech-setup.ts";
 import { useTheme } from "../ui/ThemeSwitch.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { COMMONS } from "../links.ts";
@@ -28,6 +31,9 @@ import { DeviceBackups } from "../data/DeviceBackups.tsx";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
 export function Settings() {
   const { theme } = useTheme();
+  const browserSpeech = useBrowserSpeechAgreement();
+  // Withdrawing removes its own button, so the line that says what changed takes the focus.
+  const speechLine = useRef<HTMLParagraphElement>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -182,6 +188,26 @@ export function Settings() {
             What The Assistant Did
           </button>
         </div>
+      </SettingsSection>
+      <SettingsSection title="Speech" note="How talking turns into text.">
+        <p role="status" ref={speechLine} tabIndex={-1}>
+          {browserSpeech ? SPEECH_SETTING.agreed : SPEECH_SETTING.notAgreed}
+        </p>
+        {browserSpeech && (
+          <div className="rc-action-bar">
+            <button
+              className="rc-button"
+              data-variant="secondary"
+              type="button"
+              onClick={() => {
+                deviceConsent().withdraw();
+                speechLine.current?.focus();
+              }}
+            >
+              {SPEECH_SETTING.withdraw}
+            </button>
+          </div>
+        )}
       </SettingsSection>
       <SettingsSection title="Install Weave On Your Phone" note="It opens like an app, full screen.">
         <InstallGuide />

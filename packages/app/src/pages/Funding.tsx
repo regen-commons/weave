@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useDraft } from "../describe/use-draft.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { fundingFixture, teamFixture } from "../fixtures.ts";
 import { catalogEntries, researchSnapshotDate } from "../funding/catalog.ts";
@@ -10,7 +11,10 @@ import {
   writeFundingFilters,
   type FundingFilters as Filters,
 } from "../funding/select.ts";
+import { choiceLabel, fundingSubject, subjectLine } from "../funding/subject.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
+import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
+import { useSocial } from "../social/context.tsx";
 import { CardGrid } from "../ui/Card.tsx";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { ListEnd, ListEndHold, useAddedFocus } from "../ui/ListEnd.tsx";
@@ -20,6 +24,8 @@ import { OpportunityCard } from "../ui/OpportunityCard.tsx";
 import { FilterBar } from "../ui/FilterBar.tsx";
 import { FundingProfile } from "../ui/FundingProfile.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
+import { RadioMenu } from "../ui/RadioMenu.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
 import { fullDate } from "../home.ts";
 import { replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
 import { DescribePrompt } from "../ui/DescribePrompt.tsx";
@@ -37,6 +43,29 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
     [fixture?.state, fixture?.scenario],
   );
   const catalog = useCatalog(example);
+  // The fit is for one initiative, the one this tab is on. A browser can hold several (DL-112), so
+  // the page names it above the list and offers the others to compare with instead (DL-118).
+  const { draft } = useDraft();
+  const subject = fundingSubject(draft, useListedDrafts());
+  const comparing = catalog.subjectKnown ? subjectLine(subject) : null;
+  const openInTab = useOpenDraft();
+  const social = useSocial();
+  const [changing, setChanging] = useState(false);
+  const [changeProblem, setChangeProblem] = useState("");
+  /** Compares the catalog with another of this browser's initiatives. A refusal leaves the page as it was. */
+  async function compareWith(id: string) {
+    if (changing) return;
+    setChanging(true);
+    setChangeProblem("");
+    try {
+      await openInTab(id);
+      social?.refresh();
+    } catch (error) {
+      setChangeProblem(error instanceof Error ? error.message : "That initiative did not open. Try again.");
+    } finally {
+      setChanging(false);
+    }
+  }
   const [filters, setFilters] = useState<Filters>(() => readFundingFilters(routeSearch()));
   const [limit, setLimit] = useState(BATCH),
     [retried, setRetried] = useState(false);
@@ -147,6 +176,34 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             reserve="From 000 funders. Sources last checked 00 November 0000."
             onClear={() => setFilters((current) => ({ ...emptyFundingFilters, sort: current.sort }))}
           />
+          {/* Which initiative the fit is for, said right above the cards it orders. With others in this
+              browser, the menu changes to one of them at once, and the details at the foot of the page follow. */}
+          {comparing && (
+            <StatusLine
+              actions={
+                subject.choices.length > 0 && (
+                  <RadioMenu
+                    label={subject.current ? "Change Initiative" : "Choose Initiative"}
+                    legend="Show what fits"
+                    size="sm"
+                    align="end"
+                    options={subject.choices.map((option) => ({ value: option.id, label: choiceLabel(option) }))}
+                    value={subject.current?.id}
+                    onChange={(id) => void compareWith(id)}
+                  />
+                )
+              }
+            >
+              {comparing.before}
+              {comparing.name && <strong>{comparing.name}</strong>}
+              {comparing.after}
+            </StatusLine>
+          )}
+          {changeProblem && (
+            <p className="rc-notice" data-tone="warning" role="alert">
+              {changeProblem}
+            </p>
+          )}
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
               Until the device draft opens its room is held, unseen, so the list does not move (DL-104). */}
           {!catalog.subjectKnown ? (

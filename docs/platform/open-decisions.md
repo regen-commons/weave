@@ -97,6 +97,26 @@ The setup follows the [Web Speech API](https://webaudio.github.io/web-speech-api
 
 No dependency, model hosting or CSP change is needed, because the browser fetches the pack, not the page. A real Chrome install on a computer or an Android phone, and speech quality, are not yet proven ([proof](prototype/proof/speech-setup/README.md)).
 
+The rule that there is no remote fallback changed on 19 November 2026 for browsers without speech on the device: see [Browser speech service, 19 November 2026](#browser-speech-service-19-november-2026).
+
+### Browser speech service, 19 November 2026
+
+On 19 November 2026 the owner decided that voice should work in as many browsers as possible, phones included, and approved a staged approach. It revises the on-device-only decision of 15 November for the fallback only. Speech on the device stays first wherever the browser has it, including the offer to set up the browser's own speech pack.
+
+1. **Speech on the device**, exactly as in [Browser speech packs](#browser-speech-packs-15-november-2026).
+2. **The browser's own speech service.** Where the browser has no speech on the device for the chosen language but does have speech recognition, Talk It Out uses the browser's ordinary recognizer. That recognizer may send the audio to the browser vendor's speech service: the [Web Speech API](https://webaudio.github.io/web-speech-api/) lets a browser process remotely unless `processLocally` is true, and asks that sessions start only with explicit, informed consent. Before the first use on a device, a notice says that the browser sends the person's voice to its own speech service, that Weave does not receive or keep the audio, and that typing always works. It names no company, because Weave cannot know which service a browser uses. Talking starts only after the person presses Agree And Talk It Out. The agreement is kept in this browser and withdrawn in Settings under Speech, which stops a session that is listening. The line beside Talk It Out says the browser's speech service is used before the agreement and again while it listens, and the language dialog names it; speech on the device says "Listening on this device" instead.
+3. **The keyboard's microphone key.** Where Weave can offer no talking on a touch screen, one line says that a keyboard with a microphone key can be used to talk into the box. The keyboard's dictation belongs to the phone, and its audio never passes through Weave. The line says "if", because the key can be turned off or missing.
+
+What the code holds to (`packages/app/src/describe/speech.ts`, `speech-setup.ts`, `speech-consent.ts`):
+
+- A session is one of two modes, `device` or `browser`, from start to end. A device session that fails is never continued through the browser's service, and a browser session never starts without the agreement.
+- Each way a browser session stops says only what the browser reported, in the status line under the box, and typing stays open: microphone refused (`not-allowed`), no microphone (`audio-capture`), no connection (`network`), a service that will not work here (`service-not-allowed`), a language it does not take (`language-not-supported`), no speech heard, and a recognizer that ended by itself after a pause. On a touch screen, a service that cannot be reached or will not work here also points to the keyboard's microphone key. Talk It Out keeps its place after every error, so the page does not move and pressing it again tries again. Chrome on Android ignores `continuous`, so a pause ends its sessions often; Weave keeps the words and does not restart listening by itself.
+- Weave records, stores and uploads no audio, downloads no model, and adds no dependency, CSP change or header. The browser, not the page, talks to its speech service.
+
+Still not approved: a speech model that Weave downloads (D32) and recording audio for transcription on a server (D35).
+
+Which browsers this reaches, from [MDN's compatibility data](https://github.com/mdn/browser-compat-data/blob/main/api/SpeechRecognition.json) and not yet checked on devices: Safari on macOS and iOS (`webkitSpeechRecognition` since 14.1, no on-device question), Chrome on Android and Samsung Internet (a recognizer without on-device recognition), Edge, which [sends the audio to a Microsoft service](https://learn.microsoft.com/en-us/legal/microsoft-edge/privacy), and Chrome on a computer for a language it has no speech pack for. Firefox on Android has no speech recognition and gets the keyboard line. Brave exposes a recognizer but has no speech service ([brave-browser#3725](https://github.com/brave/brave-browser/issues/3725)), so its session fails and says so. Proof and what remains for real devices: [browser speech proof](prototype/proof/browser-speech/README.md).
+
 ### Step 3 PDF deck parser proposal
 
 The prototype's attached PDF deck is shown as read on the device. The maker approved this parser in Step 3: add `pdfjs-dist@6.5.438` (Apache-2.0) to the app for text extraction only, using a same-origin Worker and disabling eval, font loading and WASM. Keep the existing CSP unchanged; request a separate, exact approval if verification shows any CSP delta is needed. Enforce the existing 25 MB file cap, cancel parsing with the build task, keep original bytes in the device draft and report scanned pages with no readable text. No remote PDF viewer, upload or OCR/model download is included. Office and OCR parsers remain separate dependency gates.
@@ -544,3 +564,119 @@ gate to public-source results. It changes the intended contract, not
 implementation status. Source permission, retrieval quality and privacy tests
 remain release gates. See [R16](04-prd.md) and the
 [external discovery contract](research/certified-hypercerts-2026-11-06/technical-spec.md#participation-privacy-and-contact).
+
+### Matching architecture answers, 19 November 2026
+
+The [matching architecture proposal](research/matching-architecture.md#decisions-for-the-owner-and-council)
+puts D27, D29, D32 and six new questions to the owner and council. The user
+answered all nine on 19 November 2026, and the answers are recorded here. Each
+records the user's answer. It is not a council decision, a catalog change, a
+specification change or approval to build, and the owners the tables above name
+have not confirmed it.
+
+**D29, team asks for a fund.** The user accepted the proposal's recommendation
+on 19 November 2026, in four parts:
+
+- **Source.** A steward enters each of a fund's team asks with the funder's
+  words, a source, a date, a role, a count and an optional condition on whoever
+  fills it.
+- **Where to start.** The 23 programs that appear to require more than one
+  organization, then the 32 that allow it.
+- **Scoring.** Coverage is shown as counted asks, such as "2 of 3 asks", never
+  as a score.
+- **Specification.** The union of places leaves spec 7.4, because place of work
+  is something a partner cannot change.
+
+What was known when answering: the counts of 23 and 32 come from one unreviewed
+reading of one line per program, so a steward checks them before any ask is
+entered; steward time per program is unmeasured; and a condition on an ask can
+be checked only once owners can share applicant facts and offers can carry a
+role, which are the proposal's first and second new questions, answered below.
+
+**D32, models for partner retrieval.** The user accepted the proposal's
+recommendation on 19 November 2026, in four parts:
+
+- **Benchmark.** Partner retrieval joins the model benchmark.
+- **Models.** Multilingual MiniLM-L12 and at least one alternative are tested on
+  a new holdout.
+- **Where it runs.** In server jobs first.
+- **The live site.** Its fund vectors stay as they are.
+
+What was known when answering: the proposal's figures (91% against 67% relevant
+among the top five, and Portuguese recall of 72% against 22% on 9 queries) come
+from the synthetic v3 holdout, which is agent-judged and had been examined, and
+the two best variants were added after the first scored run; on the real-project
+set `partner-real-v1` the current matcher scored 31% relevant among its top five,
+and the multilingual model has not been run there; each multilingual model is
+about 135 MB against 25 MB for the English one, and size, cold start and speed on
+the host or in a browser are unmeasured; and the licences of the two converted
+model repositories are unverified. The answer commits to testing. It approves no
+model dependency, hosting or CSP change, as the D32 row says.
+
+**D27, counts for private viewers on the team view.** On 19 November 2026 the
+user confirmed both parts the proposal asks:
+
+- **Counts only.** On the team view, as elsewhere, a viewer who has shared
+  nothing sees how many initiatives could cover a fund's asks, with no names or
+  reasons.
+- **Small counts.** Below a set count a private viewer sees "some", not an exact
+  number. This is also the fourth of the proposal's new questions. No threshold
+  was set.
+
+What was known when answering: the prototype keeps to counts only by computing
+the full result and then hiding the names; computing a private viewer's counts on
+the device, without sending their gaps to a server, is a design that is not
+built; and in a small network a count of one can point at a single initiative.
+D27 is the council's question, so its row stays open.
+
+**Sharing three applicant facts, the proposal's first new question.** On
+19 November 2026 the user answered "not yet". Applicant type, base country and
+registration country stay on the person's device, where the funding form already
+uses them, and are not shared for matching. A fund's team asks are shown in the
+funder's own words, conditions included, for people to judge for themselves.
+Weave does not check a condition against another initiative's facts.
+
+The reasons put to the user: the shared facts serve only the team view. About
+23 programs appear to require a team and 32 to allow one, by one unreviewed
+reading, and few shared entries are expected at launch. Partner matching
+improves through D32, from text people have already written. If teams prove
+useful, sharing can come back as one optional choice when an owner shares an
+initiative, reusing answers already given. The D29 answer stands: a steward
+still records each ask with its condition, and people read the condition.
+
+**A role on an offer, and suggesting that another initiative applies, the
+proposal's second and third new questions.** On 19 November 2026 the user
+answered "not yet" to both. An offer carries no role field such as lead
+applicant, co-applicant, fiscal host or local partner, and Weave does not suggest
+that another initiative becomes the applicant. Both serve only the team view and
+lean on the shared facts set aside above. A person can already say in an offer's
+own words that they can lead an application or act as a fiscal host, and people
+reading a fund's ask can agree between themselves who applies.
+
+**Asking about money once, the proposal's fifth new question.** On
+19 November 2026 the user accepted it. The funding form loses "Funding goal
+from", "Funding goal up to" and "Goal currency". The amount and currency come
+from a financial need, and what the money is for joins the text the fund search
+reads. An initiative with no financial need still sees funds ranked from its
+description and themes, with one line inviting it to add one. The
+recommendation the user accepted carried two conditions: goal values already
+saved in drafts are carried over, and the funding ranking itself stays as it is.
+It was not put as urgent.
+
+What was known when answering: this makes the form shorter and is not shown to
+improve results. In the one test, using the need changed 3 of the top 10
+programs, and there is no labelled funding set to say whether that was better.
+The amount can be compared for 54 of 730 programs and a closing date for 29.
+
+**A recall floor for partner matching, the proposal's sixth new question.** On
+19 November 2026 the user accepted it. Partner matching is held to a floor on
+recall, the share of fitting projects it finds, beside the 80% relevance target
+in the [technical spec](05-technical-spec.md#quality-and-performance-proof),
+which already asks for a floor to be agreed from the labelled corpus before
+tuning. No number is set. It is set once two human reviewers have judged the
+`partner-real-v1` worksheet, and nothing is tuned against that set before then.
+
+What was known when answering: on `partner-real-v1`, judged by agents, the
+current matcher found 31% of fitting projects and showed nothing for 42 of 135
+needs and offers that had one, against 41% and 10 for the keyword baseline. The
+two agents left about as many pairs unresolved as they agreed were relevant.

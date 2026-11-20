@@ -255,10 +255,151 @@ bun run --filter @weave/app eval:flows
 bun run --filter @weave/app eval:flows -- --require-all
 ```
 
+## Matching architecture experiment, 19 November 2026
+
+[`experiments/matching-architecture/`](experiments/matching-architecture/README.md)
+compares the current matcher with embedding-based variants on the fixtures above and
+prototypes gap-driven teams. It is offline, nothing imports it, and `bun run --filter
+@weave/api test` does not run it. Its v3 numbers are directional, because that
+holdout had been examined; see its [dated report](experiments/matching-architecture/reports/2026-11-19.md).
+
+## Real public projects (partner-real-v1), 19 November 2026
+
+This is the first partner-matching evaluation on real text. It follows steps 1 to 4
+below as far as agents can take them. **Human review, the real gate, has not
+happened yet**, so every number here is a provisional agent-judged baseline.
+
+### What was built
+
+- **Corpus.** `partner-real-v1-corpus.json` holds 140 projects read from
+  `GET https://weave.regencommons.com/api/public-projects` on 19 November 2026
+  (index status `bounded`, 1,006 projects listed). Each keeps its URI, name, the up
+  to two passages the list shows, shared date, Weave's check date, our collection
+  date and source link, and nothing else. The list does not show CIDs.
+  `scripts/partner-real-corpus.mjs` applied fixed rules and left out 28 projects:
+  15 QA or test listings ("QA Test Project A", "Test project", "Testing" and
+  similar), 10 whose passages were Lorem Ipsum or the form's own prompt, and 3 with
+  contact handles. It kept every remaining non-English project and drew English ones
+  by theme keyword (art 30, software 30, research 30, place 40; art had only 19),
+  ordered by a salted SHA-256 of the URI. Passage language by stopwords: 119
+  English, 13 Spanish, 5 French, 1 Portuguese, 2 other. Rerunning the script on
+  saved pages reproduces the corpus; the raw pages are not committed.
+- **Queries.** `partner-real-v1-queries.json` has 160 queries: 20 needs and 20
+  offers in each of art, software, research and place. By type: 64 literal, 32
+  paraphrase, 24 sparse (a few words, no description), 16 cross-language, 16 hard
+  negatives and 8 with no fitting project. 22 are in Portuguese and 27 in Spanish.
+  Four agent instances wrote them, one per domain. Each read only the corpus and its
+  brief, never the matcher, `partner-concepts.ts` or earlier fixtures.
+- **Agent labels.** `partner-real-v1-agent-labels.json` keeps the author's labels
+  and, separately, those of a second agent instance per domain. That judge read each
+  query's title and description against the whole corpus, without the author's
+  labels or the query types. A pair counts as relevant only when both say so and as
+  irrelevant only when both say not. Anything else is unresolved: left out of
+  precision and reported beside it. Of 22,400 pairs, 276 are relevant, 21,853
+  irrelevant and 271 unresolved. The agents agreed exactly, with no doubt, on 51 of
+  160 queries.
+- **Blind worksheet.** `partner-real-v1-worksheet.jsonl` has 1,528 pairs for two
+  human reviewers. Each pair shows only the direction, the query's title and
+  description, and the project's name and passages, under a random ID. Engine
+  rankings, query types and labels are left out. Each query's pairs pool every
+  project either agent labelled relevant, doubtful or a decoy, both engines' top
+  five and two seeded controls. `partner-real-v1-worksheet-key.jsonl` joins pair
+  IDs back to queries and projects. Reviewers fill in `judgment` (`relevant`,
+  `irrelevant` or `uncertain`), `rationale` and `reviewer`.
+- **Freeze.** `partner-real-v1.sha256` fixed all five files before the first scored
+  run. The runner refuses to score if any of them changes.
+  `partner-real.test.mjs` runs in CI and checks the freeze, the quotas, the
+  exclusions, label validation and that no worksheet row leaks an ID or label. It
+  never scores the matcher.
+
+```sh
+bun run --filter @weave/api eval:matching-real -- --output /private/tmp/weave-real.json
+bun run --filter @weave/api eval:matching-real -- --human reviewer-a.jsonl reviewer-b.jsonl --output /private/tmp/weave-real-human.json
+```
+
+The second command scores the same way from two completed worksheets. It rejects
+incomplete sheets, repeated rows, unknown judgments and a single reviewer under two
+names, and it reports agreement counts.
+
+### Results, agent-judged
+
+The [first scored run](reports/2026-11-19-partner-real-v1-agent.json) gives both
+engines every corpus passage. Precision is the spec's: relevant suggestions among
+the top five, counted over suggestions with a resolved label, on the 135 queries
+with at least one agreed fitting project. The intervals are 95% Wilson intervals
+that treat suggestions as independent, so they are narrower than they should be.
+
+| 135 positive and 8 no-match queries | Lexical baseline | Current matcher |
+|---|---:|---:|
+| Relevant among top-five suggestions | 19% (103 of 552; 16 to 22%) | 31% (75 of 241; 26 to 37%) |
+| Relevant among top-three, what the app shows | 26% | 38% |
+| Final recall at five | 41% | 31% |
+| Queries shown at least one fitting project | 72 (53%) | 57 (42%) |
+| Positive queries with no suggestion | 10 | 42 |
+| No-match queries with a suggestion | 7 of 8 | 2 of 8 |
+| Author's decoy projects suggested | 18 | 6 |
+| Unsupported confirmations, explanation or provenance failures | 0 | 0 |
+
+The table leaves out 17 queries that have no agreed fitting project and at least
+one unresolved pair: 11 hard negatives, 3 written to have no fitting project, 2
+sparse and 1 cross-language. The baseline made 72 suggestions for 16 of them and
+the current matcher 20 for 9, and none of those count in any row. The 8 no-match
+queries are the ones both agents agree nothing fits: 5 of the 8 written that way
+and 3 hard negatives. Of the 8 written to have no fitting project, the baseline
+answered 7 and the current matcher 3.
+
+Every domain and direction fails the 80% gate, with 23 to 40 resolved suggestions
+each. Research offers come closest at 56%; the rest range from 22% (art offers) to
+35% (place needs). Offers do worse than needs on recall (18% against 44%).
+Portuguese queries reach 14% precision on seven suggestions and 5% recall. No
+cross-language query gets a relevant suggestion. Paraphrases reach 17% precision
+and 20% recall, literal queries 35% and 49%. Sparse queries are precise when
+answered (60%) but 14 of 22 get nothing. Token-overlap retrieval reaches 57% of
+relevant projects, so lexical retrieval alone cannot find the other 43%.
+
+The matcher has 12 points more precision than the frozen baseline and far fewer
+false alarms, but at its current threshold it shows fewer fitting projects. On this
+evidence it is not yet good enough to rely on. About two in three suggestions it
+shows were not judged a fit, and it finds something useful for well under half of
+the needs and offers that have a fitting project.
+
+The matching-architecture experiment's retrieval options were then run once on this
+set, untuned: see [their report](experiments/matching-architecture/reports/2026-11-19-partner-real-v1.md).
+
+### What this does not establish
+
+- It is not human judgment. The agents disagreed on almost as many pairs (271) as
+  they agreed were relevant (276). Human reviewers may well draw the line elsewhere.
+- The author's doubt is free text, and the runner reads every project ID it mentions
+  as doubted, including one named only for comparison (`rp-060` in `rq-art-n06`).
+  Across 28 queries that leaves 40 pairs the author called relevant unresolved, and
+  the judge also called 11 of them relevant. The labels are frozen, so this stands
+  until the human run replaces them.
+- The corpus holds only what the public list shows: at most two passages of 600
+  characters, often a heading and a subtitle. The production index can hold more
+  passages per project, so the matcher may do better there.
+- All candidates are public work. Shared needs and offers, the 80-project device
+  snapshot and PostgreSQL ranking are not exercised. Retrieval is a token-overlap
+  upper bound.
+- The listing is mostly English land and ecology work. Only one sampled project is
+  in Portuguese, and art and software projects are few, so those groups rest on a
+  handful of projects.
+- Its results have now been seen. A rerun after any matcher change is regression
+  evidence on an examined set, not a new independent result. Do not tune against it.
+
+### Still to do
+
+Two domain reviewers complete the worksheet independently, then the `--human` run
+replaces these numbers. Publish their agreement and adjudication counts, keep
+unresolved pairs separate, and agree a recall floor before any tuning that uses a
+new development split.
+
 ## Independent quality evaluation still required
 
 The [technical spec's quality criteria](../../../docs/platform/05-technical-spec.md#quality-and-performance-proof)
-remain open. Before making a release-quality claim:
+remain open. `partner-real-v1` above covers steps 1 and 4 and prepares steps 2 and
+3; the human judgments in step 2 are still outstanding. Before making a
+release-quality claim:
 
 1. Collect permitted real Certified passages, sparse profiles, unfamiliar wording,
    language variation, hard negatives and queries with no relevant project. Preserve

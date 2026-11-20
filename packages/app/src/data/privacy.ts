@@ -10,6 +10,9 @@
  * - Team workspaces, sharing for matching and publishing are separate choices with their own
  *   readers (`src/social/LiveExposure.tsx`).
  * - No words go to a cloud model, and the app loads no analytics (`vercel.json`, `src/describe`).
+ * - Weave never receives audio. Talking uses speech on the device where the browser has it; elsewhere
+ *   the browser's own speech service, only after the person agrees (`src/describe/speech.ts`,
+ *   `src/describe/speech-consent.ts`). That service is the browser's, and it may send the audio away.
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
@@ -29,7 +32,10 @@ export const STORAGE_SUMMARY: readonly Term[] = [
     "Sharing and publishing",
     "Nothing is shared until you choose it, and you see what leaves first. Sharing for matching reaches signed-in people whose entries fit yours. Publishing on Certified is public.",
   ],
-  ["The assistant", "It reads your words on this device. Nothing is sent to a cloud model."],
+  [
+    "Talking and the assistant",
+    "Weave never receives your voice. If this device cannot turn speech into text, your browser's speech service does, only after you agree. The assistant reads words on this device, not in a cloud model.",
+  ],
   [
     "Leaving",
     "Signing out keeps what is on this device. You can download it and delete backups in Settings, and delete a saved card in Your Initiatives. Deleting a whole account is not available yet.",
@@ -64,6 +70,14 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
       "Each of these is its own choice, and each shows what leaves before you confirm.",
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
       "Opening or linking your Certified projects needs a separate permission. With it, Weave reads your Certified projects and the groups you belong to.",
+    ],
+  },
+  {
+    title: "Talking",
+    body: [
+      "Weave does not record, keep or send your voice. When you talk, your browser turns it into text and gives Weave only the words.",
+      "Where your browser can do that on this device, the audio stays here. Where it cannot, your browser can send your voice to its own speech service instead. Weave asks before the first time, and you can turn it off in Settings. That service belongs to your browser, so its own terms apply.",
+      "On a phone, your keyboard's microphone key is part of the phone, not Weave.",
     ],
   },
   {

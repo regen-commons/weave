@@ -81,6 +81,16 @@ The tests check that generated files are current, the linter is clean, website v
 
 ### Unreleased, preview design review
 
+- Modify Icon button and remove the candidate Account button (DL-116). The header's Account
+  button is now an outlined Icon button, the same drawing as the theme switch beside it and
+  Sign in in its place: one line, one corner, one height. An outlined Icon button draws its
+  glyph at the large size and keeps its pressed look while its menu is open
+  (`aria-expanded`). `rc-account` is gone.
+- Modify Filter bar (DL-117). On a phone Filters and Sort fill their row from edge to edge.
+- Add a use of Status line (DL-118). On Funding it names the initiative the fit is for, above
+  the cards, with a Menu of one choice to change to another of this browser's initiatives.
+  The funding example page shows it.
+
 - Add Back link, Dialog's detail presentation with the `./sheet` behaviour, Section
   note and the Your initiatives example page. Status line loses its icon and appears
   in Settings.

@@ -1,0 +1,983 @@
+{
+  "reportDate": "2026-11-19",
+  "now": "2026-11-19T12:00:00.000Z",
+  "status": "prototype on fictional initiatives and real catalog programs; mechanics, not measured quality",
+  "forward": [
+    {
+      "id": "full-cover",
+      "title": "A team of two covers both open asks",
+      "expect": "team_suggested",
+      "result": {
+        "program": {
+          "key": "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+          "name": "Climate Smart Communities Initiative2027",
+          "funder": "Climate Resilience Fund"
+        },
+        "subject": "riverbend",
+        "fit": {
+          "band": "relevant",
+          "label": "Relevant themes",
+          "sharedTerms": [
+            "wildfire",
+            "adaptation",
+            "resilience",
+            "climate"
+          ]
+        },
+        "readiness": "Open route; verify eligibility",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:local-government",
+              "text": "A local government partner for the community resilience project",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": {
+                "field": "applicantType",
+                "values": [
+                  "public-body"
+                ]
+              }
+            },
+            {
+              "type": "team_ask",
+              "id": "ask:adaptation-practitioner",
+              "text": "A climate adaptation practitioner who applies as the lead and administers the award",
+              "role": "lead_applicant",
+              "count": 1,
+              "requires": null
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": {
+          "lead": "cascadia-practice",
+          "leadIsYou": false,
+          "host": null,
+          "covered": 2,
+          "total": 2,
+          "members": [
+            {
+              "id": "cascadia-practice",
+              "name": "Cascadia Adaptation Practice",
+              "sharedFacts": {
+                "applicantType": "nonprofit",
+                "applicantBaseCountry": "US",
+                "registrationCountry": "US"
+              },
+              "covers": [
+                {
+                  "gap": "ask:adaptation-practitioner",
+                  "ask": "A climate adaptation practitioner who applies as the lead and administers the award",
+                  "entryId": "o1",
+                  "title": "Climate adaptation practitioner for community grant applications",
+                  "passage": "Climate adaptation practitioner for community grant applications. We are an experienced adaptation practitioner. We can apply as the lead with a community group, write the adaptation plan and administer the award.",
+                  "confirmedAt": "2026-11-08T00:00:00Z",
+                  "reasons": [
+                    {
+                      "type": "shared_terms",
+                      "terms": [
+                        "climate",
+                        "adaptation",
+                        "practitioner",
+                        "lead",
+                        "award"
+                      ]
+                    }
+                  ],
+                  "unknowns": [
+                    "terms",
+                    "timing",
+                    "capacity"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "millcreek-county",
+              "name": "Mill Creek County Resilience Office",
+              "sharedFacts": {
+                "applicantType": "public-body",
+                "applicantBaseCountry": "US"
+              },
+              "covers": [
+                {
+                  "gap": "ask:local-government",
+                  "ask": "A local government partner for the community resilience project",
+                  "entryId": "o1",
+                  "title": "Local government partner for community resilience projects",
+                  "passage": "Local government partner for community resilience projects. Our county office can join community-led wildfire and climate resilience proposals as the local government partner.",
+                  "confirmedAt": "2026-11-12T00:00:00Z",
+                  "reasons": [
+                    {
+                      "type": "shared_terms",
+                      "terms": [
+                        "government",
+                        "partner",
+                        "community",
+                        "resilience"
+                      ]
+                    }
+                  ],
+                  "unknowns": [
+                    "terms",
+                    "timing",
+                    "capacity"
+                  ]
+                }
+              ]
+            }
+          ],
+          "stillOpen": [],
+          "toConfirmWithPartners": []
+        },
+        "leadsToCheck": [
+          {
+            "ask": "ask:local-government",
+            "name": "Public project A",
+            "evidenceKind": "inferred_capability",
+            "passage": "Our county fire council is a local government partner on community wildfire and resilience planning projects across three valleys.",
+            "unknowns": [
+              "terms",
+              "timing",
+              "capacity",
+              "audience",
+              "availability"
+            ]
+          }
+        ],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "team_suggested",
+        "reason": "Cascadia Adaptation Practice would be the applicant and you would join as a partner. That changes who the funder assesses."
+      }
+    },
+    {
+      "id": "private-viewer",
+      "title": "The same result for a person who has shared nothing: counts, no names",
+      "expect": "team_suggested",
+      "result": {
+        "program": {
+          "key": "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+          "name": "Climate Smart Communities Initiative2027",
+          "funder": "Climate Resilience Fund"
+        },
+        "subject": "riverbend",
+        "fit": {
+          "band": "relevant",
+          "label": "Relevant themes",
+          "sharedTerms": [
+            "wildfire",
+            "adaptation",
+            "resilience",
+            "climate"
+          ]
+        },
+        "readiness": "Open route; verify eligibility",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:local-government",
+              "text": "A local government partner for the community resilience project",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": {
+                "field": "applicantType",
+                "values": [
+                  "public-body"
+                ]
+              }
+            },
+            {
+              "type": "team_ask",
+              "id": "ask:adaptation-practitioner",
+              "text": "A climate adaptation practitioner who applies as the lead and administers the award",
+              "role": "lead_applicant",
+              "count": 1,
+              "requires": null
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": {
+          "namesHidden": true,
+          "partners": 2,
+          "covered": 2,
+          "total": 2,
+          "leadIsYou": false
+        },
+        "leadsToCheck": 1,
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "team_suggested",
+        "reason": "Share an entry to see who could join."
+      }
+    },
+    {
+      "id": "partial-public-lead",
+      "title": "No shared local government: one ask stays open and the public project is a lead, not a cover",
+      "expect": "team_suggested",
+      "result": {
+        "program": {
+          "key": "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+          "name": "Climate Smart Communities Initiative2027",
+          "funder": "Climate Resilience Fund"
+        },
+        "subject": "riverbend",
+        "fit": {
+          "band": "relevant",
+          "label": "Relevant themes",
+          "sharedTerms": [
+            "wildfire",
+            "adaptation",
+            "resilience",
+            "climate"
+          ]
+        },
+        "readiness": "Open route; verify eligibility",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:local-government",
+              "text": "A local government partner for the community resilience project",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": {
+                "field": "applicantType",
+                "values": [
+                  "public-body"
+                ]
+              }
+            },
+            {
+              "type": "team_ask",
+              "id": "ask:adaptation-practitioner",
+              "text": "A climate adaptation practitioner who applies as the lead and administers the award",
+              "role": "lead_applicant",
+              "count": 1,
+              "requires": null
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": {
+          "lead": "cascadia-practice",
+          "leadIsYou": false,
+          "host": null,
+          "covered": 1,
+          "total": 2,
+          "members": [
+            {
+              "id": "cascadia-practice",
+              "name": "Cascadia Adaptation Practice",
+              "sharedFacts": {
+                "applicantType": "nonprofit",
+                "applicantBaseCountry": "US",
+                "registrationCountry": "US"
+              },
+              "covers": [
+                {
+                  "gap": "ask:adaptation-practitioner",
+                  "ask": "A climate adaptation practitioner who applies as the lead and administers the award",
+                  "entryId": "o1",
+                  "title": "Climate adaptation practitioner for community grant applications",
+                  "passage": "Climate adaptation practitioner for community grant applications. We are an experienced adaptation practitioner. We can apply as the lead with a community group, write the adaptation plan and administer the award.",
+                  "confirmedAt": "2026-11-08T00:00:00Z",
+                  "reasons": [
+                    {
+                      "type": "shared_terms",
+                      "terms": [
+                        "climate",
+                        "adaptation",
+                        "practitioner",
+                        "lead",
+                        "award"
+                      ]
+                    }
+                  ],
+                  "unknowns": [
+                    "terms",
+                    "timing",
+                    "capacity"
+                  ]
+                }
+              ]
+            }
+          ],
+          "stillOpen": [
+            {
+              "id": "ask:local-government",
+              "text": "A local government partner for the community resilience project",
+              "open": 1
+            }
+          ],
+          "toConfirmWithPartners": []
+        },
+        "leadsToCheck": [
+          {
+            "ask": "ask:local-government",
+            "name": "Public project A",
+            "evidenceKind": "inferred_capability",
+            "passage": "Our county fire council is a local government partner on community wildfire and resilience planning projects across three valleys.",
+            "unknowns": [
+              "terms",
+              "timing",
+              "capacity",
+              "audience",
+              "availability"
+            ]
+          }
+        ],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "team_suggested",
+        "reason": "Cascadia Adaptation Practice would be the applicant and you would join as a partner. That changes who the funder assesses."
+      }
+    },
+    {
+      "id": "requested-from-fund",
+      "title": "Opened from the fund's page: a sourced partner condition, fit not assessed",
+      "expect": "team_suggested",
+      "result": {
+        "program": {
+          "key": "recdLQ4guN000D7Oh::dutch-philanthropic-partnership-support",
+          "name": "Dutch philanthropic partnership support",
+          "funder": "Wilde Ganzen Foundation"
+        },
+        "subject": "kijani",
+        "fit": {
+          "band": "unknown",
+          "label": "Fit not assessed",
+          "sharedTerms": []
+        },
+        "readiness": "Confirm 2 requirements",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:dutch-partner",
+              "text": "A Dutch partner organization that submits the proposal jointly and raises funds in the Netherlands",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": {
+                "field": "applicantBaseCountry",
+                "values": [
+                  "NL"
+                ]
+              }
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": [
+            {
+              "text": "Proposal is submitted jointly by an ODA-eligible-country organization and a Dutch partner.",
+              "category": "partner",
+              "sourceUrl": "https://www.wildeganzen.nl/over-ons/english",
+              "checkedOn": "2026-10-16"
+            },
+            {
+              "text": "Local organization owns the project; Dutch partner raises funds in the Netherlands.",
+              "category": "partner",
+              "sourceUrl": "https://www.wildeganzen.nl/over-ons/english",
+              "checkedOn": "2026-10-16"
+            }
+          ]
+        },
+        "team": {
+          "lead": "kijani",
+          "leadIsYou": true,
+          "host": null,
+          "covered": 1,
+          "total": 1,
+          "members": [
+            {
+              "id": "open-delta",
+              "name": "Stichting Open Delta",
+              "sharedFacts": {
+                "applicantType": "nonprofit",
+                "applicantBaseCountry": "NL",
+                "registrationCountry": "NL"
+              },
+              "covers": [
+                {
+                  "gap": "ask:dutch-partner",
+                  "ask": "A Dutch partner organization that submits the proposal jointly and raises funds in the Netherlands",
+                  "entryId": "o1",
+                  "title": "Dutch partner organization for joint proposals",
+                  "passage": "Dutch partner organization for joint proposals. We can submit a proposal jointly as the Dutch partner and raise funds in the Netherlands for a project the local organization owns.",
+                  "confirmedAt": "2026-11-11T00:00:00Z",
+                  "reasons": [
+                    {
+                      "type": "shared_terms",
+                      "terms": [
+                        "dutch",
+                        "partner",
+                        "organization",
+                        "proposal",
+                        "jointly",
+                        "funds"
+                      ]
+                    }
+                  ],
+                  "unknowns": [
+                    "terms",
+                    "timing",
+                    "capacity"
+                  ]
+                }
+              ]
+            }
+          ],
+          "stillOpen": [],
+          "toConfirmWithPartners": []
+        },
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "team_suggested",
+        "reason": "You would apply; these initiatives could cover what the program asks of a team."
+      }
+    },
+    {
+      "id": "not-requested-weak-fit",
+      "title": "The same program without being asked: nothing, because the fit is not established",
+      "expect": "nothing_to_suggest",
+      "result": {
+        "program": {
+          "key": "recdLQ4guN000D7Oh::dutch-philanthropic-partnership-support",
+          "name": "Dutch philanthropic partnership support",
+          "funder": "Wilde Ganzen Foundation"
+        },
+        "subject": "kijani",
+        "fit": {
+          "band": "unknown",
+          "label": "Fit not assessed",
+          "sharedTerms": []
+        },
+        "readiness": "Confirm 2 requirements",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:dutch-partner",
+              "text": "A Dutch partner organization that submits the proposal jointly and raises funds in the Netherlands",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": {
+                "field": "applicantBaseCountry",
+                "values": [
+                  "NL"
+                ]
+              }
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": [
+            {
+              "text": "Proposal is submitted jointly by an ODA-eligible-country organization and a Dutch partner.",
+              "category": "partner",
+              "sourceUrl": "https://www.wildeganzen.nl/over-ons/english",
+              "checkedOn": "2026-10-16"
+            },
+            {
+              "text": "Local organization owns the project; Dutch partner raises funds in the Netherlands.",
+              "category": "partner",
+              "sourceUrl": "https://www.wildeganzen.nl/over-ons/english",
+              "checkedOn": "2026-10-16"
+            }
+          ]
+        },
+        "team": null,
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "nothing_to_suggest",
+        "reason": "The program is not a clear enough fit for your work to suggest a team around it."
+      }
+    },
+    {
+      "id": "wrong-country-of-work",
+      "title": "Work is in Kenya, the program funds work in the United States: a partner cannot change that",
+      "expect": "nothing_to_suggest",
+      "result": {
+        "program": {
+          "key": "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+          "name": "Climate Smart Communities Initiative2027",
+          "funder": "Climate Resilience Fund"
+        },
+        "subject": "kijani",
+        "fit": {
+          "band": "limited",
+          "label": "Limited thematic overlap",
+          "sharedTerms": []
+        },
+        "readiness": "Known eligibility conflict",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:community-organization",
+              "text": "A community organization in the United States as a project partner",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": null
+            },
+            {
+              "type": "team_ask",
+              "id": "ask:local-government",
+              "text": "A local government partner for the community resilience project",
+              "role": "co_applicant",
+              "count": 1,
+              "requires": {
+                "field": "applicantType",
+                "values": [
+                  "public-body"
+                ]
+              }
+            },
+            {
+              "type": "team_ask",
+              "id": "ask:adaptation-practitioner",
+              "text": "A climate adaptation practitioner who applies as the lead and administers the award",
+              "role": "lead_applicant",
+              "count": 1,
+              "requires": null
+            }
+          ],
+          "blockers": [
+            {
+              "type": "fact_conflict",
+              "id": "fact:workCountries",
+              "field": "workCountries",
+              "operator": "only",
+              "values": [
+                "US",
+                "PR",
+                "VI",
+                "GU",
+                "MP",
+                "AS"
+              ],
+              "text": "The2027 CSCI call exhaustively limits projects and partners to US states, DC and the named US territories.",
+              "sourceUrl": "https://climatesmartcommunity.org/Funding/",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": null,
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "nothing_to_suggest",
+        "reason": "A partner cannot change this: The2027 CSCI call exhaustively limits projects and partners to US states, DC and the named US territories."
+      }
+    },
+    {
+      "id": "applicant-based-elsewhere",
+      "title": "Applicant must be based in Fiji and nobody shared there offers to lead: nothing",
+      "expect": "nothing_to_suggest",
+      "result": {
+        "program": {
+          "key": "recOUk0NdykPghost::wff-sustainability-2026",
+          "name": "Sustainability Grants — 2026 cycle",
+          "funder": "Women’s Fund Fiji"
+        },
+        "subject": "riverbend",
+        "fit": {
+          "band": "partial",
+          "label": "Partial thematic overlap",
+          "sharedTerms": [
+            "rural",
+            "climate"
+          ]
+        },
+        "readiness": "Known eligibility conflict",
+        "gaps": {
+          "closable": [
+            {
+              "type": "fact_conflict",
+              "id": "fact:applicantBaseCountry",
+              "field": "applicantBaseCountry",
+              "operator": "only",
+              "values": [
+                "FJ"
+              ],
+              "text": "Applicants must be women’s organizations, groups or collectives based in Fiji. Leadership, mission and call-specific conditions still require review.",
+              "sourceUrl": "https://womensfundfiji.org/grants/frequently-asked-questions/",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": null,
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "nothing_to_suggest",
+        "reason": "No shared entry closes any of these gaps yet."
+      }
+    },
+    {
+      "id": "individuals-only",
+      "title": "A scholarship for individuals: no partner is willing to be that applicant",
+      "expect": "nothing_to_suggest",
+      "result": {
+        "program": {
+          "key": "recJnEGA1LiDXHdOp::benito-mass-scholarships-2026",
+          "name": "Benito Massó Scholarships — 2026",
+          "funder": "Community Foundation of Puerto Rico"
+        },
+        "subject": "riverbend",
+        "fit": {
+          "band": "limited",
+          "label": "Limited thematic overlap",
+          "sharedTerms": []
+        },
+        "readiness": "Known eligibility conflict",
+        "gaps": {
+          "closable": [
+            {
+              "type": "fact_conflict",
+              "id": "fact:applicantType",
+              "field": "applicantType",
+              "operator": "only",
+              "values": [
+                "individual"
+              ],
+              "text": "The Benito Massó 2026 call is a scholarship for qualifying students, not an organizational project grant. Afrodescendant identity, Puerto Rico residency, study, progress and financial-need checks remain manual.",
+              "sourceUrl": "https://www.fcpr.org/becabenitomasso/",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": null,
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "nothing_to_suggest",
+        "reason": "No shared entry closes any of these gaps yet."
+      }
+    },
+    {
+      "id": "one-of-two-partners",
+      "title": "Two third-sector partners asked for, one shared: partial cover when requested",
+      "expect": "team_suggested",
+      "result": {
+        "program": {
+          "key": "recSZN9ckNi2cuE1y::beni-confiscati-alle-mafie-2026-initiative",
+          "name": "Beni confiscati alle mafie — 2026 initiative",
+          "funder": "Fondazione Con Il Sud"
+        },
+        "subject": "kijani",
+        "fit": {
+          "band": "limited",
+          "label": "Limited thematic overlap",
+          "sharedTerms": []
+        },
+        "readiness": "Check geographic scope",
+        "gaps": {
+          "closable": [
+            {
+              "type": "team_ask",
+              "id": "ask:third-sector-partners",
+              "text": "Third-sector organizations that join the partnership for social reuse of a community building",
+              "role": "co_applicant",
+              "count": 2,
+              "requires": {
+                "field": "applicantType",
+                "values": [
+                  "nonprofit"
+                ]
+              }
+            }
+          ],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": {
+          "lead": "kijani",
+          "leadIsYou": true,
+          "host": null,
+          "covered": 1,
+          "total": 2,
+          "members": [
+            {
+              "id": "terra-aperta",
+              "name": "Cooperativa Terra Aperta",
+              "sharedFacts": {
+                "applicantType": "nonprofit",
+                "applicantBaseCountry": "IT",
+                "registrationCountry": "IT"
+              },
+              "covers": [
+                {
+                  "gap": "ask:third-sector-partners",
+                  "ask": "Third-sector organizations that join the partnership for social reuse of a community building",
+                  "entryId": "o1",
+                  "title": "Third-sector partner for social reuse of community buildings",
+                  "passage": "Third-sector partner for social reuse of community buildings. Our cooperative can join partnerships as a third-sector organization and manage the reuse of a building for community benefit.",
+                  "confirmedAt": "2026-11-05T00:00:00Z",
+                  "reasons": [
+                    {
+                      "type": "shared_terms",
+                      "terms": [
+                        "third",
+                        "sector",
+                        "social",
+                        "reuse",
+                        "community",
+                        "join"
+                      ]
+                    }
+                  ],
+                  "unknowns": [
+                    "terms",
+                    "timing",
+                    "capacity"
+                  ]
+                }
+              ]
+            }
+          ],
+          "stillOpen": [
+            {
+              "id": "ask:third-sector-partners",
+              "text": "Third-sector organizations that join the partnership for social reuse of a community building",
+              "open": 1
+            }
+          ],
+          "toConfirmWithPartners": []
+        },
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "team_suggested",
+        "reason": "You would apply; these initiatives could cover what the program asks of a team."
+      }
+    },
+    {
+      "id": "no-gap",
+      "title": "No sourced gap for this applicant: no team needed",
+      "expect": "no_team_needed",
+      "result": {
+        "program": {
+          "key": "recNlZ47PGyebvRdD::lottery-awards-all-england",
+          "name": "National Lottery Awards for All England",
+          "funder": "The National Lottery Community Fund (UK)"
+        },
+        "subject": "local-charity",
+        "fit": {
+          "band": "partial",
+          "label": "Partial thematic overlap",
+          "sharedTerms": [
+            "spaces",
+            "wellbeing"
+          ]
+        },
+        "readiness": "Open route; verify eligibility",
+        "gaps": {
+          "closable": [],
+          "blockers": [],
+          "answerFirst": [],
+          "confirm": []
+        },
+        "team": null,
+        "leadsToCheck": [],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it.",
+        "status": "no_team_needed",
+        "reason": "Nothing found that a partner would need to cover."
+      }
+    }
+  ],
+  "keywordOnlyCovers": [
+    {
+      "id": "partial-public-lead",
+      "withConditions": "Cascadia Adaptation Practice",
+      "keywordOnly": "Cascadia Adaptation Practice + Cooperativa Terra Aperta",
+      "differs": true
+    },
+    {
+      "id": "one-of-two-partners",
+      "withConditions": "Cooperativa Terra Aperta",
+      "keywordOnly": "Cooperativa Terra Aperta + Mill Creek County Resilience Office",
+      "differs": true
+    },
+    {
+      "id": "full-cover",
+      "withConditions": "Cascadia Adaptation Practice + Mill Creek County Resilience Office",
+      "keywordOnly": "Cascadia Adaptation Practice + Mill Creek County Resilience Office",
+      "differs": false
+    },
+    {
+      "id": "requested-from-fund",
+      "withConditions": "Stichting Open Delta",
+      "keywordOnly": "Stichting Open Delta",
+      "differs": false
+    }
+  ],
+  "reverse": [
+    {
+      "id": "pair-with-fit",
+      "title": "Two initiatives with a confirmed fit: programs that suit the pair",
+      "expect": "funds_suggested",
+      "result": {
+        "status": "funds_suggested",
+        "reason": null,
+        "pairFit": [
+          {
+            "query": "need:n1",
+            "with": "o1",
+            "reasons": [
+              {
+                "type": "shared_terms",
+                "terms": [
+                  "adaptation",
+                  "plan"
+                ]
+              }
+            ],
+            "reciprocal": true
+          },
+          {
+            "query": "need:n2",
+            "with": "o1",
+            "reasons": [
+              {
+                "type": "shared_terms",
+                "terms": [
+                  "adaptation",
+                  "practitioner",
+                  "grant",
+                  "lead",
+                  "climate",
+                  "community"
+                ]
+              }
+            ],
+            "reciprocal": true
+          },
+          {
+            "query": "offer:o1",
+            "with": "n1",
+            "reasons": [
+              {
+                "type": "shared_terms",
+                "terms": [
+                  "resident",
+                  "workshops",
+                  "adaptation",
+                  "host",
+                  "community",
+                  "planning"
+                ]
+              }
+            ],
+            "reciprocal": true
+          }
+        ],
+        "counts": {
+          "gap": 1,
+          "theme": 0
+        },
+        "funds": [
+          {
+            "program": "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+            "name": "Climate Smart Communities Initiative2027",
+            "funder": "Climate Resilience Fund",
+            "reasons": [
+              "gap"
+            ],
+            "fitAlone": 75,
+            "fitPartnerAlone": 65,
+            "fitTogether": 75,
+            "termsOnlyTogether": [
+              "resilience"
+            ],
+            "gapsClosed": "1 of 2",
+            "readiness": "Open route; verify eligibility"
+          }
+        ],
+        "caveat": "This is a research lead, not an eligibility decision. Check the funder's published requirements and ask each partner before relying on it."
+      }
+    },
+    {
+      "id": "pair-without-fit",
+      "title": "Two initiatives with no confirmed fit: nothing",
+      "expect": "nothing_to_suggest",
+      "result": {
+        "status": "nothing_to_suggest",
+        "reason": "These two initiatives have no confirmed fit with each other, so no fund is suggested for them as a pair.",
+        "pairFit": [],
+        "funds": [],
+        "counts": {
+          "gap": 0,
+          "theme": 0
+        }
+      }
+    },
+    {
+      "id": "theme-reason-without-precondition",
+      "title": "Diagnostic: the theme reason alone, for the pair with no fit",
+      "expect": null,
+      "result": {
+        "counts": {
+          "gap": 0,
+          "theme": 0
+        },
+        "firstThree": []
+      }
+    }
+  ],
+  "needQuery": {
+    "need": {
+      "title": "Funding for a two-year wildfire and flood adaptation plan",
+      "amount": {
+        "min": 80000,
+        "max": 100000,
+        "currency": "USD"
+      },
+      "timeframe": "2027-01-01 to 2028-12-31"
+    },
+    "topTenFromDescription": [
+      "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+      "local-california-dwr::ca-urban-streams-2026",
+      "local-awesome::awesome-conservation-climate",
+      "local-neh::neh-public-humanities-dec2026",
+      "recc3etQL3z6CaqqF::sff-rapid-response-movement",
+      "recZBrEfrAr5hfoSe::climate-justice-grant",
+      "local-pollination::pollination-seed",
+      "local-people-powered::people-powered-cda-2027",
+      "local-rufford::rufford-first",
+      "reckq9YI0Vpjvidtt::samdhana-small-grants"
+    ],
+    "topTenFromNeed": [
+      "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+      "local-california-dwr::ca-urban-streams-2026",
+      "local-awesome::awesome-conservation-climate",
+      "recFwcjaAedkvUDTo::protection-grants",
+      "local-neh::neh-public-humanities-dec2026",
+      "recc3etQL3z6CaqqF::sff-rapid-response-movement",
+      "local-people-powered::people-powered-cda-2027",
+      "local-cisco::cisco-global-impact",
+      "recZBrEfrAr5hfoSe::climate-justice-grant",
+      "recajijjqqfeV50Ug::early-stage-social-impact-portfolio"
+    ],
+    "topTenInCommon": 7,
+    "programs": 730,
+    "awardComparableToTheNeed": 54,
+    "awardTooSmallForTheWholeNeed": 35,
+    "awardMinimumAboveTheNeed": 4,
+    "closingDateKnownAndStillOpen": 29,
+    "closingBeforeTheNeedEnds": 29
+  }
+}

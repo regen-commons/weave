@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { talkControls, talkHold } from "../describe/speech-setup.ts";
+import { BROWSER_SPEECH_NOTICE, talkControls, talkHold } from "../describe/speech-setup.ts";
 import type { SpeechSetup } from "../describe/use-speech.ts";
 import { Icon } from "./Icon.tsx";
 import { TaskDialog } from "./TaskDialog.tsx";
@@ -8,10 +8,12 @@ const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN"
 
 /**
  * Talk it out (`rc-voice-input`, DL-110): one button, one box and one action. The button turns
- * into Stop in place while the browser listens on the device, and the words appear in the box,
+ * into Stop in place while the browser listens, and the words appear in the box,
  * whose space is always there. A person who cannot or will not speak types into the same box.
  * The action then structures the words, and its result is said in the line under it, which keeps
- * its height. Nothing on the page moves when any of them is pressed.
+ * its height. Nothing on the page moves when any of them is pressed. Where talking goes through
+ * the browser's own speech service, the first press on a device asks the person to agree in a
+ * dialog, and listening starts only from their agreement.
  */
 export function TalkItOut({
   speech,
@@ -78,20 +80,29 @@ export function TalkItOut({
 }) {
   const id = useId();
   const [choosing, setChoosing] = useState(false);
+  const [agreeing, setAgreeing] = useState(false);
   const [focused, setFocused] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   // While listening, the newest words stay in view inside the box.
   useEffect(() => {
     if (listening && box.current) box.current.scrollTop = box.current.scrollHeight;
   }, [listening, value]);
-  const controls = talkControls(speech.state, { listening, setUpHere: speech.setUpHere, asking: speech.asking, secondary });
+  const controls = talkControls(speech.state, {
+    listening,
+    setUpHere: speech.setUpHere,
+    asking: speech.asking,
+    secondary,
+    agreed: speech.agreed,
+    touch: speech.touch,
+  });
   const names = new Intl.DisplayNames(["en"], { type: "language" });
   const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
   const hold = talkHold(controls.action, { working, disabled, focused });
+  const talk = controls.agreement ? () => setAgreeing(true) : onStart;
   const press =
     hold !== "free"
       ? undefined
-      : controls.action === "stop" ? onStop : controls.action === "talk" ? onStart : controls.action === "set-up" ? speech.setUp : undefined;
+      : controls.action === "stop" ? onStop : controls.action === "talk" ? talk : controls.action === "set-up" ? speech.setUp : undefined;
   return (
     <div className="rc-voice-input">
       <div className="rc-voice-slot">
@@ -99,6 +110,8 @@ export function TalkItOut({
           <button
             className="rc-button"
             data-variant={controls.action === "talk" && lead ? "primary" : "secondary"}
+            // Which recognizer it uses, for tests and for anyone reading the page's markup.
+            data-speech={controls.mode ?? undefined}
             data-size="lg"
             type="button"
             aria-pressed={controls.action === "talk" || controls.action === "stop" ? listening : undefined}
@@ -119,7 +132,7 @@ export function TalkItOut({
             {controls.note}
           </p>
           {/* The language choice shows where it can help and there is room: not while a longer line explains a setup. */}
-          {controls.language && (!controls.note || !controls.action) && (
+          {controls.language && (
             <button className="rc-button" data-variant="quiet" data-size="sm" type="button" onClick={() => setChoosing(true)}>
               Speaking In {names.of(language) ?? language}
             </button>
@@ -174,7 +187,9 @@ export function TalkItOut({
           <div className="rc-field">
             <label htmlFor={`${id}-language`}>The language you will speak in</label>
             <p className="rc-hint" id={`${id}-language-hint`}>
-              Speech is recognized on this device, one language at a time.
+              {controls.mode === "browser"
+                ? "Your browser's speech service listens for one language at a time."
+                : "Speech is recognized on this device, one language at a time."}
             </p>
             <select
               className="rc-input"
@@ -194,6 +209,31 @@ export function TalkItOut({
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="primary" type="button" onClick={() => setChoosing(false)}>
               Done
+            </button>
+          </div>
+        </div>
+      </TaskDialog>
+      {/* Asked before the first use on a device. Nothing listens until the person agrees. */}
+      <TaskDialog title={BROWSER_SPEECH_NOTICE.title} open={agreeing} onClose={() => setAgreeing(false)}>
+        <div className="rc-stack">
+          {BROWSER_SPEECH_NOTICE.body.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+          <div className="rc-action-bar">
+            <button
+              className="rc-button"
+              data-variant="primary"
+              type="button"
+              onClick={() => {
+                speech.consent.agree();
+                setAgreeing(false);
+                onStart();
+              }}
+            >
+              {BROWSER_SPEECH_NOTICE.agree}
+            </button>
+            <button className="rc-button" data-variant="quiet" type="button" onClick={() => setAgreeing(false)}>
+              {BROWSER_SPEECH_NOTICE.decline}
             </button>
           </div>
         </div>

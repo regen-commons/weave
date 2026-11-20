@@ -13,17 +13,39 @@ import { statedWhere } from "../src/describe/places.ts";
 
 /** Well under a second, with room for a slow machine. */
 const LIMIT_MS = 500;
-/** For a case a slow phone must also finish quickly: a tenth of the limit here. */
-const TIGHT_MS = 50;
 const PROSE = "We grow food in Awka with families from Lagos and share seeds in schools across the valley. ";
 const prose = (size: number) => PROSE.repeat(Math.ceil(size / PROSE.length)).slice(0, size);
 const spaces = " ".repeat(20_000);
+/**
+ * Milliseconds of CPU time this thread has used since `before`. A runaway pass counts in full;
+ * time spent waiting for a core while other work runs on the machine does not.
+ */
+function cpuSince(before: NodeJS.CpuUsage): number {
+  const { user, system } = process.threadCpuUsage(before);
+  return (user + system) / 1_000;
+}
 function quick<T>(label: string, run: () => T): T {
-  const started = performance.now();
+  const before = process.threadCpuUsage();
   const result = run();
-  const took = performance.now() - started;
+  const took = cpuSince(before);
   assert.ok(took < LIMIT_MS, `${label} took ${Math.round(took)} ms`);
   return result;
+}
+/**
+ * The fewest milliseconds each piece of work takes, over several tries taken in turn, so a pause
+ * for another process, a garbage collection or a slower core is left out. Timed by the clock, which
+ * is exact everywhere: Linux counts a thread's CPU time only in steps of a few milliseconds.
+ */
+function fastest(work: (() => unknown)[], tries = 15): number[] {
+  const least = work.map(() => Infinity);
+  for (let round = 0; round < tries; round++) {
+    work.forEach((run, index) => {
+      const started = performance.now();
+      run();
+      least[index] = Math.min(least[index]!, performance.now() - started);
+    });
+  }
+  return least;
 }
 
 test("the name rules finish quickly on 20,000 spaces, on 20,000 characters of line ends, and on 2,000,000 of prose", () => {
@@ -43,10 +65,19 @@ test("the place rules make one bounded pass, on 20,000 spaces, on line ends, and
   quick("prose, 200,000", () => statedWhere(prose(200_000), "Riverbend"));
   quick("prose, 2,000,000", () => statedWhere(prose(2_000_000), "Riverbend"));
   // Many places in the 20,000 characters read: each mention is compared once, not with every other.
-  const started = performance.now();
-  statedWhere("based in Aa. ".repeat(1_600));
-  const took = performance.now() - started;
-  assert.ok(took < TIGHT_MS, `a place stated over and over took ${Math.round(took)} ms`);
+  // One pass over 1,500 mentions then takes about as long as thirty passes over 50; comparing every
+  // pair made it take about twenty times as long. Both are timed over the same amount of text, so
+  // a fast, slow or busy machine changes both alike, and the bound allows three times.
+  const few = "based in Aa. ".repeat(50);
+  const many = "based in Aa. ".repeat(1_500);
+  const [thirtyFew, oneMany] = fastest([
+    () => {
+      for (let pass = 0; pass < 30; pass++) statedWhere(few);
+    },
+    () => statedWhere(many),
+  ]);
+  const growth = oneMany! / thirtyFew!;
+  assert.ok(growth < 3, `one pass over 1,500 mentions of a place took ${growth.toFixed(1)} times as long as thirty over 50`);
   assert.deepEqual(
     quick("a place, then prose", () => statedWhere(`We are a seed library in Porto Alegre, Brazil. ${prose(2_000_000)}`, "")),
     { locations: ["Porto Alegre, Brazil"], isGlobal: false },
