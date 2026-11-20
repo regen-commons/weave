@@ -15,6 +15,11 @@ export function searchQuery(typed: string): string {
 }
 /** How long the list waits after the last letter before it searches, so typing sends one request. */
 export const SEARCH_PAUSE_MS = 300;
+/**
+ * The search the list asks for now: what was typed once typing paused, except that an emptied box asks
+ * at once. Clear Filters then sends one request, with the search and the kind of group both gone.
+ */
+export const searchNow = (typed: string, paused: string): string => typed === "" ? "" : paused;
 
 /**
  * The same-origin address of one page. Parameters keep one order, so each page has one cached copy. A

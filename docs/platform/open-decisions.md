@@ -484,8 +484,10 @@ found the same 14 under the first rule and after each narrowing: 13 by name and
   pins, and it is context only, never a country or region. The list can be
   searched by both and filtered on the kind of group the publisher's
   organization names, such as nonprofit. A name, place or kind that is
-  missing, too long, or carries a link, contact details or control characters
-  is left out, and the project is still shown. These come from records other
+  missing, too long, or carries a link, an email address, a phone number or
+  control characters is left out, and so is a place with any digit in it,
+  which on 19 November was always a street address, a plus code or
+  coordinates. The project is still shown. These come from records other
   than the project's own, so each refresh rewrites them and a withdrawal
   deletes them with the passages. Pictures still wait on D30, and an
   organization's links are never shown as the project's.

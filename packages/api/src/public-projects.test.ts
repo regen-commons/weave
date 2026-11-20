@@ -216,3 +216,19 @@ test("search reads the publisher and the place, and a kind of group narrows the 
   const quiet = await (await plain(new Request(url("")))).json() as { index: Record<string, unknown> };
   assert.ok(!("organizationTypes" in quiet.index));
 });
+
+test("a stored value the app would refuse is left out of its card, so one bad row cannot empty the list", async () => {
+  const cards = [
+    { ...card(1), publisher: "", place: "x".repeat(121), organizationTypes: ["Bad Kind", "nonprofit", "nonprofit"], text: "" },
+    { ...card(2), publisher: "Lagoa\u0000Seed", place: "Awka, Nigeria", organizationTypes: ["community-group"], text: "" },
+  ];
+  const handler = createPublicProjectsHandler({ reader: async () => ({
+    load: async () => ({ cards, checkpoint: null }), close: async () => undefined,
+  }) });
+  const response = await handler(new Request(url("")));
+  assert.equal(response.status, 200);
+  const page = parsePublicProjectPage(await response.json());
+  assert.deepEqual(page.projects.map(({ uri, publisher, place }) => [uri, publisher, place]).sort(),
+    [[projectUri(1), undefined, undefined], [projectUri(2), undefined, "Awka, Nigeria"]].sort());
+  assert.deepEqual(page.index.organizationTypes, ["community-group", "nonprofit"]);
+});

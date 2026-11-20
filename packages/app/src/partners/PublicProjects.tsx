@@ -13,7 +13,7 @@ import { MatchingDate } from "./SharingReview.tsx";
 import {
   chosenOrganizationType, countLine, emptyList, firstPage, indexLine, nextPage, ORGANIZATION_TYPE_KEY, organizationTypeFacets,
   PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects, expectsStarter, listView,
-  rememberIndex, searchQuery, SEARCH_PAUSE_MS, sharedByLine, type PublicProjectCard as Project, type PublicProjectList,
+  rememberIndex, searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
 
 const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
@@ -110,10 +110,10 @@ function usePaused(value: string, ms: number): string {
   const [paused, setPaused] = useState(value);
   useEffect(() => {
     if (value === paused) return;
-    const timer = window.setTimeout(() => setPaused(value), ms);
+    const timer = window.setTimeout(() => setPaused(value), value === "" ? 0 : ms);
     return () => window.clearTimeout(timer);
   }, [value, paused, ms]);
-  return paused;
+  return searchNow(value, paused);
 }
 
 /**
@@ -160,6 +160,12 @@ export function PublicProjects() {
     setOrganizationType(null);
     keepFocusOnPage();
   }
+  // A list from before the filter refuses a kind of group, which can come from a shared address. Trying
+  // again without it is what can succeed, so the kind goes; with none, the same request is sent again.
+  function tryAgain() {
+    if (organizationType) setOrganizationType(null);
+    else retry();
+  }
   // The kinds on offer are the whole list's, whatever the search, so the menu stays put while a person types.
   const facets = organizationTypeFacets(ready ? ready.page.index.organizationTypes : "waiting", organizationType);
   const filtered = !!ready?.organizationType;
@@ -198,7 +204,7 @@ export function PublicProjects() {
           <section className="rc-notice" data-tone="warning">
             <div className="rc-notice-body">
               <h2 className="rc-notice-title">Projects from Certified did not load</h2>
-              <button className="rc-button" data-variant="secondary" type="button" onClick={retry}>Try Again</button>
+              <button className="rc-button" data-variant="secondary" type="button" onClick={tryAgain}>Try Again</button>
             </div>
           </section>
         )}

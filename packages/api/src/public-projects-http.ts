@@ -1,5 +1,5 @@
 import {
-  encodePublicProjectCursor, ORGANIZATION_TYPE_OPTIONS_MAX, parsePublicProjectQuery, searchText,
+  encodePublicProjectCursor, isOrganizationType, isProjectLabel, ORGANIZATION_TYPE_OPTIONS_MAX, parsePublicProjectQuery, searchText,
   type PublicProjectCard, type PublicProjectPage, type PublicProjectQuery,
 } from "./public-projects-contract.ts";
 import type { PublicProjectReader, PublicProjectSnapshot } from "./public-projects-store.ts";
@@ -46,9 +46,16 @@ const later = (a: Pick<PublicProjectCard, "sharedAt" | "uri">, b: Pick<PublicPro
   a.sharedAt !== b.sharedAt ? a.sharedAt > b.sharedAt : a.uri > b.uri;
 
 function prepare(snapshot: PublicProjectSnapshot): Prepared {
-  const cards = snapshot.cards.map(({ text, ...card }) => ({
-    ...card, search: searchText([card.name, card.publisher, card.place, text].filter(Boolean).join(" ")),
-  }));
+  const cards = snapshot.cards.map(({ text, publisher, place, organizationTypes, ...card }) => {
+    // The app refuses a whole page for one invalid value, so a stored value it would refuse is left out
+    // here, and one bad row cannot send every visitor to the starter list.
+    const facts = { ...(isProjectLabel(publisher) ? { publisher } : {}), ...(isProjectLabel(place) ? { place } : {}) };
+    const kinds = [...new Set(Array.isArray(organizationTypes) ? organizationTypes.filter(isOrganizationType) : [])];
+    return {
+      ...card, ...facts, organizationTypes: kinds,
+      search: searchText([card.name, facts.publisher, facts.place, text].filter(Boolean).join(" ")),
+    };
+  });
   const counts = new Map<string, number>();
   for (const { organizationTypes } of cards)
     for (const type of organizationTypes) counts.set(type, (counts.get(type) ?? 0) + 1);

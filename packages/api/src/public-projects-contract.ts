@@ -141,6 +141,9 @@ function sourceUrl(value: unknown): string {
 }
 /** The longest publisher name or place label a card carries. The index leaves out a longer one, never cuts it. */
 export const PROJECT_LABEL_MAX = 120;
+/** A publisher name or place label as a card may carry it. */
+export const isProjectLabel = (value: unknown): value is string =>
+  typeof value === "string" && value.trim() !== "" && value.length <= PROJECT_LABEL_MAX && !controls.test(value);
 function card(value: unknown): PublicProjectCard {
   if (!value || typeof value !== "object") return fail();
   const o = value as Record<string, unknown>;

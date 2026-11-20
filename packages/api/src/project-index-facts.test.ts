@@ -48,6 +48,11 @@ test("names and places are one line of plain text, and anything else is left out
   assert.equal(publisher("Coletivo Ação Verde 🌱"), "Coletivo Ação Verde 🌱");
   assert.equal(publisher("x".repeat(120)), "x".repeat(120));
   assert.equal(place("Ciudad Autónoma de Buenos Aires, Argentina"), "Ciudad Autónoma de Buenos Aires, Argentina");
+  // A place with a digit is a location fix, precise enough to find a home: a house number, a postcode, a
+  // plus code or coordinates. None is shown. A publisher's name may hold digits.
+  for (const fix of ["221B Baker Street, London NW1 6XE", "Flat 4, 12 Rua das Flores, Olinda", "Rua Augusta 1508, São Paulo",
+    "9F4M+XW Lagos, Nigeria", "-23.5505, -46.6333", "Distrito 9"]) assert.equal(place(fix), null, fix);
+  assert.equal(publisher("Riverkeepers 2050"), "Riverkeepers 2050");
   const refused: unknown[] = [
     42, null, true, ["Lagoa"], { name: "Lagoa" }, "", "   ", "x".repeat(121), "x".repeat(10_000),
     "Write to someone@example.com", "See https://example.org", "www.example.org", "mailto:someone",

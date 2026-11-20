@@ -279,7 +279,11 @@ function placeName(view: Record<string, unknown>, entry: Record<string, unknown>
   if (!pinned || !linked || !place || !details || typeof pinned.uri !== "string" || typeof pinned.cid !== "string"
     || linked.uri !== pinned.uri || linked.cid !== pinned.cid || place.uri !== pinned.uri || place.cid !== pinned.cid
     || (details.$type !== undefined && details.$type !== LOCATION)) return null;
-  return safeLabel(details.name);
+  // A place label is a name, not a location fix. On 19 November 2026 every one with a digit in it, 12 of
+  // 29, was a street address with a house number or postcode, a plus code or coordinates: precise enough
+  // to find a home, so none is shown.
+  const label = safeLabel(details.name);
+  return label && !/\p{N}/u.test(label) ? label : null;
 }
 
 /**

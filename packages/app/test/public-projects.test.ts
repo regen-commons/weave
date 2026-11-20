@@ -4,7 +4,7 @@ import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
   chosenOrganizationType, countLine, emptyList, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage,
   organizationTypeFacets, organizationTypeLabel, rememberIndex, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
-  searchQuery, SEARCH_PAUSE_MS, sharedByLine, sharedLabel, showsIndex,
+  searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, sharedLabel, showsIndex,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:fixture${"a".repeat(13)}aaa${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -30,6 +30,9 @@ test("a typed search is trimmed, single spaced and bounded before it reaches the
   assert.equal(searchQuery("x".repeat(150)).length, PUBLIC_PROJECT_QUERY_MAX);
   assert.equal(publicProjectsPath(searchQuery(" river ")), "/api/public-projects?q=river");
   assert.ok(SEARCH_PAUSE_MS >= 200 && SEARCH_PAUSE_MS <= 500, "long enough to send one request, short enough to feel live");
+  // An emptied box asks at once, so clearing the search and the kind of group sends one request.
+  assert.equal(searchNow("", "soil"), "");
+  assert.equal(searchNow("soi", "soil"), "soil", "while typing, the last paused search stands");
 });
 
 test("a page is read without credentials and refused unless it is valid", async () => {

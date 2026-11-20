@@ -14,11 +14,11 @@ const owner = uid(1), other = uid(2), expired = uid(3);
 const session = (actor: string) => `52${actor.slice(2)}`;
 const did = (actor: string) => `did:plc:deletionfixture${actor.slice(-1)}`;
 const candidate = (name: string) => readFile(new URL(`../../../supabase/candidates/${name}.sql`, import.meta.url), "utf8");
-// The production order of the website migrations, then the deletion candidate last.
-const CANDIDATES = ["certified-private-access", "weave-matching", "weave-project-index", "weave-project-index-card-facts", "weave-matching-vectors",
+// The production order of the website migrations, then the candidates not applied yet.
+const CANDIDATES = ["certified-private-access", "weave-matching", "weave-project-index", "weave-matching-vectors",
   "weave-project-oauth", "weave-project-workspaces", "weave-team-content", "weave-public-evidence-snapshot",
   "weave-project-discovery", "weave-workspace-invites", "weave-support-publication", "weave-open-ended-sharing",
-  "weave-initiative-deletion"];
+  "weave-initiative-deletion", "weave-project-index-card-facts"];
 
 before(async () => {
   if (!database) return;
