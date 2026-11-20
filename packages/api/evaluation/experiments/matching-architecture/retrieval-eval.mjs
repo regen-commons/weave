@@ -112,8 +112,11 @@ function bm25(candidates) {
 }
 const rankOf = scored => new Map([...scored].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).map((row, index) => [row.id, index + 1]));
 
-/** Embeds a dataset once. Returns, per query, the lexical and semantic evidence for every allowed candidate. */
-export async function prepare(dataset, embedder) {
+/**
+ * Embeds a dataset once. Returns, per query, the lexical and semantic evidence for every allowed candidate.
+ * `accept` gives the ordered candidate ids the production matcher accepts for a query.
+ */
+export async function prepare(dataset, embedder, accept = lexicalAccepted) {
   const lexicalScore = bm25(dataset.candidates);
   const asserted = new Map(dataset.candidates.map(c => [c.id, assertedText(c)]));
   const vectors = new Map();
@@ -121,7 +124,7 @@ export async function prepare(dataset, embedder) {
   const rows = [];
   for (const query of dataset.queries) {
     const pool = dataset.candidates.filter(c => allowed(query.direction, c));
-    const accepted = lexicalAccepted(query, dataset.candidates);
+    const accepted = accept(query, dataset.candidates);
     const queryVector = embedder ? await embedder.embed(query.text, "query") : null;
     const keyword = new Map(lexicalScore(query.text).map(row => [row.id, row.score]));
     const scored = pool.map(candidate => ({ candidate,
