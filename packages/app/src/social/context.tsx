@@ -2,6 +2,7 @@ import { createContext, useContext, useRef, useState, useMemo, useEffect, type R
 import type { FixtureContext } from "../fixtures.ts";
 import { createSocialFixture, type SocialService, type SocialState } from "./fixture.ts";
 import { createLiveSocialService, type LiveSocialService } from "./live.ts";
+import { choiceStorage } from "./project-choice.ts";
 import { useAccount } from "../account/context.tsx";
 import { useDraft } from "../describe/use-draft.ts";
 import { continueToCertified } from "../account/sign-in.ts";
@@ -50,6 +51,7 @@ export function LiveSocialProvider({ children }: { children: ReactNode }) {
     account: account.state ?? { available: false, fixture: false, user: null, items: [] }, controller,
     refreshAccount: account.refresh, signedOut: account.clear,
     storage: (() => { try { return window.sessionStorage; } catch { return undefined; } })(),
+    choices: choiceStorage(),
     openWorkspace: id => navigate(teamWorkspacePath(id)),
     signIn: () => continueToCertified(controller, window.location.pathname,
       returnTo => accountRequest("", { returnTo }, "/api/sign-in"), target => window.location.assign(target)),

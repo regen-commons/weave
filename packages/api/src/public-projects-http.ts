@@ -1,5 +1,5 @@
 import {
-  encodePublicProjectCursor, parsePublicProjectQuery, searchText,
+  encodePublicProjectCursor, isOrganizationType, isProjectLabel, ORGANIZATION_TYPE_OPTIONS_MAX, parsePublicProjectQuery, searchText,
   type PublicProjectCard, type PublicProjectPage, type PublicProjectQuery,
 } from "./public-projects-contract.ts";
 import type { PublicProjectReader, PublicProjectSnapshot } from "./public-projects-store.ts";
@@ -35,24 +35,47 @@ export function indexStatus(checkpoint: PublicProjectSnapshot["checkpoint"], now
   return now - Date.parse(checkpoint.completedAt) > STALE_AFTER_MS ? "stale" : "bounded";
 }
 
-type Prepared = { cards: (PublicProjectCard & { search: string })[]; checkpoint: PublicProjectSnapshot["checkpoint"] };
+type Prepared = {
+  cards: (PublicProjectCard & { search: string; organizationTypes: string[] })[];
+  /** The kinds of group the shown projects' publishers name, most common first. */
+  organizationTypes: string[];
+  checkpoint: PublicProjectSnapshot["checkpoint"];
+};
 /** Newest first; ties keep a fixed order by address, which the cursor relies on. */
 const later = (a: Pick<PublicProjectCard, "sharedAt" | "uri">, b: Pick<PublicProjectCard, "sharedAt" | "uri">) =>
   a.sharedAt !== b.sharedAt ? a.sharedAt > b.sharedAt : a.uri > b.uri;
 
 function prepare(snapshot: PublicProjectSnapshot): Prepared {
-  const cards = snapshot.cards.map(({ text, ...card }) => ({ ...card, search: searchText(`${card.name} ${text}`) }));
-  return { cards: cards.sort((a, b) => later(a, b) ? -1 : later(b, a) ? 1 : 0), checkpoint: snapshot.checkpoint };
+  const cards = snapshot.cards.map(({ text, publisher, place, organizationTypes, ...card }) => {
+    // The app refuses a whole page for one invalid value, so a stored value it would refuse is left out
+    // here, and one bad row cannot send every visitor to the starter list.
+    const facts = { ...(isProjectLabel(publisher) ? { publisher } : {}), ...(isProjectLabel(place) ? { place } : {}) };
+    const kinds = [...new Set(Array.isArray(organizationTypes) ? organizationTypes.filter(isOrganizationType) : [])];
+    return {
+      ...card, ...facts, organizationTypes: kinds,
+      search: searchText([card.name, facts.publisher, facts.place, text].filter(Boolean).join(" ")),
+    };
+  });
+  const counts = new Map<string, number>();
+  for (const { organizationTypes } of cards)
+    for (const type of organizationTypes) counts.set(type, (counts.get(type) ?? 0) + 1);
+  // Most common first, ties by name, and `other`, which narrows to no particular kind, always last.
+  const organizationTypes = [...counts]
+    .sort(([a, m], [b, n]) => Number(a === "other") - Number(b === "other") || n - m || (a < b ? -1 : a > b ? 1 : 0))
+    .slice(0, ORGANIZATION_TYPE_OPTIONS_MAX).map(([type]) => type);
+  return { cards: cards.sort((a, b) => later(a, b) ? -1 : later(b, a) ? 1 : 0), organizationTypes, checkpoint: snapshot.checkpoint };
 }
 
 /** One page of the matching cards after the cursor, and how many match in all. */
 export function selectPublicProjects(prepared: Prepared, query: PublicProjectQuery) {
-  const matched = query.terms.length
-    ? prepared.cards.filter(({ search }) => query.terms.every((term) => search.includes(term)))
+  const { organizationType, terms } = query;
+  const matched = terms.length || organizationType
+    ? prepared.cards.filter(({ search, organizationTypes }) => terms.every((term) => search.includes(term))
+      && (!organizationType || organizationTypes.includes(organizationType)))
     : prepared.cards;
   const rest = query.cursor ? matched.filter((card) => later(query.cursor!, card)) : matched;
   return {
-    projects: rest.slice(0, query.limit).map(({ search: _search, ...card }) => card),
+    projects: rest.slice(0, query.limit).map(({ search: _search, organizationTypes: _types, ...card }): PublicProjectCard => card),
     more: rest.length > query.limit,
     total: matched.length,
   };
@@ -101,7 +124,10 @@ export function createPublicProjectsHandler(options: {
     const { projects, more, total } = selectPublicProjects(prepared, query);
     const last = projects.at(-1);
     const page: PublicProjectPage = {
-      index: { status: indexStatus(prepared.checkpoint, now()), checkedAt: prepared.checkpoint?.completedAt ?? null, total },
+      index: {
+        status: indexStatus(prepared.checkpoint, now()), checkedAt: prepared.checkpoint?.completedAt ?? null, total,
+        ...(prepared.organizationTypes.length ? { organizationTypes: prepared.organizationTypes } : {}),
+      },
       projects,
       next: more && last ? encodePublicProjectCursor({ sharedAt: last.sharedAt, uri: last.uri }) : null,
     };

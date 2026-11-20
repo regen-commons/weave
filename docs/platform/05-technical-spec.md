@@ -623,7 +623,7 @@ Evaluation: a fixtures folder with golden, noisy, low-signal and adversarial sam
 
 ### 6.4 Transcription (R7)
 
-Whisper through Transformers.js remains planned: `whisper-base` (about 77 MB int8, multilingual) on T2 and T3, `whisper-large-v3-turbo` q4f16 (about 0.56 GB) on T1. Capture with `AudioWorklet` at 16 kHz mono Float32; 30 s chunks with 5 s stride; language auto-detect; the transcript is shown and editable before extraction. Step 3 offers Web Speech only when `processLocally` exists and `SpeechRecognition.available({ langs: [language], processLocally: true })` returns `available`. Set `processLocally = true` before starting. Do not install a language pack or fall back to remote recognition. Cloud transcription remains a separate adapter under `cloud_transcription` consent.
+Whisper through Transformers.js remains planned: `whisper-base` (about 77 MB int8, multilingual) on T2 and T3, `whisper-large-v3-turbo` q4f16 (about 0.56 GB) on T1. Capture with `AudioWorklet` at 16 kHz mono Float32; 30 s chunks with 5 s stride; language auto-detect; the transcript is shown and editable before extraction. Web Speech on the device comes first: Weave uses it when `processLocally` exists and `SpeechRecognition.available({ langs: [language], processLocally: true })` returns `available`, sets `processLocally = true` before starting, and may ask the browser to install its own speech pack from a tap ([Browser speech packs](open-decisions.md#browser-speech-packs-15-november-2026)). Where the browser has no speech on the device, Weave uses the browser's own recognizer only after the person agrees to a notice that it may send their voice to the browser's speech service; a device session never falls back to it ([Browser speech service](open-decisions.md#browser-speech-service-19-november-2026)). Cloud transcription remains a separate adapter under `cloud_transcription` consent.
 
 ### 6.5 Document and image input (R1, R8)
 
@@ -1380,7 +1380,7 @@ hosted latency gates below. There is no claim of whole-network coverage.
   Cron entry in `packages/app/vercel.json`. It acts only with `CRON_SECRET` and
   `WEAVE_INDEX_REFRESH=all-public` set, reads every listed public project, leaves
   out accounts on Certified's development and test servers (looked up through
-  plc.directory) and replaces the permission set only after a complete traversal
+  plc.directory) and projects that declare themselves QA or test entries, and replaces the permission set only after a complete traversal
   with every lookup answered. An operator can run
   the same refresh with
   `node packages/api/scripts/project-index.ts --refresh-all-public`.

@@ -21,6 +21,7 @@ import {
   type LocalSpeechSession,
   type SpeechConstructor,
 } from "../src/describe/speech.ts";
+import { memoryConsent } from "../src/describe/speech-consent.ts";
 import { editsFromForm, formFrom, parseRecordForm } from "../src/describe/forms.ts";
 import { previewFields } from "../src/describe/view.ts";
 import { changeSaid, continueDescribe, editFields, fieldsForm, fillFields } from "../src/describe/fill.ts";
@@ -234,11 +235,7 @@ test("local speech passes langs and processLocally and never starts a remote-onl
     }
   }
   Object.defineProperty(Speech.prototype, "processLocally", { value: false, writable: true });
-  const handle = await startSpeech(
-    "pt-BR",
-    { result() {}, error() {}, end() {} },
-    Speech as SpeechConstructor,
-  );
+  const handle = await startSpeech("device", "pt-BR", { result() {}, error() {}, end() {} }, { speech: Speech as SpeechConstructor });
   assert.deepEqual(options, { langs: ["pt-BR"], processLocally: true });
   assert.equal(starts, 1);
   handle.dispose();
@@ -248,7 +245,11 @@ test("local speech passes langs and processLocally and never starts a remote-onl
   Object.defineProperty(remote, "available", { value: async () => "downloadable" });
   assert.equal(await availableSpeech("en-US", remote as SpeechConstructor), false);
   await assert.rejects(
-    startSpeech("en-US", { result() {}, error() {}, end() {} }, remote as SpeechConstructor),
+    startSpeech("device", "en-US", { result() {}, error() {}, end() {} }, { speech: remote as SpeechConstructor }),
+  );
+  // Agreeing to the browser's speech service never turns a device session into a remote one.
+  await assert.rejects(
+    startSpeech("device", "en-US", { result() {}, error() {}, end() {} }, { speech: remote as SpeechConstructor, consent: memoryConsent(true) }),
   );
   assert.equal(starts, 1);
 });

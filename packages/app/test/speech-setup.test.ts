@@ -7,7 +7,18 @@ import {
   speechSetupStore,
   speechSupport,
   NO_SPEECH,
+  BROWSER_SPEECH_NOTE,
+  BROWSER_SPEECH_NOTICE,
+  KEYBOARD_MIC,
+  speechPaused,
+  SPEECH_SETTING,
+  speechMode,
+  speechNotStarted,
+  speechProblem,
   talkControls,
+  talkHold,
+  talksHere,
+  touchPrimary,
   type SpeechSetupState,
   type Wait,
 } from "../src/describe/speech-setup.ts";
@@ -105,28 +116,25 @@ test("the browser's answer is read as data, and anything unexpected is unavailab
   assert.deepEqual(asking.asked.available, [{ langs: ["pt-BR"], processLocally: true }]);
 });
 
-test("each answer decides what a page can offer before any tap", async () => {
+test("each answer decides what a page can offer before any tap, on the device first", async () => {
   const withInstall = { install: () => true };
   assert.equal(await speechSupport("en-US", browser({ status: () => "available", ...withInstall }).speech), "ready");
   assert.equal(await speechSupport("en-US", browser({ status: () => "downloadable", ...withInstall }).speech), "offer");
   assert.equal(await speechSupport("en-US", browser({ status: () => "downloading", ...withInstall }).speech), "offer");
   assert.equal(
     await speechSupport("en-US", browser({ status: () => "downloadable" }).speech),
-    "language",
-    "a browser that cannot install is not asked to",
+    "browser",
+    "a browser that cannot install is not asked to, and its own speech service is offered instead",
   );
-  const elsewhere = browser({ status: (language) => (language === "en-US" ? "downloadable" : "unavailable"), ...withInstall });
-  assert.equal(await speechSupport("sw-KE", elsewhere.speech), "language", "another language may work");
-  assert.deepEqual(elsewhere.asked.available, [
-    { langs: ["sw-KE"], processLocally: true },
-    { langs: ["en-US"], processLocally: true },
-  ]);
+  // Chrome on a computer for a language it has no pack for, Chrome on Android and Brave all answer
+  // "unavailable" but have a recognizer: its own speech service is next (19 November 2026).
   const nowhere = browser({ status: () => "unavailable", ...withInstall });
-  assert.equal(await speechSupport("sw-KE", nowhere.speech), "none", "Brave and Chrome on Android answer this way");
-  const english = browser({ status: () => "unavailable" });
-  assert.equal(await speechSupport("en-US", english.speech), "none");
-  assert.equal(english.asked.available.length, 1, "English is not asked twice");
-  assert.equal(await speechSupport("en-US", undefined), "none", "Safari and Firefox have no on-device question");
+  assert.equal(await speechSupport("sw-KE", nowhere.speech), "browser");
+  assert.deepEqual(nowhere.asked.available, [{ langs: ["sw-KE"], processLocally: true }], "one question per language");
+  assert.equal(nowhere.asked.install.length, 0, "nothing is installed before a tap");
+  // Safari has a recognizer without the on-device question.
+  assert.equal(await speechSupport("en-US", browser({ status: () => "available", local: false }).speech), "browser");
+  assert.equal(await speechSupport("en-US", null), "none", "Firefox on Android has no speech recognition");
 });
 
 test("setting up asks the browser during the tap, on the device only, and reads only true as ready", async () => {
@@ -284,11 +292,11 @@ test("no tap installs anything where speech is ready, unsupported or not yet kno
   for (const language of ["en-US", "sw-KE"]) store.check(language);
   await settle();
   assert.equal(store.state("en-US"), "ready");
-  assert.equal(store.state("sw-KE"), "language");
+  assert.equal(store.state("sw-KE"), "browser");
   store.setUp("en-US");
   store.setUp("sw-KE");
   assert.equal(chrome.asked.install.length, 0);
-  const nothing = speechSetupStore({ speech: undefined });
+  const nothing = speechSetupStore({ speech: null });
   nothing.check("en-US");
   await settle();
   assert.equal(nothing.state("en-US"), "none");
@@ -318,18 +326,25 @@ test("languages are set up one by one, and a known state stays while the browser
 });
 
 test("Talk it out says plainly where speech stands, and where it cannot work it says so in one line (DL-110)", () => {
-  const states: SpeechSetupState[] = ["checking", "none", "language", "offer", "installing", "slow", "failed", "ready"];
-  for (const state of states) {
-    const controls = talkControls(state);
-    assert.doesNotMatch(controls.note + controls.label, /[\u2014\u2192\u00b7]/, `${state} breaks the voice rules`);
-    if (controls.note) assert.match(controls.note, /^[A-Z][^]*\.$/, `${state} is a plain sentence`);
-  }
-  // A browser without speech on the device (Brave, Safari, Chrome on Android) is told so, never left guessing.
-  assert.deepEqual(talkControls("none"), { action: null, label: "", note: NO_SPEECH, language: false });
-  assert.match(NO_SPEECH, /this browser does not offer it\. You can type instead\.$/);
-  assert.deepEqual(talkControls("checking"), { action: null, label: "", note: "", language: false }, "no flash before the browser answers");
-  assert.equal(talkControls("language").action, null);
-  assert.equal(talkControls("language").language, true, "another language may work, so the choice is offered");
+  const states: SpeechSetupState[] = ["checking", "none", "browser", "offer", "installing", "slow", "failed", "ready"];
+  for (const state of states)
+    for (const options of [{}, { touch: true }, { agreed: true }, { listening: true }]) {
+      const controls = talkControls(state, options);
+      assert.doesNotMatch(controls.note + controls.label, /[\u2014\u2192\u00b7]/, `${state} breaks the voice rules`);
+      if (controls.note) assert.match(controls.note, /^[A-Z][^]*\.$/, `${state} is a plain sentence`);
+      // Only the browser's own speech service mentions it, and it does before the agreement and while listening.
+      const named = /speech service turns your voice/.test(controls.note);
+      assert.ok(!named || controls.mode === "browser", `${state}: only the browser's service names it`);
+      if (controls.mode === "browser" && (controls.agreement || controls.action === "stop")) assert.ok(named, `${state} names its mode`);
+    }
+  // A browser without speech recognition (Firefox on Android) is told so, never left guessing.
+  assert.deepEqual(talkControls("none"), { action: null, label: "", note: NO_SPEECH, language: false, mode: null, agreement: false });
+  assert.match(NO_SPEECH, /You can type instead\.$/);
+  assert.deepEqual(
+    talkControls("checking"),
+    { action: null, label: "", note: "", language: false, mode: null, agreement: false },
+    "no flash before the browser answers",
+  );
   assert.deepEqual(
     [talkControls("offer").action, talkControls("offer").label],
     ["set-up", "Set Up Speech On This Device"],
@@ -344,20 +359,132 @@ test("Talk it out says plainly where speech stands, and where it cannot work it 
   assert.equal(talkControls("failed").action, "set-up", "the same action keeps its name to try again");
   assert.match(talkControls("failed").note, /could not set up speech/);
   // One button in one place: Talk It Out, then Stop while it listens.
-  assert.deepEqual(talkControls("ready"), { action: "talk", label: "Talk It Out", note: "", language: true });
+  assert.deepEqual(talkControls("ready"), { action: "talk", label: "Talk It Out", note: "", language: true, mode: "device", agreement: false });
   assert.match(talkControls("ready", { setUpHere: true }).note, /^Speech is ready/);
+  assert.equal(talkControls("ready", { setUpHere: true }).language, false, "a longer line takes the room");
   assert.deepEqual(
     [talkControls("ready", { listening: true }).action, talkControls("ready", { listening: true }).label],
     ["stop", "Stop"],
   );
-  assert.match(talkControls("installing", { listening: true }).note, /^Listening on this device/);
-  for (const state of ["offer", "ready", "language"] as const)
+  assert.match(talkControls("ready", { listening: true }).note, /^Listening on this device/);
+  for (const state of ["offer", "ready", "browser"] as const)
     assert.equal(talkControls(state, { asking: true }).action, null, `no button while a new language is asked about, in ${state}'s place`);
   assert.deepEqual(
     states.filter(offersSetup),
     ["offer", "installing", "slow", "failed"],
     "the setup takes the button's place only while it is on offer or under way",
   );
+});
+
+test("the browser's own speech service is offered with its mode in view, and asks for agreement until given", () => {
+  const before = talkControls("browser");
+  assert.deepEqual([before.action, before.label, before.mode, before.agreement], ["talk", "Talk It Out", "browser", true]);
+  assert.equal(before.note, BROWSER_SPEECH_NOTE);
+  assert.equal(before.language, false, "one line at a time beside the button, so pressing it moves nothing");
+  const after = talkControls("browser", { agreed: true });
+  assert.equal(after.agreement, false, "an agreement given on this device is not asked for again");
+  assert.deepEqual([after.note, after.language], ["", true], "once agreed, the language choice takes the line's place, as on the device");
+  const listening = talkControls("browser", { listening: true, agreed: true });
+  assert.equal(listening.mode, "browser");
+  assert.match(listening.note, /^Listening\. Your browser's speech service/);
+  assert.doesNotMatch(listening.note, /on this device/, "it never claims the audio stays here");
+  assert.equal(talkControls("ready").agreement, false, "speech on this device needs no agreement");
+  assert.equal(talkControls("ready", { listening: true }).mode, "device");
+  assert.deepEqual(
+    (["checking", "none", "browser", "offer", "installing", "slow", "failed", "ready"] as const).map(speechMode),
+    [null, null, "browser", null, null, null, null, "device"],
+    "a state is one mode or none, never both",
+  );
+});
+
+test("the notice before browser speech names no company, says where the audio goes and that typing works", () => {
+  const notice = BROWSER_SPEECH_NOTICE.body.join(" ");
+  assert.match(notice, /send your voice to its own speech service/);
+  assert.match(notice, /Weave does not receive or keep the audio/);
+  assert.match(notice, /Typing always works/);
+  assert.match(notice, /turn this off in Settings/);
+  assert.doesNotMatch(notice, /Google|Apple|Microsoft|Siri|Brave|Chrome|Safari|Edge/u, "Weave cannot know who runs the service");
+  for (const line of [...BROWSER_SPEECH_NOTICE.body, SPEECH_SETTING.agreed, SPEECH_SETTING.notAgreed])
+    assert.doesNotMatch(line, /[\u2014\u2192]/);
+  assert.equal(BROWSER_SPEECH_NOTICE.agree, "Agree And Talk It Out", "the action keeps its name through the flow");
+  assert.equal(SPEECH_SETTING.withdraw, "Stop Using Browser Speech");
+});
+
+test("on a touch screen with no way to talk, one calm line points to the keyboard's microphone key", () => {
+  const controls = talkControls("none", { touch: true });
+  assert.equal(controls.note, KEYBOARD_MIC);
+  assert.equal(controls.action, null);
+  assert.match(KEYBOARD_MIC, /^If your keyboard has a microphone key/, "not every keyboard has one");
+  assert.equal(talkControls("none").note, NO_SPEECH, "a computer keyboard has no such key, so the line does not mention it");
+  for (const state of ["ready", "browser", "offer", "failed"] as const)
+    assert.notEqual(talkControls(state, { touch: true }).note, KEYBOARD_MIC, `${state}: one way to talk at a time`);
+  assert.equal(talkControls("none", { touch: true, secondary: true }).note, "", "the second list on a page stays quiet");
+  assert.equal(touchPrimary(() => ({ matches: true })), true);
+  assert.equal(touchPrimary(() => ({ matches: false })), false);
+  assert.equal(touchPrimary(undefined), false, "no media queries, as in Node, is not a touch screen");
+  let asked = "";
+  touchPrimary((query) => {
+    asked = query;
+    return { matches: false };
+  });
+  assert.equal(asked, "(pointer: coarse)", "the primary pointer, not any pointer, so a touch laptop with a trackpad is not counted");
+});
+
+test("each way the browser's speech service can stop says only what is known, and keeps typing open", () => {
+  const codes = [
+    "not-allowed",
+    "audio-capture",
+    "no-speech",
+    "network",
+    "service-not-allowed",
+    "language-not-supported",
+    "phrases-not-supported",
+    "bad-grammar",
+    "withdrawn",
+    "something new",
+  ];
+  for (const mode of ["device", "browser"] as const)
+    for (const code of codes) {
+      const line = speechProblem(code, mode);
+      assert.match(line, /^[A-Z][^]*\.$/, `${code} is a plain sentence`);
+      assert.match(line, /type in the box/, `${code}: typing still works`);
+      assert.doesNotMatch(line, /[\u2014\u2192]/);
+    }
+  assert.equal(speechProblem("aborted", "browser"), "", "the page stopped it itself, so there is nothing to say");
+  assert.match(speechProblem("not-allowed", "browser"), /did not allow the microphone/);
+  assert.match(speechProblem("audio-capture", "browser"), /could not use a microphone/);
+  assert.match(speechProblem("network", "browser"), /speech service could not be reached/);
+  assert.doesNotMatch(speechProblem("network", "device"), /speech service/, "speech on the device has no service to reach");
+  assert.match(speechProblem("service-not-allowed", "browser"), /does not work here/);
+  assert.match(speechProblem("language-not-supported", "browser"), /Choose another language/);
+  assert.match(speechProblem("withdrawn", "browser"), /turned off in Settings/);
+  assert.match(speechProblem("something new", "browser"), /could not continue/, "an unknown code is said plainly, not guessed at");
+  // A recognizer that ended by itself says so either way, and never says words are in an empty box.
+  assert.equal(speechPaused(true), "Listening stopped after a pause. Your words are in the box. Press Talk It Out to say more.");
+  assert.match(speechPaused(false), /^Listening stopped after a pause\./);
+  assert.doesNotMatch(speechPaused(false), /words are in the box/, "nothing was heard, so no words are claimed");
+  assert.match(speechPaused(false), /try again, or type in the box\.$/, "the next step stays open with an empty box");
+  assert.match(speechNotStarted("device"), /not ready on this device/);
+  assert.match(speechNotStarted("browser"), /speech service did not start/);
+});
+
+test("a failed session leaves Talk It Out in place, so the page does not move and the focus stays", async () => {
+  // What is offered comes from the browser's answer alone, never from how a session ended: the
+  // button keeps its place after every error, as Set Up does after a failed setup, and pressing it
+  // again tries again. The error is said in the status line under the box.
+  const safari = browser({ status: () => "unavailable", local: false });
+  const store = speechSetupStore({ speech: safari.speech });
+  store.check("en-US");
+  await settle();
+  assert.equal(store.state("en-US"), "browser");
+  assert.equal("report" in store, false, "there is no way for a failure to change the controls");
+  assert.equal(talkControls(store.state("en-US"), { agreed: true }).action, "talk");
+  // On a touch screen, a service that cannot be reached or will not work here also points to the keyboard.
+  for (const code of ["network", "service-not-allowed"]) {
+    assert.match(speechProblem(code, "browser", true), /If your keyboard has a microphone key/);
+    assert.doesNotMatch(speechProblem(code, "browser"), /keyboard/, "a computer keyboard has no such key");
+  }
+  assert.doesNotMatch(speechProblem("not-allowed", "browser", true), /keyboard/, "a refused microphone would refuse the keyboard too");
 });
 
 test("the needs and offers page offers setup once, in the list the route opened unless it is full", () => {
@@ -371,12 +498,28 @@ test("the needs and offers page offers setup once, in the list the route opened 
 });
 
 test("a second Talk it out on a page stays quiet until talking works, so setup and the missing-speech line show once", () => {
-  for (const state of ["checking", "none", "language", "offer", "installing", "slow", "failed"] as const)
+  for (const state of ["checking", "none", "offer", "installing", "slow", "failed"] as const)
     assert.deepEqual(
       talkControls(state, { secondary: true }),
-      { action: null, label: "", note: "", language: false },
+      { action: null, label: "", note: "", language: false, mode: null, agreement: false },
       `${state}: the first list on the page says it`,
     );
   assert.equal(talkControls("ready", { secondary: true }).action, "talk", "both lists get Talk It Out");
+  assert.equal(talkControls("browser", { secondary: true }).action, "talk", "the browser's own service too");
   assert.equal(talkControls("none", { secondary: true, listening: true }).action, "stop", "stopping always works");
+});
+
+test("Talk It Out keeps the keyboard focus while it is held", () => {
+  // Stop pressed with the keyboard: the button turns back into Talk It Out while the fields fill.
+  // A disabled button would drop the focus to the page, so the next Tab would start from the top.
+  assert.equal(talkHold("talk", { working: true, disabled: false, focused: true }), "held");
+  // A list that the fill made full holds it the same way, after the fill ends.
+  assert.equal(talkHold("talk", { working: false, disabled: true, focused: true }), "held");
+  // Away from the focus, a held button is plainly disabled and leaves the Tab order.
+  assert.equal(talkHold("talk", { working: true, disabled: false, focused: false }), "disabled");
+  assert.equal(talkHold("talk", { working: false, disabled: true, focused: false }), "disabled");
+  assert.equal(talkHold("talk", { working: false, disabled: false, focused: true }), "free");
+  // Stopping always works, and the setup holds itself with aria-busy.
+  for (const action of ["stop", "set-up", "setting-up"] as const)
+    assert.equal(talkHold(action, { working: true, disabled: true, focused: true }), "free", `${action} is never held here`);
 });

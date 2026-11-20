@@ -26,6 +26,7 @@ before(async () => {
       end if;
     end $$;`);
   await sql.unsafe(await readFile(new URL("../../../supabase/candidates/weave-project-index.sql", import.meta.url), "utf8"));
+  await sql.unsafe(await readFile(new URL("../../../supabase/candidates/weave-project-index-card-facts.sql", import.meta.url), "utf8"));
   await sql`grant weave_index_job to weave_eval_index`;
   url.username = "weave_eval_index"; url.password = "";
   connection = await connectProjectIndex(url.href);

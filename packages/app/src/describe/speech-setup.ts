@@ -1,17 +1,19 @@
-import { speechConstructor, speechStatus, type SpeechConstructor } from "./speech.ts";
+import { speechConstructor, speechStatus, type SpeechConstructor, type SpeechMode, type SpeechProblem } from "./speech.ts";
 
 /**
- * Where speech on this device stands for one language. A speech pack that the browser manages is
- * a local browser capability (D32), so Weave may ask the browser to set one up after a tap. Weave
- * downloads no model of its own and sends audio nowhere (the user's decision of 15 November 2026).
+ * Where speech stands for one language, in the owner's order of preference (19 November 2026):
+ * speech on this device first, including the browser's own speech pack set up after a tap (D32);
+ * otherwise the browser's own speech service, after the person agrees, because that service may
+ * send the audio to the browser vendor; otherwise no talking, and on a touch screen a line about
+ * the keyboard's own microphone key. Weave downloads no model and records or uploads no audio.
  */
 export type SpeechSetupState =
   /** The browser has not answered yet, so nothing about speech shows. */
   | "checking"
-  /** This browser cannot recognize speech on the device, so the page does not offer it. */
+  /** This browser has no speech recognition at all, as in Firefox on Android. */
   | "none"
-  /** Not in this language, though another may work, so the language choice stays. */
-  | "language"
+  /** No speech on this device for this language, but the browser has its own speech service. Talking asks first. */
+  | "browser"
   /** The browser can set up speech for this language after a tap. */
   | "offer"
   /** The browser is setting it up. It reports no progress, so the page says only that it is under way. */
@@ -20,30 +22,33 @@ export type SpeechSetupState =
   | "slow"
   /** The browser could not set it up. Setup can be tried again, and typing still works. */
   | "failed"
-  /** Speak works. */
+  /** Speech on this device works. */
   | "ready";
+
+/** Talking can be offered here; where it cannot, the page asks for writing. */
+export const talksHere = (state: SpeechSetupState): boolean => state !== "none";
+
+/** Which recognizer Talk It Out would use in this state, or null where it cannot be offered. */
+export const speechMode = (state: SpeechSetupState): SpeechMode | null =>
+  state === "ready" ? "device" : state === "browser" ? "browser" : null;
 
 /** Setting up speech is on offer or under way, so the setup takes Speak's place. */
 export const offersSetup = (state: SpeechSetupState): boolean =>
   state === "offer" || state === "installing" || state === "slow" || state === "failed";
 
 /**
- * A language that every browser recognizing speech on the device covers. When it is unavailable
- * too, the browser has no on-device speech at all, as Brave, Safari and Chrome on Android answer,
- * so the page shows no voice controls rather than a language choice that cannot help.
+ * What a page can offer for one language before the person taps anything. Speech on this device
+ * comes first. Where the browser cannot set it up, its own speech service is next, which is only
+ * offered, never started: talking through it waits for the person's agreement.
  */
-const ANY_SPEECH = "en-US";
-
-/** What a page can offer for one language before the person taps anything. */
 export async function speechSupport(
   language: string,
-  speech = speechConstructor(),
-): Promise<"none" | "language" | "offer" | "ready"> {
+  speech: SpeechConstructor | null | undefined = speechConstructor(),
+): Promise<"none" | "browser" | "offer" | "ready"> {
   const status = await speechStatus(language, speech);
   if (status === "available") return "ready";
-  if (status !== "unavailable") return typeof speech?.install === "function" ? "offer" : "language";
-  const elsewhere = language === ANY_SPEECH ? status : await speechStatus(ANY_SPEECH, speech);
-  return elsewhere === "unavailable" ? "none" : "language";
+  if (status !== "unavailable" && typeof speech?.install === "function") return "offer";
+  return speech ? "browser" : "none";
 }
 
 /**
@@ -82,13 +87,34 @@ export interface SpeechSetupStore {
   check(language: string): void;
   /** Sets up speech for one language. Call it from the tap: see `installSpeech`. */
   setUp(language: string): void;
+  /** A touch screen is the main way in, so a keyboard's microphone key may help where talking cannot. */
+  readonly touch: boolean;
+}
+
+/**
+ * The device is used mainly by touch. `pointer: coarse` describes the primary pointer, so a laptop
+ * with a touch screen and a trackpad is not counted, and a phone with a mouse attached is.
+ */
+export function touchPrimary(media: ((query: string) => { matches: boolean }) | undefined = globalThis.matchMedia): boolean {
+  try {
+    return media?.("(pointer: coarse)").matches ?? false;
+  } catch {
+    return false;
+  }
 }
 
 export function speechSetupStore({
   speech = speechConstructor(),
   slowAfter = SLOW_SETUP_MS,
   later = wait,
-}: { speech?: SpeechConstructor; slowAfter?: number; later?: Wait } = {}): SpeechSetupStore {
+  touch = touchPrimary(),
+}: {
+  /** null: a browser with no speech recognition at all. */
+  speech?: SpeechConstructor | null;
+  slowAfter?: number;
+  later?: Wait;
+  touch?: boolean;
+} = {}): SpeechSetupStore {
   const states = new Map<string, SpeechSetupState>();
   const asking = new Set<string>();
   const listeners = new Set<() => void>();
@@ -101,6 +127,7 @@ export function speechSetupStore({
   };
   return {
     state,
+    touch,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -138,17 +165,62 @@ export interface TalkControls {
   readonly label: string;
   /** One plain sentence in the reserved line under the button. Empty when there is nothing to say. */
   readonly note: string;
-  /** Another language may work, so the language choice is offered. */
+  /** Show the language choice beside the line, where another language may help and there is room. */
   readonly language: boolean;
+  /** Which recognizer Talk It Out uses, so the words and the code can tell them apart. */
+  readonly mode: SpeechMode | null;
+  /** Talk It Out first asks the person to agree to the browser's speech service. */
+  readonly agreement: boolean;
 }
-/** Said in one plain line where the browser has no speech on the device. The typed path is the same box. */
-export const NO_SPEECH = "Talking needs speech on this device, and this browser does not offer it. You can type instead.";
+
+/** Said in one plain line where the browser cannot turn speech into text. The typed path is the same box. */
+export const NO_SPEECH = "This browser cannot turn speech into text here. You can type instead.";
+/**
+ * Said instead on a touch screen, where many keyboards have their own microphone key. Not every
+ * keyboard has one, so the line says "if". The keyboard's dictation is the phone's, not Weave's.
+ */
+export const KEYBOARD_MIC = "If your keyboard has a microphone key, you can use it to talk into the box.";
+/**
+ * Said beside Talk It Out before the person agrees to the browser's speech service. While it
+ * listens the line says so again, and the language dialog names it, so the mode is never hidden.
+ * Once agreed, the language choice takes the line's place, as it does for speech on the device:
+ * both together would make the line taller than while listening, and the page would move.
+ */
+export const BROWSER_SPEECH_NOTE = "Your browser's speech service turns your voice into text.";
+
+/**
+ * The notice before the first use of the browser's speech service on a device. Weave cannot know
+ * which company runs it, so it names none. Each sentence is what the code does: the browser sends
+ * the audio, Weave gets only text (`speech.ts`), and typing never needs it.
+ */
+export const BROWSER_SPEECH_NOTICE = {
+  title: "Use Your Browser's Speech Service?",
+  body: [
+    "Speech on this device is not available here. Your browser can send your voice to its own speech service, which turns it into text.",
+    "Weave does not receive or keep the audio, only the words that come back. Typing always works instead.",
+    "You can turn this off in Settings.",
+  ],
+  agree: "Agree And Talk It Out",
+  decline: "Not Now",
+} as const;
+
+/** What Settings says about the agreement, and the one action that withdraws it. */
+export const SPEECH_SETTING = {
+  agreed:
+    "Where speech on this device is not available, your browser's speech service turns your voice into text. Weave does not receive the audio.",
+  notAgreed:
+    "Talking uses speech on this device where your browser offers it. Anywhere else, Weave asks before using your browser's speech service.",
+  withdraw: "Stop Using Browser Speech",
+} as const;
+
+const SILENT: TalkControls = { action: null, label: "", note: "", language: false, mode: null, agreement: false };
 
 /**
  * The button and the line for each state of speech. The button keeps its place from Set up to
- * Talk it out to Stop, so pressing it never moves the page. Where the browser has no speech on
- * the device (Brave, Safari, Chrome on Android: DL-076), a plain line says so in the button's
- * place; the option is never hidden without a word.
+ * Talk it out to Stop, so pressing it never moves the page. Where the browser cannot turn speech
+ * into text, a plain line says so in the button's place, or on a touch screen points to the
+ * keyboard's microphone key; the option is never hidden without a word. Beside a working Talk It
+ * Out the keyboard line is not shown, so a page offers one way to talk at a time.
  */
 export function talkControls(
   state: SpeechSetupState,
@@ -157,6 +229,8 @@ export function talkControls(
     setUpHere = false,
     asking = false,
     secondary = false,
+    agreed = false,
+    touch = false,
   }: {
     listening?: boolean;
     setUpHere?: boolean;
@@ -166,48 +240,125 @@ export function talkControls(
      * line about a browser without speech, so this one shows nothing until talking works.
      */
     secondary?: boolean;
+    /** The person agreed to the browser's speech service on this device. */
+    agreed?: boolean;
+    /** The device is used mainly by touch. */
+    touch?: boolean;
   } = {},
 ): TalkControls {
+  const mode = speechMode(state);
   if (listening)
-    return { action: "stop", label: "Stop", note: "Listening on this device. Audio is not sent to a server.", language: false };
-  if (secondary && (asking || state !== "ready")) return { action: null, label: "", note: "", language: false };
-  if (asking) return { action: null, label: "", note: "Checking speech for this language.", language: true };
+    return {
+      ...SILENT,
+      action: "stop",
+      label: "Stop",
+      note:
+        mode === "browser"
+          ? "Listening. Your browser's speech service turns your voice into text."
+          : "Listening on this device. Audio is not sent to a server.",
+      mode,
+    };
+  if (secondary && (asking || !mode)) return SILENT;
+  if (asking) return { ...SILENT, note: "Checking speech for this language.", language: true };
   switch (state) {
     case "checking":
-      return { action: null, label: "", note: "", language: false };
+      return SILENT;
     case "none":
-      return { action: null, label: "", note: NO_SPEECH, language: false };
-    case "language":
-      return {
-        action: null,
-        label: "",
-        note: "Speech on this device does not cover this language. Choose another, or type instead.",
-        language: true,
-      };
+      return { ...SILENT, note: touch ? KEYBOARD_MIC : NO_SPEECH };
     case "offer":
       return {
+        ...SILENT,
         action: "set-up",
         label: "Set Up Speech On This Device",
         note: "Your browser may download speech files for this language first. Audio stays on this device.",
-        language: true,
       };
     case "installing":
-      return { action: "setting-up", label: "Setting Up Speech", note: "Setting up speech on this device. You can type while you wait.", language: false };
+      return { ...SILENT, action: "setting-up", label: "Setting Up Speech", note: "Setting up speech on this device. You can type while you wait." };
     case "slow":
       return {
+        ...SILENT,
         action: "setting-up",
         label: "Setting Up Speech",
         note: "Still setting up. Your browser does not say how long it takes. You can type in the meantime.",
-        language: false,
       };
     case "failed":
       return {
+        ...SILENT,
         action: "set-up",
         label: "Set Up Speech On This Device",
         note: "Your browser could not set up speech on this device. You can type instead, or try again.",
-        language: true,
       };
+    case "browser":
+      return agreed
+        ? { ...SILENT, action: "talk", label: "Talk It Out", language: true, mode }
+        : { ...SILENT, action: "talk", label: "Talk It Out", note: BROWSER_SPEECH_NOTE, mode, agreement: true };
     case "ready":
-      return { action: "talk", label: "Talk It Out", note: setUpHere ? "Speech is ready. Audio stays on this device." : "", language: true };
+      return { ...SILENT, action: "talk", label: "Talk It Out", note: setUpHere ? "Speech is ready. Audio stays on this device." : "", language: !setUpHere, mode };
   }
 }
+
+/**
+ * How Talk It Out holds its button while it may not start a new session: while the words fill
+ * the fields, or on a full list. Away from the focus it is plainly disabled. With the focus on it,
+ * as after Stop pressed with the keyboard, it stays focusable and declines the press instead,
+ * because a disabled button would drop the focus to the page.
+ */
+export function talkHold(
+  action: TalkControls["action"],
+  { working, disabled, focused }: { working: boolean; disabled: boolean; focused: boolean },
+): "free" | "held" | "disabled" {
+  if (action !== "talk" || !(working || disabled)) return "free";
+  return focused ? "held" : "disabled";
+}
+
+/**
+ * What the page says when a session stops early, in the status line under the box. It says only
+ * what the browser reported, and every line keeps typing open. Talk It Out stays where it was, so
+ * the page does not move and the focus stays on the button; pressing it again tries again. On a
+ * touch screen, a service that cannot be reached or will not work here also points to the
+ * keyboard's microphone key. An empty answer means nothing to say, as when the page itself
+ * stopped the session.
+ */
+export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = false): string {
+  const instead = touch
+    ? "If your keyboard has a microphone key, you can use it, or type in the box."
+    : "Your words are still here, and you can type in the box.";
+  switch (problem) {
+    case "aborted":
+      return "";
+    case "not-allowed":
+      return "Your browser did not allow the microphone here. Your words are still here, and you can type in the box.";
+    case "audio-capture":
+      return "Your browser could not use a microphone. Check that one is connected, or type in the box.";
+    case "no-speech":
+      return "No speech was heard. Press Talk It Out to try again, or type in the box.";
+    case "network":
+      return mode === "browser"
+        ? `Your browser's speech service could not be reached. ${instead}`
+        : "Speech on this device stopped. Your words are still here, and you can type in the box.";
+    case "service-not-allowed":
+      return `Your browser's speech service does not work here. ${instead}`;
+    case "language-not-supported":
+      return "Speech for this language is not available. Choose another language, or type in the box.";
+    case "withdrawn":
+      return "Browser speech was turned off in Settings. Your words are still here, and you can type in the box.";
+    default:
+      return "The microphone could not continue. Your words are still here, and you can type in the box.";
+  }
+}
+
+/**
+ * Said when the recognizer ended by itself, as the browser's speech service does after a pause.
+ * `words` is whether the box holds any text. A session can end before anything is heard, so the
+ * line says words are in the box only when they are.
+ */
+export const speechPaused = (words: boolean): string =>
+  words
+    ? "Listening stopped after a pause. Your words are in the box. Press Talk It Out to say more."
+    : "Listening stopped after a pause. Press Talk It Out to try again, or type in the box.";
+
+/** Said when a session could not start at all. */
+export const speechNotStarted = (mode: SpeechMode): string =>
+  mode === "device"
+    ? "Speech is not ready on this device. You can type in the box."
+    : "Your browser's speech service did not start. You can type in the box.";

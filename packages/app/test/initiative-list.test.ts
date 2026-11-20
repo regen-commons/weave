@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, linkedProject, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -80,12 +80,38 @@ test("a project a draft already stands for is that draft: by this account's choi
   const uri = "at://did:plc:example/org.example.project/abc", another = "at://did:plc:example/org.example.project/xyz";
   const plain = words("Nothing to do with it", "2026-11-10T09:00:00.000Z");
   assert.equal(standsForProject(plain, uri, null), false);
-  assert.equal(standsForProject(plain, uri, uri), true, "chosen in this browser session");
+  assert.equal(standsForProject(plain, uri, uri), true, "chosen on this device");
   assert.equal(standsForProject(plain, uri, another), false);
   const needs = addEntry(plain.needs, "Seedlings");
   const suggested = revise(plain, { needs: { ...needs, items: needs.items.map((item) => ({ ...item, sourceKey: `${projectSource(uri)}:0` })) } });
-  assert.equal(standsForProject(suggested, uri, null), true, "in a new tab the choice is gone, the suggestions are not");
+  assert.equal(standsForProject(suggested, uri, null), true, "a card linked before choices were kept still carries the suggestions");
   assert.equal(standsForProject(suggested, another, null), false);
+});
+
+test("a draft is linked to the project chosen for it, or with no choice to the workspace it was saved to", () => {
+  const first = { uri: "at://did:plc:example/org.example.project/abc" };
+  const second = { uri: "at://did:plc:example/org.example.project/xyz", workspaceId: "b3000000-0000-4000-8000-000000000002" };
+  assert.equal(linkedProject(null, null, [first, second]), null, "nothing links a card nobody linked");
+  assert.equal(linkedProject(second.uri, null, [first, second]), second, "the choice decides");
+  assert.equal(linkedProject(second.uri, null, [first]), null, "a chosen project that is no longer listed links to nothing");
+  assert.equal(linkedProject(null, second.workspaceId, [first, second]), second, "a saved card is linked to its workspace's project");
+  assert.equal(linkedProject(first.uri, second.workspaceId, [first, second]), first, "a choice comes before the saved workspace");
+  assert.equal(linkedProject("at://did:plc:example/org.example.project/gone", second.workspaceId, [first, second]), null, "and is never replaced by it");
+  assert.equal(linkedProject(null, "b3000000-0000-4000-8000-000000000009", [first, second]), null);
+  assert.equal(linkedProject(null, null, [{ uri: first.uri, workspaceId: undefined }]), null, "a project with no workspace matches no saved card");
+});
+
+test("a draft that carries a project's suggestions stands for it in the list, and is still not linked to it", () => {
+  const project = { uri: "at://did:plc:example/org.example.project/abc" };
+  const plain = words("Nothing to do with it", "2026-11-10T09:00:00.000Z");
+  const needs = addEntry(plain.needs, "Seed jars");
+  const carrying = revise(plain, { needs: { ...needs, items: needs.items.map((item) => ({ ...item, sourceKey: `${projectSource(project.uri)}:0` })) } });
+  assert.equal(standsForProject(plain, project.uri, null), false);
+  assert.equal(standsForProject(carrying, project.uri, null), true, "the project is listed once, as that draft");
+  assert.equal(standsForProject(plain, project.uri, project.uri), true, "as it is for a draft its account chose it for");
+  // Suggestions are not a choice, so the linking rule is not given the draft at all: it takes the
+  // account's choice and the saved card's ID, and the live adapter's tests cover a card that carries them.
+  assert.equal(linkedProject.length, 3);
 });
 
 test("opening the saved version over a working copy keeps the copy, and the entry says so before the press", async () => {

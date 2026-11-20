@@ -14,7 +14,10 @@ explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
 returning); `view` selects Describe states; `intake` selects needs, offers and Your
 initiative examples; `projects=none` gives the example person no Certified project;
 `speech` makes the example browser offer speech setup (`setup`), stall in it (`slow`),
-fail it (`fail`) or have no speech on the device (`none`); `drafts=several` gives the
+fail it (`fail`), have no speech recognition (`none`, or `keyboard` on a touch screen), or
+have only its own speech service, before the agreement (`browser`), after it (`agreed`) and
+stopping each way it can (`denied`, `no-mic`, `network`, `blocked`, `pause`,
+`unsupported`); `drafts=several` gives the
 example browser two more initiatives beside the one on screen; and
 `certified=fail` makes the example Certified refuse to create a project or publish.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
@@ -75,6 +78,16 @@ production. Account saving uses the same-origin API and stays unavailable until 
   still use it (DL-114). `describe/earlier-database.ts` reads it, and the copy deletes nothing.
   Never reload a tab from the service worker: an older build holds some words only on its page,
   and a worker cannot see them. Two builds side by side after a release is expected.
+- A card's Certified project is the account's choice, kept in the device's own storage through
+  `src/social/project-choice.ts` (DL-119), so a linked card is still linked in a new tab. Read it
+  only through that module; `select` in `src/social/live.ts` is its one writer. Do not add it to
+  the draft: an older tab parses drafts strictly and refuses a field it does not know. The choice
+  is a note, never an access grant, and it also decides whose an unsaved card is (DL-055). So
+  store only a link the person made. Opening a team workspace, suggestions a project page left on
+  a card, and what an earlier build kept for a tab are not choices: they are never stored, and the
+  tab's own storage is never read for one. `linkedProject` in `src/initiative/list.ts` is the one
+  rule for what a card is linked to, and a link that is still being stored shows nothing new. A
+  workspace the tab opened over an unlinked card is `visit` in the social state, never `project`.
 - The describe step is one page (DL-110). Words fill the four fields in place through
   `src/describe/fill.ts`, which never writes over a field the person typed or changed.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud
@@ -90,9 +103,12 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - The browser model requires an already available capability and a tap. Local
   speech may also ask the browser to install its own speech pack, from a tap, and
   starts only when the browser reports it available on the device: a
-  browser-managed pack is a local capability under D32. Audio stays on the device,
-  so app-downloaded models and cloud calls stay behind their unavailable adapters
-  until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
+  browser-managed pack is a local capability under D32. Where the browser has no
+  speech on the device, its own speech service may be used, only after the person
+  agrees to a notice that it may send their voice away, and never as a silent
+  fallback (`src/describe/speech-consent.ts`, 19 November 2026). Weave records and
+  uploads no audio, so app-downloaded models and cloud calls stay behind their
+  unavailable adapters until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
   files and pages remain explicitly unread, with original bytes retained.
 - Server code belongs in `@weave/api`. A file in `api/` is a single re-export, and
   the entry test fails on anything else.

@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ALL_PUBLIC_REDISPLAY_MS, refreshAllPublicProjects, withdrawAllPublicProjects, type AllPublicStore } from "./project-index-all-public.ts";
+import {
+  ALL_PUBLIC_REDISPLAY_MS, refreshAllPublicProjects, testEntryReason, withdrawAllPublicProjects, type AllPublicStore,
+} from "./project-index-all-public.ts";
 import { createAccountHostResolver, isCertifiedTestHost, type AccountHost } from "./project-index-hosts.ts";
 import { createProjectIndexRefreshHandler } from "./project-index-refresh-http.ts";
-import { createHypercertsSource } from "./project-index-source.ts";
+import { createHypercertsSource, NO_PROJECT_FACTS, type ProjectFacts } from "./project-index-source.ts";
 import { traverseProjectNetwork } from "./project-index-traversal.ts";
 import type { ProjectCheckpoint } from "./project-index.ts";
 import { projectDid, projectListing, projectUri, projectView } from "./test-data/public-projects.ts";
@@ -20,7 +22,7 @@ const accountHosts = (answers = new Map<string, AccountHost>()) => ({
 function memoryStore(clock: () => number) {
   const data = {
     generation: 0, hash: "", revision: 0, offset: 0, opens: 0, commits: [] as string[], contendAfter: Infinity,
-    sources: new Map<string, { status: string; until: number; checkedAt: string; passages: number }>(),
+    sources: new Map<string, { status: string; until: number; checkedAt: string; passages: number; facts: ProjectFacts }>(),
   };
   const checkpoint = (): ProjectCheckpoint => ({ revision: String(data.revision), offset: data.offset, retryAfter: null });
   const store: AllPublicStore = {
@@ -36,14 +38,19 @@ function memoryStore(clock: () => number) {
       Object.assign(data, { generation: manifest.generation, hash, offset: 0, revision: data.revision + 1, opens: data.opens + 1 });
       const allowed = new Set(manifest.permissions.map(({ uri }) => uri));
       for (const [uri, source] of data.sources)
-        if (!allowed.has(uri)) Object.assign(source, { status: "restricted", until: Math.min(source.until, clock()), passages: 0 });
+        if (!allowed.has(uri))
+          Object.assign(source, { status: "restricted", until: Math.min(source.until, clock()), passages: 0, facts: NO_PROJECT_FACTS });
       return checkpoint();
     },
     async commit({ checkpoint: expected, permission, read, nextOffset, checkedAt }) {
       if (expected.revision !== String(data.revision) || data.commits.length >= data.contendAfter) return null;
       Object.assign(data, { revision: data.revision + 1, offset: nextOffset });
+      // A transient failure keeps the words and the card's facts; any other read replaces both.
+      const keep = read.status === "failed" && (read.code === "source_unavailable" || read.code === "source_rate_limited");
+      const previous = data.sources.get(permission.uri);
       data.sources.set(permission.uri, { status: read.status, until: Date.parse(permission.redisplayUntil), checkedAt,
-        passages: read.status === "indexed" ? read.passages.length : 0 });
+        passages: keep ? previous?.passages ?? 0 : read.status === "indexed" ? read.passages.length : 0,
+        facts: keep ? previous?.facts ?? NO_PROJECT_FACTS : read.status === "indexed" ? read.facts : NO_PROJECT_FACTS });
       data.commits.push(permission.uri);
       return { ...checkpoint(), sourceStatus: read.status };
     },
@@ -94,6 +101,30 @@ test("a complete traversal becomes the permission set, and unlisted, removed and
   const hidden = state.projects.filter(({ shown }) => !shown).map(({ uri }) => uri).sort();
   assert.deepEqual(hidden, [3, 4, 5, 6, 7].map(projectUri).sort());
   assert.doesNotMatch(JSON.stringify(second), /at:\/\/|wetlands|Watershed|example@/u);
+});
+
+test("each refresh writes who shared a project and where, and a withdrawal clears them with the words", async () => {
+  const views: unknown[] = Array.from({ length: 4 }, (_, n) => projectView(n));
+  views[0] = projectView(0, { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"] });
+  views[1] = projectView(1, { publisher: "Write to someone@example.com", place: 42 });
+  const index = setup(views);
+  await index.run();
+  const facts = (n: number) => index.data.sources.get(projectUri(n))?.facts;
+  assert.deepEqual(facts(0), { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"] });
+  assert.deepEqual([facts(1), facts(2)], [NO_PROJECT_FACTS, NO_PROJECT_FACTS], "a malformed or missing fact is left out");
+  assert.equal(index.data.sources.get(projectUri(1))?.status, "indexed");
+  // A publisher that renames itself changes no collection CID; the next refresh still carries the new name.
+  views[0] = projectView(0, { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["nonprofit", "cooperative"] });
+  views[2] = projectView(2, { place: "Lagos, Nigeria" });
+  index.advance(24 * 60 * 60 * 1000);
+  await index.run();
+  assert.deepEqual(facts(0), { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["cooperative", "nonprofit"] });
+  assert.deepEqual(facts(2), { publisher: null, place: "Lagos, Nigeria", organizationTypes: [] });
+  views.splice(0, 1);
+  index.advance(24 * 60 * 60 * 1000);
+  const report = await index.run();
+  assert.equal(report.withdrawn, 1);
+  assert.deepEqual([index.data.sources.get(projectUri(0))?.status, facts(0)], ["restricted", NO_PROJECT_FACTS]);
 });
 
 test("an outage, a partial traversal or a cursor cycle changes nothing that is shown", async () => {
@@ -290,6 +321,98 @@ test("an account's server comes from its DID document, and only a definite answe
   assert.deepEqual(await web.resolve("did:web:dev.certified.app"), { status: "found", host: "dev.certified.app" });
 });
 
+// Invented names and text in the shapes seen on 19 November 2026. None is a real project.
+const realText = ["We restore wetlands along the river with volunteers each season."];
+// Built from its code point, so this file holds no dash character an editor could change.
+const enDash = String.fromCodePoint(0x2013);
+test("a project whose name or own words declare it a QA or test entry is recognised, and why", () => {
+  // A name leads with "QA", holds nothing but test words and numbering, or carries a label set apart from it.
+  for (const name of ["QA Wizard Project 7", "QA Test Project B", "QA Riverside Repair Cafe", "Test project", "test",
+    "Tests", "Seed library tutorial (test)", "Pollinator count - TEST", "Testing", "Testing project 2", "testing 123",
+    "Test project v2", "qa test", "Test A", "[TEST] Seed swap", "TEST: Seed swap", "Garden map (Tests)",
+    "Seed swap | test", "Seed swap - Tests", "Seed swap : test", `Pollinator count ${enDash} TEST`, "test - Seed swap",
+    "Test | Seed swap", "[QA] Seed swap"])
+    assert.equal(testEntryReason(name, realText), "test_named", name);
+  // A sentence says nothing else, opens with the label in capitals, names a QA entry, or says it is not real.
+  for (const passage of ["TEST PROJECT", "This is a test project.", "It is only a test entry!",
+    "TEST PROJECT made to check the publishing wizard.", "Automated QA project created by the release suite.",
+    "QA test story about a community garden.", "QA story for the organisation page.",
+    "An automated QA entry with sample text.", "We plant trees here. It is not a real project.",
+    "It's not a real project, only sample text.", "A test project created on staging to check images.",
+    "Ignore this one, it is a QA project made for testing."])
+    assert.equal(testEntryReason("Riverside Commons", [realText[0]!, passage]), "test_described", passage);
+  // The name is checked first, so a project that both names and describes itself as a test counts once, by name.
+  assert.equal(testEntryReason("QA Garden 3", ["TEST PROJECT for the garden form."]), "test_named");
+});
+
+test("real projects that only mention testing, contests, demos or staging are never taken for test entries", () => {
+  for (const name of ["Attested Wetland Restoration", "Soil Testing Cooperative", "Testing Grounds Farm", "Coastal Contest for Clean Beaches",
+    "Latest Harvest Collective", "Protest Garden", "QAnat Water Revival", "Qanat Keepers", "Test-bed Agroforestry Trust",
+    "Demonstration Plot Network", "Demo Farm Collective", "Tutorial Forest School", "Staging Ground Community Kitchen",
+    "Water Testing for Every Village", "Qa Valley Seeds", "Retest Lab Cooperative", "Testament Orchard", ""])
+    assert.equal(testEntryReason(name, realText), null, name);
+  for (const passage of ["Our fields are testing grounds for our tools and seed varieties.",
+    "We run soil testing for smallholder farms across the valley.", "Members attested each planting with photos.",
+    "The demonstration plot opened in spring with forty families.", "A tutorial for new volunteers runs monthly.",
+    "We are staging a community harvest festival in June.", "We tested drip irrigation last season and kept it.",
+    "This is a real project with real people behind it.", "Our latest contest drew forty entries from schools.",
+    "Qanat project restores an old water channel.", "Test plots across three villages show yield gains.",
+    "Testing project outcomes with the community each season keeps us honest.", "The staging area holds tools.",
+    "We are not a charity but a cooperative.", "Demo days show the test results of our compost trials."])
+    assert.equal(testEntryReason("Riverside Commons", [passage]), null, passage);
+});
+
+test("a place or a phrase with Test or QA in its name, a pilot called a test project and an informal group stay shown", () => {
+  // "Test" is a river and a valley in England, and "test" is an ordinary verb and noun in a name.
+  for (const name of ["Test Valley Rewilding", "River Test Restoration", "Test the Waters", "Litmus Test Garden",
+    "TEST YOUR SOIL", "Stress Test Collective", "Tests of Time Orchard", "Beta Test Kitchen", "Qatar Mangroves QA",
+    "Water Quality - Testing", "Community QA Lab"])
+    assert.equal(testEntryReason(name, realText), null, name);
+  // "QA" is also Qatar's country code, so it is never a label in brackets or split off after a name. Only a
+  // name that leads with "QA" in capitals is a test entry.
+  for (const name of ["Mangrove Restoration (QA)", "Garden map (qa)", "Seed (QA) swap", "[qa] Seed swap",
+    "Solar Schools - QA", "Doha Urban Farms | QA", "Coastal Dunes : QA", `Reef Guardians ${enDash} QA`])
+    assert.equal(testEntryReason(name, realText), null, name);
+  // Every sentence of a description is read, so one that mentions a pilot or an informal group must not count.
+  for (const passage of ["A test project in two villages showed strong results.",
+    "Test project sites in three villages show yield gains.", "Test project for regenerative grazing in the Karoo.",
+    "This is a test project for our new composting method, run with forty farmers.",
+    "It is a test project of the municipality to trial shared solar.", "Our work began as a test project in 2019.",
+    "We are not a real organisation, just neighbours who plant trees.",
+    "We are not an actual organization but an informal network of growers.",
+    // The same group writing about itself as "it" or "this": only "not a real project" declares a test entry.
+    "It is not a real organisation, just neighbours who plant trees.",
+    "This is not an actual organization but an informal network of growers.",
+    "It's not a real initiative yet, more a habit among friends.",
+    "QA project for water quality assurance in rural clinics.",
+    "A test project made for testing drought-resistant seed varieties."])
+    assert.equal(testEntryReason("Riverside Commons", [realText[0]!, passage]), null, passage);
+  // Worded like a real pilot, so a test entry that says only this is shown: hiding real work is the worse mistake.
+  assert.equal(testEntryReason("Riverside Commons", ["This is a test project for the upload form."]), null);
+});
+
+test("a test entry is skipped on first sight, withdrawn if shown, and counted without its name", async () => {
+  const views = Array.from({ length: 30 }, (_, n) => projectView(n));
+  const index = setup(views);
+  await index.run();
+  index.advance(24 * 60 * 60 * 1000);
+  views[1] = projectView(1, { title: "QA Wizard Project 1" });
+  views[2] = projectView(2, { short: "TEST PROJECT made to check the publishing wizard. Please ignore it." });
+  // A test server is the first reason, so this project is counted once, as a test host.
+  views[3] = projectView(3, { title: "QA Wizard Project 3" });
+  index.hosts.answers.set(projectDid(3), { status: "found", host: "dev.certified.app" });
+  views.push(projectView(40, { title: "Test project" }), projectView(41, { title: "Soil Testing Cooperative",
+    short: "Our fields are testing grounds for our tools. Members attested each planting." }));
+  const report = await index.run();
+  assert.deepEqual([report.status, report.listed, report.testHosts, report.testNamed, report.testDescribed, report.withdrawn],
+    ["complete", 32, 1, 2, 1, 3]);
+  const state = await index.store.state();
+  assert.deepEqual(state.projects.filter(({ shown }) => !shown).map(({ uri }) => uri).sort(), [1, 2, 3].map(projectUri).sort());
+  assert.equal(index.data.sources.has(projectUri(40)), false);
+  assert.equal(state.projects.find(({ uri }) => uri === projectUri(41))?.shown, true);
+  assert.doesNotMatch(JSON.stringify(report), /at:\/\/|QA Wizard|Test project|TEST PROJECT|Soil Testing/u);
+});
+
 test("a date or text Postgres cannot store makes the record or passage invalid instead of reaching the index", async () => {
   const views = [projectView(0), projectView(1, { createdAt: "2026-10-01T12:00:00+20:00" }),
     projectView(2, { createdAt: "0000-01-01T00:00:00Z" }), projectView(3, { indexedAt: "2026-11-14T00:00:00-16:00" }),
@@ -311,7 +434,7 @@ test("withdrawing everything empties the list in a new generation", async () => 
 });
 
 test("the cron handler needs its secret, its switch and its database, and logs counts only", async () => {
-  const views = Array.from({ length: 3 }, (_, n) => projectView(n));
+  const views = [...Array.from({ length: 3 }, (_, n) => projectView(n)), projectView(3, { title: "QA Wizard Project 3" })];
   const lines: string[] = [];
   const memory = memoryStore(() => start);
   let closed = 0;
@@ -338,10 +461,11 @@ test("the cron handler needs its secret, its switch and its database, and logs c
   env.WEAVE_INDEX_REFRESH = "all-public";
   const ok = await call(`Bearer ${env.CRON_SECRET}`);
   assert.equal(ok.status, 200);
-  const report = await ok.json() as { status: string; listed: number };
-  assert.deepEqual([report.status, report.listed, closed, cas], ["complete", 3, 1, ["fixture-ca"]]);
+  const report = await ok.json() as { status: string; listed: number; testNamed: number };
+  assert.deepEqual([report.status, report.listed, report.testNamed, closed, cas], ["complete", 4, 1, 1, ["fixture-ca"]]);
   assert.equal(lines.length, 1);
-  assert.doesNotMatch(lines.join("\n") + JSON.stringify(report), /at:\/\/|wetlands|Watershed|fixture-cron-secret|fixture@/u);
+  assert.equal(JSON.parse(lines[0]!).testNamed, 1);
+  assert.doesNotMatch(lines.join("\n") + JSON.stringify(report), /at:\/\/|wetlands|Watershed|QA Wizard|fixture-cron-secret|fixture@/u);
 
   env.CRON_SECRET = "short";
   assert.deepEqual(await body(await call("Bearer short")), [503, "no-store", { error: "project_index_refresh_unavailable" }]);

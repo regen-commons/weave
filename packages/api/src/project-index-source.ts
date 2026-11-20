@@ -3,6 +3,7 @@ import { record } from "./account-contract.ts";
 import type { ProjectEvidence } from "./partner-matcher.ts";
 import { PARTNER_CONCEPT_VERSION } from "./partner-concepts.ts";
 import { parseProjectUri, PROJECT_COLLECTION as collection, PROJECT_DID as did } from "./project-uri.ts";
+import { isOrganizationType, ORGANIZATION_TYPES_MAX, PROJECT_LABEL_MAX } from "./public-projects-contract.ts";
 
 export { parseProjectUri };
 const origin = "https://api.hypercerts.dev";
@@ -14,8 +15,9 @@ const maxResponseBytes = 512 * 1024;
  */
 export const listPageBytes = (limit: number) => limit === 1 ? 4 * 1024 * 1024 : Math.max(maxResponseBytes, limit * 80 * 1024);
 const cidPattern = /^b[a-z2-7]{40,100}$/u;
-// The projection version also invalidates stored lexical text on the next permitted refresh.
-export const PROJECT_EXTRACTION_VERSION = `hypercerts-collection-v3-${PARTNER_CONCEPT_VERSION}`;
+// The projection version also invalidates stored lexical text on the next permitted refresh. v4 reads
+// the publisher's name, the project's place and the publisher's kind of group as well.
+export const PROJECT_EXTRACTION_VERSION = `hypercerts-collection-v4-${PARTNER_CONCEPT_VERSION}`;
 
 export const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
@@ -53,8 +55,27 @@ export function parseProjectPermissions(input: unknown): ProjectManifest {
 }
 
 type SourceError = "source_access_denied" | "source_unavailable" | "source_rate_limited" | "invalid_source_record";
+/**
+ * What a public list card says about a project besides its own words: who shared it and where it is.
+ * Each is optional, and a malformed or unsafe value is left out rather than failing the project.
+ * They come from records other than the collection (the publisher's profile and organization, and
+ * the place the collection links to), so they are not part of the content hash: a publisher can
+ * rename itself without changing the collection's CID.
+ */
+export type ProjectFacts = {
+  /** The publisher's display name on its Certified profile. */
+  publisher: string | null;
+  /** The place label of the location the collection pins. Context only: never read as a country or region. */
+  place: string | null;
+  /** The kinds of group the publisher's organization says it is, such as `nonprofit`, normalized and unique. */
+  organizationTypes: string[];
+};
+export const NO_PROJECT_FACTS: ProjectFacts = Object.freeze({ publisher: null, place: null, organizationTypes: [] });
 export type ProjectRead =
-  | { status: "indexed"; cid: string; contentHash: string; sourceIndexedAt: string | null; fetchedAt: string; passages: ProjectEvidence[] }
+  | {
+    status: "indexed"; cid: string; contentHash: string; sourceIndexedAt: string | null; fetchedAt: string;
+    passages: ProjectEvidence[]; facts: ProjectFacts;
+  }
   | { status: "missing" | "restricted"; code: "record_not_found" | "not_discoverable" }
   | { status: "failed"; code: SourceError; retryAfterMs?: number };
 
@@ -221,6 +242,68 @@ function safePassages(value: string, max: number): string[] {
   return passages;
 }
 
+const PROFILE = "app.certified.actor.profile";
+const LOCATION = "app.certified.location";
+const object = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+
+/** One line of plain text from another record, held to the same rules as a passage, or nothing. */
+function safeLabel(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > PROJECT_LABEL_MAX * 4) return null;
+  const label = value.trim().replace(/\s+/gu, " ");
+  return label && label.length <= PROJECT_LABEL_MAX && !unsafePassage.test(label) ? label : null;
+}
+
+/** The display name on the publisher's own profile. A profile that names another account is not read. */
+function publisherName(author: Record<string, unknown>, publisher: string): string | null {
+  const profile = object(author.profile);
+  const details = object(profile?.record);
+  if (!profile || !details || (profile.did !== undefined && profile.did !== publisher)
+    || (profile.uri !== undefined && profile.uri !== `at://${publisher}/${PROFILE}/self`)
+    || (details.$type !== undefined && details.$type !== PROFILE)) return null;
+  return safeLabel(details.displayName);
+}
+
+/**
+ * The name of the place the collection pins with a strong reference. The listing hydrates the linked
+ * record beside the collection as its own view, `location.record` with its address, version and
+ * `record` (measured on 19 November 2026: 30 of 30 places). It is read only when the reference and the
+ * view are both the exact version pinned, URI and CID, so a newer or other place is never shown in its
+ * stead.
+ */
+function placeName(view: Record<string, unknown>, entry: Record<string, unknown>): string | null {
+  const pinned = object(entry.location);
+  const linked = object(view.location);
+  const place = object(linked?.record);
+  const details = object(place?.record);
+  if (!pinned || !linked || !place || !details || typeof pinned.uri !== "string" || typeof pinned.cid !== "string"
+    || linked.uri !== pinned.uri || linked.cid !== pinned.cid || place.uri !== pinned.uri || place.cid !== pinned.cid
+    || (details.$type !== undefined && details.$type !== LOCATION)) return null;
+  // A place label is a name, not a location fix. On 19 November 2026 every one with a digit in it, 12 of
+  // 29, was a street address with a house number or postcode, a plus code or coordinates: precise enough
+  // to find a home, so none is shown.
+  const label = safeLabel(details.name);
+  return label && !/\p{N}/u.test(label) ? label : null;
+}
+
+/**
+ * Lower case words joined by hyphens, so `Non_Profit` and `non profit` are one kind of group. Values are
+ * free text upstream, in any language: on 19 November they included `nonprofit`, `Nonprofit`,
+ * `Grupo comunitário` and a leaked interface string with dots in it, which is left out.
+ */
+function organizationTypes(details: Record<string, unknown> | null): string[] {
+  const values = details?.organizationType;
+  if (!Array.isArray(values)) return [];
+  const types = new Set<string>();
+  for (const value of values.slice(0, 20)) {
+    if (typeof value !== "string" || value.length > 80) continue;
+    const type = value.normalize("NFC").trim().toLowerCase().replace(/[\s_]+/gu, "-");
+    if (isOrganizationType(type)) types.add(type);
+    if (types.size === ORGANIZATION_TYPES_MAX) break;
+  }
+  return [...types].sort();
+}
+
 /** Read only the direct narrative fields. Embedded URLs, facets, code and child lists are never followed. */
 function leafletPassages(description: Record<string, unknown>): [string, string[]][] {
   if (!Array.isArray(description.blocks)) throw Error("invalid_description");
@@ -251,12 +334,13 @@ export function extractCollection(input: unknown, expectedUri: string, fetchedAt
   if (view.uri !== expectedUri || view.did !== publisher || author.did !== publisher
     || typeof view.cid !== "string" || !cidPattern.test(view.cid) || !Object.hasOwn(author, "organization"))
     throw Error("invalid_collection_view");
+  let organization: Record<string, unknown> | null = null;
   if (author.organization !== null) {
-    const organization = record(author.organization);
-    const details = record(organization.record);
-    if (organization.did !== publisher || organization.uri !== `at://${publisher}/app.certified.actor.organization/self`
-      || details.$type !== "app.certified.actor.organization") throw Error("invalid_organization");
-    if ((details.visibility !== undefined && details.visibility !== "public") || details.unlisted === true)
+    const linked = record(author.organization);
+    organization = record(linked.record);
+    if (linked.did !== publisher || linked.uri !== `at://${publisher}/app.certified.actor.organization/self`
+      || organization.$type !== "app.certified.actor.organization") throw Error("invalid_organization");
+    if ((organization.visibility !== undefined && organization.visibility !== "public") || organization.unlisted === true)
       return { status: "restricted", code: "not_discoverable" };
   }
   const entry = record(view.record);
@@ -308,5 +392,10 @@ export function extractCollection(input: unknown, expectedUri: string, fetchedAt
       kind: "work",
     }];
   }));
-  return { status: "indexed", cid: view.cid, contentHash, sourceIndexedAt, fetchedAt, passages };
+  const facts: ProjectFacts = {
+    publisher: publisherName(author, publisher),
+    place: placeName(view, entry),
+    organizationTypes: organizationTypes(organization),
+  };
+  return { status: "indexed", cid: view.cid, contentHash, sourceIndexedAt, fetchedAt, passages, facts };
 }

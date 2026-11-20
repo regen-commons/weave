@@ -15,8 +15,11 @@ const card = (n: number): PublicProjectCard => ({
   sourceUrl: `https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=${encodeURIComponent(projectUri(n))}`,
 });
 
-test("the query accepts only a bounded search, an opaque cursor and a page size", () => {
-  assert.deepEqual(parsePublicProjectQuery(url("")), { q: "", terms: [], cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
+test("the query accepts only a bounded search, a kind of group, an opaque cursor and a page size", () => {
+  assert.deepEqual(parsePublicProjectQuery(url("")),
+    { q: "", terms: [], organizationType: null, cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
+  assert.equal(parsePublicProjectQuery(url("?q=soil&organizationType=community-group")).organizationType, "community-group");
+  assert.equal(parsePublicProjectQuery(url("?organizationType=grupo-comunit%C3%A1rio")).organizationType, "grupo-comunitário");
   const search = parsePublicProjectQuery(url("?q=%20S%C3%A3o%20%20Paulo%20soil%20soil&limit=3"));
   assert.deepEqual([search.q, search.terms, search.limit], ["São Paulo soil soil", ["sao", "paulo", "soil"], 3]);
   assert.deepEqual(searchTerms("a b c d e f g h"), ["a", "b", "c", "d", "e", "f"]);
@@ -34,6 +37,10 @@ test("the query accepts only a bounded search, an opaque cursor and a page size"
     `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02", uri: projectUri(1) })}`,
     `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: "at://did:web:x/other/key" })}`,
     `?cursor=${Buffer.from(JSON.stringify({ sharedAt: "x" })).toString("base64url")}`,
+    "?organizationType=", "?organizationType=Nonprofit", "?organizationType=non%20profit", "?organizationType=non_profit",
+    "?organizationType=-lead", `?organizationType=${"x".repeat(41)}`, "?organizationType=a&organizationType=b",
+    "?organizationType=Grupo-comunit%C3%A1rio", "?organizationType=grupo-comunita%CC%81rio", "?organizationType=a.b",
+    "?organizationtype=nonprofit", "?type=nonprofit",
   ]) assert.throws(() => parsePublicProjectQuery(url(bad)), /invalid_project_query/u, bad);
 });
 
@@ -64,7 +71,7 @@ test("the list is overdue after 26 hours and partial while a sweep is unfinished
 
 test("pages come from a copy read once a minute, are cacheable and link the next page", async () => {
   let clock = Date.parse("2026-11-15T06:00:00Z");
-  const cards = [1, 2, 3, 4, 5].map((n) => ({ ...card(n), sharedAt: `2026-10-0${n}T12:00:00.000000Z`,
+  const cards = [1, 2, 3, 4, 5].map((n) => ({ ...card(n), sharedAt: `2026-10-0${n}T12:00:00.000000Z`, organizationTypes: [],
     text: n === 2 ? "Guardamos sementes crioulas em São Paulo." : "We restore wetlands along the river." }));
   const snapshot: PublicProjectSnapshot = { cards, checkpoint: { completedAt: "2026-11-15T04:01:00.000000Z", offset: 0 } };
   let loads = 0;
@@ -117,7 +124,7 @@ test("before the list is switched on it answers an empty off page, and errors ar
   let attempts = 0;
   const flaky = createPublicProjectsHandler({ reader: async () => ({ ...reader, load: async () => {
     if (++attempts === 1) throw Error("relation private.weave_project_index_source permission denied");
-    return { cards: [{ ...card(1), text: "" }], checkpoint: null };
+    return { cards: [{ ...card(1), text: "", organizationTypes: [] }], checkpoint: null };
   } }) });
   await expect(await flaky(new Request(url(""))), 503, "public_projects_unavailable");
   // A database that stops answering gives a quick 503, and the next request reads again.
@@ -131,4 +138,97 @@ test("before the list is switched on it answers an empty off page, and errors ar
   assert.equal(hung, 2);
   const recovered = parsePublicProjectPage(await (await flaky(new Request(url("")))).json());
   assert.deepEqual([recovered.index.status, recovered.index.total, attempts], ["partial", 1, 2], "a failed read is not kept");
+});
+
+test("a card may say who shared it and where, and a page and an app of either age read each other", () => {
+  const named = { ...card(1), publisher: "Lagoa Seed Library", place: "São Paulo, Brazil" };
+  const page = {
+    index: { status: "bounded", checkedAt: "2026-11-19T04:01:00.000000Z", total: 2, organizationTypes: ["nonprofit", "cooperative"] },
+    projects: [named, { ...card(2), place: "Awka, Nigeria" }], next: null,
+  };
+  assert.deepEqual(parsePublicProjectPage(page), page);
+  // A server from before these facts sends none of them, and the page reads as it did.
+  const older = { index: { status: "bounded", checkedAt: "2026-11-19T04:01:00.000000Z", total: 1 }, projects: [card(1)], next: null };
+  const read = parsePublicProjectPage(older);
+  assert.deepEqual(read, older);
+  assert.ok(!("publisher" in read.projects[0]!) && !("organizationTypes" in read.index));
+  // A server newer than this app may add more; what this app does not know is dropped, as an older app drops these.
+  const newer = { ...page, index: { ...page.index, kinds: ["x"] }, projects: [{ ...named, banner: "https://cdn.example/x.jpg" }, page.projects[1]] };
+  assert.deepEqual(parsePublicProjectPage(newer), page);
+  for (const broken of [
+    { publisher: "" }, { publisher: "   " }, { publisher: 5 }, { publisher: null }, { publisher: "x".repeat(121) },
+    { place: "Awka\u0000" }, { place: "‮akwa" }, { place: ["Awka"] },
+  ]) assert.throws(() => parsePublicProjectPage({ ...page, projects: [{ ...named, ...broken }] }), /invalid_public_projects/u,
+    JSON.stringify(broken));
+  for (const organizationTypes of ["nonprofit", ["Nonprofit"], ["nonprofit", "nonprofit"], [""], [5], null,
+    Array.from({ length: 25 }, (_, n) => `kind${n}`)])
+    assert.throws(() => parsePublicProjectPage({ ...page, index: { ...page.index, organizationTypes } }), /invalid_public_projects/u,
+      JSON.stringify(organizationTypes));
+});
+
+test("search reads the publisher and the place, and a kind of group narrows the list to the publishers that name it", async () => {
+  const facts: [Partial<PublicProjectCard>, string[]][] = [
+    [{ publisher: "Lagoa Seed Library", place: "São Paulo, Brazil" }, ["nonprofit"]],
+    [{ publisher: "Riverkeepers" }, ["cooperative", "nonprofit"]],
+    [{}, ["nonprofit"]],
+    [{ place: "Awka, Nigeria" }, ["community-group", "cooperative"]],
+    [{}, ["other"]],
+    [{ publisher: "Orchard Circle" }, ["other"]],
+  ];
+  const cards = facts.map(([fact, organizationTypes], index) => ({
+    ...card(index + 1), ...fact, organizationTypes, sharedAt: `2026-10-0${index + 1}T12:00:00.000000Z`, text: "We restore wetlands.",
+  }));
+  const handler = createPublicProjectsHandler({ reader: async () => ({
+    load: async () => ({ cards, checkpoint: { completedAt: "2026-11-19T04:01:00.000000Z", offset: 0 } }), close: async () => undefined,
+  }), now: () => Date.parse("2026-11-19T06:00:00Z") });
+  const get = async (search: string) => {
+    const response = await handler(new Request(url(search)));
+    assert.equal(response.status, 200, search);
+    const body = await response.json() as { projects: Record<string, unknown>[] };
+    for (const project of body.projects)
+      assert.deepEqual(Object.keys(project).filter((key) => ["text", "search", "organizationTypes"].includes(key)), []);
+    return parsePublicProjectPage(body);
+  };
+  const all = await get("");
+  // Most common first, ties by name, whatever the search or filter, and "other" always last.
+  assert.deepEqual(all.index.organizationTypes, ["nonprofit", "cooperative", "community-group", "other"]);
+  assert.deepEqual(all.projects.map(({ publisher, place }) => [publisher ?? null, place ?? null]), [
+    ["Orchard Circle", null], [null, null], [null, "Awka, Nigeria"], [null, null], ["Riverkeepers", null],
+    ["Lagoa Seed Library", "São Paulo, Brazil"],
+  ]);
+  const name = (n: number) => `Watershed circle ${n}`;
+  assert.deepEqual((await get("?q=lagoa%20seed")).projects.map((project) => project.name), [name(1)]);
+  assert.deepEqual((await get("?q=sao%20paulo")).projects.map((project) => project.name), [name(1)]);
+  assert.deepEqual((await get("?q=awka")).projects.map((project) => project.name), [name(4)]);
+  const nonprofit = await get("?organizationType=nonprofit&limit=2");
+  assert.deepEqual([nonprofit.index.total, nonprofit.projects.map((project) => project.name)], [3, [name(3), name(2)]]);
+  const rest = await get(`?organizationType=nonprofit&limit=2&cursor=${nonprofit.next}`);
+  assert.deepEqual([rest.projects.map((project) => project.name), rest.next], [[name(1)], null]);
+  const both = await get("?q=riverkeepers&organizationType=cooperative");
+  assert.deepEqual([both.index.total, both.projects.map((project) => project.name), both.index.organizationTypes],
+    [1, [name(2)], ["nonprofit", "cooperative", "community-group", "other"]]);
+  // A kind no publisher names is an empty list, not an error.
+  assert.deepEqual([(await get("?organizationType=dao")).index.total, (await get("?organizationType=dao")).projects], [0, []]);
+  // A list whose publishers name no kind offers none, as a server from before the filter did.
+  const plain = createPublicProjectsHandler({ reader: async () => ({
+    load: async () => ({ cards: [{ ...card(1), organizationTypes: [], text: "" }], checkpoint: null }), close: async () => undefined,
+  }) });
+  const quiet = await (await plain(new Request(url("")))).json() as { index: Record<string, unknown> };
+  assert.ok(!("organizationTypes" in quiet.index));
+});
+
+test("a stored value the app would refuse is left out of its card, so one bad row cannot empty the list", async () => {
+  const cards = [
+    { ...card(1), publisher: "", place: "x".repeat(121), organizationTypes: ["Bad Kind", "nonprofit", "nonprofit"], text: "" },
+    { ...card(2), publisher: "Lagoa\u0000Seed", place: "Awka, Nigeria", organizationTypes: ["community-group"], text: "" },
+  ];
+  const handler = createPublicProjectsHandler({ reader: async () => ({
+    load: async () => ({ cards, checkpoint: null }), close: async () => undefined,
+  }) });
+  const response = await handler(new Request(url("")));
+  assert.equal(response.status, 200);
+  const page = parsePublicProjectPage(await response.json());
+  assert.deepEqual(page.projects.map(({ uri, publisher, place }) => [uri, publisher, place]).sort(),
+    [[projectUri(1), undefined, undefined], [projectUri(2), undefined, "Awka, Nigeria"]].sort());
+  assert.deepEqual(page.index.organizationTypes, ["community-group", "nonprofit"]);
 });

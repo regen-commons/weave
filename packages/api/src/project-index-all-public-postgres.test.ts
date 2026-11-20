@@ -6,7 +6,7 @@ import postgres from "postgres";
 import { parsePublicEvidenceSnapshot } from "./matching-contract.ts";
 import { refreshAllPublicProjects, withdrawAllPublicProjects } from "./project-index-all-public.ts";
 import { connectProjectIndex } from "./project-index-postgres.ts";
-import { createHypercertsSource, extractCollection } from "./project-index-source.ts";
+import { createHypercertsSource, extractCollection, PROJECT_EXTRACTION_VERSION, type ProjectRead } from "./project-index-source.ts";
 import { refreshProjectIndex } from "./project-index.ts";
 import { parsePublicProjectPage } from "./public-projects-contract.ts";
 import { createPublicProjectsHandler } from "./public-projects-http.ts";
@@ -41,6 +41,7 @@ before(async () => {
     create schema private;
     create schema if not exists extensions;`);
   await admin.unsafe(await candidate("weave-project-index"));
+  await admin.unsafe(await candidate("weave-project-index-card-facts"));
   await admin.unsafe(await candidate("weave-public-evidence-snapshot"));
   const password = randomBytes(18).toString("base64url");
   await admin.unsafe(`alter role weave_all_public_index login password '${password}'`);
@@ -59,10 +60,13 @@ after(async () => {
 const integration = (name: string, run: () => Promise<void>) => test(name, { skip: !database }, run);
 
 // Forty projects over two pages of 25: one with only a title, one unlisted, one with an unsafe title.
-const SAO = 7, TITLE_ONLY = 37, UNLISTED = 38, INVALID = 39;
+const SAO = 7, RIVER = 9, ODD = 10, TITLE_ONLY = 37, UNLISTED = 38, INVALID = 39;
 const views: unknown[] = Array.from({ length: 40 }, (_, n) => projectView(n, n === TITLE_ONLY ? { short: null }
   : n === UNLISTED ? { unlisted: "organization" } : n === INVALID ? { title: "Write to example@example.com" }
-    : n === SAO ? { short: "Our São Paulo garden network shares seed. Neighbours keep the beds." } : {}));
+    : n === SAO ? { short: "Our São Paulo garden network shares seed. Neighbours keep the beds.",
+      publisher: "Lagoa Seed Library", place: "São Paulo, Brazil", organizationTypes: ["nonprofit"] }
+      : n === RIVER ? { publisher: "Riverkeepers", organizationTypes: ["Cooperative", "nonprofit"] }
+        : n === ODD ? { publisher: "Write to someone@example.com", place: 7, organizationTypes: "nonprofit" } : {}));
 const listing: Parameters<typeof projectListing>[0] = { views };
 const source = createHypercertsSource({ wait: async () => undefined, fetch: projectListing(listing) });
 /** Accounts named here live on Certified's development server; the rest on certified.one. */
@@ -79,6 +83,7 @@ async function page(search = "", extra = "") {
 }
 const tables = () => admin`
   select s.project_uri, s.status, s.permission_until, s.cid, s.content_hash, s.checked_at, s.fetched_at, s.error_code,
+    s.publisher_name, s.place_name, s.organization_types,
     (select coalesce(jsonb_agg(e.evidence order by e.id), '[]') from private.weave_project_index_evidence e where e.project_uri = s.project_uri) as evidence
   from private.weave_project_index_source s order by s.project_uri`;
 /** Every shown project, following the handler's cursors seven at a time. */
@@ -118,6 +123,19 @@ integration("the first refresh shows every listed public project with text, newe
   assert.equal((await page("wetlands volunteers")).total, 36);
   assert.equal((await page(projectName(3))).projects[0]?.uri, projectUri(3));
   assert.equal((await page("no such words anywhere")).total, 0);
+  // Who shared it and where come from the source row, and a malformed one is simply left out.
+  assert.deepEqual([sao[0]?.publisher, sao[0]?.place], ["Lagoa Seed Library", "São Paulo, Brazil"]);
+  assert.deepEqual((await page("lagoa seed library")).projects.map(({ uri }) => uri), [projectUri(SAO)]);
+  assert.deepEqual((await page("riverkeepers")).projects.map(({ uri, publisher, place }) => [uri, publisher, place]),
+    [[projectUri(RIVER), "Riverkeepers", undefined]]);
+  const odd = (await page(projectName(ODD))).projects[0];
+  assert.deepEqual([odd?.uri, "publisher" in odd!, "place" in odd!], [projectUri(ODD), false, false]);
+  const nonprofit = await page("", "&organizationType=nonprofit");
+  assert.deepEqual(nonprofit.projects.map(({ uri }) => uri).sort(), [SAO, RIVER].map(projectUri).sort());
+  assert.deepEqual((await page("", "&organizationType=cooperative")).projects.map(({ uri }) => uri), [projectUri(RIVER)]);
+  const handler = createPublicProjectsHandler({ reader: async () => reader });
+  const index = parsePublicProjectPage(await (await handler(new Request("https://weave.example/api/public-projects"))).json()).index;
+  assert.deepEqual(index.organizationTypes, ["nonprofit", "cooperative"]);
   const [state] = await admin`select manifest_generation, next_offset, completed_at is not null as done from private.weave_project_index_checkpoint`;
   assert.deepEqual([state!.manifest_generation, state!.next_offset, state!.done], [1, 0, true]);
 });
@@ -139,15 +157,20 @@ integration("an unchanged refresh keeps the same evidence in a new generation", 
 });
 
 integration("an unlisted flip, a removal and a move to a test server withdraw the project and delete its evidence at once", async () => {
+  // Project 4 had a publisher and place, which go with its words when it is withdrawn.
+  await admin`update private.weave_project_index_source set publisher_name = 'Riverside Commons', place_name = 'Awka, Nigeria',
+    organization_types = '{nonprofit}' where project_uri = ${projectUri(4)}`;
   views[3] = projectView(3, { unlisted: "legacy" });
   views.splice(4, 1);
   onDevServer.add(projectDid(8));
   const report = await refresh();
   assert.deepEqual([report.status, report.withdrawn, report.listed, report.testHosts], ["complete", 3, 36, 1]);
   for (const n of [3, 4, 8]) {
-    const [row] = await admin`select status, error_code, permission_until <= now() as expired
+    const [row] = await admin`select status, error_code, permission_until <= now() as expired,
+        publisher_name, place_name, organization_types
       from private.weave_project_index_source where project_uri = ${projectUri(n)}`;
     assert.deepEqual([row!.status, row!.error_code, row!.expired], ["restricted", "permission_removed", true]);
+    assert.deepEqual([row!.publisher_name, row!.place_name, row!.organization_types], [null, null, []]);
     assert.equal(await evidenceCount(projectUri(n)), 0);
   }
   const shownNow = await collect();
@@ -201,6 +224,24 @@ integration("two runs at once leave one consistent permission set", async () => 
   assert.equal((await page()).total, 36, "the refresh confirms the expired and stale projects again");
 });
 
+/** The card's facts as stored for one project. */
+const stored = async (n: number) => (await admin<{ publisher: string | null; place: string | null; types: string[] }[]>`
+  select publisher_name as publisher, place_name as place, organization_types as types
+  from private.weave_project_index_source where project_uri = ${projectUri(n)}`)[0];
+
+integration("a publisher that renames itself keeps its project shown under the same CID, with the new name", async () => {
+  const at = views.findIndex((view) => (view as { uri: string }).uri === projectUri(RIVER));
+  const [before] = await admin`select cid, content_hash, extraction_version from private.weave_project_index_source where project_uri = ${projectUri(RIVER)}`;
+  views[at] = projectView(RIVER, { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["cooperative"] });
+  assert.equal((await refresh()).status, "complete");
+  const [after] = await admin`select status, cid, content_hash, extraction_version from private.weave_project_index_source where project_uri = ${projectUri(RIVER)}`;
+  // The same CID with a new hash would be refused as a divergent projection; the facts are outside the hash.
+  assert.deepEqual(after, { status: "indexed", ...before });
+  assert.equal(before!.extraction_version, PROJECT_EXTRACTION_VERSION);
+  assert.deepEqual(await stored(RIVER), { publisher: "River Keepers Awka", place: "Awka, Nigeria", types: ["cooperative"] });
+  assert.deepEqual((await page("river keepers awka")).projects.map(({ uri, place }) => [uri, place]), [[projectUri(RIVER), "Awka, Nigeria"]]);
+});
+
 integration("withdrawing everything empties the public list", async () => {
   const report = await withdrawAllPublicProjects({ store: index.store });
   assert.equal(report.status, "complete");
@@ -232,4 +273,23 @@ integration("a project whose data Postgres refuses is recorded as malformed and 
   assert.deepEqual(rows.map(({ status, error_code }) => [status, error_code]), [["failed", "invalid_source_record"], ["indexed", null]]);
   assert.equal(await evidenceCount(projectUri(51)), 0);
   assert.ok(await evidenceCount(projectUri(52)) > 0);
+});
+
+integration("a temporary failure keeps a project's card facts with its words, and a malformed record clears both", async () => {
+  const redisplayUntil = new Date(Date.now() + 3_600_000).toISOString();
+  const run = async (read: ProjectRead) => {
+    const { generation } = await index.store.state();
+    return refreshProjectIndex({ manifest: { generation: generation + 1, permissions: [{ uri: projectUri(53), redisplayUntil }] },
+      store: index.store, source: { get: async () => read }, batchSize: 1, readsInHand: true });
+  };
+  const facts = { publisher: "Lagoa Seed Library", place: "São Paulo, Brazil", types: ["nonprofit"] };
+  await run(extractCollection(projectView(53, { publisher: facts.publisher, place: facts.place, organizationTypes: facts.types }),
+    projectUri(53), new Date().toISOString()));
+  assert.deepEqual(await stored(53), facts);
+  assert.equal((await run({ status: "failed", code: "source_unavailable" })).failed, 1);
+  assert.deepEqual(await stored(53), facts);
+  assert.ok(await evidenceCount(projectUri(53)) > 0);
+  await run({ status: "failed", code: "invalid_source_record" });
+  assert.deepEqual(await stored(53), { publisher: null, place: null, types: [] });
+  assert.equal(await evidenceCount(projectUri(53)), 0);
 });

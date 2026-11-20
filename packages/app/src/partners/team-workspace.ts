@@ -3,7 +3,7 @@ import { AccountFailure, accountRequest } from "../account/client.ts";
 import { emptyFundingForm } from "../funding/contracts.ts";
 import { SuggestionSchema, type DeviceDraft, type Initiative } from "../describe/contracts.ts";
 import { ownDocument } from "../account/document.ts";
-import { sessionChoosers } from "../social/project-choice.ts";
+import { deviceChoosers } from "../social/project-choice.ts";
 import { AskSuggestionSchema, type AskFields } from "../intake/contracts.ts";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { beginConsentReturn, cancelConsentReturn, currentConsentReturn, finishConsentReturn, takeConsentReturn } from "../initiative/consent-return.ts";
@@ -55,7 +55,7 @@ export async function saveDeviceCardToTeam(
   started: (command: TeamSave) => void = () => {},
 ) {
   // Checked on a retry too: the request was built for this card, and the card must still be this account's.
-  const document = parseTeamDocument(ownDocument(draft, owner, sessionChoosers(draft.id)));
+  const document = parseTeamDocument(ownDocument(draft, owner, deviceChoosers(draft.id)));
   const command = retry ?? { expectedRevision: 0, requestId: crypto.randomUUID(), document };
   started(command);
   return { command, saved: await saveTeamWorkspace(workspaceId, command, signal) };
