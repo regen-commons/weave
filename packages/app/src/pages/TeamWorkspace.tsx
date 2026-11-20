@@ -171,9 +171,11 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   const saved = loaded.saved;
   const readOnly = loaded.accessRole === "viewer";
   // Copying this device's checked card is offered while the team has nothing saved. When that card
-  // was linked to this project, saving it here is the next step.
+  // was linked to this project, or is linked to nothing and this workspace was opened over it in
+  // this tab, saving it here is the next step.
   const offerSave = !saved && !readOnly && online && !setAside && !saveBlocker(draft);
-  const ownCard = offerSave && social?.mode === "live" && social.state.project?.workspaceId === workspaceId;
+  const ownCard = offerSave && social?.mode === "live"
+    && (social.state.project?.workspaceId === workspaceId || social.state.visit === workspaceId);
   const owner = state!.user!.id;
   const fields = saved ? SuggestionSchema.parse({ ...saved.document.initiative, confidence: 1 }) : null;
   return (

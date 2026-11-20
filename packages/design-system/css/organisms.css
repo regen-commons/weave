@@ -353,7 +353,7 @@
 .rc-app-header-state { display: flex; align-items: center; justify-content: end; gap: var(--space-2); min-inline-size: 0; min-block-size: var(--control-height); }
 .rc-app-header-state > .rc-save-status { min-inline-size: 0; }
 .rc-app-header-state > .rc-save-status > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button, .rc-app-header-state > .rc-account { flex: none; }
+.rc-app-header-state > .rc-save-status > .rc-icon, .rc-app-header-state > .rc-button, .rc-app-header-state > .rc-icon-button { flex: none; }
 /* On a phone, a page where the card is worked on says how it is saved and, signed out, offers
    Sign in beside that. The name of the page behind has no room there, so the way back keeps its
    arrow alone, as a native bar does when its title is crowded. Its name is still read out. */
@@ -370,7 +370,8 @@
 }
 /* A wide screen has room for the switch between light and dark and for the account's own menu,
    which holds Settings (DL-070, DL-079). A phone's bar holds neither: its You tab has the theme
-   and the way to Settings (DL-086). */
+   and the way to Settings (DL-086). Both are outlined Icon buttons at Sign in's height, so
+   whatever the bar ends with is drawn the same way (DL-107, DL-116). */
 .rc-app-header-state > [data-from="wide"] { display: none; }
 @media (min-width: 56.25rem) {
   .rc-app-header-state > [data-from="wide"] { display: inline-grid; }
@@ -380,9 +381,12 @@
 .rc-filter-controls, .rc-active-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 /* On a phone one Filters button opens every filter in a sheet. A wider screen has room for a menu each. */
 .rc-filter-controls > [data-filter="one"] { display: none; }
-/* Filters and Sort share a phone's row, so each gives up a little of its side padding to fit. */
+/* Filters and Sort share a phone's row, so each gives up a little of its side padding to fit.
+   Together they fill the row from edge to edge, as the search field above them does, and a button
+   alone in the row is as wide as the row (DL-117). Each grows from its own width, so the longer
+   label keeps the more room and neither wraps. */
 @media (width <= 37.5rem) {
-  .rc-filter-controls > .rc-button { padding-inline: var(--space-3); }
+  .rc-filter-controls > .rc-button { flex: 1 1 auto; padding-inline: var(--space-3); }
 }
 @media (width > 37.5rem) {
   .rc-filter-controls > [data-filter="all"] { display: none; }

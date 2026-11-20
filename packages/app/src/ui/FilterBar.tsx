@@ -12,6 +12,7 @@ import {
 } from "../filters.ts";
 import { Dialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
+import { RadioMenu } from "./RadioMenu.tsx";
 
 type ChangeFacet = (key: string, chosen: readonly string[]) => void;
 
@@ -94,41 +95,17 @@ function FilterMenu({ facet, name, onChange }: { facet: Facet; name: string; onC
  * (DL-100). The button says the order in force, so the bar reads the same before and after a press.
  */
 function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSort(value: string): void }) {
-  const id = useId();
-  const trigger = useRef<HTMLButtonElement>(null);
-  const panel = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (trigger.current && panel.current) return connectPopover(trigger.current, panel.current);
-  }, []);
   const current = sortChoice(sort);
   return (
-    <>
-      <button className="rc-button" data-variant="secondary" type="button" ref={trigger} popoverTarget={id}>
-        Sort: {current?.label}
-      </button>
-      <div className="rc-menu" ref={panel} id={id} popover="auto" data-align="end">
-        <fieldset className="rc-menu-group">
-          <legend>Sort</legend>
-          <div className="rc-menu-options">
-            {sort.options.map((option) => (
-              <label className="rc-menu-option" key={option.value}>
-                <input
-                  className="rc-check"
-                  type="radio"
-                  name={name}
-                  checked={current?.value === option.value}
-                  onChange={() => onSort(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <button type="button" className="rc-button" data-variant="quiet" data-close-popover>
-          Done
-        </button>
-      </div>
-    </>
+    <RadioMenu
+      label={`Sort: ${current?.label}`}
+      legend="Sort"
+      name={name}
+      options={sort.options}
+      value={current?.value}
+      onChange={onSort}
+      align="end"
+    />
   );
 }
 

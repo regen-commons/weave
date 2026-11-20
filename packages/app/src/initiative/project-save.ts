@@ -5,7 +5,7 @@ import { DeviceDraftSchema, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft
 import type { DraftController } from "../describe/controller.ts";
 import { reviewStep } from "../intake/state.ts";
 import { projectLocations, projectRequest, type PublicProject } from "./projects-client.ts";
-import { sessionChoosers } from "../social/project-choice.ts";
+import { deviceChoosers } from "../social/project-choice.ts";
 import { uuid } from "@weave/api/account-contract";
 
 /**
@@ -70,7 +70,7 @@ export async function saveForProject(controller: DraftController, owner: string,
   const draft = controller.getSnapshot().draft;
   if (draft.account.saved?.owner === owner && draft.account.saved.contentKey === accountKey(draft))
     return { initiativeId: draft.account.saved.id, expectedRevision: draft.account.saved.revision };
-  const { binding, command } = saveCommand(draft, owner, sessionChoosers(draft.id));
+  const { binding, command } = saveCommand(draft, owner, deviceChoosers(draft.id));
   controller.change((d) => revise(d, { account: { ...d.account, pending: binding } }));
   await controller.settled();
   signal.throwIfAborted();

@@ -10,8 +10,9 @@ import { signOut } from "./sign-out.ts";
 
 /**
  * The account's menu in the app header on a wide screen (DL-070): who is signed in, the two
- * places that are theirs, and Sign out. It renders the Account button (`rc-account`) and a Menu
- * (`rc-menu`). A phone has no room for it: its You tab holds the account and Settings (DL-086).
+ * places that are theirs, and Sign out. It renders the Account button, an outlined Icon button
+ * drawn as the theme switch beside it is (DL-116), and a Menu (`rc-menu`). A phone has no room for
+ * it: its You tab holds the account and Settings (DL-086).
  */
 export function AccountMenu({
   current,
@@ -50,7 +51,16 @@ export function AccountMenu({
   }
   return (
     <>
-      <button ref={trigger} className="rc-account" type="button" aria-label="Account" popoverTarget={id} data-from="wide">
+      <button
+        ref={trigger}
+        className="rc-icon-button"
+        data-variant="secondary"
+        data-size="sm"
+        type="button"
+        aria-label="Account"
+        popoverTarget={id}
+        data-from="wide"
+      >
         <Icon name="person" />
       </button>
       <div className="rc-menu" data-align="end" ref={panel} id={id} popover="auto">
