@@ -206,16 +206,17 @@ const groupBy = (rows, key) => Object.fromEntries([...new Set(rows.map(key))].so
 /**
  * Paths: "full-corpus" gives both engines every corpus passage, isolating ranking on the same candidates.
  * "retrieval" first keeps projects sharing a term with the query (on expanded text for the current
- * engine), an upper bound for the SQL shortlist, then ranks.
+ * engine), an upper bound for the SQL shortlist, then ranks. `suggestFor` lets an offline experiment
+ * score its own suggestions with these definitions; it returns what `suggest` returns.
  */
-export function evaluateReal(corpus, queries, labelMap, useConcepts, path) {
+export function evaluateReal(corpus, queries, labelMap, useConcepts, path, suggestFor = suggest) {
   if (!["full-corpus", "retrieval"].includes(path)) throw Error("invalid_evaluation_path");
   const rows = queries.queries.map(query => {
     const { pairs, judgedAll, decoys } = labelMap.get(query.id);
     const label = id => pairs.get(id) ?? (judgedAll ? "irrelevant" : "unjudged");
     const relevant = [...pairs].filter(([, value]) => value === "relevant").map(([id]) => id);
     const anyUnresolved = [...pairs.values()].includes("unresolved");
-    const { pool, matches, ids } = suggest(corpus, query, useConcepts, path);
+    const { pool, matches, ids } = suggestFor(corpus, query, useConcepts, path);
     const top3 = ids.slice(0, APP_WINDOW);
     const count = (list, value) => list.filter(id => label(id) === value).length;
     return { id: query.id, domain: query.domain, direction: query.direction, language: query.language, evidenceType: query.evidenceType,

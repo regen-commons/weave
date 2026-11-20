@@ -363,6 +363,9 @@ evidence it is not yet good enough to rely on. About two in three suggestions it
 shows were not judged a fit, and it finds something useful for well under half of
 the needs and offers that have a fitting project.
 
+The matching-architecture experiment's retrieval options were then run once on this
+set, untuned: see [their report](experiments/matching-architecture/reports/2026-11-19-partner-real-v1.md).
+
 ### What this does not establish
 
 - It is not human judgment. The agents disagreed on almost as many pairs (271) as
