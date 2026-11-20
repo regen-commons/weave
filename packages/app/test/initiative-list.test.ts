@@ -109,8 +109,9 @@ test("a draft that carries a project's suggestions stands for it in the list, an
   assert.equal(standsForProject(plain, project.uri, null), false);
   assert.equal(standsForProject(carrying, project.uri, null), true, "the project is listed once, as that draft");
   assert.equal(standsForProject(plain, project.uri, project.uri), true, "as it is for a draft its account chose it for");
-  // Suggestions are not a choice: nobody is handed the card until an account links it (DL-055).
-  assert.equal(linkedProject(null, null, [project]), null);
+  // Suggestions are not a choice, so the linking rule is not given the draft at all: it takes the
+  // account's choice and the saved card's ID, and the live adapter's tests cover a card that carries them.
+  assert.equal(linkedProject.length, 3);
 });
 
 test("opening the saved version over a working copy keeps the copy, and the entry says so before the press", async () => {
