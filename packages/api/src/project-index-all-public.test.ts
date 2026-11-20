@@ -294,18 +294,22 @@ test("an account's server comes from its DID document, and only a definite answe
 
 // Invented names and text in the shapes seen on 19 November 2026. None is a real project.
 const realText = ["We restore wetlands along the river with volunteers each season."];
+// Built from its code point, so this file holds no dash character an editor could change.
+const enDash = String.fromCodePoint(0x2013);
 test("a project whose name or own words declare it a QA or test entry is recognised, and why", () => {
   // A name leads with "QA", holds nothing but test words and numbering, or carries a label set apart from it.
   for (const name of ["QA Wizard Project 7", "QA Test Project B", "QA Riverside Repair Cafe", "Test project", "test",
     "Tests", "Seed library tutorial (test)", "Pollinator count - TEST", "Testing", "Testing project 2", "testing 123",
-    "Test project v2", "qa test", "Test A", "[TEST] Seed swap", "TEST: Seed swap", "Garden map (QA)"])
+    "Test project v2", "qa test", "Test A", "[TEST] Seed swap", "TEST: Seed swap", "Garden map (Tests)",
+    "Seed swap | test", "Seed swap - Tests", "Seed swap : test", `Pollinator count ${enDash} TEST`, "test - Seed swap",
+    "Test | Seed swap", "[QA] Seed swap"])
     assert.equal(testEntryReason(name, realText), "test_named", name);
   // A sentence says nothing else, opens with the label in capitals, names a QA entry, or says it is not real.
   for (const passage of ["TEST PROJECT", "This is a test project.", "It is only a test entry!",
     "TEST PROJECT made to check the publishing wizard.", "Automated QA project created by the release suite.",
     "QA test story about a community garden.", "QA story for the organisation page.",
     "An automated QA entry with sample text.", "We plant trees here. It is not a real project.",
-    "It's not a real initiative, only sample text.", "A test project created on staging to check images.",
+    "It's not a real project, only sample text.", "A test project created on staging to check images.",
     "Ignore this one, it is a QA project made for testing."])
     assert.equal(testEntryReason("Riverside Commons", [realText[0]!, passage]), "test_described", passage);
   // The name is checked first, so a project that both names and describes itself as a test counts once, by name.
@@ -335,6 +339,11 @@ test("a place or a phrase with Test or QA in its name, a pilot called a test pro
     "TEST YOUR SOIL", "Stress Test Collective", "Tests of Time Orchard", "Beta Test Kitchen", "Qatar Mangroves QA",
     "Water Quality - Testing", "Community QA Lab"])
     assert.equal(testEntryReason(name, realText), null, name);
+  // "QA" is also Qatar's country code, so it is never a label in brackets or split off after a name. Only a
+  // name that leads with "QA" in capitals is a test entry.
+  for (const name of ["Mangrove Restoration (QA)", "Garden map (qa)", "Seed (QA) swap", "[qa] Seed swap",
+    "Solar Schools - QA", "Doha Urban Farms | QA", "Coastal Dunes : QA", `Reef Guardians ${enDash} QA`])
+    assert.equal(testEntryReason(name, realText), null, name);
   // Every sentence of a description is read, so one that mentions a pilot or an informal group must not count.
   for (const passage of ["A test project in two villages showed strong results.",
     "Test project sites in three villages show yield gains.", "Test project for regenerative grazing in the Karoo.",
@@ -342,6 +351,10 @@ test("a place or a phrase with Test or QA in its name, a pilot called a test pro
     "It is a test project of the municipality to trial shared solar.", "Our work began as a test project in 2019.",
     "We are not a real organisation, just neighbours who plant trees.",
     "We are not an actual organization but an informal network of growers.",
+    // The same group writing about itself as "it" or "this": only "not a real project" declares a test entry.
+    "It is not a real organisation, just neighbours who plant trees.",
+    "This is not an actual organization but an informal network of growers.",
+    "It's not a real initiative yet, more a habit among friends.",
     "QA project for water quality assurance in rural clinics.",
     "A test project made for testing drought-resistant seed varieties."])
     assert.equal(testEntryReason("Riverside Commons", [realText[0]!, passage]), null, passage);

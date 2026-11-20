@@ -36,37 +36,42 @@ export type TestEntryReason = "test_named" | "test_described";
 const nameWords = (name: string) => name.split(/[^\p{L}\p{N}'’-]+/u).map((word) => word.replace(/^['’-]+|['’-]+$/gu, ""))
   .filter(Boolean);
 /**
- * A name marks a test entry in three shapes, the ones on the list on 19 November 2026. "Test" or "QA" as
- * one word of a longer name is not one of them, because "Test Valley Rewilding", "River Test Restoration"
- * and "Soil Testing Cooperative" are real work.
+ * A name marks a test entry in three shapes. "Test" or "QA" as one word of a longer name is not one of
+ * them, because "Test Valley Rewilding", "River Test Restoration" and "Soil Testing Cooperative" are real
+ * work.
  * - It leads with "QA" in capitals, as in "QA Riverside Repair Cafe" (`words[0]` in `testEntryReason`).
  * - It holds nothing but test words, "project" and numbering, as in "Test project" or "Testing 2".
- * - It carries "test", "tests" or "QA" set apart as a label: in brackets, or split off by a dash, colon or
- *   bar at either end, as in "Seed library tutorial (test)" or "Pollinator count - TEST".
+ * - It carries "test" or "tests" set apart as a label: in brackets, or split off at either end by a dash,
+ *   colon or bar, as in "Seed library tutorial (test)", "Pollinator count - TEST" or "TEST: Seed swap". A
+ *   label at the end needs a space before the dash, colon or bar, so "Seed swap: test" is not one. "QA" is
+ *   never such a label, because it is also Qatar's country code, as in "Mangrove Restoration (QA)".
+ * The first two shapes and the bracketed label were on the list on 19 November 2026. The split-off label
+ * was not.
  */
 const bareTestName = (words: string[]) => words.some((word) => /^(?:tests?|testing)$/iu.test(word))
   && words.every((word) => /^(?:tests?|testing|qa|projects?|v?\p{N}+|\p{L})$/iu.test(word));
 const testLabels = [
-  /[(\[]\s*(?:tests?|qa)\s*[)\]]/iu,
-  /\s[-\u2013\u2014:|]\s*(?:[Tt][Ee][Ss][Tt][Ss]?|QA)$/u,
-  /^(?:[Tt][Ee][Ss][Tt][Ss]?|QA)\s*[-\u2013\u2014:|]\s/u,
+  /[(\[]\s*tests?\s*[)\]]/iu,
+  /\s[-\u2013\u2014:|]\s*tests?$/iu,
+  /^tests?\s*[-\u2013\u2014:|]\s/iu,
 ];
 /**
  * A sentence that says the listing itself is a test. Each passage is one sentence, so every sentence of a
  * description is read, and work described in ordinary words is never a signal: "A test project in two
- * villages showed strong results", "This is a test project for our new composting method" and "We are not
+ * villages showed strong results", "This is a test project for our new composting method" and "It is not
  * a real organisation, just neighbours" are real work. In order:
  * - the sentence says nothing else, as in "TEST PROJECT" or "This is a test project.";
  * - it opens with the label in capitals, as in "TEST PROJECT made to check the wizard.";
  * - it opens by naming an automated QA or QA test project, or a QA story or entry;
- * - it says that this is not a real project;
+ * - it says that this is not a real project, and only a project: an informal group may say of itself that
+ *   it is not a real organisation or initiative;
  * - it says the entry was made on staging, or ends by saying it was made for QA or testing.
  */
 const testDeclarations = [
   /^(?:(?:this|it) is (?:just |only )?)?(?:an? )?(?:automated )?(?:QA|test)(?: test)? (?:project|story|entry)[\s.!]*$/iu,
   /^(?:TEST|QA)(?: TEST)? (?:PROJECT|STORY|ENTRY)\b/u,
   /^(?:(?:this|it) is (?:just |only )?)?(?:an? )?(?:(?:automated )?QA (?:test )?(?:story|entry)|(?:automated QA(?: test)?|QA test) project)\b/iu,
-  /\b(?:this|it)(?: is|['’]s) not an? (?:real|actual|genuine) (?:project|initiative|organi[sz]ation)\b/iu,
+  /\b(?:this|it)(?: is|['’]s) not an? (?:real|actual|genuine) project\b/iu,
   /\b(?:QA|test) (?:project|story|entry) (?:created|made|published) (?:on|in) staging\b/iu,
   /\b(?:QA|test) (?:project|story|entry) (?:created|made|published) for (?:QA|testing)[\s.!]*$/iu,
 ];
