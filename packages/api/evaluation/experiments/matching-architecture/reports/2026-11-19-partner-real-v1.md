@@ -158,14 +158,13 @@ Run on Node 24.20.0, Apple M4. The first run needs the two models in `.cache/`, 
 
 ## Models and licences
 
-| Key | Repository | Revision | Licence |
-|---|---|---|---|
-| `mminilm-l12` | `Xenova/paraphrase-multilingual-MiniLM-L12-v2` | `2c4055b12046f11709e9df2c122e59ffbdc2f900` | Apache-2.0, from upstream `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` |
-| `me5-small` | `Xenova/multilingual-e5-small` | `761b726dd34fb83930e26aab4e9ac3899aa1fa78` | MIT, from upstream `intfloat/multilingual-e5-small` |
+| Key | Repository | Revision | Licence the repository states | Upstream licence, as `models.mjs` records it |
+|---|---|---|---|---|
+| `mminilm-l12` | `Xenova/paraphrase-multilingual-MiniLM-L12-v2` | `2c4055b12046f11709e9df2c122e59ffbdc2f900` | None | Apache-2.0 (`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`) |
+| `me5-small` | `Xenova/multilingual-e5-small` | `761b726dd34fb83930e26aab4e9ac3899aa1fa78` | None | MIT (`intfloat/multilingual-e5-small`) |
 
-These are the licences `models.mjs` records. The [experiment README](../README.md)
-records that the two `Xenova` conversion repositories state no licence of their own.
-That was not re-checked for this run: reading the Hugging Face repository pages was
-blocked in the session that ran it, and the download brought only configuration,
-tokenizer and weight files, with no licence file. Check both repositories before any
-use beyond this experiment.
+Checked on 19 November 2026 through the Hugging Face model API at each pinned
+revision: neither model card declares a licence, and neither repository carries a
+licence tag. A separate licence file in either repository was not looked for, and
+the download brought only configuration, tokenizer and weight files. The upstream
+licences were not re-checked here. Settle both before any use beyond this experiment.
