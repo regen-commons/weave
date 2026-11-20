@@ -88,3 +88,19 @@ test("what sign-in and saving do is written once and agrees with the policy", ()
   assert.match(SIGN_IN.saved, /Conversations, files, unfinished edits and assistant records stay on this device/u);
   assert.match(SIGN_IN.session, /up to one hour/u);
 });
+
+test("what the copy says about talking is what the speech code does", () => {
+  const talking = summary.get("Talking and the assistant")!;
+  assert.match(talking, /Weave never receives your voice/u);
+  assert.match(talking, /only after you agree/u);
+  assert.match(policy, /Weave asks before the first time, and you can turn it off in Settings/u);
+  assert.doesNotMatch(everything, /Google|Apple|Microsoft/u, "Weave cannot know whose speech service a browser uses");
+  // The browser's service needs the agreement, and only the device mode asks to stay on the device.
+  const speech = read("src/describe/speech.ts");
+  assert.match(speech, /mode === "browser" && !consent\?\.agreed\(\)/u);
+  assert.match(speech, /if \(mode === "device"\) session\.processLocally = true/u);
+  assert.match(read("src/pages/Settings.tsx"), /deviceConsent\(\)\.withdraw\(\)/u);
+  // Weave itself never touches audio: no capture, recording or upload anywhere in the app.
+  for (const path of ["src/describe/speech.ts", "src/describe/speech-setup.ts", "src/describe/speech-consent.ts", "src/pages/Describe.tsx", "src/pages/AskStep.tsx", "src/ui/TalkItOut.tsx"])
+    assert.doesNotMatch(read(path), /getUserMedia|MediaRecorder|AudioContext|AudioWorklet|fetch\(/u, path);
+});
