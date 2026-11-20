@@ -78,6 +78,16 @@ production. Account saving uses the same-origin API and stays unavailable until 
   still use it (DL-114). `describe/earlier-database.ts` reads it, and the copy deletes nothing.
   Never reload a tab from the service worker: an older build holds some words only on its page,
   and a worker cannot see them. Two builds side by side after a release is expected.
+- A card's Certified project is the account's choice, kept in the device's own storage through
+  `src/social/project-choice.ts` (DL-119), so a linked card is still linked in a new tab. Read it
+  only through that module; `select` in `src/social/live.ts` is its one writer. Do not add it to
+  the draft: an older tab parses drafts strictly and refuses a field it does not know. The choice
+  is a note, never an access grant, and it also decides whose an unsaved card is (DL-055). So
+  store only a link the person made. Opening a team workspace, suggestions a project page left on
+  a card, and what an earlier build kept for a tab are not choices: they are never stored, and the
+  tab's own storage is never read for one. `linkedProject` in `src/initiative/list.ts` is the one
+  rule for what a card is linked to, and a link that is still being stored shows nothing new. A
+  workspace the tab opened over an unlinked card is `visit` in the social state, never `project`.
 - The describe step is one page (DL-110). Words fill the four fields in place through
   `src/describe/fill.ts`, which never writes over a field the person typed or changed.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud

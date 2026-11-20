@@ -4,7 +4,8 @@ import { useDraft } from "../describe/use-draft.ts";
 import { intakeFixture, type FixtureContext } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
 import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
+import { boundCardId, draftSaving, initiativeEntries, linkedProject, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
+import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
 import { cardName, cardRoute, NOT_SAVED_YET, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -22,9 +23,9 @@ import { Heading } from "../ui/Heading.tsx";
 import { Section } from "../ui/Section.tsx";
 import { Doorway, ListLayout } from "../ui/layouts.tsx";
 import { useAccount } from "../account/context.tsx";
-import { accountKey, belongsToAnotherAccount } from "../account/document.ts";
+import { accountKey } from "../account/document.ts";
 import { useSetAside } from "../account/set-aside.ts";
-import { projectChoiceKey, projectChoosers } from "../social/project-choice.ts";
+import { choiceStorage, chosenProjectUri } from "../social/project-choice.ts";
 import { uuid } from "@weave/api/account-contract";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { ProjectAction, ProjectStep } from "../social/Project.tsx";
@@ -74,7 +75,10 @@ function PhoneSettings() {
  */
 export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const social = useSocial();
-  const { draft, drafts, controller } = useDraft();
+  const { draft, controller } = useDraft();
+  // Another account's card stays on the device but out of this account's lists (DL-055).
+  const listed = useListedDrafts();
+  const openInTab = useOpenDraft();
   // The list is where every initiative on the device is shown, so it is read with whatever an
   // older tab on the released build has written since (DL-114).
   useEffect(() => {
@@ -115,17 +119,9 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
       {message}
     </p>
   );
-  // Another account's card stays on the device but out of this account's lists (DL-055).
   const setAside = useSetAside();
-  const accountId = account.state?.user?.id;
-  let session: Storage | undefined;
-  try {
-    session = window.sessionStorage;
-  } catch {
-    session = undefined;
-  }
-  const listed = deviceDrafts(draft, drafts, (item) =>
-    belongsToAnotherAccount(item, accountId, projectChoosers(session, item.id)));
+  // A card's project is chosen once and kept on the device, so it is still linked in a new tab.
+  const choices = choiceStorage();
   const onDevice = listed.some((item) => item.id === draft.id);
   const handoff = onDevice && state.identity && readEditorHandoff(editorStorage(() => window.sessionStorage), state.identity.id ?? EXAMPLE_EDITOR_OWNER, draft.id);
   const project = onDevice && state.identity ? state.project : null;
@@ -138,22 +134,17 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     const own = boundCardId(item, state.identity.id);
     return item.id === draft.id ? (state.saved?.card ?? own) : own;
   };
-  /** The Certified project this account chose for a draft in this browser session, if any. */
-  const chosenProject = (item: DeviceDraft): string | null => {
-    if (item.id === draft.id && project) return project.uri;
-    try {
-      return state.identity?.id ? (session?.getItem(projectChoiceKey(state.identity.id, item.id)) ?? null) : null;
-    } catch {
-      return null;
-    }
-  };
+  /** The Certified project this account chose for a draft on this device, if any. */
+  const chosenProject = (item: DeviceDraft): string | null =>
+    item.id === draft.id && project ? project.uri : chosenProjectUri(choices, state.identity?.id, item.id);
+  /** Whether a draft is linked to one of this account's Certified projects, the tab's own draft or another. */
+  const linked = (item: DeviceDraft): boolean =>
+    item.id === draft.id
+      ? !!project
+      : !!state.identity && !!linkedProject(chosenProject(item), savedId(item), [...state.records, ...(state.workspaces ?? [])]);
   /** Opens one of this browser's drafts where it was left: its page once checked, otherwise its next step. */
   async function openDraft(item: DeviceDraft) {
-    if (item.id !== draft.id) {
-      await controller.open(item.id);
-      // The example account's saved and shared state describes one card, so it does not follow another.
-      if (!live) await service.clearCard();
-    }
+    await openInTab(item.id);
     go(pathTo(cardRoute(controller.getSnapshot().draft)));
   }
   /** Opens the account's version over this browser's working copy, which is kept: as a backup, or still in the list. */
@@ -196,7 +187,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
               </button>
             </div>
           )}
-          {current && project && <p className="rc-card-meta">Linked to your project on Certified.</p>}
+          {linked(item) && <p className="rc-card-meta">Linked to your project on Certified.</p>}
           {current && deviceWorkspace && (
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}

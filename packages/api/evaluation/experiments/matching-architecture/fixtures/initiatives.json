@@ -1,0 +1,85 @@
+{
+  "note": "Fictional initiatives written for this experiment on 2026-11-19. No real organization, person or Certified project is described; any resemblance to a real name is unintended. `facts` stand for what an owner keeps on their own device; `sharedFacts` and entries with `shared: true` stand for what an owner reviewed and shared for matching. `publicWork` stands for a passage on a public project page that nobody confirmed to Weave.",
+  "initiatives": [
+    {
+      "id": "riverbend", "name": "Riverbend Resilience Hub", "shared": true, "confirmedAt": "2026-11-10T00:00:00Z",
+      "description": "Neighbours in a rural river valley preparing for wildfire and flood. We run resilience workshops with residents, map climate risks street by street and plan climate adaptation projects for our small town.",
+      "themes": ["climate adaptation", "wildfire", "community resilience"],
+      "facts": { "applicantType": "informal", "applicantBaseCountry": "US", "registrationCountry": "", "workCountries": ["US"], "benefitCountries": ["US"], "usWorkStates": ["OR"], "usBenefitStates": ["OR"] },
+      "sharedFacts": { "applicantType": "informal", "applicantBaseCountry": "US" },
+      "needs": [
+        { "id": "n1", "title": "Funding for a two-year wildfire and flood adaptation plan", "description": "Pay a coordinator, run resident workshops and commission a climate risk assessment for the valley.", "capitals": ["financial"], "amount": { "min": 80000, "max": 100000, "currency": "USD" }, "timeframe": "2027-01-01 to 2028-12-31", "shared": true },
+        { "id": "n2", "title": "An adaptation practitioner to lead a grant application with us", "description": "We are not registered. We need an experienced climate adaptation practitioner who can apply with a community group and administer the award.", "capitals": ["intellectual", "social"], "shared": true }
+      ],
+      "offers": [
+        { "id": "o1", "title": "Resident workshops on climate adaptation", "description": "We can host and facilitate community workshops in our valley for adaptation planning projects.", "capitals": ["social", "experiential"], "shared": true }
+      ]
+    },
+    {
+      "id": "cascadia-practice", "name": "Cascadia Adaptation Practice", "shared": true, "confirmedAt": "2026-11-08T00:00:00Z",
+      "description": "A small nonprofit of climate adaptation planners working with towns and Tribal governments on wildfire, flood and heat plans.",
+      "themes": ["climate adaptation", "planning"],
+      "sharedFacts": { "applicantType": "nonprofit", "applicantBaseCountry": "US", "registrationCountry": "US" },
+      "needs": [
+        { "id": "n1", "title": "Community partners for adaptation planning in small towns", "description": "We are looking for community groups that can host resident workshops for adaptation planning.", "capitals": ["social"], "shared": true }
+      ],
+      "offers": [
+        { "id": "o1", "title": "Climate adaptation practitioner for community grant applications", "description": "We are an experienced adaptation practitioner. We can apply as the lead with a community group, write the adaptation plan and administer the award.", "capitals": ["intellectual", "experiential"], "role": "lead_applicant", "shared": true }
+      ]
+    },
+    {
+      "id": "millcreek-county", "name": "Mill Creek County Resilience Office", "shared": true, "confirmedAt": "2026-11-12T00:00:00Z",
+      "description": "A county office coordinating emergency planning and climate resilience with unincorporated communities.",
+      "themes": ["community resilience", "emergency planning"],
+      "sharedFacts": { "applicantType": "public-body", "applicantBaseCountry": "US" },
+      "needs": [],
+      "offers": [
+        { "id": "o1", "title": "Local government partner for community resilience projects", "description": "Our county office can join community-led wildfire and climate resilience proposals as the local government partner.", "capitals": ["social"], "role": "co_applicant", "shared": true }
+      ]
+    },
+    {
+      "id": "terra-aperta", "name": "Cooperativa Terra Aperta", "shared": true, "confirmedAt": "2026-11-05T00:00:00Z",
+      "description": "A social cooperative restoring disused buildings for community use in southern Italy.",
+      "themes": ["community assets", "social economy"],
+      "sharedFacts": { "applicantType": "nonprofit", "applicantBaseCountry": "IT", "registrationCountry": "IT" },
+      "needs": [],
+      "offers": [
+        { "id": "o1", "title": "Third-sector partner for social reuse of community buildings", "description": "Our cooperative can join partnerships as a third-sector organization and manage the reuse of a building for community benefit.", "capitals": ["social", "material"], "role": "co_applicant", "shared": true }
+      ]
+    },
+    {
+      "id": "open-delta", "name": "Stichting Open Delta", "shared": true, "confirmedAt": "2026-11-11T00:00:00Z",
+      "description": "A Dutch foundation that pairs with community organizations abroad on water and land projects.",
+      "themes": ["water", "community development"],
+      "sharedFacts": { "applicantType": "nonprofit", "applicantBaseCountry": "NL", "registrationCountry": "NL" },
+      "needs": [],
+      "offers": [
+        { "id": "o1", "title": "Dutch partner organization for joint proposals", "description": "We can submit a proposal jointly as the Dutch partner and raise funds in the Netherlands for a project the local organization owns.", "capitals": ["social", "financial"], "role": "co_applicant", "shared": true }
+      ]
+    },
+    {
+      "id": "kijani", "name": "Kijani Watershed Network", "shared": true, "confirmedAt": "2026-11-09T00:00:00Z",
+      "description": "Farmer groups in western Kenya restoring a watershed with tree nurseries, spring protection and community-led land planning.",
+      "themes": ["watershed restoration", "agroforestry", "community-led development"],
+      "facts": { "applicantType": "nonprofit", "applicantBaseCountry": "KE", "registrationCountry": "KE", "workCountries": ["KE"], "benefitCountries": ["KE"] },
+      "sharedFacts": { "applicantType": "nonprofit", "applicantBaseCountry": "KE" },
+      "needs": [
+        { "id": "n1", "title": "Funding for three tree nurseries and spring protection", "description": "Seedlings, fencing and training for farmer groups.", "capitals": ["financial"], "amount": { "min": 20000, "max": 40000, "currency": "EUR" }, "timeframe": "2027-03-01 to 2028-02-28", "shared": true }
+      ],
+      "offers": []
+    },
+    {
+      "id": "quiet-ridge", "name": "Quiet Ridge Township", "shared": false, "confirmedAt": null,
+      "description": "A township office that keeps its Weave entries private.",
+      "themes": [],
+      "sharedFacts": {},
+      "needs": [],
+      "offers": [
+        { "id": "o1", "title": "Local government partner for community resilience projects", "description": "Our township can join community-led wildfire and climate resilience proposals as the local government partner.", "capitals": ["social"], "role": "co_applicant", "shared": false }
+      ]
+    }
+  ],
+  "publicWork": [
+    { "id": "public-fire-council", "name": "Public project A", "passage": "Our county fire council is a local government partner on community wildfire and resilience planning projects across three valleys." }
+  ]
+}

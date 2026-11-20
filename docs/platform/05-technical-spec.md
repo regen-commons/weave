@@ -1380,7 +1380,7 @@ hosted latency gates below. There is no claim of whole-network coverage.
   Cron entry in `packages/app/vercel.json`. It acts only with `CRON_SECRET` and
   `WEAVE_INDEX_REFRESH=all-public` set, reads every listed public project, leaves
   out accounts on Certified's development and test servers (looked up through
-  plc.directory) and replaces the permission set only after a complete traversal
+  plc.directory) and projects that declare themselves QA or test entries, and replaces the permission set only after a complete traversal
   with every lookup answered. An operator can run
   the same refresh with
   `node packages/api/scripts/project-index.ts --refresh-all-public`.

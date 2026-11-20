@@ -5,9 +5,11 @@ import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, a
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
 import { deleteSavedCard } from "../account/delete-card.ts";
 import type { DraftController } from "../describe/controller.ts";
+import { hasDraft } from "../describe/view.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
-import { projectChoiceKey, projectChoosers } from "./project-choice.ts";
+import { chosenProjectUri, projectChoiceKey, projectChoosers } from "./project-choice.ts";
+import { linkedProject } from "../initiative/list.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
 import { draftWithRecord } from "../initiative/import.ts";
 import { finishEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -25,6 +27,13 @@ export type LiveSocialService = Pick<SocialService,
 type Group = { groupDid: string; role: "owner" | "admin" | "member"; displayName?: string; handle?: string };
 type Options = { account: AccountState; controller: DraftController; refreshAccount(): Promise<AccountState>;
   request?: typeof accountRequest; storage?: Pick<Storage, "getItem" | "setItem" | "removeItem"> & Partial<Pick<Storage, "length" | "key">>;
+  /**
+   * Where project choices are kept. The app gives the device's own storage, so a card linked to a
+   * project is still linked in a new tab and after signing in again. Left out, the browser gives
+   * none: a choice is then held in memory while the tab is open, and `storage`, the tab's own, is
+   * never read for one, because what an earlier build kept there is not a choice (DL-119).
+   */
+  choices?: (Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "length" | "key">>) | undefined;
   openWorkspace(id: string): void; signIn(): Promise<void>; signedOut(): void };
 
 /**
@@ -51,7 +60,12 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   let loading = false, problem: string | null = null, consent = false;
   let reloadGeneration = 0;
   let cardsKey = JSON.stringify(options.account.items), cardsGeneration = 0, nextCardOffset = options.account.items.length;
+  // A choice the device could not store, held for as long as the tab is open.
   let selected: { scope: string; uri: string } | null = null;
+  // The team workspace this tab opened over its card. It is not a choice and not the card's
+  // project: it is never stored, so it ends with the tab and never decides whose the card is.
+  let visiting: { scope: string; workspaceId: string } | null = null;
+  const choices = options.choices;
   const key = () => projectChoiceKey(owner ?? "", options.controller.getSnapshot().draft.id);
   const requestKey = (uri: string) => `weave-workspace-request/${owner}/${uri}`;
   function linkOf(record: CertifiedRecord): ProjectLink {
@@ -63,10 +77,10 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     } catch { /* A receipt is a display hint; it never grants access. */ }
     return link;
   }
-  const selectedUri = () => {
-    try { return options.storage?.getItem(key()) ?? (selected?.scope === key() ? selected.uri : null); } catch { return selected?.scope === key() ? selected.uri : null; }
-  };
-  let state: SocialState = { identity: owner ? { handle: "", id: owner } : null, saved: null, project: null, shared: null, published: null,
+  // A choice held in memory is the later one: it is there only because the device turned its write away.
+  const selectedUri = () =>
+    selected?.scope === key() ? selected.uri : chosenProjectUri(choices, owner, options.controller.getSnapshot().draft.id);
+  let state: SocialState = { identity: owner ? { handle: "", id: owner } : null, saved: null, project: null, visit: null, shared: null, published: null,
     records: [], cards: options.account.items.map(savedCard),
     workspaces: [], hasMoreCards: options.account.items.length === 20, reminders: [], leads: [], notifications: { funding: false, partners: false } };
   const emit = () => { if (!lifetime.signal.aborted) for (const notify of listeners) notify(); };
@@ -74,18 +88,41 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   async function post(body: unknown) { checked(); const result = await request("", body, "/api/projects", lifetime.signal); checked(); return result; }
   /**
    * True when the tab's card belongs to another account than this one (DL-055): it was saved by
-   * another, or another opened it from its Certified project in this browser session.
+   * another, or another chose its Certified project for it on this device (DL-119).
    */
   const setAside = () => {
     const draft = options.controller.getSnapshot().draft;
-    return belongsToAnotherAccount(draft, owner, options.storage?.key ? projectChoosers(options.storage as Pick<Storage, "length" | "key">, draft.id) : []);
+    return belongsToAnotherAccount(draft, owner, choices?.key ? projectChoosers(choices as Pick<Storage, "length" | "key">, draft.id) : []);
+  };
+  /**
+   * The project the tab's card is linked to, among the ones this account can open: the one chosen
+   * for it on this device, or the workspace it was saved to, and nothing else. Suggestions read
+   * from a project never link a card: a card nobody chose a project for still asks (DL-055). So a
+   * link that is still being stored shows nothing new, which matters because the card's page takes
+   * its link task away as soon as a new project appears (DL-119).
+   */
+  const linkedTo = (projects: readonly CertifiedRecord[]) =>
+    linkedProject(selectedUri(), options.controller.getSnapshot().draft.account.saved?.id ?? null, projects);
+  /**
+   * The team workspace this tab opened over its card, while the card is linked to nothing and no
+   * project is chosen for it. The team's page reads it to offer saving the card there. It is kept
+   * apart from `project`, so the card still reads as not linked and can be linked to its own project.
+   */
+  const visitOf = (linked: CertifiedRecord | null | undefined) =>
+    !linked && !selectedUri() && visiting?.scope === key() ? visiting.workspaceId : null;
+  /** The tab's card's project and visit, read again from what is listed now. */
+  const cardLinks = (projects: readonly CertifiedRecord[]) => {
+    const linked = linkedTo(projects);
+    return { project: linked ? linkOf(linked) : null, visit: visitOf(linked) };
   };
   function select(uri: string) {
     // A project choice is recorded against the tab's card. A card that is set aside takes none
     // from this account: a second chooser would make it read as shared and lift its set-aside.
     if (setAside()) return;
+    // The only place a choice is written. Held in memory until the device has it, and from then on
+    // read from the device, so a choice made in another tab since is not hidden by this one.
     selected = { scope: key(), uri };
-    try { options.storage?.setItem(key(), uri); } catch { /* This tab retains the selection; no authority is cached. */ }
+    try { if (choices) { choices.setItem(key(), uri); selected = null; } } catch { /* This tab retains the selection; no authority is cached. */ }
   }
   async function allPages<T>(read: (cursor?: string) => Promise<{ items: T[]; cursor?: string }>) {
     const items: T[] = [], seen = new Set<string>();
@@ -160,11 +197,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
         workspace: true, workspaceId: w.workspaceId, accessRole: w.accessRole,
       })) : [];
       const unique = [...new Map([...records, ...linked].map(p => [p.uri, p])).values()];
-      const selection = selectedUri(), savedId = options.controller.getSnapshot().draft.account.saved?.id;
-      const chosen = unique.find(p => p.uri === selection
-        || (!selection && !!savedId && p.workspaceId === savedId));
-      state = { ...state, records: unique.filter(p => !p.workspace), workspaces: linked, setupRequests,
-        project: chosen ? linkOf(chosen) : null };
+      state = { ...state, records: unique.filter(p => !p.workspace), workspaces: linked, setupRequests, ...cardLinks(unique) };
       if (failures.length) {
         consent = failures.some(e => e instanceof AccountFailure && e.code === "project_consent_required");
         problem = consent ? "Allow Weave to check your Certified projects to continue."
@@ -181,16 +214,14 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     dispose() { queueMicrotask(() => { if (!listeners.size) lifetime.abort(); }); }, reload,
     syncAccount(account) {
       if (account.user?.id !== owner || lifetime.signal.aborted) return;
-      const selection = selectedUri(), savedId = options.controller.getSnapshot().draft.account.saved?.id;
-      const selectedProject = [...state.records, ...(state.workspaces ?? [])].find(p => p.uri === selection
-        || (!selection && !!savedId && p.workspaceId === savedId));
+      const links = cardLinks([...state.records, ...(state.workspaces ?? [])]);
       const nextKey = JSON.stringify(account.items);
       if (cardsKey !== nextKey) {
         cardsKey = nextKey; cardsGeneration++; nextCardOffset = account.items.length;
         state = { ...state, cards: account.items.map(savedCard),
           hasMoreCards: account.items.length === 20 };
       }
-      state = { ...state, project: selectedProject ? linkOf(selectedProject) : null };
+      state = { ...state, ...links };
       emit();
     },
     signIn: options.signIn,
@@ -238,16 +269,21 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (current.draft !== linkedDraft) throw Error("Your device card changed. Review it before choosing this project again.");
       if (current.storage !== "saved") throw Error("The project could not be finished because the latest device changes could not be stored. Keep this tab open and try device storage again.");
       finishEditorHandoff(options.storage, owner!, before.id);
-      select(uri); state = { ...state, project: link }; emit(); return link;
+      select(uri); state = { ...state, project: link, visit: null }; emit(); return link;
     },
     async openWorkspace(uri) {
       const p = find(uri); if (!p?.workspaceId) throw Error("Check the workspace list again.");
       await post({ action: "team_load", workspaceId: p.workspaceId });
       const link = projectLink(p);
-      // The project becomes the tab's card's project only when that card is this account's. With
-      // another account's card in the tab the workspace still opens, and nothing is recorded
-      // against the card or shown as its project.
-      if (!setAside()) { select(uri); state = { ...state, project: link }; emit(); }
+      // The visit is noted for this tab when its card is this account's and has something in it,
+      // so the team's page can offer to save the card there. It is not the card's project and
+      // nothing is recorded: a stored choice would link an unrelated card for good, replace the
+      // project a card was linked to on purpose, and set the card aside from every other account
+      // (DL-119). With another account's card in the tab the workspace still opens, unnoted.
+      if (!setAside() && hasDraft(options.controller.getSnapshot().draft)) {
+        visiting = { scope: key(), workspaceId: p.workspaceId };
+        state = { ...state, ...cardLinks([...state.records, ...(state.workspaces ?? [])]) }; emit();
+      }
       options.openWorkspace(p.workspaceId); return link;
     },
     async openCard(id) {
@@ -258,10 +294,10 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       signal.throwIfAborted(); checked(); assertAccount(result, owner!); const saved = parseSaved(result.saved);
       if (saved.id !== id || options.controller.getSnapshot().draft !== before) throw Error("Your device draft changed. Try opening the card again.");
       await options.controller.replace(loadedDraft(saved, owner!), signal); checked();
-      selected = null;
+      selected = null; visiting = null;
       const linked = state.workspaces?.find(p => p.workspaceId === id);
       if (linked) select(linked.uri);
-      state = { ...state, project: linked ? projectLink(linked) : null }; emit();
+      state = { ...state, project: linked ? projectLink(linked) : null, visit: null }; emit();
     },
     async createProject(card, groupLabel) {
       checked();
@@ -318,7 +354,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (result.status !== "linked" || !uuid(result.workspaceId)) throw Error("Recovery could not be confirmed. Check again before retrying.");
       options.openWorkspace(result.workspaceId);
     },
-    async clearCard() { selected = null; state = { ...state, project: null }; emit(); },
+    async clearCard() { selected = null; visiting = null; state = { ...state, project: null, visit: null }; emit(); },
     async deleteCard(card, requestId) {
       checked();
       const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);

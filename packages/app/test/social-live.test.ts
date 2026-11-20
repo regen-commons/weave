@@ -9,6 +9,9 @@ import { DeviceDraftSchema, newDraft, revise } from "../src/describe/contracts.t
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../src/account/document.ts";
 import { projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { draftWithRecord } from "../src/initiative/import.ts";
+import { standsForProject } from "../src/initiative/list.ts";
+import { addEntry } from "../src/intake/entries.ts";
+import { projectSource } from "../src/intake/project-page.ts";
 import { likelyDuplicate } from "../src/initiative/duplicates.ts";
 import { publicCard } from "../src/initiative/status.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
@@ -17,10 +20,20 @@ import { projectEvidenceFixture, FIXTURE_TEAM_ADMIN, FIXTURE_GROUP_MEMBER, FIXTU
 import { editorHandoffKey, readEditorHandoff } from "../src/initiative/editor-handoff.ts";
 
 const origin = "http://localhost:5175";
-async function fixture(id = FIXTURE_TEAM_ADMIN) {
+function keyed(stored: Map<string, string>) {
+  return { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => { stored.set(key, value); },
+    removeItem: (key: string) => { stored.delete(key); }, get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null };
+}
+/**
+ * `device` is storage that outlives the tab, and `repo` the drafts another tab already stored.
+ * `blank` starts on a card with nothing in it, `refuse` makes the device turn every write away, and
+ * `noDevice` is a browser that gives no device storage at all. `stored` is the tab's own storage.
+ */
+async function fixture(id = FIXTURE_TEAM_ADMIN, { device = new Map<string, string>(), repo: shared, blank = false, refuse = false, noDevice = false }:
+  { device?: Map<string, string>; repo?: MemoryDraftRepository; blank?: boolean; refuse?: boolean; noDevice?: boolean } = {}) {
   const token = fixtureSession(id), bodies: Record<string, unknown>[] = [], opened: string[] = [];
-  const seed = revise(newDraft(), { composer: "Unfinished private words" });
-  const repo = new MemoryDraftRepository(seed), controller = new DraftController(repo);
+  const seed = blank ? newDraft() : revise(newDraft(), { composer: "Unfinished private words" });
+  const repo = shared ?? new MemoryDraftRepository(seed), controller = new DraftController(repo);
   await controller.initialize();
   const account: AccountState = { available: true, fixture: true, user: { id, email: null }, items: [] };
   const request = async (path = "", body?: unknown, endpoint = "/api/account", signal?: AbortSignal) => {
@@ -39,11 +52,11 @@ async function fixture(id = FIXTURE_TEAM_ADMIN) {
   const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => {
     const result = await request(); return { ...account, items: result.items as AccountState["items"] };
   },
-    // As session storage is: its keys can be listed, which is how a card's choosers are read.
-    storage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => { stored.set(key, value); }, removeItem: key => { stored.delete(key); },
-      get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null },
+    // As browser storage is: its keys can be listed, which is how a card's choosers are read.
+    storage: keyed(stored),
+    ...(noDevice ? {} : { choices: refuse ? { ...keyed(device), setItem() { throw Error("quota"); } } : keyed(device) }),
     openWorkspace: id => { opened.push(id); }, signIn: async () => {}, signedOut: () => {} });
-  return { service, controller, repo, bodies, opened, request, stored };
+  return { service, controller, repo, bodies, opened, request, stored, device, account };
 }
 
 test("the agreed initiative list reads Certified projects and authorized workspaces without saving or sharing", async () => {
@@ -267,10 +280,12 @@ function deferred() {
   const promise = new Promise<void>(done => { resolve = done; });
   return { promise, resolve };
 }
-async function linkingFixture(beforeWrite: () => Promise<void>) {
+/** Words a project page can carry that are read as a need and an offer, so linking writes suggestions into the card. */
+const SUGGESTING = "We need volunteers for river sampling. We offer training in water testing.";
+async function linkingFixture(beforeWrite: () => Promise<void>, description = "Verified public words.", savedTo: { uri: string } | null = null) {
   const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
   const seed = revise(loadedDraft({ id: crypto.randomUUID(), document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, FIXTURE_TEAM_ADMIN),
-    { composer: "Private source words", account: { saved: null, pending: null } });
+    { composer: "Private source words", ...(savedTo ? {} : { account: { saved: null, pending: null } }) });
   const repo = new MemoryDraftRepository(seed);
   const controller = new DraftController({ load: () => repo.load(), async save(draft, revision) { await beforeWrite(); await repo.save(draft, revision); } });
   await controller.initialize();
@@ -278,21 +293,25 @@ async function linkingFixture(beforeWrite: () => Promise<void>) {
   const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); }, removeItem: (key: string) => { values.delete(key); } };
   storage.setItem(editorHandoffKey(FIXTURE_TEAM_ADMIN, seed.id), JSON.stringify({ version: 1, editor: "certified", owner: FIXTURE_TEAM_ADMIN, draftId: seed.id }));
   const project = { uri: "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/durable-link", cid: "fixture",
-    repoDid: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", title: "Published project", description: "Verified public words." };
+    repoDid: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", title: "Published project", description };
   const account: AccountState = { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null }, items: [] };
-  const service = createLiveSocialService({ controller, account, storage, refreshAccount: async () => account,
+  // The workspace a saved card already has, for another of the account's projects.
+  const other = savedTo && { ...project, uri: savedTo.uri, title: "Saved project", description: "Other public words." };
+  const service = createLiveSocialService({ controller, account, storage, choices: storage, refreshAccount: async () => account,
     async signIn() {}, signedOut() {}, openWorkspace() {},
     request: async (_path, input) => {
       const body = record(input);
       if (body.action === "list_project_groups") return { groups: [] };
-      if (body.action === "list_workspaces") return { workspaces: [] };
-      if (body.action === "list_projects") return { projects: [project] };
+      if (body.action === "list_workspaces") return { workspaces: other
+        ? [{ workspaceId: seed.account.saved!.id, projectUri: other.uri, kind: "personal", accessRole: "admin", project: other }] : [] };
+      if (body.action === "list_projects") return { projects: other ? [project, other] : [project] };
       assert.equal(body.action, "lookup"); return { status: "unlinked", projectUri: project.uri };
     } });
   controller.subscribe(() => service.syncAccount(account));
   await service.reload();
   const hint = () => readEditorHandoff(storage, FIXTURE_TEAM_ADMIN, seed.id);
-  return { service, controller, repo, project, hint, seed };
+  const choice = () => storage.getItem(projectChoiceKey(FIXTURE_TEAM_ADMIN, seed.id));
+  return { service, controller, repo, project, hint, seed, choice };
 }
 
 test("linking finishes durable device work and hint cleanup before the initiative host can unmount its task", async () => {
@@ -345,10 +364,54 @@ test("an edit while a link is being stored preserves the newer words and require
   assert.equal(service.snapshot().project, null); assert.ok(hint());
 });
 
+test("linking a project whose words give suggestions publishes nothing before the device write, and keeps the choice", async () => {
+  const started = deferred(), finish = deferred(), task = new AbortController();
+  const { service, controller, project, choice } = await linkingFixture(async () => { started.resolve(); await finish.promise; }, SUGGESTING);
+  // The initiative page removes its link task as soon as a project is published, which stops a link under way.
+  service.subscribe(() => {
+    if (service.snapshot().project) {
+      assert.equal(controller.getSnapshot().storage, "saved");
+      task.abort();
+    }
+  });
+  const linking = service.linkProject(project.uri, task.signal);
+  await Promise.race([started.promise, linking.then(() => assert.fail("selection must wait for device storage"))]);
+  assert.ok(standsForProject(controller.getSnapshot().draft, project.uri, null), "the card already carries the project's suggestions");
+  assert.equal(service.snapshot().project, null, "and suggestions alone publish nothing");
+  finish.resolve();
+  assert.equal((await linking).uri, project.uri);
+  assert.equal(choice(), project.uri, "the choice is kept, so the card has an owner");
+});
+
+test("a failed device write publishes no project even when the card already carries its suggestions", async () => {
+  const { service, controller, project, choice, hint } = await linkingFixture(async () => { throw Error("quota"); }, SUGGESTING);
+  await assert.rejects(service.linkProject(project.uri), /could not be stored/);
+  assert.ok(standsForProject(controller.getSnapshot().draft, project.uri, null));
+  assert.equal(service.snapshot().project, null, "nothing hides the failure");
+  assert.equal(choice(), null); assert.ok(hint());
+});
+
+test("linking a card that is saved to a workspace shows the new project only once the choice is stored", async () => {
+  const started = deferred(), finish = deferred();
+  const savedTo = { uri: "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/saved-workspace" };
+  const { service, controller, project, choice } = await linkingFixture(async () => { started.resolve(); await finish.promise; }, SUGGESTING, savedTo);
+  assert.equal(service.snapshot().project?.uri, savedTo.uri, "the card is linked through the workspace it was saved to");
+  const shown: (string | undefined)[] = [];
+  service.subscribe(() => { shown.push(`${service.snapshot().project?.uri} ${controller.getSnapshot().storage}`); });
+  const linking = service.linkProject(project.uri);
+  await Promise.race([started.promise, linking.then(() => assert.fail("selection must wait for device storage"))]);
+  assert.equal(service.snapshot().project?.uri, savedTo.uri, "nothing new is shown while the link is stored");
+  finish.resolve();
+  assert.equal((await linking).uri, project.uri);
+  assert.equal(choice(), project.uri);
+  assert.equal(service.snapshot().project?.uri, project.uri, "the choice comes before the saved workspace");
+  assert.deepEqual(shown.filter(entry => entry?.startsWith(project.uri)).map(entry => entry!.split(" ")[1]), ["saved"], "the new project appeared once, after the write");
+});
+
 test("a card another account opened from its project takes no project choice from this account, so it stays set aside (DL-055)", async () => {
   // Account A opened this unsaved card from its Certified project in this tab and signed out.
   // Account B signs in on the same tab. The card is set aside for B, and must stay so whatever B opens.
-  const { service, controller, stored, bodies, opened } = await fixture(FIXTURE_TEAM_ADMIN);
+  const { service, controller, device: stored, bodies, opened } = await fixture(FIXTURE_TEAM_ADMIN);
   const theirs = controller.getSnapshot().draft;
   stored.set(projectChoiceKey(FIXTURE_GROUP_MEMBER, theirs.id), "at://did:plc:example/org.example.project/theirs");
   const storage = { get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null };
@@ -375,15 +438,187 @@ test("a card another account opened from its project takes no project choice fro
   assert.equal(setAside(), true);
 });
 
-test("a card that is this account's to use still takes its project choice", async () => {
-  const { service, controller, stored } = await fixture(FIXTURE_TEAM_ADMIN);
-  const mine = controller.getSnapshot().draft;
+test("a card linked to a Certified project is still linked in a new tab, because the choice is kept on the device", async () => {
+  const device = new Map<string, string>();
+  const first = await fixture(FIXTURE_TEAM_ADMIN, { device });
+  await first.service.reload();
+  const project = first.service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  await first.service.linkProject(project.uri);
+  const card = first.controller.getSnapshot().draft;
+  assert.equal(device.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id)), project.uri, "the choice is on the device");
+  assert.equal(first.stored.has(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id)), false, "and not in the tab's own storage");
+  // The tab closes, or sign-in comes back in another window: a new session over the same device.
+  const second = await fixture(FIXTURE_TEAM_ADMIN, { device, repo: first.repo });
+  assert.equal(second.controller.getSnapshot().draft.id, card.id);
+  assert.equal(second.stored.size, 0);
+  await second.service.reload();
+  assert.equal(second.service.snapshot().project?.uri, project.uri, "the unsaved card is still linked");
+  assert.equal(second.service.snapshot().project?.workspace, "solo");
+  // Another account on this device still does not get the card (DL-055), now for as long as it is here.
+  const other = await fixture(FIXTURE_GROUP_MEMBER, { device, repo: first.repo });
+  await other.service.reload();
+  assert.equal(other.service.snapshot().project, null);
+  assert.equal(belongsToAnotherAccount(other.controller.getSnapshot().draft, FIXTURE_GROUP_MEMBER, projectChoosers(keyed(device), card.id)), true);
+});
+
+test("suggestions from a project never link a card by themselves: it is nobody's until an account chooses the project (DL-055)", async () => {
+  const device = new Map<string, string>();
+  const first = await fixture(FIXTURE_TEAM_ADMIN, { device });
+  await first.service.reload();
+  // A group's project, which two accounts on this device can both list.
+  const project = first.service.snapshot().records.find(p => p.name === "Seed library (fixture)")!;
+  first.controller.change(draft => {
+    const needs = addEntry(draft.needs, "Seed jars");
+    return revise(draft, { needs: { ...needs, items: needs.items.map(item => ({ ...item, sourceKey: `${projectSource(project.uri)}:0` })) } });
+  });
+  await first.controller.settled();
+  const card = first.controller.getSnapshot().draft;
+  assert.ok(standsForProject(card, project.uri, null), "the card carries the project's suggestions, as one linked by an earlier build does");
+  await first.service.reload();
+  assert.equal(first.service.snapshot().project, null, "nobody chose the project, so the card is not linked");
+  first.service.syncAccount(first.account);
+  assert.equal(first.service.snapshot().project, null);
+  const other = await fixture(FIXTURE_GROUP_MEMBER, { device, repo: first.repo });
+  await other.service.reload();
+  assert.ok(other.service.snapshot().records.some(p => p.uri === project.uri), "the other account can list the same project");
+  assert.equal(other.service.snapshot().project, null, "and is not handed the card either");
+  assert.equal(device.size, 0, "reading the lists records nothing");
+  // Choosing the project is what links the card, and from then on it is that account's.
+  await first.service.linkProject(project.uri);
+  assert.equal(device.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id)), project.uri);
+  assert.equal(first.service.snapshot().project?.uri, project.uri);
+  assert.equal(belongsToAnotherAccount(first.controller.getSnapshot().draft, FIXTURE_GROUP_MEMBER, projectChoosers(keyed(device), card.id)), true);
+});
+
+test("opening a team workspace is noted for the tab only: it is not the card's project, and records no choice", async () => {
+  const device = new Map<string, string>();
+  const first = await fixture(FIXTURE_TEAM_ADMIN, { device });
+  const mine = first.controller.getSnapshot().draft;
+  await first.service.reload();
+  const workspace = first.service.snapshot().workspaces!.find((item) => item.workspaceId)!;
+  await first.service.openWorkspace(workspace.uri, null);
+  assert.deepEqual(first.opened, [workspace.workspaceId]);
+  assert.equal(device.size, 0, "nothing is kept on the device");
+  assert.equal(first.stored.has(projectChoiceKey(FIXTURE_TEAM_ADMIN, mine.id)), false, "or in the tab's own storage");
+  // In this tab the visit is kept while the lists are read again, so the team's page can offer to
+  // save the card there. The card itself stays unlinked: it can still be linked to its own project.
+  const here = () => first.service.snapshot();
+  assert.equal(here().visit, workspace.workspaceId); assert.equal(here().project, null);
+  await first.service.reload();
+  assert.equal(here().visit, workspace.workspaceId); assert.equal(here().project, null);
+  first.service.syncAccount(first.account);
+  assert.equal(here().visit, workspace.workspaceId); assert.equal(here().project, null);
+  // A new tab over the same device has the card as it was: not linked, not visited, and still anyone's.
+  const second = await fixture(FIXTURE_TEAM_ADMIN, { device, repo: first.repo });
+  await second.service.reload();
+  assert.equal(second.controller.getSnapshot().draft.id, mine.id);
+  assert.equal(second.service.snapshot().project, null);
+  assert.equal(second.service.snapshot().visit ?? null, null);
+  assert.equal(belongsToAnotherAccount(mine, FIXTURE_GROUP_MEMBER, projectChoosers(keyed(device), mine.id)), false, "another account is not set aside from it");
+});
+
+test("a card linked to its own project keeps that project when a team workspace is opened", async () => {
+  const device = new Map<string, string>();
+  const { service, controller, opened, account } = await fixture(FIXTURE_TEAM_ADMIN, { device });
+  await service.reload();
+  const project = service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  await service.linkProject(project.uri);
+  const card = controller.getSnapshot().draft;
+  const workspace = service.snapshot().workspaces!.find((item) => item.workspaceId)!;
+  await service.openWorkspace(workspace.uri, null);
+  assert.deepEqual(opened, [workspace.workspaceId], "the workspace still opens");
+  assert.equal(device.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id)), project.uri, "the choice is not overwritten");
+  assert.equal(service.snapshot().project?.uri, project.uri, "and the card is still shown with its own project");
+  assert.equal(service.snapshot().visit ?? null, null, "a card that has a project of its own is not noted as visiting");
+  service.syncAccount(account);
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  await service.reload();
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  assert.equal(service.snapshot().visit ?? null, null);
+});
+
+test("a visit belongs to the card it was made over, and ends when that card is linked or cleared", async () => {
+  const { service, controller, account, device } = await fixture(FIXTURE_TEAM_ADMIN);
+  await service.reload();
+  const visited = controller.getSnapshot().draft;
+  const workspace = service.snapshot().workspaces!.find((item) => item.workspaceId)!;
+  await service.openWorkspace(workspace.uri, null);
+  assert.equal(service.snapshot().visit, workspace.workspaceId);
+  // Another card in the tab was never taken to the workspace.
+  const next = await controller.startNew();
+  assert.notEqual(next.id, visited.id);
+  service.syncAccount(account);
+  assert.equal(service.snapshot().visit ?? null, null, "the visit does not follow the tab to another card");
+  await controller.open(visited.id);
+  service.syncAccount(account);
+  assert.equal(service.snapshot().visit, workspace.workspaceId, "and is still the first card's");
+  // Linking the card to its own project is still offered, and ends the visit.
+  const project = service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  await service.linkProject(project.uri);
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  assert.equal(service.snapshot().visit ?? null, null);
+  assert.equal(device.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, visited.id)), project.uri);
+  // Clearing the card ends a visit too.
+  const again = await fixture(FIXTURE_TEAM_ADMIN);
+  await again.service.reload();
+  await again.service.openWorkspace(workspace.uri, null);
+  assert.equal(again.service.snapshot().visit, workspace.workspaceId);
+  await again.service.clearCard();
+  again.service.syncAccount(again.account);
+  assert.equal(again.service.snapshot().visit ?? null, null);
+});
+
+test("with no device storage the adapter reads nothing from the tab's storage and keeps a choice in memory", async () => {
+  const { service, controller, stored, account } = await fixture(FIXTURE_TEAM_ADMIN, { noDevice: true });
+  await service.reload();
+  const card = controller.getSnapshot().draft;
+  const project = service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  // What an earlier build kept for this tab: this account's choice, and another account's for the same card.
+  stored.set(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id), project.uri);
+  stored.set(projectChoiceKey(FIXTURE_GROUP_MEMBER, card.id), "at://did:plc:example/org.example.project/theirs");
+  const before = new Map(stored);
+  await service.reload();
+  assert.equal(service.snapshot().project, null, "the tab's entry links nothing");
+  // The other account's entry does not set the card aside, so linking is not refused.
+  await service.linkProject(project.uri);
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  service.syncAccount(account);
+  assert.equal(service.snapshot().project?.uri, project.uri, "the choice is held for the tab");
+  assert.deepEqual([...stored].filter(([key]) => key.startsWith("weave-project-choice/")), [...before].filter(([key]) => key.startsWith("weave-project-choice/")), "and no choice is written to the tab's storage");
+});
+
+test("a blank card is tied to nothing, so an initiative started on it is not born linked", async () => {
+  const device = new Map<string, string>();
+  const { service, controller, opened, account } = await fixture(FIXTURE_TEAM_ADMIN, { device, blank: true });
   await service.reload();
   const workspace = service.snapshot().workspaces!.find((item) => item.workspaceId)!;
   await service.openWorkspace(workspace.uri, null);
-  assert.equal(stored.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, mine.id)), workspace.uri);
-  // The person's own workspace stays their card's project when the list is read again.
-  assert.equal(service.snapshot().project?.workspaceId, workspace.workspaceId);
+  assert.deepEqual(opened, [workspace.workspaceId]);
+  assert.equal(service.snapshot().project, null);
+  assert.equal(service.snapshot().visit ?? null, null, "there is nothing on the card to save to the team");
+  // Starting a new initiative reuses the blank card, so its ID is the one the workspace was opened over.
+  controller.change(draft => revise(draft, { composer: "A new initiative's first words" }));
+  await controller.settled();
+  service.syncAccount(account);
+  assert.equal(service.snapshot().project, null);
+  assert.equal(service.snapshot().visit ?? null, null);
+  assert.equal(device.size, 0);
+});
+
+test("a choice the device will not store is remembered while the tab is open, over an older one it still holds", async () => {
+  const device = new Map<string, string>();
+  const { service, controller, account } = await fixture(FIXTURE_TEAM_ADMIN, { device, refuse: true });
+  // An older choice, of a project the account can no longer open, is still on the device.
+  const stale = projectChoiceKey(FIXTURE_TEAM_ADMIN, controller.getSnapshot().draft.id);
+  device.set(stale, "at://did:plc:example/org.example.project/gone");
   await service.reload();
-  assert.equal(service.snapshot().project?.workspaceId, workspace.workspaceId);
+  assert.equal(service.snapshot().project, null);
+  const project = service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  await service.linkProject(project.uri);
+  assert.equal(device.get(stale), "at://did:plc:example/org.example.project/gone", "the write was turned away");
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  service.syncAccount(account);
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  await service.reload();
+  assert.equal(service.snapshot().project?.uri, project.uri);
 });

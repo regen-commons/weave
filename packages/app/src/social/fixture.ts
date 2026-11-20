@@ -70,6 +70,12 @@ export interface SocialState {
     readonly card: string | null;
   } | null;
   readonly project: ProjectLink | null;
+  /**
+   * The team workspace this tab opened over its card while the card is linked to nothing, by its
+   * ID. It is not the card's project: the team's page reads it to offer saving the card there,
+   * and it ends with the tab (DL-119). The example world has none.
+   */
+  readonly visit?: string | null;
   /** Entries shared for matching with people signed in. The key is what was shared; null when seeded. */
   readonly shared: { readonly entries: Entries; readonly until: string | null; readonly key: string | null } | null;
   /** Entries published to AT Protocol through Certified, and the day a withdrawal was asked for. */
