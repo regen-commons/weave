@@ -544,3 +544,119 @@ gate to public-source results. It changes the intended contract, not
 implementation status. Source permission, retrieval quality and privacy tests
 remain release gates. See [R16](04-prd.md) and the
 [external discovery contract](research/certified-hypercerts-2026-11-06/technical-spec.md#participation-privacy-and-contact).
+
+### Matching architecture answers, 19 November 2026
+
+The [matching architecture proposal](research/matching-architecture.md#decisions-for-the-owner-and-council)
+puts D27, D29, D32 and six new questions to the owner and council. The user
+answered all nine on 19 November 2026, and the answers are recorded here. Each
+records the user's answer. It is not a council decision, a catalog change, a
+specification change or approval to build, and the owners the tables above name
+have not confirmed it.
+
+**D29, team asks for a fund.** The user accepted the proposal's recommendation
+on 19 November 2026, in four parts:
+
+- **Source.** A steward enters each of a fund's team asks with the funder's
+  words, a source, a date, a role, a count and an optional condition on whoever
+  fills it.
+- **Where to start.** The 23 programs that appear to require more than one
+  organization, then the 32 that allow it.
+- **Scoring.** Coverage is shown as counted asks, such as "2 of 3 asks", never
+  as a score.
+- **Specification.** The union of places leaves spec 7.4, because place of work
+  is something a partner cannot change.
+
+What was known when answering: the counts of 23 and 32 come from one unreviewed
+reading of one line per program, so a steward checks them before any ask is
+entered; steward time per program is unmeasured; and a condition on an ask can
+be checked only once owners can share applicant facts and offers can carry a
+role, which are the proposal's first and second new questions, answered below.
+
+**D32, models for partner retrieval.** The user accepted the proposal's
+recommendation on 19 November 2026, in four parts:
+
+- **Benchmark.** Partner retrieval joins the model benchmark.
+- **Models.** Multilingual MiniLM-L12 and at least one alternative are tested on
+  a new holdout.
+- **Where it runs.** In server jobs first.
+- **The live site.** Its fund vectors stay as they are.
+
+What was known when answering: the proposal's figures (91% against 67% relevant
+among the top five, and Portuguese recall of 72% against 22% on 9 queries) come
+from the synthetic v3 holdout, which is agent-judged and had been examined, and
+the two best variants were added after the first scored run; on the real-project
+set `partner-real-v1` the current matcher scored 31% relevant among its top five,
+and the multilingual model has not been run there; each multilingual model is
+about 135 MB against 25 MB for the English one, and size, cold start and speed on
+the host or in a browser are unmeasured; and the licences of the two converted
+model repositories are unverified. The answer commits to testing. It approves no
+model dependency, hosting or CSP change, as the D32 row says.
+
+**D27, counts for private viewers on the team view.** On 19 November 2026 the
+user confirmed both parts the proposal asks:
+
+- **Counts only.** On the team view, as elsewhere, a viewer who has shared
+  nothing sees how many initiatives could cover a fund's asks, with no names or
+  reasons.
+- **Small counts.** Below a set count a private viewer sees "some", not an exact
+  number. This is also the fourth of the proposal's new questions. No threshold
+  was set.
+
+What was known when answering: the prototype keeps to counts only by computing
+the full result and then hiding the names; computing a private viewer's counts on
+the device, without sending their gaps to a server, is a design that is not
+built; and in a small network a count of one can point at a single initiative.
+D27 is the council's question, so its row stays open.
+
+**Sharing three applicant facts, the proposal's first new question.** On
+19 November 2026 the user answered "not yet". Applicant type, base country and
+registration country stay on the person's device, where the funding form already
+uses them, and are not shared for matching. A fund's team asks are shown in the
+funder's own words, conditions included, for people to judge for themselves.
+Weave does not check a condition against another initiative's facts.
+
+The reasons put to the user: the shared facts serve only the team view. About
+23 programs appear to require a team and 32 to allow one, by one unreviewed
+reading, and few shared entries are expected at launch. Partner matching
+improves through D32, from text people have already written. If teams prove
+useful, sharing can come back as one optional choice when an owner shares an
+initiative, reusing answers already given. The D29 answer stands: a steward
+still records each ask with its condition, and people read the condition.
+
+**A role on an offer, and suggesting that another initiative applies, the
+proposal's second and third new questions.** On 19 November 2026 the user
+answered "not yet" to both. An offer carries no role field such as lead
+applicant, co-applicant, fiscal host or local partner, and Weave does not suggest
+that another initiative becomes the applicant. Both serve only the team view and
+lean on the shared facts set aside above. A person can already say in an offer's
+own words that they can lead an application or act as a fiscal host, and people
+reading a fund's ask can agree between themselves who applies.
+
+**Asking about money once, the proposal's fifth new question.** On
+19 November 2026 the user accepted it. The funding form loses "Funding goal
+from", "Funding goal up to" and "Goal currency". The amount and currency come
+from a financial need, and what the money is for joins the text the fund search
+reads. An initiative with no financial need still sees funds ranked from its
+description and themes, with one line inviting it to add one. The
+recommendation the user accepted carried two conditions: goal values already
+saved in drafts are carried over, and the funding ranking itself stays as it is.
+It was not put as urgent.
+
+What was known when answering: this makes the form shorter and is not shown to
+improve results. In the one test, using the need changed 3 of the top 10
+programs, and there is no labelled funding set to say whether that was better.
+The amount can be compared for 54 of 730 programs and a closing date for 29.
+
+**A recall floor for partner matching, the proposal's sixth new question.** On
+19 November 2026 the user accepted it. Partner matching is held to a floor on
+recall, the share of fitting projects it finds, beside the 80% relevance target
+in the [technical spec](05-technical-spec.md#quality-and-performance-proof),
+which already asks for a floor to be agreed from the labelled corpus before
+tuning. No number is set. It is set once two human reviewers have judged the
+`partner-real-v1` worksheet, and nothing is tuned against that set before then.
+
+What was known when answering: on `partner-real-v1`, judged by agents, the
+current matcher found 31% of fitting projects and showed nothing for 42 of 135
+needs and offers that had one, against 41% and 10 for the keyword baseline. The
+two agents left about as many pairs unresolved as they agreed were relevant.
