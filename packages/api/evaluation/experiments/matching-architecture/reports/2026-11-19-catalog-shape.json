@@ -1,0 +1,599 @@
+{
+  "reportDate": "2026-11-19",
+  "catalogCompiledAt": "2026-11-17T00:31:25.824582+00:00",
+  "funds": 699,
+  "fundsWithNoProgram": 41,
+  "coverage": {
+    "programs": 730,
+    "offer": {
+      "termsKnown": 700,
+      "amountStated": 224,
+      "amountCurrentOffer": 97,
+      "closingDate": 230,
+      "usableForStated": 254,
+      "status": {
+        "closed": 251,
+        "by_invitation": 170,
+        "unverified": 124,
+        "open": 98,
+        "ask_first": 65,
+        "not_open_yet": 22
+      }
+    },
+    "conditions": {
+      "programsWithFactRules": 109,
+      "programsWithSourcedStatements": 161,
+      "programsWithEither": 253,
+      "programsWithProseOnly": 373,
+      "programsWithNone": 104,
+      "factRulesByField": {
+        "applicantType": 65,
+        "workCountries": 26,
+        "applicantBaseCountry": 23,
+        "benefitCountries": 12,
+        "registrationCountry": 6,
+        "usBenefitStates": 2,
+        "usWorkStates": 1
+      },
+      "statementsByCategory": {
+        "manual": 122,
+        "applicant_model": 50,
+        "geography": 39,
+        "other": 24,
+        "uncategorised": 23,
+        "mission": 14,
+        "stage": 8,
+        "leadership": 5,
+        "legal": 4,
+        "partner": 4,
+        "budget": 3,
+        "history": 3,
+        "membership": 1,
+        "beneficiary": 1
+      },
+      "proseStrings": 2148
+    },
+    "asks": {
+      "programsWithWorkAsk": 723,
+      "programsWithStructuredTeamAsk": 3,
+      "structuredTeamAsks": 4,
+      "teamWordingInProse": {
+        "fiscal_host": 52,
+        "not_a_team_requirement": 44,
+        "funder_relationship": 41,
+        "allows_team": 32,
+        "requires_team": 23
+      }
+    },
+    "unmapped": {
+      "geographyScopeProse": 643,
+      "awardNote": 690,
+      "programsListingUnknowns": 729,
+      "awardDuration": 111
+    }
+  },
+  "sample": [
+    {
+      "id": "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027",
+      "steward": "Climate Resilience Fund",
+      "name": "Climate Smart Communities Initiative2027",
+      "chosenFor": "open grant, current award, two fact rules, a three-role team in prose",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": {
+          "currency": "USD",
+          "min": 75000,
+          "max": 115000,
+          "basis": "current_offer"
+        },
+        "closesOn": "2026-11-20",
+        "usableFor": 4
+      },
+      "conditions": {
+        "factRules": [
+          "workCountries only US,PR,VI,GU,MP,AS",
+          "applicantType exclude public-body"
+        ],
+        "sourcedStatements": [],
+        "prose": [
+          "adaptation practitioner organizations",
+          "sole adaptation practitioners",
+          "Team includes a US community organization, local/regional/Tribal government and adaptation practitioner.",
+          "Practitioner applies to Registry by LOI deadline and must be accepted before funding; practitioner receives and administers award.",
+          "Community under 300,000 residents, or regional project up to 500,000.",
+          "Direct grants to government agencies"
+        ]
+      },
+      "asks": [
+        "work: climate adaptation. community resilience. wildfire resilience"
+      ],
+      "teamWordingInProse": "requires_team",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 1,
+        "awardDurationMonths": true
+      }
+    },
+    {
+      "id": "recSZN9ckNi2cuE1y::beni-confiscati-alle-mafie-2026-initiative",
+      "steward": "Fondazione Con Il Sud",
+      "name": "Beni confiscati alle mafie — 2026 initiative",
+      "chosenFor": "open grant, partnership of at least three organizations in prose, no rules",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": {
+          "currency": "EUR",
+          "min": null,
+          "max": 400000,
+          "basis": "current_offer"
+        },
+        "closesOn": "2026-12-10",
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [],
+        "prose": [
+          "Third-sector-led partnership of at least three organizations, at least two from the third sector.",
+          "First engagement in this civil-network pathway; asset not previously funded by the foundation.",
+          "Sustainable social, cultural or economic reuse for local community benefit."
+        ]
+      },
+      "asks": [
+        "work: community assets. anti-mafia social reuse. local development"
+      ],
+      "teamWordingInProse": "requires_team",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 2,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "recdLQ4guN000D7Oh::dutch-philanthropic-partnership-support",
+      "steward": "Wilde Ganzen Foundation",
+      "name": "Dutch philanthropic partnership support",
+      "chosenFor": "invitation route, two sourced partner conditions, matched funding with no fixed amount",
+      "offer": {
+        "terms": "gift",
+        "status": "by_invitation",
+        "amount": null,
+        "closesOn": null,
+        "usableFor": 2
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "partner: Proposal is submitted jointly by an ODA-eligible-country organization and a Dutch partner.",
+          "partner: Local organization owns the project; Dutch partner raises funds in the Netherlands."
+        ],
+        "prose": [
+          "Local organizations",
+          "Dutch partner organizations",
+          "Proposal must be submitted jointly by an organization in an ODA-eligible country and a Dutch partner organization.",
+          "Local organization takes project ownership; Dutch partner raises funds in the Netherlands."
+        ]
+      },
+      "asks": [
+        "work: Community-led development",
+        "team: Proposal is submitted jointly by an ODA-eligible-country organization and a Dutch partner.",
+        "team: Local organization owns the project; Dutch partner raises funds in the Netherlands."
+      ],
+      "teamWordingInProse": "requires_team",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 1,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "recwNYbgyirnLcv6X::creation-fund-phasei",
+      "steward": "National Performance Network (NPN)",
+      "name": "Creation Fund — PhaseI",
+      "chosenFor": "closed grant, sourced partner condition, historical award",
+      "offer": {
+        "terms": "gift",
+        "status": "closed",
+        "amount": {
+          "currency": "USD",
+          "min": 15000,
+          "max": null,
+          "basis": "historical"
+        },
+        "closesOn": "2026-05-18",
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "partner: Artist applies with at least two arts co-commissioners led by an NPN National Partner; commissioners contribute cash and present the work."
+        ],
+        "prose": [
+          "artists with co-commissioning organizations",
+          "At least two arts co-commissioners led by an NPN National Partner.",
+          "Each commissioner contributesUS$2,000–3,000 and commits to presenting the work."
+        ]
+      },
+      "asks": [
+        "work: racial and cultural justice. new live artistic work",
+        "team: Artist applies with at least two arts co-commissioners led by an NPN National Partner; commissioners contribute cash and present the work."
+      ],
+      "teamWordingInProse": "requires_team",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 1,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "recOUk0NdykPghost::wff-sustainability-2026",
+      "steward": "Women’s Fund Fiji",
+      "name": "Sustainability Grants — 2026 cycle",
+      "chosenFor": "closed grant, applicant must be based in one country",
+      "offer": {
+        "terms": "gift",
+        "status": "closed",
+        "amount": null,
+        "closesOn": "2026-06-08",
+        "usableFor": 5
+      },
+      "conditions": {
+        "factRules": [
+          "applicantBaseCountry only FJ",
+          "applicantType exclude individual,business"
+        ],
+        "sourcedStatements": [],
+        "prose": [
+          "registered women-led nonprofits",
+          "unregistered women’s groups",
+          "networks",
+          "Diverse women fill 70% of leadership roles",
+          "At least one year of group activity",
+          "Women’s rights perspective",
+          "Individuals",
+          "Privately owned businesses"
+        ]
+      },
+      "asks": [
+        "work: gender equality. women’s rights. feminist organizing. climate justice"
+      ],
+      "teamWordingInProse": null,
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 4,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "recdKMrhbjABCXgyM::san-francisco-collaboration-opportunity-2026",
+      "steward": "Pisces Foundation",
+      "name": "San Francisco collaboration opportunity 2026",
+      "chosenFor": "open grant, collaboration required, fiscal sponsorship accepted",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": {
+          "currency": "USD",
+          "min": 80000,
+          "max": 150000,
+          "basis": "current_offer"
+        },
+        "closesOn": "2026-11-09",
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [
+          "benefitCountries only US",
+          "applicantType exclude business"
+        ],
+        "sourcedStatements": [
+          "geography: Primary San Francisco benefit and at least one partner whose work primarily focuses there."
+        ],
+        "prose": [
+          "Collaborations of two or more organizations",
+          "At least two organizations collaborating.",
+          "Particular interest in shared infrastructure, tools, networks and learning that benefits the broader ecosystem.",
+          "Each participant must be a US-based 501(c)(3) public charity or fiscally sponsored. Public agencies may collaborate but cannot receive grant funds.",
+          "At least one partner’s work must primarily focus on San Francisco; collaboration must primarily benefit San Francisco.",
+          "For-profit entities cannot participate."
+        ]
+      },
+      "asks": [
+        "work: Neighborhood vitality. Cultural innovation. Shared capacity"
+      ],
+      "teamWordingInProse": "requires_team",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 0,
+        "awardDurationMonths": true
+      }
+    },
+    {
+      "id": "local-mozilla::mozilla-independent-fellow-2027",
+      "steward": "Mozilla Foundation",
+      "name": "Independent Fellowship 2027–28",
+      "chosenFor": "open fellowship for an individual",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": {
+          "currency": "USD",
+          "min": 125000,
+          "max": 125000,
+          "basis": "current_offer"
+        },
+        "closesOn": "2026-12-17",
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "applicant_model: Relevant technical or creative practice; US-funding eligibility",
+          "geography: Global applicants subject to Mozilla funding and sanctions conditions."
+        ],
+        "prose": [
+          "Individuals",
+          "Relevant technical or creative practice; US-funding eligibility"
+        ]
+      },
+      "asks": [
+        "work: Open infrastructure. Public-interest technology"
+      ],
+      "teamWordingInProse": null,
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 2,
+        "awardDurationMonths": true
+      }
+    },
+    {
+      "id": "local-whitley::whitley-2027",
+      "steward": "Whitley Fund for Nature",
+      "name": "Whitley Awards 2027",
+      "chosenFor": "open prize, individual leader backed by a local team",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": {
+          "currency": "GBP",
+          "min": 50000,
+          "max": 50000,
+          "basis": "current_offer"
+        },
+        "closesOn": "2026-10-30",
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "applicant_model: Established conservation record; local registered organization or formal university arrangement",
+          "applicant_model: English application and communication",
+          "geography: Eligible-country list includes Nigeria, Brazil and South Africa. Normally nationals working in their country; October guidance allows exceptional long-term residents at discretion."
+        ],
+        "prose": [
+          "Individual conservation leaders backed by local nonprofit teams",
+          "Established conservation record; local registered organization or formal university arrangement",
+          "English application and communication",
+          "Start-ups",
+          "Pure academic research",
+          "United States is not an eligible project country"
+        ]
+      },
+      "asks": [
+        "work: Biodiversity. Community conservation"
+      ],
+      "teamWordingInProse": "not_a_team_requirement",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 1,
+        "awardDurationMonths": true
+      }
+    },
+    {
+      "id": "recJnEGA1LiDXHdOp::benito-mass-scholarships-2026",
+      "steward": "Community Foundation of Puerto Rico",
+      "name": "Benito Massó Scholarships — 2026",
+      "chosenFor": "open scholarship, individuals only",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": {
+          "currency": "USD",
+          "min": null,
+          "max": 1500,
+          "basis": "current_offer"
+        },
+        "closesOn": "2026-10-30",
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [
+          "applicantType only individual"
+        ],
+        "sourcedStatements": [],
+        "prose": [
+          "individual",
+          "Afrodescendant permanent Puerto Rico resident with completed secondary education.",
+          "Accredited associate, technical, vocational, certificate or bachelor program; academic progress, financial need and interview availability."
+        ]
+      },
+      "asks": [
+        "work: Afrodescendant education. postsecondary study"
+      ],
+      "teamWordingInProse": null,
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 2,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "local-sovereign-tech::sovereign-tech-fund",
+      "steward": "Sovereign Tech Agency",
+      "name": "Sovereign Tech Fund",
+      "chosenFor": "open mixed instrument, uncategorised conditions",
+      "offer": {
+        "terms": "unknown",
+        "status": "open",
+        "amount": null,
+        "closesOn": null,
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "manual: Established foundational FOSS technology; prototypes and end-user apps are outside scope",
+          "manual: Proposed work costs more than EUR 50,000 and has no duplicate public financing",
+          "manual: Reusable code/documentation licenses and maintainer/community expertise or endorsement",
+          "manual: German or English application through official platform"
+        ],
+        "prose": [
+          "Established foundational FOSS technology; prototypes and end-user apps are outside scope",
+          "Proposed work costs more than EUR 50,000 and has no duplicate public financing",
+          "Reusable code/documentation licenses and maintainer/community expertise or endorsement",
+          "German or English application through official platform"
+        ]
+      },
+      "asks": [
+        "work: Open-source infrastructure"
+      ],
+      "teamWordingInProse": null,
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 2,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "local-ardc::ardc-grants",
+      "steward": "Amateur Radio Digital Communications",
+      "name": "ARDC grants",
+      "chosenFor": "open grant, fiscal sponsorship accepted",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": null,
+        "closesOn": null,
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "applicant_model: US public charity or qualifying international nonprofit/education institution; open access to funded outputs",
+          "geography: International applicants accepted; developing and underfunded regions encouraged."
+        ],
+        "prose": [
+          "Nonprofits",
+          "Schools",
+          "Universities",
+          "Government entities",
+          "Fiscally sponsored individuals or groups",
+          "US public charity or qualifying international nonprofit/education institution; open access to funded outputs",
+          "For-profit entities"
+        ]
+      },
+      "asks": [
+        "work: Open source. Connectivity. STEM education"
+      ],
+      "teamWordingInProse": "fiscal_host",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 2,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "local-ma-earth::ma-earth-round4",
+      "steward": "Ma Earth",
+      "name": "Ma Earth Round 4 — future",
+      "chosenFor": "host partner required when the applicant is not a registered nonprofit",
+      "offer": {
+        "terms": "gift",
+        "status": "not_open_yet",
+        "amount": null,
+        "closesOn": null,
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "manual: Established community-led nature project with a track record",
+          "manual: Host partner if not a registered nonprofit or outside Stripe-supported countries"
+        ],
+        "prose": [
+          "Established community-led nature project with a track record",
+          "Host partner if not a registered nonprofit or outside Stripe-supported countries"
+        ]
+      },
+      "asks": [
+        "work: Nature restoration. Community-led conservation"
+      ],
+      "teamWordingInProse": "fiscal_host",
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": true,
+        "applicationNote": true,
+        "unknowns": 1,
+        "awardDurationMonths": false
+      }
+    },
+    {
+      "id": "local-gcc::gcc-digital-commons",
+      "steward": "GCC",
+      "name": "Digital Commons funding",
+      "chosenFor": "open grant for digital public goods, one uncategorised condition",
+      "offer": {
+        "terms": "gift",
+        "status": "open",
+        "amount": null,
+        "closesOn": null,
+        "usableFor": 0
+      },
+      "conditions": {
+        "factRules": [],
+        "sourcedStatements": [
+          "manual: Demonstrate public value aligned with GCC's mission"
+        ],
+        "prose": [
+          "Demonstrate public value aligned with GCC's mission"
+        ]
+      },
+      "asks": [
+        "work: Digital public goods. Open source. Privacy"
+      ],
+      "teamWordingInProse": null,
+      "unmapped": {
+        "geographyScope": true,
+        "awardNote": false,
+        "applicationNote": true,
+        "unknowns": 2,
+        "awardDurationMonths": false
+      }
+    }
+  ],
+  "note": "teamWordingInProse comes from fixtures/team-requirement-labels.json, one unreviewed reading of the catalog text. Everything else is counted from dist/data."
+}

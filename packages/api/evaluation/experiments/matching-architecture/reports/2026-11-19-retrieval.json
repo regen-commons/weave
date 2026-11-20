@@ -1,0 +1,2600 @@
+{
+  "reportDate": "2026-11-19",
+  "status": "offline experiment; the v3 holdout was examined before this work, so results are directional",
+  "fixtures": {
+    "v2Sha256": "d0a606d2909b4414cfe7421a0d051d6a95b9a477270fdd74dd135c62e989888e",
+    "v3Sha256": "dfc990ba7588a03ff27eb1bc88e6124ff8980771d01734990a9a6fd044869cfd"
+  },
+  "counts": {
+    "v2DevelopmentQueries": 88,
+    "v2DevelopmentCandidates": 100,
+    "v3Candidates": 64,
+    "v3AgreedQueries": 53,
+    "v3AgreedPositive": 45,
+    "v3AgreedNoMatch": 8,
+    "v3UncertainQueries": 19
+  },
+  "productionEvaluator": {
+    "lexical-v1": {
+      "relevantAmongReturnedAt5": 0.2393,
+      "finalRecallAt5": 0.5185,
+      "positiveQueriesWithNoSuggestion": 7,
+      "noMatchQueriesWithSuggestion": 8
+    },
+    "partner-concepts-v2": {
+      "relevantAmongReturnedAt5": 0.6667,
+      "finalRecallAt5": 0.4444,
+      "positiveQueriesWithNoSuggestion": 21,
+      "noMatchQueriesWithSuggestion": 2
+    }
+  },
+  "current": {
+    "engine": "partner-concepts-v2",
+    "queries": 53,
+    "positiveQueries": 45,
+    "suggestionsAt5": 36,
+    "relevantSuggestionsAt5": 24,
+    "relevantAmongReturnedAt5": 0.6667,
+    "finalRecallAt5": 0.4444,
+    "positiveQueriesWithNoSuggestion": 21,
+    "noMatchQueries": 8,
+    "noMatchQueriesWithSuggestion": 2,
+    "wrongSuggestionsByEvidence": {
+      "lexicalOnly": 15,
+      "semanticOnly": 0,
+      "both": 0
+    },
+    "interval95": {
+      "finalRecallAt5": [
+        0.3,
+        0.578
+      ],
+      "relevantAmongReturnedAt5": [
+        0.476,
+        0.886
+      ]
+    },
+    "byLanguage": {
+      "en": {
+        "queries": 41,
+        "positiveQueries": 36,
+        "suggestionsAt5": 28,
+        "relevantSuggestionsAt5": 22,
+        "relevantAmongReturnedAt5": 0.7857,
+        "finalRecallAt5": 0.5,
+        "positiveQueriesWithNoSuggestion": 17,
+        "noMatchQueries": 5,
+        "noMatchQueriesWithSuggestion": 1
+      },
+      "pt": {
+        "queries": 12,
+        "positiveQueries": 9,
+        "suggestionsAt5": 8,
+        "relevantSuggestionsAt5": 2,
+        "relevantAmongReturnedAt5": 0.25,
+        "finalRecallAt5": 0.2222,
+        "positiveQueriesWithNoSuggestion": 4,
+        "noMatchQueries": 3,
+        "noMatchQueriesWithSuggestion": 1
+      }
+    },
+    "byEvidenceType": {
+      "cross-language": {
+        "queries": 9,
+        "positiveQueries": 9,
+        "suggestionsAt5": 5,
+        "relevantSuggestionsAt5": 0,
+        "relevantAmongReturnedAt5": 0,
+        "finalRecallAt5": 0,
+        "positiveQueriesWithNoSuggestion": 7,
+        "noMatchQueries": 0,
+        "noMatchQueriesWithSuggestion": 0
+      },
+      "literal": {
+        "queries": 17,
+        "positiveQueries": 17,
+        "suggestionsAt5": 21,
+        "relevantSuggestionsAt5": 16,
+        "relevantAmongReturnedAt5": 0.7619,
+        "finalRecallAt5": 0.7353,
+        "positiveQueriesWithNoSuggestion": 4,
+        "noMatchQueries": 0,
+        "noMatchQueriesWithSuggestion": 0
+      },
+      "no-match": {
+        "queries": 8,
+        "positiveQueries": 0,
+        "suggestionsAt5": 0,
+        "relevantSuggestionsAt5": 0,
+        "relevantAmongReturnedAt5": null,
+        "finalRecallAt5": null,
+        "positiveQueriesWithNoSuggestion": 0,
+        "noMatchQueries": 8,
+        "noMatchQueriesWithSuggestion": 2
+      },
+      "paraphrase": {
+        "queries": 10,
+        "positiveQueries": 10,
+        "suggestionsAt5": 5,
+        "relevantSuggestionsAt5": 4,
+        "relevantAmongReturnedAt5": 0.8,
+        "finalRecallAt5": 0.35,
+        "positiveQueriesWithNoSuggestion": 6,
+        "noMatchQueries": 0,
+        "noMatchQueriesWithSuggestion": 0
+      },
+      "sparse": {
+        "queries": 9,
+        "positiveQueries": 9,
+        "suggestionsAt5": 5,
+        "relevantSuggestionsAt5": 4,
+        "relevantAmongReturnedAt5": 0.8,
+        "finalRecallAt5": 0.4444,
+        "positiveQueriesWithNoSuggestion": 4,
+        "noMatchQueries": 0,
+        "noMatchQueriesWithSuggestion": 0
+      }
+    }
+  },
+  "keywordRanking": {
+    "queries": 45,
+    "recallAt5": 0.563,
+    "recallAt10": 0.6074,
+    "meanReciprocalRank": 0.5953,
+    "byLanguage": {
+      "en": {
+        "queries": 36,
+        "recallAt5": 0.6204,
+        "recallAt10": 0.6759,
+        "meanReciprocalRank": 0.6695
+      },
+      "pt": {
+        "queries": 9,
+        "recallAt5": 0.3333,
+        "recallAt10": 0.3333,
+        "meanReciprocalRank": 0.2984
+      }
+    },
+    "crossLanguage": {
+      "queries": 9,
+      "recallAt5": 0,
+      "recallAt10": 0.1111,
+      "meanReciprocalRank": 0.0395
+    }
+  },
+  "models": {
+    "mxbai-xsmall-en": {
+      "model": {
+        "id": "mixedbread-ai/mxbai-embed-xsmall-v1",
+        "revision": "b0561d9a97e6b298da39f0ef3e7d3cf153b1b29a",
+        "dtype": "q8",
+        "dimensions": 256,
+        "languages": "English",
+        "licence": "Apache-2.0",
+        "onnxBytes": 24448010,
+        "pinnedInRepository": true
+      },
+      "timing": {
+        "loadMs": 770,
+        "texts": 237,
+        "meanEmbedMs": 4.4,
+        "downloadBytes": 25394702,
+        "node": "v24.20.0",
+        "measuredOn": "2026-11-19"
+      },
+      "threshold": {
+        "value": 0.45,
+        "rule": "lowest cosine threshold with >= 0.8 relevant among returned and no no-match suggestion on v2 development, semantic only",
+        "developmentAtThreshold": {
+          "semantic": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 170,
+            "relevantSuggestionsAt5": 136,
+            "relevantAmongReturnedAt5": 0.8,
+            "finalRecallAt5": 0.85,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "hybrid": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 194,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 0.8247,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "current": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 160,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 1,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          }
+        }
+      },
+      "holdout": {
+        "semantic": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 78,
+          "relevantSuggestionsAt5": 32,
+          "relevantAmongReturnedAt5": 0.4103,
+          "finalRecallAt5": 0.5815,
+          "positiveQueriesWithNoSuggestion": 11,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 3,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 0,
+            "semanticOnly": 61,
+            "both": 0
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.444,
+              0.715
+            ],
+            "relevantAmongReturnedAt5": [
+              0.286,
+              0.585
+            ],
+            "recallDifference": [
+              0.026,
+              0.256
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 37,
+              "relevantSuggestionsAt5": 29,
+              "relevantAmongReturnedAt5": 0.7838,
+              "finalRecallAt5": 0.6435,
+              "positiveQueriesWithNoSuggestion": 11,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 41,
+              "relevantSuggestionsAt5": 3,
+              "relevantAmongReturnedAt5": 0.0732,
+              "finalRecallAt5": 0.3333,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 3
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 22,
+              "relevantSuggestionsAt5": 1,
+              "relevantAmongReturnedAt5": 0.0455,
+              "finalRecallAt5": 0.1111,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 35,
+              "relevantSuggestionsAt5": 19,
+              "relevantAmongReturnedAt5": 0.5429,
+              "finalRecallAt5": 0.8039,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 3
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 11,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.6364,
+              "finalRecallAt5": 0.65,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 10,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.5,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        },
+        "hybrid": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 84,
+          "relevantSuggestionsAt5": 33,
+          "relevantAmongReturnedAt5": 0.3929,
+          "finalRecallAt5": 0.6037,
+          "positiveQueriesWithNoSuggestion": 10,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 4,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 10,
+            "semanticOnly": 53,
+            "both": 5
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.47,
+              0.737
+            ],
+            "relevantAmongReturnedAt5": [
+              0.278,
+              0.551
+            ],
+            "recallDifference": [
+              0.067,
+              0.267
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 42,
+              "relevantSuggestionsAt5": 30,
+              "relevantAmongReturnedAt5": 0.7143,
+              "finalRecallAt5": 0.6713,
+              "positiveQueriesWithNoSuggestion": 10,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 1
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 42,
+              "relevantSuggestionsAt5": 3,
+              "relevantAmongReturnedAt5": 0.0714,
+              "finalRecallAt5": 0.3333,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 3
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 23,
+              "relevantSuggestionsAt5": 1,
+              "relevantAmongReturnedAt5": 0.0435,
+              "finalRecallAt5": 0.1111,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 38,
+              "relevantSuggestionsAt5": 19,
+              "relevantAmongReturnedAt5": 0.5,
+              "finalRecallAt5": 0.8039,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 4
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 12,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.5833,
+              "finalRecallAt5": 0.65,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 11,
+              "relevantSuggestionsAt5": 6,
+              "relevantAmongReturnedAt5": 0.5455,
+              "finalRecallAt5": 0.6667,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        }
+      },
+      "holdoutUncertainJudgments": {
+        "current": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 23,
+          "relevantSuggestionsAt5": 15,
+          "relevantAmongReturnedAt5": 0.6522,
+          "finalRecallAt5": 0.4561,
+          "positiveQueriesWithNoSuggestion": 6,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        },
+        "hybrid": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 45,
+          "relevantSuggestionsAt5": 19,
+          "relevantAmongReturnedAt5": 0.4222,
+          "finalRecallAt5": 0.6053,
+          "positiveQueriesWithNoSuggestion": 1,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        }
+      },
+      "relativeThreshold": {
+        "value": 2.4,
+        "rule": "lowest z-score threshold with >= 0.8 relevant among returned and no no-match suggestion on v2 development, semantic only",
+        "note": "Added after the first scored holdout run; the cut-off still comes from v2 development only.",
+        "developmentAtThreshold": {
+          "semantic": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 174,
+            "relevantSuggestionsAt5": 140,
+            "relevantAmongReturnedAt5": 0.8046,
+            "finalRecallAt5": 0.875,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "hybrid": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 194,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 0.8247,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          }
+        },
+        "holdout": {
+          "semantic": {
+            "queries": 53,
+            "positiveQueries": 45,
+            "suggestionsAt5": 40,
+            "relevantSuggestionsAt5": 34,
+            "relevantAmongReturnedAt5": 0.85,
+            "finalRecallAt5": 0.6407,
+            "positiveQueriesWithNoSuggestion": 12,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 5,
+            "wrongSuggestionsByEvidence": {
+              "lexicalOnly": 0,
+              "semanticOnly": 12,
+              "both": 0
+            },
+            "interval95": {
+              "finalRecallAt5": [
+                0.504,
+                0.774
+              ],
+              "relevantAmongReturnedAt5": [
+                0.727,
+                0.969
+              ],
+              "recallDifference": [
+                0.096,
+                0.315
+              ]
+            },
+            "byLanguage": {
+              "en": {
+                "queries": 41,
+                "positiveQueries": 36,
+                "suggestionsAt5": 37,
+                "relevantSuggestionsAt5": 32,
+                "relevantAmongReturnedAt5": 0.8649,
+                "finalRecallAt5": 0.7454,
+                "positiveQueriesWithNoSuggestion": 6,
+                "noMatchQueries": 5,
+                "noMatchQueriesWithSuggestion": 4
+              },
+              "pt": {
+                "queries": 12,
+                "positiveQueries": 9,
+                "suggestionsAt5": 3,
+                "relevantSuggestionsAt5": 2,
+                "relevantAmongReturnedAt5": 0.6667,
+                "finalRecallAt5": 0.2222,
+                "positiveQueriesWithNoSuggestion": 6,
+                "noMatchQueries": 3,
+                "noMatchQueriesWithSuggestion": 1
+              }
+            },
+            "byEvidenceType": {
+              "cross-language": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 2,
+                "relevantSuggestionsAt5": 1,
+                "relevantAmongReturnedAt5": 0.5,
+                "finalRecallAt5": 0.1111,
+                "positiveQueriesWithNoSuggestion": 7,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "literal": {
+                "queries": 17,
+                "positiveQueries": 17,
+                "suggestionsAt5": 20,
+                "relevantSuggestionsAt5": 19,
+                "relevantAmongReturnedAt5": 0.95,
+                "finalRecallAt5": 0.8431,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "no-match": {
+                "queries": 8,
+                "positiveQueries": 0,
+                "suggestionsAt5": 0,
+                "relevantSuggestionsAt5": 0,
+                "relevantAmongReturnedAt5": null,
+                "finalRecallAt5": null,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 8,
+                "noMatchQueriesWithSuggestion": 5
+              },
+              "paraphrase": {
+                "queries": 10,
+                "positiveQueries": 10,
+                "suggestionsAt5": 8,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.875,
+                "finalRecallAt5": 0.65,
+                "positiveQueriesWithNoSuggestion": 3,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "sparse": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 10,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.7,
+                "finalRecallAt5": 0.7778,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              }
+            }
+          },
+          "hybrid": {
+            "queries": 53,
+            "positiveQueries": 45,
+            "suggestionsAt5": 50,
+            "relevantSuggestionsAt5": 34,
+            "relevantAmongReturnedAt5": 0.68,
+            "finalRecallAt5": 0.6407,
+            "positiveQueriesWithNoSuggestion": 10,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 6,
+            "wrongSuggestionsByEvidence": {
+              "lexicalOnly": 13,
+              "semanticOnly": 10,
+              "both": 2
+            },
+            "interval95": {
+              "finalRecallAt5": [
+                0.504,
+                0.774
+              ],
+              "relevantAmongReturnedAt5": [
+                0.526,
+                0.849
+              ],
+              "recallDifference": [
+                0.096,
+                0.315
+              ]
+            },
+            "byLanguage": {
+              "en": {
+                "queries": 41,
+                "positiveQueries": 36,
+                "suggestionsAt5": 42,
+                "relevantSuggestionsAt5": 32,
+                "relevantAmongReturnedAt5": 0.7619,
+                "finalRecallAt5": 0.7454,
+                "positiveQueriesWithNoSuggestion": 6,
+                "noMatchQueries": 5,
+                "noMatchQueriesWithSuggestion": 4
+              },
+              "pt": {
+                "queries": 12,
+                "positiveQueries": 9,
+                "suggestionsAt5": 8,
+                "relevantSuggestionsAt5": 2,
+                "relevantAmongReturnedAt5": 0.25,
+                "finalRecallAt5": 0.2222,
+                "positiveQueriesWithNoSuggestion": 4,
+                "noMatchQueries": 3,
+                "noMatchQueriesWithSuggestion": 2
+              }
+            },
+            "byEvidenceType": {
+              "cross-language": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 6,
+                "relevantSuggestionsAt5": 1,
+                "relevantAmongReturnedAt5": 0.1667,
+                "finalRecallAt5": 0.1111,
+                "positiveQueriesWithNoSuggestion": 6,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "literal": {
+                "queries": 17,
+                "positiveQueries": 17,
+                "suggestionsAt5": 24,
+                "relevantSuggestionsAt5": 19,
+                "relevantAmongReturnedAt5": 0.7917,
+                "finalRecallAt5": 0.8431,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "no-match": {
+                "queries": 8,
+                "positiveQueries": 0,
+                "suggestionsAt5": 0,
+                "relevantSuggestionsAt5": 0,
+                "relevantAmongReturnedAt5": null,
+                "finalRecallAt5": null,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 8,
+                "noMatchQueriesWithSuggestion": 6
+              },
+              "paraphrase": {
+                "queries": 10,
+                "positiveQueries": 10,
+                "suggestionsAt5": 9,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.7778,
+                "finalRecallAt5": 0.65,
+                "positiveQueriesWithNoSuggestion": 3,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "sparse": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 11,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.6364,
+                "finalRecallAt5": 0.7778,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              }
+            }
+          }
+        }
+      },
+      "semanticVeto": {
+        "vetoBelowZ": 1.87,
+        "semanticAtOrAboveZ": 2.4,
+        "rule": "keyword evidence needs a z-score at or above the 5th percentile of correct keyword suggestions on v2 development",
+        "note": "Added after the first scored holdout run; both cut-offs come from v2 development only.",
+        "development": {
+          "queries": 88,
+          "positiveQueries": 80,
+          "suggestionsAt5": 186,
+          "relevantSuggestionsAt5": 152,
+          "relevantAmongReturnedAt5": 0.8172,
+          "finalRecallAt5": 0.95,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 0
+        },
+        "holdout": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 41,
+          "relevantSuggestionsAt5": 34,
+          "relevantAmongReturnedAt5": 0.8293,
+          "finalRecallAt5": 0.6407,
+          "positiveQueriesWithNoSuggestion": 12,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 5,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 1,
+            "semanticOnly": 10,
+            "both": 2
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.504,
+              0.774
+            ],
+            "relevantAmongReturnedAt5": [
+              0.711,
+              0.946
+            ],
+            "recallDifference": [
+              0.096,
+              0.315
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 38,
+              "relevantSuggestionsAt5": 32,
+              "relevantAmongReturnedAt5": 0.8421,
+              "finalRecallAt5": 0.7454,
+              "positiveQueriesWithNoSuggestion": 6,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 4
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 3,
+              "relevantSuggestionsAt5": 2,
+              "relevantAmongReturnedAt5": 0.6667,
+              "finalRecallAt5": 0.2222,
+              "positiveQueriesWithNoSuggestion": 6,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 1
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 2,
+              "relevantSuggestionsAt5": 1,
+              "relevantAmongReturnedAt5": 0.5,
+              "finalRecallAt5": 0.1111,
+              "positiveQueriesWithNoSuggestion": 7,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 21,
+              "relevantSuggestionsAt5": 19,
+              "relevantAmongReturnedAt5": 0.9048,
+              "finalRecallAt5": 0.8431,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 5
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 8,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.875,
+              "finalRecallAt5": 0.65,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 10,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.7,
+              "finalRecallAt5": 0.7778,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        },
+        "holdoutUncertainJudgments": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 28,
+          "relevantSuggestionsAt5": 19,
+          "relevantAmongReturnedAt5": 0.6786,
+          "finalRecallAt5": 0.6053,
+          "positiveQueriesWithNoSuggestion": 2,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        }
+      },
+      "rankingWithoutThreshold": {
+        "semantic": {
+          "queries": 45,
+          "recallAt5": 0.7481,
+          "recallAt10": 0.7481,
+          "meanReciprocalRank": 0.7301,
+          "byLanguage": {
+            "en": {
+              "queries": 36,
+              "recallAt5": 0.8519,
+              "recallAt10": 0.8519,
+              "meanReciprocalRank": 0.8204
+            },
+            "pt": {
+              "queries": 9,
+              "recallAt5": 0.3333,
+              "recallAt10": 0.3333,
+              "meanReciprocalRank": 0.3687
+            }
+          },
+          "crossLanguage": {
+            "queries": 9,
+            "recallAt5": 0.3333,
+            "recallAt10": 0.3333,
+            "meanReciprocalRank": 0.2808
+          }
+        },
+        "fused": {
+          "queries": 45,
+          "recallAt5": 0.737,
+          "recallAt10": 0.7704,
+          "meanReciprocalRank": 0.7055,
+          "byLanguage": {
+            "en": {
+              "queries": 36,
+              "recallAt5": 0.838,
+              "recallAt10": 0.8796,
+              "meanReciprocalRank": 0.79
+            },
+            "pt": {
+              "queries": 9,
+              "recallAt5": 0.3333,
+              "recallAt10": 0.3333,
+              "meanReciprocalRank": 0.3674
+            }
+          },
+          "crossLanguage": {
+            "queries": 9,
+            "recallAt5": 0.2222,
+            "recallAt10": 0.3333,
+            "meanReciprocalRank": 0.1925
+          }
+        }
+      },
+      "postHocHoldoutSweep": [
+        {
+          "threshold": 0.3,
+          "relevantAmongReturnedAt5": 0.2155,
+          "finalRecallAt5": 0.7259,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 6
+        },
+        {
+          "threshold": 0.4,
+          "relevantAmongReturnedAt5": 0.3333,
+          "finalRecallAt5": 0.6704,
+          "positiveQueriesWithNoSuggestion": 3,
+          "noMatchQueriesWithSuggestion": 5
+        },
+        {
+          "threshold": 0.5,
+          "relevantAmongReturnedAt5": 0.4394,
+          "finalRecallAt5": 0.5407,
+          "positiveQueriesWithNoSuggestion": 13,
+          "noMatchQueriesWithSuggestion": 4
+        },
+        {
+          "threshold": 0.6,
+          "relevantAmongReturnedAt5": 0.6923,
+          "finalRecallAt5": 0.4963,
+          "positiveQueriesWithNoSuggestion": 18,
+          "noMatchQueriesWithSuggestion": 3
+        },
+        {
+          "threshold": 0.7,
+          "relevantAmongReturnedAt5": 0.6667,
+          "finalRecallAt5": 0.4444,
+          "positiveQueriesWithNoSuggestion": 21,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.8,
+          "relevantAmongReturnedAt5": 0.6667,
+          "finalRecallAt5": 0.4444,
+          "positiveQueriesWithNoSuggestion": 21,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.85,
+          "relevantAmongReturnedAt5": 0.6667,
+          "finalRecallAt5": 0.4444,
+          "positiveQueriesWithNoSuggestion": 21,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.9,
+          "relevantAmongReturnedAt5": 0.6667,
+          "finalRecallAt5": 0.4444,
+          "positiveQueriesWithNoSuggestion": 21,
+          "noMatchQueriesWithSuggestion": 2
+        }
+      ]
+    },
+    "me5-small": {
+      "model": {
+        "id": "Xenova/multilingual-e5-small",
+        "revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+        "dtype": "q8",
+        "dimensions": 384,
+        "languages": "about 100",
+        "licence": "MIT (upstream intfloat/multilingual-e5-small)",
+        "onnxBytes": 118308185,
+        "pinnedInRepository": false
+      },
+      "timing": {
+        "loadMs": 2138,
+        "texts": 237,
+        "meanEmbedMs": 10.1,
+        "downloadBytes": 135392016,
+        "node": "v24.20.0",
+        "measuredOn": "2026-11-19"
+      },
+      "threshold": {
+        "value": 0.82,
+        "rule": "lowest cosine threshold with >= 0.8 relevant among returned and no no-match suggestion on v2 development, semantic only",
+        "developmentAtThreshold": {
+          "semantic": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 114,
+            "relevantSuggestionsAt5": 106,
+            "relevantAmongReturnedAt5": 0.9298,
+            "finalRecallAt5": 0.6625,
+            "positiveQueriesWithNoSuggestion": 14,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "hybrid": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 168,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 0.9524,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "current": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 160,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 1,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          }
+        }
+      },
+      "holdout": {
+        "semantic": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 139,
+          "relevantSuggestionsAt5": 41,
+          "relevantAmongReturnedAt5": 0.295,
+          "finalRecallAt5": 0.7481,
+          "positiveQueriesWithNoSuggestion": 3,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 6,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 0,
+            "semanticOnly": 116,
+            "both": 0
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.622,
+              0.863
+            ],
+            "relevantAmongReturnedAt5": [
+              0.233,
+              0.366
+            ],
+            "recallDifference": [
+              0.178,
+              0.437
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 99,
+              "relevantSuggestionsAt5": 36,
+              "relevantAmongReturnedAt5": 0.3636,
+              "finalRecallAt5": 0.7963,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 3
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 40,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.125,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 3
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 33,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.1515,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 60,
+              "relevantSuggestionsAt5": 22,
+              "relevantAmongReturnedAt5": 0.3667,
+              "finalRecallAt5": 0.9216,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 6
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 32,
+              "relevantSuggestionsAt5": 9,
+              "relevantAmongReturnedAt5": 0.2813,
+              "finalRecallAt5": 0.8,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 14,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.3571,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        },
+        "hybrid": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 144,
+          "relevantSuggestionsAt5": 41,
+          "relevantAmongReturnedAt5": 0.2847,
+          "finalRecallAt5": 0.7481,
+          "positiveQueriesWithNoSuggestion": 2,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 7,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 7,
+            "semanticOnly": 111,
+            "both": 5
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.622,
+              0.863
+            ],
+            "relevantAmongReturnedAt5": [
+              0.227,
+              0.352
+            ],
+            "recallDifference": [
+              0.178,
+              0.437
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 103,
+              "relevantSuggestionsAt5": 36,
+              "relevantAmongReturnedAt5": 0.3495,
+              "finalRecallAt5": 0.7963,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 4
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 41,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.122,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 3
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 34,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.1471,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 63,
+              "relevantSuggestionsAt5": 22,
+              "relevantAmongReturnedAt5": 0.3492,
+              "finalRecallAt5": 0.9216,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 7
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 33,
+              "relevantSuggestionsAt5": 9,
+              "relevantAmongReturnedAt5": 0.2727,
+              "finalRecallAt5": 0.8,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 14,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.3571,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        }
+      },
+      "holdoutUncertainJudgments": {
+        "current": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 23,
+          "relevantSuggestionsAt5": 15,
+          "relevantAmongReturnedAt5": 0.6522,
+          "finalRecallAt5": 0.4561,
+          "positiveQueriesWithNoSuggestion": 6,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        },
+        "hybrid": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 68,
+          "relevantSuggestionsAt5": 24,
+          "relevantAmongReturnedAt5": 0.3529,
+          "finalRecallAt5": 0.7105,
+          "positiveQueriesWithNoSuggestion": 1,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        }
+      },
+      "relativeThreshold": {
+        "value": 2.1,
+        "rule": "lowest z-score threshold with >= 0.8 relevant among returned and no no-match suggestion on v2 development, semantic only",
+        "note": "Added after the first scored holdout run; the cut-off still comes from v2 development only.",
+        "developmentAtThreshold": {
+          "semantic": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 150,
+            "relevantSuggestionsAt5": 142,
+            "relevantAmongReturnedAt5": 0.9467,
+            "finalRecallAt5": 0.8875,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "hybrid": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 168,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 0.9524,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          }
+        },
+        "holdout": {
+          "semantic": {
+            "queries": 53,
+            "positiveQueries": 45,
+            "suggestionsAt5": 57,
+            "relevantSuggestionsAt5": 39,
+            "relevantAmongReturnedAt5": 0.6842,
+            "finalRecallAt5": 0.7296,
+            "positiveQueriesWithNoSuggestion": 4,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 5,
+            "wrongSuggestionsByEvidence": {
+              "lexicalOnly": 0,
+              "semanticOnly": 23,
+              "both": 0
+            },
+            "interval95": {
+              "finalRecallAt5": [
+                0.607,
+                0.844
+              ],
+              "relevantAmongReturnedAt5": [
+                0.582,
+                0.789
+              ],
+              "recallDifference": [
+                0.163,
+                0.422
+              ]
+            },
+            "byLanguage": {
+              "en": {
+                "queries": 41,
+                "positiveQueries": 36,
+                "suggestionsAt5": 50,
+                "relevantSuggestionsAt5": 36,
+                "relevantAmongReturnedAt5": 0.72,
+                "finalRecallAt5": 0.8287,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 5,
+                "noMatchQueriesWithSuggestion": 4
+              },
+              "pt": {
+                "queries": 12,
+                "positiveQueries": 9,
+                "suggestionsAt5": 7,
+                "relevantSuggestionsAt5": 3,
+                "relevantAmongReturnedAt5": 0.4286,
+                "finalRecallAt5": 0.3333,
+                "positiveQueriesWithNoSuggestion": 3,
+                "noMatchQueries": 3,
+                "noMatchQueriesWithSuggestion": 1
+              }
+            },
+            "byEvidenceType": {
+              "cross-language": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 7,
+                "relevantSuggestionsAt5": 3,
+                "relevantAmongReturnedAt5": 0.4286,
+                "finalRecallAt5": 0.3333,
+                "positiveQueriesWithNoSuggestion": 3,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "literal": {
+                "queries": 17,
+                "positiveQueries": 17,
+                "suggestionsAt5": 25,
+                "relevantSuggestionsAt5": 21,
+                "relevantAmongReturnedAt5": 0.84,
+                "finalRecallAt5": 0.902,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "no-match": {
+                "queries": 8,
+                "positiveQueries": 0,
+                "suggestionsAt5": 0,
+                "relevantSuggestionsAt5": 0,
+                "relevantAmongReturnedAt5": null,
+                "finalRecallAt5": null,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 8,
+                "noMatchQueriesWithSuggestion": 5
+              },
+              "paraphrase": {
+                "queries": 10,
+                "positiveQueries": 10,
+                "suggestionsAt5": 11,
+                "relevantSuggestionsAt5": 8,
+                "relevantAmongReturnedAt5": 0.7273,
+                "finalRecallAt5": 0.75,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "sparse": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 14,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.5,
+                "finalRecallAt5": 0.7778,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              }
+            }
+          },
+          "hybrid": {
+            "queries": 53,
+            "positiveQueries": 45,
+            "suggestionsAt5": 66,
+            "relevantSuggestionsAt5": 39,
+            "relevantAmongReturnedAt5": 0.5909,
+            "finalRecallAt5": 0.7296,
+            "positiveQueriesWithNoSuggestion": 3,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 6,
+            "wrongSuggestionsByEvidence": {
+              "lexicalOnly": 12,
+              "semanticOnly": 20,
+              "both": 3
+            },
+            "interval95": {
+              "finalRecallAt5": [
+                0.607,
+                0.844
+              ],
+              "relevantAmongReturnedAt5": [
+                0.463,
+                0.73
+              ],
+              "recallDifference": [
+                0.163,
+                0.422
+              ]
+            },
+            "byLanguage": {
+              "en": {
+                "queries": 41,
+                "positiveQueries": 36,
+                "suggestionsAt5": 54,
+                "relevantSuggestionsAt5": 36,
+                "relevantAmongReturnedAt5": 0.6667,
+                "finalRecallAt5": 0.8287,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 5,
+                "noMatchQueriesWithSuggestion": 4
+              },
+              "pt": {
+                "queries": 12,
+                "positiveQueries": 9,
+                "suggestionsAt5": 12,
+                "relevantSuggestionsAt5": 3,
+                "relevantAmongReturnedAt5": 0.25,
+                "finalRecallAt5": 0.3333,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 3,
+                "noMatchQueriesWithSuggestion": 2
+              }
+            },
+            "byEvidenceType": {
+              "cross-language": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 12,
+                "relevantSuggestionsAt5": 3,
+                "relevantAmongReturnedAt5": 0.25,
+                "finalRecallAt5": 0.3333,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "literal": {
+                "queries": 17,
+                "positiveQueries": 17,
+                "suggestionsAt5": 28,
+                "relevantSuggestionsAt5": 21,
+                "relevantAmongReturnedAt5": 0.75,
+                "finalRecallAt5": 0.902,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "no-match": {
+                "queries": 8,
+                "positiveQueries": 0,
+                "suggestionsAt5": 0,
+                "relevantSuggestionsAt5": 0,
+                "relevantAmongReturnedAt5": null,
+                "finalRecallAt5": null,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 8,
+                "noMatchQueriesWithSuggestion": 6
+              },
+              "paraphrase": {
+                "queries": 10,
+                "positiveQueries": 10,
+                "suggestionsAt5": 12,
+                "relevantSuggestionsAt5": 8,
+                "relevantAmongReturnedAt5": 0.6667,
+                "finalRecallAt5": 0.75,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "sparse": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 14,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.5,
+                "finalRecallAt5": 0.7778,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              }
+            }
+          }
+        }
+      },
+      "semanticVeto": {
+        "vetoBelowZ": 1.77,
+        "semanticAtOrAboveZ": 2.1,
+        "rule": "keyword evidence needs a z-score at or above the 5th percentile of correct keyword suggestions on v2 development",
+        "note": "Added after the first scored holdout run; both cut-offs come from v2 development only.",
+        "development": {
+          "queries": 88,
+          "positiveQueries": 80,
+          "suggestionsAt5": 160,
+          "relevantSuggestionsAt5": 152,
+          "relevantAmongReturnedAt5": 0.95,
+          "finalRecallAt5": 0.95,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 0
+        },
+        "holdout": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 58,
+          "relevantSuggestionsAt5": 39,
+          "relevantAmongReturnedAt5": 0.6724,
+          "finalRecallAt5": 0.7296,
+          "positiveQueriesWithNoSuggestion": 3,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 6,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 2,
+            "semanticOnly": 20,
+            "both": 3
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.607,
+              0.844
+            ],
+            "relevantAmongReturnedAt5": [
+              0.569,
+              0.776
+            ],
+            "recallDifference": [
+              0.163,
+              0.422
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 50,
+              "relevantSuggestionsAt5": 36,
+              "relevantAmongReturnedAt5": 0.72,
+              "finalRecallAt5": 0.8287,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 4
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 8,
+              "relevantSuggestionsAt5": 3,
+              "relevantAmongReturnedAt5": 0.375,
+              "finalRecallAt5": 0.3333,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 2
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 8,
+              "relevantSuggestionsAt5": 3,
+              "relevantAmongReturnedAt5": 0.375,
+              "finalRecallAt5": 0.3333,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 25,
+              "relevantSuggestionsAt5": 21,
+              "relevantAmongReturnedAt5": 0.84,
+              "finalRecallAt5": 0.902,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 6
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 11,
+              "relevantSuggestionsAt5": 8,
+              "relevantAmongReturnedAt5": 0.7273,
+              "finalRecallAt5": 0.75,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 14,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.5,
+              "finalRecallAt5": 0.7778,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        },
+        "holdoutUncertainJudgments": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 27,
+          "relevantSuggestionsAt5": 18,
+          "relevantAmongReturnedAt5": 0.6667,
+          "finalRecallAt5": 0.5351,
+          "positiveQueriesWithNoSuggestion": 5,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        }
+      },
+      "rankingWithoutThreshold": {
+        "semantic": {
+          "queries": 45,
+          "recallAt5": 0.8148,
+          "recallAt10": 0.8704,
+          "meanReciprocalRank": 0.7932,
+          "byLanguage": {
+            "en": {
+              "queries": 36,
+              "recallAt5": 0.8796,
+              "recallAt10": 0.9074,
+              "meanReciprocalRank": 0.8802
+            },
+            "pt": {
+              "queries": 9,
+              "recallAt5": 0.5556,
+              "recallAt10": 0.7222,
+              "meanReciprocalRank": 0.4453
+            }
+          },
+          "crossLanguage": {
+            "queries": 9,
+            "recallAt5": 0.5556,
+            "recallAt10": 0.7222,
+            "meanReciprocalRank": 0.4493
+          }
+        },
+        "fused": {
+          "queries": 45,
+          "recallAt5": 0.7926,
+          "recallAt10": 0.837,
+          "meanReciprocalRank": 0.7217,
+          "byLanguage": {
+            "en": {
+              "queries": 36,
+              "recallAt5": 0.9074,
+              "recallAt10": 0.9352,
+              "meanReciprocalRank": 0.8062
+            },
+            "pt": {
+              "queries": 9,
+              "recallAt5": 0.3333,
+              "recallAt10": 0.4444,
+              "meanReciprocalRank": 0.3838
+            }
+          },
+          "crossLanguage": {
+            "queries": 9,
+            "recallAt5": 0.3333,
+            "recallAt10": 0.4444,
+            "meanReciprocalRank": 0.2489
+          }
+        }
+      },
+      "postHocHoldoutSweep": [
+        {
+          "threshold": 0.3,
+          "relevantAmongReturnedAt5": 0.0533,
+          "finalRecallAt5": 0.1852,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 8
+        },
+        {
+          "threshold": 0.4,
+          "relevantAmongReturnedAt5": 0.0533,
+          "finalRecallAt5": 0.1852,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 8
+        },
+        {
+          "threshold": 0.5,
+          "relevantAmongReturnedAt5": 0.0533,
+          "finalRecallAt5": 0.1852,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 8
+        },
+        {
+          "threshold": 0.6,
+          "relevantAmongReturnedAt5": 0.0533,
+          "finalRecallAt5": 0.1852,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 8
+        },
+        {
+          "threshold": 0.7,
+          "relevantAmongReturnedAt5": 0.0533,
+          "finalRecallAt5": 0.1852,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 8
+        },
+        {
+          "threshold": 0.8,
+          "relevantAmongReturnedAt5": 0.209,
+          "finalRecallAt5": 0.7963,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueriesWithSuggestion": 8
+        },
+        {
+          "threshold": 0.85,
+          "relevantAmongReturnedAt5": 0.44,
+          "finalRecallAt5": 0.6074,
+          "positiveQueriesWithNoSuggestion": 10,
+          "noMatchQueriesWithSuggestion": 4
+        },
+        {
+          "threshold": 0.9,
+          "relevantAmongReturnedAt5": 0.6842,
+          "finalRecallAt5": 0.4741,
+          "positiveQueriesWithNoSuggestion": 19,
+          "noMatchQueriesWithSuggestion": 2
+        }
+      ]
+    },
+    "mminilm-l12": {
+      "model": {
+        "id": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+        "revision": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+        "dtype": "q8",
+        "dimensions": 384,
+        "languages": "about 50",
+        "licence": "Apache-2.0 (upstream sentence-transformers)",
+        "onnxBytes": 118308126,
+        "pinnedInRepository": false
+      },
+      "timing": {
+        "loadMs": 1273,
+        "texts": 237,
+        "meanEmbedMs": 8.8,
+        "downloadBytes": 135392208,
+        "node": "v24.20.0",
+        "measuredOn": "2026-11-19"
+      },
+      "threshold": {
+        "value": 0.57,
+        "rule": "lowest cosine threshold with >= 0.8 relevant among returned and no no-match suggestion on v2 development, semantic only",
+        "developmentAtThreshold": {
+          "semantic": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 134,
+            "relevantSuggestionsAt5": 108,
+            "relevantAmongReturnedAt5": 0.806,
+            "finalRecallAt5": 0.675,
+            "positiveQueriesWithNoSuggestion": 8,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "hybrid": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 186,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 0.8602,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "current": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 160,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 1,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          }
+        }
+      },
+      "holdout": {
+        "semantic": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 32,
+          "relevantSuggestionsAt5": 31,
+          "relevantAmongReturnedAt5": 0.9688,
+          "finalRecallAt5": 0.5667,
+          "positiveQueriesWithNoSuggestion": 17,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 0,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 0,
+            "semanticOnly": 1,
+            "both": 0
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.433,
+              0.7
+            ],
+            "relevantAmongReturnedAt5": [
+              0.9,
+              1
+            ],
+            "recallDifference": [
+              -0.056,
+              0.311
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 25,
+              "relevantSuggestionsAt5": 25,
+              "relevantAmongReturnedAt5": 1,
+              "finalRecallAt5": 0.5417,
+              "positiveQueriesWithNoSuggestion": 14,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 7,
+              "relevantSuggestionsAt5": 6,
+              "relevantAmongReturnedAt5": 0.8571,
+              "finalRecallAt5": 0.6667,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 7,
+              "relevantSuggestionsAt5": 6,
+              "relevantAmongReturnedAt5": 0.8571,
+              "finalRecallAt5": 0.6667,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 16,
+              "relevantSuggestionsAt5": 16,
+              "relevantAmongReturnedAt5": 1,
+              "finalRecallAt5": 0.6176,
+              "positiveQueriesWithNoSuggestion": 4,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 6,
+              "relevantSuggestionsAt5": 6,
+              "relevantAmongReturnedAt5": 1,
+              "finalRecallAt5": 0.6,
+              "positiveQueriesWithNoSuggestion": 4,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 3,
+              "relevantSuggestionsAt5": 3,
+              "relevantAmongReturnedAt5": 1,
+              "finalRecallAt5": 0.3333,
+              "positiveQueriesWithNoSuggestion": 6,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        },
+        "hybrid": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 53,
+          "relevantSuggestionsAt5": 40,
+          "relevantAmongReturnedAt5": 0.7547,
+          "finalRecallAt5": 0.7333,
+          "positiveQueriesWithNoSuggestion": 8,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 2,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 15,
+            "semanticOnly": 1,
+            "both": 0
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.6,
+              0.844
+            ],
+            "relevantAmongReturnedAt5": [
+              0.613,
+              0.905
+            ],
+            "recallDifference": [
+              0.167,
+              0.422
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 40,
+              "relevantSuggestionsAt5": 34,
+              "relevantAmongReturnedAt5": 0.85,
+              "finalRecallAt5": 0.75,
+              "positiveQueriesWithNoSuggestion": 7,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 1
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 13,
+              "relevantSuggestionsAt5": 6,
+              "relevantAmongReturnedAt5": 0.4615,
+              "finalRecallAt5": 0.6667,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 1
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 12,
+              "relevantSuggestionsAt5": 6,
+              "relevantAmongReturnedAt5": 0.5,
+              "finalRecallAt5": 0.6667,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 26,
+              "relevantSuggestionsAt5": 21,
+              "relevantAmongReturnedAt5": 0.8077,
+              "finalRecallAt5": 0.8529,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 2
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 9,
+              "relevantSuggestionsAt5": 8,
+              "relevantAmongReturnedAt5": 0.8889,
+              "finalRecallAt5": 0.75,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 6,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.8333,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        }
+      },
+      "holdoutUncertainJudgments": {
+        "current": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 23,
+          "relevantSuggestionsAt5": 15,
+          "relevantAmongReturnedAt5": 0.6522,
+          "finalRecallAt5": 0.4561,
+          "positiveQueriesWithNoSuggestion": 6,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        },
+        "hybrid": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 38,
+          "relevantSuggestionsAt5": 26,
+          "relevantAmongReturnedAt5": 0.6842,
+          "finalRecallAt5": 0.7719,
+          "positiveQueriesWithNoSuggestion": 1,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        }
+      },
+      "relativeThreshold": {
+        "value": 2.9,
+        "rule": "lowest z-score threshold with >= 0.8 relevant among returned and no no-match suggestion on v2 development, semantic only",
+        "note": "Added after the first scored holdout run; the cut-off still comes from v2 development only.",
+        "developmentAtThreshold": {
+          "semantic": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 136,
+            "relevantSuggestionsAt5": 116,
+            "relevantAmongReturnedAt5": 0.8529,
+            "finalRecallAt5": 0.725,
+            "positiveQueriesWithNoSuggestion": 2,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          },
+          "hybrid": {
+            "queries": 88,
+            "positiveQueries": 80,
+            "suggestionsAt5": 180,
+            "relevantSuggestionsAt5": 160,
+            "relevantAmongReturnedAt5": 0.8889,
+            "finalRecallAt5": 1,
+            "positiveQueriesWithNoSuggestion": 0,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 0
+          }
+        },
+        "holdout": {
+          "semantic": {
+            "queries": 53,
+            "positiveQueries": 45,
+            "suggestionsAt5": 35,
+            "relevantSuggestionsAt5": 34,
+            "relevantAmongReturnedAt5": 0.9714,
+            "finalRecallAt5": 0.663,
+            "positiveQueriesWithNoSuggestion": 10,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 2,
+            "wrongSuggestionsByEvidence": {
+              "lexicalOnly": 0,
+              "semanticOnly": 3,
+              "both": 0
+            },
+            "interval95": {
+              "finalRecallAt5": [
+                0.537,
+                0.781
+              ],
+              "relevantAmongReturnedAt5": [
+                0.906,
+                1
+              ],
+              "recallDifference": [
+                0.074,
+                0.367
+              ]
+            },
+            "byLanguage": {
+              "en": {
+                "queries": 41,
+                "positiveQueries": 36,
+                "suggestionsAt5": 28,
+                "relevantSuggestionsAt5": 27,
+                "relevantAmongReturnedAt5": 0.9643,
+                "finalRecallAt5": 0.6481,
+                "positiveQueriesWithNoSuggestion": 8,
+                "noMatchQueries": 5,
+                "noMatchQueriesWithSuggestion": 1
+              },
+              "pt": {
+                "queries": 12,
+                "positiveQueries": 9,
+                "suggestionsAt5": 7,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 1,
+                "finalRecallAt5": 0.7222,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 3,
+                "noMatchQueriesWithSuggestion": 1
+              }
+            },
+            "byEvidenceType": {
+              "cross-language": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 7,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 1,
+                "finalRecallAt5": 0.7222,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "literal": {
+                "queries": 17,
+                "positiveQueries": 17,
+                "suggestionsAt5": 15,
+                "relevantSuggestionsAt5": 14,
+                "relevantAmongReturnedAt5": 0.9333,
+                "finalRecallAt5": 0.6373,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "no-match": {
+                "queries": 8,
+                "positiveQueries": 0,
+                "suggestionsAt5": 0,
+                "relevantSuggestionsAt5": 0,
+                "relevantAmongReturnedAt5": null,
+                "finalRecallAt5": null,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 8,
+                "noMatchQueriesWithSuggestion": 2
+              },
+              "paraphrase": {
+                "queries": 10,
+                "positiveQueries": 10,
+                "suggestionsAt5": 8,
+                "relevantSuggestionsAt5": 8,
+                "relevantAmongReturnedAt5": 1,
+                "finalRecallAt5": 0.75,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "sparse": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 5,
+                "relevantSuggestionsAt5": 5,
+                "relevantAmongReturnedAt5": 1,
+                "finalRecallAt5": 0.5556,
+                "positiveQueriesWithNoSuggestion": 4,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              }
+            }
+          },
+          "hybrid": {
+            "queries": 53,
+            "positiveQueries": 45,
+            "suggestionsAt5": 51,
+            "relevantSuggestionsAt5": 39,
+            "relevantAmongReturnedAt5": 0.7647,
+            "finalRecallAt5": 0.7296,
+            "positiveQueriesWithNoSuggestion": 9,
+            "noMatchQueries": 8,
+            "noMatchQueriesWithSuggestion": 4,
+            "wrongSuggestionsByEvidence": {
+              "lexicalOnly": 14,
+              "semanticOnly": 2,
+              "both": 1
+            },
+            "interval95": {
+              "finalRecallAt5": [
+                0.596,
+                0.844
+              ],
+              "relevantAmongReturnedAt5": [
+                0.623,
+                0.925
+              ],
+              "recallDifference": [
+                0.163,
+                0.415
+              ]
+            },
+            "byLanguage": {
+              "en": {
+                "queries": 41,
+                "positiveQueries": 36,
+                "suggestionsAt5": 38,
+                "relevantSuggestionsAt5": 32,
+                "relevantAmongReturnedAt5": 0.8421,
+                "finalRecallAt5": 0.7315,
+                "positiveQueriesWithNoSuggestion": 8,
+                "noMatchQueries": 5,
+                "noMatchQueriesWithSuggestion": 2
+              },
+              "pt": {
+                "queries": 12,
+                "positiveQueries": 9,
+                "suggestionsAt5": 13,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.5385,
+                "finalRecallAt5": 0.7222,
+                "positiveQueriesWithNoSuggestion": 1,
+                "noMatchQueries": 3,
+                "noMatchQueriesWithSuggestion": 2
+              }
+            },
+            "byEvidenceType": {
+              "cross-language": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 12,
+                "relevantSuggestionsAt5": 7,
+                "relevantAmongReturnedAt5": 0.5833,
+                "finalRecallAt5": 0.7222,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "literal": {
+                "queries": 17,
+                "positiveQueries": 17,
+                "suggestionsAt5": 23,
+                "relevantSuggestionsAt5": 18,
+                "relevantAmongReturnedAt5": 0.7826,
+                "finalRecallAt5": 0.7843,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "no-match": {
+                "queries": 8,
+                "positiveQueries": 0,
+                "suggestionsAt5": 0,
+                "relevantSuggestionsAt5": 0,
+                "relevantAmongReturnedAt5": null,
+                "finalRecallAt5": null,
+                "positiveQueriesWithNoSuggestion": 0,
+                "noMatchQueries": 8,
+                "noMatchQueriesWithSuggestion": 4
+              },
+              "paraphrase": {
+                "queries": 10,
+                "positiveQueries": 10,
+                "suggestionsAt5": 10,
+                "relevantSuggestionsAt5": 9,
+                "relevantAmongReturnedAt5": 0.9,
+                "finalRecallAt5": 0.8,
+                "positiveQueriesWithNoSuggestion": 2,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              },
+              "sparse": {
+                "queries": 9,
+                "positiveQueries": 9,
+                "suggestionsAt5": 6,
+                "relevantSuggestionsAt5": 5,
+                "relevantAmongReturnedAt5": 0.8333,
+                "finalRecallAt5": 0.5556,
+                "positiveQueriesWithNoSuggestion": 3,
+                "noMatchQueries": 0,
+                "noMatchQueriesWithSuggestion": 0
+              }
+            }
+          }
+        }
+      },
+      "semanticVeto": {
+        "vetoBelowZ": 2.02,
+        "semanticAtOrAboveZ": 2.9,
+        "rule": "keyword evidence needs a z-score at or above the 5th percentile of correct keyword suggestions on v2 development",
+        "note": "Added after the first scored holdout run; both cut-offs come from v2 development only.",
+        "development": {
+          "queries": 88,
+          "positiveQueries": 80,
+          "suggestionsAt5": 172,
+          "relevantSuggestionsAt5": 152,
+          "relevantAmongReturnedAt5": 0.8837,
+          "finalRecallAt5": 0.95,
+          "positiveQueriesWithNoSuggestion": 0,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 0
+        },
+        "holdout": {
+          "queries": 53,
+          "positiveQueries": 45,
+          "suggestionsAt5": 43,
+          "relevantSuggestionsAt5": 39,
+          "relevantAmongReturnedAt5": 0.907,
+          "finalRecallAt5": 0.7296,
+          "positiveQueriesWithNoSuggestion": 9,
+          "noMatchQueries": 8,
+          "noMatchQueriesWithSuggestion": 2,
+          "wrongSuggestionsByEvidence": {
+            "lexicalOnly": 3,
+            "semanticOnly": 2,
+            "both": 1
+          },
+          "interval95": {
+            "finalRecallAt5": [
+              0.596,
+              0.844
+            ],
+            "relevantAmongReturnedAt5": [
+              0.825,
+              0.978
+            ],
+            "recallDifference": [
+              0.163,
+              0.415
+            ]
+          },
+          "byLanguage": {
+            "en": {
+              "queries": 41,
+              "positiveQueries": 36,
+              "suggestionsAt5": 34,
+              "relevantSuggestionsAt5": 32,
+              "relevantAmongReturnedAt5": 0.9412,
+              "finalRecallAt5": 0.7315,
+              "positiveQueriesWithNoSuggestion": 8,
+              "noMatchQueries": 5,
+              "noMatchQueriesWithSuggestion": 1
+            },
+            "pt": {
+              "queries": 12,
+              "positiveQueries": 9,
+              "suggestionsAt5": 9,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.7778,
+              "finalRecallAt5": 0.7222,
+              "positiveQueriesWithNoSuggestion": 1,
+              "noMatchQueries": 3,
+              "noMatchQueriesWithSuggestion": 1
+            }
+          },
+          "byEvidenceType": {
+            "cross-language": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 8,
+              "relevantSuggestionsAt5": 7,
+              "relevantAmongReturnedAt5": 0.875,
+              "finalRecallAt5": 0.7222,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "literal": {
+              "queries": 17,
+              "positiveQueries": 17,
+              "suggestionsAt5": 20,
+              "relevantSuggestionsAt5": 18,
+              "relevantAmongReturnedAt5": 0.9,
+              "finalRecallAt5": 0.7843,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "no-match": {
+              "queries": 8,
+              "positiveQueries": 0,
+              "suggestionsAt5": 0,
+              "relevantSuggestionsAt5": 0,
+              "relevantAmongReturnedAt5": null,
+              "finalRecallAt5": null,
+              "positiveQueriesWithNoSuggestion": 0,
+              "noMatchQueries": 8,
+              "noMatchQueriesWithSuggestion": 2
+            },
+            "paraphrase": {
+              "queries": 10,
+              "positiveQueries": 10,
+              "suggestionsAt5": 9,
+              "relevantSuggestionsAt5": 9,
+              "relevantAmongReturnedAt5": 1,
+              "finalRecallAt5": 0.8,
+              "positiveQueriesWithNoSuggestion": 2,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            },
+            "sparse": {
+              "queries": 9,
+              "positiveQueries": 9,
+              "suggestionsAt5": 6,
+              "relevantSuggestionsAt5": 5,
+              "relevantAmongReturnedAt5": 0.8333,
+              "finalRecallAt5": 0.5556,
+              "positiveQueriesWithNoSuggestion": 3,
+              "noMatchQueries": 0,
+              "noMatchQueriesWithSuggestion": 0
+            }
+          }
+        },
+        "holdoutUncertainJudgments": {
+          "queries": 19,
+          "positiveQueries": 19,
+          "suggestionsAt5": 22,
+          "relevantSuggestionsAt5": 19,
+          "relevantAmongReturnedAt5": 0.8636,
+          "finalRecallAt5": 0.5965,
+          "positiveQueriesWithNoSuggestion": 4,
+          "noMatchQueries": 0,
+          "noMatchQueriesWithSuggestion": 0
+        }
+      },
+      "rankingWithoutThreshold": {
+        "semantic": {
+          "queries": 45,
+          "recallAt5": 0.9333,
+          "recallAt10": 0.9333,
+          "meanReciprocalRank": 0.9127,
+          "byLanguage": {
+            "en": {
+              "queries": 36,
+              "recallAt5": 0.9444,
+              "recallAt10": 0.9444,
+              "meanReciprocalRank": 0.9181
+            },
+            "pt": {
+              "queries": 9,
+              "recallAt5": 0.8889,
+              "recallAt10": 0.8889,
+              "meanReciprocalRank": 0.8911
+            }
+          },
+          "crossLanguage": {
+            "queries": 9,
+            "recallAt5": 1,
+            "recallAt10": 1,
+            "meanReciprocalRank": 1
+          }
+        },
+        "fused": {
+          "queries": 45,
+          "recallAt5": 0.8222,
+          "recallAt10": 0.9333,
+          "meanReciprocalRank": 0.7305,
+          "byLanguage": {
+            "en": {
+              "queries": 36,
+              "recallAt5": 0.9444,
+              "recallAt10": 0.9722,
+              "meanReciprocalRank": 0.8138
+            },
+            "pt": {
+              "queries": 9,
+              "recallAt5": 0.3333,
+              "recallAt10": 0.7778,
+              "meanReciprocalRank": 0.3975
+            }
+          },
+          "crossLanguage": {
+            "queries": 9,
+            "recallAt5": 0.4444,
+            "recallAt10": 0.8889,
+            "meanReciprocalRank": 0.3676
+          }
+        }
+      },
+      "postHocHoldoutSweep": [
+        {
+          "threshold": 0.3,
+          "relevantAmongReturnedAt5": 0.2415,
+          "finalRecallAt5": 0.9,
+          "positiveQueriesWithNoSuggestion": 1,
+          "noMatchQueriesWithSuggestion": 6
+        },
+        {
+          "threshold": 0.4,
+          "relevantAmongReturnedAt5": 0.3721,
+          "finalRecallAt5": 0.8667,
+          "positiveQueriesWithNoSuggestion": 3,
+          "noMatchQueriesWithSuggestion": 4
+        },
+        {
+          "threshold": 0.5,
+          "relevantAmongReturnedAt5": 0.6615,
+          "finalRecallAt5": 0.7778,
+          "positiveQueriesWithNoSuggestion": 7,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.6,
+          "relevantAmongReturnedAt5": 0.7647,
+          "finalRecallAt5": 0.7111,
+          "positiveQueriesWithNoSuggestion": 9,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.7,
+          "relevantAmongReturnedAt5": 0.7209,
+          "finalRecallAt5": 0.5852,
+          "positiveQueriesWithNoSuggestion": 15,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.8,
+          "relevantAmongReturnedAt5": 0.6757,
+          "finalRecallAt5": 0.4667,
+          "positiveQueriesWithNoSuggestion": 20,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.85,
+          "relevantAmongReturnedAt5": 0.6757,
+          "finalRecallAt5": 0.4667,
+          "positiveQueriesWithNoSuggestion": 20,
+          "noMatchQueriesWithSuggestion": 2
+        },
+        {
+          "threshold": 0.9,
+          "relevantAmongReturnedAt5": 0.6667,
+          "finalRecallAt5": 0.4444,
+          "positiveQueriesWithNoSuggestion": 21,
+          "noMatchQueriesWithSuggestion": 2
+        }
+      ]
+    }
+  }
+}
