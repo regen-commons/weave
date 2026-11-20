@@ -266,27 +266,34 @@ function publisherName(author: Record<string, unknown>, publisher: string): stri
 
 /**
  * The name of the place the collection pins with a strong reference. The listing hydrates the linked
- * record beside the collection; it is read only when it is the exact version pinned, URI and CID, so a
- * newer or other place is never shown in its stead.
+ * record beside the collection as its own view, `location.record` with its address, version and
+ * `record` (measured on 19 November 2026: 30 of 30 places). It is read only when the reference and the
+ * view are both the exact version pinned, URI and CID, so a newer or other place is never shown in its
+ * stead.
  */
 function placeName(view: Record<string, unknown>, entry: Record<string, unknown>): string | null {
   const pinned = object(entry.location);
   const linked = object(view.location);
-  const details = object(linked?.record);
-  if (!pinned || !linked || !details || typeof pinned.uri !== "string" || typeof pinned.cid !== "string"
-    || linked.uri !== pinned.uri || linked.cid !== pinned.cid
+  const place = object(linked?.record);
+  const details = object(place?.record);
+  if (!pinned || !linked || !place || !details || typeof pinned.uri !== "string" || typeof pinned.cid !== "string"
+    || linked.uri !== pinned.uri || linked.cid !== pinned.cid || place.uri !== pinned.uri || place.cid !== pinned.cid
     || (details.$type !== undefined && details.$type !== LOCATION)) return null;
   return safeLabel(details.name);
 }
 
-/** Lower case words joined by hyphens, so `Non_Profit` and `non profit` are one kind of group. */
+/**
+ * Lower case words joined by hyphens, so `Non_Profit` and `non profit` are one kind of group. Values are
+ * free text upstream, in any language: on 19 November they included `nonprofit`, `Nonprofit`,
+ * `Grupo comunitário` and a leaked interface string with dots in it, which is left out.
+ */
 function organizationTypes(details: Record<string, unknown> | null): string[] {
   const values = details?.organizationType;
   if (!Array.isArray(values)) return [];
   const types = new Set<string>();
   for (const value of values.slice(0, 20)) {
     if (typeof value !== "string" || value.length > 80) continue;
-    const type = value.trim().toLowerCase().replace(/[\s_]+/gu, "-");
+    const type = value.normalize("NFC").trim().toLowerCase().replace(/[\s_]+/gu, "-");
     if (isOrganizationType(type)) types.add(type);
     if (types.size === ORGANIZATION_TYPES_MAX) break;
   }

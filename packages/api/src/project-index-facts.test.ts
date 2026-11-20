@@ -82,9 +82,10 @@ test("a profile that names another account, or is not a Certified profile, is no
 });
 
 test("a place is read only when the listing hydrated the exact version the record pins", () => {
+  type Place = { uri: string; cid: string; did: string };
   const base = projectView(5, { place: "Awka, Nigeria" }) as ReturnType<typeof projectView> & {
-    location: { uri: string; cid: string; record: Record<string, unknown> };
-    record: { location: { uri: string; cid: string } };
+    location: { uri: string; cid: string; record: Place };
+    record: { location: { uri: string; cid: string } & Record<string, unknown> };
   };
   const place = (change: (view: typeof base) => void) => {
     const view = structuredClone(base);
@@ -92,18 +93,25 @@ test("a place is read only when the listing hydrated the exact version the recor
     return indexed(view, projectUri(5)).facts.place;
   };
   assert.equal(place(() => undefined), "Awka, Nigeria");
-  // A strong reference without its own type is still a strong reference.
-  assert.equal(place((view) => { delete (view.record.location as { $type?: string }).$type; }), "Awka, Nigeria");
+  // A strong reference that names its own type is still a strong reference.
+  assert.equal(place((view) => { view.record.location.$type = "com.atproto.repo.strongRef"; }), "Awka, Nigeria");
+  const newer = `bafyrei${"z".repeat(52)}`;
+  const elsewhere = `at://${projectDid(5)}/app.certified.location/elsewhere`;
   const refused: [string, (view: typeof base) => void][] = [
-    ["a newer version of the place", (view) => { view.location.cid = `bafyrei${"z".repeat(52)}`; }],
-    ["another place", (view) => { view.location.uri = `at://${projectDid(5)}/app.certified.location/elsewhere`; }],
+    ["a newer version of the place", (view) => { view.location.cid = newer; view.location.record.cid = newer; }],
+    ["a view of a newer version under the pinned reference", (view) => { view.location.record.cid = newer; }],
+    ["another place", (view) => { view.location.uri = elsewhere; view.location.record.uri = elsewhere; }],
+    ["a view of another place under the pinned reference", (view) => { view.location.record.uri = elsewhere; }],
     ["a hydrated place the record does not pin", (view) => { delete (view.record as { location?: unknown }).location; }],
     ["a pinned place the listing did not hydrate", (view) => { delete (view as { location?: unknown }).location; }],
-    ["a hydrated place without a version", (view) => { delete (view.location as { cid?: string }).cid; }],
+    ["a hydrated reference without a version", (view) => { delete (view.location as { cid?: string }).cid; }],
+    ["a hydrated view without a version", (view) => { delete (view.location.record as { cid?: string }).cid; }],
     ["a pin without a version", (view) => { delete (view.record.location as { cid?: string }).cid; }],
-    ["a record of another type", (view) => { view.location.record.$type = "app.certified.actor.profile"; }],
-    ["a place with no record", (view) => { (view.location as { record: unknown }).record = null; }],
-    ["a place with no name", (view) => { (view.location as { record: unknown }).record = { $type: "app.certified.location" }; }],
+    ["a record of another type", (view) => { (view.location.record as { record: unknown }).record = { $type: "app.certified.actor.profile", name: "Awka" }; }],
+    ["a place with no record", (view) => { (view.location.record as { record: unknown }).record = null; }],
+    ["a place with no name", (view) => { (view.location.record as { record: unknown }).record = { $type: "app.certified.location" }; }],
+    // The flat shape first reported for 19 November; the listing nests the record one level deeper.
+    ["a name one level up", (view) => { (view.location as { record: unknown }).record = { $type: "app.certified.location", name: "Awka" }; }],
     ["a location that is a list", (view) => { (view as { location: unknown }).location = [view.location]; }],
   ];
   for (const [what, change] of refused) assert.equal(place(change), null, what);
@@ -115,6 +123,10 @@ test("kinds of group are normalized words, unique and bounded, and anything else
   assert.deepEqual(types(["Non_Profit", "non profit", "  NONPROFIT ", "nonprofit", "community-group"]),
     ["community-group", "non-profit", "nonprofit"]);
   assert.deepEqual(types([42, null, "", "dao!", "x".repeat(41), "1st", "-lead", "trailing-", "https://example.org", "nonprofit"]), ["nonprofit"]);
+  // Free text in any language is kept as written, in one form: composed or not, "Grupo comunitário" is one kind.
+  assert.deepEqual(types(["Grupo comunitário", "grupo comunita\u0301rio", "Coopérative"]), ["coopérative", "grupo-comunitário"]);
+  // An interface string that leaked into the record is not a kind of group.
+  assert.deepEqual(types(["upload.dashboardModals.orgType.suggestions.researchInstitute"]), []);
   assert.deepEqual(types(Array.from({ length: 30 }, (_, n) => `kind${n}`)), ["kind0", "kind1", "kind2", "kind3", "kind4"]);
   for (const value of ["nonprofit", null, 7, { nonprofit: true }, []]) assert.deepEqual(types(value), [], JSON.stringify(value));
   // An organization that asks to be unlisted is still not shown, whatever kind it says it is.

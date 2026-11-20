@@ -19,6 +19,7 @@ test("the query accepts only a bounded search, a kind of group, an opaque cursor
   assert.deepEqual(parsePublicProjectQuery(url("")),
     { q: "", terms: [], organizationType: null, cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
   assert.equal(parsePublicProjectQuery(url("?q=soil&organizationType=community-group")).organizationType, "community-group");
+  assert.equal(parsePublicProjectQuery(url("?organizationType=grupo-comunit%C3%A1rio")).organizationType, "grupo-comunitário");
   const search = parsePublicProjectQuery(url("?q=%20S%C3%A3o%20%20Paulo%20soil%20soil&limit=3"));
   assert.deepEqual([search.q, search.terms, search.limit], ["São Paulo soil soil", ["sao", "paulo", "soil"], 3]);
   assert.deepEqual(searchTerms("a b c d e f g h"), ["a", "b", "c", "d", "e", "f"]);
@@ -38,6 +39,7 @@ test("the query accepts only a bounded search, a kind of group, an opaque cursor
     `?cursor=${Buffer.from(JSON.stringify({ sharedAt: "x" })).toString("base64url")}`,
     "?organizationType=", "?organizationType=Nonprofit", "?organizationType=non%20profit", "?organizationType=non_profit",
     "?organizationType=-lead", `?organizationType=${"x".repeat(41)}`, "?organizationType=a&organizationType=b",
+    "?organizationType=Grupo-comunit%C3%A1rio", "?organizationType=grupo-comunita%CC%81rio", "?organizationType=a.b",
     "?organizationtype=nonprofit", "?type=nonprofit",
   ]) assert.throws(() => parsePublicProjectQuery(url(bad)), /invalid_project_query/u, bad);
 });
@@ -170,8 +172,8 @@ test("search reads the publisher and the place, and a kind of group narrows the 
     [{ publisher: "Riverkeepers" }, ["cooperative", "nonprofit"]],
     [{}, ["nonprofit"]],
     [{ place: "Awka, Nigeria" }, ["community-group", "cooperative"]],
-    [{}, []],
-    [{ publisher: "Orchard Circle" }, []],
+    [{}, ["other"]],
+    [{ publisher: "Orchard Circle" }, ["other"]],
   ];
   const cards = facts.map(([fact, organizationTypes], index) => ({
     ...card(index + 1), ...fact, organizationTypes, sharedAt: `2026-10-0${index + 1}T12:00:00.000000Z`, text: "We restore wetlands.",
@@ -188,8 +190,8 @@ test("search reads the publisher and the place, and a kind of group narrows the 
     return parsePublicProjectPage(body);
   };
   const all = await get("");
-  // Most common first, ties by name, whatever the search or filter.
-  assert.deepEqual(all.index.organizationTypes, ["nonprofit", "cooperative", "community-group"]);
+  // Most common first, ties by name, whatever the search or filter, and "other" always last.
+  assert.deepEqual(all.index.organizationTypes, ["nonprofit", "cooperative", "community-group", "other"]);
   assert.deepEqual(all.projects.map(({ publisher, place }) => [publisher ?? null, place ?? null]), [
     ["Orchard Circle", null], [null, null], [null, "Awka, Nigeria"], [null, null], ["Riverkeepers", null],
     ["Lagoa Seed Library", "São Paulo, Brazil"],
@@ -204,7 +206,7 @@ test("search reads the publisher and the place, and a kind of group narrows the 
   assert.deepEqual([rest.projects.map((project) => project.name), rest.next], [[name(1)], null]);
   const both = await get("?q=riverkeepers&organizationType=cooperative");
   assert.deepEqual([both.index.total, both.projects.map((project) => project.name), both.index.organizationTypes],
-    [1, [name(2)], ["nonprofit", "cooperative", "community-group"]]);
+    [1, [name(2)], ["nonprofit", "cooperative", "community-group", "other"]]);
   // A kind no publisher names is an empty list, not an error.
   assert.deepEqual([(await get("?organizationType=dao")).index.total, (await get("?organizationType=dao")).projects], [0, []]);
   // A list whose publishers name no kind offers none, as a server from before the filter did.

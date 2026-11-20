@@ -52,7 +52,9 @@ function prepare(snapshot: PublicProjectSnapshot): Prepared {
   const counts = new Map<string, number>();
   for (const { organizationTypes } of cards)
     for (const type of organizationTypes) counts.set(type, (counts.get(type) ?? 0) + 1);
-  const organizationTypes = [...counts].sort(([a, m], [b, n]) => n - m || (a < b ? -1 : a > b ? 1 : 0))
+  // Most common first, ties by name, and `other`, which narrows to no particular kind, always last.
+  const organizationTypes = [...counts]
+    .sort(([a, m], [b, n]) => Number(a === "other") - Number(b === "other") || n - m || (a < b ? -1 : a > b ? 1 : 0))
     .slice(0, ORGANIZATION_TYPE_OPTIONS_MAX).map(([type]) => type);
   return { cards: cards.sort((a, b) => later(a, b) ? -1 : later(b, a) ? 1 : 0), organizationTypes, checkpoint: snapshot.checkpoint };
 }

@@ -41,13 +41,15 @@ export function projectView(n: number, options: ViewOptions = {}) {
   const short = options.short === undefined
     ? `We restore wetlands along river ${letters(n)}. Volunteers monitor water quality each season.`
     : options.short;
-  const pinned = { $type: "com.atproto.repo.strongRef", uri: placeUri(n), cid: placeCid(n) };
+  const pinned = { uri: placeUri(n), cid: placeCid(n) };
   return {
     uri: projectUri(n), cid: projectCid(n, options.version), did,
     indexedAt: options.indexedAt === undefined ? "2026-11-14T00:00:00Z" : options.indexedAt,
     author: { did, profile, organization },
+    // The listing hydrates the pinned place as its own view, one level down.
     ...(options.place === undefined ? {} : {
-      location: { uri: pinned.uri, cid: pinned.cid, record: { $type: "app.certified.location", name: options.place } },
+      location: { ...pinned, record: { ...pinned, did, indexedAt: "2026-11-14T00:00:00Z",
+        record: { $type: "app.certified.location", name: options.place } } },
     }),
     record: {
       $type: "org.hypercerts.collection", type: "project", title: options.title ?? projectName(n),
@@ -60,14 +62,17 @@ export function projectView(n: number, options: ViewOptions = {}) {
 }
 
 /**
- * One listing item with everything a card reads, in the shape the 19 November 2026 read of the 100 newest
- * listed projects found: the publisher's profile and organization under `author`, and the place the record
- * pins with a strong reference hydrated at the item's top level. The content is invented. It also carries
- * fields Weave must not show, a banner picture and the organization's links.
+ * One listing item with everything a card reads, in the shape listCollections returned for the 100 newest
+ * listed projects on 19 November 2026: the publisher's profile and organization under `author`, each a
+ * view with its own address and `record`, and the place the record pins hydrated at the item's top level
+ * as a view of its own, one level down. The content is invented. It also carries fields Weave must not
+ * show: a banner, an avatar, the organization's links and its own location, and the place's coordinates.
  */
 export function realisticProjectView() {
   const did = "did:plc:fixturelagoaseedlibraryq";
   const place = { uri: `at://${did}/app.certified.location/3m6bq4lagoa2c`, cid: `bafyrei${"l".repeat(52)}` };
+  const blob = (letter: string, mimeType: string, size: number) =>
+    ({ $type: "blob", ref: { $link: `bafkrei${letter.repeat(52)}` }, mimeType, size });
   return {
     uri: `at://${did}/org.hypercerts.collection/3m6bq4seedlib`,
     cid: `bafyrei${"s".repeat(52)}`,
@@ -75,18 +80,22 @@ export function realisticProjectView() {
     indexedAt: "2026-11-18T09:41:27.512Z",
     author: {
       did,
-      handle: "lagoa-seeds.certified.one",
       profile: {
-        did, uri: `at://${did}/app.certified.actor.profile/self`, cid: `bafyrei${"r".repeat(52)}`,
+        uri: `at://${did}/app.certified.actor.profile/self`, cid: `bafyrei${"r".repeat(52)}`, did,
+        indexedAt: "2026-09-02T10:00:01.000Z",
         record: {
-          $type: "app.certified.actor.profile", displayName: "Lagoa Seed Library",
-          description: "Neighbours who keep and share seed.", createdAt: "2026-09-02T10:00:00.000Z",
+          $type: "app.certified.actor.profile", displayName: "Lagoa Seed Library", langs: ["pt"],
+          avatar: { $type: "org.hypercerts.defs#smallImage", image: blob("a", "image/png", 20511) },
+          createdAt: "2026-09-02T10:00:00.000Z",
         },
       },
       organization: {
-        did, uri: `at://${did}/app.certified.actor.organization/self`, cid: `bafyrei${"o".repeat(52)}`,
+        uri: `at://${did}/app.certified.actor.organization/self`, cid: `bafyrei${"o".repeat(52)}`, did,
+        indexedAt: "2026-09-02T10:00:01.000Z",
         record: {
-          $type: "app.certified.actor.organization", organizationType: ["nonprofit"], visibility: "public",
+          $type: "app.certified.actor.organization", organizationType: ["nonprofit"], langs: ["pt"],
+          longDescription: { $type: "org.hypercerts.defs#descriptionString", value: "Neighbours who keep and share seed." },
+          location: { uri: `at://${did}/app.certified.location/3m6bq4office`, cid: `bafyrei${"h".repeat(52)}` },
           urls: [{ url: "https://seeds.example.org", label: "Website" }], createdAt: "2026-09-02T10:00:00.000Z",
         },
       },
@@ -94,16 +103,21 @@ export function realisticProjectView() {
     location: {
       ...place,
       record: {
-        $type: "app.certified.location", lpVersion: "1.0.0", srs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
-        locationType: "coordinate-decimal", location: { string: "-46.63, -23.55" }, name: "São Paulo, Brazil",
-        createdAt: "2026-09-02T10:05:00.000Z",
+        ...place, did, indexedAt: "2026-09-02T10:05:01.000Z",
+        record: {
+          $type: "app.certified.location", lpVersion: "1.0.0", srs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+          locationType: "coordinate-decimal", location: { string: "-46.63, -23.55" }, name: "São Paulo, Brazil",
+          createdAt: "2026-09-02T10:05:00.000Z",
+        },
       },
     },
     record: {
       $type: "org.hypercerts.collection", type: "project", title: "Community seed library",
       shortDescription: "We keep heirloom seed in a shared library. Neighbours borrow seed in spring and return seed after harvest.",
-      banner: { $type: "blob", ref: { $link: `bafkrei${"b".repeat(52)}` }, mimeType: "image/jpeg", size: 182044 },
-      location: { $type: "com.atproto.repo.strongRef", ...place },
+      description: { $type: "org.hypercerts.defs#descriptionString", value: "We keep heirloom seed in a shared library." },
+      banner: { $type: "org.hypercerts.defs#largeImage", image: blob("b", "image/jpeg", 182044) },
+      items: [],
+      location: place,
       langs: ["pt", "en"],
       createdAt: "2026-09-03T14:20:00.000Z",
     },

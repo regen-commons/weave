@@ -16,17 +16,18 @@ export const searchText = (value: string) => value.normalize("NFKD").replace(mar
 
 /**
  * A kind of group a publisher's Certified organization says it is, as the index stores it: lower case
- * words joined by hyphens, such as `nonprofit`. Upstream values are free text, so the list offers only
- * the kinds its projects carry.
+ * words in any language joined by hyphens, such as `nonprofit` or `grupo-comunitário`. Upstream values
+ * are free text, so the list offers only the kinds its projects carry.
  */
-const organizationTypePattern = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
+const organizationTypePattern = /^\p{L}[\p{L}\p{M}\p{N}]*(?:-[\p{L}\p{M}\p{N}]+)*$/u;
 const ORGANIZATION_TYPE_MAX = 40;
 /** The most kinds one project's publisher keeps. */
 export const ORGANIZATION_TYPES_MAX = 5;
 /** The most kinds a page offers to filter on. */
 export const ORGANIZATION_TYPE_OPTIONS_MAX = 24;
 export const isOrganizationType = (value: unknown): value is string =>
-  typeof value === "string" && value.length <= ORGANIZATION_TYPE_MAX && organizationTypePattern.test(value);
+  typeof value === "string" && value.length <= ORGANIZATION_TYPE_MAX && organizationTypePattern.test(value)
+    && value === value.normalize("NFC").toLowerCase();
 
 export type PublicProjectCursor = { sharedAt: string; uri: string };
 export type PublicProjectQuery = {

@@ -125,6 +125,7 @@ test("a kind of group goes into the page's address in one place, and only one th
   for (const unreadable of ["Nonprofit", "non profit", "", "x".repeat(41), null])
     assert.equal(publicProjectsPath("", null, undefined, unreadable), "/api/public-projects", String(unreadable));
   assert.equal(chosenOrganizationType("?q=soil&organizationType=nonprofit"), "nonprofit");
+  assert.equal(chosenOrganizationType("?organizationType=grupo-comunit%C3%A1rio"), "grupo-comunitário");
   for (const search of ["", "?organizationType=", "?organizationType=Non%20Profit", "?kind=nonprofit"])
     assert.equal(chosenOrganizationType(search), null, search);
 });
@@ -145,6 +146,7 @@ test("the filter offers only the kinds the list names, keeps a chosen one on off
   assert.deepEqual([waiting?.label, waiting?.options.map(({ label }) => label)], ["Kind of group", ["Any kind"]]);
   assert.equal(organizationTypeLabel("nonprofit"), "Nonprofit");
   assert.equal(organizationTypeLabel("for-profit-company"), "For profit company");
+  assert.equal(organizationTypeLabel("grupo-comunitário"), "Grupo comunitário");
 });
 
 test("a list narrowed by a kind of group says so, and an empty one offers to clear it", () => {
