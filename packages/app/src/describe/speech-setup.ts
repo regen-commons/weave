@@ -333,8 +333,15 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
   }
 }
 
-/** Said when the recognizer ended by itself, as the browser's speech service does after a pause. */
-export const SPEECH_PAUSED = "Listening stopped after a pause. Your words are in the box. Press Talk It Out to say more.";
+/**
+ * Said when the recognizer ended by itself, as the browser's speech service does after a pause.
+ * `words` is whether the box holds any text. A session can end before anything is heard, so the
+ * line says words are in the box only when they are.
+ */
+export const speechPaused = (words: boolean): string =>
+  words
+    ? "Listening stopped after a pause. Your words are in the box. Press Talk It Out to say more."
+    : "Listening stopped after a pause. Press Talk It Out to try again, or type in the box.";
 
 /** Said when a session could not start at all. */
 export const speechNotStarted = (mode: SpeechMode): string =>

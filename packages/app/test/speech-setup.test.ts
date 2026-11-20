@@ -10,7 +10,7 @@ import {
   BROWSER_SPEECH_NOTE,
   BROWSER_SPEECH_NOTICE,
   KEYBOARD_MIC,
-  SPEECH_PAUSED,
+  speechPaused,
   SPEECH_SETTING,
   speechMode,
   speechNotStarted,
@@ -458,7 +458,11 @@ test("each way the browser's speech service can stop says only what is known, an
   assert.match(speechProblem("language-not-supported", "browser"), /Choose another language/);
   assert.match(speechProblem("withdrawn", "browser"), /turned off in Settings/);
   assert.match(speechProblem("something new", "browser"), /could not continue/, "an unknown code is said plainly, not guessed at");
-  assert.match(SPEECH_PAUSED, /^Listening stopped after a pause\./);
+  // A recognizer that ended by itself says so either way, and never says words are in an empty box.
+  assert.equal(speechPaused(true), "Listening stopped after a pause. Your words are in the box. Press Talk It Out to say more.");
+  assert.match(speechPaused(false), /^Listening stopped after a pause\./);
+  assert.doesNotMatch(speechPaused(false), /words are in the box/, "nothing was heard, so no words are claimed");
+  assert.match(speechPaused(false), /try again, or type in the box\.$/, "the next step stays open with an empty box");
   assert.match(speechNotStarted("device"), /not ready on this device/);
   assert.match(speechNotStarted("browser"), /speech service did not start/);
 });

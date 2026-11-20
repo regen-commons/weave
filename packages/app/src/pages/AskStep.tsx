@@ -6,7 +6,7 @@ import { startSpeech } from "../describe/speech.ts";
 import type { SpeechSetupStore } from "../describe/speech-setup.ts";
 import type { BrowserSpeechConsent } from "../describe/speech-consent.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
-import { SPEECH_PAUSED, speechMode, speechNotStarted, speechProblem } from "../describe/speech-setup.ts";
+import { speechMode, speechNotStarted, speechPaused, speechProblem } from "../describe/speech-setup.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText } from "../describe/view.ts";
 import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext, type SpeechExample } from "../fixtures.ts";
@@ -383,7 +383,7 @@ function AskSection({
     if (import.meta.env.DEV && fixture) {
       const outcome = exampleOutcome(speechExample);
       if (outcome === "pause") {
-        setNotice(SPEECH_PAUSED);
+        setNotice(speechPaused(Boolean(base.trim())));
         return;
       }
       if (outcome) {
@@ -425,9 +425,10 @@ function AskSection({
           end: (requested) => {
             setListening(false);
             if (failed || abort.signal.aborted) return;
-            // Stop adds what was said. A recognizer that ended by itself leaves the words in the box.
-            if (!requested) setNotice(SPEECH_PAUSED);
-            else if (controller.getSnapshot().draft[kind].composer.trim()) void addToList("voice");
+            // Stop adds what was said. A recognizer that ended by itself leaves any words in the box.
+            const said = controller.getSnapshot().draft[kind].composer.trim();
+            if (!requested) setNotice(speechPaused(Boolean(said)));
+            else if (said) void addToList("voice");
           },
         },
         { consent: speech.consent, signal: abort.signal },

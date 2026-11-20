@@ -19,7 +19,7 @@ import { keywordExtract } from "../describe/keyword-client.ts";
 import { startSpeech } from "../describe/speech.ts";
 import { deviceEngines, ledgerRows, structureWords } from "../describe/structure.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
-import { SPEECH_PAUSED, speechMode, speechNotStarted, speechProblem, talksHere } from "../describe/speech-setup.ts";
+import { speechMode, speechNotStarted, speechPaused, speechProblem, talksHere } from "../describe/speech-setup.ts";
 import { draftText, previewFields } from "../describe/view.ts";
 import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext } from "../fixtures.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -180,7 +180,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     if (import.meta.env.DEV && fixture) {
       const outcome = exampleOutcome(examples?.speech ?? "ready");
       if (outcome === "pause") {
-        setStatus(SPEECH_PAUSED);
+        setStatus(speechPaused(Boolean(base.trim())));
         return;
       }
       if (outcome) {
@@ -221,9 +221,10 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             setListening(false);
             if (failed || abort.signal.aborted) return;
             // Stop fills the fields from what was said. A recognizer that ended by itself after a
-            // pause leaves the words for the person to go on or fill in.
-            if (!requested) setStatus(SPEECH_PAUSED);
-            else if (saidText(controller.getSnapshot().draft).trim()) void fill();
+            // pause leaves any words for the person to go on or fill in.
+            const said = saidText(controller.getSnapshot().draft).trim();
+            if (!requested) setStatus(speechPaused(Boolean(said)));
+            else if (said) void fill();
           },
         },
         { consent: speech.consent, signal: abort.signal },
