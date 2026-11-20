@@ -41,6 +41,7 @@ already pins and needs no download.
 | `catalog-shape.mjs` | Maps all catalog programs into that shape and counts what fills it |
 | `models.mjs` | The three embedding models compared, with a disk cache for vectors |
 | `retrieval-eval.mjs` | Scores the current matcher and the hybrid variants on the v2 development split and the v3 holdout |
+| `retrieval-real.mjs` | Runs those engines once, with their v2 cut-offs, on the real-project set `partner-real-v1` ([report](reports/2026-11-19-partner-real-v1.md)) |
 | `teams.mjs` | Gap enumeration, the smallest covering team, the reverse direction and the privacy projection |
 | `teams-demo.mjs` | Thirteen worked examples and the need-as-query comparison |
 | `prototype.test.mjs` | Twelve checks on the rules the prototype must keep |
