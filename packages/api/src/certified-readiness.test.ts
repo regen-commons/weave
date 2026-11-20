@@ -80,7 +80,10 @@ test("readiness CLI fails closed without printing invalid configuration or secre
     new URL("./certified-check.ts", import.meta.url).pathname], {
     env: { ...process.env, WEAVE_AUTH_ISSUER: "private-secret-not-an-origin", WEAVE_AUTH_CLIENT_ID: "weave",
       WEAVE_AUTH_CLIENT_SECRET: "private-secret", WEAVE_AUTH_REDIRECT_URI: "https://database.example.test/auth/v1/callback" },
-    encoding: "utf8", timeout: 10000,
+    // A guard against a CLI that never exits, not a speed claim. Alone it exits in about a tenth of
+    // a second; beside several full test suites it has taken over 15 seconds just to start. SIGKILL
+    // cannot be caught, so a hung CLI still ends the test within the minute.
+    encoding: "utf8", timeout: 60_000, killSignal: "SIGKILL",
   });
   assert.equal(result.error, undefined);
   assert.equal(result.status, 1); assert.equal(result.stdout, "");
