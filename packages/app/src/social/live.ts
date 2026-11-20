@@ -5,6 +5,7 @@ import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, a
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
 import { deleteSavedCard } from "../account/delete-card.ts";
 import type { DraftController } from "../describe/controller.ts";
+import { hasDraft } from "../describe/view.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
 import { chosenProjectUri, projectChoiceKey, projectChoosers } from "./project-choice.ts";
@@ -58,6 +59,9 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   let reloadGeneration = 0;
   let cardsKey = JSON.stringify(options.account.items), cardsGeneration = 0, nextCardOffset = options.account.items.length;
   let selected: { scope: string; uri: string } | null = null;
+  // The team workspace this tab opened over its card. It is not a choice: it is never stored, so
+  // it ends with the tab and never decides whose the card is.
+  let visiting: { scope: string; uri: string } | null = null;
   const choices = options.choices ?? options.storage;
   const key = () => projectChoiceKey(owner ?? "", options.controller.getSnapshot().draft.id);
   const requestKey = (uri: string) => `weave-workspace-request/${owner}/${uri}`;
@@ -80,7 +84,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   async function post(body: unknown) { checked(); const result = await request("", body, "/api/projects", lifetime.signal); checked(); return result; }
   /**
    * True when the tab's card belongs to another account than this one (DL-055): it was saved by
-   * another, or another opened it from its Certified project in this browser session.
+   * another, or another chose its Certified project for it on this device (DL-119).
    */
   const setAside = () => {
     const draft = options.controller.getSnapshot().draft;
@@ -88,13 +92,16 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   };
   /**
    * The project the tab's card is linked to, among the ones this account can open: the one chosen
-   * for it on this device, the workspace it was saved to, or the one its suggestions were read
-   * from, which is what a card linked before choices were kept on the device still carries.
+   * for it on this device, or the workspace it was saved to. A card with neither is shown with the
+   * team workspace this tab opened over it, while the tab stays open. Suggestions read from a
+   * project never link a card: a card nobody chose a project for still asks (DL-055), and nothing
+   * may be published ahead of a link that is still being stored (DL-119).
    */
   const linkedTo = (projects: readonly CertifiedRecord[]) => {
-    const draft = options.controller.getSnapshot().draft, selection = selectedUri(), savedId = draft.account.saved?.id;
-    return projects.find(p => p.uri === selection || (!selection && !!savedId && p.workspaceId === savedId))
-      ?? (selection || setAside() ? null : linkedProject(draft, null, projects));
+    const selection = selectedUri();
+    const own = linkedProject(selection, options.controller.getSnapshot().draft.account.saved?.id ?? null, projects);
+    if (own || selection || visiting?.scope !== key()) return own;
+    return projects.find(p => p.uri === visiting?.uri) ?? null;
   };
   function select(uri: string) {
     // A project choice is recorded against the tab's card. A card that is set aside takes none
@@ -256,10 +263,16 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       const p = find(uri); if (!p?.workspaceId) throw Error("Check the workspace list again.");
       await post({ action: "team_load", workspaceId: p.workspaceId });
       const link = projectLink(p);
-      // The project becomes the tab's card's project only when that card is this account's. With
-      // another account's card in the tab the workspace still opens, and nothing is recorded
-      // against the card or shown as its project.
-      if (!setAside()) { select(uri); state = { ...state, project: link }; emit(); }
+      // The workspace is shown as the tab's card's project only when that card is this account's,
+      // has something in it and is linked to nothing else, and only in this tab: the team's page
+      // can then offer to save the card there. Nothing is recorded. A stored choice would link an
+      // unrelated card for good, replace the project a card was linked to on purpose, and set the
+      // card aside from every other account (DL-119). With another account's card in the tab the
+      // workspace still opens, and nothing is shown as that card's project.
+      if (!setAside() && hasDraft(options.controller.getSnapshot().draft)) {
+        visiting = { scope: key(), uri };
+        if (linkedTo([...state.records, ...(state.workspaces ?? [])])?.uri === uri) { state = { ...state, project: link }; emit(); }
+      }
       options.openWorkspace(p.workspaceId); return link;
     },
     async openCard(id) {
@@ -270,7 +283,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       signal.throwIfAborted(); checked(); assertAccount(result, owner!); const saved = parseSaved(result.saved);
       if (saved.id !== id || options.controller.getSnapshot().draft !== before) throw Error("Your device draft changed. Try opening the card again.");
       await options.controller.replace(loadedDraft(saved, owner!), signal); checked();
-      selected = null;
+      selected = null; visiting = null;
       const linked = state.workspaces?.find(p => p.workspaceId === id);
       if (linked) select(linked.uri);
       state = { ...state, project: linked ? projectLink(linked) : null }; emit();
@@ -330,7 +343,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (result.status !== "linked" || !uuid(result.workspaceId)) throw Error("Recovery could not be confirmed. Check again before retrying.");
       options.openWorkspace(result.workspaceId);
     },
-    async clearCard() { selected = null; state = { ...state, project: null }; emit(); },
+    async clearCard() { selected = null; visiting = null; state = { ...state, project: null }; emit(); },
     async deleteCard(card, requestId) {
       checked();
       const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);

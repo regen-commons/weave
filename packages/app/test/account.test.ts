@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { assertAccount, AccountFailure } from "../src/account/client.ts";
 import { AnotherAccountsCard, accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, saveCommand } from "../src/account/document.ts";
-import { chosenProjectUri, keepSessionChoices, projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
+import { choiceStorage, chosenProjectUri, deviceChoosers, projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { newDraft, revise, DeviceDraftSchema } from "../src/describe/contracts.ts";
 import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
 import { intakeComplete } from "../src/intake/finish.ts";
@@ -166,32 +166,41 @@ test("a card nobody saved, opened from another account's Certified project, is s
   assert.deepEqual(projectChoosers(undefined, card.id), []);
 });
 
-test("a project choice is kept on the device, and a choice an open tab kept for itself is brought across once", () => {
-  const storage = () => {
-    const values = new Map<string, string>();
-    return { values, get length() { return values.size; }, key: (index: number) => [...values.keys()][index] ?? null,
-      getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
-  };
+test("a project choice is read from the device, and storage that fails holds no choice and names no chooser", () => {
+  const values = new Map<string, string>();
+  const device = { get length() { return values.size; }, key: (index: number) => [...values.keys()][index] ?? null,
+    getItem: (key: string) => values.get(key) ?? null };
   const card = newDraft(), uri = "at://did:plc:example/org.example.project/abc";
-  const device = storage(), session = storage();
   assert.equal(chosenProjectUri(device, owner, card.id), null);
   assert.equal(chosenProjectUri(undefined, owner, card.id), null, "storage the browser refuses holds no choice");
-  assert.equal(chosenProjectUri(device, null, card.id), null, "signed out, nobody has chosen");
-  // A build before this one kept the choice for the tab alone.
-  session.setItem(projectChoiceKey(owner, card.id), uri);
-  session.setItem("weave-open-draft", card.id);
-  keepSessionChoices(session, device);
+  values.set(projectChoiceKey(owner, card.id), uri);
   assert.equal(chosenProjectUri(device, owner, card.id), uri);
-  assert.deepEqual([...device.values.keys()], [projectChoiceKey(owner, card.id)], "only choices come across");
-  assert.equal(session.getItem(projectChoiceKey(owner, card.id)), uri, "an older build in that tab still reads its copy");
-  // A choice made since on the device is the later one, and stays.
-  const later = "at://did:plc:example/org.example.project/later";
-  device.setItem(projectChoiceKey(owner, card.id), later);
-  keepSessionChoices(session, device);
-  assert.equal(chosenProjectUri(device, owner, card.id), later);
-  assert.deepEqual(projectChoosers(device, card.id), [owner], "the card is still that account's (DL-055)");
-  keepSessionChoices(undefined, device);
-  keepSessionChoices(session, undefined);
+  assert.equal(chosenProjectUri(device, other, card.id), null, "a choice is one account's");
+  assert.equal(chosenProjectUri(device, null, card.id), null, "signed out, nobody has chosen");
+  assert.deepEqual(projectChoosers(device, card.id), [owner]);
+  // Every read can throw where the browser blocks storage. None of them may reach the page.
+  const blocked = () => { throw Error("blocked"); };
+  assert.equal(chosenProjectUri({ getItem: blocked }, owner, card.id), null);
+  assert.deepEqual(projectChoosers({ get length(): number { return blocked(); }, key: blocked }, card.id), []);
+  assert.deepEqual(projectChoosers({ length: 1, key: blocked }, card.id), []);
+});
+
+test("project choices are kept in the device's storage alone, and never read from the tab's", (t) => {
+  const scope = globalThis as { window?: unknown };
+  t.after(() => { delete scope.window; });
+  const card = newDraft(), key = projectChoiceKey(owner, card.id);
+  const local = { length: 0, key: () => null };
+  // What an earlier build kept for a tab, or a team workspace that tab merely opened, stays in the tab.
+  let read = 0;
+  scope.window = { localStorage: local, get sessionStorage() { read++; return { length: 1, key: () => key }; } };
+  assert.equal(choiceStorage(), local);
+  assert.deepEqual(deviceChoosers(card.id), [], "a tab's own entry names no chooser");
+  assert.equal(read, 0, "the tab's storage is not read at all");
+  // The same answer on every call where the browser refuses the device's storage.
+  scope.window = { get localStorage(): never { throw Error("blocked"); } };
+  assert.equal(choiceStorage(), undefined);
+  assert.equal(choiceStorage(), undefined);
+  assert.deepEqual(deviceChoosers(card.id), []);
 });
 
 test("another account's card is set aside in Settings too: no Save for it, and no removal or backups of it (DL-055)", async () => {

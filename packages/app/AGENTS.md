@@ -79,7 +79,11 @@ production. Account saving uses the same-origin API and stays unavailable until 
   `src/social/project-choice.ts` (DL-119), so a linked card is still linked in a new tab. Read and
   write it only there. Do not add it to the draft: an older tab parses drafts strictly and refuses
   a field it does not know. The choice is a note, never an access grant, and it also decides whose
-  an unsaved card is (DL-055).
+  an unsaved card is (DL-055). So store only a link the person made. Opening a team workspace,
+  suggestions a project page left on a card, and what an earlier build kept for a tab are not
+  choices and are never stored. `linkedProject` in `src/initiative/list.ts` is the one rule for
+  what a card is linked to, and nothing shows a project for a card while its link is still being
+  stored.
 - The describe step is one page (DL-110). Words fill the four fields in place through
   `src/describe/fill.ts`, which never writes over a field the person typed or changed.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud

@@ -5,12 +5,10 @@ export function projectChoiceKey(owner: string, draftId: string): string {
 
 const CHOICE = /^weave-project-choice\/([^/]+)\/(.+)$/u;
 
-/** What a choice needs of the storage it is kept in. Its keys can be listed, which is how a card's choosers are read. */
-export type ChoiceStorage = Pick<Storage, "length" | "key" | "getItem" | "setItem">;
-
 /**
  * The accounts that chose a Certified project for this card on this device. A card opened from an
- * account's project belongs to that account even before anyone saves it (DL-055).
+ * account's project belongs to that account even before anyone saves it (DL-055). Storage whose
+ * keys cannot be listed names nobody, so the card stays with whoever uses the device.
  */
 export function projectChoosers(storage: Pick<Storage, "length" | "key"> | undefined, draftId: string): string[] {
   if (!storage) return [];
@@ -39,41 +37,20 @@ export function chosenProjectUri(
 }
 
 /**
- * Brings across the choices a tab kept for itself alone, as builds before this one did, so a card
- * linked in a tab that is still open stays linked. A choice already kept on the device is left as
- * it is. The tab's own copy stays too: an older build in that tab still reads it.
- */
-export function keepSessionChoices(session: ChoiceStorage | undefined, device: ChoiceStorage | undefined): void {
-  if (!session || !device) return;
-  try {
-    for (let index = 0; index < session.length; index++) {
-      const key = session.key(index);
-      if (!key || !CHOICE.test(key) || device.getItem(key) !== null) continue;
-      const uri = session.getItem(key);
-      if (uri) device.setItem(key, uri);
-    }
-  } catch {
-    /* A choice that could not be copied is asked for again; nothing else depends on it. */
-  }
-}
-
-let broughtAcross = false;
-
-/**
- * This device's storage for project choices. A choice outlives the tab it was made in: a card
- * linked to a Certified project is still linked in a new tab, after the app is closed and after
- * signing in again. It is a note of what the person chose and never grants access: the server
- * checks every project on each command. Where the browser refuses storage there is none, and a
- * tab then remembers its own choice only while it is open.
+ * This device's storage for project choices (DL-119). A choice outlives the tab it was made in: a
+ * card linked to a Certified project is still linked in a new tab, after the app is closed and
+ * after signing in again. It is a note of what the person chose and never grants access: the
+ * server checks every project on each command. Where the browser refuses storage there is none,
+ * and a tab then remembers its own choice only while it is open.
+ *
+ * Only a link the person made is kept here. What an earlier build kept for a tab alone is not
+ * brought across: it cannot be told apart from a team workspace that tab merely opened, and a
+ * second account's entry for the same card would lift the card's set-aside. A card linked by an
+ * earlier build is linked once more from its own page.
  */
 export function choiceStorage(): Storage | undefined {
   try {
-    const device = window.localStorage;
-    if (!broughtAcross) {
-      broughtAcross = true;
-      keepSessionChoices(window.sessionStorage, device);
-    }
-    return device;
+    return window.localStorage;
   } catch {
     return undefined;
   }

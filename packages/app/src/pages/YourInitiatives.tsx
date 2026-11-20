@@ -141,7 +141,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const linked = (item: DeviceDraft): boolean =>
     item.id === draft.id
       ? !!project
-      : !!state.identity && !!linkedProject(item, chosenProject(item), [...state.records, ...(state.workspaces ?? [])]);
+      : !!state.identity && !!linkedProject(chosenProject(item), savedId(item), [...state.records, ...(state.workspaces ?? [])]);
   /** Opens one of this browser's drafts where it was left: its page once checked, otherwise its next step. */
   async function openDraft(item: DeviceDraft) {
     await openInTab(item.id);

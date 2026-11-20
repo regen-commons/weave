@@ -127,18 +127,19 @@ export function standsForProject(draft: DeviceDraft, uri: string, chosenUri: str
 
 /**
  * The Certified project a draft is linked to, among the ones the account can open: the one the
- * account chose for it, and with no choice the one its suggestions were read from. A choice of a
- * project that is no longer listed links to nothing, and suggestions from more than one listed
- * project decide nothing.
+ * account chose for it on this device, and with no choice the workspace it was saved to. A choice
+ * of a project that is no longer listed links to nothing. Suggestions read from a project's page
+ * link nothing by themselves: a draft nobody chose a project for still asks before it is linked
+ * (DL-055), so it is never handed to an account that did not choose it. The account's lists and
+ * the live adapter both read this rule, so they agree on what a card is.
  */
-export function linkedProject<Project extends { readonly uri: string }>(
-  draft: DeviceDraft,
+export function linkedProject<Project extends { readonly uri: string; readonly workspaceId?: string | undefined }>(
   chosenUri: string | null,
+  savedId: string | null,
   projects: readonly Project[],
 ): Project | null {
   if (chosenUri) return projects.find((project) => project.uri === chosenUri) ?? null;
-  const suggested = projects.filter((project) => standsForProject(draft, project.uri, null));
-  return suggested.length === 1 ? suggested[0]! : null;
+  return savedId ? (projects.find((project) => project.workspaceId === savedId) ?? null) : null;
 }
 
 /**

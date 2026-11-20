@@ -88,24 +88,29 @@ test("a project a draft already stands for is that draft: by this account's choi
   assert.equal(standsForProject(suggested, another, null), false);
 });
 
-test("a draft is linked to the project chosen for it, or with no choice to the one project its suggestions came from", () => {
-  const first = { uri: "at://did:plc:example/org.example.project/abc" }, second = { uri: "at://did:plc:example/org.example.project/xyz" };
+test("a draft is linked to the project chosen for it, or with no choice to the workspace it was saved to", () => {
+  const first = { uri: "at://did:plc:example/org.example.project/abc" };
+  const second = { uri: "at://did:plc:example/org.example.project/xyz", workspaceId: "b3000000-0000-4000-8000-000000000002" };
+  assert.equal(linkedProject(null, null, [first, second]), null, "nothing links a card nobody linked");
+  assert.equal(linkedProject(second.uri, null, [first, second]), second, "the choice decides");
+  assert.equal(linkedProject(second.uri, null, [first]), null, "a chosen project that is no longer listed links to nothing");
+  assert.equal(linkedProject(null, second.workspaceId, [first, second]), second, "a saved card is linked to its workspace's project");
+  assert.equal(linkedProject(first.uri, second.workspaceId, [first, second]), first, "a choice comes before the saved workspace");
+  assert.equal(linkedProject("at://did:plc:example/org.example.project/gone", second.workspaceId, [first, second]), null, "and is never replaced by it");
+  assert.equal(linkedProject(null, "b3000000-0000-4000-8000-000000000009", [first, second]), null);
+  assert.equal(linkedProject(null, null, [{ uri: first.uri, workspaceId: undefined }]), null, "a project with no workspace matches no saved card");
+});
+
+test("a draft that carries a project's suggestions stands for it in the list, and is still not linked to it", () => {
+  const project = { uri: "at://did:plc:example/org.example.project/abc" };
   const plain = words("Nothing to do with it", "2026-11-10T09:00:00.000Z");
-  const from = (draft: DeviceDraft, ...uris: string[]) => {
-    const needs = uris.reduce((step, uri) => {
-      const next = addEntry(step, `From ${uri}`);
-      return { ...next, items: next.items.map((item) => item.sourceKey ? item : { ...item, sourceKey: `${projectSource(uri)}:0` }) };
-    }, draft.needs);
-    return revise(draft, { needs });
-  };
-  assert.equal(linkedProject(plain, null, [first, second]), null, "nothing links a card nobody linked");
-  assert.equal(linkedProject(plain, second.uri, [first, second]), second, "the choice decides");
-  assert.equal(linkedProject(plain, second.uri, [first]), null, "a chosen project that is no longer listed links to nothing");
-  assert.equal(linkedProject(from(plain, first.uri), null, [first, second]), first);
-  assert.equal(linkedProject(from(plain, first.uri), second.uri, [first, second]), second, "a choice comes before suggestions");
-  assert.equal(linkedProject(from(plain, first.uri), second.uri, [first]), null, "and is never replaced by them");
-  assert.equal(linkedProject(from(plain, first.uri, second.uri), null, [first, second]), null, "two sources decide nothing");
-  assert.equal(linkedProject(from(plain, first.uri), null, [second]), null);
+  const needs = addEntry(plain.needs, "Seed jars");
+  const carrying = revise(plain, { needs: { ...needs, items: needs.items.map((item) => ({ ...item, sourceKey: `${projectSource(project.uri)}:0` })) } });
+  assert.equal(standsForProject(plain, project.uri, null), false);
+  assert.equal(standsForProject(carrying, project.uri, null), true, "the project is listed once, as that draft");
+  assert.equal(standsForProject(plain, project.uri, project.uri), true, "as it is for a draft its account chose it for");
+  // Suggestions are not a choice: nobody is handed the card until an account links it (DL-055).
+  assert.equal(linkedProject(null, null, [project]), null);
 });
 
 test("opening the saved version over a working copy keeps the copy, and the entry says so before the press", async () => {
