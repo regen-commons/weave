@@ -32,16 +32,17 @@ function quick<T>(label: string, run: () => T): T {
   return result;
 }
 /**
- * The least CPU time `run` takes on each input, over several tries taken in turn, so a pause for
- * a garbage collection or a slower core does not count against one input more than another.
+ * The fewest milliseconds each piece of work takes, over several tries taken in turn, so a pause
+ * for another process, a garbage collection or a slower core is left out. Timed by the clock, which
+ * is exact everywhere: Linux counts a thread's CPU time only in steps of a few milliseconds.
  */
-function fastest<T>(inputs: T[], run: (input: T) => unknown, tries = 9): number[] {
-  const least = inputs.map(() => Infinity);
+function fastest(work: (() => unknown)[], tries = 15): number[] {
+  const least = work.map(() => Infinity);
   for (let round = 0; round < tries; round++) {
-    inputs.forEach((input, index) => {
-      const before = process.threadCpuUsage();
-      run(input);
-      least[index] = Math.min(least[index]!, cpuSince(before));
+    work.forEach((run, index) => {
+      const started = performance.now();
+      run();
+      least[index] = Math.min(least[index]!, performance.now() - started);
     });
   }
   return least;
@@ -64,13 +65,19 @@ test("the place rules make one bounded pass, on 20,000 spaces, on line ends, and
   quick("prose, 200,000", () => statedWhere(prose(200_000), "Riverbend"));
   quick("prose, 2,000,000", () => statedWhere(prose(2_000_000), "Riverbend"));
   // Many places in the 20,000 characters read: each mention is compared once, not with every other.
-  // Thirty times the mentions take about thirty times as long; comparing every pair took hundreds
-  // of times as long. The bound allows three times a straight line, and compares growth, not
-  // milliseconds, so a slow or busy machine does not decide it.
-  const mentions = (count: number) => "based in Aa. ".repeat(count);
-  const [few, many] = fastest([mentions(50), mentions(1_500)], (words) => statedWhere(words));
-  const growth = many! / few!;
-  assert.ok(growth < 3 * 30, `1,500 mentions of a place took ${Math.round(growth)} times as long as 50`);
+  // One pass over 1,500 mentions then takes about as long as thirty passes over 50; comparing every
+  // pair made it take about twenty times as long. Both are timed over the same amount of text, so
+  // a fast, slow or busy machine changes both alike, and the bound allows three times.
+  const few = "based in Aa. ".repeat(50);
+  const many = "based in Aa. ".repeat(1_500);
+  const [thirtyFew, oneMany] = fastest([
+    () => {
+      for (let pass = 0; pass < 30; pass++) statedWhere(few);
+    },
+    () => statedWhere(many),
+  ]);
+  const growth = oneMany! / thirtyFew!;
+  assert.ok(growth < 3, `one pass over 1,500 mentions of a place took ${growth.toFixed(1)} times as long as thirty over 50`);
   assert.deepEqual(
     quick("a place, then prose", () => statedWhere(`We are a seed library in Porto Alegre, Brazil. ${prose(2_000_000)}`, "")),
     { locations: ["Porto Alegre, Brazil"], isGlobal: false },
