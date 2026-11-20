@@ -26,7 +26,7 @@ For a material change, show the previous and proposed values with official evide
 
 ## PR and verification boundary
 
-Use an isolated `codex/` branch or worktree and preserve unrelated changes. Check open PRs to avoid duplicate additions. Reuse an existing PR for the same work. Keep private Drive/Linear captures, application drafts, personal finances, contacts and relationship notes outside this public repository. Publish public official evidence and project-agnostic terms only.
+Use an isolated `codex/` branch in a worktree under `.claude/worktrees/`, never in `/tmp` (macOS deletes old files there), and preserve unrelated changes. Check open PRs to avoid duplicate additions. Reuse an existing PR for the same work. Keep private Drive/Linear captures, application drafts, personal finances, contacts and relationship notes outside this public repository. Publish public official evidence and project-agnostic terms only.
 
 Run `python3 scripts/import-data.py` for catalog changes, then `bun run build`, `bun run test`, and `git diff --check`. Build regenerates the program search index and validates schema, evidence and record coverage. Check that every pre-existing identity and program/source revision is retained. For UI changes, inspect the actual desktop and mobile result, including keyboard access and exact program navigation.
 
