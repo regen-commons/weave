@@ -416,6 +416,32 @@ the account's server from its DID document through plc.directory. An account
 that no longer exists or names no server is left out, and a lookup that fails
 leaves the refresh unapplied.
 
+Decided by the user on 19 November 2026: self-declared QA and test projects on
+production accounts are left out too. The rule was narrowed twice the same day.
+A first review found that a place name or an ordinary sentence could trip it. A
+second found that "QA" after a name is also Qatar's country code, and that "it
+is not a real organisation" describes an informal group.
+
+- **By name.** The name leads with "QA" in capitals; or it holds nothing but
+  test words, "project" and numbering, such as "Test project" or "Testing 2";
+  or it carries "test" or "tests" set apart as a label, in brackets or split
+  off by a dash, colon or bar at either end. A label at the end needs a space
+  before the dash, colon or bar.
+- **By its own words.** A sentence says only that this is a test or QA project,
+  story or entry; or opens with that label in capitals; or opens by naming an
+  automated QA or QA test project, or a QA story or entry; or says that this is
+  not a real project; or says the entry was made on staging or for testing.
+- **Not signals.** "Test" or "QA" as one word of a longer name, such as a place
+  called Test Valley; "QA" in brackets, or split off after a name, as in a
+  project in Qatar; a pilot described as "a test project"; a group that says it
+  is not a real organisation or initiative; and "soil testing", "attested" or
+  "demo".
+
+The rule prefers showing a test entry it cannot tell from real work over hiding
+real work. Read-only runs over the public list of 1,006 projects on 19 November
+found the same 14 under the first rule and after each narrowing: 13 by name and
+1 by its own words.
+
 - A daily refresh traverses the whole listing. Only a complete traversal, with
   every account looked up, replaces what Weave shows: a failed page, a repeated
   cursor, a failed account lookup, the page budget or the time budget changes
