@@ -157,7 +157,9 @@ export function humanLabels(queries, labels, key, first, second) {
   const reviewer = rows => {
     const names = new Set(rows.map(row => row.reviewer));
     if (names.size !== 1 || !nonempty([...names][0])) throw Error("worksheet_requires_one_named_reviewer");
-    if (rows.length !== key.length || rows.some(row => !byPair.has(row.pairId) || !JUDGMENTS.includes(row.judgment)))
+    // The right count of known pairs is not enough: a repeated row would stand in for a missing one.
+    if (rows.length !== key.length || new Set(rows.map(row => row.pairId)).size !== rows.length
+      || rows.some(row => !byPair.has(row.pairId) || !JUDGMENTS.includes(row.judgment)))
       throw Error("worksheet_incomplete");
     return [[...names][0], new Map(rows.map(row => [row.pairId, row.judgment]))];
   };

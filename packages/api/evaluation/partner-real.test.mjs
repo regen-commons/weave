@@ -70,6 +70,10 @@ test("two judgments combine conservatively and human sheets need two named, comp
   assert.throws(() => humanLabels(queries, labels, key, filled("A", "relevant"), filled("A", "relevant")), /two_reviewers/);
   assert.throws(() => humanLabels(queries, labels, key, filled("A", "relevant"), filled("B", "relevant").slice(1)), /worksheet_incomplete/);
   assert.throws(() => humanLabels(queries, labels, key, filled("A", "maybe"), filled("B", "relevant")), /worksheet_incomplete/);
+  // A repeated row keeps the count right while another pair goes missing.
+  const repeated = filled("B", "relevant");
+  repeated[1] = { ...repeated[0] };
+  assert.throws(() => humanLabels(queries, labels, key, filled("A", "relevant"), repeated), /worksheet_incomplete/);
   const { labels: combined } = humanLabels(queries, labels, key, filled("A", "relevant"), filled("B", "irrelevant"));
   assert.ok([...combined.values()].every(({ pairs }) => [...pairs.values()].every(value => value === "unresolved")));
 });

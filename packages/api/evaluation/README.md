@@ -310,8 +310,8 @@ bun run --filter @weave/api eval:matching-real -- --human reviewer-a.jsonl revie
 ```
 
 The second command scores the same way from two completed worksheets. It rejects
-incomplete sheets, unknown judgments and a single reviewer under two names, and it
-reports agreement counts.
+incomplete sheets, repeated rows, unknown judgments and a single reviewer under two
+names, and it reports agreement counts.
 
 ### Results, agent-judged
 
@@ -332,6 +332,14 @@ that treat suggestions as independent, so they are narrower than they should be.
 | Author's decoy projects suggested | 18 | 6 |
 | Unsupported confirmations, explanation or provenance failures | 0 | 0 |
 
+The table leaves out 17 queries that have no agreed fitting project and at least
+one unresolved pair: 11 hard negatives, 3 written to have no fitting project, 2
+sparse and 1 cross-language. The baseline made 72 suggestions for 16 of them and
+the current matcher 20 for 9, and none of those count in any row. The 8 no-match
+queries are the ones both agents agree nothing fits: 5 of the 8 written that way
+and 3 hard negatives. Of the 8 written to have no fitting project, the baseline
+answered 7 and the current matcher 3.
+
 Every domain and direction fails the 80% gate, with 23 to 40 resolved suggestions
 each. Research offers come closest at 56%; the rest range from 22% (art offers) to
 35% (place needs). Offers do worse than needs on recall (18% against 44%).
@@ -351,6 +359,11 @@ the needs and offers that have a fitting project.
 
 - It is not human judgment. The agents disagreed on almost as many pairs (271) as
   they agreed were relevant (276). Human reviewers may well draw the line elsewhere.
+- The author's doubt is free text, and the runner reads every project ID it mentions
+  as doubted, including one named only for comparison (`rp-060` in `rq-art-n06`).
+  Across 28 queries that leaves 40 pairs the author called relevant unresolved, and
+  the judge also called 11 of them relevant. The labels are frozen, so this stands
+  until the human run replaces them.
 - The corpus holds only what the public list shows: at most two passages of 600
   characters, often a heading and a subtitle. The production index can hold more
   passages per project, so the matcher may do better there.
