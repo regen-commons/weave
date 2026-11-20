@@ -8,6 +8,7 @@ import {
   speechSupport,
   NO_SPEECH,
   talkControls,
+  talkHold,
   type SpeechSetupState,
   type Wait,
 } from "../src/describe/speech-setup.ts";
@@ -379,4 +380,19 @@ test("a second Talk it out on a page stays quiet until talking works, so setup a
     );
   assert.equal(talkControls("ready", { secondary: true }).action, "talk", "both lists get Talk It Out");
   assert.equal(talkControls("none", { secondary: true, listening: true }).action, "stop", "stopping always works");
+});
+
+test("Talk It Out keeps the keyboard focus while it is held", () => {
+  // Stop pressed with the keyboard: the button turns back into Talk It Out while the fields fill.
+  // A disabled button would drop the focus to the page, so the next Tab would start from the top.
+  assert.equal(talkHold("talk", { working: true, disabled: false, focused: true }), "held");
+  // A list that the fill made full holds it the same way, after the fill ends.
+  assert.equal(talkHold("talk", { working: false, disabled: true, focused: true }), "held");
+  // Away from the focus, a held button is plainly disabled and leaves the Tab order.
+  assert.equal(talkHold("talk", { working: true, disabled: false, focused: false }), "disabled");
+  assert.equal(talkHold("talk", { working: false, disabled: true, focused: false }), "disabled");
+  assert.equal(talkHold("talk", { working: false, disabled: false, focused: true }), "free");
+  // Stopping always works, and the setup holds itself with aria-busy.
+  for (const action of ["stop", "set-up", "setting-up"] as const)
+    assert.equal(talkHold(action, { working: true, disabled: true, focused: true }), "free", `${action} is never held here`);
 });
