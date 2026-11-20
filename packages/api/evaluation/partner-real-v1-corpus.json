@@ -1,0 +1,2255 @@
+{
+ "version": 1,
+ "dataset": "partner-real-v1-corpus",
+ "source": {
+  "endpoint": "GET https://weave.regencommons.com/api/public-projects",
+  "collectedAt": "2026-11-19T19:31:54.051Z",
+  "indexStatus": "bounded",
+  "indexCheckedAt": "2026-11-19T04:18:58.837000Z",
+  "listedProjects": 1006
+ },
+ "exclusions": {
+  "qa_or_test": 15,
+  "placeholder_text": 10,
+  "contact_details": 3
+ },
+ "sampling": "Every remaining non-English project, then English projects by theme keyword (art 30, software 30, research 30, place 40; first matching theme wins, place is the rest), each ordered by sha256(\"partner-real-v1:\" + uri). Language and theme come from fixed keyword rules in scripts/partner-real-corpus.mjs, not from reading.",
+ "projects": [
+  {
+   "id": "rp-001",
+   "uri": "at://did:plc:car2bhnsobazchx5qybz422e/org.hypercerts.collection/3modh4ydw622l",
+   "account": "did:plc:car2bhnsobazchx5qybz422e",
+   "name": "Connecting Global Carbon Data with Local Community Knowledges in Indonesia",
+   "passages": [
+    "Mapping the carbon sequestration potential of global biodiversity hotspots like the Amazon, the Indonesian archipelago and the Congo Basin is of critical interest to climate science, climate policy, and climate finance.",
+    "But the carbon conversation is alien to forest dwelling communities; their priorities are first and foremost livelihoods that are at risk from extraction, the climate crisis, and lack of legal territorial rights."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-27T08:59:24.971000Z",
+   "checkedAt": "2026-11-19T04:18:21.449000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Acar2bhnsobazchx5qybz422e%2Forg.hypercerts.collection%2F3modh4ydw622l"
+  },
+  {
+   "id": "rp-002",
+   "uri": "at://did:plc:zkytqkqobeplet72qdculnqc/org.hypercerts.collection/3mmykralbmk2q",
+   "account": "did:plc:zkytqkqobeplet72qdculnqc",
+   "name": "Restoring Mesei, Cultural Taro Patches, in Ollei, Palau",
+   "passages": [
+    "The Mesei System: Restoring Our Mother",
+    "In Ollei village, the mesei—a traditional taro patch system—has sustained our community for generations."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-29T10:14:52.526000Z",
+   "checkedAt": "2026-11-19T04:18:22.870000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Azkytqkqobeplet72qdculnqc%2Forg.hypercerts.collection%2F3mmykralbmk2q"
+  },
+  {
+   "id": "rp-003",
+   "uri": "at://did:plc:ypuezwpkdolijwxutjrnf4dw/org.hypercerts.collection/3mmvjghta5s2q",
+   "account": "did:plc:ypuezwpkdolijwxutjrnf4dw",
+   "name": "Balkan Earth gatherings: reMembering Communities with Land",
+   "passages": [
+    "PROJECT PROPOSAL",
+    "NOVA SPIRALA BALKANA"
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-28T06:51:10.834000Z",
+   "checkedAt": "2026-11-19T04:18:22.033000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aypuezwpkdolijwxutjrnf4dw%2Forg.hypercerts.collection%2F3mmvjghta5s2q"
+  },
+  {
+   "id": "rp-004",
+   "uri": "at://did:plc:hcveolwpx2vx2s4lw2tkmjsq/org.hypercerts.collection/3mlmaj3jiqs2u",
+   "account": "did:plc:hcveolwpx2vx2s4lw2tkmjsq",
+   "name": "Agave Agroforestry and Jaguar Coexistence in Sonora",
+   "passages": [
+    "Project Summary",
+    "La Tierra del Jaguar seeks to reverse the effects of land degradation and climate change while improving ecosystem health, quality of life, and financial stability of communities in the Sahuaripa watershed."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-11T21:16:24.838000Z",
+   "checkedAt": "2026-11-19T04:18:16.930000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ahcveolwpx2vx2s4lw2tkmjsq%2Forg.hypercerts.collection%2F3mlmaj3jiqs2u"
+  },
+  {
+   "id": "rp-005",
+   "uri": "at://did:plc:xalqolt4g5qdrvanfxjrlozd/org.hypercerts.collection/3mn6fh4lb622q",
+   "account": "did:plc:xalqolt4g5qdrvanfxjrlozd",
+   "name": "Digital forest watch: Mai-Ndombe ecosystem recovery",
+   "passages": [
+    "Problem Statement",
+    "Mai-Ndombe faces increasing environmental degradation caused by illegal logging, slash-and-burn agriculture, charcoal production, and weak environmental governance."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-31T20:06:39.138000Z",
+   "checkedAt": "2026-11-19T04:18:25.554000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Axalqolt4g5qdrvanfxjrlozd%2Forg.hypercerts.collection%2F3mn6fh4lb622q"
+  },
+  {
+   "id": "rp-006",
+   "uri": "at://did:plc:o2bxivqmbok2hnli4kjmhdos/org.hypercerts.collection/3mokgjhqrpk2i",
+   "account": "did:plc:o2bxivqmbok2hnli4kjmhdos",
+   "name": "Building trusted nature funding networks across borders",
+   "passages": [
+    "Across the planet, grassroots communities are leading their own regeneration: restoring land, protecting watersheds and tending ecosystems.",
+    "Yet, an estimated $1 trillion per year nature funding gap prevents communities from accessing the resources they need."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-06-18T08:35:53.249000Z",
+   "checkedAt": "2026-11-19T04:18:26.619000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ao2bxivqmbok2hnli4kjmhdos%2Forg.hypercerts.collection%2F3mokgjhqrpk2i"
+  },
+  {
+   "id": "rp-007",
+   "uri": "at://did:plc:ysoglawnvzfuuxjicookkud4/org.hypercerts.collection/3mm7hdrr73v2o",
+   "account": "did:plc:ysoglawnvzfuuxjicookkud4",
+   "name": "Turkana Drylands Initiative",
+   "passages": [
+    "After a series of successful projects across the world, NARA Climate’s team Yanik Nyberg and Christopher Eccles had proven the profound potential of halophytic plants as both agents of ecological restoration and valuable commodities to agri-food supply chains.",
+    "Turkana County was identified as a r..."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-19T11:27:08.610000Z",
+   "checkedAt": "2026-11-19T04:18:18.881000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aysoglawnvzfuuxjicookkud4%2Forg.hypercerts.collection%2F3mm7hdrr73v2o"
+  },
+  {
+   "id": "rp-008",
+   "uri": "at://did:plc:pbabqphaenm6snq7frqkbueo/org.hypercerts.collection/3mn5p2u3wu22q",
+   "account": "did:plc:pbabqphaenm6snq7frqkbueo",
+   "name": "Regenerating Njoune: Indigenous trees and farming futures",
+   "passages": [
+    "Restoring Landscapes, Reviving Livelihoods",
+    "Our region faces a crisis."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-31T12:46:54.916000Z",
+   "checkedAt": "2026-11-19T04:18:25.032000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Apbabqphaenm6snq7frqkbueo%2Forg.hypercerts.collection%2F3mn5p2u3wu22q"
+  },
+  {
+   "id": "rp-009",
+   "uri": "at://did:plc:j7dgtlqp6ajxwyhl3me3irzd/org.hypercerts.collection/3mrkfx6zoj22t",
+   "account": "did:plc:j7dgtlqp6ajxwyhl3me3irzd",
+   "name": "Listening to Nature Taraba",
+   "passages": [
+    "A community-led biodiversity monitoring project in Taraba State, Nigeria, using AudioMoth bioacoustic sensors to document wildlife, engage youth and faith communities, and generate evidence for nature conservation and environmental stewardship.",
+    "Listening to Nature Taraba is a community-led biodiversity monitoring project implemented by EcoUnity Initiative in Zing Local Government Area of Taraba State, Nigeria."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-26T12:45:16.162000Z",
+   "checkedAt": "2026-11-19T04:18:27.541000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aj7dgtlqp6ajxwyhl3me3irzd%2Forg.hypercerts.collection%2F3mrkfx6zoj22t"
+  },
+  {
+   "id": "rp-010",
+   "uri": "at://did:plc:rlxqlnuim4lypz262imhekz5/org.hypercerts.collection/3mn4fyrs3a22q",
+   "account": "did:plc:rlxqlnuim4lypz262imhekz5",
+   "name": "The Mangrove Eco-Restoration Project",
+   "passages": [
+    "Having spent a third of my lifetime here at the coast, I have grown to love the Indian Ocean and the incredible marine biodiversity found within this space.",
+    "The coastal and marine ecosystems are spectacular, but to me, mangrove ecosystems truly stand out."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-31T00:27:04.579000Z",
+   "checkedAt": "2026-11-19T04:18:24.496000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Arlxqlnuim4lypz262imhekz5%2Forg.hypercerts.collection%2F3mn4fyrs3a22q"
+  },
+  {
+   "id": "rp-011",
+   "uri": "at://did:plc:ciekliyy4q6hmu6jkgnz2vcw/org.hypercerts.collection/3mmuxkmcwvc2q",
+   "account": "did:plc:ciekliyy4q6hmu6jkgnz2vcw",
+   "name": "Social Forests Protocol",
+   "passages": [
+    "The Roots of Resilience",
+    "The Story of Social Forests"
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-27T23:10:27.250000Z",
+   "checkedAt": "2026-11-19T04:18:22.030000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aciekliyy4q6hmu6jkgnz2vcw%2Forg.hypercerts.collection%2F3mmuxkmcwvc2q"
+  },
+  {
+   "id": "rp-012",
+   "uri": "at://did:plc:cpoagodpqrgs4t7thi5z37uf/org.hypercerts.collection/3mpxu6dnfbk2q",
+   "account": "did:plc:cpoagodpqrgs4t7thi5z37uf",
+   "name": "Rio Claro Mangrove Restoration",
+   "passages": [
+    "Community volunteers are replanting mangroves along the Rio Claro estuary and tracking the wildlife that returns.",
+    "Since January our team of 14 local volunteers has planted over 3,000 mangrove seedlings across two hectares of degraded shoreline."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-07-06T10:14:01.522000Z",
+   "checkedAt": "2026-11-19T04:18:27.302000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Acpoagodpqrgs4t7thi5z37uf%2Forg.hypercerts.collection%2F3mpxu6dnfbk2q"
+  },
+  {
+   "id": "rp-013",
+   "uri": "at://did:plc:pyjmgdrwaiwlys6vrldabpk5/org.hypercerts.collection/3mn7k7db3vs2q",
+   "account": "did:plc:pyjmgdrwaiwlys6vrldabpk5",
+   "name": "Building Empyrean Farm's regenerative Educational center in Deming, WA",
+   "passages": [
+    "Empyrean Farm: Growing Community, Growing Roots",
+    "Imagine a place where your hands touch the soil, where seeds become food, and where ancient building methods meet modern sustainability."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T15:43:56.553000Z",
+   "checkedAt": "2026-11-19T04:18:24.212000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Apyjmgdrwaiwlys6vrldabpk5%2Forg.hypercerts.collection%2F3mn7k7db3vs2q"
+  },
+  {
+   "id": "rp-014",
+   "uri": "at://did:plc:edjgytsquz7lbfulszjhzfza/org.hypercerts.collection/3mn3mrptc322q",
+   "account": "did:plc:edjgytsquz7lbfulszjhzfza",
+   "name": "Sacred waters regeneration project, Portugal",
+   "passages": [
+    "A Land Calling to Be Restored.",
+    "A Sanctuary Rising From the Earth."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T16:38:54.505000Z",
+   "checkedAt": "2026-11-19T04:18:24.222000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aedjgytsquz7lbfulszjhzfza%2Forg.hypercerts.collection%2F3mn3mrptc322q"
+  },
+  {
+   "id": "rp-015",
+   "uri": "at://did:plc:lcsyy6cbao2mt5aiij4chmrg/org.hypercerts.collection/3mlej4zsugc2u",
+   "account": "did:plc:lcsyy6cbao2mt5aiij4chmrg",
+   "name": "PLANT THE RAIN - Water-Harvesting Native Food Forest Fund Raiser",
+   "passages": [
+    "We work in the public neighborhood commons of the urban built environment within the Sonoran Desert where the majority of the sponge-like dryland ecosystem has been replaced by bare earth, asphalt, concrete, and buildings that drain rain and stormwater, instead of retaining, r...",
+    "Plant the Rain, Cool Our Cities – Help Us Raise $100K to Transform Asphalt Deserts into Urban Food Oases!"
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-08T19:11:04.245000Z",
+   "checkedAt": "2026-11-19T04:18:16.605000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Alcsyy6cbao2mt5aiij4chmrg%2Forg.hypercerts.collection%2F3mlej4zsugc2u"
+  },
+  {
+   "id": "rp-016",
+   "uri": "at://did:plc:ly7shayqhcpcmuwd6enmvemr/org.hypercerts.collection/3mms7km5se22q",
+   "account": "did:plc:ly7shayqhcpcmuwd6enmvemr",
+   "name": "From mining land to food forest in Halle",
+   "passages": [
+    "Since 2018, our small team has been building community-based organic farming from the ground up—entirely community-funded and community-driven.",
+    "Across the city of Halle (Saale) and Saalekreis district, we grow nutritious food, distribute it locally, and pursue the way of a real bond of solidarity..."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-26T17:03:58.270000Z",
+   "checkedAt": "2026-11-19T04:18:21.164000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aly7shayqhcpcmuwd6enmvemr%2Forg.hypercerts.collection%2F3mms7km5se22q"
+  },
+  {
+   "id": "rp-017",
+   "uri": "at://did:plc:x5tuh62xq6u7q3jdl6und65n/org.hypercerts.collection/3mn76ae4bik2q",
+   "account": "did:plc:x5tuh62xq6u7q3jdl6und65n",
+   "name": "Growing Rhythms:  A Biodynamic Living Curriculum & School Garden Initiative",
+   "passages": [
+    "Growing Rhythms: A Biodynamic Living Curriculum & School Garden Initiative",
+    "Imagine children digging and nurturing the soil, planting seeds, and discovering where food truly comes from, with head, heart and hands."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-31T05:20:00.660000Z",
+   "checkedAt": "2026-11-19T04:18:24.741000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ax5tuh62xq6u7q3jdl6und65n%2Forg.hypercerts.collection%2F3mn76ae4bik2q"
+  },
+  {
+   "id": "rp-018",
+   "uri": "at://did:plc:et4wptttiqbqnukvim5psels/org.hypercerts.collection/3mmvmasdvpk2q",
+   "account": "did:plc:et4wptttiqbqnukvim5psels",
+   "name": "Closing the gap: koala habitat reconnection in South Gundurimba, NSW",
+   "passages": [
+    "In 2016, a phone call from a Bangalow neighbour triggered a campaign to save a 400-metre stretch of critical habitat.",
+    "Ten years later, that small act has grown into the largest grassroots koala-corridor restoration program in Australia."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-26T23:15:23.927000Z",
+   "checkedAt": "2026-11-19T04:18:21.448000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aet4wptttiqbqnukvim5psels%2Forg.hypercerts.collection%2F3mmvmasdvpk2q"
+  },
+  {
+   "id": "rp-019",
+   "uri": "at://did:plc:k6vlunvm7u7rwvg73vz2xhbc/org.hypercerts.collection/3mnct54ndus2q",
+   "account": "did:plc:k6vlunvm7u7rwvg73vz2xhbc",
+   "name": "Building food and soil health at Mangaroa, Upper Hutt",
+   "passages": [
+    "Inspire others to support you.",
+    "Share about your land, work, goals, use of funds, and challenges."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-06-02T14:38:09.420000Z",
+   "checkedAt": "2026-11-19T04:18:26.100000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ak6vlunvm7u7rwvg73vz2xhbc%2Forg.hypercerts.collection%2F3mnct54ndus2q"
+  },
+  {
+   "id": "rp-020",
+   "uri": "at://did:plc:hvc4ljxb3pdg5xsikvfyk2xd/org.hypercerts.collection/3mnchw6p7f22q",
+   "account": "did:plc:hvc4ljxb3pdg5xsikvfyk2xd",
+   "name": "Community Environmental training and awareness on proper waste management.",
+   "passages": [
+    "Liberia's coastline is facing growing environmental challenges.",
+    "Plastic pollution, poor waste management practices, coastal erosion, flooding, and the impacts of climate change are threatening marine ecosystems, public health, and the livelihoods of thousands of people living in coastal communities."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-27T17:29:46.621000Z",
+   "checkedAt": "2026-11-19T04:18:21.739000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ahvc4ljxb3pdg5xsikvfyk2xd%2Forg.hypercerts.collection%2F3mnchw6p7f22q"
+  },
+  {
+   "id": "rp-021",
+   "uri": "at://did:plc:4hsbckpeyyv37kmqb2ffuudv/org.hypercerts.collection/3mmbxwnzisc2q",
+   "account": "did:plc:4hsbckpeyyv37kmqb2ffuudv",
+   "name": "Youth-Led Restoration Along Lake Victoria Basin in Samia Sub-county, Busia.",
+   "passages": [
+    "Growing up along the Lake Victoria Basin in Busijo Village, Samia Sub-county, Busia County, Kenya, I witnessed how environmental degradation, pollution, deforestation, and changing weather patterns continue to affect fishing and rural communities that depend closely on nature.",
+    "Streams that once f..."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-19T06:23:13.855000Z",
+   "checkedAt": "2026-11-19T04:18:18.568000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4hsbckpeyyv37kmqb2ffuudv%2Forg.hypercerts.collection%2F3mmbxwnzisc2q"
+  },
+  {
+   "id": "rp-022",
+   "uri": "at://did:plc:6aajecmhrgo3z2a3e6akyzlw/org.hypercerts.collection/3mn3i2sofdk2q",
+   "account": "did:plc:6aajecmhrgo3z2a3e6akyzlw",
+   "name": "Restoring Batwa Land Stewardship Through Regenerative Farming in Nyamirama",
+   "passages": [
+    "Restoring Batwa Land Stewardship Through Regenerative Farming in Nyamirama",
+    "This project takes place in Nyamirama Sector, on land where Batwa families continue to live with a deep memory of what was once a forest landscape."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T13:44:14.745000Z",
+   "checkedAt": "2026-11-19T04:18:23.951000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A6aajecmhrgo3z2a3e6akyzlw%2Forg.hypercerts.collection%2F3mn3i2sofdk2q"
+  },
+  {
+   "id": "rp-023",
+   "uri": "at://did:plc:z2gcvdysqzipcazlt7vslio5/org.hypercerts.collection/3mn5vlm5rr22q",
+   "account": "did:plc:z2gcvdysqzipcazlt7vslio5",
+   "name": "Women-Led Agriculture & Soil Recovery Initiative in Lubok Pusaka",
+   "passages": [
+    "Lubok Pusaka is one of thousands of villages affected by the devastating Sumatra floods that struck three provinces Aceh, North Sumatra, and West Sumatra in November 2025.",
+    "Located in a remote area of North Aceh, the village is difficult to access."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-31T13:56:51.099000Z",
+   "checkedAt": "2026-11-19T04:18:25.033000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Az2gcvdysqzipcazlt7vslio5%2Forg.hypercerts.collection%2F3mn5vlm5rr22q"
+  },
+  {
+   "id": "rp-024",
+   "uri": "at://did:plc:77akj46bd3s3uitf23dftred/org.hypercerts.collection/3mlmg3wvxq22u",
+   "account": "did:plc:77akj46bd3s3uitf23dftred",
+   "name": "Sri Lanka community heritage and ecosystem restoration",
+   "passages": [
+    "A Story of Hope and Renewal in Sri Lanka",
+    "In the heart of Sri Lanka, a remarkable transformation is unfolding."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-11T23:11:36.696000Z",
+   "checkedAt": "2026-11-19T04:18:16.931000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A77akj46bd3s3uitf23dftred%2Forg.hypercerts.collection%2F3mlmg3wvxq22u"
+  },
+  {
+   "id": "rp-025",
+   "uri": "at://did:plc:u67wsagei7lwjmsngppasrqn/org.hypercerts.collection/3mn6a3ko66c2q",
+   "account": "did:plc:u67wsagei7lwjmsngppasrqn",
+   "name": "Arrábida bioregion: Scaling  Agroecosystems Network Model",
+   "passages": [
+    "Our mission is to build a decentralized network of high-density 'Superforests' across the 25,000-hectare Arrábida peninsula in Portugal, and foster a community around it.",
+    "We offer a agroforestry model adapted to local contexts, provide tutoring / consultancy all the way through."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-31T17:36:59.478000Z",
+   "checkedAt": "2026-11-19T04:18:25.285000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Au67wsagei7lwjmsngppasrqn%2Forg.hypercerts.collection%2F3mn6a3ko66c2q"
+  },
+  {
+   "id": "rp-026",
+   "uri": "at://did:plc:yvzsf7h7k3jspu6ps7hnotl4/org.hypercerts.collection/3mrmqsooeds2t",
+   "account": "did:plc:yvzsf7h7k3jspu6ps7hnotl4",
+   "name": "Scaling Community- Led Indigenous Reforestation and Eco- Governanc",
+   "passages": [
+    "Our goal is to catalyze a comprehensive regional ecosystem",
+    "restoration that simultaneously buffers against climate vulnerability and drives a sustainable"
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-07-27T11:04:59.701000Z",
+   "checkedAt": "2026-11-19T04:18:27.773000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ayvzsf7h7k3jspu6ps7hnotl4%2Forg.hypercerts.collection%2F3mrmqsooeds2t"
+  },
+  {
+   "id": "rp-027",
+   "uri": "at://did:plc:z4hiosrjvowgpkufxvetz6jb/org.hypercerts.collection/3mmro3gdfyc2q",
+   "account": "did:plc:z4hiosrjvowgpkufxvetz6jb",
+   "name": "Restoring the world's most biodiverse forest areas in Ecuador",
+   "passages": [
+    "Minga Reforestation Project",
+    "Minga Reforestation Project was founded in 2021 by a Swiss Association with the same name with the goal to reforest Ecuadorian cloud forests, which are considered to be among the most biodiverse areas worldwide."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-26T17:39:48.410000Z",
+   "checkedAt": "2026-11-19T04:18:21.164000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Az4hiosrjvowgpkufxvetz6jb%2Forg.hypercerts.collection%2F3mmro3gdfyc2q"
+  },
+  {
+   "id": "rp-028",
+   "uri": "at://did:plc:cvpdtbowqskzwpwqc7b3johb/org.hypercerts.collection/3mn2rmrfd2k2q",
+   "account": "did:plc:cvpdtbowqskzwpwqc7b3johb",
+   "name": "Promoting community wildlife management and regenerative agriculture",
+   "passages": [
+    "Project title: Promoting community wildlife management and regenerative agriculture around the Bakossi National Park",
+    "Project background"
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T09:36:23.854000Z",
+   "checkedAt": "2026-11-19T04:18:23.950000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Acvpdtbowqskzwpwqc7b3johb%2Forg.hypercerts.collection%2F3mn2rmrfd2k2q"
+  },
+  {
+   "id": "rp-029",
+   "uri": "at://did:plc:bjanoewpyvalp6bc5i27fa44/org.hypercerts.collection/3mqmhokblf22m",
+   "account": "did:plc:bjanoewpyvalp6bc5i27fa44",
+   "name": "Voices of the Wetland Flyway:Youth-Led Bioacoustic Monitoring and Bird Species Identifica",
+   "passages": [
+    "AYOWECCA Uganda will train 12–15 Indigenous youth in Tororo District to deploy AudioMoth bioacoustic sensors across restored wetland sites, segment raw recordings into audio chunks, and identify migratory bird species by call through hands-on workshops led by local ornithology and bioacoustics exper",
+    "Voices of the Wetland Flyway"
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-14T14:56:21.614000Z",
+   "checkedAt": "2026-11-19T04:18:27.305000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Abjanoewpyvalp6bc5i27fa44%2Forg.hypercerts.collection%2F3mqmhokblf22m"
+  },
+  {
+   "id": "rp-030",
+   "uri": "at://did:plc:4ud4halppms75d63tqjk3rqn/org.hypercerts.collection/3mlbj32jnv22o",
+   "account": "did:plc:4ud4halppms75d63tqjk3rqn",
+   "name": "Digital forest restoration in Honduras",
+   "passages": [
+    "We started with a simple question: \"What if we could make a real difference?\"",
+    "Today, we're turning that vision into reality."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-07T15:10:42.099000Z",
+   "checkedAt": "2026-11-19T04:18:16.268000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4ud4halppms75d63tqjk3rqn%2Forg.hypercerts.collection%2F3mlbj32jnv22o"
+  },
+  {
+   "id": "rp-031",
+   "uri": "at://did:plc:6cwyx6ivt4oi7aasxqpylawg/org.hypercerts.collection/3mngba5d4a22q",
+   "account": "did:plc:6cwyx6ivt4oi7aasxqpylawg",
+   "name": "Tagba Rainforest Restoration Project: Roots, Canopy & Community",
+   "passages": [
+    "Project Context, Need, and Ecosystem :",
+    "Tagba is a village in the Agou Prefecture, southwestern Togo, located approximately 100 kilometres from Lomé (Capital city)."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-06-03T23:23:50.690000Z",
+   "checkedAt": "2026-11-19T04:18:26.102000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A6cwyx6ivt4oi7aasxqpylawg%2Forg.hypercerts.collection%2F3mngba5d4a22q"
+  },
+  {
+   "id": "rp-032",
+   "uri": "at://did:plc:dtae6mguridgofkouxamijsi/org.hypercerts.collection/3mloit6dzlc2u",
+   "account": "did:plc:dtae6mguridgofkouxamijsi",
+   "name": "Whitemans Valley food forest and native forest restoration",
+   "passages": [
+    "Every great project starts with a simple idea and a passionate team committed to making it real.",
+    "We've been working tirelessly to bring something meaningful to life—something that solves a genuine problem and creates real value for our community."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-12T19:02:59.456000Z",
+   "checkedAt": "2026-11-19T04:18:17.277000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Adtae6mguridgofkouxamijsi%2Forg.hypercerts.collection%2F3mloit6dzlc2u"
+  },
+  {
+   "id": "rp-033",
+   "uri": "at://did:plc:4e6f7ttsgwnupd7w3rhpkxvc/org.hypercerts.collection/3mlcaycs2e22u",
+   "account": "did:plc:4e6f7ttsgwnupd7w3rhpkxvc",
+   "name": "Predator Free Mangaroa",
+   "passages": [
+    "Aotearoa's native birds are taonga (treasures) shaped by millions of years of development on islands with no land mammals or predators.",
+    "Kiwi, kererū, tūī, ruru - they all evolved without fear of teeth."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-07T21:16:17.421000Z",
+   "checkedAt": "2026-11-19T04:18:16.270000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4e6f7ttsgwnupd7w3rhpkxvc%2Forg.hypercerts.collection%2F3mlcaycs2e22u"
+  },
+  {
+   "id": "rp-034",
+   "uri": "at://did:plc:yj7i3fw7pmea5bytzium5omo/org.hypercerts.collection/3mrnawhdkr22t",
+   "account": "did:plc:yj7i3fw7pmea5bytzium5omo",
+   "name": "The Mt. Calavite Soundscape Initiative",
+   "passages": [
+    "We are creating an open acoustic record of Mt.",
+    "Calavite Wildlife Sanctuary, capturing the sounds of one of the Philippines' most important island ecosystems to support long-term biodiversity conservation and stewardship."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-07-27T15:53:23.140000Z",
+   "checkedAt": "2026-11-19T04:18:27.773000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ayj7i3fw7pmea5bytzium5omo%2Forg.hypercerts.collection%2F3mrnawhdkr22t"
+  },
+  {
+   "id": "rp-035",
+   "uri": "at://did:plc:rni5wfevenns4siph4qqmeoj/org.hypercerts.collection/3mmc3kimjjs2q",
+   "account": "did:plc:rni5wfevenns4siph4qqmeoj",
+   "name": "Reviving and Restoring the degraded rangelands of Northern Kenya",
+   "passages": [
+    "In partnership with the UNCCD G20 Global Land Initiative (G20 GLI), AJF successfully implemented a Community-Led Land Restoration Project in Bute Ward, Wajir County.",
+    "This initiative directly aligns with the G20 GLI’s global ambition to prevent, halt and reverse land degradation, aiming to reduce ..."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-19T04:07:53.479000Z",
+   "checkedAt": "2026-11-19T04:18:18.567000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Arni5wfevenns4siph4qqmeoj%2Forg.hypercerts.collection%2F3mmc3kimjjs2q"
+  },
+  {
+   "id": "rp-036",
+   "uri": "at://did:plc:re2o4eknc4dfbykv4t7lrmnn/org.hypercerts.collection/3mmwfkr26tc2q",
+   "account": "did:plc:re2o4eknc4dfbykv4t7lrmnn",
+   "name": "Spring-fed Holistic Eco Village and Event Center, 30 minutes from Asheville",
+   "passages": [
+    "About Us: Rob and Eleanor",
+    "Rob and Eleanor’s story is one of connection, serendipity, and shared purpose, woven across years and continents before they ever truly came together."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-28T15:12:29.100000Z",
+   "checkedAt": "2026-11-19T04:18:22.306000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Are2o4eknc4dfbykv4t7lrmnn%2Forg.hypercerts.collection%2F3mmwfkr26tc2q"
+  },
+  {
+   "id": "rp-037",
+   "uri": "at://did:plc:fecxqglqlbrlh65bpp6oj3sb/org.hypercerts.collection/3moitedz2tk2i",
+   "account": "did:plc:fecxqglqlbrlh65bpp6oj3sb",
+   "name": "Restoration of Sulphur Creek Watershed at Wilbur Hot Springs",
+   "passages": [
+    "Wilbur Hot Springs in Colusa County, California is located on revered land which was historically inhabited by the Patwin and Pomo tribes for many thousands of years.",
+    "Featuring 1,800 acres with mineral-rich medicinal waters, the site is now being actively restored after decades of extractive mini..."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-06-14T15:07:35.861000Z",
+   "checkedAt": "2026-11-19T04:18:26.334000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Afecxqglqlbrlh65bpp6oj3sb%2Forg.hypercerts.collection%2F3moitedz2tk2i"
+  },
+  {
+   "id": "rp-038",
+   "uri": "at://did:plc:wugquc34i2ufavvqrsgbtelb/org.hypercerts.collection/3mn2inr3kk22q",
+   "account": "did:plc:wugquc34i2ufavvqrsgbtelb",
+   "name": "Eco Restoration - SuryaVan \"Surat's Own Forest\" - The Coastal Wetland",
+   "passages": [
+    "Project Eco Restoration",
+    "The barren land becomes a seasonal wetland habitat, a home for avian fauna, migratory birds, ducks, insects and other biodiversity for 6 months."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T06:28:18.229000Z",
+   "checkedAt": "2026-11-19T04:18:23.690000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Awugquc34i2ufavvqrsgbtelb%2Forg.hypercerts.collection%2F3mn2inr3kk22q"
+  },
+  {
+   "id": "rp-039",
+   "uri": "at://did:plc:vhuibzwgoshghwykz3puyle2/org.hypercerts.collection/3mlva43fqwk2x",
+   "account": "did:plc:vhuibzwgoshghwykz3puyle2",
+   "name": "Mount Elgon coffee agroforestry living labs for young farmers",
+   "passages": [
+    "The Living Lab concept is a participatory and community-based approach implemented in within real farming landscapes.",
+    "It focuses on building the capacity of young farmers to engage in restoration, conservation, and climate smart agriculture in the Mount Elgon region of Uganda."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-15T09:00:09.440000Z",
+   "checkedAt": "2026-11-19T04:18:17.968000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Avhuibzwgoshghwykz3puyle2%2Forg.hypercerts.collection%2F3mlva43fqwk2x"
+  },
+  {
+   "id": "rp-040",
+   "uri": "at://did:plc:yuxdz2n4cupb2phrewomuve6/org.hypercerts.collection/3mn5vsnquis2q",
+   "account": "did:plc:yuxdz2n4cupb2phrewomuve6",
+   "name": "Unified Stewardship for Dromana Arthurs Seat Escarpment, Victoria",
+   "passages": [
+    "Dromana Arthurs Seat Escarpment: A Living System Worth Protecting",
+    "We began this work because we could see how deeply people love the Mornington Peninsula, how much care already exists here, and how fragmented and under-supported that care often is."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-31T13:56:35.897000Z",
+   "checkedAt": "2026-11-19T04:18:25.033000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ayuxdz2n4cupb2phrewomuve6%2Forg.hypercerts.collection%2F3mn5vsnquis2q"
+  },
+  {
+   "id": "rp-041",
+   "uri": "at://did:plc:mg6oi3wrljykvvykjs7z2gvy/org.hypercerts.collection/3mn43dwqqok2q",
+   "account": "did:plc:mg6oi3wrljykvvykjs7z2gvy",
+   "name": "Sofia's rivers: from sewage channels to community spaces",
+   "passages": [
+    "Rivers of Sofia: Reclaiming Our City's Waterways",
+    "Once neglected and treated as sewage channels, Sofia's rivers are undergoing a remarkable transformation."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T19:50:53.797000Z",
+   "checkedAt": "2026-11-19T04:18:24.227000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Amg6oi3wrljykvvykjs7z2gvy%2Forg.hypercerts.collection%2F3mn43dwqqok2q"
+  },
+  {
+   "id": "rp-042",
+   "uri": "at://did:plc:kevq2rysk2zerex2xiprlgno/org.hypercerts.collection/3mmvdprldjc2q",
+   "account": "did:plc:kevq2rysk2zerex2xiprlgno",
+   "name": "A Forest Revival That Saves Rhinos and Communities – Join Us!",
+   "passages": [
+    "ShantiKunj Community Forest: A Lifeline for Wildlife",
+    "The One-horned Rhinoceros calls ShantiKunj Community Forest home—but invasive species are suffocating it."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-27T10:56:11.131000Z",
+   "checkedAt": "2026-11-19T04:18:21.450000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Akevq2rysk2zerex2xiprlgno%2Forg.hypercerts.collection%2F3mmvdprldjc2q"
+  },
+  {
+   "id": "rp-043",
+   "uri": "at://did:plc:kviwipsd73s33edjfy463odo/org.hypercerts.collection/3mmwvxzew6k2q",
+   "account": "did:plc:kviwipsd73s33edjfy463odo",
+   "name": "Bosque Fractal: Regenerating Sacred Relationships in Colombia",
+   "passages": [
+    "Bosque Fractal",
+    "– Toward Consciousness through Nature –"
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-26T21:31:32.906000Z",
+   "checkedAt": "2026-11-19T04:18:21.447000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Akviwipsd73s33edjfy463odo%2Forg.hypercerts.collection%2F3mmwvxzew6k2q"
+  },
+  {
+   "id": "rp-044",
+   "uri": "at://did:plc:4e6f7ttsgwnupd7w3rhpkxvc/org.hypercerts.collection/3mld7txmadk2u",
+   "account": "did:plc:4e6f7ttsgwnupd7w3rhpkxvc",
+   "name": "Native Forest Regeneration in Te Awa Kairangi",
+   "passages": [
+    "Tree Planting — Katherine Mansfield Drive (KMD)",
+    "In winter 2021, a 17,000 square metre gully off Katherine Mansfield Drive in Whitemans Valley became the first site at Mangaroa Farms to be fenced off and planted back into native bush."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-07T21:37:02.909000Z",
+   "checkedAt": "2026-11-19T04:18:16.270000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4e6f7ttsgwnupd7w3rhpkxvc%2Forg.hypercerts.collection%2F3mld7txmadk2u"
+  },
+  {
+   "id": "rp-045",
+   "uri": "at://did:plc:xzk735dp7envvsizp5jitqhb/org.hypercerts.collection/3mmumtopuy22q",
+   "account": "did:plc:xzk735dp7envvsizp5jitqhb",
+   "name": "Parque Madre Selva",
+   "passages": [
+    "Cancun presents a striking paradox: pristine beaches attract millions of tourists while neighboring communities struggle with pollution and neglect.",
+    "Hidden within one of the city's most contaminated areas lies an overlooked opportunity—a natural reserve ready to become Cancun's lungs."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-27T22:42:07.101000Z",
+   "checkedAt": "2026-11-19T04:18:22.029000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Axzk735dp7envvsizp5jitqhb%2Forg.hypercerts.collection%2F3mmumtopuy22q"
+  },
+  {
+   "id": "rp-046",
+   "uri": "at://did:plc:pal4dr6rzskwd4mzng7kw53z/org.hypercerts.collection/3mn5r4sdaus2q",
+   "account": "did:plc:pal4dr6rzskwd4mzng7kw53z",
+   "name": "\"Permacultura desde 0\" free regenerative education for Latin America",
+   "passages": [
+    "Permacultura desde 0: Free Regenerative Education in Spanish",
+    "The Problem: Quality permaculture education exists behind two barriers: language and price."
+   ],
+   "language": "en",
+   "stratum": "theme:place",
+   "sharedAt": "2026-05-30T15:08:28.708000Z",
+   "checkedAt": "2026-11-19T04:18:23.954000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Apal4dr6rzskwd4mzng7kw53z%2Forg.hypercerts.collection%2F3mn5r4sdaus2q"
+  },
+  {
+   "id": "rp-047",
+   "uri": "at://did:plc:rwdssa7fxcmyrdgkdnrru5im/org.hypercerts.collection/3mn6mcgd6yk2q",
+   "account": "did:plc:rwdssa7fxcmyrdgkdnrru5im",
+   "name": "The Viable Marketplace",
+   "passages": [
+    "Most of the harm we do to living systems is hidden inside ordinary transactions.",
+    "A usable chair goes to landfill because reselling it is a hassle."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-31T22:00:31.002000Z",
+   "checkedAt": "2026-11-19T04:18:25.560000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Arwdssa7fxcmyrdgkdnrru5im%2Forg.hypercerts.collection%2F3mn6mcgd6yk2q"
+  },
+  {
+   "id": "rp-048",
+   "uri": "at://did:plc:o5smenza33jk3rj62z5nvl7g/org.hypercerts.collection/3mn4qv2a7gk2q",
+   "account": "did:plc:o5smenza33jk3rj62z5nvl7g",
+   "name": "Food Sovereignty for Batswana Elders",
+   "passages": [
+    "Food Sovereignty for Batswana Elders is a six-month regenerative agriculture and indigenous knowledge project that supports 15 Batswana elders in establishing and strengthening home-based food gardens rooted in African indigenous crops, traditional ecological knowledge, and community resilience.",
+    "The project emerges from the insights gathered through Living Treasures of Bophirima, a community-led research initiative that documented, archived, and celebrated the indigenous knowledge systems, cultural practices, oral histories, and environmental wisdom of Batswana elders resulting in a book and documentary."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-29T18:05:24.080000Z",
+   "checkedAt": "2026-11-19T04:18:23.421000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ao5smenza33jk3rj62z5nvl7g%2Forg.hypercerts.collection%2F3mn4qv2a7gk2q"
+  },
+  {
+   "id": "rp-049",
+   "uri": "at://did:plc:zwnp2gzpbiurn6rb5glvx7mo/org.hypercerts.collection/3myl55fgedk2t",
+   "account": "did:plc:zwnp2gzpbiurn6rb5glvx7mo",
+   "name": "Evaluación y Servicios Ecosistémicos del Arbolado Urbano en la UAM Xochimilco",
+   "passages": [
+    "El presente estudio cuantifica y evalúa el estado del arbolado urbano en la Universidad Autónoma Metropolitana, Unidad Xochimilco (uam-x), incluyendo el Predio “Las Ánimas”, cibac y Clínicas estomatológicas.",
+    "El objetivo principal fue caracterizar la estructura, diversidad y servicios ecosistémicos"
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-10-23T21:36:40.988000Z",
+   "checkedAt": "2026-11-19T04:18:28.256000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Azwnp2gzpbiurn6rb5glvx7mo%2Forg.hypercerts.collection%2F3myl55fgedk2t"
+  },
+  {
+   "id": "rp-050",
+   "uri": "at://did:plc:ivmixi2teepsziyvtdxcyi77/org.hypercerts.collection/3mn7swgnadc2q",
+   "account": "did:plc:ivmixi2teepsziyvtdxcyi77",
+   "name": "Strengthening local food systems in Motueka",
+   "passages": [
+    "Kai Anamata mō Aotearoa is a community-led initiative focused on strengthening food security, resilient food systems, and community wellbeing in Te Tauihu and beyond.",
+    "Through Project KAMA, Wakatū Incorporation is working alongside whānau, growers, producers, researchers, community organisations, ..."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-06-01T09:43:26.016000Z",
+   "checkedAt": "2026-11-19T04:18:26.098000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aivmixi2teepsziyvtdxcyi77%2Forg.hypercerts.collection%2F3mn7swgnadc2q"
+  },
+  {
+   "id": "rp-051",
+   "uri": "at://did:plc:k4akoa7yd32le5wjv37dv2xr/org.hypercerts.collection/3mqlvl46d3c2m",
+   "account": "did:plc:k4akoa7yd32le5wjv37dv2xr",
+   "name": "Community-Powered Bioacoustic Monitoring for Mangrove Biodiversity Conservation in Kenya",
+   "passages": [
+    "Using AudioMoth recordings from restored mangrove forests, COBEC will bring together community knowledge holders, bird experts, and conservationists to identify wildlife sounds, create a locally validated bioacoustic database, and improve biodiversity monitoring where AI tools for African species",
+    "Along Kenya's northern coast, the mangrove forests of Marereni are a lifeline."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-14T09:32:17.927000Z",
+   "checkedAt": "2026-11-19T04:18:27.304000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ak4akoa7yd32le5wjv37dv2xr%2Forg.hypercerts.collection%2F3mqlvl46d3c2m"
+  },
+  {
+   "id": "rp-052",
+   "uri": "at://did:plc:v7tqrpraefzxo4ipdixzpa5v/org.hypercerts.collection/3mmrcburpak2q",
+   "account": "did:plc:v7tqrpraefzxo4ipdixzpa5v",
+   "name": "Nkà ọgwụgwọ healing ecosystem in Anambra, Nigeria",
+   "passages": [
+    "nkà ọgwụgwọ: (The Art of Healing) is an emerging healing-centered cultural and ecological project located on half an acre of land in Anambra State, Nigeria.",
+    "The vision was shaped through years of international work and migration across South Africa, Europe, and New York City, where I experienced prolonged burnout, isolation, and chronic physical and emotional strain while working as a model."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-26T12:45:33.221000Z",
+   "checkedAt": "2026-11-19T04:18:21.161000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Av7tqrpraefzxo4ipdixzpa5v%2Forg.hypercerts.collection%2F3mmrcburpak2q"
+  },
+  {
+   "id": "rp-053",
+   "uri": "at://did:plc:xmtbyav6djilhvuwk6yvxndf/org.hypercerts.collection/3mmetsqbncs2q",
+   "account": "did:plc:xmtbyav6djilhvuwk6yvxndf",
+   "name": "Mauritius circular economy supply chain traceability platform",
+   "passages": [
+    "Project Description: TechCycle Traceability Intelligence Platform",
+    "TechCycle is a cloud-based Traceability Intelligence Platform engineered to solve the data integrity and regulatory tracking crisis in circular supply chains."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-21T16:10:41.754000Z",
+   "checkedAt": "2026-11-19T04:18:19.560000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Axmtbyav6djilhvuwk6yvxndf%2Forg.hypercerts.collection%2F3mmetsqbncs2q"
+  },
+  {
+   "id": "rp-054",
+   "uri": "at://did:plc:7xkd2ocj5kg34hxp75eqcq2h/org.hypercerts.collection/3mn7em5xelk2q",
+   "account": "did:plc:7xkd2ocj5kg34hxp75eqcq2h",
+   "name": "Digital watershed defense network, Peru's macro north",
+   "passages": [
+    "COMMUNITY DIGITAL WATER MONITOR",
+    "Line of Action: Democratic Strengthening, Civic Resilience, and Territorial Technological Sovereignty"
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-31T22:56:18.085000Z",
+   "checkedAt": "2026-11-19T04:18:25.812000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A7xkd2ocj5kg34hxp75eqcq2h%2Forg.hypercerts.collection%2F3mn7em5xelk2q"
+  },
+  {
+   "id": "rp-055",
+   "uri": "at://did:plc:bpmzrfdh7xyg3pdbdu5kayl2/org.hypercerts.collection/3mn667dgnvc2q",
+   "account": "did:plc:bpmzrfdh7xyg3pdbdu5kayl2",
+   "name": "Garden of Life — gathering Nordic regenerators",
+   "passages": [
+    "Sustainability researchers came to the conclusion about ten years ago that our civilization is collapsing.",
+    "A multidisciplinary field called “collapsology” was born."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-31T15:29:46.413000Z",
+   "checkedAt": "2026-11-19T04:18:25.035000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Abpmzrfdh7xyg3pdbdu5kayl2%2Forg.hypercerts.collection%2F3mn667dgnvc2q"
+  },
+  {
+   "id": "rp-056",
+   "uri": "at://did:plc:lombct22tx7kdivx42cpgghd/org.hypercerts.collection/3mmyf6nxxpk2q",
+   "account": "did:plc:lombct22tx7kdivx42cpgghd",
+   "name": "From Abandoned to Abundant: Regenerating a Nubian Village on the Nile",
+   "passages": [
+    "Project Story",
+    "Per Auset is a living experiment in regeneration, unfolding on a once-abandoned island in the Nile in southern Egypt."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-26T14:13:52.562000Z",
+   "checkedAt": "2026-11-19T04:18:21.162000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Alombct22tx7kdivx42cpgghd%2Forg.hypercerts.collection%2F3mmyf6nxxpk2q"
+  },
+  {
+   "id": "rp-057",
+   "uri": "at://did:plc:bop22fgap4ifra2bj6o6tcqn/org.hypercerts.collection/3mqwbbktkhk2e",
+   "account": "did:plc:bop22fgap4ifra2bj6o6tcqn",
+   "name": "What lives in the Cities trees at Night?",
+   "passages": [
+    "Bioacoustic tracking of nocturnal urban wildlife to see biodiversity changes using AudioMoths",
+    "Project summary"
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-18T12:28:20.182000Z",
+   "checkedAt": "2026-11-19T04:18:27.535000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Abop22fgap4ifra2bj6o6tcqn%2Forg.hypercerts.collection%2F3mqwbbktkhk2e"
+  },
+  {
+   "id": "rp-058",
+   "uri": "at://did:plc:aspyuyv2vx73rwhv4fsjnocx/org.hypercerts.collection/3mlt5o4igq22u",
+   "account": "did:plc:aspyuyv2vx73rwhv4fsjnocx",
+   "name": "Living School of the Amazon: Food Forests for Indigenous Sovereignty",
+   "passages": [
+    "ASHA's regenerative activities include securing funding to support Indigenous-led food security initiatives, livelihood alternatives, forest monitoring, intercultural health and education programs, reforestation projects and the Living Amazon School (EVA).",
+    "Additionally, we advance legal recognition of land claims covering 22 million acres of rainforests, while working to propose systemic solutions to incentivize forest protection and halt deforestation (canceling debt, wellbeing indicators, universal basic / intact forest income, bioeconomy hubs)."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-05T13:50:15.816000Z",
+   "checkedAt": "2026-11-19T04:18:15.908000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aaspyuyv2vx73rwhv4fsjnocx%2Forg.hypercerts.collection%2F3mlt5o4igq22u"
+  },
+  {
+   "id": "rp-059",
+   "uri": "at://did:plc:3kg7uuwmdew6z26elrgla52l/org.hypercerts.collection/3mn6226fnyk2q",
+   "account": "did:plc:3kg7uuwmdew6z26elrgla52l",
+   "name": "La Ligne Verte: Grand-Bassam neighborhood cleanup and mapping",
+   "passages": [
+    "La Ligne Verte est l'infrastructure citoyenne de GreenPill Côte d'Ivoire pour la régénération environnementale.",
+    "Son slogan : Rends ton quartier zo et prends tes points."
+   ],
+   "language": "fr",
+   "stratum": "language:fr",
+   "sharedAt": "2026-05-31T16:38:40.083000Z",
+   "checkedAt": "2026-11-19T04:18:25.282000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A3kg7uuwmdew6z26elrgla52l%2Forg.hypercerts.collection%2F3mn6226fnyk2q"
+  },
+  {
+   "id": "rp-060",
+   "uri": "at://did:plc:7zu5w6ofrl6ha5ooykapptwe/org.hypercerts.collection/3mlejeywaws2u",
+   "account": "did:plc:7zu5w6ofrl6ha5ooykapptwe",
+   "name": "Tierra Valiente’s Living Lab and Healing Arts Community",
+   "passages": [
+    "Round 2 deepens Tierra Valiente's evolution as a living laboratory for exploring how we can decommodify land, create biological corridors supporting wild movement, and reduce environmental threats while establishing healing arts practices that restore community and individual ...",
+    "Round 2 deepens Tierra Valiente's evolution as a living laboratory for exploring how we can decommodify land, create biological corridors supporting wild movement, and reduce environmental threats while establishing healing arts practices that restore community and individual wellbeing."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-05T13:50:16.092000Z",
+   "checkedAt": "2026-11-19T04:18:15.912000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A7zu5w6ofrl6ha5ooykapptwe%2Forg.hypercerts.collection%2F3mlejeywaws2u"
+  },
+  {
+   "id": "rp-061",
+   "uri": "at://did:plc:jos4ngj56rmpmddyx4kuzzs7/org.hypercerts.collection/3mmx2lqsa7c2q",
+   "account": "did:plc:jos4ngj56rmpmddyx4kuzzs7",
+   "name": "Ranobe Bay community reef restoration project",
+   "passages": [
+    "The reef complexes in Ranobe bays MPA were renowned for their abundance of fishery resources, the diversity of marine ecosystems along the coastline and their key role in tourism activities.",
+    "Faced with the decline of marine ecosystems in Madagascar, this project focuses on the direct involvement of local communities, volunteer scientists, tourists and schoolchildren in reef restoration activities by transplanting naturally detached corals, or transplanting old cuttings nursery."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-28T22:05:03.345000Z",
+   "checkedAt": "2026-11-19T04:18:22.583000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ajos4ngj56rmpmddyx4kuzzs7%2Forg.hypercerts.collection%2F3mmx2lqsa7c2q"
+  },
+  {
+   "id": "rp-062",
+   "uri": "at://did:plc:iaoufcz4ilvxibp3yonsuckf/org.hypercerts.collection/3mn6wlfp6ak2q",
+   "account": "did:plc:iaoufcz4ilvxibp3yonsuckf",
+   "name": "Middle Beef",
+   "passages": [
+    "Middle Beef conecta inversionistas con medieros ganaderos en ciclos formalizados de engorda regenerativa de 12 a 15 meses en Jesús Carranza, Veracruz, México.",
+    "Opera bajo contratos de aparcería pecuaria y asociación en participación, con reparto 50/50 de la utilidad del ciclo y trazabilidad SINIGA."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-06-01T01:19:32.330000Z",
+   "checkedAt": "2026-11-19T04:18:25.815000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aiaoufcz4ilvxibp3yonsuckf%2Forg.hypercerts.collection%2F3mn6wlfp6ak2q"
+  },
+  {
+   "id": "rp-063",
+   "uri": "at://did:plc:xq2jr6ixz7bdijfjdoibweys/org.hypercerts.collection/3mn7t34cuv22q",
+   "account": "did:plc:xq2jr6ixz7bdijfjdoibweys",
+   "name": "Enabling Rural Communities in Japan to Host Regenerative Co-living Programs",
+   "passages": [
+    "kuu village is a perma-pop-up village experiment that brings together technologists, local community leaders, designers, architects, artists, and land stewards to live and work on the land together for one to three weeks at a time.",
+    "Money raised in this campaign will go directly to building the ho..."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-06-01T08:28:00.323000Z",
+   "checkedAt": "2026-11-19T04:18:26.096000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Axq2jr6ixz7bdijfjdoibweys%2Forg.hypercerts.collection%2F3mn7t34cuv22q"
+  },
+  {
+   "id": "rp-064",
+   "uri": "at://did:plc:gljga25fl6b55tayjclytb3o/org.hypercerts.collection/3mn7fgu4fss2q",
+   "account": "did:plc:gljga25fl6b55tayjclytb3o",
+   "name": "Bioacoustics DMRV unlocking Biodiversity Value in Agroforestry",
+   "passages": [
+    "Bioacoustics DMRV unlocking Biodiversity Value in Agroforestry",
+    "In Dumka, Jharkhand, real restoration starts with people, not technology."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-29T10:31:18.061000Z",
+   "checkedAt": "2026-11-19T04:18:22.871000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Agljga25fl6b55tayjclytb3o%2Forg.hypercerts.collection%2F3mn7fgu4fss2q"
+  },
+  {
+   "id": "rp-065",
+   "uri": "at://did:plc:hskfhwdnelg5mhhjqcr5z7u2/org.hypercerts.collection/3mmzbur6zy22q",
+   "account": "did:plc:hskfhwdnelg5mhhjqcr5z7u2",
+   "name": "Brotes del Espinal: semillas para una generación arraigada en la naturaleza",
+   "passages": [
+    "Nuestra misión",
+    "‘Brotes del Espinal’ es un programa comunitario de educación ambiental que tiende un puente entre el aula y el bosque vivo."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-08T14:27:23.475000Z",
+   "checkedAt": "2026-11-19T04:18:16.603000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ahskfhwdnelg5mhhjqcr5z7u2%2Forg.hypercerts.collection%2F3mmzbur6zy22q"
+  },
+  {
+   "id": "rp-066",
+   "uri": "at://did:plc:vioyhjpgwppbdn4sxfblswfm/org.hypercerts.collection/3mqz3biiwmc2e",
+   "account": "did:plc:vioyhjpgwppbdn4sxfblswfm",
+   "name": "Native Tree Conservation and Bioacoustic Monitoring for Forest  Recovery in Batam Island",
+   "passages": [
+    "This project purpose to advance 50 native threatened tree species conservation in Batam, Riau Islands through bioacoustic monitoring and biodiversity surveys to strengthening long-term conservation strategies and supporting the wildlife’s dependency.",
+    "The Riau Archipelago is located in Sundaland Biodiversity Hotspot and comprises small islands with a high level of biodiversity."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-19T15:18:55.056000Z",
+   "checkedAt": "2026-11-19T04:18:27.536000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Avioyhjpgwppbdn4sxfblswfm%2Forg.hypercerts.collection%2F3mqz3biiwmc2e"
+  },
+  {
+   "id": "rp-067",
+   "uri": "at://did:plc:clpn32gci7rtuo5smawbgqqe/org.hypercerts.collection/3mn3mb3qfps2q",
+   "account": "did:plc:clpn32gci7rtuo5smawbgqqe",
+   "name": "Shifting Currents with Communities through Science, Stories, and Solidarity",
+   "passages": [
+    "Project Story",
+    "CurrentShift believes that restoration begins with relationships, and the real currency in any work is not funding, but trust."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-30T16:28:13.687000Z",
+   "checkedAt": "2026-11-19T04:18:24.222000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aclpn32gci7rtuo5smawbgqqe%2Forg.hypercerts.collection%2F3mn3mb3qfps2q"
+  },
+  {
+   "id": "rp-068",
+   "uri": "at://did:plc:koyksfkcpzje2gpft56huwtm/org.hypercerts.collection/3mmgr3pubgk2q",
+   "account": "did:plc:koyksfkcpzje2gpft56huwtm",
+   "name": "Regenerative agriculture network in Baar, Switzerland",
+   "passages": [
+    "Building a Sustainable Future Together",
+    "We're creating a revolutionary funding platform designed to empower regenerative projects and drive meaningful environmental change."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-06T14:27:13.438000Z",
+   "checkedAt": "2026-11-19T04:18:16.264000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Akoyksfkcpzje2gpft56huwtm%2Forg.hypercerts.collection%2F3mmgr3pubgk2q"
+  },
+  {
+   "id": "rp-069",
+   "uri": "at://did:plc:lumfbetunaacz5sfvfp5fv4t/org.hypercerts.collection/3mxotsxecz22g",
+   "account": "did:plc:lumfbetunaacz5sfvfp5fv4t",
+   "name": "Monitoring of Mindoro Hornbill (Penelopides mindorensis) Using Mixed-Survey Approach",
+   "passages": [
+    "Aims to provide an updated distribution and presence data of the island-endemic Mindoro Hornbill (Penelopides mindorensis) using bioacoustic monitoring in complementary with visual surveys along transects across the Island of Mindoro, The Philippines.",
+    "Transects will be established across different sites in the Island of Mindoro."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-10-12T15:35:14.450000Z",
+   "checkedAt": "2026-11-19T04:18:28.255000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Alumfbetunaacz5sfvfp5fv4t%2Forg.hypercerts.collection%2F3mxotsxecz22g"
+  },
+  {
+   "id": "rp-070",
+   "uri": "at://did:plc:3umme3cfgehubswp3gyuwi7d/org.hypercerts.collection/3mn4jvbnwms2q",
+   "account": "did:plc:3umme3cfgehubswp3gyuwi7d",
+   "name": "School for Inclement Weather: Fire Stewardship in Northern California",
+   "passages": [
+    "Through prescribed fire, rotational grazing, residencies, research, and craft, the school for inclement weather serves as a demonstration site for land stewardship and what we call disaster companionship: systems of knowledge and care that emerge from weathering the earth (and each other) amid pe...",
+    "Through prescribed fire, rotational grazing, residencies, research, and craft, the school for inclement weather serves as a demonstration site for land stewardship and what we call disaster companionship: systems of knowledge and care that emerge from weathering the earth (and each other) amid periods of planetary demise."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-25T13:49:16.257000Z",
+   "checkedAt": "2026-11-19T04:18:20.554000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A3umme3cfgehubswp3gyuwi7d%2Forg.hypercerts.collection%2F3mn4jvbnwms2q"
+  },
+  {
+   "id": "rp-071",
+   "uri": "at://did:plc:2s6bqsb2hy2eb6wcxqiu6sjz/org.hypercerts.collection/3mlvv572hks2x",
+   "account": "did:plc:2s6bqsb2hy2eb6wcxqiu6sjz",
+   "name": "Build your Second Spring - Agentic AI for Independent Businesses",
+   "passages": [
+    "We build Aventide, an AI platform for independent businesses.",
+    "We are small business owners building for small business owners, using the same tools, facing the same questions, and trying to make something more humane out of a technology that could easily go the other way."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-15T17:37:29.683000Z",
+   "checkedAt": "2026-11-19T04:18:18.268000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A2s6bqsb2hy2eb6wcxqiu6sjz%2Forg.hypercerts.collection%2F3mlvv572hks2x"
+  },
+  {
+   "id": "rp-072",
+   "uri": "at://did:plc:yjck2sybksyigp3zvbq7bfki/org.hypercerts.collection/3mqsddgklmc2e",
+   "account": "did:plc:yjck2sybksyigp3zvbq7bfki",
+   "name": "gainforest.earth",
+   "passages": [
+    "GainForest is a decentralized science non-profit.",
+    "We help communities own their biodiversity data and build open tools for it, from local AI assistants to bioacoustics and remote sensing."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-16T22:54:27.000000Z",
+   "checkedAt": "2026-11-19T04:18:27.305000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ayjck2sybksyigp3zvbq7bfki%2Forg.hypercerts.collection%2F3mqsddgklmc2e"
+  },
+  {
+   "id": "rp-073",
+   "uri": "at://did:plc:4ht6fsgv6xqp4vy73dmji36q/org.hypercerts.collection/3mqprt3w4qk2e",
+   "account": "did:plc:4ht6fsgv6xqp4vy73dmji36q",
+   "name": "Mkingu Biodiversity Monitoring Project",
+   "passages": [
+    "10 local community members bordering the reseve will engage in the project by turning local knowledge into public data by documenting birds, reptiles, amphibians, insects and mammals as baseline dataset using Bumicerts tool for conservation efforts being verified by 5 Data council experts.",
+    "In Mkingu Nature Forest Reserve, our group of 10 community members will monitor biodiversity using Bumicerts."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-15T22:35:49.733000Z",
+   "checkedAt": "2026-11-19T04:18:27.305000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4ht6fsgv6xqp4vy73dmji36q%2Forg.hypercerts.collection%2F3mqprt3w4qk2e"
+  },
+  {
+   "id": "rp-074",
+   "uri": "at://did:plc:b236baoq7emdjtiaw4dkt5uf/org.hypercerts.collection/3mn24eyenck2q",
+   "account": "did:plc:b236baoq7emdjtiaw4dkt5uf",
+   "name": "Guardians of the Mojana: Regeneration from a youthful perspective.",
+   "passages": [
+    "In San Marcos, Sucre, Colombia, communities live among wetlands, flooding, and changing water systems that affect both ecosystems and daily life.",
+    "In response to these challenges, we support the Agroanfibio research group at San Marcos School, a collective of young people developing community-base..."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-30T03:09:17.770000Z",
+   "checkedAt": "2026-11-19T04:18:23.689000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ab236baoq7emdjtiaw4dkt5uf%2Forg.hypercerts.collection%2F3mn24eyenck2q"
+  },
+  {
+   "id": "rp-075",
+   "uri": "at://did:plc:qjo7t3nm6qr4amru3rj5dceg/org.hypercerts.collection/3mn7ynwux522q",
+   "account": "did:plc:qjo7t3nm6qr4amru3rj5dceg",
+   "name": "Threads of Resilience: Weaving Soncino’s Landscapes into Regenerative Flows",
+   "passages": [
+    "Project Story",
+    "Threads of Resilience / Reti di Resilienza is a place-based initiative designed to empower local communities within the vital ecological corridor of the North Oglio River park, situated inside the wider Po River macro-bioregion."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T16:51:00.954000Z",
+   "checkedAt": "2026-11-19T04:18:25.284000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aqjo7t3nm6qr4amru3rj5dceg%2Forg.hypercerts.collection%2F3mn7ynwux522q"
+  },
+  {
+   "id": "rp-076",
+   "uri": "at://did:plc:vhuibzwgoshghwykz3puyle2/org.hypercerts.collection/3mqoltxd3kc2e",
+   "account": "did:plc:vhuibzwgoshghwykz3puyle2",
+   "name": "Trees 4 the Glob- School Botanical Gardens Project",
+   "passages": [
+    "Leveraging three years of our school botanical gardens project, this phase transitions students from caretakers to active citizen scientists.",
+    "Students will be trained to capture local biodiversity observations, directly contributing vital ecological data to global databases."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-15T11:16:13.344000Z",
+   "checkedAt": "2026-11-19T04:18:27.305000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Avhuibzwgoshghwykz3puyle2%2Forg.hypercerts.collection%2F3mqoltxd3kc2e"
+  },
+  {
+   "id": "rp-077",
+   "uri": "at://did:plc:othky2rxhwd6aevcphycijcn/org.hypercerts.collection/3mmxjcur3cs2q",
+   "account": "did:plc:othky2rxhwd6aevcphycijcn",
+   "name": "Kelp Gardeners: Restoring Ecosystems - Kaitiakitanga, Mātauranga, & Science",
+   "passages": [
+    "The Kelp Gardeners Pipi (project)",
+    "Kelp Gardeners: Restoring Ecosystems through Kaitiakitanga, Mātauranga, and Science"
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-26T21:39:47.576000Z",
+   "checkedAt": "2026-11-19T04:18:21.447000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aothky2rxhwd6aevcphycijcn%2Forg.hypercerts.collection%2F3mmxjcur3cs2q"
+  },
+  {
+   "id": "rp-078",
+   "uri": "at://did:plc:lhaqoz4rqy4qa6bsbteev6wn/org.hypercerts.collection/3mrsruqievc2t",
+   "account": "did:plc:lhaqoz4rqy4qa6bsbteev6wn",
+   "name": "Listening for a Vanishing traveler.",
+   "passages": [
+    "Local communities are using AI-assisted acoustic monitoring to track the Vulnerable European Turtle Dove across the Hadejia–Nguru Wetlands and share biodiversity data to support its conservation.",
+    "The European Turtle Dove is a globally Vulnerable migratory bird whose populations are declining across its range."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-29T20:39:55.777000Z",
+   "checkedAt": "2026-11-19T04:18:27.776000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Alhaqoz4rqy4qa6bsbteev6wn%2Forg.hypercerts.collection%2F3mrsruqievc2t"
+  },
+  {
+   "id": "rp-079",
+   "uri": "at://did:plc:gbu4fv3ckdte45vpbmly62tb/org.hypercerts.collection/3mn7qd7z53c2q",
+   "account": "did:plc:gbu4fv3ckdte45vpbmly62tb",
+   "name": "Urban Regeneration: Fostering More-Than-Human Communities by Digital Tokens",
+   "passages": [
+    "We believe in the vital importance of \"forests\" within our cities.",
+    "As development accelerates here in Tokyo, green spaces are vanishing, and the Eurasian sparrows and Japanese rice fish (medaka) that were so familiar in our childhood are disappearing — a reality that fills us with a profound sense of urgency."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-06-01T08:24:32.234000Z",
+   "checkedAt": "2026-11-19T04:18:26.095000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Agbu4fv3ckdte45vpbmly62tb%2Forg.hypercerts.collection%2F3mn7qd7z53c2q"
+  },
+  {
+   "id": "rp-080",
+   "uri": "at://did:plc:ytkzqhj7244tmnbcwylfbfuv/org.hypercerts.collection/3msltvgat6c2t",
+   "account": "did:plc:ytkzqhj7244tmnbcwylfbfuv",
+   "name": "Bioacoustic Echoes of Stewardship: Community-Led Biodiversity Monitoring in Ethiopian Agro",
+   "passages": [
+    "Led by SEACO, this project pilots passive acoustic monitoring across Ethiopian landscapes using AudioMoth sensors.",
+    "Paired with GainForest, we train community officers to collect and share open audio data—building a verifiable baseline of ecological health while supporting local stewardship."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-08-08T19:52:41.036000Z",
+   "checkedAt": "2026-11-19T04:18:28.009000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aytkzqhj7244tmnbcwylfbfuv%2Forg.hypercerts.collection%2F3msltvgat6c2t"
+  },
+  {
+   "id": "rp-081",
+   "uri": "at://did:plc:73mbomkvbq7cqryygddfbdwt/org.hypercerts.collection/3mlt2jrn7ls2u",
+   "account": "did:plc:73mbomkvbq7cqryygddfbdwt",
+   "name": "Permaculture  Education and Research Lab (PEARL) in West Virginia",
+   "passages": [
+    "A Vision of Self-Sufficiency Takes Root",
+    "When Bridgette and Jesse Downer purchased 63 acres in 2002, they embarked on an ambitious journey: building a thriving permaculture eco-village designed for complete food sovereignty and energy independence."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-14T14:21:04.410000Z",
+   "checkedAt": "2026-11-19T04:18:17.605000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A73mbomkvbq7cqryygddfbdwt%2Forg.hypercerts.collection%2F3mlt2jrn7ls2u"
+  },
+  {
+   "id": "rp-082",
+   "uri": "at://did:plc:3fwxhpszsvy6cfmaqr65a7jr/org.hypercerts.collection/3mn5noubmis2q",
+   "account": "did:plc:3fwxhpszsvy6cfmaqr65a7jr",
+   "name": "Restoring native forest with Mbyá-Guaraní indigenous community",
+   "passages": [
+    "ApeForest is a reforestation marketplace that connects people who want to protect nature with indigenous and local communities who know how to restore it.",
+    "We are pre-launch and seeking funding to plant our first 300 trees alongside our confirmed community partner, the Mbyá-Guaraní community of Tekoá Kuaray Rese, and validate our platform in the field."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-31T09:29:09.432000Z",
+   "checkedAt": "2026-11-19T04:18:24.745000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A3fwxhpszsvy6cfmaqr65a7jr%2Forg.hypercerts.collection%2F3mn5noubmis2q"
+  },
+  {
+   "id": "rp-083",
+   "uri": "at://did:plc:prkf53lirp23aob5xsq57pui/org.hypercerts.collection/3mrnhsn5zjc2t",
+   "account": "did:plc:prkf53lirp23aob5xsq57pui",
+   "name": "Freshwater Ecoacoustics of the Sierra Madre",
+   "passages": [
+    "Building the first ecoacoustic baseline for Sierra Madre freshwater ecosystems through passive acoustic monitoring and biodiversity documentation, beginning with a pilot deployment in San Mariano, Isabela, to support future community-led conservation.",
+    "Freshwater Ecoacoustics of the Sierra Madre aims to establish an ecoacoustic baseline for freshwater ecosystems in San Mariano, Isabela, using passive acoustic monitoring and biodiversity documentation."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-27T17:56:31.863000Z",
+   "checkedAt": "2026-11-19T04:18:27.774000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aprkf53lirp23aob5xsq57pui%2Forg.hypercerts.collection%2F3mrnhsn5zjc2t"
+  },
+  {
+   "id": "rp-084",
+   "uri": "at://did:plc:twghptap4nbvuz5a3jvfxmmh/org.hypercerts.collection/3mmwj5gyo3c2q",
+   "account": "did:plc:twghptap4nbvuz5a3jvfxmmh",
+   "name": "Rescate de saberes ancestrales para la resilicancia climatica en Madriz",
+   "passages": [
+    "Los municipios de Totogalpa y San Lucas, se encuentran ubicados en el departamento de madriz Nicaragua, que se caracteriza por ubicarse en el corredor seco del pais, su poblacion de origen indigena Chorotega, se dedica como principal forma de vida a la agricultura de subsistencia, el relieve es v..."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-28T16:21:00.117000Z",
+   "checkedAt": "2026-11-19T04:18:22.307000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Atwghptap4nbvuz5a3jvfxmmh%2Forg.hypercerts.collection%2F3mmwj5gyo3c2q"
+  },
+  {
+   "id": "rp-085",
+   "uri": "at://did:plc:zphmada2qkoddrb5etwsbiuo/org.hypercerts.collection/3mtkxk6rqtc2g",
+   "account": "did:plc:zphmada2qkoddrb5etwsbiuo",
+   "name": "CoolWalk Sofia: Outdoor Thermal Environment Experiment in Sofia",
+   "passages": [
+    "CoolWalk Sofia 2026: Building a Climate-Resilient City",
+    "Sofia is heating up—and KyoLink Bulgaria, Sofia Municipality, and The Collective Foundation are taking action."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-08-21T04:41:20.053000Z",
+   "checkedAt": "2026-11-19T04:18:28.010000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Azphmada2qkoddrb5etwsbiuo%2Forg.hypercerts.collection%2F3mtkxk6rqtc2g"
+  },
+  {
+   "id": "rp-086",
+   "uri": "at://did:plc:7rxlmkerr4c7exnff3aebram/org.hypercerts.collection/3mn6ex3ct522q",
+   "account": "did:plc:7rxlmkerr4c7exnff3aebram",
+   "name": "Climate-resilient livelihoods hub in Nkoma, Uganda",
+   "passages": [
+    "Rwamwanja Rural Foundation (RRF) is implementing an integrated climate resilience and regenerative livelihoods project that combines RRFGeoAI smart climate monitoring systems, hydroponics food production, Black Soldier Fly Larvae (BSFL) circular economy systems, and community-led regenerative agr...",
+    "Rwamwanja Rural Foundation (RRF) is implementing an integrated climate resilience and regenerative livelihoods project that combines RRFGeoAI smart climate monitoring systems, hydroponics food production, Black Soldier Fly Larvae (BSFL) circular economy systems, and community-led regenerative agriculture."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-31T13:57:20.117000Z",
+   "checkedAt": "2026-11-19T04:18:25.033000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A7rxlmkerr4c7exnff3aebram%2Forg.hypercerts.collection%2F3mn6ex3ct522q"
+  },
+  {
+   "id": "rp-087",
+   "uri": "at://did:plc:5trcfkerfu5gteoxl4slmr73/org.hypercerts.collection/3mqvqoxbxuk2e",
+   "account": "did:plc:5trcfkerfu5gteoxl4slmr73",
+   "name": "Tangail Community Greenery and Biodiversity Monitoring.",
+   "passages": [
+    "Empowering local youth volunteers to restore community green spaces, protect regional biodiversity, and use digital data collection tools to track eco-restoration progress in Tangail.",
+    "We are mobilizing youth volunteers to plant native trees, monitor biodiversity, and restore green spaces."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-18T07:31:37.266000Z",
+   "checkedAt": "2026-11-19T04:18:27.535000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A5trcfkerfu5gteoxl4slmr73%2Forg.hypercerts.collection%2F3mqvqoxbxuk2e"
+  },
+  {
+   "id": "rp-088",
+   "uri": "at://did:plc:ua7aypyrb6v44bbrrs2i6cjo/org.hypercerts.collection/3mltit6y6bc2x",
+   "account": "did:plc:ua7aypyrb6v44bbrrs2i6cjo",
+   "name": "BioHarmony's open-source appropriate technology lab",
+   "passages": [
+    "Jacob left the corporate software world searching for something more meaningful—balance, connection to nature, and work that matters beyond quarterly earnings.",
+    "Years of dreaming have crystallized into action."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-14T18:38:40.623000Z",
+   "checkedAt": "2026-11-19T04:18:17.607000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aua7aypyrb6v44bbrrs2i6cjo%2Forg.hypercerts.collection%2F3mltit6y6bc2x"
+  },
+  {
+   "id": "rp-089",
+   "uri": "at://did:plc:6l5dxrsjyejlcdxid3ogyz7k/org.hypercerts.collection/3mrt7mv4ly22t",
+   "account": "did:plc:6l5dxrsjyejlcdxid3ogyz7k",
+   "name": "Biocultural Heritage Conservation and Climate Resilience in the Shansha Population Center",
+   "passages": [
+    "This youth-led initiative preserves biocultural heritage and strengthens climate resilience in mountain communities by documenting ancestral knowledge, using Wikimedia Commons, and deploying AudioMoth sensors for participatory biodiversity monitoring.",
+    "The project emerged from the observation that, in the mountain communities of the Cordillera Negra in Áncash, Peru, knowledge of medicinal plants and traditional land-management practices was rapidly disappearing due to the migration of young people and the aging of the male and female knowledge keepers who preserve this heritage."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-30T00:46:05.189000Z",
+   "checkedAt": "2026-11-19T04:18:27.776000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A6l5dxrsjyejlcdxid3ogyz7k%2Forg.hypercerts.collection%2F3mrt7mv4ly22t"
+  },
+  {
+   "id": "rp-090",
+   "uri": "at://did:plc:nis6ykrg5unqvt6u2y3kidi5/org.hypercerts.collection/3mlovojjelk2u",
+   "account": "did:plc:nis6ykrg5unqvt6u2y3kidi5",
+   "name": "Artist-led ecosystem recovery in San Francisco",
+   "passages": [
+    "We are an artist-led creative laboratory dedicated to reimagining our relationship with the natural world.",
+    "Our mission is to develop innovative regenerative solutions that restore both ecosystems and human creativity."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-12T22:37:52.181000Z",
+   "checkedAt": "2026-11-19T04:18:17.278000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Anis6ykrg5unqvt6u2y3kidi5%2Forg.hypercerts.collection%2F3mlovojjelk2u"
+  },
+  {
+   "id": "rp-091",
+   "uri": "at://did:plc:x44mwes6ngsz35oisqbiggnl/org.hypercerts.collection/3mve73p7cep22",
+   "account": "did:plc:x44mwes6ngsz35oisqbiggnl",
+   "name": "breadcrumbs",
+   "passages": [
+    "A provenance-trail and attestation layer for scientific and ecosystem contributions -- every crumb dated, attested, and fading until renewed, not a single opaque verdict."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-09-12T23:07:18.000000Z",
+   "checkedAt": "2026-11-19T04:18:28.252000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ax44mwes6ngsz35oisqbiggnl%2Forg.hypercerts.collection%2F3mve73p7cep22"
+  },
+  {
+   "id": "rp-092",
+   "uri": "at://did:plc:6a64w7sovubs3a7nzbrrm4h2/org.hypercerts.collection/3mn7psw3kv22q",
+   "account": "did:plc:6a64w7sovubs3a7nzbrrm4h2",
+   "name": "The Araguaia Biodiversity Corridor",
+   "passages": [
+    "Restoring the Araguaia Biodiversity Corridor - One Farm at a Time",
+    "Despite being one of the world's most ambitious environmental laws, Brazil's Forest Code remains widely under-implemented."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-28T15:53:22.574000Z",
+   "checkedAt": "2026-11-19T04:18:22.306000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A6a64w7sovubs3a7nzbrrm4h2%2Forg.hypercerts.collection%2F3mn7psw3kv22q"
+  },
+  {
+   "id": "rp-093",
+   "uri": "at://did:plc:elfxh6ptztfgb5hmmeacicqc/org.hypercerts.collection/3mr5o6xvw622t",
+   "account": "did:plc:elfxh6ptztfgb5hmmeacicqc",
+   "name": "Zentropi Living Landscape",
+   "passages": [
+    "Zentropi Living Landscape is a 6-acre regenerative site in the Palani Hills of Western Ghats biosphere documenting ecosystem recovery through biodiversity records and community learning.",
+    "With AudioMoths, we'll add continuous soundscape monitoring to build a shared ecological archive with GainForest"
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-21T11:08:10.802000Z",
+   "checkedAt": "2026-11-19T04:18:27.538000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aelfxh6ptztfgb5hmmeacicqc%2Forg.hypercerts.collection%2F3mr5o6xvw622t"
+  },
+  {
+   "id": "rp-094",
+   "uri": "at://did:plc:aqvfy4qsrxwixogtr4xessgf/org.hypercerts.collection/3mn62xc4i7k2q",
+   "account": "did:plc:aqvfy4qsrxwixogtr4xessgf",
+   "name": "Restoring Loita's forests with Maasai women artisans",
+   "passages": [
+    "Maasai Treasures CBO",
+    "Empowering Women, Preserving Culture, and Regenerating Indigenous Landscapes in Loita, Narok County, Kenya"
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-29T06:30:39.757000Z",
+   "checkedAt": "2026-11-19T04:18:22.867000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aaqvfy4qsrxwixogtr4xessgf%2Forg.hypercerts.collection%2F3mn62xc4i7k2q"
+  },
+  {
+   "id": "rp-095",
+   "uri": "at://did:plc:orwzo2bkeqse57er5zwwkuxj/org.hypercerts.collection/3mn2palhrhk2q",
+   "account": "did:plc:orwzo2bkeqse57er5zwwkuxj",
+   "name": "Impact Climatech",
+   "passages": [
+    "About Impact Climatech",
+    "Impact Climatech is an AI-powered platform addressing climate compliance, KPI-based monitoring, and standardized reporting."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-30T08:44:42.195000Z",
+   "checkedAt": "2026-11-19T04:18:23.949000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aorwzo2bkeqse57er5zwwkuxj%2Forg.hypercerts.collection%2F3mn2palhrhk2q"
+  },
+  {
+   "id": "rp-096",
+   "uri": "at://did:plc:ertwxdemrkshpg5ypemva5ku/org.hypercerts.collection/3mn563zhxd22q",
+   "account": "did:plc:ertwxdemrkshpg5ypemva5ku",
+   "name": "Ruamāhanga River revival through young people's conservation & creativity",
+   "passages": [
+    "Te Reo o te Wai 2026",
+    "Discover how art and conservation unite to help restore the southern reaches of the Ruamāhanga River."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T06:43:12.157000Z",
+   "checkedAt": "2026-11-19T04:18:24.743000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aertwxdemrkshpg5ypemva5ku%2Forg.hypercerts.collection%2F3mn563zhxd22q"
+  },
+  {
+   "id": "rp-097",
+   "uri": "at://did:plc:x57uajdntnsfunrsesu3qbql/org.hypercerts.collection/3mmou4swl3k2q",
+   "account": "did:plc:x57uajdntnsfunrsesu3qbql",
+   "name": "Magnolia recovery and forest restoration in the Colombian Andes",
+   "passages": [
+    "Fundación ProAves is a Colombian conservation organisation working to protect biodiversity and restore threatened ecosystems through science-based conservation, long-term land stewardship, and strong community participation.",
+    "Our work focuses on some of Colombia’s most endangered and biodiverse la..."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-25T15:16:09.635000Z",
+   "checkedAt": "2026-11-19T04:18:20.555000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ax57uajdntnsfunrsesu3qbql%2Forg.hypercerts.collection%2F3mmou4swl3k2q"
+  },
+  {
+   "id": "rp-098",
+   "uri": "at://did:plc:mwxuv2jjrfvvlapju3yktmr5/org.hypercerts.collection/3mn6fngiezk2q",
+   "account": "did:plc:mwxuv2jjrfvvlapju3yktmr5",
+   "name": "Community-owned living lab for regeneration on a Finnish farm",
+   "passages": [
+    "The Kore Project is a community‑owned tiny house located at Wiberg’s Farm (Kuusjoki, Finland), a sixth‑generation family farm roughly 1.5 hours from Helsinki.",
+    "The house itself was designed and built by Aalto University’s Wood Programme, bringing together craft‑quality timber construction and ecol..."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-30T14:03:51.285000Z",
+   "checkedAt": "2026-11-19T04:18:23.952000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Amwxuv2jjrfvvlapju3yktmr5%2Forg.hypercerts.collection%2F3mn6fngiezk2q"
+  },
+  {
+   "id": "rp-099",
+   "uri": "at://did:plc:s4pla3eevsp6tkzdwqma4uhv/org.hypercerts.collection/3mrdc6mzqas2t",
+   "account": "did:plc:s4pla3eevsp6tkzdwqma4uhv",
+   "name": "Identifying Threatened Plants for Awa Biodiversity Monitoring in Caru Territory",
+   "passages": [
+    "In the Caru Indigenous Land, the Awa Guajá face a perceived decline in essential useful plant species.",
+    "By combining traditional ecological knowledge with field collection, this project will create a baseline for community-driven conservation."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-23T16:49:14.159000Z",
+   "checkedAt": "2026-11-19T04:18:27.540000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3As4pla3eevsp6tkzdwqma4uhv%2Forg.hypercerts.collection%2F3mrdc6mzqas2t"
+  },
+  {
+   "id": "rp-100",
+   "uri": "at://did:plc:q3lijdrtqr23xmzlkj3irzxv/org.hypercerts.collection/3mmx2rr27ic2q",
+   "account": "did:plc:q3lijdrtqr23xmzlkj3irzxv",
+   "name": "Muyso School – The Citizen Science & Restoration Hub",
+   "passages": [
+    "The Land: From Desolation to \"The Murmur of Water\"",
+    "Twenty years ago, we encountered a rocky, desolate hillside overlooking Lake Tota—Colombia’s largest and most vital high-Andean wetland."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-28T17:01:09.047000Z",
+   "checkedAt": "2026-11-19T04:18:22.308000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aq3lijdrtqr23xmzlkj3irzxv%2Forg.hypercerts.collection%2F3mmx2rr27ic2q"
+  },
+  {
+   "id": "rp-101",
+   "uri": "at://did:plc:ud4j6tjbqvcllusgnijs4elk/org.hypercerts.collection/3mmflpsabq22q",
+   "account": "did:plc:ud4j6tjbqvcllusgnijs4elk",
+   "name": "Ubeji Freshwater Biodiversity Recovery and Youth Livelihoods Initiative",
+   "passages": [
+    "Our project was inspired by years of ecological research and conservation work within the Ubeji Axis of the Warri River in Delta State, Nigeria.",
+    "During field activities, we observed severe oil pollution, heavy metal contamination, biodiversity decline, and increasing pressure on indigenous freshw..."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-21T22:36:11.119000Z",
+   "checkedAt": "2026-11-19T04:18:19.562000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aud4j6tjbqvcllusgnijs4elk%2Forg.hypercerts.collection%2F3mmflpsabq22q"
+  },
+  {
+   "id": "rp-102",
+   "uri": "at://did:plc:ynugijoglvufhgqao6c6abic/org.hypercerts.collection/3msq3pp5wqc2t",
+   "account": "did:plc:ynugijoglvufhgqao6c6abic",
+   "name": "子ども達　AI、オンラインゲーム、SNSとの適切な向き合い方を考える",
+   "passages": [
+    "子ども達 AI、オンラインゲーム、SNSとの適切な向き合い方を考えるプロジェクトです。"
+   ],
+   "language": "other",
+   "stratum": "language:other",
+   "sharedAt": "2026-08-10T12:23:16.464000Z",
+   "checkedAt": "2026-11-19T04:18:28.009000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aynugijoglvufhgqao6c6abic%2Forg.hypercerts.collection%2F3msq3pp5wqc2t"
+  },
+  {
+   "id": "rp-103",
+   "uri": "at://did:plc:qtka6v2rt5vjwmk6ywk2mhye/org.hypercerts.collection/3mq6m6q7v6c2i",
+   "account": "did:plc:qtka6v2rt5vjwmk6ywk2mhye",
+   "name": "Building food forests in Guaratinguetá, São Paulo",
+   "passages": [
+    "Ecovilab: Regenerating Land and Community",
+    "Ecovilab is a living laboratory in Guaratinguetá, São Paulo, Brazil, dedicated to reconnecting people with nature and each other."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-09T02:31:55.495000Z",
+   "checkedAt": "2026-11-19T04:18:27.303000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aqtka6v2rt5vjwmk6ywk2mhye%2Forg.hypercerts.collection%2F3mq6m6q7v6c2i"
+  },
+  {
+   "id": "rp-104",
+   "uri": "at://did:plc:2dqlqpwrzvn4jby6de3ypqyo/org.hypercerts.collection/3mqxukmekvs2e",
+   "account": "did:plc:2dqlqpwrzvn4jby6de3ypqyo",
+   "name": "Community-Based Precision Forest Mapping and Inventory",
+   "passages": [
+    "- Main Target: Comprehensive profiling of residents and potential of protected forests within a 1,029-hectare zone.",
+    "- Action: Census farming residents; inventory tree stands & biodiversity."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-07-19T03:46:04.654000Z",
+   "checkedAt": "2026-11-19T04:18:27.535000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A2dqlqpwrzvn4jby6de3ypqyo%2Forg.hypercerts.collection%2F3mqxukmekvs2e"
+  },
+  {
+   "id": "rp-105",
+   "uri": "at://did:plc:lmyzwg7azyar5cgqgyvbrghq/org.hypercerts.collection/3mrhy34vnck2t",
+   "account": "did:plc:lmyzwg7azyar5cgqgyvbrghq",
+   "name": "Bioacoustic Monitoring and Community Rangers for Threatened Birds in Ulu Masen",
+   "passages": [
+    "This project uses bioacoustic monitoring and Community Rangers to protect threatened songbirds in Ulu Masen by reducing illegal trapping, engaging local youth, and promoting sustainable birdwatching ecotourism.",
+    "Project Story"
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-25T13:31:36.276000Z",
+   "checkedAt": "2026-11-19T04:18:27.541000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Almyzwg7azyar5cgqgyvbrghq%2Forg.hypercerts.collection%2F3mrhy34vnck2t"
+  },
+  {
+   "id": "rp-106",
+   "uri": "at://did:plc:c4kyiddgasddxlrt44a3qp2k/org.hypercerts.collection/3mn5ngkoit22q",
+   "account": "did:plc:c4kyiddgasddxlrt44a3qp2k",
+   "name": "Reserva Managua: art and science for water conservation",
+   "passages": [
+    "Reserva Managua is a cloud forest reserve located in the mountains of El Carmen, Antioquia, Colombia.",
+    "This land protects springs, streams, native flora, and wildlife that depend on the unique conditions of the cloud forest ecosystem."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T12:13:19.537000Z",
+   "checkedAt": "2026-11-19T04:18:25.032000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ac4kyiddgasddxlrt44a3qp2k%2Forg.hypercerts.collection%2F3mn5ngkoit22q"
+  },
+  {
+   "id": "rp-107",
+   "uri": "at://did:plc:2t2o4sym6rjztfj3lk75gd3p/org.hypercerts.collection/3mmyuizjhbc2q",
+   "account": "did:plc:2t2o4sym6rjztfj3lk75gd3p",
+   "name": "Reforesting Sungai Buaya",
+   "passages": [
+    "Green Tree Plantation is dedicated to restoring degraded lowland rainforest ecosystems in Malaysia through long-term, science-backed reforestation efforts focused on biodiversity recovery, habitat restoration, and climate resilience.",
+    "Led by David Lok and Moo Fook Yow, our work is grounded in a simple belief: forests are not just collections of trees, but living systems that, when given time and care, can regenerate into resilient, self-sustaining landscapes."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-28T14:57:41.123000Z",
+   "checkedAt": "2026-11-19T04:18:22.305000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A2t2o4sym6rjztfj3lk75gd3p%2Forg.hypercerts.collection%2F3mmyuizjhbc2q"
+  },
+  {
+   "id": "rp-108",
+   "uri": "at://did:plc:4g7gyu6ztbecacef4nfpv5hr/org.hypercerts.collection/3mlluaoxcxs2u",
+   "account": "did:plc:4g7gyu6ztbecacef4nfpv5hr",
+   "name": "The Dignity Project: Vrygrond waste value chain empowering dignity agents",
+   "passages": [
+    "Greenpill Cape Town: Transforming Challenges into Opportunity",
+    "Greenpill Cape Town empowers grassroots communities through Web3 education, regenerative projects, and digital infrastructure."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-05-11T16:52:06.767000Z",
+   "checkedAt": "2026-11-19T04:18:16.929000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4g7gyu6ztbecacef4nfpv5hr%2Forg.hypercerts.collection%2F3mlluaoxcxs2u"
+  },
+  {
+   "id": "rp-109",
+   "uri": "at://did:plc:uru4uw5kmsrrsmxqj7o3xl24/org.hypercerts.collection/3mmy3d3flbs2q",
+   "account": "did:plc:uru4uw5kmsrrsmxqj7o3xl24",
+   "name": "Community-based conservation of critical habitats in the Gulf of California",
+   "passages": [
+    "For 35 years, the Prescott College Kino Bay Center has worked alongside Indigenous Comcaac communities, fishers, youth, educators, scientists, and local leaders to protect the ecosystems of the Gulf of California—one of the most biodiverse marine regions in North America.",
+    "Based in Bahía de Kino, ..."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-29T07:56:08.870000Z",
+   "checkedAt": "2026-11-19T04:18:22.869000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Auru4uw5kmsrrsmxqj7o3xl24%2Forg.hypercerts.collection%2F3mmy3d3flbs2q"
+  },
+  {
+   "id": "rp-110",
+   "uri": "at://did:plc:ee5vjozxf4wrdw6i32wlkb2q/org.hypercerts.collection/3mmvirkg2mk2q",
+   "account": "did:plc:ee5vjozxf4wrdw6i32wlkb2q",
+   "name": "The S.N.A.I.L Network- A Place Based Environment Education Program",
+   "passages": [
+    "Bringing Environmental Education to Life Across India",
+    "Imagine a classroom where students learn about their local environment through stories, art, reference books, and by getting involved in hands- on conservation activities."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-28T06:37:29.251000Z",
+   "checkedAt": "2026-11-19T04:18:22.032000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aee5vjozxf4wrdw6i32wlkb2q%2Forg.hypercerts.collection%2F3mmvirkg2mk2q"
+  },
+  {
+   "id": "rp-111",
+   "uri": "at://did:plc:sogwuexfnz6osrft3bvb24qo/org.hypercerts.collection/3mleid3b45c2u",
+   "account": "did:plc:sogwuexfnz6osrft3bvb24qo",
+   "name": "Tierra Valiente, A Regenerative Laboratory in Costa Rica",
+   "passages": [
+    "Tierra Valiente is a living lab embodied through a learning center, regenerative farm, emerging residential community, and mutual-aid network dedicated to exploring viable alternatives to dominant systems.",
+    "The project stems from an awareness of our civilizational trajectory within dominant cultur..."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-05T12:55:00.582000Z",
+   "checkedAt": "2026-11-19T04:18:15.906000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Asogwuexfnz6osrft3bvb24qo%2Forg.hypercerts.collection%2F3mleid3b45c2u"
+  },
+  {
+   "id": "rp-112",
+   "uri": "at://did:plc:zjqgmmgr4gtmtp2fjbxkhe4q/org.hypercerts.collection/3mn3ul6tesc2q",
+   "account": "did:plc:zjqgmmgr4gtmtp2fjbxkhe4q",
+   "name": "Restoring degraded land in Belize's Maya Mountains",
+   "passages": [
+    "Transforming Degraded Land Into Thriving Landscapes",
+    "For over three decades, the Maya Mountain Research Farm (MMRF) has proven that ecological recovery of degraded agricultural land is possible."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-30T19:26:33.579000Z",
+   "checkedAt": "2026-11-19T04:18:24.226000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Azjqgmmgr4gtmtp2fjbxkhe4q%2Forg.hypercerts.collection%2F3mn3ul6tesc2q"
+  },
+  {
+   "id": "rp-113",
+   "uri": "at://did:plc:5bvxtsctrwstyyv3ufet3kwh/org.hypercerts.collection/3mruqo7v3m22t",
+   "account": "did:plc:5bvxtsctrwstyyv3ufet3kwh",
+   "name": "Community Biodiversity Monitoring in the Bedti River Conservation Area",
+   "passages": [
+    "Establish a community-led biodiversity monitoring program in the Bedti River Conservation Area using bioacoustic sensors, field observations, and nature documentation to create an open ecological baseline and strengthen local conservation stewardship.",
+    "The Bedti River Conservation Area in the Central Western Ghats of Karnataka is one of India's most ecologically significant yet under-documented landscapes."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-30T15:23:44.247000Z",
+   "checkedAt": "2026-11-19T04:18:27.777000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A5bvxtsctrwstyyv3ufet3kwh%2Forg.hypercerts.collection%2F3mruqo7v3m22t"
+  },
+  {
+   "id": "rp-114",
+   "uri": "at://did:plc:5fwoptbxz63m5357lpjlb5qi/org.hypercerts.collection/3mn5uzbham22q",
+   "account": "did:plc:5fwoptbxz63m5357lpjlb5qi",
+   "name": "Community composting hub in Mérida, Venezuela",
+   "passages": [
+    "The \"Community Composting Project\" is an initiative promoted by the organization Regenera Club Venezuela in the city of Mérida, Venezuela.",
+    "This project takes place weekly within the spaces of the Faculty of Forest and Environmental Sciences at the University of Los Andes (ULA) in Mérida, VE."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-29T20:56:30.889000Z",
+   "checkedAt": "2026-11-19T04:18:23.424000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A5fwoptbxz63m5357lpjlb5qi%2Forg.hypercerts.collection%2F3mn5uzbham22q"
+  },
+  {
+   "id": "rp-115",
+   "uri": "at://did:plc:o5legdwerj3kfvht4h7wx4pt/org.hypercerts.collection/3mmqvmxvbq22q",
+   "account": "did:plc:o5legdwerj3kfvht4h7wx4pt",
+   "name": "Mapping urban farms in Noida, Haryana",
+   "passages": [
+    "Expanding Urban Agriculture in NCR Cities",
+    "During 2025–2026, PRC conducted an in-depth study of urban farming practices in Gurugram, a rapidly growing city characterised by stark socio-spatial inequalities, privatised urban governance, and severe environmental stress."
+   ],
+   "language": "en",
+   "stratum": "theme:research",
+   "sharedAt": "2026-05-20T12:36:51.990000Z",
+   "checkedAt": "2026-11-19T04:18:19.213000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ao5legdwerj3kfvht4h7wx4pt%2Forg.hypercerts.collection%2F3mmqvmxvbq22q"
+  },
+  {
+   "id": "rp-116",
+   "uri": "at://did:plc:pfphhadve5frukssh5aza3al/org.hypercerts.collection/3mq2kpfu7oc2i",
+   "account": "did:plc:pfphhadve5frukssh5aza3al",
+   "name": "Predator Free Whiriwhiri",
+   "passages": [
+    "A community operating in a forgotten part of the Waikato aiming to collaboratively eradicate possums, ferrets, and feral cats, to project our Matuku, Pekapeka, Maui Dolphin, our ngāhere and our wetlands.",
+    "We use collaborative smart trapping (via IOT sensors) to connect our community."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-07-07T12:02:36.379000Z",
+   "checkedAt": "2026-11-19T04:18:27.302000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Apfphhadve5frukssh5aza3al%2Forg.hypercerts.collection%2F3mq2kpfu7oc2i"
+  },
+  {
+   "id": "rp-117",
+   "uri": "at://did:plc:26jsl6jlrtovqkncq3tc2vsu/org.hypercerts.collection/3mmz7jbtqos2q",
+   "account": "did:plc:26jsl6jlrtovqkncq3tc2vsu",
+   "name": "Rizomas de Vida: mangrove restoration and women's knowledge in Ecuador",
+   "passages": [
+    "Plataforma de Co-creación de Conocimientos Mujeres Recolectoras y Pescadoras de Territorios Marino Costeros Rizomas de Vida tiene tres componenes: encuentros academicos y de saberes locales a traves de la Escuela de Mujeres Rizomas de Vida, la creación de Espacios Familiares y Colectivos de CUida...",
+    "Plataforma de Co-creación de Conocimientos Mujeres Recolectoras y Pescadoras de Territorios Marino Costeros Rizomas de Vida tiene tres componenes: encuentros academicos y de saberes locales a traves de la Escuela de Mujeres Rizomas de Vida, la creación de Espacios Familiares y Colectivos de CUidado de la Vida Hermos y Sabrosos y el fortalecimiento de la REDMANGLAR Internacional."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-24T02:02:30.026000Z",
+   "checkedAt": "2026-11-19T04:18:20.182000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A26jsl6jlrtovqkncq3tc2vsu%2Forg.hypercerts.collection%2F3mmz7jbtqos2q"
+  },
+  {
+   "id": "rp-118",
+   "uri": "at://did:plc:3v7ar73ujlld4hwjvs4o2lau/org.hypercerts.collection/3mnev6ftn2c2q",
+   "account": "did:plc:3v7ar73ujlld4hwjvs4o2lau",
+   "name": "Building a Free Film Training Center",
+   "passages": [
+    "Every powerful movement starts with a single voice, but not everyone has the tools to make their voice heard.",
+    "High-quality film education and cinematic gear are locked behind expensive university walls or restricted to wealthy areas."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-06-03T09:22:53.801000Z",
+   "checkedAt": "2026-11-19T04:18:26.101000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A3v7ar73ujlld4hwjvs4o2lau%2Forg.hypercerts.collection%2F3mnev6ftn2c2q"
+  },
+  {
+   "id": "rp-119",
+   "uri": "at://did:plc:7psvkg3zk54eguk6fj5drwhj/org.hypercerts.collection/3mokh6mmvqc2i",
+   "account": "did:plc:7psvkg3zk54eguk6fj5drwhj",
+   "name": "Building regenerative stewards across Costa Rica",
+   "passages": [
+    "Through Ma Earth Studio, we provide educational resources for land stewards, funders, and regenerators.",
+    "Offerings span workshops on traditional knowledge practices from farmers and land stewards to conversations with leading voices across philanthropy and open source technology.Through Ma Earth S..."
+   ],
+   "language": "en",
+   "stratum": "theme:software",
+   "sharedAt": "2026-06-18T08:50:28.218000Z",
+   "checkedAt": "2026-11-19T04:18:26.620000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A7psvkg3zk54eguk6fj5drwhj%2Forg.hypercerts.collection%2F3mokh6mmvqc2i"
+  },
+  {
+   "id": "rp-120",
+   "uri": "at://did:plc:qcvwhrsm25l6cgwzgksd2vj5/org.hypercerts.collection/3mwh3i2dskk2r",
+   "account": "did:plc:qcvwhrsm25l6cgwzgksd2vj5",
+   "name": "Zapotitlán",
+   "passages": [
+    "En Zapotitlán pertenecemos a la reserva de la biosfera Tehuacán - Cuicatlan y somos un clima semi desértico, gracias a eso somos agraciados con demasiada biodiversidad y riqueza en cultura, gastronomía,flora y fauna en la región."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-09-26T20:05:51.097000Z",
+   "checkedAt": "2026-11-19T04:18:28.253000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aqcvwhrsm25l6cgwzgksd2vj5%2Forg.hypercerts.collection%2F3mwh3i2dskk2r"
+  },
+  {
+   "id": "rp-121",
+   "uri": "at://did:plc:xjyotv77ltcoskf6ds4gdmyo/org.hypercerts.collection/3mmrp52gfvs2q",
+   "account": "did:plc:xjyotv77ltcoskf6ds4gdmyo",
+   "name": "Ecoturismo e cura: jardim sensorial amazônico de Santarém",
+   "passages": [
+    "O projeto Sentir a Amazônia- Jardim sensorial é um resgate aos valores dos ancestrais da Amazônia, A Amazônia possui uma das maiores biodiversidades do mundo,",
+    "incluindo uma rica variedade de plantas medicinais utilizadas por comunidades tradicionais há séculos."
+   ],
+   "language": "pt",
+   "stratum": "language:pt",
+   "sharedAt": "2026-05-26T18:30:38.625000Z",
+   "checkedAt": "2026-11-19T04:18:21.164000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Axjyotv77ltcoskf6ds4gdmyo%2Forg.hypercerts.collection%2F3mmrp52gfvs2q"
+  },
+  {
+   "id": "rp-122",
+   "uri": "at://did:plc:ereluwabsoorkqwrq2dew2if/org.hypercerts.collection/3mn45o57wls2q",
+   "account": "did:plc:ereluwabsoorkqwrq2dew2if",
+   "name": "Ayure no vino a salvar el mundo, vino a conectar a quienes ya lo sostienen.",
+   "passages": [
+    "Soy de México, donde el reciclaje no es una tendencia, es supervivencia.",
+    "Durante 8 años recorrí calles pesando material bajo el sol y operé centros de acopio."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-30T22:41:01.304000Z",
+   "checkedAt": "2026-11-19T04:18:24.495000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aereluwabsoorkqwrq2dew2if%2Forg.hypercerts.collection%2F3mn45o57wls2q"
+  },
+  {
+   "id": "rp-123",
+   "uri": "at://did:plc:viubfq2bbu7n36vgtbnchlio/org.hypercerts.collection/3mmhmf66fhc2q",
+   "account": "did:plc:viubfq2bbu7n36vgtbnchlio",
+   "name": "Propagación de especies nativas para los bosques Altoandinos",
+   "passages": [
+    "La restauración ecológica en la Reserva Guanacas inició con la conservación de un predio familiar de 120 hectáreas hoy protege más de 800 hectáreas destinadas a la restauración y fortalecimiento de corredores biológicos.",
+    "La pérdida de especies nativas, nacimientos de agua y fauna asociada, causad..."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-14T21:39:01.146000Z",
+   "checkedAt": "2026-11-19T04:18:17.966000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aviubfq2bbu7n36vgtbnchlio%2Forg.hypercerts.collection%2F3mmhmf66fhc2q"
+  },
+  {
+   "id": "rp-124",
+   "uri": "at://did:plc:m5fhmiq6tibixmihv263pgp6/org.hypercerts.collection/3mmwtd52vcc2q",
+   "account": "did:plc:m5fhmiq6tibixmihv263pgp6",
+   "name": "Restoring Formosa's subtropical soils",
+   "passages": [
+    "Factores determinantes del colapso estructural y la erosión hídrica en suelos subtropicales del norte de Formosa: un enfoque integrado edáfico, climático y espacial.",
+    "El presente proyecto tiene como objetivo evaluar la susceptibilidad al colapso estructural y la formación de cárcavas en suelos subtropicales del norte de Formosa, mediante la integración de variables edáficas, climáticas y de cobertura vegetal, con el fin de desarrollar estrategias de manejo sustentables para sistemas de pequeños productores."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-22T23:12:03.579000Z",
+   "checkedAt": "2026-11-19T04:18:19.889000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Am5fhmiq6tibixmihv263pgp6%2Forg.hypercerts.collection%2F3mmwtd52vcc2q"
+  },
+  {
+   "id": "rp-125",
+   "uri": "at://did:plc:22w6n5tk7xqw6k462er7cerr/org.hypercerts.collection/3mn6g5go7n22q",
+   "account": "did:plc:22w6n5tk7xqw6k462er7cerr",
+   "name": "Forest gardens and food sovereignty in the Amazon",
+   "passages": [
+    "Arte Escola by Tera Kuno is a community-based initiative in the Brazilian Amazon connecting agroecology, environmental education, art, and food sovereignty.",
+    "Through living classrooms in the forest, farmers, educators, artists, and youth co-create regenerative practices that restore ecosystems, st..."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T20:09:56.648000Z",
+   "checkedAt": "2026-11-19T04:18:25.555000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A22w6n5tk7xqw6k462er7cerr%2Forg.hypercerts.collection%2F3mn6g5go7n22q"
+  },
+  {
+   "id": "rp-126",
+   "uri": "at://did:plc:ezwk6kna6c6km2o54xaantm6/org.hypercerts.collection/3mn4zhgxs222q",
+   "account": "did:plc:ezwk6kna6c6km2o54xaantm6",
+   "name": "Thirteen Indigenous Grandmothers speak at Climate Week, New York",
+   "passages": [
+    "Forest For Trees Collective is a grassroots artists' collective with a public arts space on Governors Island.",
+    "For four years, we've catalyzed conversations at the intersection of climate science, cultural wisdom, and social justice—blending artistic expression with educational storytelling to ins..."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-19T06:08:22.535000Z",
+   "checkedAt": "2026-11-19T04:18:18.568000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aezwk6kna6c6km2o54xaantm6%2Forg.hypercerts.collection%2F3mn4zhgxs222q"
+  },
+  {
+   "id": "rp-127",
+   "uri": "at://did:plc:ctljc2jzlkpalr2hjesllelc/org.hypercerts.collection/3mlqy7aawjk2u",
+   "account": "did:plc:ctljc2jzlkpalr2hjesllelc",
+   "name": "Gnaly agroecology farm-school in Guinea",
+   "passages": [
+    "Dans le village de Madina, dans la sous-préfecture de Timbi Madina, un homme a commencé à voir ce que beaucoup ne voyaient pas encore : une terre fatiguée, mais pas morte.",
+    "Là où d’autres parlaient de pauvreté du sol, lui a vu un potentiel de renaissance."
+   ],
+   "language": "fr",
+   "stratum": "language:fr",
+   "sharedAt": "2026-05-13T13:15:10.374000Z",
+   "checkedAt": "2026-11-19T04:18:17.282000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Actljc2jzlkpalr2hjesllelc%2Forg.hypercerts.collection%2F3mlqy7aawjk2u"
+  },
+  {
+   "id": "rp-128",
+   "uri": "at://did:plc:g4newcwlrvugtbajcjcson5r/org.hypercerts.collection/3mn43zcyfss2q",
+   "account": "did:plc:g4newcwlrvugtbajcjcson5r",
+   "name": "Regenerative yerba mate and forest corridors in southern Paraguay",
+   "passages": [
+    "Reserva DejaVú es un emprendimiento familiar ubicado en la Selva Paranaense del sur de Paraguay que, desde 2010, trabaja junto a pequeños agricultores y familias rurales para enfrentar la pérdida de biodiversidad causada por la deforestación, el monocultivo, la degradación de suelos y el uso inte...",
+    "Reserva DejaVú es un emprendimiento familiar ubicado en la Selva Paranaense del sur de Paraguay que, desde 2010, trabaja junto a pequeños agricultores y familias rurales para enfrentar la pérdida de biodiversidad causada por la deforestación, el monocultivo, la degradación de suelos y el uso intensivo de agroquímicos."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-30T21:27:47.193000Z",
+   "checkedAt": "2026-11-19T04:18:24.227000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ag4newcwlrvugtbajcjcson5r%2Forg.hypercerts.collection%2F3mn43zcyfss2q"
+  },
+  {
+   "id": "rp-129",
+   "uri": "at://did:plc:4ibz42kvgrjny5osgwnilcwi/org.hypercerts.collection/3mmion2iglc2q",
+   "account": "did:plc:4ibz42kvgrjny5osgwnilcwi",
+   "name": "Bioeconomia amazònica a partir de la reforestaciòn.",
+   "passages": [
+    "CIGDES es una organizacion de reforestaciòn, atendemos la gran demanda de restauraciòn del ecosistema de bosque seco estacional oriental amazònico, colaboramos con productores locales y comunidades nativas a mejorar su calidad de vida a partir del cultivo de arboles, participamos en todo el ciclo...",
+    "CIGDES es una organizacion de reforestaciòn, atendemos la gran demanda de restauraciòn del ecosistema de bosque seco estacional oriental amazònico, colaboramos con productores locales y comunidades nativas a mejorar su calidad de vida a partir del cultivo de arboles, participamos en todo el ciclo de la reforestaciòn desde la producciòn de nuestro propio material vegetal, la instalaciòn, el monitoreo presencial y digital, el manejo silvicutural, la capacitaciòn y el entrenamiento, el aprovechamiento forestal maderable, acceso a mercado y crèditos."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-23T04:15:50.418000Z",
+   "checkedAt": "2026-11-19T04:18:19.890000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A4ibz42kvgrjny5osgwnilcwi%2Forg.hypercerts.collection%2F3mmion2iglc2q"
+  },
+  {
+   "id": "rp-130",
+   "uri": "at://did:plc:olejgt2s2vohnp4mjcoymmeq/org.hypercerts.collection/3mmrdb3xaks2q",
+   "account": "did:plc:olejgt2s2vohnp4mjcoymmeq",
+   "name": "Biodiversité et santé des cultures : comprendre, partager, agir.",
+   "passages": [
+    "A 10-Year Living Laboratory for Biodiversity, Climate Resilience, and the Future of Farming",
+    "Après 23 ans d’agroécologie, la Ferme du Bec Hellouin est passée de 4 pâturages à une mosaïque de 40 parcelles réparties sur 5 hectares, enrichies de plus de 3 000 arbres, d’environ 15 étangs et d’une remarquable diversité d’habitats."
+   ],
+   "language": "fr",
+   "stratum": "language:fr",
+   "sharedAt": "2026-05-26T12:35:15.633000Z",
+   "checkedAt": "2026-11-19T04:18:21.161000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aolejgt2s2vohnp4mjcoymmeq%2Forg.hypercerts.collection%2F3mmrdb3xaks2q"
+  },
+  {
+   "id": "rp-131",
+   "uri": "at://did:plc:g4sdiljbi2aws5qrlzyfeljd/org.hypercerts.collection/3mmy2srm5vk2q",
+   "account": "did:plc:g4sdiljbi2aws5qrlzyfeljd",
+   "name": "Restoring Madagascar's forests with local communities",
+   "passages": [
+    "Chez Coeur de Forêt Madagascar nous restaurons, conservons, protégeons les forêts malgaches depuis plus de 15 ans.",
+    "Notre approche repose sur la conviction que la conservation de l’environnement ne peut être dissociée des réalités sociales et économiques locales."
+   ],
+   "language": "fr",
+   "stratum": "language:fr",
+   "sharedAt": "2026-05-29T07:11:48.900000Z",
+   "checkedAt": "2026-11-19T04:18:22.868000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Ag4sdiljbi2aws5qrlzyfeljd%2Forg.hypercerts.collection%2F3mmy2srm5vk2q"
+  },
+  {
+   "id": "rp-132",
+   "uri": "at://did:plc:baa7dvcywfqvk7p6aa6ibqhz/org.hypercerts.collection/3mn6fvlcecs2q",
+   "account": "did:plc:baa7dvcywfqvk7p6aa6ibqhz",
+   "name": "Newcomers in Vale da Gema Headwaters: Rooting in Place",
+   "passages": [
+    "We came to the Vale da Gema from different places, drawn by different threads — a film about water restoration, a friend who visited Tamera, a growing ache for a life more connected to land and community.",
+    "None of us expected to find what we found: not just a beautiful valley, but a movement."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T17:21:57.604000Z",
+   "checkedAt": "2026-11-19T04:18:25.285000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Abaa7dvcywfqvk7p6aa6ibqhz%2Forg.hypercerts.collection%2F3mn6fvlcecs2q"
+  },
+  {
+   "id": "rp-133",
+   "uri": "at://did:plc:zjrlqiw6ktf63rc6aqjflqcn/org.hypercerts.collection/3mn5rg362s22q",
+   "account": "did:plc:zjrlqiw6ktf63rc6aqjflqcn",
+   "name": "Orang Seletar craft revival and coastal stewardship",
+   "passages": [
+    "Connecting Women, Culture, and Coastal Ecosystems",
+    "The indigenous Orang Laut Seletar live near mangroves and have developed a strong system of knowledge about their environment, which they use to sustainably access essential supplies from coastal ecosystems for everyday use and for spiritual and cultural practices."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T13:56:05.770000Z",
+   "checkedAt": "2026-11-19T04:18:25.033000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Azjrlqiw6ktf63rc6aqjflqcn%2Forg.hypercerts.collection%2F3mn5rg362s22q"
+  },
+  {
+   "id": "rp-134",
+   "uri": "at://did:plc:q6p67qp4bu5h5resutge7tlv/org.hypercerts.collection/3mpi3in2rmc2i",
+   "account": "did:plc:q6p67qp4bu5h5resutge7tlv",
+   "name": "Rehabilitasi Ekosistem Mangrove",
+   "passages": [
+    "Kegiatan rehabilitasi ekosistem mangrove di Semarang",
+    "Ekosistem mangrove mengalami degradasi karena banyaknya alih fungsi lahan karena banyaknya kegiatan reklamasi sehingga mengancam ekosistem dan habitat"
+   ],
+   "language": "other",
+   "stratum": "language:other",
+   "sharedAt": "2026-06-30T03:42:28.140000Z",
+   "checkedAt": "2026-11-19T04:18:27.056000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aq6p67qp4bu5h5resutge7tlv%2Forg.hypercerts.collection%2F3mpi3in2rmc2i"
+  },
+  {
+   "id": "rp-135",
+   "uri": "at://did:plc:5luygvituyf3fp24tx47fdq3/org.hypercerts.collection/3mni5qyzrvs2q",
+   "account": "did:plc:5luygvituyf3fp24tx47fdq3",
+   "name": "Forest recovery in Fokontany Befontsy, Madagascar",
+   "passages": [
+    "Fokontany Befontsy Commune rurale d'Antsahamena district d'Andapa Région SAVA Madagascar, est victime à la déforestation qui produit des activités sur brulis.",
+    "Par an, plus de 8000ha la forêt primaire et secondaire brûlés."
+   ],
+   "language": "fr",
+   "stratum": "language:fr",
+   "sharedAt": "2026-05-09T21:02:19.211000Z",
+   "checkedAt": "2026-11-19T04:18:16.608000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3A5luygvituyf3fp24tx47fdq3%2Forg.hypercerts.collection%2F3mni5qyzrvs2q"
+  },
+  {
+   "id": "rp-136",
+   "uri": "at://did:plc:wlpchpccv244w2k2tjz3mcry/org.hypercerts.collection/3mn2sojw6222q",
+   "account": "did:plc:wlpchpccv244w2k2tjz3mcry",
+   "name": "Dwelling: A Mycellium of Dreamers and Makers",
+   "passages": [
+    "Dwelling: A Creative Convergence",
+    "Dwelling creates a rare sanctuary for artists, scientists, educators, and creative practitioners to pause, reflect, and collaborate without the pressure of immediate crises."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-30T09:50:46.283000Z",
+   "checkedAt": "2026-11-19T04:18:23.950000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Awlpchpccv244w2k2tjz3mcry%2Forg.hypercerts.collection%2F3mn2sojw6222q"
+  },
+  {
+   "id": "rp-137",
+   "uri": "at://did:plc:lffyabnplb4pxcpmegv4snhs/org.hypercerts.collection/3mmzyn6p2os2q",
+   "account": "did:plc:lffyabnplb4pxcpmegv4snhs",
+   "name": "Arte na Terra - Agroforestry coffie, art bees and education",
+   "passages": [
+    "This is our Head quarters in Ribeirão preto a tradicional Coffie farm that has been regenerated to be a agroforestry coffie production site as well as and arte and environmental educational place, we receive schools and all kind of students.",
+    "We also have a project with bees focussing on the role..."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-30T02:08:04.735000Z",
+   "checkedAt": "2026-11-19T04:18:23.689000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Alffyabnplb4pxcpmegv4snhs%2Forg.hypercerts.collection%2F3mmzyn6p2os2q"
+  },
+  {
+   "id": "rp-138",
+   "uri": "at://did:plc:z3gzydlczqeacpjnxc3nxi57/org.hypercerts.collection/3mrxyzgh2vc2t",
+   "account": "did:plc:z3gzydlczqeacpjnxc3nxi57",
+   "name": "Estudio de Biodiversidad",
+   "passages": [
+    "Bicheado en los llaganates- piatua",
+    "monitoreo de reptiles, aves, mamiferos, amfibios"
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-07-31T22:31:08.322000Z",
+   "checkedAt": "2026-11-19T04:18:27.778000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Az3gzydlczqeacpjnxc3nxi57%2Forg.hypercerts.collection%2F3mrxyzgh2vc2t"
+  },
+  {
+   "id": "rp-139",
+   "uri": "at://did:plc:ulpb4m6t2jnr6oj6hwcihaby/org.hypercerts.collection/3mmhoxxz6322q",
+   "account": "did:plc:ulpb4m6t2jnr6oj6hwcihaby",
+   "name": "Restoring San Antonio's drylands, Tamaulipas",
+   "passages": [
+    "El proyecto de restauración del Ejido San Antonio se desarrolla en el municipio de Jaumave, Tamaulipas, México, dentro de un ecosistema semiárido caracterizado por matorral xerófilo y zonas con alta vulnerabilidad a la degradación del suelo, erosión y escasez de agua.",
+    "Durante años, la comunidad ha enfrentado los efectos de las sequías prolongadas, la pérdida de cobertura vegetal y el deterioro de los recursos naturales, lo que ha afectado tanto el equilibrio ecológico como las actividades productivas locales."
+   ],
+   "language": "es",
+   "stratum": "language:es",
+   "sharedAt": "2026-05-22T19:30:59.342000Z",
+   "checkedAt": "2026-11-19T04:18:19.888000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Aulpb4m6t2jnr6oj6hwcihaby%2Forg.hypercerts.collection%2F3mmhoxxz6322q"
+  },
+  {
+   "id": "rp-140",
+   "uri": "at://did:plc:nior52stdfhqduon3rpnt2sm/org.hypercerts.collection/3mn6h2ujcsk2q",
+   "account": "did:plc:nior52stdfhqduon3rpnt2sm",
+   "name": "Creative Arts and Land-Based Skills Learning in the Crags, South Africa",
+   "passages": [
+    "Kuthumba Ecovillage was founded over 30 years ago on a simple, powerful idea: that humans can live in harmony with the land while supporting one another's unique paths to growth.",
+    "From that seed, a thriving community grew, one that honours the interrelationship of all life, holds the sanctity of the land at its centre, and has spent three decades demonstrating that another way of living is possible."
+   ],
+   "language": "en",
+   "stratum": "theme:art",
+   "sharedAt": "2026-05-31T16:14:28.049000Z",
+   "checkedAt": "2026-11-19T04:18:25.281000Z",
+   "collectedAt": "2026-11-19T19:31:54.051Z",
+   "sourceUrl": "https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=at%3A%2F%2Fdid%3Aplc%3Anior52stdfhqduon3rpnt2sm%2Forg.hypercerts.collection%2F3mn6h2ujcsk2q"
+  }
+ ]
+}

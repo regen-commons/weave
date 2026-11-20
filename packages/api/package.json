@@ -87,6 +87,7 @@
     "test": "node --test src/*.test.ts evaluation/*.test.mjs",
     "eval:matching": "node scripts/matching-heldout.mjs",
     "eval:matching-v3": "node scripts/matching-v3.mjs",
+    "eval:matching-real": "node scripts/matching-real.mjs",
     "auth:bridge": "node src/certified-server.ts",
     "auth:check": "node src/certified-check.ts",
     "auth:keys": "node src/certified-admin.ts",

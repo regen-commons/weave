@@ -1,0 +1,3002 @@
+{
+ "version": 1,
+ "dataset": "partner-real-v1-agent-labels",
+ "annotationStatus": "AGENT-JUDGED, PROVISIONAL. Not human judgments. authorRelevant/authorDecoys/authorDoubt come from the agent that wrote each query; judgeRelevant/judgeUncertain from a separate agent instance per domain that judged every query against the whole corpus from title and description only, without seeing the author labels or the query types. Both were blind to the matcher. The human gate is the two-reviewer worksheet.",
+ "rubric": "partner-real-rubric-v1: a need is served by a project whose described work could plausibly provide what is needed; an offer by a project that could plausibly use what is offered, given what it describes doing. A nearby but different activity is not relevant, and shared vague words are not a reason. Availability, price, distance and language are ignored. Judged from the listed passages only.",
+ "labels": [
+  {
+   "id": "rq-art-n01",
+   "authorRelevant": [
+    "rp-118"
+   ],
+   "authorDecoys": [
+    "rp-132"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-118 is building a free film training center for people without access to film education.",
+   "judgeRelevant": [
+    "rp-118"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Only the free film training center teaches filmmaking."
+  },
+  {
+   "id": "rq-art-n02",
+   "authorRelevant": [
+    "rp-106",
+    "rp-096",
+    "rp-090",
+    "rp-136"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects combine art with conservation science or convene artists and scientists.",
+   "judgeRelevant": [
+    "rp-106",
+    "rp-096"
+   ],
+   "judgeUncertain": [
+    "rp-090"
+   ],
+   "judgeRationale": "Reserva Managua joins art and science for water conservation; Ruamahanga links art and river restoration."
+  },
+  {
+   "id": "rq-art-n03",
+   "authorRelevant": [
+    "rp-094",
+    "rp-133"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Both projects center women artisans and craft production.",
+   "judgeRelevant": [
+    "rp-094",
+    "rp-133"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Maasai women artisans and Orang Seletar women's craft revival produce handmade crafts."
+  },
+  {
+   "id": "rq-art-n04",
+   "authorRelevant": [
+    "rp-136",
+    "rp-070",
+    "rp-063"
+   ],
+   "authorDecoys": [
+    "rp-036"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Dwelling, the School for Inclement Weather and kuu village host artists and practitioners for stays.",
+   "judgeRelevant": [
+    "rp-063",
+    "rp-070",
+    "rp-136"
+   ],
+   "judgeUncertain": [
+    "rp-036",
+    "rp-098"
+   ],
+   "judgeRationale": "kuu village hosts artists and land stewards for weeks; the fire school runs residencies; Dwelling is a sanctuary for artists and scientists."
+  },
+  {
+   "id": "rq-art-n05",
+   "authorRelevant": [
+    "rp-067",
+    "rp-126"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "CurrentShift works through science and stories; Forest For Trees blends art with educational storytelling on climate.",
+   "judgeRelevant": [
+    "rp-126",
+    "rp-067"
+   ],
+   "judgeUncertain": [
+    "rp-106"
+   ],
+   "judgeRationale": "Both blend climate or marine science with storytelling."
+  },
+  {
+   "id": "rq-art-n06",
+   "authorRelevant": [
+    "rp-060",
+    "rp-052"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-111 is the same Tierra Valiente lab as rp-060 but its passage does not mention healing arts, so it is left out.",
+   "authorRationale": "rp-060 establishes healing arts practices and rp-052 is a healing-centered cultural project.",
+   "judgeRelevant": [
+    "rp-060",
+    "rp-052"
+   ],
+   "judgeUncertain": [
+    "rp-111"
+   ],
+   "judgeRationale": "Tierra Valiente establishes healing arts practices; Nka ogwugwo is a healing-centered cultural project."
+  },
+  {
+   "id": "rq-art-n07",
+   "authorRelevant": [
+    "rp-089",
+    "rp-121"
+   ],
+   "authorDecoys": [
+    "rp-084"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-089 documents medicinal plant knowledge and rp-121 rescues ancestral Amazonian medicinal plant uses.",
+   "judgeRelevant": [
+    "rp-089",
+    "rp-121"
+   ],
+   "judgeUncertain": [
+    "rp-084",
+    "rp-099"
+   ],
+   "judgeRationale": "Shansha documents ancestral medicinal plant knowledge; Santarem garden rescues traditional medicinal plant knowledge."
+  },
+  {
+   "id": "rq-art-n08",
+   "authorRelevant": [
+    "rp-110",
+    "rp-125",
+    "rp-137"
+   ],
+   "authorDecoys": [
+    "rp-017",
+    "rp-076"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "These projects explicitly teach environment through art and stories and receive school groups.",
+   "judgeRelevant": [
+    "rp-110",
+    "rp-125",
+    "rp-137",
+    "rp-096"
+   ],
+   "judgeUncertain": [
+    "rp-126"
+   ],
+   "judgeRationale": "These combine art or stories with environmental education for students."
+  },
+  {
+   "id": "rq-art-n09",
+   "authorRelevant": [
+    "rp-118"
+   ],
+   "authorDecoys": [
+    "rp-034"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-118 aims to open access to cinematic gear for communities.",
+   "judgeRelevant": [
+    "rp-118"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "The film training center aims to open access to cinematic gear."
+  },
+  {
+   "id": "rq-art-n10",
+   "authorRelevant": [
+    "rp-098"
+   ],
+   "authorDecoys": [
+    "rp-107"
+   ],
+   "authorDoubt": "rp-013 mentions ancient building methods but not timber, so it is left out.",
+   "authorRationale": "rp-098's tiny house was designed and built by a university wood programme with craft-quality timber construction.",
+   "judgeRelevant": [
+    "rp-098"
+   ],
+   "judgeUncertain": [
+    "rp-013"
+   ],
+   "judgeRationale": "The Kore house was built with craft-quality timber construction."
+  },
+  {
+   "id": "rq-art-n11",
+   "authorRelevant": [
+    "rp-063"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "kuu village brings designers and architects to live and build on rural land.",
+   "judgeRelevant": [
+    "rp-063"
+   ],
+   "judgeUncertain": [
+    "rp-098",
+    "rp-081"
+   ],
+   "judgeRationale": "kuu village brings together designers and architects to build a village."
+  },
+  {
+   "id": "rq-art-n12",
+   "authorRelevant": [
+    "rp-126"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Forest For Trees Collective runs a public arts space.",
+   "judgeRelevant": [
+    "rp-126"
+   ],
+   "judgeUncertain": [
+    "rp-137"
+   ],
+   "judgeRationale": "Forest For Trees Collective runs a public arts space on Governors Island."
+  },
+  {
+   "id": "rq-art-n13",
+   "authorRelevant": [
+    "rp-118",
+    "rp-048"
+   ],
+   "authorDecoys": [
+    "rp-132"
+   ],
+   "authorDoubt": "rp-048 produced a documentary as part of earlier work, but it is unclear it offers filmmaking to others.",
+   "authorRationale": "rp-118 trains filmmakers; rp-048's research produced a documentary.",
+   "judgeRelevant": [
+    "rp-118"
+   ],
+   "judgeUncertain": [
+    "rp-048"
+   ],
+   "judgeRationale": "The film training center has film capability; the Batswana project previously made a documentary."
+  },
+  {
+   "id": "rq-art-n14",
+   "authorRelevant": [
+    "rp-089"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-089 documents ancestral knowledge using Wikimedia Commons.",
+   "judgeRelevant": [
+    "rp-089"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Only rp-089 documents knowledge on Wikimedia Commons."
+  },
+  {
+   "id": "rq-art-n15",
+   "authorRelevant": [
+    "rp-126",
+    "rp-090",
+    "rp-096",
+    "rp-125"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Artist collectives and community art-and-ecology projects could provide community art.",
+   "judgeRelevant": [
+    "rp-126",
+    "rp-090",
+    "rp-125",
+    "rp-137"
+   ],
+   "judgeUncertain": [
+    "rp-096"
+   ],
+   "judgeRationale": "Artist collectives and art-plus-community education projects make community art."
+  },
+  {
+   "id": "rq-art-n16",
+   "authorRelevant": [
+    "rp-133"
+   ],
+   "authorDecoys": [
+    "rp-117"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-133 revives indigenous coastal crafts alongside mangrove stewardship.",
+   "judgeRelevant": [
+    "rp-133"
+   ],
+   "judgeUncertain": [
+    "rp-117"
+   ],
+   "judgeRationale": "Orang Seletar craft revival restores coastal community crafts."
+  },
+  {
+   "id": "rq-art-n17",
+   "authorRelevant": [
+    "rp-140",
+    "rp-125"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Kuthumba teaches creative arts with land-based skills; Arte Escola links art with agroecology.",
+   "judgeRelevant": [
+    "rp-140",
+    "rp-125"
+   ],
+   "judgeUncertain": [
+    "rp-137",
+    "rp-070"
+   ],
+   "judgeRationale": "Kuthumba teaches creative arts with land-based skills; Arte Escola links art and agroecology with farmers."
+  },
+  {
+   "id": "rq-art-n18",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-034",
+    "rp-093",
+    "rp-057",
+    "rp-009",
+    "rp-083"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Several projects record soundscapes for monitoring, but none composes or makes sound art.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-090"
+   ],
+   "judgeRationale": "Soundscape projects record but none composes; only the artist-led lab might."
+  },
+  {
+   "id": "rq-art-n19",
+   "authorRelevant": [
+    "rp-133",
+    "rp-094"
+   ],
+   "authorDecoys": [
+    "rp-075"
+   ],
+   "authorDoubt": "rp-133 and rp-094 are artisan craft projects but neither names weaving; included as plausible.",
+   "authorRationale": "Threads of Resilience uses weaving only as a metaphor; the artisan craft projects are the plausible providers.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-094",
+    "rp-133"
+   ],
+   "judgeRationale": "Artisan projects exist but none describes weaving or textile skills."
+  },
+  {
+   "id": "rq-art-n20",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-034"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "No project in the corpus offers music recording or production.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project offers music recording facilities; bioacoustic projects record wildlife only."
+  },
+  {
+   "id": "rq-art-o01",
+   "authorRelevant": [
+    "rp-110",
+    "rp-125",
+    "rp-137",
+    "rp-140",
+    "rp-076"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects run art-based or observation-based environmental learning that could use art educators.",
+   "judgeRelevant": [
+    "rp-110",
+    "rp-065",
+    "rp-017",
+    "rp-076",
+    "rp-137",
+    "rp-125"
+   ],
+   "judgeUncertain": [
+    "rp-096"
+   ],
+   "judgeRationale": "School and child environmental education programs could host nature journaling."
+  },
+  {
+   "id": "rq-art-o02",
+   "authorRelevant": [
+    "rp-136",
+    "rp-070",
+    "rp-063"
+   ],
+   "authorDecoys": [
+    "rp-036"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "These projects host residencies or co-living stays for artists and makers.",
+   "judgeRelevant": [
+    "rp-070",
+    "rp-063",
+    "rp-136"
+   ],
+   "judgeUncertain": [
+    "rp-111"
+   ],
+   "judgeRationale": "These host residencies or artists living on regenerative land."
+  },
+  {
+   "id": "rq-art-o03",
+   "authorRelevant": [
+    "rp-094",
+    "rp-133"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Both projects work with women artisans and craft.",
+   "judgeRelevant": [
+    "rp-094",
+    "rp-133"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Both are women artisan craft groups."
+  },
+  {
+   "id": "rq-art-o04",
+   "authorRelevant": [
+    "rp-048",
+    "rp-089",
+    "rp-084"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-099 builds on traditional ecological knowledge but frames it as a field baseline, so it is left out.",
+   "authorRationale": "These projects document or rescue elders' and ancestral knowledge.",
+   "judgeRelevant": [
+    "rp-089",
+    "rp-084",
+    "rp-048"
+   ],
+   "judgeUncertain": [
+    "rp-126"
+   ],
+   "judgeRationale": "These document ancestral knowledge and oral histories of Indigenous communities."
+  },
+  {
+   "id": "rq-art-o05",
+   "authorRelevant": [
+    "rp-046",
+    "rp-119"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Permacultura desde 0 and Ma Earth Studio produce free or open educational resources.",
+   "judgeRelevant": [
+    "rp-046",
+    "rp-119"
+   ],
+   "judgeUncertain": [
+    "rp-081"
+   ],
+   "judgeRationale": "Free online permaculture education and Ma Earth Studio educational resources could use filmed lessons."
+  },
+  {
+   "id": "rq-art-o06",
+   "authorRelevant": [
+    "rp-003",
+    "rp-055",
+    "rp-036"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-003 shows only a heading about gatherings with land; included on that basis.",
+   "authorRationale": "These projects organize gatherings or run an event center.",
+   "judgeRelevant": [
+    "rp-003",
+    "rp-055"
+   ],
+   "judgeUncertain": [
+    "rp-036"
+   ],
+   "judgeRationale": "Balkan Earth gatherings and Garden of Life run community land gatherings."
+  },
+  {
+   "id": "rq-art-o07",
+   "authorRelevant": [
+    "rp-118"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-118 is building a free film training center and names gear as a barrier.",
+   "judgeRelevant": [
+    "rp-118"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "The free film training center lacks cinematic gear."
+  },
+  {
+   "id": "rq-art-o08",
+   "authorRelevant": [
+    "rp-096",
+    "rp-106"
+   ],
+   "authorDecoys": [
+    "rp-021"
+   ],
+   "authorDoubt": "rp-041 works on rivers and community spaces but says nothing about art or youth, so it is left out.",
+   "authorRationale": "rp-096 unites youth creativity with river restoration; rp-106 joins art and water conservation.",
+   "judgeRelevant": [
+    "rp-096"
+   ],
+   "judgeUncertain": [
+    "rp-041",
+    "rp-101"
+   ],
+   "judgeRationale": "Ruamahanga River revival unites young people's art and river conservation."
+  },
+  {
+   "id": "rq-art-o09",
+   "authorRelevant": [
+    "rp-052",
+    "rp-060"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-052 is a healing-centered project born from burnout; rp-060 is building healing arts practices.",
+   "judgeRelevant": [
+    "rp-052",
+    "rp-060"
+   ],
+   "judgeUncertain": [
+    "rp-136",
+    "rp-070"
+   ],
+   "judgeRationale": "Healing-centered projects born of burnout and building healing arts practices could use expressive arts groups."
+  },
+  {
+   "id": "rq-art-o10",
+   "authorRelevant": [
+    "rp-110",
+    "rp-065",
+    "rp-017"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These are children's environmental education programmes that use books, stories or curricula.",
+   "judgeRelevant": [
+    "rp-110",
+    "rp-065",
+    "rp-017",
+    "rp-076",
+    "rp-137"
+   ],
+   "judgeUncertain": [
+    "rp-125"
+   ],
+   "judgeRationale": "Children's environmental education programs could use illustrated booklets."
+  },
+  {
+   "id": "rq-art-o11",
+   "authorRelevant": [
+    "rp-090",
+    "rp-096",
+    "rp-106",
+    "rp-126"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects make art about ecosystems and could show it.",
+   "judgeRelevant": [
+    "rp-126",
+    "rp-090",
+    "rp-096",
+    "rp-106"
+   ],
+   "judgeUncertain": [
+    "rp-136"
+   ],
+   "judgeRationale": "Artist collectives and art-for-conservation projects produce climate-themed work."
+  },
+  {
+   "id": "rq-art-o12",
+   "authorRelevant": [
+    "rp-013",
+    "rp-063",
+    "rp-036"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects are building an educational center, co-living housing or an eco village.",
+   "judgeRelevant": [
+    "rp-013",
+    "rp-063"
+   ],
+   "judgeUncertain": [
+    "rp-081",
+    "rp-036",
+    "rp-056"
+   ],
+   "judgeRationale": "Empyrean Farm is building an educational center and kuu village is raising money to build housing."
+  },
+  {
+   "id": "rq-art-o13",
+   "authorRelevant": [
+    "rp-094",
+    "rp-133"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Artisan craft projects could use a selling stall.",
+   "judgeRelevant": [
+    "rp-094",
+    "rp-133"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Women artisan groups could sell crafts at a fair stall."
+  },
+  {
+   "id": "rq-art-o14",
+   "authorRelevant": [
+    "rp-067",
+    "rp-126",
+    "rp-048"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-048 produced a book from elders' knowledge; a writer is plausible but not a stated need.",
+   "authorRationale": "Storytelling-centered projects could use a writer.",
+   "judgeRelevant": [
+    "rp-067",
+    "rp-126"
+   ],
+   "judgeUncertain": [
+    "rp-048"
+   ],
+   "judgeRationale": "Projects built on stories and educational storytelling could use a volunteer writer."
+  },
+  {
+   "id": "rq-art-o15",
+   "authorRelevant": [
+    "rp-089",
+    "rp-113"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-089 documents heritage on Wikimedia Commons and rp-113 uses nature documentation.",
+   "judgeRelevant": [
+    "rp-089"
+   ],
+   "judgeUncertain": [
+    "rp-113",
+    "rp-093"
+   ],
+   "judgeRationale": "Shansha documents heritage for Wikimedia Commons; others document nature more loosely."
+  },
+  {
+   "id": "rq-art-o16",
+   "authorRelevant": [
+    "rp-140",
+    "rp-036",
+    "rp-081"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-036 and rp-081 are eco-villages with no stated arts programme; included as plausible users.",
+   "authorRationale": "Kuthumba Ecovillage teaches creative arts; the other eco-villages could host workshops.",
+   "judgeRelevant": [
+    "rp-140",
+    "rp-081",
+    "rp-036",
+    "rp-103"
+   ],
+   "judgeUncertain": [
+    "rp-111",
+    "rp-063"
+   ],
+   "judgeRationale": "These are ecovillages or land-based living communities."
+  },
+  {
+   "id": "rq-art-o17",
+   "authorRelevant": [
+    "rp-126"
+   ],
+   "authorDecoys": [
+    "rp-048"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-126 brings Indigenous grandmothers to speak at a climate event.",
+   "judgeRelevant": [
+    "rp-126"
+   ],
+   "judgeUncertain": [
+    "rp-048"
+   ],
+   "judgeRationale": "rp-126 brings Indigenous grandmothers to Climate Week, the same activity."
+  },
+  {
+   "id": "rq-art-o18",
+   "authorRelevant": [
+    "rp-048"
+   ],
+   "authorDecoys": [
+    "rp-132",
+    "rp-054",
+    "rp-014"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-132 only mentions a film that inspired its members; rp-048 is the project with its own documentary.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-132",
+    "rp-118"
+   ],
+   "judgeRationale": "No project makes water restoration films to tour."
+  },
+  {
+   "id": "rq-art-o19",
+   "authorRelevant": [
+    "rp-090",
+    "rp-126"
+   ],
+   "authorDecoys": [
+    "rp-079",
+    "rp-108",
+    "rp-091"
+   ],
+   "authorDoubt": "rp-090 and rp-126 are artist groups that could sell work this way, but neither mentions digital sales.",
+   "authorRationale": "Token and web3 projects share words but make no artworks; artist groups are the plausible users.",
+   "judgeRelevant": [
+    "rp-079"
+   ],
+   "judgeUncertain": [
+    "rp-108"
+   ],
+   "judgeRationale": "The Tokyo project already uses digital tokens for urban regeneration."
+  },
+  {
+   "id": "rq-art-o20",
+   "authorRelevant": [],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "No project in the corpus runs music education or an orchestra.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No youth orchestra or music education project in the corpus."
+  },
+  {
+   "id": "rq-pl-n01",
+   "authorRelevant": [
+    "rp-114"
+   ],
+   "authorDecoys": [
+    "rp-086"
+   ],
+   "authorDoubt": "rp-086 processes organic waste with black soldier fly larvae, a nearby but different method; left out.",
+   "authorRationale": "rp-114 runs a weekly community composting project.",
+   "judgeRelevant": [
+    "rp-114"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Mérida runs a weekly community composting hub."
+  },
+  {
+   "id": "rq-pl-n02",
+   "authorRelevant": [
+    "rp-010",
+    "rp-012",
+    "rp-117",
+    "rp-134"
+   ],
+   "authorDecoys": [
+    "rp-051",
+    "rp-133"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "These four projects restore or rehabilitate mangroves; rp-051 only monitors sound in restored mangroves.",
+   "judgeRelevant": [
+    "rp-012",
+    "rp-010",
+    "rp-134",
+    "rp-117"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Projects that replant and rehabilitate mangroves."
+  },
+  {
+   "id": "rq-pl-n03",
+   "authorRelevant": [
+    "rp-015"
+   ],
+   "authorDecoys": [
+    "rp-032",
+    "rp-103"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-015 builds water-harvesting native food forests in an urban desert.",
+   "judgeRelevant": [
+    "rp-015"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Plant the Rain does water-harvesting native food forests on urban asphalt in the Sonoran Desert."
+  },
+  {
+   "id": "rq-pl-n04",
+   "authorRelevant": [
+    "rp-061"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-061 restores reefs by transplanting detached corals and nursery cuttings.",
+   "judgeRelevant": [
+    "rp-061"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Ranobe Bay transplants corals and runs a cuttings nursery."
+  },
+  {
+   "id": "rq-pl-n05",
+   "authorRelevant": [
+    "rp-070"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-070 practices and teaches prescribed fire as land stewardship.",
+   "judgeRelevant": [
+    "rp-070"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "School for Inclement Weather practices prescribed fire."
+  },
+  {
+   "id": "rq-pl-n06",
+   "authorRelevant": [
+    "rp-123",
+    "rp-097",
+    "rp-027"
+   ],
+   "authorDecoys": [
+    "rp-106"
+   ],
+   "authorDoubt": "rp-097 and rp-027 restore Andean cloud forest and plausibly raise native seedlings, but do not say so; rp-100 restores a high-Andean hillside but its propagation is not described, left out.",
+   "authorRationale": "rp-123 propagates native species for high-Andean forests; rp-097 and rp-027 reforest Andean forests.",
+   "judgeRelevant": [
+    "rp-123"
+   ],
+   "judgeUncertain": [
+    "rp-129",
+    "rp-097"
+   ],
+   "judgeRationale": "Reserva Guanacas propagates native high-Andean species for restoration plots and corridors."
+  },
+  {
+   "id": "rq-pl-n07",
+   "authorRelevant": [
+    "rp-018"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-018 runs koala-corridor habitat restoration.",
+   "judgeRelevant": [
+    "rp-018"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Grassroots koala-corridor restoration in NSW."
+  },
+  {
+   "id": "rq-pl-n08",
+   "authorRelevant": [
+    "rp-048"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-048 supports elders establishing home food gardens of indigenous crops.",
+   "judgeRelevant": [
+    "rp-048"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Food Sovereignty for Batswana Elders supports elders' home gardens of African indigenous crops."
+  },
+  {
+   "id": "rq-pl-n09",
+   "authorRelevant": [
+    "rp-017",
+    "rp-076"
+   ],
+   "authorDecoys": [
+    "rp-110"
+   ],
+   "authorDoubt": "rp-125 (living forest classrooms, agroecology) and rp-127 (farm-school) could also teach growing food, but not clearly at a school site; left out.",
+   "authorRationale": "rp-017 runs school gardens and rp-076 school botanical gardens.",
+   "judgeRelevant": [
+    "rp-017"
+   ],
+   "judgeUncertain": [
+    "rp-076"
+   ],
+   "judgeRationale": "Growing Rhythms is a school garden curriculum where children grow food."
+  },
+  {
+   "id": "rq-pl-n10",
+   "authorRelevant": [
+    "rp-124",
+    "rp-139"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-124 studies soil collapse and gully formation; rp-139 restores semi-arid land facing erosion.",
+   "judgeRelevant": [
+    "rp-124"
+   ],
+   "judgeUncertain": [
+    "rp-139"
+   ],
+   "judgeRationale": "Formosa project studies soil collapse and gully erosion on smallholder land."
+  },
+  {
+   "id": "rq-pl-n11",
+   "authorRelevant": [
+    "rp-042"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-042 tackles invasive species in a community forest.",
+   "judgeRelevant": [
+    "rp-042"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "ShantiKunj community forest is tackling invasive species smothering the forest."
+  },
+  {
+   "id": "rq-pl-n12",
+   "authorRelevant": [
+    "rp-085",
+    "rp-015"
+   ],
+   "authorDecoys": [
+    "rp-079"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-085 studies outdoor thermal comfort in a city; rp-015 cools streets by replacing asphalt with plantings.",
+   "judgeRelevant": [
+    "rp-085",
+    "rp-015"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "CoolWalk Sofia measures outdoor thermal conditions; Plant the Rain cools asphalt neighborhoods."
+  },
+  {
+   "id": "rq-pl-n13",
+   "authorRelevant": [
+    "rp-137"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-137 only says it has a project with bees; whether it can mentor beekeeping is uncertain.",
+   "authorRationale": "rp-137 is the only project that mentions working with bees.",
+   "judgeRelevant": [
+    "rp-137"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Arte na Terra runs a bee project alongside education."
+  },
+  {
+   "id": "rq-pl-n14",
+   "authorRelevant": [
+    "rp-059"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-020 trains coastal communities on waste management and may run cleanups, but does not say so; left out.",
+   "authorRationale": "rp-059 organises neighbourhood cleanups.",
+   "judgeRelevant": [
+    "rp-059"
+   ],
+   "judgeUncertain": [
+    "rp-020"
+   ],
+   "judgeRationale": "La Ligne Verte organises neighborhood cleanups."
+  },
+  {
+   "id": "rq-pl-n15",
+   "authorRelevant": [
+    "rp-002"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-002 restores traditional taro patches.",
+   "judgeRelevant": [
+    "rp-002"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Restoring mesei taro patches in Palau."
+  },
+  {
+   "id": "rq-pl-n16",
+   "authorRelevant": [
+    "rp-041"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-096 revives a river with young people, but not an urban sewage channel; left out.",
+   "authorRationale": "rp-041 turns city rivers used as sewage channels into community spaces.",
+   "judgeRelevant": [
+    "rp-041"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Sofia's rivers turned from sewage channels into community spaces."
+  },
+  {
+   "id": "rq-pl-n17",
+   "authorRelevant": [
+    "rp-035"
+   ],
+   "authorDecoys": [
+    "rp-007"
+   ],
+   "authorDoubt": "rp-070 uses rotational grazing on its own site but does not restore pastoral rangelands; left out.",
+   "authorRationale": "rp-035 restores degraded rangelands with communities in northern Kenya.",
+   "judgeRelevant": [
+    "rp-035"
+   ],
+   "judgeUncertain": [
+    "rp-139"
+   ],
+   "judgeRationale": "Community-led restoration of degraded rangelands in northern Kenya."
+  },
+  {
+   "id": "rq-pl-n18",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-034",
+    "rp-083",
+    "rp-009",
+    "rp-057"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Acoustic projects in the corpus record wildlife sound; none treats building acoustics.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project does building acoustics; bioacoustic monitoring is unrelated."
+  },
+  {
+   "id": "rq-pl-n19",
+   "authorRelevant": [
+    "rp-013",
+    "rp-098"
+   ],
+   "authorDecoys": [
+    "rp-110",
+    "rp-125",
+    "rp-065"
+   ],
+   "authorDoubt": "rp-013 mentions ancient building methods at an educational centre, and rp-098 a timber tiny house built by a university wood programme; neither says it teaches builders.",
+   "authorRationale": "Only rp-013 and rp-098 describe building; the classroom projects are about teaching, not construction.",
+   "judgeRelevant": [
+    "rp-013"
+   ],
+   "judgeUncertain": [
+    "rp-098"
+   ],
+   "judgeRationale": "Empyrean Farm's educational center uses ancient building methods; Kore house is timber-built but not clearly teaching."
+  },
+  {
+   "id": "rq-pl-n20",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-136",
+    "rp-039",
+    "rp-137"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "No project grows mushrooms; coffee projects grow coffee trees.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project describes mushroom cultivation."
+  },
+  {
+   "id": "rq-pl-o01",
+   "authorRelevant": [
+    "rp-010",
+    "rp-012",
+    "rp-117",
+    "rp-134"
+   ],
+   "authorDecoys": [
+    "rp-051"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "These projects replant or rehabilitate mangroves.",
+   "judgeRelevant": [
+    "rp-012",
+    "rp-010",
+    "rp-134",
+    "rp-117"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Mangrove restoration groups that plant seedlings."
+  },
+  {
+   "id": "rq-pl-o02",
+   "authorRelevant": [
+    "rp-048",
+    "rp-016",
+    "rp-017",
+    "rp-019",
+    "rp-023"
+   ],
+   "authorDecoys": [
+    "rp-114"
+   ],
+   "authorDoubt": "Many other farming projects (rp-013, rp-081, rp-103, rp-125, rp-127) could also use compost; only those naming food gardens or soil recovery are listed.",
+   "authorRationale": "These projects grow food in gardens or rebuild farm soil.",
+   "judgeRelevant": [
+    "rp-019",
+    "rp-048",
+    "rp-017",
+    "rp-023"
+   ],
+   "judgeUncertain": [
+    "rp-016"
+   ],
+   "judgeRationale": "Home, school and community gardens and soil-recovery projects could use finished compost."
+  },
+  {
+   "id": "rq-pl-o03",
+   "authorRelevant": [
+    "rp-086"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-086 runs hydroponic food production.",
+   "judgeRelevant": [
+    "rp-086"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Rwamwanja runs hydroponic food production."
+  },
+  {
+   "id": "rq-pl-o04",
+   "authorRelevant": [
+    "rp-077"
+   ],
+   "authorDecoys": [
+    "rp-061"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-077 restores kelp ecosystems.",
+   "judgeRelevant": [
+    "rp-077"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Kelp Gardeners restores kelp ecosystems."
+  },
+  {
+   "id": "rq-pl-o05",
+   "authorRelevant": [
+    "rp-070",
+    "rp-062"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-062 runs regenerative cattle fattening cycles with partner ranchers; whether it takes outside cattle is unclear. rp-035 restores rangelands but does not mention grazing management; left out.",
+   "authorRationale": "rp-070 uses rotational grazing and rp-062 runs regenerative cattle cycles.",
+   "judgeRelevant": [
+    "rp-070"
+   ],
+   "judgeUncertain": [
+    "rp-035"
+   ],
+   "judgeRationale": "School for Inclement Weather uses rotational grazing in land stewardship."
+  },
+  {
+   "id": "rq-pl-o06",
+   "authorRelevant": [
+    "rp-015",
+    "rp-016",
+    "rp-032",
+    "rp-058",
+    "rp-103",
+    "rp-125"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Each of these projects plants food forests or forest gardens.",
+   "judgeRelevant": [
+    "rp-015",
+    "rp-016",
+    "rp-032",
+    "rp-103",
+    "rp-058",
+    "rp-125",
+    "rp-025"
+   ],
+   "judgeUncertain": [
+    "rp-081"
+   ],
+   "judgeRationale": "Projects establishing food forests or agroforestry plantings."
+  },
+  {
+   "id": "rq-pl-o07",
+   "authorRelevant": [
+    "rp-129"
+   ],
+   "authorDecoys": [
+    "rp-058",
+    "rp-125"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-129 reforests seasonal dry forest in the Amazon and raises its own plant material.",
+   "judgeRelevant": [
+    "rp-129"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "CIGDES reforests Amazonian seasonal dry forest and produces its own plant material."
+  },
+  {
+   "id": "rq-pl-o08",
+   "authorRelevant": [
+    "rp-121"
+   ],
+   "authorDecoys": [
+    "rp-089"
+   ],
+   "authorDoubt": "rp-089 documents medicinal plant knowledge in the Peruvian Andes, not Amazonian plants; left out.",
+   "authorRationale": "rp-121 runs an Amazonian sensory garden of medicinal plants.",
+   "judgeRelevant": [
+    "rp-121"
+   ],
+   "judgeUncertain": [
+    "rp-052"
+   ],
+   "judgeRationale": "Santarém sensory garden is built on Amazonian medicinal plants."
+  },
+  {
+   "id": "rq-pl-o09",
+   "authorRelevant": [
+    "rp-086",
+    "rp-114"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-086 feeds organic waste to larvae and rp-114 composts food scraps.",
+   "judgeRelevant": [
+    "rp-114",
+    "rp-086"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Community composting hub and a black soldier fly larvae system can take food waste."
+  },
+  {
+   "id": "rq-pl-o10",
+   "authorRelevant": [
+    "rp-137",
+    "rp-013",
+    "rp-125",
+    "rp-065"
+   ],
+   "authorDecoys": [
+    "rp-076"
+   ],
+   "authorDoubt": "rp-081 and rp-110 are education programmes that might host school groups, but neither says so; left out.",
+   "authorRationale": "These projects host schools or run outdoor learning on farms and forests.",
+   "judgeRelevant": [
+    "rp-137",
+    "rp-013",
+    "rp-065",
+    "rp-125"
+   ],
+   "judgeUncertain": [
+    "rp-100",
+    "rp-127"
+   ],
+   "judgeRationale": "Farms and forest education sites that host school groups for hands-on learning."
+  },
+  {
+   "id": "rq-pl-o11",
+   "authorRelevant": [
+    "rp-015",
+    "rp-038"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-139 restores dry land short of water and might use earthworks, but does not mention them; left out.",
+   "authorRationale": "rp-015 retains stormwater in earthworks and rp-038 creates a seasonal wetland.",
+   "judgeRelevant": [
+    "rp-015"
+   ],
+   "judgeUncertain": [
+    "rp-132",
+    "rp-139"
+   ],
+   "judgeRationale": "Plant the Rain builds earthworks to retain stormwater; others mention water restoration or water scarcity only loosely."
+  },
+  {
+   "id": "rq-pl-o12",
+   "authorRelevant": [
+    "rp-122",
+    "rp-108"
+   ],
+   "authorDecoys": [
+    "rp-020"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-122 runs material collection for recycling and rp-108 builds a waste value chain.",
+   "judgeRelevant": [
+    "rp-122",
+    "rp-108"
+   ],
+   "judgeUncertain": [
+    "rp-059"
+   ],
+   "judgeRationale": "Recycling collection and waste value-chain projects could reuse sorted plastic and cardboard."
+  },
+  {
+   "id": "rq-pl-o13",
+   "authorRelevant": [
+    "rp-004"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-004 runs agave agroforestry.",
+   "judgeRelevant": [
+    "rp-004"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Agave agroforestry in Sonora."
+  },
+  {
+   "id": "rq-pl-o14",
+   "authorRelevant": [
+    "rp-039",
+    "rp-137"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Both projects run coffee agroforestry.",
+   "judgeRelevant": [
+    "rp-039",
+    "rp-137"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Coffee agroforestry projects in Uganda and Brazil."
+  },
+  {
+   "id": "rq-pl-o15",
+   "authorRelevant": [
+    "rp-128"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-128 grows regenerative yerba mate.",
+   "judgeRelevant": [
+    "rp-128"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Reserva DejaVu grows regenerative yerba mate."
+  },
+  {
+   "id": "rq-pl-o16",
+   "authorRelevant": [
+    "rp-033",
+    "rp-116"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Both projects trap introduced predators to protect native wildlife.",
+   "judgeRelevant": [
+    "rp-116",
+    "rp-033"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Predator-free groups trapping possums, ferrets and cats to protect native birds."
+  },
+  {
+   "id": "rq-pl-o17",
+   "authorRelevant": [
+    "rp-007"
+   ],
+   "authorDecoys": [
+    "rp-035",
+    "rp-139"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-007 restores drylands with halophytic plants.",
+   "judgeRelevant": [
+    "rp-007"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Turkana Drylands Initiative restores land with halophytic plants."
+  },
+  {
+   "id": "rq-pl-o18",
+   "authorRelevant": [
+    "rp-114",
+    "rp-015",
+    "rp-016",
+    "rp-032",
+    "rp-103"
+   ],
+   "authorDecoys": [
+    "rp-049",
+    "rp-057",
+    "rp-079"
+   ],
+   "authorDoubt": "The food forest projects (rp-016, rp-032, rp-103) would plausibly use mulch but do not mention it; other planting projects could too.",
+   "authorRationale": "Composting and food forest projects use woody mulch; the urban-tree projects study trees and would not.",
+   "judgeRelevant": [
+    "rp-114",
+    "rp-019",
+    "rp-015"
+   ],
+   "judgeUncertain": [
+    "rp-016",
+    "rp-032"
+   ],
+   "judgeRationale": "Composting hub and soil-building or urban food forest projects could use chipped mulch."
+  },
+  {
+   "id": "rq-pl-o19",
+   "authorRelevant": [
+    "rp-122",
+    "rp-108"
+   ],
+   "authorDecoys": [
+    "rp-117",
+    "rp-109",
+    "rp-061",
+    "rp-010"
+   ],
+   "authorDoubt": "rp-122 and rp-108 handle recyclable waste in general; whether they take nylon nets is uncertain.",
+   "authorRationale": "Fishing and marine projects share words but would not use old nets; recycling projects might.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-122"
+   ],
+   "judgeRationale": "No project mentions reusing fishing nets; a recycling collector might."
+  },
+  {
+   "id": "rq-pl-o20",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-061",
+    "rp-109"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "No project restores oyster or shellfish reefs; rp-061 works with coral.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project describes oyster reef restoration."
+  },
+  {
+   "id": "rq-re-n01",
+   "authorRelevant": [
+    "rp-029",
+    "rp-080",
+    "rp-072",
+    "rp-009",
+    "rp-089",
+    "rp-051"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-057 and rp-093 also use AudioMoths but show no training work, so they are left out.",
+   "authorRationale": "These projects deploy AudioMoths with youth or community officers, or build bioacoustic tools for communities.",
+   "judgeRelevant": [
+    "rp-009",
+    "rp-029",
+    "rp-072",
+    "rp-080",
+    "rp-089"
+   ],
+   "judgeUncertain": [
+    "rp-051",
+    "rp-105"
+   ],
+   "judgeRationale": "Projects that train youth or community members to deploy AudioMoths and identify species."
+  },
+  {
+   "id": "rq-re-n02",
+   "authorRelevant": [
+    "rp-073",
+    "rp-138",
+    "rp-113",
+    "rp-066",
+    "rp-069",
+    "rp-083"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Each project runs baseline biodiversity surveys or multi-taxa monitoring.",
+   "judgeRelevant": [
+    "rp-073",
+    "rp-138"
+   ],
+   "judgeUncertain": [
+    "rp-113"
+   ],
+   "judgeRationale": "Projects that survey reptiles, amphibians and mammals for baselines."
+  },
+  {
+   "id": "rq-re-n03",
+   "authorRelevant": [
+    "rp-049",
+    "rp-104"
+   ],
+   "authorDecoys": [
+    "rp-057"
+   ],
+   "authorDoubt": "rp-104 inventories forest tree stands, not urban trees; the method transfers but the ecosystem services part is not shown.",
+   "authorRationale": "rp-049 quantified urban trees and their ecosystem services; rp-104 does tree inventories.",
+   "judgeRelevant": [
+    "rp-049"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-049 assessed campus urban trees for structure, diversity and ecosystem services."
+  },
+  {
+   "id": "rq-re-n04",
+   "authorRelevant": [
+    "rp-054",
+    "rp-101"
+   ],
+   "authorDecoys": [
+    "rp-083",
+    "rp-037"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-054 runs a community digital water monitor; rp-101 researched freshwater pollution and contamination.",
+   "judgeRelevant": [
+    "rp-054"
+   ],
+   "judgeUncertain": [
+    "rp-101"
+   ],
+   "judgeRationale": "Community digital water monitor for a watershed; Ubeji has pollution research experience."
+  },
+  {
+   "id": "rq-re-n05",
+   "authorRelevant": [
+    "rp-124"
+   ],
+   "authorDecoys": [
+    "rp-139"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-124 studies structural collapse and gully formation in smallholder soils.",
+   "judgeRelevant": [
+    "rp-124"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-124 studies structural collapse and gully erosion in smallholder soils."
+  },
+  {
+   "id": "rq-re-n06",
+   "authorRelevant": [
+    "rp-001",
+    "rp-104",
+    "rp-072"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-104 and rp-072 map and inventory forests (remote sensing, tree stands) but do not mention carbon.",
+   "authorRationale": "rp-001 maps carbon sequestration with community knowledge; the others have forest mapping skills.",
+   "judgeRelevant": [
+    "rp-001"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Only rp-001 connects forest carbon mapping with community knowledge."
+  },
+  {
+   "id": "rq-re-n07",
+   "authorRelevant": [
+    "rp-076",
+    "rp-100",
+    "rp-087",
+    "rp-074"
+   ],
+   "authorDecoys": [
+    "rp-017"
+   ],
+   "authorDoubt": "rp-074 supports a school research group, but its passage is cut off before saying what the group monitors.",
+   "authorRationale": "These projects train students or youth as citizen scientists collecting biodiversity data.",
+   "judgeRelevant": [
+    "rp-076"
+   ],
+   "judgeUncertain": [
+    "rp-100"
+   ],
+   "judgeRationale": "rp-076 trains students as citizen scientists feeding global databases."
+  },
+  {
+   "id": "rq-re-n08",
+   "authorRelevant": [
+    "rp-089",
+    "rp-048",
+    "rp-099",
+    "rp-084"
+   ],
+   "authorDecoys": [
+    "rp-121"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Each project documents ancestral or traditional ecological knowledge from elders.",
+   "judgeRelevant": [
+    "rp-048",
+    "rp-089"
+   ],
+   "judgeUncertain": [
+    "rp-084",
+    "rp-121"
+   ],
+   "judgeRationale": "Projects that have documented elders' and ancestral plant knowledge."
+  },
+  {
+   "id": "rq-re-n09",
+   "authorRelevant": [
+    "rp-085"
+   ],
+   "authorDecoys": [
+    "rp-015"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-085 runs an outdoor thermal environment experiment on city streets.",
+   "judgeRelevant": [
+    "rp-085"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "CoolWalk Sofia runs an outdoor thermal environment experiment."
+  },
+  {
+   "id": "rq-re-n10",
+   "authorRelevant": [
+    "rp-007"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-007's team has proven halophytic plants for restoration and food supply chains.",
+   "judgeRelevant": [
+    "rp-007"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-007 has proven expertise with halophytic plants."
+  },
+  {
+   "id": "rq-re-n11",
+   "authorRelevant": [
+    "rp-091",
+    "rp-064"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-095 offers standardized climate reporting, which is close but not independent verification, so it is left out.",
+   "authorRationale": "rp-091 builds an attestation layer for contributions; rp-064 does digital measurement, reporting and verification.",
+   "judgeRelevant": [
+    "rp-091"
+   ],
+   "judgeUncertain": [
+    "rp-072"
+   ],
+   "judgeRationale": "breadcrumbs is a dated attestation layer for ecosystem contributions."
+  },
+  {
+   "id": "rq-re-n12",
+   "authorRelevant": [
+    "rp-104"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-049 counted urban trees but not people; left out.",
+   "authorRationale": "rp-104 censuses residents and inventories tree stands in a protected forest.",
+   "judgeRelevant": [
+    "rp-104"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-104 censuses residents and inventories tree stands in a protected forest."
+  },
+  {
+   "id": "rq-re-n13",
+   "authorRelevant": [
+    "rp-101",
+    "rp-083"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-083 documents freshwater biodiversity acoustically; fish are not named.",
+   "authorRationale": "Both projects research freshwater biodiversity.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-083",
+    "rp-101"
+   ],
+   "judgeRationale": "No explicit fish survey; two freshwater biodiversity projects might have relevant skills."
+  },
+  {
+   "id": "rq-re-n14",
+   "authorRelevant": [
+    "rp-051",
+    "rp-012"
+   ],
+   "authorDecoys": [
+    "rp-010",
+    "rp-134",
+    "rp-117"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "rp-051 monitors mangrove biodiversity acoustically; rp-012 tracks wildlife returning to replanted mangroves.",
+   "judgeRelevant": [
+    "rp-012",
+    "rp-051"
+   ],
+   "judgeUncertain": [
+    "rp-010"
+   ],
+   "judgeRationale": "Projects that monitor wildlife and biodiversity in mangroves."
+  },
+  {
+   "id": "rq-re-n15",
+   "authorRelevant": [
+    "rp-099",
+    "rp-066"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-099 identifies threatened plants for a baseline; rp-066 surveys threatened native tree species.",
+   "judgeRelevant": [
+    "rp-066",
+    "rp-099"
+   ],
+   "judgeUncertain": [
+    "rp-097"
+   ],
+   "judgeRationale": "Projects identifying and surveying threatened plant and tree species."
+  },
+  {
+   "id": "rq-re-n16",
+   "authorRelevant": [
+    "rp-115"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-115 studied and mapped urban farming practices.",
+   "judgeRelevant": [
+    "rp-115"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-115 studied and mapped urban farming practices."
+  },
+  {
+   "id": "rq-re-n17",
+   "authorRelevant": [
+    "rp-057",
+    "rp-072"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-072 builds bioacoustic tools generally, not urban night work specifically.",
+   "authorRationale": "rp-057 tracks nocturnal urban wildlife in city trees with AudioMoths; rp-072 builds bioacoustic tools.",
+   "judgeRelevant": [
+    "rp-057"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-057 records nocturnal urban tree wildlife with AudioMoths."
+  },
+  {
+   "id": "rq-re-n18",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-078",
+    "rp-010",
+    "rp-061"
+   ],
+   "authorDoubt": "rp-109 works on Gulf of California marine habitats and might survey turtles, but the text does not say so.",
+   "authorRationale": "rp-078 tracks the turtle dove (a bird) and the coastal projects restore reefs or mangroves; none surveys turtle nests.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-109"
+   ],
+   "judgeRationale": "No project describes sea turtle nesting surveys."
+  },
+  {
+   "id": "rq-re-n19",
+   "authorRelevant": [
+    "rp-001"
+   ],
+   "authorDecoys": [
+    "rp-010",
+    "rp-012",
+    "rp-134",
+    "rp-117",
+    "rp-051"
+   ],
+   "authorDoubt": "rp-001 maps carbon sequestration potential in forest hotspots, not mangroves specifically.",
+   "authorRationale": "The mangrove projects plant or monitor wildlife but do not measure carbon; rp-001 maps carbon sequestration.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-001"
+   ],
+   "judgeRationale": "No project quantifies mangrove carbon; rp-001 maps forest carbon only."
+  },
+  {
+   "id": "rq-re-n20",
+   "authorRelevant": [],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "No project measures air pollution; rp-085 measures heat, not particulates.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-086"
+   ],
+   "judgeRationale": "No project measures air quality or PM2.5."
+  },
+  {
+   "id": "rq-re-o01",
+   "authorRelevant": [
+    "rp-029",
+    "rp-051",
+    "rp-069",
+    "rp-078",
+    "rp-105"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-009, rp-080, rp-093, rp-113 and rp-034 record wildlife with acoustic sensors and might include birds, but do not name them.",
+   "authorRationale": "These projects record and identify birds acoustically.",
+   "judgeRelevant": [
+    "rp-009",
+    "rp-029",
+    "rp-034",
+    "rp-051",
+    "rp-064",
+    "rp-066",
+    "rp-069",
+    "rp-072",
+    "rp-078",
+    "rp-080",
+    "rp-083",
+    "rp-089",
+    "rp-093",
+    "rp-105",
+    "rp-113"
+   ],
+   "judgeUncertain": [
+    "rp-057"
+   ],
+   "judgeRationale": "Projects collecting passive acoustic recordings where birds are a target or likely present."
+  },
+  {
+   "id": "rq-re-o02",
+   "authorRelevant": [
+    "rp-073",
+    "rp-076",
+    "rp-087",
+    "rp-113",
+    "rp-080",
+    "rp-034",
+    "rp-093"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Each project collects community biodiversity data and aims to make it public or shared.",
+   "judgeRelevant": [
+    "rp-009",
+    "rp-034",
+    "rp-051",
+    "rp-073",
+    "rp-076",
+    "rp-078",
+    "rp-080",
+    "rp-087",
+    "rp-089",
+    "rp-093",
+    "rp-113",
+    "rp-138"
+   ],
+   "judgeUncertain": [
+    "rp-029",
+    "rp-100",
+    "rp-105"
+   ],
+   "judgeRationale": "Community biodiversity monitoring projects that aim to publish or share open data."
+  },
+  {
+   "id": "rq-re-o03",
+   "authorRelevant": [
+    "rp-101",
+    "rp-054",
+    "rp-041",
+    "rp-037"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-037 restores a watershed after mining but does not mention testing; rp-041 deals with sewage rather than metals.",
+   "authorRationale": "These projects deal with polluted or contaminated freshwater.",
+   "judgeRelevant": [
+    "rp-037",
+    "rp-054",
+    "rp-101"
+   ],
+   "judgeUncertain": [
+    "rp-041"
+   ],
+   "judgeRationale": "Heavy-metal polluted river, post-mining watershed and community water monitoring."
+  },
+  {
+   "id": "rq-re-o04",
+   "authorRelevant": [
+    "rp-005",
+    "rp-030",
+    "rp-104",
+    "rp-087",
+    "rp-129",
+    "rp-001"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects run digital forest watch, mapping or digital monitoring of restoration.",
+   "judgeRelevant": [
+    "rp-005",
+    "rp-030",
+    "rp-104",
+    "rp-129"
+   ],
+   "judgeUncertain": [
+    "rp-058",
+    "rp-107"
+   ],
+   "judgeRationale": "Forest restoration projects with digital or mapping-based monitoring."
+  },
+  {
+   "id": "rq-re-o05",
+   "authorRelevant": [
+    "rp-061",
+    "rp-077",
+    "rp-109"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects restore or protect reefs, kelp and marine habitats alongside scientists.",
+   "judgeRelevant": [
+    "rp-061",
+    "rp-077",
+    "rp-109"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Reef restoration with volunteer scientists, kelp restoration and Gulf of California marine conservation."
+  },
+  {
+   "id": "rq-re-o06",
+   "authorRelevant": [
+    "rp-116",
+    "rp-033"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Both are predator-free trapping projects; rp-116 already uses IoT smart traps.",
+   "judgeRelevant": [
+    "rp-033",
+    "rp-116"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Predator-free projects, one using IoT smart traps."
+  },
+  {
+   "id": "rq-re-o07",
+   "authorRelevant": [
+    "rp-114",
+    "rp-086"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-114 runs a community composting hub; rp-086 runs black soldier fly circular systems.",
+   "judgeRelevant": [
+    "rp-114"
+   ],
+   "judgeUncertain": [
+    "rp-086"
+   ],
+   "judgeRationale": "Community composting hub could use compost analysis."
+  },
+  {
+   "id": "rq-re-o08",
+   "authorRelevant": [
+    "rp-020",
+    "rp-059",
+    "rp-108",
+    "rp-122"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects work on waste management, cleanup, waste value chains or recycling.",
+   "judgeRelevant": [
+    "rp-020",
+    "rp-059",
+    "rp-108",
+    "rp-122"
+   ],
+   "judgeUncertain": [
+    "rp-047"
+   ],
+   "judgeRationale": "Waste management, cleanup mapping and recycling projects could use waste audits."
+  },
+  {
+   "id": "rq-re-o09",
+   "authorRelevant": [
+    "rp-039",
+    "rp-130",
+    "rp-081"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These are farm-based living labs or research labs that experiment with farming practice.",
+   "judgeRelevant": [
+    "rp-039",
+    "rp-130"
+   ],
+   "judgeUncertain": [
+    "rp-050",
+    "rp-128"
+   ],
+   "judgeRationale": "Farmer living labs and a farming research lab could use field-trial design."
+  },
+  {
+   "id": "rq-re-o10",
+   "authorRelevant": [
+    "rp-085",
+    "rp-015"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "rp-085 studies outdoor urban heat; rp-015 works to cool cities with water-harvesting forests.",
+   "judgeRelevant": [
+    "rp-015",
+    "rp-085"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Urban heat experiment in Sofia and an urban cooling planting project."
+  },
+  {
+   "id": "rq-re-o11",
+   "authorRelevant": [
+    "rp-012",
+    "rp-093",
+    "rp-087",
+    "rp-051",
+    "rp-029"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects want to document biodiversity recovery on restored sites.",
+   "judgeRelevant": [
+    "rp-012",
+    "rp-051",
+    "rp-066",
+    "rp-087",
+    "rp-093",
+    "rp-107"
+   ],
+   "judgeUncertain": [
+    "rp-029",
+    "rp-038",
+    "rp-092"
+   ],
+   "judgeRationale": "Restoration projects that track or want to document species returning."
+  },
+  {
+   "id": "rq-re-o12",
+   "authorRelevant": [
+    "rp-015",
+    "rp-124",
+    "rp-139"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-035 restores degraded rangelands and might also use it, but water is not mentioned.",
+   "authorRationale": "These projects deal with rain retention, water erosion or water scarcity in degraded soils.",
+   "judgeRelevant": [
+    "rp-015",
+    "rp-124"
+   ],
+   "judgeUncertain": [
+    "rp-139"
+   ],
+   "judgeRationale": "Rain-harvesting soil sponge work and a water-erosion soil study could use infiltration measurements."
+  },
+  {
+   "id": "rq-re-o13",
+   "authorRelevant": [
+    "rp-009",
+    "rp-029",
+    "rp-034",
+    "rp-051",
+    "rp-057",
+    "rp-064",
+    "rp-066",
+    "rp-069",
+    "rp-078",
+    "rp-080",
+    "rp-083",
+    "rp-089",
+    "rp-093",
+    "rp-105",
+    "rp-113"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Every project here runs or plans passive acoustic monitoring.",
+   "judgeRelevant": [
+    "rp-009",
+    "rp-029",
+    "rp-034",
+    "rp-051",
+    "rp-057",
+    "rp-064",
+    "rp-066",
+    "rp-069",
+    "rp-072",
+    "rp-078",
+    "rp-080",
+    "rp-083",
+    "rp-089",
+    "rp-093",
+    "rp-105",
+    "rp-113"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Projects using or planning AudioMoth or passive acoustic monitoring."
+  },
+  {
+   "id": "rq-re-o14",
+   "authorRelevant": [
+    "rp-124",
+    "rp-023",
+    "rp-019",
+    "rp-139",
+    "rp-112"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "Many other farm projects could use soil analysis; only those that name soil recovery or degradation are listed.",
+   "authorRationale": "These projects study or restore degraded soils.",
+   "judgeRelevant": [
+    "rp-019",
+    "rp-023",
+    "rp-124"
+   ],
+   "judgeUncertain": [
+    "rp-016",
+    "rp-127"
+   ],
+   "judgeRationale": "Projects focused on soil health, soil recovery or soil study."
+  },
+  {
+   "id": "rq-re-o15",
+   "authorRelevant": [
+    "rp-099",
+    "rp-066",
+    "rp-123",
+    "rp-097"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects work with threatened or native plant species that need identification.",
+   "judgeRelevant": [
+    "rp-066",
+    "rp-089",
+    "rp-099"
+   ],
+   "judgeUncertain": [
+    "rp-076",
+    "rp-121"
+   ],
+   "judgeRationale": "Projects that need plants identified for threatened-species or medicinal plant work."
+  },
+  {
+   "id": "rq-re-o16",
+   "authorRelevant": [
+    "rp-057",
+    "rp-116"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-057 does not name bats, though it records nocturnal urban wildlife.",
+   "authorRationale": "rp-057 records nocturnal wildlife; rp-116 protects pekapeka (bats).",
+   "judgeRelevant": [
+    "rp-057"
+   ],
+   "judgeUncertain": [
+    "rp-116"
+   ],
+   "judgeRationale": "Nocturnal urban AudioMoth recordings likely include bats; Whiriwhiri protects pekapeka."
+  },
+  {
+   "id": "rq-re-o17",
+   "authorRelevant": [
+    "rp-064",
+    "rp-039",
+    "rp-137",
+    "rp-004",
+    "rp-025"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-128 (yerba mate and forest corridors, Spanish) may be agroforestry but does not say so; left out.",
+   "authorRationale": "These English-language projects run agroforestry systems where biodiversity measurement applies.",
+   "judgeRelevant": [
+    "rp-039",
+    "rp-064",
+    "rp-128",
+    "rp-130",
+    "rp-137"
+   ],
+   "judgeUncertain": [
+    "rp-004",
+    "rp-025"
+   ],
+   "judgeRationale": "Agroforestry and coffee projects interested in biodiversity value."
+  },
+  {
+   "id": "rq-re-o18",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-024",
+    "rp-013",
+    "rp-098",
+    "rp-089"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "The decoys share heritage, building or timber words but none dates old wood.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project involves heritage timber or dendrochronology."
+  },
+  {
+   "id": "rq-re-o19",
+   "authorRelevant": [
+    "rp-123",
+    "rp-066",
+    "rp-129"
+   ],
+   "authorDecoys": [
+    "rp-065",
+    "rp-017",
+    "rp-013"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "The relevant projects propagate native species or produce their own plant material; the decoys only mention seeds in education or gardening.",
+   "judgeRelevant": [
+    "rp-123",
+    "rp-129"
+   ],
+   "judgeUncertain": [
+    "rp-097"
+   ],
+   "judgeRationale": "Native species propagation and reforestation nurseries could use seed viability tests."
+  },
+  {
+   "id": "rq-re-o20",
+   "authorRelevant": [],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "No project works with glaciers or ice.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project works on glaciers."
+  },
+  {
+   "id": "rq-sw-n01",
+   "authorRelevant": [
+    "rp-029",
+    "rp-051",
+    "rp-078",
+    "rp-072",
+    "rp-069",
+    "rp-105"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-069 and rp-105 do bird bioacoustics but for single target species; their identification know-how may be narrow.",
+   "authorRationale": "These projects identify birds from acoustic recordings or build the tools to do so.",
+   "judgeRelevant": [
+    "rp-072",
+    "rp-029",
+    "rp-051",
+    "rp-078"
+   ],
+   "judgeUncertain": [
+    "rp-105",
+    "rp-069"
+   ],
+   "judgeRationale": "These have bioacoustic tools or expertise identifying birds by call, including in wetlands."
+  },
+  {
+   "id": "rq-sw-n02",
+   "authorRelevant": [
+    "rp-053"
+   ],
+   "authorDecoys": [
+    "rp-091"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "TechCycle is a cloud traceability platform for circular supply chains.",
+   "judgeRelevant": [
+    "rp-053"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "TechCycle is a cloud traceability platform for circular supply chains."
+  },
+  {
+   "id": "rq-sw-n03",
+   "authorRelevant": [
+    "rp-095"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Impact Climatech is an AI platform for climate compliance, KPI monitoring and reporting.",
+   "judgeRelevant": [
+    "rp-095"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Impact Climatech is an AI platform for climate compliance and KPI reporting."
+  },
+  {
+   "id": "rq-sw-n04",
+   "authorRelevant": [
+    "rp-116"
+   ],
+   "authorDecoys": [
+    "rp-033"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Predator Free Whiriwhiri runs collaborative smart trapping with IoT sensors; Predator Free Mangaroa mentions no technology.",
+   "judgeRelevant": [
+    "rp-116"
+   ],
+   "judgeUncertain": [
+    "rp-033"
+   ],
+   "judgeRationale": "Predator Free Whiriwhiri uses IoT smart trapping."
+  },
+  {
+   "id": "rq-sw-n05",
+   "authorRelevant": [
+    "rp-072"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-073 uses the Bumicerts tool to turn local knowledge into public data and might share know-how, but it is a user rather than a builder.",
+   "authorRationale": "GainForest builds open tools for communities to own their biodiversity data.",
+   "judgeRelevant": [
+    "rp-072"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "GainForest helps communities own biodiversity data with local AI and open tools."
+  },
+  {
+   "id": "rq-sw-n06",
+   "authorRelevant": [
+    "rp-054"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "The Peru project runs a community digital water monitor.",
+   "judgeRelevant": [
+    "rp-054"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Only the Peru community digital water monitor provides this."
+  },
+  {
+   "id": "rq-sw-n07",
+   "authorRelevant": [
+    "rp-091"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "breadcrumbs is a provenance-trail and attestation layer for scientific and ecosystem contributions.",
+   "judgeRelevant": [
+    "rp-091"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "breadcrumbs is exactly a provenance and attestation layer for contributions."
+  },
+  {
+   "id": "rq-sw-n08",
+   "authorRelevant": [
+    "rp-062"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Middle Beef connects investors with cattle partners under formal contracts with SINIGA traceability.",
+   "judgeRelevant": [
+    "rp-062"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Middle Beef has the investor-rancher contract and traceability model."
+  },
+  {
+   "id": "rq-sw-n09",
+   "authorRelevant": [
+    "rp-057"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "That project tracks nocturnal urban wildlife bioacoustically to see biodiversity change.",
+   "judgeRelevant": [
+    "rp-057"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Only rp-057 tracks nocturnal urban wildlife by sound."
+  },
+  {
+   "id": "rq-sw-n10",
+   "authorRelevant": [
+    "rp-047"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-122 works on recycling and says it connects people, but the corpus does not say it runs a reuse exchange.",
+   "authorRationale": "The Viable Marketplace is built to make passing on usable goods easy.",
+   "judgeRelevant": [
+    "rp-047"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "The Viable Marketplace targets reuse of goods like chairs."
+  },
+  {
+   "id": "rq-sw-n11",
+   "authorRelevant": [
+    "rp-071"
+   ],
+   "authorDecoys": [
+    "rp-095"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Aventide is an agentic AI platform made for small independent businesses.",
+   "judgeRelevant": [
+    "rp-071"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Aventide builds humane agentic AI for independent small businesses."
+  },
+  {
+   "id": "rq-sw-n12",
+   "authorRelevant": [
+    "rp-082",
+    "rp-068"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-006 builds nature funding networks across borders but does not describe a software product.",
+   "authorRationale": "ApeForest is a reforestation marketplace and the Baar project builds a funding platform for regenerative projects.",
+   "judgeRelevant": [
+    "rp-082"
+   ],
+   "judgeUncertain": [
+    "rp-006",
+    "rp-068"
+   ],
+   "judgeRationale": "ApeForest connects remote supporters with communities planting trees."
+  },
+  {
+   "id": "rq-sw-n13",
+   "authorRelevant": [
+    "rp-072",
+    "rp-051",
+    "rp-078",
+    "rp-029",
+    "rp-064"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "Many other AudioMoth projects collect audio; only these describe analysis, databases, AI or segmentation work.",
+   "authorRationale": "These projects process or build tools for acoustic recordings, not just deploy recorders.",
+   "judgeRelevant": [
+    "rp-072"
+   ],
+   "judgeUncertain": [
+    "rp-078",
+    "rp-051"
+   ],
+   "judgeRationale": "GainForest builds bioacoustics tools; some projects do AI-assisted or expert sound identification."
+  },
+  {
+   "id": "rq-sw-n14",
+   "authorRelevant": [
+    "rp-001",
+    "rp-072"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-104 does precision forest mapping and inventory, which supports carbon estimates but does not mention carbon.",
+   "authorRationale": "rp-001 maps carbon sequestration potential; GainForest offers remote sensing.",
+   "judgeRelevant": [
+    "rp-001"
+   ],
+   "judgeUncertain": [
+    "rp-104",
+    "rp-072"
+   ],
+   "judgeRationale": "rp-001 maps forest carbon sequestration potential."
+  },
+  {
+   "id": "rq-sw-n15",
+   "authorRelevant": [
+    "rp-108"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-059 belongs to the GreenPill network and uses points, but does not describe teaching Web3.",
+   "authorRationale": "Greenpill Cape Town runs Web3 education.",
+   "judgeRelevant": [
+    "rp-108"
+   ],
+   "judgeUncertain": [
+    "rp-059"
+   ],
+   "judgeRationale": "Greenpill Cape Town provides Web3 education."
+  },
+  {
+   "id": "rq-sw-n16",
+   "authorRelevant": [
+    "rp-029",
+    "rp-080",
+    "rp-072",
+    "rp-089"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-009 and rp-105 engage youth around bioacoustics but do not say they train them to deploy sensors.",
+   "authorRationale": "These projects train youth or community officers to deploy AudioMoths and handle recordings.",
+   "judgeRelevant": [
+    "rp-029",
+    "rp-080",
+    "rp-089",
+    "rp-009",
+    "rp-072"
+   ],
+   "judgeUncertain": [
+    "rp-105",
+    "rp-051"
+   ],
+   "judgeRationale": "These train youth or community officers to deploy AudioMoths and handle recordings."
+  },
+  {
+   "id": "rq-sw-n17",
+   "authorRelevant": [
+    "rp-086"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-095 does AI KPI monitoring for climate compliance, which is reporting rather than weather sensing.",
+   "authorRationale": "Rwamwanja Rural Foundation runs RRFGeoAI smart climate monitoring with farmers.",
+   "judgeRelevant": [
+    "rp-086"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "RRF runs GeoAI smart climate monitoring systems for rural communities."
+  },
+  {
+   "id": "rq-sw-n18",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-054",
+    "rp-108",
+    "rp-005"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "Projects say 'digital network' or 'digital infrastructure' but none provides internet connectivity.",
+   "judgeRelevant": [],
+   "judgeUncertain": [],
+   "judgeRationale": "No project describes providing satellite or mesh connectivity."
+  },
+  {
+   "id": "rq-sw-n19",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-138",
+    "rp-129"
+   ],
+   "authorDoubt": "rp-138 monitors reptiles and might use camera traps, but the corpus does not say so.",
+   "authorRationale": "One project monitors reptiles without cameras and another does digital reforestation monitoring; no camera-trap work appears.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-138"
+   ],
+   "judgeRationale": "No project mentions camera traps; rp-138 monitors reptiles by unstated means."
+  },
+  {
+   "id": "rq-sw-n20",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-047"
+   ],
+   "authorDoubt": "",
+   "authorRationale": "No project builds ordering or delivery software for food baskets.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-047"
+   ],
+   "judgeRationale": "No project evidently develops ordering and delivery apps."
+  },
+  {
+   "id": "rq-sw-o01",
+   "authorRelevant": [
+    "rp-034",
+    "rp-080",
+    "rp-093",
+    "rp-113",
+    "rp-051"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects aim to create open acoustic records, shared archives or audio databases.",
+   "judgeRelevant": [
+    "rp-009",
+    "rp-029",
+    "rp-034",
+    "rp-051",
+    "rp-057",
+    "rp-064",
+    "rp-066",
+    "rp-069",
+    "rp-078",
+    "rp-080",
+    "rp-083",
+    "rp-089",
+    "rp-093",
+    "rp-105",
+    "rp-113"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Every acoustic monitoring project produces recordings that need open archiving."
+  },
+  {
+   "id": "rq-sw-o02",
+   "authorRelevant": [
+    "rp-087",
+    "rp-073",
+    "rp-076",
+    "rp-012",
+    "rp-138"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-138 is only a heading about monitoring reptiles, birds and mammals; use of an app is inferred.",
+   "authorRationale": "These projects have volunteers, students or community members documenting wildlife.",
+   "judgeRelevant": [
+    "rp-012",
+    "rp-087",
+    "rp-076",
+    "rp-073",
+    "rp-100",
+    "rp-138"
+   ],
+   "judgeUncertain": [
+    "rp-099",
+    "rp-093"
+   ],
+   "judgeRationale": "Volunteer or community species-observation projects could use the app."
+  },
+  {
+   "id": "rq-sw-o03",
+   "authorRelevant": [
+    "rp-005",
+    "rp-058",
+    "rp-104",
+    "rp-001",
+    "rp-129"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-030 says 'digital forest restoration' without detail; rp-135 faces large burned areas and could use it too.",
+   "authorRationale": "These projects monitor or map forests and their loss.",
+   "judgeRelevant": [
+    "rp-005",
+    "rp-058",
+    "rp-135",
+    "rp-129",
+    "rp-104",
+    "rp-001"
+   ],
+   "judgeUncertain": [
+    "rp-030",
+    "rp-092"
+   ],
+   "judgeRationale": "Projects fighting deforestation or monitoring forest and carbon could use cover-change analysis."
+  },
+  {
+   "id": "rq-sw-o04",
+   "authorRelevant": [
+    "rp-059",
+    "rp-108"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-020 trains communities in waste management but describes no digital tools.",
+   "authorRationale": "La Ligne Verte rewards neighbourhood cleanups with points; Greenpill Cape Town runs a waste value chain with digital infrastructure.",
+   "judgeRelevant": [
+    "rp-059"
+   ],
+   "judgeUncertain": [
+    "rp-020",
+    "rp-108"
+   ],
+   "judgeRationale": "La Ligne Verte runs neighbourhood cleanups with points; waste projects are nearby."
+  },
+  {
+   "id": "rq-sw-o05",
+   "authorRelevant": [
+    "rp-064",
+    "rp-025",
+    "rp-039",
+    "rp-004",
+    "rp-137"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "Except rp-064, use of dMRV by these agroforestry projects is inferred from their work, not stated.",
+   "authorRationale": "These projects run agroforestry systems whose biodiversity value could be measured.",
+   "judgeRelevant": [
+    "rp-025",
+    "rp-039",
+    "rp-137",
+    "rp-004",
+    "rp-128"
+   ],
+   "judgeUncertain": [
+    "rp-064",
+    "rp-130",
+    "rp-092"
+   ],
+   "judgeRationale": "Agroforestry projects could use biodiversity dMRV on their plots."
+  },
+  {
+   "id": "rq-sw-o06",
+   "authorRelevant": [
+    "rp-073",
+    "rp-076",
+    "rp-087",
+    "rp-051",
+    "rp-138"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects produce community or student biodiversity records that need validation.",
+   "judgeRelevant": [
+    "rp-073",
+    "rp-051",
+    "rp-080",
+    "rp-087",
+    "rp-113",
+    "rp-009",
+    "rp-012",
+    "rp-076"
+   ],
+   "judgeUncertain": [
+    "rp-029",
+    "rp-100"
+   ],
+   "judgeRationale": "Community-led biodiversity monitoring projects could use expert validation of their records."
+  },
+  {
+   "id": "rq-sw-o07",
+   "authorRelevant": [
+    "rp-062"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "Middle Beef runs regenerative fattening cycles with investors and SINIGA traceability.",
+   "judgeRelevant": [
+    "rp-062"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "Middle Beef runs regenerative fattening cycles with investors and animal traceability."
+  },
+  {
+   "id": "rq-sw-o08",
+   "authorRelevant": [
+    "rp-085",
+    "rp-015"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-015 wants to cool cities with food forests; measuring heat is a plausible but unstated use.",
+   "authorRationale": "CoolWalk Sofia runs an outdoor thermal experiment; Plant the Rain aims to cool urban asphalt areas.",
+   "judgeRelevant": [
+    "rp-085"
+   ],
+   "judgeUncertain": [
+    "rp-015"
+   ],
+   "judgeRationale": "CoolWalk Sofia studies the outdoor thermal environment of a city."
+  },
+  {
+   "id": "rq-sw-o09",
+   "authorRelevant": [
+    "rp-082",
+    "rp-068"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-006 builds nature funding networks but does not describe building software.",
+   "authorRationale": "ApeForest is a pre-launch reforestation marketplace and the Baar project is creating a funding platform.",
+   "judgeRelevant": [
+    "rp-082",
+    "rp-068"
+   ],
+   "judgeUncertain": [
+    "rp-006"
+   ],
+   "judgeRationale": "ApeForest is a pre-launch reforestation marketplace and Baar is building a funding platform."
+  },
+  {
+   "id": "rq-sw-o10",
+   "authorRelevant": [
+    "rp-102"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "The Japanese project explores how children should relate to AI, online games and SNS.",
+   "judgeRelevant": [
+    "rp-102"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "rp-102 is about children's relationship with AI, online games and social media."
+  },
+  {
+   "id": "rq-sw-o11",
+   "authorRelevant": [
+    "rp-048",
+    "rp-089",
+    "rp-084"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-133 holds Orang Seletar environmental knowledge but does not mention recording it.",
+   "authorRationale": "These projects document oral histories and ancestral knowledge from elders.",
+   "judgeRelevant": [
+    "rp-048",
+    "rp-089",
+    "rp-084"
+   ],
+   "judgeUncertain": [
+    "rp-117"
+   ],
+   "judgeRationale": "These document elders' oral histories and ancestral knowledge."
+  },
+  {
+   "id": "rq-sw-o12",
+   "authorRelevant": [
+    "rp-054",
+    "rp-101",
+    "rp-041"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-041 is reclaiming sewage-polluted rivers; whether it monitors water quality is not stated.",
+   "authorRationale": "These projects deal with river and watershed pollution and community water monitoring.",
+   "judgeRelevant": [
+    "rp-054",
+    "rp-041",
+    "rp-101",
+    "rp-021"
+   ],
+   "judgeUncertain": [
+    "rp-106",
+    "rp-037",
+    "rp-074"
+   ],
+   "judgeRationale": "Projects addressing river and stream pollution could use automated water-quality probes."
+  },
+  {
+   "id": "rq-sw-o13",
+   "authorRelevant": [
+    "rp-029",
+    "rp-069",
+    "rp-078",
+    "rp-105",
+    "rp-051"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects record birds acoustically and need to recognise them by call.",
+   "judgeRelevant": [
+    "rp-009",
+    "rp-029",
+    "rp-034",
+    "rp-051",
+    "rp-064",
+    "rp-066",
+    "rp-069",
+    "rp-078",
+    "rp-080",
+    "rp-089",
+    "rp-093",
+    "rp-105",
+    "rp-113"
+   ],
+   "judgeUncertain": [
+    "rp-057",
+    "rp-083"
+   ],
+   "judgeRationale": "Bioacoustic monitoring projects with bird recordings could use a call classifier."
+  },
+  {
+   "id": "rq-sw-o14",
+   "authorRelevant": [
+    "rp-059",
+    "rp-087",
+    "rp-104",
+    "rp-001"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "These projects map neighbourhoods, forests or residents with community participation and digital tools.",
+   "judgeRelevant": [
+    "rp-059",
+    "rp-104",
+    "rp-115",
+    "rp-087"
+   ],
+   "judgeUncertain": [
+    "rp-001"
+   ],
+   "judgeRationale": "Projects doing community mapping or digital field data collection could use mobile participatory mapping."
+  },
+  {
+   "id": "rq-sw-o15",
+   "authorRelevant": [
+    "rp-118"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "The free film training center lacks tools and gear for film education.",
+   "judgeRelevant": [
+    "rp-118"
+   ],
+   "judgeUncertain": [],
+   "judgeRationale": "The free film training center needs film tools."
+  },
+  {
+   "id": "rq-sw-o16",
+   "authorRelevant": [
+    "rp-076",
+    "rp-100",
+    "rp-074"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-074 supports a school research group on wetlands; data sharing is plausible but not stated.",
+   "authorRationale": "These projects run school-based citizen science or research.",
+   "judgeRelevant": [
+    "rp-076",
+    "rp-100"
+   ],
+   "judgeUncertain": [
+    "rp-065",
+    "rp-110"
+   ],
+   "judgeRationale": "School citizen-science projects feeding global databases could use the platform."
+  },
+  {
+   "id": "rq-sw-o17",
+   "authorRelevant": [
+    "rp-122",
+    "rp-108"
+   ],
+   "authorDecoys": [],
+   "authorDoubt": "rp-047 deals with reuse of goods, not recycled material flows; left out.",
+   "authorRationale": "Ayure comes from recycling collection centres and Greenpill Cape Town runs a waste value chain.",
+   "judgeRelevant": [
+    "rp-122",
+    "rp-108"
+   ],
+   "judgeUncertain": [
+    "rp-059"
+   ],
+   "judgeRationale": "Ayure and the Vrygrond waste value chain work with recyclers weighing and selling material."
+  },
+  {
+   "id": "rq-sw-o18",
+   "authorRelevant": [
+    "rp-091",
+    "rp-079"
+   ],
+   "authorDecoys": [
+    "rp-011",
+    "rp-062"
+   ],
+   "authorDoubt": "rp-091 and rp-079 likely run on-chain code (attestations, digital tokens) but neither says so explicitly.",
+   "authorRationale": "'Protocol' in Social Forests and legal 'contratos' in Middle Beef are not software; the attestation layer and token project could use audits.",
+   "judgeRelevant": [
+    "rp-079"
+   ],
+   "judgeUncertain": [
+    "rp-011",
+    "rp-091",
+    "rp-108"
+   ],
+   "judgeRationale": "Only the Tokyo digital-token project clearly ships blockchain code."
+  },
+  {
+   "id": "rq-sw-o19",
+   "authorRelevant": [],
+   "authorDecoys": [
+    "rp-060",
+    "rp-111",
+    "rp-039",
+    "rp-098",
+    "rp-088"
+   ],
+   "authorDoubt": "rp-124 studies soil properties and may rely on lab analyses, but runs no lab per the corpus.",
+   "authorRationale": "'Living lab' and 'laboratory' projects are learning sites, not analytical labs.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-124"
+   ],
+   "judgeRationale": "No project describes running a soil or water analysis laboratory."
+  },
+  {
+   "id": "rq-sw-o20",
+   "authorRelevant": [],
+   "authorDecoys": [],
+   "authorDoubt": "",
+   "authorRationale": "No project in the corpus works with glaciers or snowpack.",
+   "judgeRelevant": [],
+   "judgeUncertain": [
+    "rp-089"
+   ],
+   "judgeRationale": "No project describes glacier or snowpack concerns; rp-089 is an Andean mountain climate project."
+  }
+ ]
+}
