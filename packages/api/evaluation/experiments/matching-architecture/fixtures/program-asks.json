@@ -1,0 +1,29 @@
+{
+  "note": "Team requirements for four real catalog programs, written as separate asks for this experiment on 2026-11-19. Each quotes the committed catalog text it was read from. This is the labelled fixture that open decision D29 recommends starting with. `requires` is a condition on whoever fills the ask, checked against facts that partner shared. It is not catalog data, it was not checked against the funder's source, and no steward reviewed it.",
+  "programs": {
+    "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027": {
+      "readFrom": "applicants.requirements",
+      "quote": "Team includes a US community organization, local/regional/Tribal government and adaptation practitioner. Practitioner applies to Registry by LOI deadline and must be accepted before funding; practitioner receives and administers award.",
+      "asks": [
+        { "id": "community-organization", "text": "A community organization in the United States as a project partner", "role": "co_applicant" },
+        { "id": "local-government", "text": "A local government partner for the community resilience project", "role": "co_applicant", "requires": { "field": "applicantType", "values": ["public-body"] } },
+        { "id": "adaptation-practitioner", "text": "A climate adaptation practitioner who applies as the lead and administers the award", "role": "lead_applicant" }
+      ]
+    },
+    "recdLQ4guN000D7Oh::dutch-philanthropic-partnership-support": {
+      "readFrom": "program-conditions.json, category partner",
+      "quote": "Proposal is submitted jointly by an ODA-eligible-country organization and a Dutch partner. Local organization owns the project; Dutch partner raises funds in the Netherlands.",
+      "asks": [
+        { "id": "local-owner", "text": "A local organization in an eligible country that owns the project", "role": "lead_applicant" },
+        { "id": "dutch-partner", "text": "A Dutch partner organization that submits the proposal jointly and raises funds in the Netherlands", "role": "co_applicant", "requires": { "field": "applicantBaseCountry", "values": ["NL"] } }
+      ]
+    },
+    "recSZN9ckNi2cuE1y::beni-confiscati-alle-mafie-2026-initiative": {
+      "readFrom": "applicants.requirements",
+      "quote": "Third-sector-led partnership of at least three organizations, at least two from the third sector.",
+      "asks": [
+        { "id": "third-sector-partners", "text": "Third-sector organizations that join the partnership for social reuse of a community building", "role": "co_applicant", "count": 2, "requires": { "field": "applicantType", "values": ["nonprofit"] } }
+      ]
+    }
+  }
+}

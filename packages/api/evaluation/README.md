@@ -255,6 +255,14 @@ bun run --filter @weave/app eval:flows
 bun run --filter @weave/app eval:flows -- --require-all
 ```
 
+## Matching architecture experiment, 19 November 2026
+
+[`experiments/matching-architecture/`](experiments/matching-architecture/README.md)
+compares the current matcher with embedding-based variants on the fixtures above and
+prototypes gap-driven teams. It is offline, nothing imports it, and `bun run --filter
+@weave/api test` does not run it. Its v3 numbers are directional, because that
+holdout had been examined; see its [dated report](experiments/matching-architecture/reports/2026-11-19.md).
+
 ## Real public projects (partner-real-v1), 19 November 2026
 
 This is the first partner-matching evaluation on real text. It follows steps 1 to 4

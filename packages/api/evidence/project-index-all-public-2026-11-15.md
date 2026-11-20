@@ -39,6 +39,15 @@ are not measured here.
   https server, is left out too. A lookup that times out, errors or returns
   anything other than that account's document leaves the run unapplied.
   did:web accounts are judged by their own domain and never fetched.
+- Added 19 November 2026: projects whose name or own words declare them a QA or
+  test entry are left out the same way and withdrawn if shown, counted as
+  `testNamed` or `testDescribed` in the refresh report. A project on a test
+  server is counted only as a test host. The unit suite covers the rule and its
+  hard negatives; this record's runs predate it. A read-only run of the rule
+  over the public list on 19 November (class `production`, built-in Chromium
+  browser, 1,006 projects, at most two passages each) found 14: 13 by name and
+  1 by its own words, with no other project caught. The index reads up to ten
+  sentences a project, so a refresh may count slightly more.
 - A listing that would withdraw more than half of at least 20 shown projects is
   refused, even if new projects keep the count up. Projects not confirmed by a
   complete traversal stop showing after 72 hours, so a lasting change still

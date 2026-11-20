@@ -23,6 +23,71 @@ const SHRINK_GUARD_MINIMUM = 20;
 /** Account lookups at once. 1,068 accounts took 14 seconds at six on 15 November. */
 const HOST_LOOKUPS = 6;
 
+/**
+ * Why a project declares itself a QA or test entry: by its name, or by its own words. Projects published
+ * from production accounts to check Certified's tools are not shown (decision, 19 November 2026).
+ */
+export type TestEntryReason = "test_named" | "test_described";
+
+/**
+ * A word ends at anything but a letter, digit, hyphen or apostrophe, so "attested", "contest", "latest",
+ * "test-bed" and "QAnat" are never the words "test" or "QA".
+ */
+const nameWords = (name: string) => name.split(/[^\p{L}\p{N}'’-]+/u).map((word) => word.replace(/^['’-]+|['’-]+$/gu, ""))
+  .filter(Boolean);
+/**
+ * A name marks a test entry in three shapes. "Test" or "QA" as one word of a longer name is not one of
+ * them, because "Test Valley Rewilding", "River Test Restoration" and "Soil Testing Cooperative" are real
+ * work.
+ * - It leads with "QA" in capitals, as in "QA Riverside Repair Cafe" (`words[0]` in `testEntryReason`).
+ * - It holds nothing but test words, "project" and numbering, as in "Test project" or "Testing 2".
+ * - It carries "test" or "tests" set apart as a label: in brackets, or split off at either end by a dash,
+ *   colon or bar, as in "Seed library tutorial (test)", "Pollinator count - TEST" or "TEST: Seed swap". A
+ *   label at the end needs a space before the dash, colon or bar, so "Seed swap: test" is not one. "QA" is
+ *   never such a label, because it is also Qatar's country code, as in "Mangrove Restoration (QA)".
+ * The first two shapes and the bracketed label were on the list on 19 November 2026. The split-off label
+ * was not.
+ */
+const bareTestName = (words: string[]) => words.some((word) => /^(?:tests?|testing)$/iu.test(word))
+  && words.every((word) => /^(?:tests?|testing|qa|projects?|v?\p{N}+|\p{L})$/iu.test(word));
+const testLabels = [
+  /[(\[]\s*tests?\s*[)\]]/iu,
+  /\s[-\u2013\u2014:|]\s*tests?$/iu,
+  /^tests?\s*[-\u2013\u2014:|]\s/iu,
+];
+/**
+ * A sentence that says the listing itself is a test. Each passage is one sentence, so every sentence of a
+ * description is read, and work described in ordinary words is never a signal: "A test project in two
+ * villages showed strong results", "This is a test project for our new composting method" and "It is not
+ * a real organisation, just neighbours" are real work. In order:
+ * - the sentence says nothing else, as in "TEST PROJECT" or "This is a test project.";
+ * - it opens with the label in capitals, as in "TEST PROJECT made to check the wizard.";
+ * - it opens by naming an automated QA or QA test project, or a QA story or entry;
+ * - it says that this is not a real project, and only a project: an informal group may say of itself that
+ *   it is not a real organisation or initiative;
+ * - it says the entry was made on staging, or ends by saying it was made for QA or testing.
+ */
+const testDeclarations = [
+  /^(?:(?:this|it) is (?:just |only )?)?(?:an? )?(?:automated )?(?:QA|test)(?: test)? (?:project|story|entry)[\s.!]*$/iu,
+  /^(?:TEST|QA)(?: TEST)? (?:PROJECT|STORY|ENTRY)\b/u,
+  /^(?:(?:this|it) is (?:just |only )?)?(?:an? )?(?:(?:automated )?QA (?:test )?(?:story|entry)|(?:automated QA(?: test)?|QA test) project)\b/iu,
+  /\b(?:this|it)(?: is|['’]s) not an? (?:real|actual|genuine) project\b/iu,
+  /\b(?:QA|test) (?:project|story|entry) (?:created|made|published) (?:on|in) staging\b/iu,
+  /\b(?:QA|test) (?:project|story|entry) (?:created|made|published) for (?:QA|testing)[\s.!]*$/iu,
+];
+
+/**
+ * Whether a project's name or passages mark it as a QA or test entry, and why. The name is checked first.
+ * `null` means nothing marks it, which is the answer for every project whose author did not say so. The
+ * rule prefers showing a test entry it cannot tell from real work over hiding real work.
+ */
+export function testEntryReason(name: string, passages: readonly string[]): TestEntryReason | null {
+  const words = nameWords(name);
+  if (words[0] === "QA" || bareTestName(words) || testLabels.some((label) => label.test(name.trim()))) return "test_named";
+  if (passages.some((passage) => testDeclarations.some((pattern) => pattern.test(passage.trim())))) return "test_described";
+  return null;
+}
+
 type Source = Pick<ReturnType<typeof createHypercertsSource>, "listProjects">;
 type Indexed = Extract<ProjectRead, { status: "indexed" }>;
 export type AllPublicStore = ProjectIndexStore & Required<Pick<ProjectIndexStore, "state">>;
@@ -37,6 +102,8 @@ function counts() {
     pages: 0, records: 0, listed: 0, unlisted: 0, invalid: 0, duplicates: 0, withoutText: 0,
     /** Projects left out because their account is on a Certified test server, or has no usable server. */
     accounts: 0, testHosts: 0, withoutHost: 0,
+    /** Projects left out because their name or their own words declare them a QA or test entry. */
+    testNamed: 0, testDescribed: 0,
     shownBefore: 0, withdrawn: 0, generation: null as number | null,
     indexed: 0, restricted: 0, missing: 0, failed: 0, scanned: 0,
   };
@@ -62,10 +129,11 @@ async function apply(store: AllPublicStore, manifest: ProjectManifest, reads: Ma
 
 /**
  * Traverses the whole listing, then replaces the permission set with the listed public projects whose
- * accounts are not on a Certified test server, in a new generation. A failed or partial traversal, or an
- * account lookup that fails, changes nothing. The existing checkpoint, expiry and withdrawal handling
- * applies the set, and projects checked longest ago are committed first so a sweep cut short by time is
- * finished by the next run instead of starting over at the same place.
+ * accounts are not on a Certified test server and that do not declare themselves test entries, in a new
+ * generation. A failed or partial traversal, or an account lookup that fails, changes nothing. The
+ * existing checkpoint, expiry and withdrawal handling applies the set, and projects checked longest ago
+ * are committed first so a sweep cut short by time is finished by the next run instead of starting over
+ * at the same place.
  */
 export async function refreshAllPublicProjects(input: {
   source: Source;
@@ -122,6 +190,15 @@ export async function refreshAllPublicProjects(input: {
     reads.delete(uri);
     if (host?.status === "found") report.testHosts++;
     else report.withoutHost++;
+  }
+  // Self-declared test entries on production accounts are left out the same way. The name travels on each
+  // passage, so a project with no usable text is judged on nothing here; it is never shown anyway.
+  for (const [uri, { passages }] of [...reads]) {
+    const reason = testEntryReason(passages[0]?.projectName ?? "", passages.map(({ passage }) => passage));
+    if (!reason) continue;
+    reads.delete(uri);
+    if (reason === "test_named") report.testNamed++;
+    else report.testDescribed++;
   }
   report.withoutText = [...reads.values()].filter(({ passages }) => !passages.length).length;
 
