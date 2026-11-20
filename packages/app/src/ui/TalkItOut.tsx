@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { BROWSER_SPEECH_NOTICE, talkControls } from "../describe/speech-setup.ts";
+import { BROWSER_SPEECH_NOTICE, talkControls, talkHold } from "../describe/speech-setup.ts";
 import type { SpeechSetup } from "../describe/use-speech.ts";
 import { Icon } from "./Icon.tsx";
 import { TaskDialog } from "./TaskDialog.tsx";
@@ -81,6 +81,7 @@ export function TalkItOut({
   const id = useId();
   const [choosing, setChoosing] = useState(false);
   const [agreeing, setAgreeing] = useState(false);
+  const [focused, setFocused] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   // While listening, the newest words stay in view inside the box.
   useEffect(() => {
@@ -96,9 +97,12 @@ export function TalkItOut({
   });
   const names = new Intl.DisplayNames(["en"], { type: "language" });
   const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
+  const hold = talkHold(controls.action, { working, disabled, focused });
   const talk = controls.agreement ? () => setAgreeing(true) : onStart;
   const press =
-    controls.action === "stop" ? onStop : controls.action === "talk" ? talk : controls.action === "set-up" ? speech.setUp : undefined;
+    hold !== "free"
+      ? undefined
+      : controls.action === "stop" ? onStop : controls.action === "talk" ? talk : controls.action === "set-up" ? speech.setUp : undefined;
   return (
     <div className="rc-voice-input">
       <div className="rc-voice-slot">
@@ -111,9 +115,12 @@ export function TalkItOut({
             data-size="lg"
             type="button"
             aria-pressed={controls.action === "talk" || controls.action === "stop" ? listening : undefined}
-            // Under way, the button keeps the focus, which a disabled button would drop.
+            // Under way or held, the button keeps the focus, which a disabled button would drop.
             aria-busy={controls.action === "setting-up" || undefined}
-            disabled={controls.action === "talk" && (disabled || working)}
+            aria-disabled={hold === "held" || undefined}
+            disabled={hold === "disabled"}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             onClick={press}
           >
             <Icon name="mic" />

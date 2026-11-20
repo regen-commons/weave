@@ -298,6 +298,20 @@ export function talkControls(
 }
 
 /**
+ * How Talk It Out holds its button while it may not start a new session: while the words fill
+ * the fields, or on a full list. Away from the focus it is plainly disabled. With the focus on it,
+ * as after Stop pressed with the keyboard, it stays focusable and declines the press instead,
+ * because a disabled button would drop the focus to the page.
+ */
+export function talkHold(
+  action: TalkControls["action"],
+  { working, disabled, focused }: { working: boolean; disabled: boolean; focused: boolean },
+): "free" | "held" | "disabled" {
+  if (action !== "talk" || !(working || disabled)) return "free";
+  return focused ? "held" : "disabled";
+}
+
+/**
  * What the page says when a session stops early, in the status line under the box. It says only
  * what the browser reported, and every line keeps typing open. Talk It Out stays where it was, so
  * the page does not move and the focus stays on the button; pressing it again tries again. On a
