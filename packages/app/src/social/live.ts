@@ -7,7 +7,8 @@ import { deleteSavedCard } from "../account/delete-card.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
 import { saveForProject } from "../initiative/project-save.ts";
-import { projectChoiceKey, projectChoosers } from "./project-choice.ts";
+import { chosenProjectUri, projectChoiceKey, projectChoosers } from "./project-choice.ts";
+import { linkedProject } from "../initiative/list.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
 import { draftWithRecord } from "../initiative/import.ts";
 import { finishEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -25,6 +26,11 @@ export type LiveSocialService = Pick<SocialService,
 type Group = { groupDid: string; role: "owner" | "admin" | "member"; displayName?: string; handle?: string };
 type Options = { account: AccountState; controller: DraftController; refreshAccount(): Promise<AccountState>;
   request?: typeof accountRequest; storage?: Pick<Storage, "getItem" | "setItem" | "removeItem"> & Partial<Pick<Storage, "length" | "key">>;
+  /**
+   * Where project choices are kept. The app gives the device's own storage, so a card linked to a
+   * project is still linked in a new tab and after signing in again. Left out, they share `storage`.
+   */
+  choices?: Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "length" | "key">>;
   openWorkspace(id: string): void; signIn(): Promise<void>; signedOut(): void };
 
 /**
@@ -52,6 +58,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   let reloadGeneration = 0;
   let cardsKey = JSON.stringify(options.account.items), cardsGeneration = 0, nextCardOffset = options.account.items.length;
   let selected: { scope: string; uri: string } | null = null;
+  const choices = options.choices ?? options.storage;
   const key = () => projectChoiceKey(owner ?? "", options.controller.getSnapshot().draft.id);
   const requestKey = (uri: string) => `weave-workspace-request/${owner}/${uri}`;
   function linkOf(record: CertifiedRecord): ProjectLink {
@@ -63,9 +70,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     } catch { /* A receipt is a display hint; it never grants access. */ }
     return link;
   }
-  const selectedUri = () => {
-    try { return options.storage?.getItem(key()) ?? (selected?.scope === key() ? selected.uri : null); } catch { return selected?.scope === key() ? selected.uri : null; }
-  };
+  const selectedUri = () =>
+    chosenProjectUri(choices, owner, options.controller.getSnapshot().draft.id) ?? (selected?.scope === key() ? selected.uri : null);
   let state: SocialState = { identity: owner ? { handle: "", id: owner } : null, saved: null, project: null, shared: null, published: null,
     records: [], cards: options.account.items.map(savedCard),
     workspaces: [], hasMoreCards: options.account.items.length === 20, reminders: [], leads: [], notifications: { funding: false, partners: false } };
@@ -78,14 +84,24 @@ export function createLiveSocialService(options: Options): LiveSocialService {
    */
   const setAside = () => {
     const draft = options.controller.getSnapshot().draft;
-    return belongsToAnotherAccount(draft, owner, options.storage?.key ? projectChoosers(options.storage as Pick<Storage, "length" | "key">, draft.id) : []);
+    return belongsToAnotherAccount(draft, owner, choices?.key ? projectChoosers(choices as Pick<Storage, "length" | "key">, draft.id) : []);
+  };
+  /**
+   * The project the tab's card is linked to, among the ones this account can open: the one chosen
+   * for it on this device, the workspace it was saved to, or the one its suggestions were read
+   * from, which is what a card linked before choices were kept on the device still carries.
+   */
+  const linkedTo = (projects: readonly CertifiedRecord[]) => {
+    const draft = options.controller.getSnapshot().draft, selection = selectedUri(), savedId = draft.account.saved?.id;
+    return projects.find(p => p.uri === selection || (!selection && !!savedId && p.workspaceId === savedId))
+      ?? (selection || setAside() ? null : linkedProject(draft, null, projects));
   };
   function select(uri: string) {
     // A project choice is recorded against the tab's card. A card that is set aside takes none
     // from this account: a second chooser would make it read as shared and lift its set-aside.
     if (setAside()) return;
     selected = { scope: key(), uri };
-    try { options.storage?.setItem(key(), uri); } catch { /* This tab retains the selection; no authority is cached. */ }
+    try { choices?.setItem(key(), uri); } catch { /* This tab retains the selection; no authority is cached. */ }
   }
   async function allPages<T>(read: (cursor?: string) => Promise<{ items: T[]; cursor?: string }>) {
     const items: T[] = [], seen = new Set<string>();
@@ -160,9 +176,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
         workspace: true, workspaceId: w.workspaceId, accessRole: w.accessRole,
       })) : [];
       const unique = [...new Map([...records, ...linked].map(p => [p.uri, p])).values()];
-      const selection = selectedUri(), savedId = options.controller.getSnapshot().draft.account.saved?.id;
-      const chosen = unique.find(p => p.uri === selection
-        || (!selection && !!savedId && p.workspaceId === savedId));
+      const chosen = linkedTo(unique);
       state = { ...state, records: unique.filter(p => !p.workspace), workspaces: linked, setupRequests,
         project: chosen ? linkOf(chosen) : null };
       if (failures.length) {
@@ -181,9 +195,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     dispose() { queueMicrotask(() => { if (!listeners.size) lifetime.abort(); }); }, reload,
     syncAccount(account) {
       if (account.user?.id !== owner || lifetime.signal.aborted) return;
-      const selection = selectedUri(), savedId = options.controller.getSnapshot().draft.account.saved?.id;
-      const selectedProject = [...state.records, ...(state.workspaces ?? [])].find(p => p.uri === selection
-        || (!selection && !!savedId && p.workspaceId === savedId));
+      const selectedProject = linkedTo([...state.records, ...(state.workspaces ?? [])]);
       const nextKey = JSON.stringify(account.items);
       if (cardsKey !== nextKey) {
         cardsKey = nextKey; cardsGeneration++; nextCardOffset = account.items.length;

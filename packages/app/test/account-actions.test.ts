@@ -175,9 +175,9 @@ test("a card nobody saved, opened from another account's Certified project, is r
   let posts = 0;
   t.mock.method(globalThis, "fetch", async () => { posts++; return Response.json({ saved }); });
   const unsaved = revise(loadedDraft(saved, other), { account: { saved: null, pending: null } });
-  // The other account's choice of project for this card, as this browser session holds it.
+  // The other account's choice of project for this card, as this device holds it.
   const keys = [projectChoiceKey(other, unsaved.id)];
-  const window = { sessionStorage: { length: keys.length, key: (index: number) => keys[index] ?? null } };
+  const window = { localStorage: { length: keys.length, key: (index: number) => keys[index] ?? null } };
   const scope = globalThis as { window?: unknown };
   scope.window = window;
   t.after(() => { delete scope.window; });
@@ -190,7 +190,7 @@ test("a card nobody saved, opened from another account's Certified project, is r
   }
   // Once this account has chosen it too, or nobody has, the card is this account's to save.
   keys.push(projectChoiceKey(owner, unsaved.id));
-  window.sessionStorage.length = keys.length;
+  window.localStorage.length = keys.length;
   assert.equal(saveCommand(unsaved, owner, [other, owner]).command.accountId, owner);
   assert.equal(saveCommand(unsaved, owner).command.id, unsaved.id);
   assert.throws(() => saveCommand(unsaved, owner, [other]), refused);

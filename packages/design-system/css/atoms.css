@@ -257,13 +257,19 @@
 }
 /* Outlined (`data-variant="secondary"`): an icon button that sits beside a secondary Button takes
    that button's line and corners, and with `data-size="sm"` its height, so the two read as a pair.
-   The header's theme switch beside Sign in is one (DL-107). */
+   The header's theme switch beside Sign in is one (DL-107), and so is the Account button that
+   stands where Sign in stood for a signed-in person (DL-116). An outline frames its glyph, so the
+   glyph is drawn at the large size and fills the box as a word fills a button. */
 .rc-icon-button[data-variant="secondary"] { border: var(--border-thick) solid var(--control-line); color: var(--on-surface); }
+.rc-icon-button[data-variant="secondary"] > .rc-icon { inline-size: var(--icon-lg-size); block-size: var(--icon-lg-size); }
 .rc-icon-button[data-size="sm"] { min-inline-size: var(--control-sm-height); min-block-size: var(--control-sm-height); }
 .rc-icon-button[data-variant="secondary"]:active:not(:disabled) { border-color: var(--on-surface); }
 @media (hover: hover) {
   .rc-icon-button[data-variant="secondary"]:hover:not(:disabled) { border-color: var(--on-surface); }
 }
+/* A button whose menu is open keeps the pressed look for as long as the menu is, as the Account button does. */
+.rc-icon-button[aria-expanded="true"] { background: var(--surface-tint); color: var(--on-surface); }
+.rc-icon-button[data-variant="secondary"][aria-expanded="true"] { border-color: var(--on-surface); }
 /* As a link, it marks the page it leads to once the person is there, as Settings does in the app header. */
 .rc-icon-button[aria-current="page"] { background: var(--surface-tint); color: var(--on-surface); }
 
@@ -636,30 +642,11 @@ button.rc-chip {
 .rc-media > img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .rc-media[data-size="thumb"] { inline-size: var(--space-9); flex: none; aspect-ratio: 1; }
 .rc-media[data-size="wide"] { aspect-ratio: auto; block-size: var(--space-11); }
-/* Account button: a person in a ring, at the far end of the app header from the logo's own ring.
-   It opens the account's menu (DL-070), and always carries an accessible name. */
-.rc-account {
-  display: inline-grid;
-  place-items: center;
-  inline-size: var(--control-sm-height);
-  min-block-size: var(--control-sm-height);
-  padding: 0;
-  border: var(--border-thin) solid var(--control-line);
-  border-radius: var(--radius-full);
-  background: var(--surface-raised);
-  color: var(--on-surface-raised);
-  font: var(--type-title-sm);
-  cursor: pointer;
-}
-.rc-account:active, .rc-account[aria-expanded="true"] { border-color: var(--on-surface); background: var(--surface-tint); color: var(--on-surface-tint); }
-@media (hover: hover) {
-  .rc-account:hover { border-color: var(--on-surface); background: var(--surface-tint); color: var(--on-surface-tint); }
-}
 /* A pressed control gives a little under the press, where motion is welcome (DL-087). Its colours
    change at once; only the give is eased. */
 @media (prefers-reduced-motion: no-preference) {
-  .rc-button, .rc-icon-button, .rc-account, .rc-chip { transition: scale var(--duration-fast) var(--ease-out); }
-  :is(.rc-button, .rc-icon-button, .rc-account):active:not(:disabled, [aria-busy="true"]),
+  .rc-button, .rc-icon-button, .rc-chip { transition: scale var(--duration-fast) var(--ease-out); }
+  :is(.rc-button, .rc-icon-button):active:not(:disabled, [aria-busy="true"]),
   :is(label, button, a).rc-chip:active { scale: 0.98; }
 }
 /* Types of work: the capital recipe with a line icon in place of the glyph tile (DL-065). Colour

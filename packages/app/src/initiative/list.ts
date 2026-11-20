@@ -114,8 +114,8 @@ export function savingLine(saving: DraftSaving, savedOn: string | null): string 
 
 /**
  * True when a draft already stands for a Certified project: this account chose the project for
- * it, or it carries suggestions read from the project's page. The project is then listed once,
- * as that draft, and opening it never starts another.
+ * it on this device, or it carries suggestions read from the project's page. The project is then
+ * listed once, as that draft, and opening it never starts another.
  */
 export function standsForProject(draft: DeviceDraft, uri: string, chosenUri: string | null): boolean {
   if (chosenUri === uri) return true;
@@ -123,6 +123,22 @@ export function standsForProject(draft: DeviceDraft, uri: string, chosenUri: str
   return (["needs", "offers"] as const).some((kind) =>
     draft[kind].items.some((item) => item.sourceKey?.startsWith(source)),
   );
+}
+
+/**
+ * The Certified project a draft is linked to, among the ones the account can open: the one the
+ * account chose for it, and with no choice the one its suggestions were read from. A choice of a
+ * project that is no longer listed links to nothing, and suggestions from more than one listed
+ * project decide nothing.
+ */
+export function linkedProject<Project extends { readonly uri: string }>(
+  draft: DeviceDraft,
+  chosenUri: string | null,
+  projects: readonly Project[],
+): Project | null {
+  if (chosenUri) return projects.find((project) => project.uri === chosenUri) ?? null;
+  const suggested = projects.filter((project) => standsForProject(draft, project.uri, null));
+  return suggested.length === 1 ? suggested[0]! : null;
 }
 
 /**

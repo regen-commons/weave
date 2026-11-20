@@ -3,7 +3,7 @@ import { revise } from "../describe/contracts.ts";
 import { accountRequest, accountSessionSignal, AccountFailure, assertAccount, parseSaved } from "./client.ts";
 import { loadedDraft, saveCommand } from "./document.ts";
 import { releaseDeletedCard } from "./delete-card.ts";
-import { sessionChoosers } from "../social/project-choice.ts";
+import { deviceChoosers } from "../social/project-choice.ts";
 
 /** The save went through, but the draft that asked for it is no longer on this device as it was. */
 export class SaveDetached extends Error {
@@ -27,7 +27,7 @@ export async function saveAccountCard(controller: DraftController, owner: string
   const signal = accountSessionSignal();
   signal.throwIfAborted();
   const asking = controller.getSnapshot().draft;
-  const { binding, command } = saveCommand(asking, owner, sessionChoosers(asking.id));
+  const { binding, command } = saveCommand(asking, owner, deviceChoosers(asking.id));
   controller.change(current => revise(current, { account: { ...current.account, pending: binding } }));
   await controller.settled();
   signal.throwIfAborted();

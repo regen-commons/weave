@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, linkedProject, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -80,12 +80,32 @@ test("a project a draft already stands for is that draft: by this account's choi
   const uri = "at://did:plc:example/org.example.project/abc", another = "at://did:plc:example/org.example.project/xyz";
   const plain = words("Nothing to do with it", "2026-11-10T09:00:00.000Z");
   assert.equal(standsForProject(plain, uri, null), false);
-  assert.equal(standsForProject(plain, uri, uri), true, "chosen in this browser session");
+  assert.equal(standsForProject(plain, uri, uri), true, "chosen on this device");
   assert.equal(standsForProject(plain, uri, another), false);
   const needs = addEntry(plain.needs, "Seedlings");
   const suggested = revise(plain, { needs: { ...needs, items: needs.items.map((item) => ({ ...item, sourceKey: `${projectSource(uri)}:0` })) } });
-  assert.equal(standsForProject(suggested, uri, null), true, "in a new tab the choice is gone, the suggestions are not");
+  assert.equal(standsForProject(suggested, uri, null), true, "a card linked before choices were kept still carries the suggestions");
   assert.equal(standsForProject(suggested, another, null), false);
+});
+
+test("a draft is linked to the project chosen for it, or with no choice to the one project its suggestions came from", () => {
+  const first = { uri: "at://did:plc:example/org.example.project/abc" }, second = { uri: "at://did:plc:example/org.example.project/xyz" };
+  const plain = words("Nothing to do with it", "2026-11-10T09:00:00.000Z");
+  const from = (draft: DeviceDraft, ...uris: string[]) => {
+    const needs = uris.reduce((step, uri) => {
+      const next = addEntry(step, `From ${uri}`);
+      return { ...next, items: next.items.map((item) => item.sourceKey ? item : { ...item, sourceKey: `${projectSource(uri)}:0` }) };
+    }, draft.needs);
+    return revise(draft, { needs });
+  };
+  assert.equal(linkedProject(plain, null, [first, second]), null, "nothing links a card nobody linked");
+  assert.equal(linkedProject(plain, second.uri, [first, second]), second, "the choice decides");
+  assert.equal(linkedProject(plain, second.uri, [first]), null, "a chosen project that is no longer listed links to nothing");
+  assert.equal(linkedProject(from(plain, first.uri), null, [first, second]), first);
+  assert.equal(linkedProject(from(plain, first.uri), second.uri, [first, second]), second, "a choice comes before suggestions");
+  assert.equal(linkedProject(from(plain, first.uri), second.uri, [first]), null, "and is never replaced by them");
+  assert.equal(linkedProject(from(plain, first.uri, second.uri), null, [first, second]), null, "two sources decide nothing");
+  assert.equal(linkedProject(from(plain, first.uri), null, [second]), null);
 });
 
 test("opening the saved version over a working copy keeps the copy, and the entry says so before the press", async () => {

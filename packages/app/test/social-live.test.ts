@@ -9,6 +9,8 @@ import { DeviceDraftSchema, newDraft, revise } from "../src/describe/contracts.t
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../src/account/document.ts";
 import { projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { draftWithRecord } from "../src/initiative/import.ts";
+import { addEntry } from "../src/intake/entries.ts";
+import { projectSource } from "../src/intake/project-page.ts";
 import { likelyDuplicate } from "../src/initiative/duplicates.ts";
 import { publicCard } from "../src/initiative/status.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
@@ -17,10 +19,15 @@ import { projectEvidenceFixture, FIXTURE_TEAM_ADMIN, FIXTURE_GROUP_MEMBER, FIXTU
 import { editorHandoffKey, readEditorHandoff } from "../src/initiative/editor-handoff.ts";
 
 const origin = "http://localhost:5175";
-async function fixture(id = FIXTURE_TEAM_ADMIN) {
+function keyed(stored: Map<string, string>) {
+  return { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => { stored.set(key, value); },
+    removeItem: (key: string) => { stored.delete(key); }, get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null };
+}
+/** `device` is storage that outlives the tab, and `repo` the drafts another tab already stored. */
+async function fixture(id = FIXTURE_TEAM_ADMIN, { device, repo: shared }: { device?: Map<string, string>; repo?: MemoryDraftRepository } = {}) {
   const token = fixtureSession(id), bodies: Record<string, unknown>[] = [], opened: string[] = [];
   const seed = revise(newDraft(), { composer: "Unfinished private words" });
-  const repo = new MemoryDraftRepository(seed), controller = new DraftController(repo);
+  const repo = shared ?? new MemoryDraftRepository(seed), controller = new DraftController(repo);
   await controller.initialize();
   const account: AccountState = { available: true, fixture: true, user: { id, email: null }, items: [] };
   const request = async (path = "", body?: unknown, endpoint = "/api/account", signal?: AbortSignal) => {
@@ -39,9 +46,8 @@ async function fixture(id = FIXTURE_TEAM_ADMIN) {
   const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => {
     const result = await request(); return { ...account, items: result.items as AccountState["items"] };
   },
-    // As session storage is: its keys can be listed, which is how a card's choosers are read.
-    storage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => { stored.set(key, value); }, removeItem: key => { stored.delete(key); },
-      get length() { return stored.size; }, key: (index: number) => [...stored.keys()][index] ?? null },
+    // As browser storage is: its keys can be listed, which is how a card's choosers are read.
+    storage: keyed(stored), ...(device ? { choices: keyed(device) } : {}),
     openWorkspace: id => { opened.push(id); }, signIn: async () => {}, signedOut: () => {} });
   return { service, controller, repo, bodies, opened, request, stored };
 }
@@ -373,6 +379,48 @@ test("a card another account opened from its project takes no project choice fro
   assert.equal(bodies.length, before, "and nothing was asked of the server");
   assert.deepEqual(projectChoosers(storage, theirs.id), [FIXTURE_GROUP_MEMBER]);
   assert.equal(setAside(), true);
+});
+
+test("a card linked to a Certified project is still linked in a new tab, because the choice is kept on the device", async () => {
+  const device = new Map<string, string>();
+  const first = await fixture(FIXTURE_TEAM_ADMIN, { device });
+  await first.service.reload();
+  const project = first.service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  await first.service.linkProject(project.uri);
+  const card = first.controller.getSnapshot().draft;
+  assert.equal(device.get(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id)), project.uri, "the choice is on the device");
+  assert.equal(first.stored.has(projectChoiceKey(FIXTURE_TEAM_ADMIN, card.id)), false, "and not in the tab's own storage");
+  // The tab closes, or sign-in comes back in another window: a new session over the same device.
+  const second = await fixture(FIXTURE_TEAM_ADMIN, { device, repo: first.repo });
+  assert.equal(second.controller.getSnapshot().draft.id, card.id);
+  assert.equal(second.stored.size, 0);
+  await second.service.reload();
+  assert.equal(second.service.snapshot().project?.uri, project.uri, "the unsaved card is still linked");
+  assert.equal(second.service.snapshot().project?.workspace, "solo");
+  // Another account on this device still does not get the card (DL-055), now for as long as it is here.
+  const other = await fixture(FIXTURE_GROUP_MEMBER, { device, repo: first.repo });
+  await other.service.reload();
+  assert.equal(other.service.snapshot().project, null);
+  assert.equal(belongsToAnotherAccount(other.controller.getSnapshot().draft, FIXTURE_GROUP_MEMBER, projectChoosers(keyed(device), card.id)), true);
+});
+
+test("a card linked before choices were kept on the device is linked again by the suggestions it carries", async () => {
+  const { service, controller, stored } = await fixture(FIXTURE_TEAM_ADMIN);
+  await service.reload();
+  const project = service.snapshot().records.find(p => p.name === "Water notes (fixture)")!;
+  controller.change(draft => {
+    const needs = addEntry(draft.needs, "Sampling kits");
+    return revise(draft, { needs: { ...needs, items: needs.items.map(item => ({ ...item, sourceKey: `${projectSource(project.uri)}:0` })) } });
+  });
+  await controller.settled();
+  assert.equal(stored.size, 0, "no choice is held anywhere");
+  await service.reload();
+  assert.equal(service.snapshot().project?.uri, project.uri);
+  // A choice made since comes first, and a card set aside for another account takes no link at all.
+  const theirs = controller.getSnapshot().draft;
+  stored.set(projectChoiceKey(FIXTURE_GROUP_MEMBER, theirs.id), project.uri);
+  await service.reload();
+  assert.equal(service.snapshot().project, null, "another account chose it, so it is not this account's card");
 });
 
 test("a card that is this account's to use still takes its project choice", async () => {
