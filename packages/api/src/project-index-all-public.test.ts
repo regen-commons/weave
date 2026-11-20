@@ -5,7 +5,7 @@ import {
 } from "./project-index-all-public.ts";
 import { createAccountHostResolver, isCertifiedTestHost, type AccountHost } from "./project-index-hosts.ts";
 import { createProjectIndexRefreshHandler } from "./project-index-refresh-http.ts";
-import { createHypercertsSource } from "./project-index-source.ts";
+import { createHypercertsSource, NO_PROJECT_FACTS, type ProjectFacts } from "./project-index-source.ts";
 import { traverseProjectNetwork } from "./project-index-traversal.ts";
 import type { ProjectCheckpoint } from "./project-index.ts";
 import { projectDid, projectListing, projectUri, projectView } from "./test-data/public-projects.ts";
@@ -22,7 +22,7 @@ const accountHosts = (answers = new Map<string, AccountHost>()) => ({
 function memoryStore(clock: () => number) {
   const data = {
     generation: 0, hash: "", revision: 0, offset: 0, opens: 0, commits: [] as string[], contendAfter: Infinity,
-    sources: new Map<string, { status: string; until: number; checkedAt: string; passages: number }>(),
+    sources: new Map<string, { status: string; until: number; checkedAt: string; passages: number; facts: ProjectFacts }>(),
   };
   const checkpoint = (): ProjectCheckpoint => ({ revision: String(data.revision), offset: data.offset, retryAfter: null });
   const store: AllPublicStore = {
@@ -38,14 +38,19 @@ function memoryStore(clock: () => number) {
       Object.assign(data, { generation: manifest.generation, hash, offset: 0, revision: data.revision + 1, opens: data.opens + 1 });
       const allowed = new Set(manifest.permissions.map(({ uri }) => uri));
       for (const [uri, source] of data.sources)
-        if (!allowed.has(uri)) Object.assign(source, { status: "restricted", until: Math.min(source.until, clock()), passages: 0 });
+        if (!allowed.has(uri))
+          Object.assign(source, { status: "restricted", until: Math.min(source.until, clock()), passages: 0, facts: NO_PROJECT_FACTS });
       return checkpoint();
     },
     async commit({ checkpoint: expected, permission, read, nextOffset, checkedAt }) {
       if (expected.revision !== String(data.revision) || data.commits.length >= data.contendAfter) return null;
       Object.assign(data, { revision: data.revision + 1, offset: nextOffset });
+      // A transient failure keeps the words and the card's facts; any other read replaces both.
+      const keep = read.status === "failed" && (read.code === "source_unavailable" || read.code === "source_rate_limited");
+      const previous = data.sources.get(permission.uri);
       data.sources.set(permission.uri, { status: read.status, until: Date.parse(permission.redisplayUntil), checkedAt,
-        passages: read.status === "indexed" ? read.passages.length : 0 });
+        passages: keep ? previous?.passages ?? 0 : read.status === "indexed" ? read.passages.length : 0,
+        facts: keep ? previous?.facts ?? NO_PROJECT_FACTS : read.status === "indexed" ? read.facts : NO_PROJECT_FACTS });
       data.commits.push(permission.uri);
       return { ...checkpoint(), sourceStatus: read.status };
     },
@@ -96,6 +101,30 @@ test("a complete traversal becomes the permission set, and unlisted, removed and
   const hidden = state.projects.filter(({ shown }) => !shown).map(({ uri }) => uri).sort();
   assert.deepEqual(hidden, [3, 4, 5, 6, 7].map(projectUri).sort());
   assert.doesNotMatch(JSON.stringify(second), /at:\/\/|wetlands|Watershed|example@/u);
+});
+
+test("each refresh writes who shared a project and where, and a withdrawal clears them with the words", async () => {
+  const views: unknown[] = Array.from({ length: 4 }, (_, n) => projectView(n));
+  views[0] = projectView(0, { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"] });
+  views[1] = projectView(1, { publisher: "Write to someone@example.com", place: 42 });
+  const index = setup(views);
+  await index.run();
+  const facts = (n: number) => index.data.sources.get(projectUri(n))?.facts;
+  assert.deepEqual(facts(0), { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"] });
+  assert.deepEqual([facts(1), facts(2)], [NO_PROJECT_FACTS, NO_PROJECT_FACTS], "a malformed or missing fact is left out");
+  assert.equal(index.data.sources.get(projectUri(1))?.status, "indexed");
+  // A publisher that renames itself changes no collection CID; the next refresh still carries the new name.
+  views[0] = projectView(0, { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["nonprofit", "cooperative"] });
+  views[2] = projectView(2, { place: "Lagos, Nigeria" });
+  index.advance(24 * 60 * 60 * 1000);
+  await index.run();
+  assert.deepEqual(facts(0), { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["cooperative", "nonprofit"] });
+  assert.deepEqual(facts(2), { publisher: null, place: "Lagos, Nigeria", organizationTypes: [] });
+  views.splice(0, 1);
+  index.advance(24 * 60 * 60 * 1000);
+  const report = await index.run();
+  assert.equal(report.withdrawn, 1);
+  assert.deepEqual([index.data.sources.get(projectUri(0))?.status, facts(0)], ["restricted", NO_PROJECT_FACTS]);
 });
 
 test("an outage, a partial traversal or a cursor cycle changes nothing that is shown", async () => {

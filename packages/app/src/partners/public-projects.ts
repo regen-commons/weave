@@ -1,6 +1,7 @@
 import {
-  parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE, type PublicProjectCard, type PublicProjectPage,
+  isOrganizationType, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE, type PublicProjectCard, type PublicProjectPage,
 } from "@weave/api/public-projects-contract";
+import type { Facet } from "../filters.ts";
 
 export type { PublicProjectCard, PublicProjectPage };
 export { PUBLIC_PROJECT_PAGE_SIZE };
@@ -14,12 +15,23 @@ export function searchQuery(typed: string): string {
 }
 /** How long the list waits after the last letter before it searches, so typing sends one request. */
 export const SEARCH_PAUSE_MS = 300;
+/**
+ * The search the list asks for now: what was typed once typing paused, except that an emptied box asks
+ * at once. Clear Filters then sends one request, with the search and the kind of group both gone.
+ */
+export const searchNow = (typed: string, paused: string): string => typed === "" ? "" : paused;
 
-/** The same-origin address of one page. Parameters keep one order, so each page has one cached copy. */
-export function publicProjectsPath(q: string, cursor: string | null = null, limit = PUBLIC_PROJECT_PAGE_SIZE): string {
+/**
+ * The same-origin address of one page. Parameters keep one order, so each page has one cached copy. A
+ * kind of group the list cannot read is left out, so the list never refuses the page for it.
+ */
+export function publicProjectsPath(
+  q: string, cursor: string | null = null, limit = PUBLIC_PROJECT_PAGE_SIZE, organizationType: string | null = null,
+): string {
   const params = new URLSearchParams();
   const search = searchQuery(q);
   if (search) params.set("q", search);
+  if (isOrganizationType(organizationType)) params.set("organizationType", organizationType);
   if (cursor) params.set("cursor", cursor);
   if (limit !== PUBLIC_PROJECT_PAGE_SIZE) params.set("limit", String(limit));
   const query = params.toString();
@@ -37,13 +49,18 @@ export async function requestPublicProjects(path: string, signal: AbortSignal, r
   return parsePublicProjectPage(await response.json());
 }
 
+/** What a list was asked for: the search, and the kind of group where one is chosen. */
+type Asked = { q: string; organizationType?: string };
 export type PublicProjectList =
-  | { status: "loading"; q: string }
-  | { status: "failed"; q: string }
-  | { status: "ready"; q: string; page: PublicProjectPage; projects: PublicProjectCard[]; more: "idle" | "loading" | "failed" };
+  | ({ status: "loading" } & Asked)
+  | ({ status: "failed" } & Asked)
+  | ({ status: "ready"; page: PublicProjectPage; projects: PublicProjectCard[]; more: "idle" | "loading" | "failed" } & Asked);
 
-export const firstPage = (q: string, page: PublicProjectPage): PublicProjectList =>
-  ({ status: "ready", q, page, projects: page.projects, more: "idle" });
+export const firstPage = (q: string, page: PublicProjectPage, organizationType?: string): PublicProjectList =>
+  ({ status: "ready", q, ...(organizationType ? { organizationType } : {}), page, projects: page.projects, more: "idle" });
+
+/** Whether a list is narrowed by a search or a kind of group. */
+const narrowed = (list: Asked) => list.q !== "" || !!list.organizationType;
 
 /** Adds the next page, skipping any project already shown, since the list can change between pages. */
 export function nextPage(list: PublicProjectList, page: PublicProjectPage): PublicProjectList {
@@ -57,7 +74,7 @@ export function nextPage(list: PublicProjectList, page: PublicProjectPage): Publ
  * that is not switched on or one that did not answer falls back to the starter list of public sources.
  */
 export function showsIndex(list: PublicProjectList): boolean {
-  return list.status === "ready" && list.page.index.status !== "off" && (list.page.index.total > 0 || list.q !== "");
+  return list.status === "ready" && list.page.index.status !== "off" && (list.page.index.total > 0 || narrowed(list));
 }
 
 /**
@@ -107,10 +124,66 @@ export function indexLine(index: PublicProjectPage["index"], formatDate: (iso: s
   return "The latest check did not finish, so some projects may be missing.";
 }
 
-/** How many projects the list holds, or how many match a search, as one whole sentence. */
-export function countLine(total: number, searching: boolean): string {
-  if (searching) return total === 1 ? "1 project matches your search." : `${count(total)} projects match your search.`;
+/** How many projects the list holds, or how many match a search or a kind of group, as one whole sentence. */
+export function countLine(total: number, searching: boolean, filtered = false): string {
+  const what = searching && filtered ? "your search and filter" : searching ? "your search" : "your filter";
+  if (searching || filtered) return total === 1 ? `1 project matches ${what}.` : `${count(total)} projects match ${what}.`;
   return total === 1 ? "1 project shared on Certified." : `${count(total)} projects shared on Certified.`;
+}
+
+/** What an empty list says, and what its one button takes away. */
+export function emptyList(searching: boolean, filtered: boolean): { title: string; body: string; action: string } {
+  if (!filtered) return { title: "No projects match your search", body: "Try other words, or clear the search to see every project.",
+    action: "Clear Search" };
+  return {
+    title: searching ? "No projects match your search and filter" : "No projects match this filter",
+    body: "Try another kind of group, or clear the filters to see every project.",
+    action: "Clear Filters",
+  };
+}
+
+/** The page address's name for the kind of group, the same as the list's. */
+export const ORGANIZATION_TYPE_KEY = "organizationType";
+
+/** A kind of group as people read it: `community-group` is "Community group". */
+export function organizationTypeLabel(type: string): string {
+  const words = type.replace(/-/gu, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/**
+ * The one filter the list can answer: the kind of group its publishers say they are (DL-081). It offers
+ * only the kinds the list names, and a kind chosen through an address stays on offer so it can be taken
+ * off. A list that names none, as one from before the filter, has no filter at all. Before the first
+ * page answers (`"waiting"`) the filter is drawn waiting, so the bar does not grow when the list arrives
+ * (DL-108).
+ */
+export function organizationTypeFacets(offered: readonly string[] | undefined | "waiting", chosen: string | null): Facet[] {
+  const kinds = offered === "waiting" ? [] : [...offered ?? []];
+  if (chosen && !kinds.includes(chosen)) kinds.push(chosen);
+  if (!kinds.length && offered !== "waiting") return [];
+  return [{
+    key: ORGANIZATION_TYPE_KEY,
+    label: "Kind of group",
+    kind: "one",
+    options: [{ value: "", label: "Any kind" }, ...kinds.map((value) => ({ value, label: organizationTypeLabel(value) }))],
+    chosen: chosen ? [chosen] : [],
+  }];
+}
+
+/** A kind of group from the page's address, or none where it is not one the list could read. */
+export function chosenOrganizationType(search: string): string | null {
+  const value = new URLSearchParams(search).get(ORGANIZATION_TYPE_KEY);
+  return isOrganizationType(value) ? value : null;
+}
+
+/**
+ * The line under a card's name: who shared it and where. `title` is the whole line in words, for a line
+ * cut at its end. A card with neither keeps the line empty, so every card is one height (DL-108).
+ */
+export function sharedByLine(project: Pick<PublicProjectCard, "publisher" | "place">): string {
+  return [project.publisher && `Shared by ${project.publisher}.`, project.place && `Place: ${project.place}.`]
+    .filter(Boolean).join(" ");
 }
 
 /** Home's link to the list. */

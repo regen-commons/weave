@@ -82,6 +82,9 @@ function SkeletonCard({ kind, matched }: { kind: SkeletonKind; matched?: boolean
         <p className="rc-card-title">
           <Hold>Project name</Hold>
         </p>
+        <p className="rc-card-meta">
+          <Hold>Name of the group that shared it</Hold>
+        </p>
         <p className="rc-card-summary">
           <Hold>
             The project in its own words, which usually run long enough to fill the three lines a card gives a

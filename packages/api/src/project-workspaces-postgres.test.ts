@@ -32,6 +32,7 @@ before(async () => {
   await sql.unsafe(await candidate("weave-team-content"));
   if (indexEnabled) {
     await sql.unsafe(await candidate("weave-project-index"));
+    await sql.unsafe(await candidate("weave-project-index-card-facts"));
     await sql.unsafe(await candidate("weave-matching-vectors"));
     await sql.unsafe(await candidate("weave-open-ended-sharing"));
     await sql.unsafe(await candidate("weave-public-evidence-snapshot"));

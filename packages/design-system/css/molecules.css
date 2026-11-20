@@ -628,6 +628,10 @@ a.rc-save-status:active { color: var(--on-surface); }
 .rc-card[data-rows="fixed"] > :is(.rc-eyebrow, .rc-card-meta, .rc-time) { flex-wrap: nowrap; max-inline-size: 100%; min-block-size: 1lh; max-block-size: 1lh; overflow: hidden; white-space: nowrap; }
 /* A name cut at its line's end says so with an ellipsis. */
 .rc-card[data-rows="fixed"] > .rc-card-meta { display: block; text-overflow: ellipsis; }
+/* An icon in that line marks a second fact, such as a public project's place after who shared it. It
+   sits on the words' line, a step after the fact before it and a small gap before its own words. */
+.rc-card[data-rows="fixed"] > .rc-card-meta > .rc-icon { margin-inline-end: var(--space-1); vertical-align: text-bottom; }
+.rc-card[data-rows="fixed"] > .rc-card-meta > .rc-icon:not(:first-child) { margin-inline-start: var(--space-3); }
 .rc-card[data-rows="fixed"][data-kind="initiative"] > .rc-meta { display: -webkit-box; min-block-size: 2lh; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .rc-card[data-rows="fixed"] > .rc-tag-list { display: grid; grid-template-rows: repeat(2, var(--tag-height)); grid-auto-rows: var(--tag-height); justify-items: start; block-size: calc(2 * var(--tag-height) + var(--space-1)); overflow: hidden; }
 .rc-card[data-rows="fixed"] > .rc-tag-list > * { display: flex; min-inline-size: 0; max-inline-size: 100%; }
