@@ -65,7 +65,7 @@ export function Page({
         {form && <div className="rc-dock" ref={setDock} />}
         {/* On a wide screen a step's map and its way forward share one bar under the app bar. It
             comes after the page body, so the keyboard reaches the way forward after the step's
-            fields, and the page's grid draws it above them (DL-124). */}
+            fields, and the page's grid draws it above them (DL-125). */}
         <div className="rc-step-bar" ref={setStepBar} />
         <Footer current={current} onInformation={setInformation}>
           {after}

@@ -55,7 +55,7 @@ const SAY_EXAMPLE = "For example: We are River Keepers, based in Nairobi. We res
  * sentences in one box, and Weave fills the fields under it in place, on this device: the name,
  * where they work and what they do. A file added beside the box is read at once for the same
  * three. The fields stay editable, the link is the person's own to give, and one Continue goes
- * on to needs and offers: in the Step bar on a wide screen and in the dock on a phone (DL-124).
+ * on to needs and offers: in the Step bar on a wide screen and in the dock on a phone (DL-125).
  * Nothing here opens, closes or moves when it is pressed.
  */
 export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
@@ -297,7 +297,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   // The browser's speech service leads only once the person has agreed to it on this device.
   const talkLeads = fresh && (speech.state === "ready" || (speech.state === "browser" && speech.agreed));
   // The way forward is drawn twice and shown once: in the Step bar on a wide screen, in the dock on
-  // a phone (DL-089, DL-124). Both are outside the form, so Continue names the form it sends.
+  // a phone (DL-089, DL-125). Both are outside the form, so Continue names the form it sends.
   const forward = (from?: "wide") => (
     <button
       className="rc-button"
@@ -368,7 +368,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               <Heading level={2} size="section" id="describe-talk">
                 Say It In Your Own Words
               </Heading>
-              {/* What to say, in the order the fields under the box are filled (DL-124). */}
+              {/* What to say, in the order the fields under the box are filled (DL-125). */}
               <p>
                 {!talksHere(speech.state)
                   ? "Write three things: its name, where you work and what you do. Weave fills in the fields below, on this device."

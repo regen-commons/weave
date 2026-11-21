@@ -6,7 +6,7 @@ export const DockContext = createContext<HTMLElement | null>(null);
 
 /**
  * The page shell's step bar, where a step shows its map and its way forward on a wide screen
- * (DL-124). Null until the shell has drawn it.
+ * (DL-125). Null until the shell has drawn it.
  */
 export const StepBarContext = createContext<HTMLElement | null>(null);
 

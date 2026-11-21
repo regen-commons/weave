@@ -21,7 +21,7 @@ import { previewFields } from "./view.ts";
 
 /**
  * A problem with what the person typed, said in a sentence the page can show as it is. `field`
- * is the one of the four fields it is about, so the page can say it there (DL-124); a problem
+ * is the one of the four fields it is about, so the page can say it there (DL-125); a problem
  * with the box has none.
  */
 export class FieldsProblem extends Error {
@@ -366,7 +366,7 @@ const listed = (words: readonly string[]): string =>
   words.length < 2 ? words.join("") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
 
 /**
- * One line for the reserved status place after a fill (DL-124). It names the fields that were
+ * One line for the reserved status place after a fill (DL-125). It names the fields that were
  * filled, so the person knows where to look, and asks by name for a name or a place the words
  * did not give. The suggested details are not counted: the page no longer shows them.
  */

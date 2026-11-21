@@ -20,7 +20,7 @@ test("the page shell draws the dock on a focused step and the tab bar on every o
   assert.ok(page.includes("<DockContext.Provider value={dock}>"), "steps reach the dock through its context");
 });
 
-test("the page shell draws a step bar after the page body, and the steps fill it on a wide screen (DL-124)", () => {
+test("the page shell draws a step bar after the page body, and the steps fill it on a wide screen (DL-125)", () => {
   const page = source("ui/Page.tsx");
   const bar = page.indexOf('<div className="rc-step-bar" ref={setStepBar} />');
   assert.notEqual(bar, -1, "every page has the bar's place, and an empty one is not drawn");
@@ -46,7 +46,7 @@ test("each intake step docks its way forward, and shows the same action in the s
     for (const action of actions) {
       assert.equal(count(text, `<Dock>{${action}()}</Dock>`), 1, `${file} docks ${action} once`);
       assert.equal(count(text, `{${action}("wide")}`), 1, `${file} shows ${action} once on a wide screen`);
-      // The wide screen's copy is in the Step bar, beside the steps (DL-124).
+      // The wide screen's copy is in the Step bar, beside the steps (DL-125).
       const steps = text.slice(text.indexOf("<IntakeStepper"), text.indexOf("</IntakeStepper>"));
       assert.ok(steps.includes(`{${action}("wide")}`), `${file} shows ${action} in the step bar`);
     }
@@ -68,7 +68,7 @@ test("a problem a docked action raises is drawn where the person is", () => {
   assert.ok(text.includes('role="alert" id={PROBLEM_ID}'), "and names the problem it reveals");
   // The problem's place is always on the page, so showing it pushes nothing down (DL-113).
   assert.ok(text.includes('className="rc-error rc-status-slot" role="alert" id={PROBLEM_ID}'));
-  // A problem about one field is written at that field, which takes the focus (DL-124).
+  // A problem about one field is written at that field, which takes the focus (DL-125).
   assert.ok(text.includes(`event.currentTarget.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();`));
   assert.ok(source("ui/RecordFields.tsx").includes('<p className="rc-error" role="alert" id={`${id}-${name}-hint`}>'));
   // Needs and offers already moves the focus to the list that stopped the page.

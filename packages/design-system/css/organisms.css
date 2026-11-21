@@ -78,7 +78,7 @@
    navigation change at once above it. Each has its own name at every width, so neither fades,
    slides or disappears under the page while it changes, and the current section's bar never
    moves from one section to the next (DL-058). The dock of a focused step changes the same way,
-   and so does a wide screen's step bar (DL-124). */
+   and so does a wide screen's step bar (DL-125). */
 .rc-app-header { view-transition-name: rc-app-header; }
 .rc-bottom-nav { view-transition-name: rc-bottom-nav; }
 .rc-dock { view-transition-name: rc-dock; }
@@ -179,7 +179,7 @@
 
 /* Step bar: on a wide screen a step's map and its way forward share one bar under the app bar,
    so both stay in view however far the page has scrolled. It is the wide screen's answer to the
-   phone's dock (DL-124). It is a child of the page shell and comes after the page body, so the
+   phone's dock (DL-125). It is a child of the page shell and comes after the page body, so the
    keyboard reaches the way forward after the step's fields; the page's grid draws it above them
    (templates.css). It spans the window as the app bar does, keeps the page's edges, and an empty
    one is not drawn. A phone never draws it: its steps are at the top of the page and its way
@@ -634,11 +634,11 @@
 .rc-voice-aside { display: grid; flex: 1 1 var(--card-min-width); align-content: center; justify-items: start; gap: var(--space-1); min-block-size: calc(2lh + var(--space-1)); }
 .rc-voice-aside > p { margin: 0; }
 /* While the browser downloads and sets up its speech pack, a Progress bar runs above the line. The
-   browser reports no amount, so the bar has none (DL-124). */
+   browser reports no amount, so the bar has none (DL-125). */
 .rc-voice-aside > .rc-progress { inline-size: 100%; max-inline-size: var(--card-min-width); }
 /* A thin bar, so it and two lines of words fit the room the line always keeps, and a press moves nothing. */
 .rc-voice-aside > .rc-progress > progress { block-size: var(--space-1); }
-/* The box fills the width it is given, so a line holds more words (DL-124). */
+/* The box fills the width it is given, so a line holds more words (DL-125). */
 .rc-voice-input > .rc-field { max-inline-size: none; }
 .rc-voice-slot > .rc-button[data-size="lg"] { flex: 1 1 100%; justify-content: center; min-block-size: var(--space-9); }
 /* On a wide screen the action is a large button of its own width, not a bar across the column. */

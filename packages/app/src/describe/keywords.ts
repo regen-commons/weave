@@ -70,7 +70,7 @@ export function whereAnswer(draft: Pick<DeviceDraft, "turns" | "composer">): str
 export function keywordSuggestion(draft: DeviceDraft, text: string, settled = text): Initiative {
   // The words the person gave first: an answer to the name question, the box, or the first file.
   const first = draft.turns[0]?.text.trim() || draft.composer.trim() || text.trim();
-  // What the person said or typed, and what the files added after it (DL-124).
+  // What the person said or typed, and what the files added after it (DL-125).
   const said = [...draft.turns.map((turn) => turn.text), draft.composer.trim()].filter(Boolean).join("\n\n");
   const fromFiles = said && text.startsWith(said) ? text.slice(said.length).trim() : said ? "" : text.trim();
   // A name as written, then as speech gives it without capitals, then as a file states it.
