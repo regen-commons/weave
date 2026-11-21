@@ -4,7 +4,8 @@ import { mkdtemp, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { assemble, buildCorpus, buildSlots, DOMAINS, savePages, seedOrder } from "../scripts/partner-real-v2.mjs";
+import { assemble, buildCorpus, buildPool, buildSlots, calibrationPairs, DOMAINS, savePages, seedOrder } from "../scripts/partner-real-v2.mjs";
+import { loadReal } from "../scripts/matching-real.mjs";
 
 const project = (id, theme, v1Id = null, passage = `We run ${theme} work with our neighbours, share tools and skills, and keep careful records of each season.`) =>
   ({ id, uri: `at://did:plc:x/org.hypercerts.collection/${id}`, name: `Project ${id}`, passages: [passage], theme, v1Id, language: "en" });
@@ -110,4 +111,36 @@ test("pages are saved until the list ends, and a list that changes while reading
   assert.deepEqual((await readdir(dir)).sort(), ["p001.json", "p002.json"]);
   const changing = [page(["a", "b"], "c1", 3), page(["c"], null, 4)];
   await assert.rejects(savePages(await mkdtemp(join(tmpdir(), "partner-real-v2-")), async () => reply(changing.shift())), /listing_changed_while_reading/);
+});
+
+test("the pool merges every engine's suggestions, the seed and two controls, and packets show none of it", () => {
+  const queryFile = { queries: [
+    { id: "q1", domain: "place", direction: "need", language: "en", title: "Hands for planting", description: "We plant hedges in winter." },
+    { id: "q2", domain: "art", direction: "offer", language: "pt", title: "Oficinas", description: null },
+  ] };
+  const slotFile = { slots: [{ id: "q1", kind: "seeded", seed: "p5" }, { id: "q2", kind: "sparse", seed: null }] };
+  const runs = { engines: { current: { q1: [{ id: "p1" }, { id: "p2" }], q2: [] }, model: { q1: [{ id: "p2" }, { id: "p3" }], q2: [{ id: "a1" }] } } };
+  let n = 0;
+  const { packets, key } = buildPool(corpus, queryFile, slotFile, runs, () => `pair-${String(++n).padStart(3, "0")}`);
+  const sources = id => Object.fromEntries(key.filter(row => row.queryId === id).map(row => [row.projectId, row.from]));
+  const q1 = sources("q1");
+  assert.deepEqual([q1.p1, q1.p2, q1.p3, q1.p5], [["current"], ["current", "model"], ["model"], ["seed"]]);
+  assert.equal(Object.values(q1).filter(from => from[0] === "control").length, 2);
+  assert.equal(Object.values(sources("q2")).filter(from => from[0] === "control").length, 2);
+  assert.deepEqual([packets.place.length, packets.art.length, packets.software.length], [6, 3, 0]);
+  assert.deepEqual(new Set([...packets.place, ...packets.art].map(row => row.pairId)), new Set(key.map(row => row.pairId)));
+  for (const row of [...packets.place, ...packets.art]) assert.deepEqual(Object.keys(row), ["pairId", "queryNumber", "direction",
+    "queryTitle", "queryDescription", "projectName", "projectPassages", "judgment", "rationale", "reviewer"]);
+  // Controls follow a salted order, so a rebuild draws the same ones.
+  const again = buildPool(corpus, queryFile, slotFile, runs);
+  assert.deepEqual(new Set(again.key.map(row => `${row.queryId}:${row.projectId}`)), new Set(key.map(row => `${row.queryId}:${row.projectId}`)));
+  assert.throws(() => buildPool(corpus, queryFile, slotFile, { engines: { current: { q1: [] } } }), /missing_run:current:q2/);
+});
+
+test("calibration draws 8 relevant, 8 irrelevant and 4 unresolved v1 pairs, in a fixed order", async () => {
+  const { packet, key } = calibrationPairs(await loadReal());
+  const count = Object.fromEntries(Object.entries(Object.groupBy(key, row => row.agentLabel)).map(([k, v]) => [k, v.length]));
+  assert.deepEqual(count, { relevant: 8, irrelevant: 8, unresolved: 4 });
+  assert.deepEqual(packet.map(row => row.pairId), key.map(row => row.pairId));
+  assert.deepEqual(calibrationPairs(await loadReal()).key, key);
 });

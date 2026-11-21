@@ -8,13 +8,18 @@
 //   node packages/api/scripts/partner-real-v2.mjs corpus <pages-dir> <collected-at ISO> <corpus.json>
 //   node packages/api/scripts/partner-real-v2.mjs slots <corpus.json> <out-dir>
 //   node packages/api/scripts/partner-real-v2.mjs assemble <corpus.json> <slots.json> <answers-dir> <out-dir>
+//   node packages/api/scripts/partner-real-v2.mjs pool <private-dir>       runs the frozen engines, writes pool and worksheet
 //   node packages/api/scripts/partner-real-v2.mjs hashes <file>...
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { CURRENT, currentPicks, keywordEvidence, MANIFEST, modelPicks, prepareModel, verifyManifest }
+  from "../evaluation/experiments/matching-architecture/d32-engines.mjs";
+import { createEmbedder } from "../evaluation/experiments/matching-architecture/models.mjs";
 import { parsePublicProjectPage, PUBLIC_PROJECT_PAGE_MAX } from "../src/public-projects-contract.ts";
 import { exclusionReason, passageLanguage, theme } from "./partner-real-corpus.mjs";
+import { agentLabels } from "./matching-real.mjs";
 
 export const SALT = "partner-real-v2";
 export const DOMAINS = ["art", "software", "research", "place"];
@@ -239,6 +244,86 @@ export function assemble(corpus, slotFile, answers, revisions = []) {
   };
 }
 
+/** The engines run as of the day the corpus was read, as the engine manifest says and matching-real.mjs does for v1. */
+export const engineDate = corpus => Date.parse(`${corpus.source.collectedAt.slice(0, 10)}T00:00:00Z`);
+
+/** Runs every engine the committed manifest lets go forward, and refuses if the manifest differs from what is on disk. */
+export async function runEngines(corpus, queryFile) {
+  const { manifest, differences } = await verifyManifest();
+  if (differences.length) throw Error(`engine_manifest_differs:${differences.join(",")}`);
+  const now = engineDate(corpus), { projects } = corpus, { queries } = queryFile;
+  const record = picks => Object.fromEntries(queries.map(query => [query.id, picks.get(query.id)]));
+  const engines = { [CURRENT.name]: record(currentPicks(projects, queries, now)) };
+  const keywords = keywordEvidence(projects, queries, now);
+  for (const engine of manifest.engines.filter(engine => engine.goesForward && engine.model)) {
+    const embedder = await createEmbedder(engine.model);
+    const rows = await prepareModel(projects, queries, embedder, keywords);
+    await embedder.close();
+    engines[engine.name] = record(modelPicks(rows, engine.cutOffs));
+  }
+  const manifestBytes = await readFile(new URL(`../../../${MANIFEST}`, import.meta.url));
+  return { version: 1, dataset: "partner-real-v2-runs", note: "Part of the key. Never shown to reviewers.",
+    engineDate: new Date(now).toISOString(), engineManifestSha256: sha256(manifestBytes), engines };
+}
+
+/**
+ * The pool for each query: every suggestion of every engine run, the seed, and two controls drawn in a salted order
+ * from the projects not already pooled. Packets are cut by domain and grouped by query, each query's projects in
+ * random order; a row shows only the direction, the query and the project. The key joins pair ids back to queries,
+ * projects and where each pair came from.
+ */
+export function buildPool(corpus, queryFile, slotFile, runs, newId = randomUUID) {
+  const byId = new Map(corpus.projects.map(project => [project.id, project]));
+  const slotOf = new Map(slotFile.slots.map(slot => [slot.id, slot]));
+  const packets = Object.fromEntries(DOMAINS.map(domain => [domain, []]));
+  const key = [];
+  for (const query of [...queryFile.queries].sort((a, b) => a.id.localeCompare(b.id))) {
+    const from = new Map();
+    const add = (projectId, source) => {
+      if (!byId.has(projectId)) throw Error(`unknown_project:${query.id}:${projectId}`);
+      from.set(projectId, [...(from.get(projectId) ?? []), source]);
+    };
+    for (const [engine, picks] of Object.entries(runs.engines)) {
+      if (!picks[query.id]) throw Error(`missing_run:${engine}:${query.id}`);
+      for (const pick of picks[query.id]) add(pick.id, engine);
+    }
+    const seed = slotOf.get(query.id)?.seed;
+    if (seed) add(seed, slotOf.get(query.id).kind === "hard-negative" ? "seed-not-fit" : "seed");
+    for (const control of corpus.projects.filter(project => !from.has(project.id)).sort(bySalt("control", query.id)).slice(0, 2))
+      add(control.id, "control");
+    const packet = packets[query.domain];
+    const queryNumber = new Set(packet.map(row => row.queryNumber)).size + 1;
+    const pairs = [...from].map(([projectId, sources]) => ({ pairId: newId(), projectId, sources }))
+      .sort((a, b) => a.pairId.localeCompare(b.pairId));
+    for (const { pairId, projectId, sources } of pairs) {
+      const project = byId.get(projectId);
+      packet.push({ pairId, queryNumber, direction: query.direction, queryTitle: query.title, queryDescription: query.description,
+        projectName: project.name, projectPassages: project.passages, judgment: null, rationale: "", reviewer: "" });
+      key.push({ pairId, queryId: query.id, projectId, from: sources });
+    }
+  }
+  return { packets, key };
+}
+
+/** Calibration: v1 worksheet pairs in a salted order, by the frozen agent labels' verdict. Not scored. */
+export const CALIBRATION = { relevant: 8, irrelevant: 8, unresolved: 4 };
+export function calibrationPairs(v1, quotas = CALIBRATION) {
+  const labelMap = agentLabels(v1.queries, v1.labels, v1.corpus);
+  const verdict = row => { const { pairs, judgedAll } = labelMap.get(row.queryId);
+    return pairs.get(row.projectId) ?? (judgedAll ? "irrelevant" : "unjudged"); };
+  const keyOf = new Map(v1.key.map(row => [row.pairId, row]));
+  const taken = Object.fromEntries(Object.keys(quotas).map(name => [name, 0]));
+  const packet = [], key = [];
+  for (const pair of [...v1.worksheet].sort((a, b) => salted("calibration", a.pairId).localeCompare(salted("calibration", b.pairId)))) {
+    const row = keyOf.get(pair.pairId), label = verdict(row);
+    if (!(label in quotas) || taken[label] >= quotas[label]) continue;
+    taken[label]++;
+    packet.push(pair);
+    key.push({ ...row, agentLabel: label });
+  }
+  return { packet, key };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [command, ...args] = process.argv.slice(2);
   const json = async path => JSON.parse(await readFile(path, "utf8"));
@@ -274,9 +359,29 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const result = assemble(await json(corpusPath), await json(slotsPath), answers, revisions);
     console.log(JSON.stringify({ problems: result.problems, flags: result.flags, counts: result.counts }, null, 1));
     if (!result.problems.length) await write(join(outDir, "partner-real-v2-queries.json"), result.queries);
+  } else if (command === "pool") {
+    const [dir] = args;
+    if (!dir) throw Error("usage: pool <private-dir>");
+    const corpus = await json(join(dir, "partner-real-v2-corpus.json")), queryFile = await json(join(dir, "partner-real-v2-queries.json"));
+    const slotFile = await json(join(dir, "partner-real-v2-slots.json"));
+    const runs = await runEngines(corpus, queryFile);
+    await write(join(dir, "partner-real-v2-runs.json"), runs);
+    const jsonl = rows => rows.map(row => JSON.stringify(row)).join("\n") + "\n";
+    const { packets, key } = buildPool(corpus, queryFile, slotFile, runs);
+    for (const [domain, rows] of Object.entries(packets)) await write(join(dir, `partner-real-v2-worksheet-${domain}.jsonl`), jsonl(rows));
+    await write(join(dir, "partner-real-v2-worksheet-key.jsonl"), jsonl(key));
+    const { loadReal } = await import("./matching-real.mjs");
+    const calibration = calibrationPairs(await loadReal());
+    await write(join(dir, "partner-real-v2-calibration.jsonl"), jsonl(calibration.packet));
+    await write(join(dir, "partner-real-v2-calibration-key.jsonl"), jsonl(calibration.key));
+    const bySource = {};
+    for (const row of key) for (const source of row.from) bySource[source] = (bySource[source] ?? 0) + 1;
+    console.log(JSON.stringify({ engineDate: runs.engineDate, engines: Object.keys(runs.engines), pairs: key.length,
+      perQuery: Number((key.length / queryFile.queries.length).toFixed(2)), maxPerQuery: Math.max(...Object.values(Object.groupBy(key, r => r.queryId)).map(l => l.length)),
+      byDomain: Object.fromEntries(Object.entries(packets).map(([d, rows]) => [d, rows.length])), bySource, calibration: calibration.packet.length }));
   } else if (command === "hashes") {
     for (const path of args) console.log(`${sha256(await readFile(path))}  ${path.split("/").at(-1)}`);
   } else {
-    throw Error("usage: pages | corpus | slots | assemble | hashes");
+    throw Error("usage: pages | corpus | slots | assemble | pool | hashes");
   }
 }
