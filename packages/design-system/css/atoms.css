@@ -301,6 +301,9 @@
 }
 .rc-input:user-invalid,
 .rc-input[aria-invalid="true"] {
+  /* The thicker edge comes out of the padding, so marking a field changes neither its size nor
+     the place of anything under it (DL-113, DL-125). */
+  padding: calc(var(--space-3) - (var(--border-thick) - var(--border-thin)));
   border: var(--border-thick) solid var(--state-danger);
 }
 textarea.rc-input {

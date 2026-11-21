@@ -90,6 +90,14 @@ production. Account saving uses the same-origin API and stays unavailable until 
   workspace the tab opened over an unlinked card is `visit` in the social state, never `project`.
 - The describe step is one page (DL-110). Words fill the four fields in place through
   `src/describe/fill.ts`, which never writes over a field the person typed or changed.
+  The page asks for three things, the name, the place and what the initiative does, and
+  shows no suggested details. A file is read as soon as it is added, and words as a
+  speech recognizer writes them, with capitals or without, are read by the spoken rules in
+  `names.ts` and `places.ts`, only where the written rules found nothing (DL-125). After
+  the plainer words ("we're in", "it's in", "we work in") a place counts only with its
+  capital or a country's name, and "we work in" is read only in the person's own words,
+  never in a file's. On a wide screen a step's way
+  forward goes in the Step bar through `IntakeStepper`, and in the dock on a phone.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud
   engine waits for D35 and its own consent. On the three steps nothing opens in the page when
   pressed: use a Status slot for progress and problems, and a dialog for a choice (DL-113).

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { BROWSER_SPEECH_NOTICE, talkControls, talkHold } from "../describe/speech-setup.ts";
 import type { SpeechSetup } from "../describe/use-speech.ts";
 import { Icon } from "./Icon.tsx";
@@ -13,7 +13,9 @@ const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN"
  * The action then structures the words, and its result is said in the line under it, which keeps
  * its height. Nothing on the page moves when any of them is pressed. Where talking goes through
  * the browser's own speech service, the first press on a device asks the person to agree in a
- * dialog, and listening starts only from their agreement.
+ * dialog, and listening starts only from their agreement. While the browser downloads and sets
+ * up its speech pack, the button shows a Spinner and a Progress bar runs beside it; the browser
+ * reports no amount, so neither does the bar (DL-125).
  */
 export function TalkItOut({
   speech,
@@ -40,6 +42,7 @@ export function TalkItOut({
   disabled = false,
   actionReady = false,
   secondary = false,
+  actions,
 }: {
   speech: SpeechSetup;
   listening: boolean;
@@ -77,6 +80,8 @@ export function TalkItOut({
    * one line about a browser without speech, so this one stays quiet until talking works.
    */
   secondary?: boolean;
+  /** More to do with the words' sources, beside the action: such as Add Files on the describe step. */
+  actions?: ReactNode;
 }) {
   const id = useId();
   const [choosing, setChoosing] = useState(false);
@@ -123,11 +128,18 @@ export function TalkItOut({
             onBlur={() => setFocused(false)}
             onClick={press}
           >
-            <Icon name="mic" />
+            {/* Under way, a Spinner takes the microphone's place, so the button's width holds. */}
+            {controls.action === "setting-up" ? <span className="rc-spinner" aria-hidden="true" /> : <Icon name="mic" />}
             {controls.label}
           </button>
         )}
         <div className="rc-voice-aside">
+          {/* The browser reports no amount, so the bar only says the work is going on. */}
+          {controls.action === "setting-up" && (
+            <div className="rc-progress">
+              <progress aria-label="Setting up speech on this device" />
+            </div>
+          )}
           <p className="rc-meta" role="status">
             {controls.note}
           </p>
@@ -169,8 +181,10 @@ export function TalkItOut({
           disabled={!working && (listening || !(actionReady || (!disabled && value.trim())))}
           onClick={working ? onCancel : onAction}
         >
+          {working && <span className="rc-spinner" aria-hidden="true" />}
           {working ? workingLabel : actionLabel}
         </button>
+        {actions}
         <p
           className={problem ? "rc-error rc-status-slot" : "rc-meta rc-status-slot"}
           data-lines="2"

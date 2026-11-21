@@ -20,7 +20,23 @@ test("the page shell draws the dock on a focused step and the tab bar on every o
   assert.ok(page.includes("<DockContext.Provider value={dock}>"), "steps reach the dock through its context");
 });
 
-test("each intake step docks its way forward, and shows the same action in its place on a wide screen", () => {
+test("the page shell draws a step bar after the page body, and the steps fill it on a wide screen (DL-125)", () => {
+  const page = source("ui/Page.tsx");
+  const bar = page.indexOf('<div className="rc-step-bar" ref={setStepBar} />');
+  assert.notEqual(bar, -1, "every page has the bar's place, and an empty one is not drawn");
+  // After the page body, so the keyboard reaches the way forward after the step's fields; the
+  // design system's grid draws it under the app bar.
+  assert.ok(bar > page.indexOf("</Main>"), "the step bar comes after the page's content");
+  assert.ok(bar < page.indexOf("<Footer"), "and before the footer");
+  assert.ok(page.includes("<StepBarContext.Provider value={stepBar}>"), "steps reach the bar through its context");
+  const stepper = source("ui/Stepper.tsx");
+  // The steps are in the markup twice and on screen once: a phone's copy at the top of the page,
+  // and the bar's with the step's way forward beside it.
+  assert.ok(stepper.includes('<Stepper current={current} steps={steps} until="wide" />'), "the copy on the page is a phone's");
+  assert.match(stepper, /createPortal\(\s*<>\s*<Stepper current=\{current\} steps=\{steps\} \/>\s*\{children && <div className="rc-action-bar">\{children\}<\/div>\}/u);
+});
+
+test("each intake step docks its way forward, and shows the same action in the step bar on a wide screen", () => {
   const steps: readonly [file: string, actions: readonly string[]][] = [
     ["pages/Describe.tsx", ["forward"]],
     ["pages/AskStep.tsx", ["forward"]],
@@ -29,7 +45,10 @@ test("each intake step docks its way forward, and shows the same action in its p
     const text = source(file);
     for (const action of actions) {
       assert.equal(count(text, `<Dock>{${action}()}</Dock>`), 1, `${file} docks ${action} once`);
-      assert.equal(count(text, `{${action}("wide")}`), 1, `${file} shows ${action} in its place on a wide screen`);
+      assert.equal(count(text, `{${action}("wide")}`), 1, `${file} shows ${action} once on a wide screen`);
+      // The wide screen's copy is in the Step bar, beside the steps (DL-125).
+      const steps = text.slice(text.indexOf("<IntakeStepper"), text.indexOf("</IntakeStepper>"));
+      assert.ok(steps.includes(`{${action}("wide")}`), `${file} shows ${action} in the step bar`);
     }
     // One definition serves both places, so the two can never say different things.
     assert.equal(count(text, "<Dock>"), actions.length, `${file} docks nothing else`);
@@ -39,7 +58,7 @@ test("each intake step docks its way forward, and shows the same action in its p
 
 test("a docked submit names the form it sends, because the dock is outside the form", () => {
   const describe = source("pages/Describe.tsx");
-  assert.ok(describe.includes('<form className="rc-form" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>'));
+  assert.ok(describe.includes('<form className="rc-form" data-width="full" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>'));
   assert.match(describe, /type="submit"\s+form=\{FIELDS_ID\}/u);
 });
 
@@ -49,6 +68,9 @@ test("a problem a docked action raises is drawn where the person is", () => {
   assert.ok(text.includes('role="alert" id={PROBLEM_ID}'), "and names the problem it reveals");
   // The problem's place is always on the page, so showing it pushes nothing down (DL-113).
   assert.ok(text.includes('className="rc-error rc-status-slot" role="alert" id={PROBLEM_ID}'));
+  // A problem about one field is written at that field, which takes the focus (DL-125).
+  assert.ok(text.includes(`event.currentTarget.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();`));
+  assert.ok(source("ui/RecordFields.tsx").includes('<p className="rc-error" role="alert" id={`${id}-${name}-hint`}>'));
   // Needs and offers already moves the focus to the list that stopped the page.
   assert.match(source("pages/AskStep.tsx"), /getElementById\(`ask-\$\{first\}-blocker`\)\?\.focus\(\)/u);
 });

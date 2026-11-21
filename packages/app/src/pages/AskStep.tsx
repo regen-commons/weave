@@ -120,7 +120,13 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   );
   return (
     <Stack>
-      <IntakeStepper current={1} />
+      {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-125). */}
+      <IntakeStepper current={1}>
+        <ButtonLink href={pathTo("initiative")} variant="quiet">
+          Back
+        </ButtonLink>
+        {forward("wide")}
+      </IntakeStepper>
       <Heading level={1} size="page">
         Needs And Offers
       </Heading>
@@ -155,8 +161,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
               />
             ))}
           </div>
-          <div className="rc-action-bar">
-            {forward("wide")}
+          {/* A phone keeps the way back at the end of the step, above the docked way forward. */}
+          <div className="rc-action-bar" data-until="wide">
             <ButtonLink href={pathTo("initiative")} variant="quiet">
               Back
             </ButtonLink>

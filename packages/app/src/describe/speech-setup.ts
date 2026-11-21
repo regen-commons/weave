@@ -217,7 +217,9 @@ const SILENT: TalkControls = { action: null, label: "", note: "", language: fals
 
 /**
  * The button and the line for each state of speech. The button keeps its place from Set up to
- * Talk it out to Stop, so pressing it never moves the page. Where the browser cannot turn speech
+ * Talk it out to Stop, so pressing it never moves the page. Set Up Speech and Setting Up Speech
+ * are close in width for the same reason: a longer label sent the line under the button on a wide
+ * screen, and the box jumped when the setup began (DL-125). Where the browser cannot turn speech
  * into text, a plain line says so in the button's place, or on a touch screen points to the
  * keyboard's microphone key; the option is never hidden without a word. Beside a working Talk It
  * Out the keyboard line is not shown, so a page offers one way to talk at a time.
@@ -269,23 +271,23 @@ export function talkControls(
       return {
         ...SILENT,
         action: "set-up",
-        label: "Set Up Speech On This Device",
+        label: "Set Up Speech",
         note: "Your browser may download speech files for this language first. Audio stays on this device.",
       };
     case "installing":
-      return { ...SILENT, action: "setting-up", label: "Setting Up Speech", note: "Setting up speech on this device. You can type while you wait." };
+      return { ...SILENT, action: "setting-up", label: "Setting Up Speech", note: "Downloading and setting up. You can type while you wait." };
     case "slow":
       return {
         ...SILENT,
         action: "setting-up",
         label: "Setting Up Speech",
-        note: "Still setting up. Your browser does not say how long it takes. You can type in the meantime.",
+        note: "Still setting up. Your browser does not say how long it takes. You can type meanwhile.",
       };
     case "failed":
       return {
         ...SILENT,
         action: "set-up",
-        label: "Set Up Speech On This Device",
+        label: "Set Up Speech",
         note: "Your browser could not set up speech on this device. You can type instead, or try again.",
       };
     case "browser":
