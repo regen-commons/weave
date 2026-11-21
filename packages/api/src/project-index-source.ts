@@ -2,12 +2,19 @@ import { createHash } from "node:crypto";
 import { record } from "./account-contract.ts";
 import type { ProjectEvidence } from "./partner-matcher.ts";
 import { PARTNER_CONCEPT_VERSION } from "./partner-concepts.ts";
-import { parseProjectUri, PROJECT_COLLECTION as collection, PROJECT_DID as did } from "./project-uri.ts";
-import { isOrganizationType, ORGANIZATION_TYPES_MAX, PROJECT_LABEL_MAX } from "./public-projects-contract.ts";
+import { parseProjectUri, PROJECT_COLLECTION as collection, PROJECT_DID as did, recordUri } from "./project-uri.ts";
+import {
+  isOrganizationType, isWorkScope, ORGANIZATION_TYPES_MAX, PROJECT_LABEL_MAX, WORK_SCOPES_MAX,
+} from "./public-projects-contract.ts";
 
 export { parseProjectUri };
 const origin = "https://api.hypercerts.dev";
 const getCollection = `${collection}.getCollection`;
+const ACTIVITY = "org.hypercerts.claim.activity";
+const WORK_SCOPE_TAG = "org.hypercerts.workscope.tag";
+const WORK_SCOPE_CEL = "org.hypercerts.workscope.cel";
+const getActivity = "org.hypercerts.claim.getActivity";
+const getWorkscopeTag = "org.hypercerts.workscope.getWorkscopeTag";
 const maxResponseBytes = 512 * 1024;
 /**
  * A list page carries up to `limit` full records. Twenty-five measured at most 300 KB on 15 November.
@@ -69,12 +76,27 @@ export type ProjectFacts = {
   place: string | null;
   /** The kinds of group the publisher's organization says it is, such as `nonprofit`, normalized and unique. */
   organizationTypes: string[];
+  /**
+   * The opening sentences of the publisher's organization description. Search reads it; cards and matching
+   * do not, since it describes the publisher rather than the project.
+   */
+  organizationDescription: string | null;
+  /**
+   * The kinds of work the project's own activity names, as work scope keys such as `restoration`, or null
+   * where this read did not look. The listing does not carry activities, so only the all-public refresh
+   * reads them, and a null keeps what is stored.
+   */
+  workScope: string[] | null;
 };
-export const NO_PROJECT_FACTS: ProjectFacts = Object.freeze({ publisher: null, place: null, organizationTypes: [] });
+export const NO_PROJECT_FACTS: ProjectFacts = Object.freeze({
+  publisher: null, place: null, organizationTypes: [], organizationDescription: null, workScope: [],
+});
 export type ProjectRead =
   | {
     status: "indexed"; cid: string; contentHash: string; sourceIndexedAt: string | null; fetchedAt: string;
     passages: ProjectEvidence[]; facts: ProjectFacts;
+    /** The first activity the project lists from its publisher's own repository, read for its work scope. */
+    activity: string | null;
   }
   | { status: "missing" | "restricted"; code: "record_not_found" | "not_discoverable" }
   | { status: "failed"; code: SourceError; retryAfterMs?: number };
@@ -143,7 +165,12 @@ export function createHypercertsSource(options: {
             ...(header ? { requestedWaitMs: backoff(header, now(), 0) } : {}) };
         }
         if (response.status >= 500) {
-          await response.body?.cancel();
+          // The index answers an activity or tag it has not indexed with a 500 whose message names
+          // RecordNotFound (measured 21 November 2026), so that answer is a missing record, not an outage.
+          if ((method === getActivity || method === getWorkscopeTag)
+            && notIndexed(method, await readBounded(response, 16 * 1024).catch(() => null)))
+            return { status: "missing", code: "record_not_found" };
+          await response.body?.cancel().catch(() => undefined);
           const retryAfter = response.headers.get("Retry-After");
           if (retryAfter) return { status: "failed", code: "source_unavailable",
             retryAfterMs: backoff(retryAfter, now(), 30_000), requestedWaitMs: backoff(retryAfter, now(), 0) };
@@ -164,7 +191,7 @@ export function createHypercertsSource(options: {
           return { status: "failed", code: "invalid_source_record" };
         }
         if (response.ok) return { status: "ok", data: body };
-        if (method === getCollection && [400, 404].includes(response.status)
+        if ([getCollection, getActivity, getWorkscopeTag].includes(method) && [400, 404].includes(response.status)
           && record(body).error === "RecordNotFound") return { status: "missing", code: "record_not_found" };
         return failure;
       } catch {
@@ -224,7 +251,115 @@ export function createHypercertsSource(options: {
     /** Enumerates the chosen index, not every repository on AT Protocol. */
     listProjects: (cursor?: string, limit?: number) => listProjects(undefined, cursor, limit),
     listPublisherProjects: (actor: string, cursor?: string) => listProjects(actor, cursor),
+    /**
+     * Reads projects' kinds of work for one refresh. Tags are shared, 222 across the listed projects on 21
+     * November 2026, so a reader reads each tag once and keeps the answer for every project that names it.
+     * No request starts at or after `deadline`: a project whose activity or a tag it still needs would be
+     * read late is answered `late`, so a slow project overruns the deadline by one request and its retry at most.
+     */
+    workScopeReader(deadline: number) {
+      const tags = new Map<string, Promise<TagRead>>();
+      const tag = (uri: string): Promise<TagRead> => {
+        const known = tags.get(uri);
+        if (known) return known;
+        if (now() >= deadline) return Promise.resolve({ status: "late" });
+        const read = readTag(uri);
+        tags.set(uri, read);
+        return read;
+      };
+      return (activity: string): Promise<WorkScopeRead> =>
+        now() >= deadline ? Promise.resolve({ status: "late" }) : readWorkScope(activity, tag);
+    },
   };
+
+  /**
+   * The work scope keys an activity names. The latest version of the activity is read, not the one the
+   * collection pins: on 21 November 2026, 45 of 1,064 projects pinned a version the index no longer held,
+   * because the publisher had edited the activity since. Only structured scopes are read, through the tags
+   * they use; a free-text scope (64 projects that day) names no keys. A missing activity names none.
+   */
+  async function readWorkScope(activity: string, tag: (uri: string) => Promise<TagRead>): Promise<WorkScopeRead> {
+    const result = await xrpc(getActivity, new URLSearchParams({ uri: activity }));
+    if (result.status === "failed") return failedRead(result);
+    if (result.status !== "ok") return { status: "read", keys: [] };
+    const view = object(object(result.data)?.activity);
+    const entry = object(view?.record);
+    if (!view || !entry || view.uri !== activity) return { status: "failed", code: "invalid_source_record" };
+    const scope = object(entry.workScope);
+    if ((entry.$type !== undefined && entry.$type !== ACTIVITY) || !scope
+      || (scope.$type !== undefined && scope.$type !== WORK_SCOPE_CEL) || !Array.isArray(scope.usedTags))
+      return { status: "read", keys: [] };
+    const uris = [...new Set(scope.usedTags.slice(0, 100)
+      .map((ref: unknown) => recordUri(object(ref)?.uri, WORK_SCOPE_TAG)?.uri)
+      .filter((uri): uri is string => uri !== undefined))].slice(0, 20);
+    const keys = new Set<string>();
+    for (const uri of uris) {
+      const read = await tag(uri);
+      if (read.status !== "read") return read;
+      if (read.key) keys.add(read.key);
+      if (keys.size === WORK_SCOPES_MAX) break;
+    }
+    return { status: "read", keys: [...keys].sort() };
+  }
+
+  /** One work scope tag's key. A tag the index does not hold, or one without a usable key, has none. */
+  async function readTag(uri: string): Promise<TagRead> {
+    const result = await xrpc(getWorkscopeTag, new URLSearchParams({ uri }));
+    if (result.status === "failed") return failedRead(result);
+    if (result.status !== "ok") return { status: "read", key: null };
+    const view = object(object(result.data)?.workscopeTag);
+    const entry = object(view?.record);
+    if (!view || !entry || view.uri !== uri) return { status: "failed", code: "invalid_source_record" };
+    if (entry.$type !== undefined && entry.$type !== WORK_SCOPE_TAG) return { status: "read", key: null };
+    return { status: "read", key: workScopeKey(entry.key) };
+  }
+}
+
+/**
+ * What the source said about one project's kinds of work. A failure, or a read the deadline stopped
+ * (`late`), leaves what is stored as it is.
+ */
+export type WorkScopeRead = { status: "read"; keys: string[] } | { status: "failed"; code: SourceError } | { status: "late" };
+type TagRead = { status: "read"; key: string | null } | { status: "failed"; code: SourceError } | { status: "late" };
+const failedRead = (result: { code: SourceError | "source_response_too_large" }): { status: "failed"; code: SourceError } =>
+  ({ status: "failed", code: result.code === "source_response_too_large" ? "invalid_source_record" : result.code });
+
+/**
+ * The index's answer for an activity or tag it has not indexed: a script error from the method asked that
+ * says RecordNotFound for that kind of record, as measured on 21 November 2026. The message does not name
+ * the address. Any other 500 is an outage, which keeps what is stored, so a passing failure that merely
+ * mentions RecordNotFound cannot clear a project's kinds of work or a tag shared by hundreds of projects.
+ */
+const NOT_INDEXED: Readonly<Record<string, string>> = {
+  [getActivity]: "RecordNotFound: activity record is not indexed",
+  [getWorkscopeTag]: "RecordNotFound: work-scope tag is not indexed",
+};
+function notIndexed(method: string, body: unknown): boolean {
+  const answer = object(body);
+  const expected = Object.hasOwn(NOT_INDEXED, method) ? NOT_INDEXED[method] : undefined;
+  return expected !== undefined && answer?.error === "script_error" && answer.method === method
+    && typeof answer.message === "string" && answer.message.startsWith(`runtime error: ${expected}\n`);
+}
+
+/**
+ * A tag's key as the index stores it, in the same shape as a kind of group: `biodiversity_monitoring` and
+ * `Disaster Relief` become `biodiversity-monitoring` and `disaster-relief`. Keys are free text upstream;
+ * on 21 November 2026 the shared lists used both `disaster-relief` and `forest_protection`.
+ */
+function workScopeKey(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > 120) return null;
+  const key = value.normalize("NFC").trim().toLowerCase().replace(/[\s_]+/gu, "-");
+  return isWorkScope(key) ? key : null;
+}
+
+/** The first activity the collection lists from its publisher's own repository. Another account's is not read. */
+function ownActivity(entry: Record<string, unknown>, publisher: string): string | null {
+  if (!Array.isArray(entry.items)) return null;
+  for (const item of entry.items.slice(0, 1000)) {
+    const target = recordUri(object(object(item)?.itemIdentifier)?.uri, ACTIVITY);
+    if (target?.did === publisher) return target.uri;
+  }
+  return null;
 }
 
 // Store only plain text from approved fields. Drop contact details and embedded markup.
@@ -302,6 +437,37 @@ function organizationTypes(details: Record<string, unknown> | null): string[] {
     if (types.size === ORGANIZATION_TYPES_MAX) break;
   }
   return [...types].sort();
+}
+
+/** The longest organization description the index keeps: whole passages, joined by spaces, up to this length. */
+export const ORGANIZATION_DESCRIPTION_MAX = 3_000;
+
+/**
+ * The opening sentences of the description on the publisher's organization record, held to the rules of a
+ * project's description: plain text or a Leaflet document, five passages at most, none with a link, an
+ * address or a phone number. A reference to another record is not followed, and a malformed value is left
+ * out rather than failing the project. On 21 November 2026, 953 of 1,142 listed projects' organizations had
+ * one, all but one as plain text.
+ */
+function organizationDescription(details: Record<string, unknown> | null): string | null {
+  const description = object(details?.longDescription);
+  let passages: string[] = [];
+  try {
+    if (description?.$type === "org.hypercerts.defs#descriptionString" && typeof description.value === "string")
+      passages = safePassages(description.value.slice(0, 20_000), 5);
+    else if (description && (description.$type === "pub.leaflet.pages.linearDocument"
+      || (description.$type === undefined && Array.isArray(description.blocks))))
+      passages = leafletPassages(description).flatMap(([, texts]) => texts);
+  } catch {
+    return null;
+  }
+  let joined = "";
+  for (const passage of passages) {
+    const longer = joined ? `${joined} ${passage}` : passage;
+    if (longer.length > ORGANIZATION_DESCRIPTION_MAX) break;
+    joined = longer;
+  }
+  return joined || null;
 }
 
 /** Read only the direct narrative fields. Embedded URLs, facets, code and child lists are never followed. */
@@ -396,6 +562,11 @@ export function extractCollection(input: unknown, expectedUri: string, fetchedAt
     publisher: publisherName(author, publisher),
     place: placeName(view, entry),
     organizationTypes: organizationTypes(organization),
+    organizationDescription: organizationDescription(organization),
+    workScope: null,
   };
-  return { status: "indexed", cid: view.cid, contentHash, sourceIndexedAt, fetchedAt, passages, facts };
+  return {
+    status: "indexed", cid: view.cid, contentHash, sourceIndexedAt, fetchedAt, passages, facts,
+    activity: ownActivity(entry, publisher),
+  };
 }

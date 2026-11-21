@@ -19,15 +19,40 @@ export const searchText = (value: string) => value.normalize("NFKD").replace(mar
  * words in any language joined by hyphens, such as `nonprofit` or `grupo-comunitário`. Upstream values
  * are free text, so the list offers only the kinds its projects carry.
  */
-const organizationTypePattern = /^\p{L}[\p{L}\p{M}\p{N}]*(?:-[\p{L}\p{M}\p{N}]+)*$/u;
+const keyPattern = /^\p{L}[\p{L}\p{M}\p{N}]*(?:-[\p{L}\p{M}\p{N}]+)*$/u;
+const isKey = (value: unknown, max: number): value is string =>
+  typeof value === "string" && value.length <= max && keyPattern.test(value) && value === value.normalize("NFC").toLowerCase();
 const ORGANIZATION_TYPE_MAX = 40;
 /** The most kinds one project's publisher keeps. */
 export const ORGANIZATION_TYPES_MAX = 5;
 /** The most kinds a page offers to filter on. */
 export const ORGANIZATION_TYPE_OPTIONS_MAX = 24;
-export const isOrganizationType = (value: unknown): value is string =>
-  typeof value === "string" && value.length <= ORGANIZATION_TYPE_MAX && organizationTypePattern.test(value)
-    && value === value.normalize("NFC").toLowerCase();
+export const isOrganizationType = (value: unknown): value is string => isKey(value, ORGANIZATION_TYPE_MAX);
+/**
+ * Kinds of group written in another language for a kind the list already holds, read as that kind. The
+ * maker decided on 21 November 2026 to show them as one, reversing the 20 November decision to keep them
+ * apart. Across the 1,021 listed projects that day, `grupo-comunitário` was on 4 and `grupo-comunitario`
+ * on 1, beside `community-group` on 260. The index keeps what the publisher wrote; the list reads it.
+ */
+const ORGANIZATION_TYPE_ALIASES: ReadonlyMap<string, string> = new Map([
+  ["grupo-comunitário", "community-group"],
+  ["grupo-comunitario", "community-group"],
+]);
+/** The kind of group a stored or requested kind is read as. */
+export const organizationTypeOf = (type: string): string => ORGANIZATION_TYPE_ALIASES.get(type) ?? type;
+
+/**
+ * A kind of work a project's own activity names: the key of a Certified work scope tag, such as
+ * `restoration` or `biodiversity-monitoring`, in lower case words joined by hyphens. A tag's name can be
+ * in any language ("Monitoreo de naturaleza"), but its key is a machine name shared by every translation,
+ * so the list filters on keys and the app names them from the key.
+ */
+const WORK_SCOPE_MAX = 60;
+/** The most kinds of work one project keeps. Ten was the most any listed project named on 21 November 2026. */
+export const WORK_SCOPES_MAX = 10;
+/** The most kinds of work a page offers to filter on. */
+export const WORK_SCOPE_OPTIONS_MAX = 24;
+export const isWorkScope = (value: unknown): value is string => isKey(value, WORK_SCOPE_MAX);
 
 /**
  * The orders the list can be read in. Newest first is the default and is spelled by leaving `sort` out.
@@ -46,11 +71,13 @@ export type PublicProjectQuery = {
   terms: string[];
   /** Only projects whose publisher says it is this kind of group. Projects that say nothing are left out. */
   organizationType: string | null;
+  /** Only projects whose own activity names this kind of work. Projects that name none are left out. */
+  workScope: string | null;
   sort: PublicProjectSort;
   cursor: PublicProjectCursor | null;
   limit: number;
 };
-const QUERY_KEYS = ["q", "organizationType", "sort", "cursor", "limit"];
+const QUERY_KEYS = ["q", "organizationType", "workScope", "sort", "cursor", "limit"];
 
 export function searchTerms(q: string): string[] {
   return [...new Set(searchText(q).split(/\s+/u).filter(Boolean))].slice(0, maxTerms);
@@ -85,8 +112,8 @@ function decodeCursor(value: string, sort: PublicProjectSort): PublicProjectCurs
 }
 
 /**
- * Accepts only `q`, `organizationType`, `sort`, `cursor` and `limit`, each at most once, so every cached
- * page has one address.
+ * Accepts only `q`, `organizationType`, `workScope`, `sort`, `cursor` and `limit`, each at most once, so
+ * every cached page has one address.
  */
 export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
   const keys = [...url.searchParams.keys()];
@@ -94,8 +121,12 @@ export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
     throw Error("invalid_project_query");
   const q = (url.searchParams.get("q") ?? "").trim().replace(/\s+/gu, " ");
   if (q.length > maxQuery || controls.test(q)) throw Error("invalid_project_query");
-  const organizationType = url.searchParams.get("organizationType");
-  if (organizationType !== null && !isOrganizationType(organizationType)) throw Error("invalid_project_query");
+  const typeText = url.searchParams.get("organizationType");
+  if (typeText !== null && !isOrganizationType(typeText)) throw Error("invalid_project_query");
+  // An address shared before two kinds were read as one still finds the projects.
+  const organizationType = typeText === null ? null : organizationTypeOf(typeText);
+  const workScope = url.searchParams.get("workScope");
+  if (workScope !== null && !isWorkScope(workScope)) throw Error("invalid_project_query");
   const sortText = url.searchParams.get("sort");
   if (sortText !== null && !isPublicProjectSort(sortText)) throw Error("invalid_project_query");
   const sort = sortText ?? "newest";
@@ -104,7 +135,8 @@ export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
   if (!Number.isInteger(limit) || limit < 1 || limit > PUBLIC_PROJECT_PAGE_MAX) throw Error("invalid_project_query");
   const cursorText = url.searchParams.get("cursor");
   return {
-    q, terms: searchTerms(q), organizationType, sort, cursor: cursorText === null ? null : decodeCursor(cursorText, sort), limit,
+    q, terms: searchTerms(q), organizationType, workScope, sort,
+    cursor: cursorText === null ? null : decodeCursor(cursorText, sort), limit,
   };
 }
 
@@ -138,6 +170,11 @@ export type PublicProjectPage = {
      * A list that names none, or a server from before the filter, leaves it out, and the app offers no filter.
      */
     organizationTypes?: string[];
+    /**
+     * The kinds of work at least two shown projects name, most common first, whatever the search. A list
+     * with none, or a server from before this filter, leaves it out, and the app offers no filter.
+     */
+    workScopes?: string[];
   };
   projects: PublicProjectCard[];
   next: string | null;
@@ -175,9 +212,9 @@ function card(value: unknown): PublicProjectCard {
   };
 }
 
-function organizationTypes(value: unknown): string[] {
-  if (!Array.isArray(value) || value.length > ORGANIZATION_TYPE_OPTIONS_MAX || !value.every(isOrganizationType)
-    || new Set(value).size !== value.length) return fail();
+/** A page's offered choices: unique, each one the list can read, and no more than it offers. */
+function choices(value: unknown, max: number, valid: (item: unknown) => item is string): string[] {
+  if (!Array.isArray(value) || value.length > max || !value.every(valid) || new Set(value).size !== value.length) return fail();
   return value;
 }
 
@@ -195,7 +232,9 @@ export function parsePublicProjectPage(value: unknown): PublicProjectPage {
   return {
     index: {
       status, checkedAt: index.checkedAt === null ? null : isoDate(index.checkedAt), total,
-      ...(index.organizationTypes === undefined ? {} : { organizationTypes: organizationTypes(index.organizationTypes) }),
+      ...(index.organizationTypes === undefined ? {}
+        : { organizationTypes: choices(index.organizationTypes, ORGANIZATION_TYPE_OPTIONS_MAX, isOrganizationType) }),
+      ...(index.workScopes === undefined ? {} : { workScopes: choices(index.workScopes, WORK_SCOPE_OPTIONS_MAX, isWorkScope) }),
     },
     projects, next,
   };

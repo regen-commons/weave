@@ -1,6 +1,6 @@
 import { refreshProjectIndex, type ProjectIndexStore } from "./project-index.ts";
 import { isCertifiedTestHost, type AccountHost, type AccountHostResolver } from "./project-index-hosts.ts";
-import type { createHypercertsSource, ProjectManifest, ProjectRead } from "./project-index-source.ts";
+import { sha256, type createHypercertsSource, type ProjectManifest, type ProjectRead, type WorkScopeRead } from "./project-index-source.ts";
 import { traverseProjectNetwork } from "./project-index-traversal.ts";
 import { parseProjectUri } from "./project-uri.ts";
 
@@ -22,6 +22,11 @@ const PAGE_ATTEMPTS = 3;
 const SHRINK_GUARD_MINIMUM = 20;
 /** Account lookups at once. 1,068 accounts took 14 seconds at six on 15 November. */
 const HOST_LOOKUPS = 6;
+/**
+ * Work scope reads at once. On 21 November 2026, 1,064 activities read at six took about 35 seconds, and
+ * the 141 tags they used about 5 more.
+ */
+const WORK_SCOPE_READS = 6;
 
 /**
  * Why a project declares itself a QA or test entry: by its name, or by its own words. Projects published
@@ -88,7 +93,7 @@ export function testEntryReason(name: string, passages: readonly string[]): Test
   return null;
 }
 
-type Source = Pick<ReturnType<typeof createHypercertsSource>, "listProjects">;
+type Source = Pick<ReturnType<typeof createHypercertsSource>, "listProjects" | "workScopeReader">;
 type Indexed = Extract<ProjectRead, { status: "indexed" }>;
 export type AllPublicStore = ProjectIndexStore & Required<Pick<ProjectIndexStore, "state">>;
 export type AllPublicReport = Awaited<ReturnType<typeof refreshAllPublicProjects>>;
@@ -104,6 +109,8 @@ function counts() {
     accounts: 0, testHosts: 0, withoutHost: 0,
     /** Projects left out because their name or their own words declare them a QA or test entry. */
     testNamed: 0, testDescribed: 0,
+    /** Projects whose kinds of work were read, and those that keep the stored ones after a failure or for lack of time. */
+    workScopeRead: 0, workScopeKept: 0,
     shownBefore: 0, withdrawn: 0, generation: null as number | null,
     indexed: 0, restricted: 0, missing: 0, failed: 0, scanned: 0,
   };
@@ -209,12 +216,46 @@ export async function refreshAllPublicProjects(input: {
   if (!input.allowShrink && shown.length >= SHRINK_GUARD_MINIMUM && report.withdrawn * 2 > shown.length)
     return { ...report, code: "suspicious_shrink" };
 
+  // What each project's own activity says the work is, read only for the projects with words to show: one
+  // without is never shown, so what is stored for it is left alone. A read that fails, or that the deadline
+  // or a rate limit stops, keeps what is stored, and the reader starts no request after the deadline, so
+  // these reads never hold up the run. The order changes with every generation, so when time runs short
+  // it is not the same projects that wait each day.
+  const generation = state.generation + 1;
+  const readWorkScope = input.source.workScopeReader(lookupDeadline);
+  const pending = [...reads].filter(([, { passages }]) => passages.length)
+    .map(([uri]) => ({ uri, turn: sha256(`${generation} ${uri}`) }))
+    .sort((a, b) => a.turn < b.turn ? -1 : a.turn > b.turn ? 1 : 0)
+    .map(({ uri }) => uri);
+  let halted = false;
+  await Promise.all(Array.from({ length: Math.min(WORK_SCOPE_READS, pending.length) }, async () => {
+    for (let uri = pending.pop(); uri !== undefined; uri = pending.pop()) {
+      const read = reads.get(uri)!;
+      if (!read.activity) {
+        reads.set(uri, { ...read, facts: { ...read.facts, workScope: [] } });
+        report.workScopeRead++;
+        continue;
+      }
+      if (halted || now() >= lookupDeadline) { report.workScopeKept++; continue; }
+      const result = await readWorkScope(read.activity)
+        .catch((): WorkScopeRead => ({ status: "failed", code: "source_unavailable" }));
+      if (result.status === "read") {
+        reads.set(uri, { ...read, facts: { ...read.facts, workScope: result.keys } });
+        report.workScopeRead++;
+      } else {
+        report.workScopeKept++;
+        if (result.status === "failed" && (result.code === "source_rate_limited" || result.code === "source_access_denied"))
+          halted = true;
+      }
+    }
+  }));
+
   const checked = new Map(state.projects.map(({ uri, checkedAt }) => [uri, Date.parse(checkedAt)]));
   const redisplayUntil = new Date(now() + ALL_PUBLIC_REDISPLAY_MS).toISOString();
   const permissions = [...reads.keys()]
     .sort((a, b) => (checked.get(a) ?? -Infinity) - (checked.get(b) ?? -Infinity) || (a < b ? -1 : a > b ? 1 : 0))
     .map((uri) => ({ uri, redisplayUntil }));
-  return apply(input.store, { generation: state.generation + 1, permissions }, reads, report, input.deadline, now);
+  return apply(input.store, { generation, permissions }, reads, report, input.deadline, now);
 }
 
 /** Withdraws every project at once, for rollback. Stop the scheduled refresh first or it adds them back. */
