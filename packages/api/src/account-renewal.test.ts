@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { createAccountHandlers, RENEW_BEFORE_SECONDS } from "./account.ts";
 import { AccountError, createSupabaseAccountProvider, type AccountProvider, type AccountSessionTokens } from "./account-provider.ts";
 import { parseDocument } from "./account-contract.ts";
+import { withRenewedSession } from "./account-session.ts";
 
 const document = parseDocument(JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")));
 const user = { id: "b1000000-0000-4000-8000-000000000001", email: null };
@@ -233,4 +234,98 @@ test("Supabase's refresh grant maps refusals to an ended session and never leaks
   await assert.rejects(renew(200, { access_token: "a.b.c", expires_in: 3600, refresh_token: "bad token" }), rejected("account_unavailable"));
   await assert.rejects(createSupabaseAccountProvider("https://synthetic.test", "synthetic", async () => { throw Error("private"); })
     .renew("first-refresh"), rejected("account_unavailable"));
+});
+
+test("a rate limit on the user check ends nothing and revokes nothing", async () => {
+  const { handlers, provider, calls } = fixture();
+  provider.authorize = async () => { throw new AccountError(429, "rate_limited"); };
+  for (const cookies of [cookie(jwt(1800), "first-refresh"), cookie(jwt(10), "first-refresh")]) {
+    calls.length = 0;
+    const response = await handlers.GET(get(cookies));
+    assert.equal(response.status, 429);
+    assert.deepEqual(await response.json(), { error: "rate_limited" });
+    assert.ok(!setCookies(response).some(value => value.includes("Max-Age=0")), "no cookie is cleared");
+    assert.ok(!calls.some(call => call.startsWith("signOut")), "the session is not revoked");
+  }
+  const user429 = createSupabaseAccountProvider("https://synthetic.test", "synthetic",
+    async () => Response.json({ msg: "private detail" }, { status: 429 }));
+  await assert.rejects(user429.authorize("a.b.c"),
+    (error) => error instanceof AccountError && error.status === 429 && error.code === "rate_limited");
+});
+
+/** A matching or project handler: echoes the access cookie and the body it was given. */
+const echo = async (request: Request) => Response.json({ cookie: request.headers.get("cookie"), body: await request.text() });
+const wrapped = (provider: AccountProvider, handler = echo) =>
+  withRenewedSession(handler, () => ({ provider, secureCookies: true, now: () => now }));
+const command = (cookies: string) => new Request("https://weave.test/api/matching", {
+  method: "POST", headers: { origin: "https://weave.test", "content-type": "application/json", cookie: cookies },
+  body: JSON.stringify({ action: "state" }),
+});
+
+test("matching and project calls renew a lapsed token first and pass the handler the renewed one", async () => {
+  for (const access of [jwt(-30), undefined]) {
+    const { provider, calls } = fixture();
+    const response = await wrapped(provider)(command(`theme=dark; ${cookie(access, "first-refresh")}`));
+    assert.equal(response.status, 200);
+    const seen = await response.json() as { cookie: string; body: string };
+    assert.equal(seen.cookie, `theme=dark; __Host-weave_account_renewal=${encoded("first-refresh")}; __Host-weave_account=${fresh}`);
+    assert.equal(seen.body, JSON.stringify({ action: "state" }), "the command body reaches the handler intact");
+    assert.deepEqual(calls, ["renew:first-refresh"]);
+    assert.deepEqual(setCookies(response), renewedCookies);
+  }
+  // A handler response with immutable headers still carries the rotated cookies.
+  const redirect = await wrapped(fixture().provider, async () => Response.redirect("https://weave.test/partners", 303))(
+    command(cookie(undefined, "first-refresh")));
+  assert.equal(redirect.status, 303);
+  assert.deepEqual(setCookies(redirect), renewedCookies);
+});
+
+test("matching and project calls get 401 only when the session ended, and never on an outage", async () => {
+  let handled = 0;
+  const counting = async (request: Request) => { handled++; return echo(request); };
+  const ended = fixture(async () => { throw new AccountError(401, "sign_in_required"); });
+  const refused = await wrapped(ended.provider, counting)(command(cookie(jwt(-30), "reused-refresh")));
+  assert.equal(refused.status, 401);
+  assert.deepEqual(await refused.json(), { error: "sign_in_required" });
+  assert.deepEqual(setCookies(refused), endedCookies);
+  const offline = fixture(async () => { throw new AccountError(503, "account_unavailable"); });
+  const unavailable = await wrapped(offline.provider, counting)(command(cookie(jwt(-30), "first-refresh")));
+  assert.equal(unavailable.status, 503);
+  assert.deepEqual(setCookies(unavailable), [], "an outage keeps the session for a retry");
+  assert.equal(handled, 0, "neither reaches the handler");
+  const stillValid = await wrapped(offline.provider, counting)(command(cookie(jwt(120), "first-refresh")));
+  assert.equal(stillValid.status, 200);
+  assert.equal(handled, 1, "a token that is still valid carries on through an outage");
+});
+
+test("calls with time left, without a renewal cookie or without accounts pass through untouched", async () => {
+  const { provider, calls } = fixture();
+  let received: Request | undefined;
+  const capture = async (request: Request) => { received = request; return new Response(null, { status: 204 }); };
+  for (const cookies of [cookie(jwt(1800), "first-refresh"), cookie(jwt(-30)), ""]) {
+    const request = command(cookies);
+    const response = await wrapped(provider, capture)(request);
+    assert.equal(received, request);
+    assert.deepEqual(setCookies(response), []);
+  }
+  const request = command(cookie(undefined, "first-refresh"));
+  await withRenewedSession(capture, () => null)(request);
+  assert.equal(received, request);
+  assert.deepEqual(calls, []);
+});
+
+test("an account check and a matching call renewing together share one refresh and both stay signed in", async () => {
+  let release: () => void = () => {};
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const { provider, calls } = fixture(async () => { await gate; return { token: fresh, expiresIn: 3600, refreshToken: "rotated-refresh" }; });
+  const lapsed = cookie(jwt(-30), "shared-refresh");
+  const account = createAccountHandlers({ provider, now: () => now }).GET(get(lapsed));
+  const matching = wrapped(provider)(command(lapsed));
+  release();
+  const [checked, matched] = await Promise.all([account, matching]);
+  assert.equal(checked.status, 200);
+  assert.equal(matched.status, 200, "the matching call is not refused while the session renews");
+  assert.deepEqual(calls.filter(call => call.startsWith("renew")), ["renew:shared-refresh"]);
+  assert.deepEqual(setCookies(checked), renewedCookies);
+  assert.deepEqual(setCookies(matched), renewedCookies);
 });

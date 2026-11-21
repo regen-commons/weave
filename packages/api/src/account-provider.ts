@@ -173,10 +173,11 @@ export function createSupabaseAccountProvider(
     },
     async authorize(token) {
       const { response, data } = await call("/auth/v1/user", "GET", undefined, token);
+      // A rate limit is not a refusal: it must not end, or revoke, a session that can still renew.
       if (!response.ok)
         throw new AccountError(
-          response.status >= 500 ? 503 : 401,
-          response.status >= 500 ? "account_unavailable" : "sign_in_required",
+          response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
+          response.status === 429 ? "rate_limited" : response.status >= 500 ? "account_unavailable" : "sign_in_required",
         );
       let user: AccountUser;
       try {

@@ -1,7 +1,9 @@
-import { boundedJson, RENEWAL_SECONDS, sessionCookies } from "./account-http.ts";
+import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
-import { parseDocument, record, uuid } from "./account-contract.ts";
-import { AccountError, type AccountProvider, type AccountSessionTokens } from "./account-provider.ts";
+import { parseDocument, uuid } from "./account-contract.ts";
+import { AccountError, type AccountProvider } from "./account-provider.ts";
+import { RENEW_BEFORE_SECONDS, resolveSession, type Session } from "./account-session.ts";
+export { RENEW_BEFORE_SECONDS, secondsLeft } from "./account-session.ts";
 interface Options {
   provider: AccountProvider | null;
   secureCookies?: boolean;
@@ -10,17 +12,6 @@ interface Options {
   /** Milliseconds since the epoch; tests move the clock. */
   now?: () => number;
 }
-/** The access token is renewed once fewer than this many seconds remain. */
-export const RENEW_BEFORE_SECONDS = 300;
-/** Seconds left on an access token, read from its unverified `exp` only to time renewal. Supabase still verifies it. */
-export function secondsLeft(token: string, now: number): number {
-  try {
-    const exp = record(JSON.parse(Buffer.from(token.split(".")[1]!, "base64url").toString())).exp;
-    return typeof exp === "number" && Number.isFinite(exp) ? exp - now / 1000 : 0;
-  } catch {
-    return 0;
-  }
-}
 /**
  * When the app should ask again: just inside the renewal window when a renewal cookie exists, otherwise
  * just after expiry, so an ending session is noticed while the person is still here.
@@ -28,27 +19,6 @@ export function secondsLeft(token: string, now: number): number {
 function renewIn(left: number, renewable: boolean) {
   const seconds = renewable ? Math.floor(left) - RENEW_BEFORE_SECONDS + 30 : Math.ceil(left) + 1;
   return Math.min(3600, Math.max(30, seconds));
-}
-// Requests from several tabs can arrive together with one refresh token. One function instance sends one
-// refresh for them; Supabase's reuse interval covers requests that reach different instances.
-const renewals = new WeakMap<AccountProvider, Map<string, Promise<AccountSessionTokens>>>();
-function renewOnce(provider: AccountProvider, refreshToken: string) {
-  let pending = renewals.get(provider);
-  if (!pending) renewals.set(provider, pending = new Map());
-  let renewal = pending.get(refreshToken);
-  if (!renewal) {
-    renewal = provider.renew(refreshToken).finally(() => pending.delete(refreshToken));
-    pending.set(refreshToken, renewal);
-  }
-  return renewal;
-}
-interface Session {
-  access: string | null;
-  /** Seconds left on `access` at the time of the request. */
-  left: number;
-  /** A renewal cookie came with the request or was just issued. */
-  renewable: boolean;
-  setCookies: string[];
 }
 export function createAccountHandlers({
   provider,
@@ -66,31 +36,7 @@ export function createAccountHandlers({
     for (const cookie of setCookies) result.headers.append("Set-Cookie", cookie);
     return result;
   };
-  /**
-   * The request's access token, renewed first when it is missing or close to expiry and a renewal cookie
-   * exists. A refused renewal means the session ended: sign_in_required, and the caller clears both cookies.
-   * An outage keeps a still-valid access token in use and otherwise fails without ending anything.
-   */
-  async function session(request: Request, accounts: AccountProvider): Promise<Session> {
-    const access = cookies.token(request), refreshToken = cookies.renewalToken(request), at = now();
-    const left = access ? secondsLeft(access, at) : 0;
-    if (!refreshToken || (access && left > RENEW_BEFORE_SECONDS))
-      return { access, left, renewable: !!refreshToken, setCookies: [] };
-    let renewed: AccountSessionTokens;
-    try {
-      renewed = await renewOnce(accounts, refreshToken);
-    } catch (error) {
-      if (error instanceof AccountError && error.status === 401) throw error;
-      if (access && left > 0) return { access, left, renewable: true, setCookies: [] };
-      throw error instanceof AccountError ? error : new AccountError(503, "account_unavailable");
-    }
-    return {
-      access: renewed.token,
-      left: secondsLeft(renewed.token, at) || renewed.expiresIn,
-      renewable: true,
-      setCookies: [cookies.session(renewed.token, renewed.expiresIn), cookies.renewal(renewed.refreshToken, RENEWAL_SECONDS)],
-    };
-  }
+  const session = (request: Request, accounts: AccountProvider) => resolveSession(request, accounts, cookies, now());
   /**
    * The database predicate decides every request, renewed or not. When it rejects a session this browser can
    * still renew, Weave revokes that session at Supabase too, so a rejected identity cannot keep refreshing.
