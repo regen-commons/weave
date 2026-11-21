@@ -117,9 +117,16 @@ for (const example of document.querySelectorAll("[data-list-example]")) {
       button.addEventListener("click", () => { choose(country, false); update(); });
       chips.append(button);
     }
-    // Sort says the order in force on its button, which opens the same menu a filter opens.
-    const face = example.querySelector("[data-example-sort-face]");
-    if (face && sort) face.textContent = `Sort: ${sort.closest("label").textContent.trim()}`;
+    // Sort says only "Sort"; an order other than the first shows as a chip with the filters (DL-122).
+    const first = example.querySelector("[data-example-sort]");
+    if (sort && sort !== first) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "rc-chip";
+      button.textContent = `Remove Sort: ${sort.closest("label").textContent.trim()}`;
+      button.addEventListener("click", () => { first.checked = true; update(); });
+      chips.append(button);
+    }
   }
   function choose(country, chosen) {
     for (const check of checks) if (check.value === country) check.checked = chosen;

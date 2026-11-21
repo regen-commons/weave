@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { connectPopover } from "@regen-commons/design-system/overlays";
 import {
   activeChoices,
+  chosenSort,
+  defaultSort,
   narrowing,
   pickedValue,
   pressOption,
@@ -91,20 +93,24 @@ function FilterMenu({ facet, name, onChange }: { facet: Facet; name: string; onC
 }
 
 /**
- * Sort: one more button in the bar that opens the same menu a filter opens, with one order to pick
- * (DL-100). The button says the order in force, so the bar reads the same before and after a press.
+ * Sort on a wide screen: one more button in the bar that opens the same menu a filter opens, with one
+ * order to pick (DL-100). It says only "Sort", so it never grows with a long order's name; an order
+ * other than the list's own shows as a chip, and the button is marked in use like a chosen filter
+ * (DL-122). A phone leaves it out, since Sort is the first group in its sheet.
  */
 function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSort(value: string): void }) {
   const current = sortChoice(sort);
   return (
     <RadioMenu
-      label={`Sort: ${current?.label}`}
+      label="Sort"
       legend="Sort"
       name={name}
       options={sort.options}
       value={current?.value}
       onChange={onSort}
       align="end"
+      filter="one"
+      active={!!chosenSort(sort)}
     />
   );
 }
@@ -113,9 +119,10 @@ function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSo
  * Filter bar organism (`rc-filter-bar`): the same on every list, in the same place under the page's
  * opening line (DL-061, DL-081). Search, the filters, Sort, the choices in force as removable chips,
  * and how much of the list is left. The list narrows as a person types, so the field has no button.
- * On a phone one Filters button opens every filter in a sheet; a wide screen gives each filter its
- * own menu. Choices take effect as they are made, so the sheet's foot only says how many results
- * they leave. While the list loads the bar is already whole: the search works, the filters and Sort
+ * On a phone one Filters button opens every filter in a sheet, with Sort as its first group; a wide
+ * screen gives each filter its own menu and Sort its own (DL-122). An order other than the list's own
+ * shows as a chip with the filters, and Clear Filters takes it off too. Choices take effect as they
+ * are made, so the sheet's foot only says how many results they leave. While the list loads the bar is already whole: the search works, the filters and Sort
  * are drawn as they will be and wait, and the count and the fact under it each keep their line
  * (`reserve`), so nothing moves when the list arrives (DL-104, DL-108).
  */
@@ -161,7 +168,7 @@ export function FilterBar({
   loading?: boolean;
   /** A sentence about as long as `note` will be. It says a note is coming, so its line is there while the list loads. */
   reserve?: string;
-  /** Takes off the search and every filter. The sort order stays. */
+  /** Takes off the search and every filter, and returns the order to the list's own (DL-122). */
   onClear(): void;
 }) {
   const id = useId();
@@ -170,6 +177,9 @@ export function FilterBar({
   const narrowed = facets.reduce((sum, facet) => sum + narrowing(facet), 0);
   const query = search.trim();
   const controls = facets.length > 0 || !!sort;
+  const ordered = chosenSort(sort);
+  // A phone's one button opens every filter and Sort. With no filter yet it is the Sort button.
+  const sheetLabel = facets.length > 0 ? "Filters" : "Sort";
   // The fact under the count: the list's own once it is here, and a sentence about as long until then.
   const noted = loading ? reserve : note;
   return (
@@ -192,12 +202,10 @@ export function FilterBar({
       {loading && controls ? (
         // The real buttons, waiting: the same words at the same sizes, so the row is the one that stays.
         <div className="rc-filter-controls">
-          {facets.length > 0 && (
-            <button className="rc-button" data-variant="secondary" data-filter="all" type="button" disabled>
-              <Icon name="filter" size="sm" />
-              Filters{narrowed > 0 ? ` (${narrowed})` : ""}
-            </button>
-          )}
+          <button className="rc-button" data-variant="secondary" data-filter="all" type="button" disabled>
+            <Icon name="filter" size="sm" />
+            {sheetLabel}{narrowed > 0 ? ` (${narrowed})` : ""}
+          </button>
           {facets.map((facet) => (
             <button key={facet.key} className="rc-button" data-variant="secondary" data-filter="one" data-menu type="button" disabled>
               {facet.label}
@@ -205,33 +213,31 @@ export function FilterBar({
             </button>
           ))}
           {sort && (
-            <button className="rc-button" data-variant="secondary" data-menu type="button" disabled>
-              Sort: {sortChoice(sort)?.label}
+            <button className="rc-button" data-variant="secondary" data-filter="one" data-menu type="button" disabled>
+              Sort
             </button>
           )}
         </div>
       ) : controls ? (
         <div className="rc-filter-controls">
-          {facets.length > 0 && (
-            <button
-              className="rc-button"
-              data-variant="secondary"
-              data-filter="all"
-              data-active={narrowed > 0}
-              type="button"
-              onClick={() => setSheet(true)}
-            >
-              <Icon name="filter" size="sm" />
-              Filters{narrowed > 0 ? ` (${narrowed})` : ""}
-            </button>
-          )}
+          <button
+            className="rc-button"
+            data-variant="secondary"
+            data-filter="all"
+            data-active={narrowed > 0 || !!ordered}
+            type="button"
+            onClick={() => setSheet(true)}
+          >
+            <Icon name="filter" size="sm" />
+            {sheetLabel}{narrowed > 0 ? ` (${narrowed})` : ""}
+          </button>
           {facets.map((facet) => (
             <FilterMenu key={facet.key} facet={facet} name={`${id}-${facet.key}-menu`} onChange={onFacet} />
           ))}
           {sort && onSort && <SortMenu sort={sort} name={`${id}-sort`} onSort={onSort} />}
         </div>
       ) : null}
-      {(query || choices.length > 0) && (
+      {(query || choices.length > 0 || ordered) && (
         <div className="rc-active-filters" role="group" aria-label="Chosen filters">
           {query && (
             <button className="rc-chip" type="button" onClick={() => onSearch("")} aria-label={`Remove search: ${query}`}>
@@ -251,6 +257,12 @@ export function FilterBar({
               <Icon name="close" size="sm" />
             </button>
           ))}
+          {sort && onSort && ordered && (
+            <button className="rc-chip" type="button" onClick={() => onSort(defaultSort(sort))} aria-label={`Remove Sort: ${ordered.label}`}>
+              Sort: {ordered.label}
+              <Icon name="close" size="sm" />
+            </button>
+          )}
           <button className="rc-button" data-variant="quiet" data-size="sm" type="button" onClick={onClear}>
             Clear Filters
           </button>
@@ -274,7 +286,26 @@ export function FilterBar({
           </span>
         )}
       </p>
-      <Dialog presentation="information" title="Filters" open={sheet} leaves onClose={() => setSheet(false)}>
+      <Dialog presentation="information" title={sheetLabel} open={sheet} leaves onClose={() => setSheet(false)}>
+        {sort && onSort && (
+          <fieldset>
+            <legend>Sort</legend>
+            <div className="rc-chip-group">
+              {sort.options.map((option) => (
+                <label className="rc-chip" key={option.value}>
+                  <input
+                    className="rc-check"
+                    type="radio"
+                    name={`${id}-sort-sheet`}
+                    checked={sortChoice(sort)?.value === option.value}
+                    onChange={() => onSort(option.value)}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
         {facets.map((facet) => (
           <fieldset key={facet.key}>
             <legend>{facet.label}</legend>
@@ -296,7 +327,7 @@ export function FilterBar({
             className="rc-button"
             data-variant="secondary"
             type="button"
-            disabled={!query && choices.length === 0}
+            disabled={!query && choices.length === 0 && !ordered}
             onClick={onClear}
           >
             Clear All
