@@ -641,12 +641,15 @@ approves nothing beyond the answer above.
 
 Holdout plan, 21 November 2026: the
 [`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md)
-sets out the new holdout, the frozen engines, the human review and a proposed
-decision rule, with six questions for the user. Nothing in it is built. The user
-answered three on 21 November 2026. Its human review replaces the one planned for
+sets out the new holdout, the frozen engines, the human review and the decision
+rule, with six questions for the user. Nothing in it is built. The user answered
+four on 21 November 2026. Its human review replaces the one planned for
 `partner-real-v1`, which stays as development data with its agent labels. Its
 160 queries are 100 in English, 40 in Portuguese and 20 in Spanish, and blind
-agent instances write all of them. The other three questions are open.
+agent instances write all of them. The decision rule stands as proposed: seed
+recall no more than 5 points below the current matcher's, and no-match
+suggestions no more than 10 points above its share. The reviewers and where the
+sealed files live are still open.
 
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
@@ -714,9 +717,10 @@ tuning. No number is set. It is set once two human reviewers have judged the
 Changed on 21 November 2026: the user replaced the human review of
 `partner-real-v1` with the one in the
 [`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md).
-The floor is now set in that plan's decision rule, which proposes one relative to
-the current matcher and is still open. `partner-real-v1` becomes development
-data, so the D32 model cut-offs may be set on it.
+The floor is now set in that plan's decision rule, relative to the current
+matcher: a candidate's seed recall may be at most 5 points below the current
+matcher's. The user confirmed it the same day. `partner-real-v1` becomes
+development data, so the D32 model cut-offs may be set on it.
 
 What was known when answering: on `partner-real-v1`, judged by agents, the
 current matcher found 31% of fitting projects and showed nothing for 42 of 135

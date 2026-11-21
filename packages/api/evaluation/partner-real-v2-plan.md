@@ -167,18 +167,19 @@ v1 or new project. Intervals come from a bootstrap over queries, paired against 
 current matcher. v1's intervals treated suggestions as independent and came out too
 narrow.
 
-### Proposed decision rule
+### Decision rule
 
-The owner confirms or changes these before the reviewers start:
+The user confirmed these on 21 November 2026, margins and relative floor
+unchanged. They are fixed before any reviewer starts:
 
 1. **Hard gate.** No unsupported confirmation, explanation or provenance failure.
 2. **Relevance.** More relevant suggestions among the top five than the current
    matcher, with the 95% interval of the paired difference above zero.
 3. **Recall floor.** Seed recall no more than 5 points below the current
    matcher's. This is the recall floor the spec asks to agree before tuning,
-   relative to today's matcher, because no absolute floor has been agreed. It
-   takes the place of setting the floor from v1's human review, which was
-   replaced on 21 November 2026.
+   set relative to today's matcher because no absolute floor exists. It takes
+   the place of setting the floor from v1's human review, which was replaced on
+   21 November 2026.
 4. **Languages.** Portuguese and Spanish seed recall above the current matcher's.
 5. **Quiet when nothing fits.** No-match queries with a suggestion no more than
    10 points above the current matcher's share.
@@ -233,7 +234,7 @@ site are not touched.
    **Answered on 21 November 2026: agents write all of them.**
 5. Where do the sealed files live until the scored run?
 6. Do the margins in the decision rule (5 and 10 points) and the relative recall
-   floor stand?
+   floor stand? **Answered on 21 November 2026: yes, they stand.**
 
 ## What it will not show
 
