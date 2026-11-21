@@ -541,6 +541,8 @@ The card had two clocks, one on the deadline and one on "Sources checked". The s
 
 Days are counted to the end of the closing day in UTC, as the Closing filter counts them, so a card and the filter agree on what "within 30 days" holds.
 
+**One closing moment, 21 November 2026.** The Funding QA found a card reading "Open call" beside "Ended 20 Nov 2026" at 23:15 Pacific time, and the rubric still scoring the call as open. The access sign and the score came from `effectiveAccess` in `dist/domain.mjs`, which judged a source date by the viewer's own calendar, while the tag counted in UTC. UTC stays the rule, because the catalog importer and the rubric's own date already use it: `effectiveAccess` now compares a source date, and an opening date, with the UTC date. A call with an exact closing moment counts its days to that moment's UTC day, so a call that closes at 23:59 Pacific reads "Closes today" until then and not "Ended". The access sign, the tag, the Closing filter, Home's previews and the score now change at the same moment in every time zone.
+
 ## DL-104: A list's skeleton holds the loaded page's exact room
 
 **Status:** user decision from manual QA, 18 November 2026. Extends DL-081 and DL-085. A loading list drew skeletons, and the page still moved when the list arrived. At 375 px on Funding the grid started at 503 px while loading and 716 px loaded, and a skeleton card was 176 px tall against about 290. Four things did not match, and each now takes its size from the same rules the loaded page uses.
@@ -817,7 +819,15 @@ Before, when a session ended on its own (renewal refused, the session revoked el
 
 Partner matching and project requests read only the access cookie, which can lapse while the session still renews. A refusal from them is now checked with the account first, which renews the session; the request runs once more when it was only renewed, and the notice shows only when the session really ended. The partner panel's own "Your session ended" line is gone, so the page says it once. Above a doorway or Home's hero the notice keeps the page's usual step from the app bar. No new class. No tokens changed.
 
-## DL-124: Initiatives filters on Focus, and Kind of group reads the Portuguese spellings as Community group
+## DL-124: A menu of one choice opens on the choice in force
+
+**Status:** maker's call, 21 November 2026, from the Funding fixture QA (regen-commons/weave#127, defects 5 and 11). Refines DL-100 and DL-118.
+
+A Menu focused its first control when it opened. For a menu of radios, such as Sort or Change Initiative, that put focus on the first option rather than the one in force, where Tab into a radio group lands on the checked radio. A menu with a checked radio now opens on it; any other menu still opens on its first control or link.
+
+Change Initiative takes effect as it is chosen, and each arrow press in its menu is a choice. Funding dropped every choice made while an initiative was opening, so Down three times left the page on the first initiative reached. Now one opening runs at a time, a choice made meanwhile waits, a later one replaces it, and the menu marks the last choice at once. The page ends on the initiative reached, and two openings never run at once (DL-112).
+
+## DL-125: Initiatives filters on Focus, and Kind of group reads the Portuguese spellings as Community group
 
 **Status:** user request, 21 November 2026 ("Yes, build both"), after a read of the whole list. Extends DL-120 and reverses its 20 November decision to keep Community group and Grupo comunitário apart.
 
@@ -828,13 +838,13 @@ DL-120 chose its filters from the 100 newest listed projects, which turned out t
 - **Kind of group.** `grupo-comunitário` and `grupo-comunitario` (5 projects) are read as Community group (260), and an address that names either opens on Community group. The index keeps what the publisher wrote; the list reads it as one kind. `ngo` reads "NGO".
 - **Two filters at once.** The count and the empty state say "filters" when both are chosen, and Clear Filters takes off both.
 
-The work scope needs `supabase/candidates/weave-project-index-work-scope.sql` applied before the API is deployed. Until the first refresh after that, no project has kinds of work stored, so Focus is drawn waiting and goes away when the list answers.
+The work scope column is `supabase/candidates/weave-project-index-work-scope.sql`, applied to Platform on 21 November 2026 as `20261121204212_weave_project_index_work_scope` through the website's migrations (regen-commons/website#29). Until the first refresh after this API deploys, no project has kinds of work stored, so Focus is drawn waiting and goes away when the list answers.
 
 **Measured locally, 21 November 2026,** with this change's refresh run against live Certified data and a throwaway database: 1,006 projects indexed, every one's kinds of work read and none kept back, in 70 seconds. The list showed 993 projects. Focus offered 17 kinds; Restoration matched 520 and Biodiversity monitoring 42. Community group matched 263 from either address, and Kind of group offered no Portuguese spelling.
 
-## DL-125: Initiatives search also reads the publisher's organization description
+## DL-126: Initiatives search also reads the publisher's organization description
 
-**Status:** user request, 21 November 2026 ("Go ahead"), after a review of what Certified organization records carry. Extends DL-124.
+**Status:** user request, 21 November 2026 ("Go ahead"), after a review of what Certified organization records carry. Extends DL-125.
 
 Projects stay the list. On Certified an organization and its project are nearly one to one: of 1,073 publishers with a public project on 21 November, 1,024 published exactly one and none more than six. Focus comes from a project's activity, which an organization record does not have, and Weave's Certified research treats an organization record as context about the publisher, not a description of the project.
 
@@ -842,6 +852,6 @@ Projects stay the list. On Certified an organization and its project are nearly 
 - **Not shown, not matched.** The card does not show it. It is stored beside the card's other facts, not among the project's passages, so matching never reads it as the project's own words.
 - **Not read.** No organization record had a logo. Legal names and public email addresses are not read, and founding dates (28 projects) and languages (13) are too rare to use.
 
-The description needs `supabase/candidates/weave-project-index-organization-description.sql` applied after the work scope candidate and before the API is deployed. Until the next refresh after that, search reads no organization descriptions.
+The description column is `supabase/candidates/weave-project-index-organization-description.sql`, applied to Platform on 21 November 2026 as `20261121204219_weave_project_index_organization_description` (regen-commons/website#29). Until the first refresh after this API deploys, search reads no organization descriptions.
 
 **Measured locally, 21 November 2026,** with this change's refresh run against live Certified data and a throwaway database: 1,007 projects indexed in 74 seconds, 891 of them with an organization description, 668 characters long on average and 1,302 at most. Of the 994 shown, 889 had one. Searches found more projects: "mission" 179 instead of 76, "founded" 175 instead of 43, "women" 168 instead of 108 and "mangrove" 70 instead of 65. Each function instance's copy of the list grew from 1.5 MB to 2.1 MB.

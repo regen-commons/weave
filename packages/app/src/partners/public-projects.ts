@@ -198,7 +198,7 @@ const ACRONYMS: ReadonlyMap<string, string> = new Map([["ngo", "NGO"]]);
 /**
  * A kind of group or of work as people read it, from its key: `community-group` is "Community group",
  * `disaster-relief` is "Disaster relief" and `ngo` is "NGO". The key, not the tag's own name, is what is
- * shown, so a tag named in another language reads the same as its English twin (DL-124).
+ * shown, so a tag named in another language reads the same as its English twin (DL-125).
  */
 export function keyLabel(key: string): string {
   const words = key.split("-").map((word) => ACRONYMS.get(word) ?? word).join(" ");
@@ -232,7 +232,7 @@ export const organizationTypeFacets = (offered: readonly string[] | undefined | 
   pickOne({ key: ORGANIZATION_TYPE_KEY, label: "Kind of group", any: "Any kind" }, offered, chosen);
 
 /**
- * What the projects' own activities say the work is, their work scope (DL-124). It is called Focus, not
+ * What the projects' own activities say the work is, their work scope (DL-125). It is called Focus, not
  * type of work, because type of work is Weave's own lens and these are Certified's tags.
  */
 export const workScopeFacets = (offered: readonly string[] | undefined | "waiting", chosen: string | null): Facet[] =>

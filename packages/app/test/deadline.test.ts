@@ -1,7 +1,14 @@
 // A funding card's deadline: counted in days near its end, toned when close, a date further out (DL-103).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DEADLINE_COUNTED_DAYS, DEADLINE_SOON_DAYS, daysToDeadline, deadlineSign } from "../src/funding/deadline.ts";
+import {
+  DEADLINE_COUNTED_DAYS,
+  DEADLINE_SOON_DAYS,
+  closingDay,
+  closingDayEnds,
+  daysToDeadline,
+  deadlineSign,
+} from "../src/funding/deadline.ts";
 
 const now = new Date("2026-11-18T10:00:00Z");
 const sign = (deadline: string, closed = false) => deadlineSign(deadline, closed, now);
@@ -12,7 +19,17 @@ test("days are counted to the end of the closing day in UTC, as the Closing filt
   assert.equal(daysToDeadline("2026-11-30", now), 12);
   assert.equal(daysToDeadline("2026-11-17", now), -1);
   assert.equal(daysToDeadline("2026-11-18", new Date("2026-11-18T23:59:58Z")), 0, "still open in the day's last second");
+  assert.equal(daysToDeadline("2026-11-18", new Date("2026-11-18T23:59:59.999Z")), 0, "and in its last millisecond");
   assert.equal(daysToDeadline("2026-11-18", new Date("2026-11-19T00:00:00Z")), -1);
+  assert.equal(closingDayEnds("2026-11-18"), Date.parse("2026-11-19T00:00:00Z"));
+});
+
+test("an exact closing moment closes on its own UTC day; a date alone is its own day", () => {
+  assert.equal(closingDay("2026-11-20"), "2026-11-20");
+  assert.equal(closingDay("2026-11-20", null), "2026-11-20");
+  assert.equal(closingDay("2026-11-20", "2026-11-21T07:59:00Z"), "2026-11-21", "23:59 Pacific is the next UTC day");
+  assert.equal(closingDay("2026-11-06", "2026-11-06T17:00:00Z"), "2026-11-06");
+  assert.equal(closingDay("2026-11-20", "not a time"), "2026-11-20");
 });
 
 test("near its end a card counts the days in words, and the words alone say how close it is", () => {

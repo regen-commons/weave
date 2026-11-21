@@ -8,6 +8,12 @@ export function connectTooltip(trigger: HTMLButtonElement, panel: HTMLElement): 
 export function connectPopover(trigger: HTMLButtonElement, panel: HTMLElement): () => void;
 
 /**
+ * Where focus goes when a panel opens: its checked radio, where it has one, and otherwise its first
+ * control or link.
+ */
+export function openingFocus(panel: Pick<ParentNode, "querySelector">): HTMLElement | null;
+
+/**
  * Where a panel opens against its trigger and how tall it may grow, in CSS pixels: under the
  * trigger when it fits, over it when it fits only there, and otherwise beside it, scrolling inside.
  */
