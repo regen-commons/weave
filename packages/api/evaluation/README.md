@@ -373,8 +373,8 @@ set, untuned: see [their report](experiments/matching-architecture/reports/2026-
 - The author's doubt is free text, and the runner reads every project ID it mentions
   as doubted, including one named only for comparison (`rp-060` in `rq-art-n06`).
   Across 28 queries that leaves 40 pairs the author called relevant unresolved, and
-  the judge also called 11 of them relevant. The labels are frozen, so this stands
-  until the human run replaces them.
+  the judge also called 11 of them relevant. The labels are frozen, and no human
+  run will replace them (see "Still to do").
 - The corpus holds only what the public list shows: at most two passages of 600
   characters, often a heading and a subtitle. The production index can hold more
   passages per project, so the matcher may do better there.
@@ -389,10 +389,13 @@ set, untuned: see [their report](experiments/matching-architecture/reports/2026-
 
 ### Still to do
 
-Two domain reviewers complete the worksheet independently, then the `--human` run
-replaces these numbers. Publish their agreement and adjudication counts, keep
-unresolved pairs separate, and agree a recall floor before any tuning that uses a
-new development split.
+The plan was for two domain reviewers to complete this worksheet and for the
+`--human` run to replace these numbers. On 21 November 2026 the user replaced that
+review with the one in the [`partner-real-v2` plan](partner-real-v2-plan.md), a new
+holdout for D32 whose pool includes the multilingual models. This set stays as
+development data with its agent labels, and its worksheet does not go to
+reviewers. The `--human` option stays in the runner. The recall floor is part of
+the new plan's decision rule.
 
 ## Independent quality evaluation still required
 
