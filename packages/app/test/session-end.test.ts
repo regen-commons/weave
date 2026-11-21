@@ -19,8 +19,8 @@ function tabs() {
   return connect;
 }
 
-test("the notice says the person was signed out and that their card stays", () => {
-  assert.equal(SESSION_ENDED_NOTICE, "You were signed out. Your card is still here.");
+test("the notice says the person was signed out and that what is in this browser stays", () => {
+  assert.equal(SESSION_ENDED_NOTICE, "You were signed out. What is in this browser is still here.");
   assert.doesNotMatch(SESSION_ENDED_NOTICE, /—|->|→/u);
 });
 

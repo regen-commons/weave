@@ -7,7 +7,7 @@ import { AccountFailure, type AccountState } from "./client.ts";
 export type SessionEnding = "signed_out" | "ended";
 
 /** Shown when a session ends without this tab's Sign Out. Sign Out keeps its own message in sign-out.ts. */
-export const SESSION_ENDED_NOTICE = "You were signed out. Your card is still here.";
+export const SESSION_ENDED_NOTICE = "You were signed out. What is in this browser is still here.";
 
 export const sessionRefused = (error: unknown) => error instanceof AccountFailure && error.code === "sign_in_required";
 
