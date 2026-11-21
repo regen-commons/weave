@@ -83,8 +83,8 @@ Spanish, as the user confirmed on 21 November 2026. Two kinds:
 
 The writers are agent instances, one per domain as in v1, that have never read the
 matcher, `partner-concepts.ts`, the experiment, the v1 to v3 fixtures or any
-result. The owner may swap some for queries people write, as long as the text can
-go into a public repository.
+result. They write all 160, as the user decided on 21 November 2026; people
+write none.
 
 ### Engines, frozen before the pool is built
 
@@ -230,6 +230,7 @@ site are not touched.
 3. Is 100 English, 40 Portuguese and 20 Spanish the right language mix?
    **Answered on 21 November 2026: yes, keep it.**
 4. Should blind agent instances write all the queries, or should people write some?
+   **Answered on 21 November 2026: agents write all of them.**
 5. Where do the sealed files live until the scored run?
 6. Do the margins in the decision rule (5 and 10 points) and the relative recall
    floor stand?
