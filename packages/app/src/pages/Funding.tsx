@@ -167,14 +167,14 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             onSearch={(search) => setFilters((current) => ({ ...current, search }))}
             facets={fundingFacets(vocabulary, visibleFilters, personalized)}
             onFacet={(key, chosen) => setFilters((current) => applyFundingFacet(current, key, chosen))}
-            sort={{ value: visibleFilters.sort, options: fundingSorts(personalized) }}
+            sort={{ value: visibleFilters.sort, options: fundingSorts(personalized), defaultValue: personalized ? "fit" : "closing" }}
             onSort={(sort) => setFilters((current) => ({ ...current, sort }))}
             count={selected.length}
             total={entries.length}
             note={note}
             loading={loading}
             reserve="From 000 funders. Sources last checked 00 November 0000."
-            onClear={() => setFilters((current) => ({ ...emptyFundingFilters, sort: current.sort }))}
+            onClear={() => setFilters(emptyFundingFilters)}
           />
           {/* Which initiative the fit is for, said right above the cards it orders. With others in this
               browser, the menu changes to one of them at once, and the details at the foot of the page follow. */}

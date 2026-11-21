@@ -55,7 +55,7 @@
                 </fieldset>
                 <button class="rc-button" data-variant="quiet" type="button" data-close-popover>Done</button>
               </div>
-              <button class="rc-button" data-variant="secondary" type="button" popovertarget="funding-sort" data-popup="funding-sort" data-example-sort-face>Sort: Name A to Z</button>
+              <button class="rc-button" data-variant="secondary" data-filter="one" type="button" popovertarget="funding-sort" data-popup="funding-sort">Sort</button>
               <div class="rc-menu" id="funding-sort" popover>
                 <fieldset class="rc-menu-group">
                   <legend>Sort</legend>
@@ -77,6 +77,13 @@
                 <h2 class="rc-dialog-title" id="funding-filters-title">Filters</h2>
                 <form method="dialog" id="funding-filters-close"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form>
               </div>
+              <fieldset>
+                <legend>Sort</legend>
+                <div class="rc-chip-group">
+                  <label class="rc-chip"><input class="rc-check" type="radio" name="funding-sort-sheet" value="name" checked />Name A to Z</label>
+                  <label class="rc-chip"><input class="rc-check" type="radio" name="funding-sort-sheet" value="reverse" />Name Z to A</label>
+                </div>
+              </fieldset>
               <fieldset>
                 <legend>Country</legend>
                 <div class="rc-chip-group">

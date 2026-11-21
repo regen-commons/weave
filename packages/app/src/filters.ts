@@ -22,11 +22,28 @@ export interface Facet {
 export interface SortChoice {
   readonly value: string;
   readonly options: readonly FacetOption[];
+  /** The list's own order, which needs no chip and is what removing the chip returns to. The first option where left out. */
+  readonly defaultValue?: string;
 }
 
 /** The order in force: the one chosen, or the first on offer where the choice is not one of them. */
 export function sortChoice(sort: SortChoice): FacetOption | undefined {
   return sort.options.find((option) => option.value === sort.value) ?? sort.options[0];
+}
+
+/** The list's own order: the one it opens in, and the one Clear Filters and the chip return to. */
+export function defaultSort(sort: SortChoice): string {
+  return sort.defaultValue ?? sort.options[0]?.value ?? "";
+}
+
+/**
+ * An order chosen over the list's own, which shows as a removable chip beside the filters (DL-122).
+ * The Sort button says only "Sort", so the chip is where the order in force is read.
+ */
+export function chosenSort(sort: SortChoice | undefined): FacetOption | null {
+  if (!sort) return null;
+  const current = sortChoice(sort);
+  return current && current.value !== defaultSort(sort) ? current : null;
 }
 
 /** The option a "one" facet shows as picked. */

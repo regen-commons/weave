@@ -21,6 +21,8 @@ export function RadioMenu({
   onChange,
   size,
   align,
+  filter,
+  active,
 }: {
   /** The button's words. */
   label: ReactNode;
@@ -35,6 +37,10 @@ export function RadioMenu({
   size?: "sm";
   /** `end` ends the menu at its button's edge, for a button at the far end of its row. */
   align?: "end";
+  /** `one`: a filter bar's own menu, which a phone leaves out because its sheet holds the same choice. */
+  filter?: "one";
+  /** The choice in force is not the default, so the button shows it is in use as a chosen filter does. */
+  active?: boolean;
 }) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -44,7 +50,8 @@ export function RadioMenu({
   }, []);
   return (
     <>
-      <button className="rc-button" data-variant="secondary" data-size={size} type="button" ref={trigger} popoverTarget={id}>
+      <button className="rc-button" data-variant="secondary" data-size={size} data-filter={filter} data-active={active}
+        type="button" ref={trigger} popoverTarget={id}>
         {label}
       </button>
       <div className="rc-menu" ref={panel} id={id} popover="auto" data-align={align}>
