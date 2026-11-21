@@ -790,7 +790,7 @@ Not held, and why. Before the first page answers, the bar draws Kind of group wa
 
 **Status:** user request, 21 November 2026 ("I still don't see any filters or sorting"). Amends DL-081, which gave the public project list one order and no Sort.
 
-The Initiatives filter bar now has Sort, the same menu Funding uses (DL-100), with three orders: Newest first, which stays the list's own order and the default, Oldest first, and Name A to Z. Names sort as people read them, with case and accents aside and numbers by value, so "Orchard 9" comes before "Orchard 10". A tie keeps one fixed order by the project's address. The order goes into the page's address beside the search and the kind of group, and Clear Filters leaves it as it is, as on Funding.
+The Initiatives filter bar now has Sort, the same menu Funding uses (DL-100), with three orders: Newest first, which stays the list's own order and the default, Oldest first, and Name A to Z. Names sort as people read them, with case, accents and punctuation aside and numbers by value, so "Orchard 9" comes before "Orchard 10" and a title in quotation marks sorts under its first letter. A tie keeps one fixed order by the project's address. The order goes into the page's address beside the search and the kind of group, and Clear Filters leaves it as it is, as on Funding.
 
 The list arrives a page at a time, so the server sorts it, and each page's cursor records the last card's place in that order. A cursor made for one order is refused in another. Newest first is never written into a request, so its pages keep the addresses the cache already holds.
 
