@@ -1,6 +1,6 @@
 import {
   encodePublicProjectCursor, isOrganizationType, isProjectLabel, ORGANIZATION_TYPE_OPTIONS_MAX, parsePublicProjectQuery, searchText,
-  type PublicProjectCard, type PublicProjectPage, type PublicProjectQuery,
+  type PublicProjectCard, type PublicProjectCursor, type PublicProjectPage, type PublicProjectQuery, type PublicProjectSort,
 } from "./public-projects-contract.ts";
 import type { PublicProjectReader, PublicProjectSnapshot } from "./public-projects-store.ts";
 
@@ -41,9 +41,21 @@ type Prepared = {
   organizationTypes: string[];
   checkpoint: PublicProjectSnapshot["checkpoint"];
 };
-/** Newest first; ties keep a fixed order by address, which the cursor relies on. */
-const later = (a: Pick<PublicProjectCard, "sharedAt" | "uri">, b: Pick<PublicProjectCard, "sharedAt" | "uri">) =>
-  a.sharedAt !== b.sharedAt ? a.sharedAt > b.sharedAt : a.uri > b.uri;
+/** A card's place in an order: what the cursor records for it. */
+const placeIn = (sort: PublicProjectSort, card: Pick<PublicProjectCard, "name" | "sharedAt" | "uri">): PublicProjectCursor =>
+  ({ key: sort === "name" ? card.name : card.sharedAt, uri: card.uri });
+/** Names compare as people read them: case and accents aside, numbers by value. */
+const names = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+const byAddress = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
+/**
+ * The order of two places in a sort: newest first, oldest first or name A to Z. Ties keep a fixed order by
+ * address, which the cursor relies on.
+ */
+function compare(sort: PublicProjectSort, a: PublicProjectCursor, b: PublicProjectCursor): number {
+  if (sort === "name") return names.compare(a.key, b.key) || byAddress(a.uri, b.uri);
+  const oldestFirst = byAddress(a.key, b.key) || byAddress(a.uri, b.uri);
+  return sort === "oldest" ? oldestFirst : -oldestFirst;
+}
 
 function prepare(snapshot: PublicProjectSnapshot): Prepared {
   const cards = snapshot.cards.map(({ text, publisher, place, organizationTypes, ...card }) => {
@@ -63,7 +75,10 @@ function prepare(snapshot: PublicProjectSnapshot): Prepared {
   const organizationTypes = [...counts]
     .sort(([a, m], [b, n]) => Number(a === "other") - Number(b === "other") || n - m || (a < b ? -1 : a > b ? 1 : 0))
     .slice(0, ORGANIZATION_TYPE_OPTIONS_MAX).map(([type]) => type);
-  return { cards: cards.sort((a, b) => later(a, b) ? -1 : later(b, a) ? 1 : 0), organizationTypes, checkpoint: snapshot.checkpoint };
+  return {
+    cards: cards.sort((a, b) => compare("newest", placeIn("newest", a), placeIn("newest", b))),
+    organizationTypes, checkpoint: snapshot.checkpoint,
+  };
 }
 
 /** One page of the matching cards after the cursor, and how many match in all. */
@@ -73,7 +88,10 @@ export function selectPublicProjects(prepared: Prepared, query: PublicProjectQue
     ? prepared.cards.filter(({ search, organizationTypes }) => terms.every((term) => search.includes(term))
       && (!organizationType || organizationTypes.includes(organizationType)))
     : prepared.cards;
-  const rest = query.cursor ? matched.filter((card) => later(query.cursor!, card)) : matched;
+  // Cards are kept newest first; another order is sorted per request, a thousand cards at most.
+  const { sort, cursor } = query;
+  const ordered = sort === "newest" ? matched : [...matched].sort((a, b) => compare(sort, placeIn(sort, a), placeIn(sort, b)));
+  const rest = cursor ? ordered.filter((card) => compare(sort, cursor, placeIn(sort, card)) < 0) : ordered;
   return {
     projects: rest.slice(0, query.limit).map(({ search: _search, organizationTypes: _types, ...card }): PublicProjectCard => card),
     more: rest.length > query.limit,
@@ -129,7 +147,7 @@ export function createPublicProjectsHandler(options: {
         ...(prepared.organizationTypes.length ? { organizationTypes: prepared.organizationTypes } : {}),
       },
       projects,
-      next: more && last ? encodePublicProjectCursor({ sharedAt: last.sharedAt, uri: last.uri }) : null,
+      next: more && last ? encodePublicProjectCursor(placeIn(query.sort, last)) : null,
     };
     return respond(200, page, CACHED);
   };

@@ -29,7 +29,16 @@ export const isOrganizationType = (value: unknown): value is string =>
   typeof value === "string" && value.length <= ORGANIZATION_TYPE_MAX && organizationTypePattern.test(value)
     && value === value.normalize("NFC").toLowerCase();
 
-export type PublicProjectCursor = { sharedAt: string; uri: string };
+/**
+ * The orders the list can be read in. Newest first is the default and is spelled by leaving `sort` out.
+ * Each order is fixed and total, ties broken by address, so the cursor can continue it.
+ */
+export const PUBLIC_PROJECT_SORTS = ["newest", "oldest", "name"] as const;
+export type PublicProjectSort = (typeof PUBLIC_PROJECT_SORTS)[number];
+export const isPublicProjectSort = (value: unknown): value is PublicProjectSort =>
+  PUBLIC_PROJECT_SORTS.includes(value as PublicProjectSort);
+/** Where the next page starts: the last card's place in the order (its share date, or its name) and its address. */
+export type PublicProjectCursor = { key: string; uri: string };
 export type PublicProjectQuery = {
   /** The search as typed, trimmed. Empty lists every project. */
   q: string;
@@ -37,10 +46,11 @@ export type PublicProjectQuery = {
   terms: string[];
   /** Only projects whose publisher says it is this kind of group. Projects that say nothing are left out. */
   organizationType: string | null;
+  sort: PublicProjectSort;
   cursor: PublicProjectCursor | null;
   limit: number;
 };
-const QUERY_KEYS = ["q", "organizationType", "cursor", "limit"];
+const QUERY_KEYS = ["q", "organizationType", "sort", "cursor", "limit"];
 
 export function searchTerms(q: string): string[] {
   return [...new Set(searchText(q).split(/\s+/u).filter(Boolean))].slice(0, maxTerms);
@@ -56,24 +66,27 @@ const base64url = {
   },
 };
 
-export function encodePublicProjectCursor({ sharedAt, uri }: PublicProjectCursor): string {
-  return base64url.encode(JSON.stringify([sharedAt, uri]));
+export function encodePublicProjectCursor({ key, uri }: PublicProjectCursor): string {
+  return base64url.encode(JSON.stringify([key, uri]));
 }
 
-function decodeCursor(value: string): PublicProjectCursor {
+/** A cursor made for one order is refused in another, since its key would mean something else there. */
+function decodeCursor(value: string, sort: PublicProjectSort): PublicProjectCursor {
   if (!value || value.length > maxCursor) throw Error("invalid_project_query");
   let parsed: unknown;
   try { parsed = JSON.parse(base64url.decode(value)); } catch { throw Error("invalid_project_query"); }
   if (!Array.isArray(parsed) || parsed.length !== 2) throw Error("invalid_project_query");
-  const [sharedAt, uri] = parsed as unknown[];
-  if (typeof sharedAt !== "string" || !sharedAtPattern.test(sharedAt) || !Number.isFinite(Date.parse(sharedAt)))
-    throw Error("invalid_project_query");
-  try { return { sharedAt, uri: parseProjectUri(uri).uri }; } catch { throw Error("invalid_project_query"); }
+  const [key, uri] = parsed as unknown[];
+  const valid = typeof key === "string" && (sort === "name"
+    ? key.trim() !== "" && key.length <= 300 && !controls.test(key)
+    : sharedAtPattern.test(key) && Number.isFinite(Date.parse(key)));
+  if (!valid) throw Error("invalid_project_query");
+  try { return { key, uri: parseProjectUri(uri).uri }; } catch { throw Error("invalid_project_query"); }
 }
 
 /**
- * Accepts only `q`, `organizationType`, `cursor` and `limit`, each at most once, so every cached page
- * has one address.
+ * Accepts only `q`, `organizationType`, `sort`, `cursor` and `limit`, each at most once, so every cached
+ * page has one address.
  */
 export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
   const keys = [...url.searchParams.keys()];
@@ -83,12 +96,15 @@ export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
   if (q.length > maxQuery || controls.test(q)) throw Error("invalid_project_query");
   const organizationType = url.searchParams.get("organizationType");
   if (organizationType !== null && !isOrganizationType(organizationType)) throw Error("invalid_project_query");
+  const sortText = url.searchParams.get("sort");
+  if (sortText !== null && !isPublicProjectSort(sortText)) throw Error("invalid_project_query");
+  const sort = sortText ?? "newest";
   const limitText = url.searchParams.get("limit");
   const limit = limitText === null ? PUBLIC_PROJECT_PAGE_SIZE : /^\d{1,2}$/u.test(limitText) ? Number(limitText) : NaN;
   if (!Number.isInteger(limit) || limit < 1 || limit > PUBLIC_PROJECT_PAGE_MAX) throw Error("invalid_project_query");
   const cursorText = url.searchParams.get("cursor");
   return {
-    q, terms: searchTerms(q), organizationType, cursor: cursorText === null ? null : decodeCursor(cursorText), limit,
+    q, terms: searchTerms(q), organizationType, sort, cursor: cursorText === null ? null : decodeCursor(cursorText, sort), limit,
   };
 }
 

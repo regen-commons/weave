@@ -17,7 +17,12 @@ const card = (n: number): PublicProjectCard => ({
 
 test("the query accepts only a bounded search, a kind of group, an opaque cursor and a page size", () => {
   assert.deepEqual(parsePublicProjectQuery(url("")),
-    { q: "", terms: [], organizationType: null, cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
+    { q: "", terms: [], organizationType: null, sort: "newest", cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
+  assert.deepEqual(["oldest", "name", "newest"].map((sort) => parsePublicProjectQuery(url(`?sort=${sort}`)).sort), ["oldest", "name", "newest"]);
+  // A cursor carries its order's key: a share date for newest and oldest, a name for name A to Z.
+  const named = encodePublicProjectCursor({ key: "Community seed library", uri: projectUri(2) });
+  assert.deepEqual(parsePublicProjectQuery(url(`?sort=name&cursor=${named}`)).cursor, { key: "Community seed library", uri: projectUri(2) });
+  assert.throws(() => parsePublicProjectQuery(url(`?cursor=${named}`)), /invalid_project_query/u, "a name cursor is not a date cursor");
   assert.equal(parsePublicProjectQuery(url("?q=soil&organizationType=community-group")).organizationType, "community-group");
   assert.equal(parsePublicProjectQuery(url("?organizationType=grupo-comunit%C3%A1rio")).organizationType, "grupo-comunitário");
   const search = parsePublicProjectQuery(url("?q=%20S%C3%A3o%20%20Paulo%20soil%20soil&limit=3"));
@@ -25,22 +30,24 @@ test("the query accepts only a bounded search, a kind of group, an opaque cursor
   assert.deepEqual(searchTerms("a b c d e f g h"), ["a", "b", "c", "d", "e", "f"]);
   // The longest address a project can have still makes a cursor the list accepts.
   const longest = `at://did:web:${"a".repeat(253)}/org.hypercerts.collection/${"k".repeat(128)}`;
-  const far = encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: longest });
+  const far = encodePublicProjectCursor({ key: "2026-10-02T12:00:00.000000Z", uri: longest });
   assert.ok(far.length > 512);
   assert.equal(parsePublicProjectQuery(url(`?cursor=${far}`)).cursor?.uri, longest);
-  const cursor = encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
+  const cursor = encodePublicProjectCursor({ key: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
   assert.deepEqual(parsePublicProjectQuery(url(`?cursor=${cursor}`)).cursor,
-    { sharedAt: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
+    { key: "2026-10-02T12:00:00.000000Z", uri: projectUri(4) });
   for (const bad of [
     "?limit=0", "?limit=25", "?limit=2.5", "?limit=-1", "?other=1", "?q=a&q=b", `?q=${"x".repeat(101)}`, "?q=%00",
     "?q=%E2%80%AE", "?cursor=", "?cursor=***", `?cursor=${"A".repeat(1100)}`,
-    `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02", uri: projectUri(1) })}`,
-    `?cursor=${encodePublicProjectCursor({ sharedAt: "2026-10-02T12:00:00.000000Z", uri: "at://did:web:x/other/key" })}`,
+    `?cursor=${encodePublicProjectCursor({ key: "2026-10-02", uri: projectUri(1) })}`,
+    `?cursor=${encodePublicProjectCursor({ key: "2026-10-02T12:00:00.000000Z", uri: "at://did:web:x/other/key" })}`,
     `?cursor=${Buffer.from(JSON.stringify({ sharedAt: "x" })).toString("base64url")}`,
     "?organizationType=", "?organizationType=Nonprofit", "?organizationType=non%20profit", "?organizationType=non_profit",
     "?organizationType=-lead", `?organizationType=${"x".repeat(41)}`, "?organizationType=a&organizationType=b",
     "?organizationType=Grupo-comunit%C3%A1rio", "?organizationType=grupo-comunita%CC%81rio", "?organizationType=a.b",
-    "?organizationtype=nonprofit", "?type=nonprofit",
+    "?organizationtype=nonprofit", "?type=nonprofit", "?sort=", "?sort=Name", "?sort=fit", "?sort=name&sort=oldest",
+    `?sort=oldest&cursor=${encodePublicProjectCursor({ key: "Seed library", uri: projectUri(1) })}`,
+    `?sort=name&cursor=${encodePublicProjectCursor({ key: "", uri: projectUri(1) })}`,
   ]) assert.throws(() => parsePublicProjectQuery(url(bad)), /invalid_project_query/u, bad);
 });
 
@@ -231,4 +238,33 @@ test("a stored value the app would refuse is left out of its card, so one bad ro
   assert.deepEqual(page.projects.map(({ uri, publisher, place }) => [uri, publisher, place]).sort(),
     [[projectUri(1), undefined, undefined], [projectUri(2), undefined, "Awka, Nigeria"]].sort());
   assert.deepEqual(page.index.organizationTypes, ["community-group", "nonprofit"]);
+});
+
+test("the list reads newest first, oldest first or by name, and every order pages without gaps or repeats", async () => {
+  const names = ["école verte", "Orchard 10", "Orchard 9", "acequia keepers", "Bee Commons", "Ecole Verte"];
+  const cards = names.map((name, n) => ({ ...card(n + 1), name, organizationTypes: [], text: "",
+    sharedAt: `2026-10-0${[3, 1, 6, 2, 5, 4][n]}T12:00:00.000000Z` }));
+  const handler = createPublicProjectsHandler({ reader: async () => ({
+    load: async () => ({ cards, checkpoint: null }), close: async () => undefined,
+  }) });
+  const pages = async (sort: string) => {
+    const seen: string[] = [];
+    let next: string | null = null;
+    for (let request = 0; request < 10; request++) {
+      const response = await handler(new Request(url(`?limit=2${sort ? `&sort=${sort}` : ""}${next ? `&cursor=${next}` : ""}`)));
+      assert.equal(response.status, 200, sort);
+      const page = parsePublicProjectPage(await response.json());
+      seen.push(...page.projects.map(({ name }) => name));
+      next = page.next;
+      if (!next) return seen;
+    }
+    throw Error("too_many_pages");
+  };
+  assert.deepEqual(await pages(""), ["Orchard 9", "Bee Commons", "Ecole Verte", "école verte", "acequia keepers", "Orchard 10"]);
+  assert.deepEqual(await pages("oldest"), ["Orchard 10", "acequia keepers", "école verte", "Ecole Verte", "Bee Commons", "Orchard 9"]);
+  // Case and accents aside, numbers by value, and a tie keeps one fixed order by address.
+  assert.deepEqual(await pages("name"), ["acequia keepers", "Bee Commons", "école verte", "Ecole Verte", "Orchard 9", "Orchard 10"]);
+  // A search keeps the order it was asked for.
+  const response = await handler(new Request(url("?q=orchard&sort=name")));
+  assert.deepEqual(parsePublicProjectPage(await response.json()).projects.map(({ name }) => name), ["Orchard 9", "Orchard 10"]);
 });

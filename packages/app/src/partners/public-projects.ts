@@ -1,10 +1,11 @@
 import {
-  isOrganizationType, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE, type PublicProjectCard, type PublicProjectPage,
+  isOrganizationType, isPublicProjectSort, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE, type PublicProjectCard,
+  type PublicProjectPage, type PublicProjectSort,
 } from "@weave/api/public-projects-contract";
-import type { Facet } from "../filters.ts";
+import type { Facet, FacetOption } from "../filters.ts";
 
-export type { PublicProjectCard, PublicProjectPage };
-export { PUBLIC_PROJECT_PAGE_SIZE };
+export type { PublicProjectCard, PublicProjectPage, PublicProjectSort };
+export { isPublicProjectSort, PUBLIC_PROJECT_PAGE_SIZE };
 /** The longest a search box entry may be, matching what the list accepts. */
 export const PUBLIC_PROJECT_QUERY_MAX = 100;
 const TIMEOUT_MS = 8000;
@@ -27,11 +28,14 @@ export const searchNow = (typed: string, paused: string): string => typed === ""
  */
 export function publicProjectsPath(
   q: string, cursor: string | null = null, limit = PUBLIC_PROJECT_PAGE_SIZE, organizationType: string | null = null,
+  sort: PublicProjectSort = "newest",
 ): string {
   const params = new URLSearchParams();
   const search = searchQuery(q);
   if (search) params.set("q", search);
   if (isOrganizationType(organizationType)) params.set("organizationType", organizationType);
+  // Newest first is the list's own order, so it is left out and its pages keep the addresses they had.
+  if (sort !== "newest") params.set("sort", sort);
   if (cursor) params.set("cursor", cursor);
   if (limit !== PUBLIC_PROJECT_PAGE_SIZE) params.set("limit", String(limit));
   const query = params.toString();
@@ -49,15 +53,23 @@ export async function requestPublicProjects(path: string, signal: AbortSignal, r
   return parsePublicProjectPage(await response.json());
 }
 
-/** What a list was asked for: the search, and the kind of group where one is chosen. */
-type Asked = { q: string; organizationType?: string };
+/** What a list was asked for: the search, the kind of group where one is chosen, and an order other than newest first. */
+type Asked = { q: string; organizationType?: string; sort?: Exclude<PublicProjectSort, "newest"> };
 export type PublicProjectList =
   | ({ status: "loading" } & Asked)
   | ({ status: "failed" } & Asked)
   | ({ status: "ready"; page: PublicProjectPage; projects: PublicProjectCard[]; more: "idle" | "loading" | "failed" } & Asked);
 
-export const firstPage = (q: string, page: PublicProjectPage, organizationType?: string): PublicProjectList =>
-  ({ status: "ready", q, ...(organizationType ? { organizationType } : {}), page, projects: page.projects, more: "idle" });
+/** The fields a list records for what it was asked: a default is left out. */
+export const askedFor = (q: string, organizationType?: string, sort: PublicProjectSort = "newest"): Asked =>
+  ({ q, ...(organizationType ? { organizationType } : {}), ...(sort !== "newest" ? { sort } : {}) });
+
+export const firstPage = (q: string, page: PublicProjectPage, organizationType?: string, sort?: PublicProjectSort): PublicProjectList =>
+  ({ status: "ready", ...askedFor(q, organizationType, sort), page, projects: page.projects, more: "idle" });
+
+/** Whether a list answers what is being asked now, so a late page for an earlier search, kind or order is dropped. */
+export const sameAsk = (list: Asked, asked: Asked): boolean =>
+  list.q === asked.q && list.organizationType === asked.organizationType && list.sort === asked.sort;
 
 /** Whether a list is narrowed by a search or a kind of group. */
 const narrowed = (list: Asked) => list.q !== "" || !!list.organizationType;
@@ -144,6 +156,21 @@ export function emptyList(searching: boolean, filtered: boolean): { title: strin
 
 /** The page address's name for the kind of group, the same as the list's. */
 export const ORGANIZATION_TYPE_KEY = "organizationType";
+/** The page address's name for the order, the same as the list's. */
+export const SORT_KEY = "sort";
+
+/** The orders the Sort menu offers, newest first as the list's own (DL-121). */
+export const PUBLIC_PROJECT_SORT_OPTIONS: readonly FacetOption[] = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "name", label: "Name A to Z" },
+];
+
+/** The order from the page's address, or newest first where it names none the list knows. */
+export function chosenSort(search: string): PublicProjectSort {
+  const value = new URLSearchParams(search).get(SORT_KEY);
+  return isPublicProjectSort(value) ? value : "newest";
+}
 
 /** A kind of group as people read it: `community-group` is "Community group". */
 export function organizationTypeLabel(type: string): string {
