@@ -47,3 +47,8 @@ export function accountRuntime() {
     return runtime = createRuntime(config);
   } catch { return null; }
 }
+/** What session renewal needs outside /api/account, or null when accounts are off. Shares the cached provider. */
+export function renewalSettings() {
+  const current = accountRuntime();
+  return current ? { provider: current.provider, secureCookies: current.secureCookies } : null;
+}

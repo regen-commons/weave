@@ -63,6 +63,8 @@ export interface AccountState {
   emailHintAvailable?: boolean;
   user: AccountUser | null;
   items: InitiativeSummary[];
+  /** Seconds until the server wants the next check, so it can renew the session before it lapses. */
+  renewIn?: number;
 }
 export function accountState(data: Record<string, unknown>): AccountState {
   if (data.available === false)
@@ -74,6 +76,8 @@ export function accountState(data: Record<string, unknown>): AccountState {
     ...(data.emailHintAvailable === true ? { emailHintAvailable: true } : {}),
     user: data.user === null ? null : parseUser(data.user),
     items: parseSummaries(data.items),
+    ...(Number.isSafeInteger(data.renewIn) && Number(data.renewIn) >= 30 && Number(data.renewIn) <= 3600
+      ? { renewIn: Number(data.renewIn) } : {}),
   };
 }
 export { parseSaved, parseUser };

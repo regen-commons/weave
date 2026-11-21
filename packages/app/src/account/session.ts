@@ -6,6 +6,16 @@ export interface SessionConnection {
   close(): void;
 }
 export type ConnectSession = (receive: (change: SessionChange) => void, resume: () => void) => SessionConnection;
+export interface SessionTimers {
+  set(run: () => void, milliseconds: number): unknown;
+  clear(handle: unknown): void;
+}
+const browserTimers: SessionTimers = {
+  set: (run, milliseconds) => setTimeout(run, milliseconds),
+  clear: handle => clearTimeout(handle as ReturnType<typeof setTimeout>),
+};
+/** After a check that failed for a reason other than an ended session, such as being offline. */
+const RETRY_SECONDS = 60;
 
 /** Account state belongs to the current browser session, never to device drafts or backups. */
 export class AccountSession {
@@ -15,7 +25,15 @@ export class AccountSession {
   private connection: SessionConnection | null = null;
   private revision = 0;
   private pending: AbortController | null = null;
-  constructor(request = accountRequest) { this.request = request; }
+  private timers: SessionTimers;
+  private timer: unknown = null;
+  /** Up to this many milliseconds are added to each check, so several tabs do not renew at the same instant. */
+  private spread: () => number;
+  constructor(request = accountRequest, timers = browserTimers, spread = () => Math.random() * 20000) {
+    this.request = request;
+    this.timers = timers;
+    this.spread = spread;
+  }
   getSnapshot = () => this.state;
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -39,7 +57,21 @@ export class AccountSession {
       }
     };
   }
+  /**
+   * While a tab is connected, it checks the session again when the server asks, which lets the server renew
+   * it before the hour runs out. A suspended tab misses the moment and reconciles on focus instead.
+   */
+  private schedule(seconds: number | undefined) {
+    if (this.timer !== null) this.timers.clear(this.timer);
+    this.timer = null;
+    if (!seconds || !this.connection) return;
+    this.timer = this.timers.set(() => {
+      this.timer = null;
+      void this.refresh().catch(() => {});
+    }, seconds * 1000 + this.spread());
+  }
   private invalidate() {
+    this.schedule(undefined);
     this.revision++;
     this.pending?.abort();
     this.pending = null;
@@ -76,10 +108,12 @@ export class AccountSession {
       const next = accountState(result);
       if (this.state?.user?.id !== next.user?.id) invalidateAccountRequests();
       this.update(next);
+      this.schedule(next.user ? next.renewIn : undefined);
       return next;
     } catch (error) {
       check();
       if (error instanceof AccountFailure && error.code === "sign_in_required") this.clear();
+      else if (this.state?.user) this.schedule(RETRY_SECONDS);
       throw error;
     } finally {
       if (this.pending === task) this.pending = null;
