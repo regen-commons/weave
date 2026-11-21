@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, linkedProject, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, linkedProject, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -99,6 +99,27 @@ test("a draft is linked to the project chosen for it, or with no choice to the w
   assert.equal(linkedProject("at://did:plc:example/org.example.project/gone", second.workspaceId, [first, second]), null, "and is never replaced by it");
   assert.equal(linkedProject(null, "b3000000-0000-4000-8000-000000000009", [first, second]), null);
   assert.equal(linkedProject(null, null, [{ uri: first.uri, workspaceId: undefined }]), null, "a project with no workspace matches no saved card");
+});
+
+test("a card with a stored project choice is never called unlinked while the choice cannot be checked", () => {
+  const owner = "a1000000-0000-4000-8000-000000000001";
+  const other = "a1000000-0000-4000-8000-000000000002";
+  const read = { linked: false, owner, choosers: [owner], loading: false, problem: false };
+  assert.equal(projectLinkState({ ...read, linked: true }), "linked");
+  assert.equal(projectLinkState({ ...read, owner: null }), "signed-out", "signed out, the choice says it is linked");
+  assert.equal(projectLinkState({ ...read, owner: null, choosers: [other] }), "signed-out", "whichever account made it");
+  assert.equal(projectLinkState({ ...read, owner: null, choosers: [] }), "not-linked", "with no choice, nothing is linked");
+  assert.equal(projectLinkState({ ...read, loading: true }), "checking", "signed in, it waits for the projects");
+  assert.equal(projectLinkState({ ...read, problem: true }), "unchecked", "and a failed read keeps the link");
+  assert.equal(projectLinkState({ ...read, loading: true, problem: true }), "checking", "a new read comes before the last failure");
+  assert.equal(projectLinkState(read), "not-linked", "a choice checked against a loaded list that lacks it links nothing");
+  assert.equal(projectLinkState({ ...read, choosers: [other], loading: true }), "not-linked", "another account's choice is not this one's to check");
+  assert.equal(projectLinkState({ ...read, choosers: [], loading: true }), "not-linked");
+  assert.equal(projectLinkLine("linked"), "");
+  assert.equal(projectLinkLine("not-linked"), "Not linked to a Certified project yet.");
+  assert.match(projectLinkLine("signed-out"), /^Linked to a Certified project\. Sign in/u);
+  assert.doesNotMatch(projectLinkLine("checking"), /not linked/iu);
+  assert.doesNotMatch(projectLinkLine("unchecked"), /not linked/iu);
 });
 
 test("a draft that carries a project's suggestions stands for it in the list, and is still not linked to it", () => {
