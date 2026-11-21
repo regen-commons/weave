@@ -622,3 +622,23 @@ test("a choice the device will not store is remembered while the tab is open, ov
   await service.reload();
   assert.equal(service.snapshot().project?.uri, project.uri);
 });
+
+test("a projects request refused for a lapsed token is confirmed through /api/account and run again, not reported", async () => {
+  const owner = "b1000000-0000-4000-8000-0000000000aa";
+  const controller = new DraftController(new MemoryDraftRepository(newDraft()));
+  await controller.initialize();
+  const account: AccountState = { available: true, fixture: false, user: { id: owner, email: null }, items: [] };
+  const refusedOnce = new Set<string>();
+  let confirmations = 0;
+  const service = createLiveSocialService({ account, controller, refreshAccount: async () => account,
+    confirmAccount: async () => { confirmations++; return account; },
+    request: async (_path, body) => {
+      const action = String(record(body).action);
+      if (!refusedOnce.has(action)) { refusedOnce.add(action); throw new AccountFailure("sign_in_required"); }
+      return action === "list_project_groups" ? { groups: [] } : action === "list_workspaces" ? { workspaces: [] } : { projects: [] };
+    }, openWorkspace() {}, async signIn() {}, signedOut() {} });
+  await service.reload();
+  assert.equal(service.status().problem, null, "the renewed session reads the projects as usual");
+  assert.ok(confirmations >= 1);
+  service.dispose();
+});

@@ -23,8 +23,11 @@ export function AppHeader({
   sections,
   status,
   back,
+  ended = "",
 }: {
   pathname: string;
+  /** Said when the session ended without this tab's Sign Out; the page shows it too. */
+  ended?: string;
   sections: boolean;
   /** How the card is saved, on the pages where it is worked on; "none" everywhere else. */
   status: SaveStatus;
@@ -87,7 +90,7 @@ export function AppHeader({
             You tab holds the account, the theme and the way to Settings (DL-086). */}
         {signedIn && <AccountMenu current={route?.name} onSignedOut={setSignedOut} />}
         <p className="rc-visually-hidden" role="status">
-          {signedIn ? "" : signedOut}
+          {signedIn ? "" : signedOut || ended}
         </p>
       </div>
     </header>
