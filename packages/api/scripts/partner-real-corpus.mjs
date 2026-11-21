@@ -63,7 +63,7 @@ export function exclusionReason(card) {
 }
 
 const order = uri => createHash("sha256").update(`${SAMPLE_SALT}:${uri}`).digest("hex");
-const theme = card => Object.keys(THEMES).find(name => THEMES[name].test(`${card.name} ${card.passages.join(" ")}`)) ?? "place";
+export const theme = card => Object.keys(THEMES).find(name => THEMES[name].test(`${card.name} ${card.passages.join(" ")}`)) ?? "place";
 
 export function buildCorpus(cards, { collectedAt, index }) {
   const excluded = { qa_or_test: [], placeholder_text: [], contact_details: [] };

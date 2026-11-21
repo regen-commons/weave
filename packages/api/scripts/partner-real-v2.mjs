@@ -1,0 +1,387 @@
+// Builds the partner-real-v2 holdout's corpus and query slots, writes the blind writers' briefs, and checks the
+// queries they return. The plan is ../evaluation/partner-real-v2-plan.md.
+//
+// The holdout files stay private until the scored run. Write them outside tracked files (the repository ignores
+// docs/platform/research/local-only/); only their SHA-256 hashes are committed, in partner-real-v2.sha256.
+//
+//   node packages/api/scripts/partner-real-v2.mjs pages <dir>
+//   node packages/api/scripts/partner-real-v2.mjs corpus <pages-dir> <collected-at ISO> <corpus.json>
+//   node packages/api/scripts/partner-real-v2.mjs slots <corpus.json> <out-dir>
+//   node packages/api/scripts/partner-real-v2.mjs assemble <corpus.json> <slots.json> <answers-dir> <out-dir>
+//   node packages/api/scripts/partner-real-v2.mjs pool <private-dir>       runs the frozen engines, writes pool and worksheet
+//   node packages/api/scripts/partner-real-v2.mjs hashes <file>...
+import { createHash, randomUUID } from "node:crypto";
+import { readdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
+import { CURRENT, currentPicks, keywordEvidence, MANIFEST, modelPicks, prepareModel, verifyManifest }
+  from "../evaluation/experiments/matching-architecture/d32-engines.mjs";
+import { createEmbedder } from "../evaluation/experiments/matching-architecture/models.mjs";
+import { parsePublicProjectPage, PUBLIC_PROJECT_PAGE_MAX } from "../src/public-projects-contract.ts";
+import { exclusionReason, passageLanguage, theme } from "./partner-real-corpus.mjs";
+import { agentLabels } from "./matching-real.mjs";
+
+export const SALT = "partner-real-v2";
+export const DOMAINS = ["art", "software", "research", "place"];
+const ENDPOINT = "https://weave.regencommons.com/api/public-projects";
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+const salted = (...parts) => sha256([SALT, ...parts].join(":"));
+const saltKey = item => typeof item === "string" ? item : item.uri ?? item.key ?? item.order;
+const bySalt = (...prefix) => (a, b) => salted(...prefix, saltKey(a)).localeCompare(salted(...prefix, saltKey(b)));
+
+/** Saves every page of the public list, as partner-real-corpus.mjs reads them. Stops on any change mid-listing. */
+export async function savePages(dir, fetchPage = url => fetch(url, { signal: AbortSignal.timeout(60_000) })) {
+  let cursor = null, total = null, page = 0;
+  do {
+    const url = new URL(ENDPOINT);
+    url.searchParams.set("limit", String(PUBLIC_PROJECT_PAGE_MAX));
+    if (cursor) url.searchParams.set("cursor", cursor);
+    const response = await fetchPage(url.href);
+    if (!response.ok) throw Error(`public_projects_failed:${response.status}`);
+    const body = await response.json();
+    const parsed = parsePublicProjectPage(body);
+    if (total !== null && parsed.index.total !== total) throw Error("listing_changed_while_reading");
+    total = parsed.index.total;
+    page++;
+    await writeFile(join(dir, `p${String(page).padStart(3, "0")}.json`), JSON.stringify(body), { flag: "wx" });
+    cursor = parsed.next;
+  } while (cursor);
+  return { pages: page, total };
+}
+
+/**
+ * Every project the v1 rules keep, unsampled: the QA, placeholder and contact rules, passage language by stopwords
+ * and theme by keyword, all from partner-real-corpus.mjs. Ids follow a salted order of URIs; v1Id marks the 140
+ * projects partner-real-v1 used.
+ */
+export function buildCorpus(cards, { collectedAt, index, v1 }) {
+  const v1Ids = new Map(v1.projects.map(project => [project.uri, project.id]));
+  const exclusions = { qa_or_test: 0, placeholder_text: 0, contact_details: 0 };
+  const kept = [];
+  for (const card of cards) { const reason = exclusionReason(card); if (reason) exclusions[reason]++; else kept.push(card); }
+  kept.sort(bySalt("corpus"));
+  return {
+    version: 1, dataset: "partner-real-v2-corpus",
+    source: { endpoint: `GET ${ENDPOINT}`, collectedAt, indexStatus: index.status, indexCheckedAt: index.checkedAt, listedProjects: cards.length },
+    exclusions,
+    rules: `Every project the partner-real-v1 rules keep, without sampling, in the order of sha256("${SALT}:corpus:" + uri). Language and theme come from the fixed keyword rules in scripts/partner-real-corpus.mjs.`,
+    projects: kept.map((card, i) => ({
+      id: `rp2-${String(i + 1).padStart(4, "0")}`, uri: card.uri, account: card.uri.split("/")[2], name: card.name, passages: card.passages,
+      language: passageLanguage(card.passages), theme: theme(card), v1Id: v1Ids.get(card.uri) ?? null,
+      sharedAt: card.sharedAt, checkedAt: card.checkedAt, collectedAt, sourceUrl: card.sourceUrl,
+    })),
+  };
+}
+
+/**
+ * Per domain: 40 slots, 20 needs and 20 offers, 25 English, 10 Portuguese and 5 Spanish. By kind: 21 seeded, 4 hard
+ * negatives (seeded, but the seed must not fit), 10 blind and 5 sparse (blind, 1 to 4 words). Over four domains that
+ * is 100 seeded queries, 16 of them hard negatives, and 60 blind, 20 of them sparse, as the plan sets out.
+ */
+export const KINDS = [
+  { kind: "seeded", count: 21, languages: { en: 13, pt: 5, es: 3 } },
+  { kind: "hard-negative", count: 4, languages: { en: 3, pt: 1, es: 0 } },
+  { kind: "blind", count: 10, languages: { en: 6, pt: 3, es: 1 } },
+  { kind: "sparse", count: 5, languages: { en: 3, pt: 1, es: 1 } },
+];
+/** Seeded needs come first in art and research, seeded offers in software and place; sparse slots start the other way. */
+const firstDirection = (domain, kind) => {
+  const seededFirst = domain === "art" || domain === "research" ? "need" : "offer";
+  if (kind === "seeded") return seededFirst;
+  if (kind === "sparse") return seededFirst === "need" ? "offer" : "need";
+  return "need";
+};
+const other = direction => direction === "need" ? "offer" : "need";
+
+/**
+ * A seed must be a known fit from its own words, since engines never read names: at least 100 characters of passage
+ * text, and not Certified's form prompt, which v1's placeholder rule does not catch. Added on 21 November 2026, before
+ * any seeded query was written; the corpus keeps these projects.
+ */
+export const SEED_MIN_CHARACTERS = 100;
+const FORM_PROMPT = /start writing your story|our ai assistant will help/iu;
+export const canSeed = project => project.passages.join(" ").length >= SEED_MIN_CHARACTERS && !FORM_PROMPT.test(project.passages.join(" "));
+
+/** Seeds for one domain: projects of that theme, new to v2 first, each group in salted order, repeated if too few. */
+export function seedOrder(corpus, domain) {
+  const themed = corpus.projects.filter(project => project.theme === domain && canSeed(project));
+  const fresh = themed.filter(project => !project.v1Id).sort(bySalt("seed", domain));
+  const seen = themed.filter(project => project.v1Id).sort(bySalt("seed", domain));
+  return [...fresh, ...seen];
+}
+
+export function buildSlots(corpus) {
+  const slots = [];
+  for (const domain of DOMAINS) {
+    const seeds = seedOrder(corpus, domain);
+    if (!seeds.length) throw Error(`no_seed_projects:${domain}`);
+    const drafted = [];
+    let seedIndex = 0;
+    for (const { kind, count, languages } of KINDS) {
+      const languageList = Object.entries(languages).flatMap(([language, n]) => Array(n).fill(language))
+        .map((language, i) => ({ language, key: `${domain}:${kind}:${i}` })).sort(bySalt("language")).map(entry => entry.language);
+      if (languageList.length !== count) throw Error(`language_quota_mismatch:${kind}`);
+      let direction = firstDirection(domain, kind);
+      for (let i = 0; i < count; i++) {
+        const seeded = kind === "seeded" || kind === "hard-negative";
+        drafted.push({ domain, direction, language: languageList[i], kind, seed: seeded ? seeds[seedIndex++ % seeds.length].id : null, order: `${domain}:${kind}:${i}` });
+        direction = other(direction);
+      }
+    }
+    // Query ids follow a salted order, so an id says nothing of the slot's kind.
+    drafted.sort(bySalt("id")).forEach((slot, i) => {
+      const { order, ...rest } = slot;
+      slots.push({ id: `rq2-${domain}-${String(i + 1).padStart(2, "0")}`, ...rest });
+    });
+  }
+  return { version: 1, dataset: "partner-real-v2-slots", note: "Part of the key. Never shown to reviewers.", slots };
+}
+
+const DOMAIN_TEXT = {
+  art: "arts, culture, crafts, film, music, storytelling, design, artisans, cultural heritage",
+  software: "digital tools, apps, data platforms, sensors and AI, maps and remote sensing, web3",
+  research: "scientific study, monitoring, surveys, field data, evaluation, laboratories",
+  place: "on-the-ground work with land, water, food, forests, compost, buildings, schools, sites",
+};
+const LANGUAGE_NAME = { en: "English", pt: "Portuguese", es: "Spanish" };
+const WEAVE = "Weave helps regenerative initiatives find partners. An initiative is a project, organisation, collective or "
+  + "place-based effort, such as a community farm, a watershed group, an artists' collective, a research team or a group "
+  + "building digital tools. Each initiative lists needs (what it is looking for) and offers (what it can give). A partner "
+  + "for a need is an initiative whose work could provide it; a partner for an offer is an initiative whose work could use it.";
+const RUBRIC = "A need is served by an initiative whose described work could plausibly provide what is needed; an offer fits an "
+  + "initiative that could plausibly use what is offered, given what it describes doing. A nearby but different activity "
+  + "does not fit, and shared vague words are not a reason.";
+const OUTPUT = "Reply with only a JSON array, one object per slot, in the order given: "
+  + "[{\"id\": \"...\", \"title\": \"...\", \"description\": \"...\"}]. Use \"description\": null for sparse slots.";
+const RULES = "Do not open any file, run any command or search the web: everything you need is here. "
+  + "Write each one as a real initiative would type it into Weave: a short title, and for every slot that is not sparse a "
+  + "description of one or two plain sentences. Write in the language the slot names. Do not mention Weave, matching or these instructions.";
+
+/** Phase 1: blind and sparse slots, with no project shown. Phase 2, sent afterwards to the same writer: seeded slots. */
+export function briefs(corpus, slotFile) {
+  const byId = new Map(corpus.projects.map(project => [project.id, project]));
+  const out = {};
+  for (const domain of DOMAINS) {
+    const mine = slotFile.slots.filter(slot => slot.domain === domain);
+    const line = slot => `- ${slot.id}: ${slot.direction === "offer" ? "an offer" : "a need"} in ${LANGUAGE_NAME[slot.language]}`;
+    const blind = mine.filter(slot => slot.kind === "blind" || slot.kind === "sparse");
+    out[`${domain}-1-blind.md`] = [
+      `You are writing test requests for a partner-finding tool, in the ${domain} domain (${DOMAIN_TEXT[domain]}).`, "", WEAVE, "", RULES, "",
+      "For each slot below, write one need or offer an initiative in this domain might list. Some may have no partner anywhere; "
+        + "that is fine. Vary the kinds of initiative and request.",
+      "Sparse slots: a title of 1 to 4 words and no description, as a hurried person would type it.", "",
+      ...blind.map(slot => `${line(slot)}${slot.kind === "sparse" ? ", sparse" : ""}`), "", OUTPUT,
+    ].join("\n");
+    const seeded = mine.filter(slot => slot.kind === "seeded" || slot.kind === "hard-negative");
+    out[`${domain}-2-seeded.md`] = [
+      "Second part, same domain and rules. Each slot now shows one real initiative's public description.", "", RUBRIC, "",
+      "Fit slots: write a need that initiative could serve, or an offer it could use, as a different initiative would list it. "
+        + "Use your own words: do not copy its name, its place names or its distinctive phrases.",
+      "Not-fit slots: write a need that initiative could not serve, or an offer it could not use, that still uses some of the "
+        + "same ordinary words. It must still be a plausible request in this domain.", "",
+      ...seeded.map(slot => { const project = byId.get(slot.seed);
+        return `${line(slot)}, ${slot.kind === "seeded" ? "fit" : "not fit"}\n  Initiative: ${project.name}\n  Its words: ${project.passages.join(" ")}`; }),
+      "", OUTPUT,
+    ].join("\n");
+  }
+  return out;
+}
+
+const STOP = new Set("about after also and are been being but can could each for from has have into its more most not our out over such than that the their them then there these they this those through very was were what when where which while who will with within would your".split(" "));
+const words = text => (text.toLowerCase().match(/\p{L}{4,}/gu) ?? []).filter(word => !STOP.has(word));
+
+/** Words of a seed's name and passages that at most 1% of corpus projects use: a fit query must not reuse them. */
+export function distinctiveWords(corpus, project) {
+  const frequency = new Map();
+  for (const p of corpus.projects) for (const word of new Set(words(`${p.name} ${p.passages.join(" ")}`))) frequency.set(word, (frequency.get(word) ?? 0) + 1);
+  const limit = Math.max(1, Math.floor(corpus.projects.length * 0.01));
+  return new Set(words(`${project.name} ${project.passages.join(" ")}`).filter(word => frequency.get(word) <= limit));
+}
+
+/**
+ * Joins the writers' answers to their slots and checks quotas, format, language and word reuse. Labels nothing.
+ * A revision is a writer's rewrite of one answer after the checks; it replaces that answer and is counted.
+ */
+export function assemble(corpus, slotFile, answers, revisions = []) {
+  const byId = new Map(corpus.projects.map(project => [project.id, project]));
+  const answered = new Map();
+  const problems = [];
+  for (const answer of answers) {
+    if (answered.has(answer.id)) problems.push(`duplicate_answer:${answer.id}`);
+    answered.set(answer.id, answer);
+  }
+  const revised = new Set();
+  for (const revision of revisions) {
+    if (!answered.has(revision.id) || revised.has(revision.id)) { problems.push(`bad_revision:${revision.id}`); continue; }
+    answered.set(revision.id, revision);
+    revised.add(revision.id);
+  }
+  const ids = new Set(slotFile.slots.map(slot => slot.id));
+  for (const id of answered.keys()) if (!ids.has(id)) problems.push(`unknown_slot:${id}`);
+  const queries = [], flags = [];
+  for (const slot of slotFile.slots) {
+    const answer = answered.get(slot.id);
+    if (!answer) { problems.push(`missing_answer:${slot.id}`); continue; }
+    const title = typeof answer.title === "string" ? answer.title.trim() : "";
+    const description = typeof answer.description === "string" && answer.description.trim() ? answer.description.trim() : null;
+    if (!title || title.length > 160) problems.push(`bad_title:${slot.id}`);
+    if (slot.kind === "sparse" && (description || title.split(/\s+/u).length > 4)) problems.push(`not_sparse:${slot.id}`);
+    if (slot.kind !== "sparse" && (!description || description.length > 500)) problems.push(`bad_description:${slot.id}`);
+    const language = passageLanguage([title, description ?? ""]);
+    if (slot.kind !== "sparse" && language !== slot.language) flags.push({ id: slot.id, flag: "language", expected: slot.language, read: language });
+    if (slot.kind === "seeded") {
+      const reused = [...new Set(words(`${title} ${description ?? ""}`))].filter(word => distinctiveWords(corpus, byId.get(slot.seed)).has(word));
+      if (reused.length) flags.push({ id: slot.id, flag: "reuses_seed_words", words: reused });
+    }
+    queries.push({ id: slot.id, domain: slot.domain, direction: slot.direction, language: slot.language, title, description });
+  }
+  const count = key => Object.fromEntries(Object.entries(Object.groupBy(queries, key)).map(([name, list]) => [name, list.length]));
+  return {
+    queries: { version: 1, dataset: "partner-real-v2-queries", corpus: "partner-real-v2-corpus.json", queries },
+    problems, flags,
+    counts: { total: queries.length, revised: revised.size, byDomainAndDirection: count(q => `${q.domain}/${q.direction}`), byLanguage: count(q => q.language),
+      byKind: count(q => slotFile.slots.find(slot => slot.id === q.id).kind) },
+  };
+}
+
+/** The engines run as of the day the corpus was read, as the engine manifest says and matching-real.mjs does for v1. */
+export const engineDate = corpus => Date.parse(`${corpus.source.collectedAt.slice(0, 10)}T00:00:00Z`);
+
+/** Runs every engine the committed manifest lets go forward, and refuses if the manifest differs from what is on disk. */
+export async function runEngines(corpus, queryFile) {
+  const { manifest, differences } = await verifyManifest();
+  if (differences.length) throw Error(`engine_manifest_differs:${differences.join(",")}`);
+  const now = engineDate(corpus), { projects } = corpus, { queries } = queryFile;
+  const record = picks => Object.fromEntries(queries.map(query => [query.id, picks.get(query.id)]));
+  const engines = { [CURRENT.name]: record(currentPicks(projects, queries, now)) };
+  const keywords = keywordEvidence(projects, queries, now);
+  for (const engine of manifest.engines.filter(engine => engine.goesForward && engine.model)) {
+    const embedder = await createEmbedder(engine.model);
+    const rows = await prepareModel(projects, queries, embedder, keywords);
+    await embedder.close();
+    engines[engine.name] = record(modelPicks(rows, engine.cutOffs));
+  }
+  const manifestBytes = await readFile(new URL(`../../../${MANIFEST}`, import.meta.url));
+  return { version: 1, dataset: "partner-real-v2-runs", note: "Part of the key. Never shown to reviewers.",
+    engineDate: new Date(now).toISOString(), engineManifestSha256: sha256(manifestBytes), engines };
+}
+
+/**
+ * The pool for each query: every suggestion of every engine run, the seed, and two controls drawn in a salted order
+ * from the projects not already pooled. Packets are cut by domain and grouped by query, each query's projects in
+ * random order; a row shows only the direction, the query and the project. The key joins pair ids back to queries,
+ * projects and where each pair came from.
+ */
+export function buildPool(corpus, queryFile, slotFile, runs, newId = randomUUID) {
+  const byId = new Map(corpus.projects.map(project => [project.id, project]));
+  const slotOf = new Map(slotFile.slots.map(slot => [slot.id, slot]));
+  const packets = Object.fromEntries(DOMAINS.map(domain => [domain, []]));
+  const key = [];
+  for (const query of [...queryFile.queries].sort((a, b) => a.id.localeCompare(b.id))) {
+    const from = new Map();
+    const add = (projectId, source) => {
+      if (!byId.has(projectId)) throw Error(`unknown_project:${query.id}:${projectId}`);
+      from.set(projectId, [...(from.get(projectId) ?? []), source]);
+    };
+    for (const [engine, picks] of Object.entries(runs.engines)) {
+      if (!picks[query.id]) throw Error(`missing_run:${engine}:${query.id}`);
+      for (const pick of picks[query.id]) add(pick.id, engine);
+    }
+    const seed = slotOf.get(query.id)?.seed;
+    if (seed) add(seed, slotOf.get(query.id).kind === "hard-negative" ? "seed-not-fit" : "seed");
+    for (const control of corpus.projects.filter(project => !from.has(project.id)).sort(bySalt("control", query.id)).slice(0, 2))
+      add(control.id, "control");
+    const packet = packets[query.domain];
+    const queryNumber = new Set(packet.map(row => row.queryNumber)).size + 1;
+    const pairs = [...from].map(([projectId, sources]) => ({ pairId: newId(), projectId, sources }))
+      .sort((a, b) => a.pairId.localeCompare(b.pairId));
+    for (const { pairId, projectId, sources } of pairs) {
+      const project = byId.get(projectId);
+      packet.push({ pairId, queryNumber, direction: query.direction, queryTitle: query.title, queryDescription: query.description,
+        projectName: project.name, projectPassages: project.passages, judgment: null, rationale: "", reviewer: "" });
+      key.push({ pairId, queryId: query.id, projectId, from: sources });
+    }
+  }
+  return { packets, key };
+}
+
+/** Calibration: v1 worksheet pairs in a salted order, by the frozen agent labels' verdict. Not scored. */
+export const CALIBRATION = { relevant: 8, irrelevant: 8, unresolved: 4 };
+export function calibrationPairs(v1, quotas = CALIBRATION) {
+  const labelMap = agentLabels(v1.queries, v1.labels, v1.corpus);
+  const verdict = row => { const { pairs, judgedAll } = labelMap.get(row.queryId);
+    return pairs.get(row.projectId) ?? (judgedAll ? "irrelevant" : "unjudged"); };
+  const keyOf = new Map(v1.key.map(row => [row.pairId, row]));
+  const taken = Object.fromEntries(Object.keys(quotas).map(name => [name, 0]));
+  const packet = [], key = [];
+  for (const pair of [...v1.worksheet].sort((a, b) => salted("calibration", a.pairId).localeCompare(salted("calibration", b.pairId)))) {
+    const row = keyOf.get(pair.pairId), label = verdict(row);
+    if (!(label in quotas) || taken[label] >= quotas[label]) continue;
+    taken[label]++;
+    packet.push(pair);
+    key.push({ ...row, agentLabel: label });
+  }
+  return { packet, key };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const [command, ...args] = process.argv.slice(2);
+  const json = async path => JSON.parse(await readFile(path, "utf8"));
+  const write = (path, value) => writeFile(path, typeof value === "string" ? value : JSON.stringify(value, null, 1) + "\n", { flag: "wx" });
+  if (command === "pages") {
+    console.log(JSON.stringify(await savePages(args[0])));
+  } else if (command === "corpus") {
+    const [dir, collectedAt, output] = args;
+    if (!dir || !Number.isFinite(Date.parse(collectedAt)) || !output) throw Error("usage: corpus <pages-dir> <collected-at> <corpus.json>");
+    const files = (await readdir(dir)).filter(name => /^p\d{3}\.json$/u.test(name)).sort();
+    const pages = await Promise.all(files.map(async name => parsePublicProjectPage(await json(join(dir, name)))));
+    const cards = pages.flatMap(page => page.projects);
+    if (new Set(cards.map(card => card.uri)).size !== cards.length || cards.length !== pages[0].index.total) throw Error("incomplete_listing");
+    const v1 = await json(new URL("../evaluation/partner-real-v1-corpus.json", import.meta.url));
+    const corpus = buildCorpus(cards, { collectedAt, index: pages[0].index, v1 });
+    await write(output, corpus);
+    const count = key => Object.fromEntries(Object.entries(Object.groupBy(corpus.projects, key)).map(([k, v]) => [k, v.length]));
+    console.log(JSON.stringify({ listed: cards.length, exclusions: corpus.exclusions, kept: corpus.projects.length,
+      byLanguage: count(p => p.language), byTheme: count(p => p.theme), inV1: corpus.projects.filter(p => p.v1Id).length }));
+  } else if (command === "slots") {
+    const [corpusPath, dir] = args;
+    const corpus = await json(corpusPath);
+    const slotFile = buildSlots(corpus);
+    await write(join(dir, "partner-real-v2-slots.json"), slotFile);
+    for (const [name, text] of Object.entries(briefs(corpus, slotFile))) await write(join(dir, `brief-${name}`), text + "\n");
+    console.log(JSON.stringify({ slots: slotFile.slots.length, seedsReused: slotFile.slots.filter(s => s.seed).length - new Set(slotFile.slots.map(s => s.seed).filter(Boolean)).size }));
+  } else if (command === "assemble") {
+    const [corpusPath, slotsPath, answersDir, outDir] = args;
+    // Files named revisions-*.json hold rewrites; every other .json file holds a writer's first answers.
+    const answers = [], revisions = [];
+    for (const name of (await readdir(answersDir)).filter(name => name.endsWith(".json")).sort())
+      (name.startsWith("revisions-") ? revisions : answers).push(...await json(join(answersDir, name)));
+    const result = assemble(await json(corpusPath), await json(slotsPath), answers, revisions);
+    console.log(JSON.stringify({ problems: result.problems, flags: result.flags, counts: result.counts }, null, 1));
+    if (!result.problems.length) await write(join(outDir, "partner-real-v2-queries.json"), result.queries);
+  } else if (command === "pool") {
+    const [dir] = args;
+    if (!dir) throw Error("usage: pool <private-dir>");
+    const corpus = await json(join(dir, "partner-real-v2-corpus.json")), queryFile = await json(join(dir, "partner-real-v2-queries.json"));
+    const slotFile = await json(join(dir, "partner-real-v2-slots.json"));
+    const runs = await runEngines(corpus, queryFile);
+    await write(join(dir, "partner-real-v2-runs.json"), runs);
+    const jsonl = rows => rows.map(row => JSON.stringify(row)).join("\n") + "\n";
+    const { packets, key } = buildPool(corpus, queryFile, slotFile, runs);
+    for (const [domain, rows] of Object.entries(packets)) await write(join(dir, `partner-real-v2-worksheet-${domain}.jsonl`), jsonl(rows));
+    await write(join(dir, "partner-real-v2-worksheet-key.jsonl"), jsonl(key));
+    const { loadReal } = await import("./matching-real.mjs");
+    const calibration = calibrationPairs(await loadReal());
+    await write(join(dir, "partner-real-v2-calibration.jsonl"), jsonl(calibration.packet));
+    await write(join(dir, "partner-real-v2-calibration-key.jsonl"), jsonl(calibration.key));
+    const bySource = {};
+    for (const row of key) for (const source of row.from) bySource[source] = (bySource[source] ?? 0) + 1;
+    console.log(JSON.stringify({ engineDate: runs.engineDate, engines: Object.keys(runs.engines), pairs: key.length,
+      perQuery: Number((key.length / queryFile.queries.length).toFixed(2)), maxPerQuery: Math.max(...Object.values(Object.groupBy(key, r => r.queryId)).map(l => l.length)),
+      byDomain: Object.fromEntries(Object.entries(packets).map(([d, rows]) => [d, rows.length])), bySource, calibration: calibration.packet.length }));
+  } else if (command === "hashes") {
+    for (const path of args) console.log(`${sha256(await readFile(path))}  ${path.split("/").at(-1)}`);
+  } else {
+    throw Error("usage: pages | corpus | slots | assemble | pool | hashes");
+  }
+}

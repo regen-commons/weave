@@ -631,6 +631,47 @@ the host or in a browser are unmeasured; and the licences of the two converted
 model repositories are unverified. The answer commits to testing. It approves no
 model dependency, hosting or CSP change, as the D32 row says.
 
+Licence check, 21 November 2026: the two converted repositories state no licence,
+while the upstream models are MIT (multilingual-e5-small) and Apache-2.0
+(multilingual MiniLM-L12) and publish their own 8-bit ONNX files. The benchmark
+should use those upstream files, pinned and hashed. The
+[experiment README](../../packages/api/evaluation/experiments/matching-architecture/README.md#licence-check-21-november-2026)
+has the revisions, hashes, shipping obligations and what stays unsettled. It
+approves nothing beyond the answer above.
+
+Holdout plan, 21 November 2026: the
+[`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md)
+sets out the new holdout, the frozen engines, the human review and the decision
+rule, with six questions for the user. The user answered five on 21 November 2026. Its human review replaces the one planned for
+`partner-real-v1`, which stays as development data with its agent labels. Its
+160 queries are 100 in English, 40 in Portuguese and 20 in Spanish, and blind
+agent instances write all of them. The decision rule stands as proposed: seed
+recall no more than 5 points below the current matcher's, and no-match
+suggestions no more than 10 points above its share. The sealed files live on a
+private shared drive until the scored run. Reviewers judge the smaller pool: the
+engines' suggestions, the seed and two controls per query, about 1,100 pairs, which
+the plan puts at 4.5 to 6 hours each.
+Who the two reviewers are is still open.
+
+Engines frozen, 21 November 2026: the user chose to set the model cut-offs on
+`partner-real-v1` by the decision rule's own gates (recall no lower than the
+current matcher's, Portuguese and Spanish recall above it, no-match suggestions at
+most 10 points above its share). Multilingual MiniLM-L12 goes forward, loading
+upstream's own 8-bit file. Multilingual-e5-small does not: no cut-off passed the
+gates. The holdout now compares the current matcher with MiniLM-L12 only, which
+lowers the reviewer estimate to about 750 pairs, 3 to 4 hours each, as a lower
+bound. The
+[engine manifest](../../packages/api/evaluation/partner-real-v2-engines.json)
+freezes the settings, model files and scripts.
+
+Corpus and queries frozen, 21 November 2026: the 979-project corpus and the 160
+queries, written by blind agent instances, are sealed by hash in
+[`partner-real-v2.sha256`](../../packages/api/evaluation/partner-real-v2.sha256).
+The files themselves stay private until the scored run, as the plan says. The pool
+and worksheet followed the same day, also sealed by hash: 1,050 pairs, which puts
+each reviewer at 4.4 to 5.8 hours, within the 4.5 to 6 agreed, so the 750 estimate
+above was low. The packets go to the reviewers once they are named.
+
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
 
@@ -693,6 +734,14 @@ in the [technical spec](05-technical-spec.md#quality-and-performance-proof),
 which already asks for a floor to be agreed from the labelled corpus before
 tuning. No number is set. It is set once two human reviewers have judged the
 `partner-real-v1` worksheet, and nothing is tuned against that set before then.
+
+Changed on 21 November 2026: the user replaced the human review of
+`partner-real-v1` with the one in the
+[`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md).
+The floor is now set in that plan's decision rule, relative to the current
+matcher: a candidate's seed recall may be at most 5 points below the current
+matcher's. The user confirmed it the same day. `partner-real-v1` becomes
+development data, so the D32 model cut-offs may be set on it.
 
 What was known when answering: on `partner-real-v1`, judged by agents, the
 current matcher found 31% of fitting projects and showed nothing for 42 of 135

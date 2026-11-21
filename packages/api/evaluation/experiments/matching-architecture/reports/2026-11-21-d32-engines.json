@@ -1,0 +1,307 @@
+{
+ "reportDate": "2026-11-21",
+ "dataset": "partner-real-v1 (development data)",
+ "labelSource": "agent-judged-provisional",
+ "rule": "On partner-real-v1 with agent labels, full-corpus path: the highest share of relevant suggestions among the top five, among pairs with recall at five no lower than the current matcher's, Portuguese and Spanish recall at five above it, and a share of no-match queries with a suggestion at most 10 points above it. Ties: higher recall, fewer no-match queries with a suggestion, lower semantic threshold, lower veto. Grid: semantic z 0.0 to 6.0, veto z -2.0 to 4.0, steps of 0.1.",
+ "fixtureSha256": {
+  "partner-real-v1-corpus.json": "9aab38ef5b7e7a54f07cae5c4449e9fe2206af8ce1d8f887590fb5db3f3233b8",
+  "partner-real-v1-queries.json": "044bf891400eaefab3477ff2724842aaa3fbae25d7523f9546388bf259549bc3",
+  "partner-real-v1-agent-labels.json": "afa467604bcae219087b3aec9ac1d90e92c9a8187ca2330ffd8e8cf616385c69",
+  "partner-real-v1-worksheet.jsonl": "4af1393c07abae3676bfe9d0e137937ff93475270dfa84b453e70df4a8e1c222",
+  "partner-real-v1-worksheet-key.jsonl": "4544428df4043d35f1a227911a179b82621f084151f74695afd1a5ea450da9b1"
+ },
+ "floor": {
+  "relevantAmongReturnedAt5": 0.3112,
+  "finalRecallAt5": 0.3103,
+  "noMatchFalsePositives": 2,
+  "noMatchShare": 0.25,
+  "recallByLanguage": {
+   "en": 0.3662,
+   "es": 0.2971,
+   "pt": 0.0526
+  }
+ },
+ "current": {
+  "label": "Current matcher (partner-concepts-v2)",
+  "positiveQueries": 135,
+  "noMatchQueries": 8,
+  "unresolvedQueries": 17,
+  "suggestionsAt5": 265,
+  "unresolvedSuggestionsAt5": 24,
+  "relevantSuggestionsAt5": 75,
+  "relevantAmongReturnedAt5": 0.3112,
+  "relevantAmongReturnedAt3": 0.3763,
+  "finalRecallAt5": 0.3103,
+  "positiveQueriesWithARelevantSuggestion": 57,
+  "positiveQueryAbstentions": 42,
+  "noMatchFalsePositives": 2,
+  "decoySuggestions": 6,
+  "byLanguage": {
+   "en": {
+    "positiveQueries": 93,
+    "noMatchQueries": 7,
+    "unresolvedQueries": 11,
+    "suggestionsAt5": 215,
+    "unresolvedSuggestionsAt5": 20,
+    "relevantSuggestionsAt5": 66,
+    "relevantAmongReturnedAt5": 0.3385,
+    "relevantAmongReturnedAt3": 0.4236,
+    "finalRecallAt5": 0.3662,
+    "positiveQueriesWithARelevantSuggestion": 48,
+    "positiveQueryAbstentions": 25,
+    "noMatchFalsePositives": 2,
+    "decoySuggestions": 4
+   },
+   "es": {
+    "positiveQueries": 23,
+    "noMatchQueries": 0,
+    "unresolvedQueries": 4,
+    "suggestionsAt5": 43,
+    "unresolvedSuggestionsAt5": 4,
+    "relevantSuggestionsAt5": 8,
+    "relevantAmongReturnedAt5": 0.2051,
+    "relevantAmongReturnedAt3": 0.2286,
+    "finalRecallAt5": 0.2971,
+    "positiveQueriesWithARelevantSuggestion": 8,
+    "positiveQueryAbstentions": 4,
+    "noMatchFalsePositives": 0,
+    "decoySuggestions": 2
+   },
+   "pt": {
+    "positiveQueries": 19,
+    "noMatchQueries": 1,
+    "unresolvedQueries": 2,
+    "suggestionsAt5": 7,
+    "unresolvedSuggestionsAt5": 0,
+    "relevantSuggestionsAt5": 1,
+    "relevantAmongReturnedAt5": 0.1429,
+    "relevantAmongReturnedAt3": 0.1429,
+    "finalRecallAt5": 0.0526,
+    "positiveQueriesWithARelevantSuggestion": 1,
+    "positiveQueryAbstentions": 13,
+    "noMatchFalsePositives": 0,
+    "decoySuggestions": 0
+   }
+  }
+ },
+ "models": {
+  "mminilm-l12-upstream": {
+   "engine": "mminilm-l12-keywords-with-veto",
+   "label": "multilingual MiniLM-L12, keywords with veto",
+   "model": {
+    "id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+    "modelFileName": "model_qint8_avx512",
+    "licence": "Apache-2.0",
+    "queryPrefix": "",
+    "passagePrefix": "",
+    "pooling": "mean, then unit length",
+    "files": {
+     "config.json": "6300193cb75e01cf80c96decef7187dfb33094d97cc1490b7ead6ff134476e4e",
+     "special_tokens_map.json": "378eb3bf733eb16e65792d7e3fda5b8a4631387ca04d2015199c4d4f22ae554d",
+     "tokenizer.json": "2c3387be76557bd40970cec13153b3bbf80407865484b209e655e5e4729076b8",
+     "tokenizer_config.json": "5036ea374ffedd706e3bef33e2e0d6953cb868ef8a490e76e32ba0faa37a6b9b",
+     "onnx/model_qint8_avx512.onnx": "783fea82d71a58179b830a4dbd2d58447e640609e98eedf9ffa12622d375a672"
+    }
+   },
+   "timing": {
+    "loadMs": 1208,
+    "texts": 401,
+    "meanEmbedMs": 11.9,
+    "downloadBytes": 127495326,
+    "node": "v24.20.0",
+    "measuredOn": "2026-11-21"
+   },
+   "cutOffs": {
+    "semanticAtOrAboveZ": 3.5,
+    "vetoBelowZ": 1.8
+   },
+   "goesForward": true,
+   "pairsTried": 3721,
+   "pairsPassingGates": 80,
+   "v1AtCutOffs": {
+    "positiveQueries": 135,
+    "noMatchQueries": 8,
+    "unresolvedQueries": 17,
+    "suggestionsAt5": 121,
+    "unresolvedSuggestionsAt5": 11,
+    "relevantSuggestionsAt5": 76,
+    "relevantAmongReturnedAt5": 0.6909,
+    "relevantAmongReturnedAt3": 0.6827,
+    "finalRecallAt5": 0.3434,
+    "positiveQueriesWithARelevantSuggestion": 58,
+    "positiveQueryAbstentions": 62,
+    "noMatchFalsePositives": 2,
+    "decoySuggestions": 4,
+    "byLanguage": {
+     "en": {
+      "positiveQueries": 93,
+      "noMatchQueries": 7,
+      "unresolvedQueries": 11,
+      "suggestionsAt5": 101,
+      "unresolvedSuggestionsAt5": 10,
+      "relevantSuggestionsAt5": 62,
+      "relevantAmongReturnedAt5": 0.6813,
+      "relevantAmongReturnedAt3": 0.6706,
+      "finalRecallAt5": 0.3837,
+      "positiveQueriesWithARelevantSuggestion": 45,
+      "positiveQueryAbstentions": 36,
+      "noMatchFalsePositives": 2,
+      "decoySuggestions": 3
+     },
+     "es": {
+      "positiveQueries": 23,
+      "noMatchQueries": 0,
+      "unresolvedQueries": 4,
+      "suggestionsAt5": 14,
+      "unresolvedSuggestionsAt5": 1,
+      "relevantSuggestionsAt5": 9,
+      "relevantAmongReturnedAt5": 0.6923,
+      "relevantAmongReturnedAt3": 0.6923,
+      "finalRecallAt5": 0.3406,
+      "positiveQueriesWithARelevantSuggestion": 9,
+      "positiveQueryAbstentions": 12,
+      "noMatchFalsePositives": 0,
+      "decoySuggestions": 1
+     },
+     "pt": {
+      "positiveQueries": 19,
+      "noMatchQueries": 1,
+      "unresolvedQueries": 2,
+      "suggestionsAt5": 6,
+      "unresolvedSuggestionsAt5": 0,
+      "relevantSuggestionsAt5": 5,
+      "relevantAmongReturnedAt5": 0.8333,
+      "relevantAmongReturnedAt3": 0.8333,
+      "finalRecallAt5": 0.1491,
+      "positiveQueriesWithARelevantSuggestion": 4,
+      "positiveQueryAbstentions": 14,
+      "noMatchFalsePositives": 0,
+      "decoySuggestions": 0
+     }
+    }
+   },
+   "v2DevelopmentAtCutOffs": {
+    "queries": 88,
+    "positiveQueries": 80,
+    "suggestionsAt5": 156,
+    "relevantSuggestionsAt5": 152,
+    "relevantAmongReturnedAt5": 0.9744,
+    "finalRecallAt5": 0.95,
+    "positiveQueriesWithNoSuggestion": 0,
+    "noMatchQueries": 8,
+    "noMatchQueriesWithSuggestion": 0
+   },
+   "firstVersionOfTheRule": {
+    "cutOffs": {
+     "semanticAtOrAboveZ": 3.4,
+     "vetoBelowZ": 2.3
+    },
+    "v1": {
+     "relevantAmongReturnedAt5": 0.8,
+     "finalRecallAt5": 0.3139,
+     "noMatchFalsePositives": 2,
+     "noMatchShare": 0.25,
+     "recallByLanguage": {
+      "en": 0.3571,
+      "es": 0.2754,
+      "pt": 0.1491
+     }
+    }
+   },
+   "nineteenNovemberRuleOnV2Development": {
+    "cutOffs": {
+     "semanticAtOrAboveZ": 2.8,
+     "vetoBelowZ": 2.01
+    },
+    "v1": {
+     "positiveQueries": 135,
+     "noMatchQueries": 8,
+     "unresolvedQueries": 17,
+     "suggestionsAt5": 157,
+     "unresolvedSuggestionsAt5": 15,
+     "relevantSuggestionsAt5": 86,
+     "relevantAmongReturnedAt5": 0.6056,
+     "relevantAmongReturnedAt3": 0.5956,
+     "finalRecallAt5": 0.385,
+     "positiveQueriesWithARelevantSuggestion": 67,
+     "positiveQueryAbstentions": 37,
+     "noMatchFalsePositives": 4,
+     "decoySuggestions": 12
+    }
+   }
+  },
+  "me5-small-upstream": {
+   "engine": "me5-small-keywords-with-veto",
+   "label": "multilingual-e5-small, keywords with veto",
+   "model": {
+    "id": "intfloat/multilingual-e5-small",
+    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "modelFileName": "model_qint8_avx512_vnni",
+    "licence": "MIT",
+    "queryPrefix": "query: ",
+    "passagePrefix": "passage: ",
+    "pooling": "mean, then unit length",
+    "files": {
+     "config.json": "69137736cab8b8903a07fe8afaafdda25aac55415a12a55d1bffa9f581abf959",
+     "special_tokens_map.json": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+     "tokenizer.json": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+     "tokenizer_config.json": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+     "onnx/model_qint8_avx512_vnni.onnx": "dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88"
+    }
+   },
+   "timing": {
+    "loadMs": 999,
+    "texts": 401,
+    "meanEmbedMs": 12.2,
+    "downloadBytes": 135430819,
+    "node": "v24.20.0",
+    "measuredOn": "2026-11-21"
+   },
+   "cutOffs": null,
+   "goesForward": false,
+   "pairsTried": 3721,
+   "pairsPassingGates": 0,
+   "v1AtCutOffs": null,
+   "v2DevelopmentAtCutOffs": null,
+   "firstVersionOfTheRule": {
+    "cutOffs": {
+     "semanticAtOrAboveZ": 3.3,
+     "vetoBelowZ": 1.3
+    },
+    "v1": {
+     "relevantAmongReturnedAt5": 0.5474,
+     "finalRecallAt5": 0.3163,
+     "noMatchFalsePositives": 2,
+     "noMatchShare": 0.25,
+     "recallByLanguage": {
+      "en": 0.375,
+      "es": 0.2971,
+      "pt": 0.0526
+     }
+    }
+   },
+   "nineteenNovemberRuleOnV2Development": {
+    "cutOffs": {
+     "semanticAtOrAboveZ": 2.2,
+     "vetoBelowZ": 1.74
+    },
+    "v1": {
+     "positiveQueries": 135,
+     "noMatchQueries": 8,
+     "unresolvedQueries": 17,
+     "suggestionsAt5": 351,
+     "unresolvedSuggestionsAt5": 23,
+     "relevantSuggestionsAt5": 85,
+     "relevantAmongReturnedAt5": 0.2591,
+     "relevantAmongReturnedAt3": 0.2587,
+     "finalRecallAt5": 0.3669,
+     "positiveQueriesWithARelevantSuggestion": 67,
+     "positiveQueryAbstentions": 5,
+     "noMatchFalsePositives": 8,
+     "decoySuggestions": 13
+    }
+   }
+  }
+ }
+}
