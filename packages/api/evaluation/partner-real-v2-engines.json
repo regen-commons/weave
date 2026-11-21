@@ -1,0 +1,76 @@
+{
+ "name": "partner-real-v2 engines",
+ "status": "Frozen before any partner-real-v2 query was written. The v2 runner scores only with these engines and refuses to score if any hash differs.",
+ "frozenOn": "2026-11-21",
+ "plan": "packages/api/evaluation/partner-real-v2-plan.md",
+ "engines": [
+  {
+   "name": "current",
+   "label": "Current matcher (partner-concepts-v2)",
+   "goesForward": true,
+   "engineVersion": "partner-concepts-v2",
+   "conceptVersion": "partner-concepts-en-v1"
+  },
+  {
+   "name": "mminilm-l12-keywords-with-veto",
+   "label": "multilingual MiniLM-L12, keywords with veto",
+   "goesForward": true,
+   "model": "mminilm-l12-upstream",
+   "cutOffs": {
+    "semanticAtOrAboveZ": 3.5,
+    "vetoBelowZ": 1.8
+   }
+  },
+  {
+   "name": "me5-small-keywords-with-veto",
+   "label": "multilingual-e5-small, keywords with veto",
+   "goesForward": false,
+   "model": "me5-small-upstream",
+   "reason": "No pair of cut-offs on the grid passed the gates on development data."
+  }
+ ],
+ "cutOffRule": "On partner-real-v1 with agent labels, full-corpus path: the highest share of relevant suggestions among the top five, among pairs with recall at five no lower than the current matcher's, Portuguese and Spanish recall at five above it, and a share of no-match queries with a suggestion at most 10 points above it. Ties: higher recall, fewer no-match queries with a suggestion, lower semantic threshold, lower veto. Grid: semantic z 0.0 to 6.0, veto z -2.0 to 4.0, steps of 0.1.",
+ "settings": {
+  "window": 5,
+  "keywordEvidenceLimit": 10,
+  "keywordEvidenceDate": "the date the partner-real-v2 corpus is frozen, as matching-real.mjs uses partner-real-v1's",
+  "candidates": "one per project; its passages joined as clauses through retrieval-eval.mjs assertedText; the name is not used",
+  "queryText": "title, then description, joined as retrieval-real.mjs realDataset joins them, with each model's prefix",
+  "ordering": "retrieval-eval.mjs suggest, engine hybrid, relative (z-score) threshold, keyword veto"
+ },
+ "models": {
+  "mminilm-l12-upstream": {
+   "id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+   "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+   "modelFileName": "model_qint8_avx512",
+   "licence": "Apache-2.0",
+   "queryPrefix": "",
+   "passagePrefix": "",
+   "pooling": "mean, then unit length",
+   "files": {
+    "config.json": "6300193cb75e01cf80c96decef7187dfb33094d97cc1490b7ead6ff134476e4e",
+    "special_tokens_map.json": "378eb3bf733eb16e65792d7e3fda5b8a4631387ca04d2015199c4d4f22ae554d",
+    "tokenizer.json": "2c3387be76557bd40970cec13153b3bbf80407865484b209e655e5e4729076b8",
+    "tokenizer_config.json": "5036ea374ffedd706e3bef33e2e0d6953cb868ef8a490e76e32ba0faa37a6b9b",
+    "onnx/model_qint8_avx512.onnx": "783fea82d71a58179b830a4dbd2d58447e640609e98eedf9ffa12622d375a672"
+   }
+  }
+ },
+ "code": {
+  "packages/api/evaluation/experiments/matching-architecture/d32-engines.mjs": "36f9582354d1278be59f49b68a16329c13a3f33202fda1018b9cec7a9f7e1d21",
+  "packages/api/evaluation/experiments/matching-architecture/models.mjs": "5611ad8d2da47954643d060425978c7924b77d6b418063d0f23c8f32048b545b",
+  "packages/api/evaluation/experiments/matching-architecture/retrieval-eval.mjs": "8cc314aee146e2a8f35aa66c77ea5b22eebe893fd7aaf7b43e2932e998fabdf5",
+  "packages/api/evaluation/experiments/matching-architecture/retrieval-real.mjs": "953ddb1a505dd11827cb77c168808d19ca86545b4ffc3dbd3607fcc630f35f79",
+  "packages/api/src/partner-matcher.ts": "e605a28a356eef3f6b750f80843b0816c2b4aab2c26a2880107c972571d9ac21",
+  "packages/api/src/partner-concepts.ts": "b2cac435c82d825b3d5cef7e9ef8fbabff864329a5a0f384e32c69cc31db515c",
+  "packages/api/scripts/matching-real.mjs": "ad1b68aa1dd45d7301542dc32cd49e24758e2e7e3cc9831fbe3b8b6a41e3fb1f",
+  "packages/api/scripts/matching-v3.mjs": "9125cbd382269894f1fed04a4136ddd41c3b4c23fa720c18c151ee4183cdd605",
+  "dist/semantic-config.mjs": "abae8ee01e0ca2e5ef537d2add97c5da374abc5b11dd92c9fd07db32e53af9d3"
+ },
+ "runtime": {
+  "@huggingface/transformers": "4.2.0",
+  "onnxruntime-node": "1.24.3",
+  "bun.lock": "611672503c4632e61f715d79c19403238177f7fb69a75e965be8fcc48fd09338",
+  "node": "v24"
+ }
+}
