@@ -241,9 +241,9 @@ test("a stored value the app would refuse is left out of its card, so one bad ro
 });
 
 test("the list reads newest first, oldest first or by name, and every order pages without gaps or repeats", async () => {
-  const names = ["école verte", "Orchard 10", "Orchard 9", "acequia keepers", "Bee Commons", "Ecole Verte"];
+  const names = ["école verte", "Orchard 10", "Orchard 9", "acequia keepers", "Bee Commons", "Ecole Verte", "“Forest Friends”"];
   const cards = names.map((name, n) => ({ ...card(n + 1), name, organizationTypes: [], text: "",
-    sharedAt: `2026-10-0${[3, 1, 6, 2, 5, 4][n]}T12:00:00.000000Z` }));
+    sharedAt: `2026-10-0${[3, 1, 6, 2, 5, 4, 7][n]}T12:00:00.000000Z` }));
   const handler = createPublicProjectsHandler({ reader: async () => ({
     load: async () => ({ cards, checkpoint: null }), close: async () => undefined,
   }) });
@@ -260,10 +260,11 @@ test("the list reads newest first, oldest first or by name, and every order page
     }
     throw Error("too_many_pages");
   };
-  assert.deepEqual(await pages(""), ["Orchard 9", "Bee Commons", "Ecole Verte", "école verte", "acequia keepers", "Orchard 10"]);
-  assert.deepEqual(await pages("oldest"), ["Orchard 10", "acequia keepers", "école verte", "Ecole Verte", "Bee Commons", "Orchard 9"]);
-  // Case and accents aside, numbers by value, and a tie keeps one fixed order by address.
-  assert.deepEqual(await pages("name"), ["acequia keepers", "Bee Commons", "école verte", "Ecole Verte", "Orchard 9", "Orchard 10"]);
+  assert.deepEqual(await pages(""), ["“Forest Friends”", "Orchard 9", "Bee Commons", "Ecole Verte", "école verte", "acequia keepers", "Orchard 10"]);
+  assert.deepEqual(await pages("oldest"), ["Orchard 10", "acequia keepers", "école verte", "Ecole Verte", "Bee Commons", "Orchard 9", "“Forest Friends”"]);
+  // Case, accents and quotation marks aside, numbers by value, and a tie keeps one fixed order by address.
+  assert.deepEqual(await pages("name"),
+    ["acequia keepers", "Bee Commons", "école verte", "Ecole Verte", "“Forest Friends”", "Orchard 9", "Orchard 10"]);
   // A search keeps the order it was asked for.
   const response = await handler(new Request(url("?q=orchard&sort=name")));
   assert.deepEqual(parsePublicProjectPage(await response.json()).projects.map(({ name }) => name), ["Orchard 9", "Orchard 10"]);

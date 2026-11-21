@@ -44,8 +44,11 @@ type Prepared = {
 /** A card's place in an order: what the cursor records for it. */
 const placeIn = (sort: PublicProjectSort, card: Pick<PublicProjectCard, "name" | "sharedAt" | "uri">): PublicProjectCursor =>
   ({ key: sort === "name" ? card.name : card.sharedAt, uri: card.uri });
-/** Names compare as people read them: case and accents aside, numbers by value. */
-const names = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+/**
+ * Names compare as people read them: case, accents and punctuation aside, numbers by value. Publishers put
+ * titles in quotation marks, and "“Forest Friends”" belongs under F, not before every letter.
+ */
+const names = new Intl.Collator("en", { sensitivity: "base", numeric: true, ignorePunctuation: true });
 const byAddress = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 /**
  * The order of two places in a sort: newest first, oldest first or name A to Z. Ties keep a fixed order by
