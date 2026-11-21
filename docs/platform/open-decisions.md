@@ -672,6 +672,11 @@ and worksheet followed the same day, also sealed by hash: 1,050 pairs, which put
 each reviewer at 4.4 to 5.8 hours, within the 4.5 to 6 agreed, so the 750 estimate
 above was low. The packets go to the reviewers once they are named.
 
+Hard gate for the model, 21 November 2026: the user decided that rule 1 of the
+decision rule checks MiniLM-L12's suggestions for provenance only, since the
+frozen engine produces no explanation. An explanation for model suggestions has to
+be designed before any model ships.
+
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
 

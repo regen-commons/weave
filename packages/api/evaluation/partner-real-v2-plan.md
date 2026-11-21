@@ -201,9 +201,10 @@ and are reported beside them, with raw agreement and Cohen's kappa.
 - The holdout files are not committed until the scored run. Before reviewers
   start, a manifest of SHA-256 hashes is committed: corpus, queries, worksheet,
   key, engine settings, model files and scoring script. The runner refuses to score
-  if any file differs. The hashes of the corpus, the queries and the slots (part
-  of the key) were committed on 21 November 2026, in `partner-real-v2.sha256`;
-  the engine manifest is `partner-real-v2-engines.json`.
+  if any file differs. On 21 November 2026, `partner-real-v2.sha256` came to hold
+  the corpus, the queries, the slots (part of the key), the engine runs, the four
+  packets, the key, the calibration files and the scoring script. The engine
+  manifest is `partner-real-v2-engines.json`.
 - Until then the files live on a private shared drive, as the user decided on
   21 November 2026. The key never goes to reviewers.
 - Query writers never see an engine. Whoever builds the engines never sees the
@@ -231,6 +232,27 @@ v1 or new project. Intervals come from a bootstrap over queries, paired against 
 current matcher. v1's intervals treated suggestions as independent and came out too
 narrow.
 
+The scoring script is
+[`scripts/partner-real-v2-score.mjs`](../scripts/partner-real-v2-score.mjs),
+written and sealed on 21 November 2026, before any reviewer started. It works like
+this:
+
+- **Seal.** It refuses to score if any sealed file, the engine manifest or the
+  script itself differs from the seal.
+- **Labels.** It needs both reviewers' judgment of every pair, and a recorded
+  settlement for every disagreement, by a third person or a joint discussion.
+- **Agreement.** It reports raw agreement and Cohen's kappa from before the
+  settlement.
+- **Seed recall.** It counts a seeded query only when the reviewers judged its
+  seed a fit.
+- **Hard gate.** It reruns the current matcher and refuses if the result differs
+  from the sealed run, then checks the matcher's explanations. MiniLM-L12's
+  suggestions get the provenance check.
+- **Decision.** It applies rules 1 to 5 below. Rule 6 comes from the host
+  measurement.
+
+It writes its report once and will not overwrite it.
+
 ### Decision rule
 
 The user confirmed these on 21 November 2026, margins and relative floor
@@ -253,12 +275,13 @@ Only MiniLM-L12 went forward, so it is the one candidate. The spec's 80% target 
 reported for each domain and direction but not used to choose, since the current
 matcher misses it too.
 
-Rule 1 is not yet fully checkable for MiniLM-L12. The frozen engine returns each
-project with the kind of evidence that let it in, not the explanation the app
-would show, so the scoring runner can check provenance but not explanation
-wording. Reviewers judge relevance only, as for v1, so this does not change the
-pool or the worksheet. How the scoring runner judges explanations has to be
-settled before the scored run.
+Rule 1 for MiniLM-L12 checks provenance only, as the user decided on 21 November
+2026. The frozen engine returns each project with the kind of evidence that let it
+in, not the explanation the app would show. So the scoring runner checks that
+every MiniLM-L12 suggestion traces to a passage of a public project in the frozen
+corpus, with that passage's source fields, and that none is marked confirmed. It
+reports that the engine has no explanation. Designing one is a condition before
+any model ships. The current matcher keeps the full check, explanations included.
 
 ## Host measurement
 
