@@ -541,6 +541,8 @@ The card had two clocks, one on the deadline and one on "Sources checked". The s
 
 Days are counted to the end of the closing day in UTC, as the Closing filter counts them, so a card and the filter agree on what "within 30 days" holds.
 
+**One closing moment, 21 November 2026.** The Funding QA found a card reading "Open call" beside "Ended 20 Nov 2026" at 23:15 Pacific time, and the rubric still scoring the call as open. The access sign and the score came from `effectiveAccess` in `dist/domain.mjs`, which judged a source date by the viewer's own calendar, while the tag counted in UTC. UTC stays the rule, because the catalog importer and the rubric's own date already use it: `effectiveAccess` now compares a source date, and an opening date, with the UTC date. A call with an exact closing moment counts its days to that moment's UTC day, so a call that closes at 23:59 Pacific reads "Closes today" until then and not "Ended". The access sign, the tag, the Closing filter, Home's previews and the score now change at the same moment in every time zone.
+
 ## DL-104: A list's skeleton holds the loaded page's exact room
 
 **Status:** user decision from manual QA, 18 November 2026. Extends DL-081 and DL-085. A loading list drew skeletons, and the page still moved when the list arrived. At 375 px on Funding the grid started at 503 px while loading and 716 px loaded, and a skeleton card was 176 px tall against about 290. Four things did not match, and each now takes its size from the same rules the loaded page uses.
