@@ -111,13 +111,14 @@ five), the seed project and two seeded random controls. In the v1 runs, those
 thresholded engines' suggestions came to 4.5 projects per query on average (at most
 10) over 140 projects. Adding each model's top five with no threshold raised that to
 9.6. With 979 projects the engines overlap less, so treat the estimates below as
-lower bounds.
+lower bounds. On 21 November 2026 the user chose the smaller pool: suggestions
+only, with no unthresholded top five.
 
 The worksheet groups pairs by query, so a reviewer reads each need or offer once,
 and shuffles the projects within it. It shows no engine, seed or label. Packets
 are cut by domain.
 
-| | Suggestions only (recommended) | Also each model's top five, unthresholded |
+| | Suggestions only (chosen) | Also each model's top five, unthresholded |
 |---|---|---|
 | Pairs per query | about 7 | about 12 |
 | Pairs for 160 queries | about 1,100 | about 1,900 |
@@ -222,8 +223,10 @@ site are not touched.
 
 ## Questions for the owner
 
-1. Who are the two reviewers, and can each give about 5 to 6 hours, or 8 to 10.5
-   for the larger pool?
+1. Who are the two reviewers, and can each give about 4.5 to 6 hours, or 8 to 10.5
+   for the larger pool? **Partly answered on 21 November 2026: the suggestions-only
+   pool, about 4.5 to 6 hours each.** Who the reviewers are is still open, and
+   their names stay out of this repository.
 2. Should this review replace the human review of `partner-real-v1`? **Answered
    on 21 November 2026: yes.** v1 serves as development data with its agent
    labels, and its worksheet does not go to reviewers. Its human review would

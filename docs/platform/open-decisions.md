@@ -649,8 +649,10 @@ five on 21 November 2026. Its human review replaces the one planned for
 agent instances write all of them. The decision rule stands as proposed: seed
 recall no more than 5 points below the current matcher's, and no-match
 suggestions no more than 10 points above its share. The sealed files live on a
-private shared drive until the scored run. Who the two reviewers are is still
-open.
+private shared drive until the scored run. Reviewers judge the smaller pool: the
+engines' suggestions, the seed and two controls per query, about 1,100 pairs, which
+the plan puts at 4.5 to 6 hours each.
+Who the two reviewers are is still open.
 
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
