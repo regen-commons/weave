@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "checkedOn": "2026-10-29",
+  "site": "https://funding-commons.vercel.app/",
+  "assessedCommit": "e0d199f93d3ca6e8f3a67ebdcbc11e3ec6639dbc",
+  "scope": "Historical public production snapshot:593 funders. New imports or later scoring changes need a fresh QA pass.",
+  "fundingPreferences": [
+    "grant",
+    "prize"
+  ],
+  "projects": [
+    {
+      "name": "Omo Yoruba of Southern California",
+      "leadCount": 1,
+      "topMatches": [
+        {
+          "fund": "Mellon Foundation",
+          "fit": 65,
+          "readiness": "Readiness: Inquiry first; proposal may need an invitation"
+        }
+      ],
+      "all593Visible": true,
+      "comparisonVerified": true
+    },
+    {
+      "name": "Green Goods",
+      "leadCount": 1,
+      "topMatches": [
+        {
+          "fund": "MIT Solve",
+          "fit": 70,
+          "readiness": "Readiness: Confirm 2 requirements"
+        }
+      ],
+      "all593Visible": true,
+      "comparisonVerified": true
+    },
+    {
+      "name": "Tech and Sun",
+      "leadCount": 0,
+      "topMatches": [
+        {
+          "fund": "African Climate Foundation (ACF)",
+          "fit": 80,
+          "readiness": "Readiness: Invitation or partner route"
+        },
+        {
+          "fund": "Shell Foundation",
+          "fit": 80,
+          "readiness": "Readiness: Confirm funding type"
+        }
+      ],
+      "all593Visible": true,
+      "comparisonVerified": true
+    },
+    {
+      "name": "EcoRestoration Alliance",
+      "leadCount": 1,
+      "topMatches": [
+        {
+          "fund": "MIT Solve",
+          "fit": 85,
+          "readiness": "Readiness: Confirm 2 requirements"
+        }
+      ],
+      "all593Visible": true,
+      "comparisonVerified": true
+    }
+  ],
+  "checks": {
+    "records": {
+      "count": 593,
+      "uniqueIds": 593
+    },
+    "localAI": "Actual on-device inference for all four profiles; stopping AI restored keyword matching.",
+    "favorites": "Two funds per test project; add/remove/re-add and persistence after reload passed.",
+    "comparison": "Two-fund tables for all four projects and a four-fund table passed; a fifth selection kept four and showed the limit notice.",
+    "geography": "California beneficiaries conflict with Fry Chicago-only rules. Nigeria hubs receive a US-transmission scope warning for Connected Grid.",
+    "fundingTypes": "Acumen retained66 thematic fit when the investment preference changed. Readiness changed between Outside funding preferences and Confirm1 requirement; the preference was restored.",
+    "prerequisites": "A synthetic failed MIT Solve prerequisite removed ERA from leads while preserving85 thematic fit. The answer was restored to Not confirmed.",
+    "applicationAccess": "Mellon was absent from Open or rolling and present under Inquiry routes only. Internet Society Research showed its closed2026 cycle.",
+    "pagination": {
+      "before": 24,
+      "after": 48
+    },
+    "appConsoleErrorsObserved": 0,
+    "automatedTests": {
+      "command": "node --test tests/*.test.mjs",
+      "passed": 91,
+      "failed": 0
+    },
+    "csv": {
+      "ui": "All four exports reported two saved funds; a filtered shortlist still exported the full two-fund list.",
+      "contentProbe": {
+        "projects": 4,
+        "rowsPerProject": 2,
+        "columns": 40,
+        "passed": [
+          "correct source IDs",
+          "sources and score/readiness fields",
+          "Unicode",
+          "commas and quotes",
+          "multiline notes",
+          "spreadsheet formula neutralization"
+        ]
+      },
+      "method": "Exact published export modules executed with reconstructed QA state and keyword matches. These probes are not captured browser downloads.",
+      "browserToDisk": "Unverified: the browser download event timed out and no saved file was captured."
+    }
+  },
+  "findings": [
+    {
+      "priority": "P2",
+      "title": "Unverified funding offers remain too high in secondary matches",
+      "observed": "Tech and Sun check group ranks Volta Capital #4 at65 despite an overview-only record, Mexican energy-investment focus and no verified philanthropic grant offer.",
+      "impact": "Research time can be spent on an organization without an applicable verified funding program. It is not shown as a lead, which limits the harm.",
+      "recommendation": "Place overview-only records without a verified funding offer behind verified programs in a separate research/resource tier. Retain the record and thematic score; do not invent grant terms or an exhaustive geographic exclusion.",
+      "source": "https://volta.capital/"
+    },
+    {
+      "priority": "P2",
+      "title": "Mandatory applicant and beneficiary conditions need structured coverage",
+      "observed": "Verizon is #3 at65 in Tech and Sun secondary matches with Invitation or partner route. Its official rules require an eligible IRS public charity or eligible NCES-registered school; education grants target K–12. Tech and Sun is described as an NGO serving university students/builders, with registration unconfirmed.",
+      "impact": "Invitation status alone is not the main suitability question. Details contain some rules, but the readiness badge does not establish the required applicant or target population.",
+      "recommendation": "Add explicit self-reported public-charity/school and program-specific beneficiary checks. Keep unconfirmed facts unknown; Nigeria work alone is not a country exclusion.",
+      "source": "https://www.verizon.com/about/responsibility/grant-requirements"
+    },
+    {
+      "priority": "P3",
+      "title": "Failed-prerequisite copy uses an ambiguous score label",
+      "observed": "ERA MIT Solve displays85/100 thematic fit alongside Known prerequisite conflict: score held at zero. The zero is research priority, not thematic fit.",
+      "recommendation": "Replace score held at zero with Research priority is0; thematic fit is unchanged."
+    },
+    {
+      "priority": "coverage",
+      "title": "Actionable grant leads are thin",
+      "observed": "Omo Yoruba, Green Goods and ERA have one lead each; Tech and Sun has zero with grant/prize preferences. Relationship-only partners and speculative funding types dominate the secondary list.",
+      "recommendation": "Prioritize new officially documented California culture, open-source public goods, Nigeria community-energy/connectivity and ecosystem-restoration calls."
+    }
+  ],
+  "officialSpotChecks": [
+    {
+      "fund": "Mellon Humanities in Place",
+      "url": "https://www.mellon.org/grant-programs/humanities-in-place",
+      "verified": "Cultural heritage/public-benefit focus; rolling inquiry; most proposals by invitation. No grant range inferred."
+    },
+    {
+      "fund": "MIT Solve 2027 Global Climate Challenge",
+      "url": "https://solve.mit.edu/challenges/2027-global-climate-challenge",
+      "verified": "Open November6,2026 noon EST/17:00 UTC deadline; innovative human-centered technology; functioning prototype or later for this challenge."
+    },
+    {
+      "fund": "African Climate Foundation",
+      "url": "https://africanclimatefoundation.org/contact-us/",
+      "verified": "No unsolicited grant proposals; own programme selection."
+    },
+    {
+      "fund": "African Climate Foundation Energy",
+      "url": "https://africanclimatefoundation.org/programmes/energy-access-and-transitions/",
+      "verified": "Distributed clean energy, institutions, policy and productive use align thematically with Nigeria hubs but do not confirm an open local-hub grant."
+    },
+    {
+      "fund": "Shell Foundation",
+      "url": "https://shellfoundation.org/partner-with-us/",
+      "verified": "Clean-energy/income/scale focus for underserved customers; introduction form; instrument and applicant fit require confirmation."
+    },
+    {
+      "fund": "Verizon Foundation",
+      "url": "https://www.verizon.com/about/responsibility/grant-requirements",
+      "verified": "Invitation only; public-charity/school requirements and K–12 education focus."
+    },
+    {
+      "fund": "Volta Capital",
+      "url": "https://volta.capital/",
+      "verified": "Mexican energy solutions/investment business; no verified NGO grant offer."
+    },
+    {
+      "fund": "Internet Society Research",
+      "url": "https://www.isocfoundation.org/grant-programme/research-grant-programme/",
+      "verified": "ClosedMay22,2026; research applicants, institutional500k and independent200k ceilings are distinct."
+    }
+  ],
+  "publishedFileHashes": [
+    {
+      "file": "domain.mjs",
+      "bytes": 11269,
+      "sha256": "1917e0b2d135a397eeb7d0b677f7b61c3f0b20f2af5326bb432f573364dc4f4d"
+    },
+    {
+      "file": "storage.mjs",
+      "bytes": 11243,
+      "sha256": "51da26663b4c9f5d03e613f436742f1b04f4d1b1d5e4c027db8a81c2f839def3"
+    },
+    {
+      "file": "matching.mjs",
+      "bytes": 28823,
+      "sha256": "3ad95d9fc64b0ccbcb4745bd1349369f1d0672844b9bd8dd7b304f2ae6024f9d"
+    },
+    {
+      "file": "data/funders.json",
+      "bytes": 3089211,
+      "sha256": "78eb74e7447b5239c70cd19574caef986cc937e9ddcb00932831be461170672c"
+    },
+    {
+      "file": "data/eligibility-rules.json",
+      "bytes": 77283,
+      "sha256": "20b1bab8b44343339fab8bf20898bf2f51eda23fa0ad8a7624b9816cf7301ac6"
+    },
+    {
+      "file": "data/program-conditions.json",
+      "bytes": 25924,
+      "sha256": "1e8ada4fdac70941a68bea9f4cbe5df715b5d0ba7881a922e1aee1b8ba8dfbca"
+    },
+    {
+      "file": "index.html",
+      "bytes": 24635,
+      "sha256": "d06a4133da26ad183012df6c994f5e7fe889b2cf83030efd5514755cb930b045"
+    }
+  ],
+  "limits": [
+    "Four-profile qualitative review; no directory-wide precision/recall estimate or funding probability calibration.",
+    "Applicant legal status, fiscal sponsor, geography and program prerequisites remain unknown where not supplied.",
+    "Desktop Brave verified. The requested390px override did not change the actual1460px viewport; mobile was not verified.",
+    "No complete network trace was captured. Published CSP restricts inference connections to the same origin.",
+    "Private browser state, project profile inputs, raw logs and machine-specific evidence paths are excluded.",
+    "Findings are recorded for follow-up; this report does not implement fixes."
+  ]
+}
