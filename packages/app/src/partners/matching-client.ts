@@ -3,7 +3,8 @@ import {
   type PublicEvidenceSnapshot, type MatchingLeadUpdate, type MatchingEntryRef, type MatchingEntryState,
   type MatchingLead, type MatchingSearch as SearchResponse, type MatchingState as AccountMatchingState,
 } from "@weave/api/matching-contract";
-import { accountRequest, AccountFailure } from "../account/client.ts";
+import { accountRequest, AccountFailure, type AccountState } from "../account/client.ts";
+import { withConfirmedSession } from "../account/session-end.ts";
 import { SuggestionSchema } from "../describe/contracts.ts";
 import { AskSchema } from "../intake/contracts.ts";
 import { z } from "../validation.ts";
@@ -59,6 +60,15 @@ const responses = {
   leads: parseMatchingLeads,
   set_lead: parseMatchingLeads,
 };
+
+/**
+ * `matchingRequest` for a hook that stays on screen while the session renews: a refusal for want of a
+ * session is confirmed through `/api/account` before it reads as an ended session (session-end.ts).
+ */
+export function confirmedMatchingRequest(confirm: () => Promise<AccountState>, owner: string) {
+  return <Action extends keyof Commands>(initiativeId: string, action: Action, input: Commands[Action], signal: AbortSignal) =>
+    withConfirmedSession(() => matchingRequest(initiativeId, action, input, signal), confirm, owner);
+}
 
 export async function matchingRequest<Action extends keyof Commands>(
   initiativeId: string,

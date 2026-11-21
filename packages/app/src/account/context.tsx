@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { type AccountState } from "./client.ts";
 import { AccountSession } from "./session.ts";
+import type { SessionEnding } from "./session-end.ts";
 import { browserSessionEvents } from "./session-events.ts";
 import { checkSavedPresence, type SavedPresence } from "./saved-presence.ts";
 import { useDraft } from "../describe/use-draft.ts";
@@ -9,7 +10,14 @@ import { forgetSavedCard } from "./delete-card.ts";
 const AccountContext = createContext<{
   state: AccountState | null;
   refresh: () => Promise<AccountState>;
+  /** The session ended without this tab's Sign Out. */
   clear: () => void;
+  /** This tab's Sign Out ended the session. */
+  signedOut: () => void;
+  /** Asks /api/account, which renews the session, after another endpoint refused a request. */
+  confirm: () => Promise<AccountState>;
+  ending: SessionEnding | null;
+  acknowledgeEnding: () => void;
   returnResult: string | null;
   acknowledgeReturn: () => void;
   missingRecord: boolean;
@@ -19,6 +27,7 @@ const unavailable: AccountState = { available: false, fixture: false, user: null
 export function AccountProvider({ children, fixture = false }: { children: ReactNode; fixture?: boolean }) {
   const session = useMemo(() => new AccountSession(), [fixture]);
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const ending = useSyncExternalStore(session.subscribe, session.getEnding);
   const { controller, draft } = useDraft();
   const [missingDraft, setMissingDraft] = useState<string | null>(null);
   const missingRecord = missingDraft === draft.id;
@@ -64,6 +73,10 @@ export function AccountProvider({ children, fixture = false }: { children: React
         state: fixture ? unavailable : state,
         refresh: fixture ? async () => unavailable : session.refresh,
         clear: session.clear,
+        signedOut: session.signedOut,
+        confirm: fixture ? async () => unavailable : session.confirm,
+        ending: fixture ? null : ending,
+        acknowledgeEnding: session.acknowledgeEnding,
         returnResult,
         acknowledgeReturn: () => setReturnResult(null),
         missingRecord, savedCheck,

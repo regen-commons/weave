@@ -229,7 +229,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
                   {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
                   {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
-                    readOnly={status.unsaved} onExpired={account.clear} onChanged={() => setMatchVersion(v => v + 1)} />}
+                    readOnly={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} />}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
                   {steps.sharing && (
                     <StatusLine

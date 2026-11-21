@@ -1,4 +1,5 @@
 import { accountRequest, accountState, AccountFailure, invalidateAccountRequests, type AccountState } from "./client.ts";
+import type { SessionEnding } from "./session-end.ts";
 
 export type SessionChange = "ended" | "changed";
 export interface SessionConnection {
@@ -29,23 +30,46 @@ export class AccountSession {
   private timer: unknown = null;
   /** Up to this many milliseconds are added to each check, so several tabs do not renew at the same instant. */
   private spread: () => number;
+  /** The account last shown as signed in, so a state without one reads as an ending, not as a first check. */
+  private holder: string | null = null;
+  private ending: SessionEnding | null = null;
+  private confirming: Promise<AccountState> | null = null;
   constructor(request = accountRequest, timers = browserTimers, spread = () => Math.random() * 20000) {
     this.request = request;
     this.timers = timers;
     this.spread = spread;
   }
   getSnapshot = () => this.state;
+  /** Why the last session ended, until the person signs in again or the note is acknowledged. */
+  getEnding = () => this.ending;
+  acknowledgeEnding = () => {
+    if (this.ending === null) return;
+    this.ending = null;
+    this.notify();
+  };
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
     return () => { this.listeners.delete(listener); };
   };
-  private update(state: AccountState | null) {
-    this.state = state;
+  private notify() {
     for (const listener of this.listeners) listener();
+  }
+  /** `ending` says why, when this state takes a signed-in account off the screen. Unknown (null) states keep the holder. */
+  private update(state: AccountState | null, ending: SessionEnding = "ended") {
+    if (state?.user) {
+      this.holder = state.user.id;
+      this.ending = null;
+    } else if (state && this.holder !== null) {
+      this.holder = null;
+      // An account service that cannot answer has not signed anyone out.
+      this.ending = state.available ? ending : null;
+    }
+    this.state = state;
+    this.notify();
   }
   connect(connect: ConnectSession) {
     const connection = connect(change => {
-      if (change === "ended") this.end(false);
+      if (change === "ended") this.end(false, "ended");
       else this.reconcile();
     }, () => this.reconcile());
     this.connection = connection;
@@ -77,12 +101,26 @@ export class AccountSession {
     this.pending = null;
     invalidateAccountRequests();
   }
-  private end(publish: boolean) {
+  private end(publish: boolean, ending: SessionEnding) {
     this.invalidate();
-    this.update({ available: true, fixture: false, ...this.state, user: null, items: [] });
+    this.update({ available: true, fixture: false, ...this.state, user: null, items: [] }, ending);
     if (publish) this.connection?.publish("ended");
   }
-  clear = () => this.end(true);
+  /** The session ended without this tab's Sign Out. The screen says so. */
+  clear = () => this.end(true, "ended");
+  /** This tab's Sign Out was confirmed, or found the session already ended. Its own message says so. */
+  signedOut = () => this.end(true, "signed_out");
+  /**
+   * Another endpoint refused a request for want of a session. Asks `/api/account`, which renews it,
+   * and shares one check among every refusal that arrives meanwhile, so they do not cancel each other.
+   */
+  confirm = (): Promise<AccountState> => {
+    // A check started meanwhile, by the schedule or a change in another tab, supersedes this one; its answer is the one to read.
+    this.confirming ??= this.refresh()
+      .catch((error: unknown) => error instanceof AccountFailure && error.code === "account_changed" ? this.refresh() : Promise.reject(error))
+      .finally(() => { this.confirming = null; });
+    return this.confirming;
+  };
   /** The callback has established a new cookie. Other tabs must check it themselves. */
   changed() {
     this.invalidate();

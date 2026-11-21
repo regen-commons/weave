@@ -808,3 +808,11 @@ DL-100 gave Sort a button that named the order in force, such as "Sort: Name A t
 - **Clear Filters** now takes off the order too, since it is one of the chips it clears. This reverses the earlier rule that the sort order stays.
 
 Both Funding and Initiatives use the shared filter bar, so both change.
+
+## DL-123: A session that ends without Sign Out says so at the top of the page
+
+**Status:** maker's call, 21 November 2026, from the session-renewal work in regen-commons/weave#123. Extends DL-070's rule for Sign out.
+
+Before, when a session ended on its own (renewal refused, the session revoked elsewhere, or another tab signed out), Weave dropped the account from the screen and said nothing, so the person saw their saved cards vanish without a reason. Now a notice opens the page they were on: "You were signed out. Your card is still here." The header's live region reads it out, and focus stays where it was, since the person did not ask for anything. The notice stays until they sign in again or move to another page. Sign out keeps its own message (DL-070), so pressing it shows no notice.
+
+Partner matching and project requests read only the access cookie, which can lapse while the session still renews. A refusal from them is now checked with the account first, which renews the session; the request runs once more when it was only renewed, and the notice shows only when the session really ended. The partner panel's own "Your session ended" line is gone, so the page says it once. Above a doorway or Home's hero the notice keeps the page's usual step from the app bar. No new class. No tokens changed.

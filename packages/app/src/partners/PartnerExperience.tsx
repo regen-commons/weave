@@ -41,11 +41,10 @@ const kindsOf = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((kind): kind is string => typeof kind === "string") : [];
 
 export function PartnerExperience({ mode, separateActions = false, refreshVersion = 0 }: { mode: "matches" | "preview"; separateActions?: boolean; refreshVersion?: number }) {
-  const { state, clear } = useAccount();
+  const { state } = useAccount();
   const social = useSocial();
   const project = social?.mode === "live" ? social.state.project : null;
   const { draft, ready } = useDraft();
-  const [expired, setExpired] = useState(false);
   const owner = state?.user?.id;
   const saved = draft.account.saved;
   const active = useMemo(() => activeInitiative(saved, owner), [saved, owner]);
@@ -57,11 +56,6 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
   ) : [], [linkedId, active, draft.needs.items, draft.offers.items]);
   const compact = mode === "preview";
   const online = useSyncExternalStore(subscribeOnline, isOnline);
-  const onExpired = () => {
-    setExpired(true);
-    clear();
-  };
-
   return (
     <div className="rc-stack">
       {linkedId && ready && <CertifiedSuggestions key={`${owner}/${linkedId}`}
@@ -69,21 +63,18 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
       {active && ready && linkedPersonal ? (
         <SavedMatching key={`${active.owner}/${active.id}/${active.revision}`}
           active={active} synced={active.contentKey === accountKey(draft)}
-          compact={compact} online={online} onExpired={onExpired} fixture={state?.fixture === true} presentation={separateActions ? "results" : "all"} refreshVersion={refreshVersion} />
+          compact={compact} online={online} fixture={state?.fixture === true} presentation={separateActions ? "results" : "all"} refreshVersion={refreshVersion} />
       ) : (
-        // With no card yet there is nothing to save: the list below asks for the card first.
-        ready && (!!draft.confirmed || (expired && !owner)) && (
+        // With no card yet there is nothing to save: the list below asks for the card first. A session
+        // that ended is said once, by the page's own notice (SessionEndedNotice).
+        ready && !!draft.confirmed && (
           <div className="rc-stack">
-            {expired && !owner ? (
-              <p className="rc-notice" data-tone="warning" role="alert">Your session ended. Sign in again to continue matching.</p>
-            ) : (
-              <p>{project?.group && !linkedId
-                ? project.role === "member"
-                  ? "Your team workspace needs approval and an access grant before partner suggestions can open."
-                  : "Set up the team workspace to open partner suggestions."
-                : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
-                  : "Link a Certified project to get partner suggestions for your private needs and offers."}</p>
-            )}
+            <p>{project?.group && !linkedId
+              ? project.role === "member"
+                ? "Your team workspace needs approval and an access grant before partner suggestions can open."
+                : "Set up the team workspace to open partner suggestions."
+              : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
+                : "Link a Certified project to get partner suggestions for your private needs and offers."}</p>
             {!compact && <div className="rc-action-bar"><SaveAction variant="secondary">Save your initiative</SaveAction></div>}
           </div>
         )
@@ -100,7 +91,8 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   synced: boolean;
   compact: boolean;
   online: boolean;
-  onExpired(): void;
+  /** Hears of a session that ended, after the screen was cleared. */
+  onExpired?(): void;
   fixture: boolean;
   readOnly?: boolean;
   team?: boolean;
@@ -109,7 +101,8 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   refreshVersion?: number;
 }) {
   const heading = useId();
-  const network = useNetworkMatching(active, onExpired);
+  const { confirm } = useAccount();
+  const network = useNetworkMatching(active, confirm, onExpired);
   const lastRefresh = useRef(refreshVersion);
   useEffect(() => {
     if (lastRefresh.current === refreshVersion) return;
