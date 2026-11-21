@@ -168,6 +168,24 @@ are cut by domain.
 | Time per reviewer, at an assumed 15 to 20 seconds a pair | 3 to 4 hours (4.5 to 6 with three engines) | 8 to 10.5 hours |
 | What it adds | Every suggestion any engine would show is judged | How much a different threshold could find |
 
+Built on 21 November 2026 by `partner-real-v2.mjs pool`, which runs only the
+engines the committed manifest lets go forward and refuses if it differs from
+what is on disk:
+
+- **Size.** The engines ran as of the day the corpus was read. The pool has 1,050
+  pairs, 6.6 per query on average and at most 12. By domain: art 260, software
+  270, research 270 and place 250. The 979-project corpus made the engines suggest
+  more than v1 did, so the 750 estimate above was low.
+- **Time.** At 15 to 20 seconds a pair, that is 4.4 to 5.8 hours per reviewer,
+  within the 4.5 to 6 hours agreed.
+- **Sources.** By where each pair came from: the current matcher 489, MiniLM-L12
+  287, seeds 100 (16 of them hard negatives) and controls 320. Pairs two engines
+  both suggested count under each.
+- **Calibration.** 20 v1 pairs in a salted order, by their frozen agent labels:
+  8 relevant, 8 irrelevant and 4 unresolved.
+- **Files.** The packets, the calibration set, the key and the engine runs are
+  in the private Drive folder, sealed by hash in `partner-real-v2.sha256`.
+
 ### Judging
 
 Two reviewers, labelled A and B and never named in the repository, judge with the
@@ -238,7 +256,9 @@ matcher misses it too.
 Rule 1 is not yet fully checkable for MiniLM-L12. The frozen engine returns each
 project with the kind of evidence that let it in, not the explanation the app
 would show, so the scoring runner can check provenance but not explanation
-wording. How it judges explanations has to be settled before the pool is built.
+wording. Reviewers judge relevance only, as for v1, so this does not change the
+pool or the worksheet. How the scoring runner judges explanations has to be
+settled before the scored run.
 
 ## Host measurement
 
@@ -265,7 +285,8 @@ site are not touched.
 3. The corpus is frozen and the queries written. An agent checks the quotas,
    without labelling anything. Done on 21 November 2026.
 4. The pool, worksheet and key are built, their hashes committed and the packets
-   handed to reviewers.
+   handed to reviewers. Built and hashed on 21 November 2026; the packets go to
+   the reviewers once they are named.
 5. Calibration, independent judging and adjudication.
 6. One scored run. The files and the report are committed in a draft PR.
 7. Host measurement, with the owner's go-ahead for the preview deployment.
@@ -275,9 +296,9 @@ site are not touched.
 
 1. Who are the two reviewers, and can each give about 4.5 to 6 hours, or 8 to 10.5
    for the larger pool? **Partly answered on 21 November 2026: the suggestions-only
-   pool, about 4.5 to 6 hours each.** With two engines the estimate fell to 3 to
-   4 hours, a lower bound. Who the reviewers are is still open, and their names
-   stay out of this repository.
+   pool, about 4.5 to 6 hours each.** The built pool has 1,050 pairs, 4.4 to 5.8
+   hours each, plus the 20 calibration pairs. Who the reviewers are is still
+   open, and their names stay out of this repository.
 2. Should this review replace the human review of `partner-real-v1`? **Answered
    on 21 November 2026: yes.** v1 serves as development data with its agent
    labels, and its worksheet does not go to reviewers. Its human review would

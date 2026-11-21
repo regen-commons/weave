@@ -667,7 +667,10 @@ freezes the settings, model files and scripts.
 Corpus and queries frozen, 21 November 2026: the 979-project corpus and the 160
 queries, written by blind agent instances, are sealed by hash in
 [`partner-real-v2.sha256`](../../packages/api/evaluation/partner-real-v2.sha256).
-The files themselves stay private until the scored run, as the plan says.
+The files themselves stay private until the scored run, as the plan says. The pool
+and worksheet followed the same day, also sealed by hash: 1,050 pairs, which puts
+each reviewer at 4.4 to 5.8 hours, within the 4.5 to 6 agreed, so the 750 estimate
+above was low. The packets go to the reviewers once they are named.
 
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
