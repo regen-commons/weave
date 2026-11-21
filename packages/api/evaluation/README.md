@@ -394,6 +394,10 @@ replaces these numbers. Publish their agreement and adjudication counts, keep
 unresolved pairs separate, and agree a recall floor before any tuning that uses a
 new development split.
 
+The [`partner-real-v2` plan](partner-real-v2-plan.md) of 21 November 2026 proposes
+a new holdout for D32 and asks whether its human review should replace this one,
+with v1 kept as development data.
+
 ## Independent quality evaluation still required
 
 The [technical spec's quality criteria](../../../docs/platform/05-technical-spec.md#quality-and-performance-proof)

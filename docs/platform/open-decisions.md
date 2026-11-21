@@ -639,6 +639,11 @@ should use those upstream files, pinned and hashed. The
 has the revisions, hashes, shipping obligations and what stays unsettled. It
 approves nothing beyond the answer above.
 
+Holdout plan, 21 November 2026: the
+[`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md)
+sets out the new holdout, the frozen engines, the human review and a proposed
+decision rule, with six questions for the user. Nothing in it is built.
+
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
 
