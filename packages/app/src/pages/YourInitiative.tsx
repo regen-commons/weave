@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SaveAction } from "../account/door.tsx";
+import { SignInButton } from "../account/SignInButton.tsx";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
 import { LiveExposure } from "../social/LiveExposure.tsx";
 import { PrivateSaveAction } from "../account/PrivateSaveAction.tsx";
@@ -10,6 +11,9 @@ import { useDraft } from "../describe/use-draft.ts";
 import { draftText, hasDraft } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { waitingSuggestions } from "../initiative/import.ts";
+import { projectLinkLine } from "../initiative/list.ts";
+import { useProjectLink } from "../initiative/use-project-link.ts";
+import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { cardName, cardRoute, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
@@ -65,6 +69,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   // A local hint that this account left for an editor with this card. It proves nothing was published.
   const signedInId = liveSocial?.mode === "live" ? liveSocial.state.identity?.id : undefined;
   const handoff = signedInId ? readEditorHandoff(editorStorage(() => window.sessionStorage), signedInId, draft.id) : null;
+  const link = useProjectLink();
   // Only steps that are open get a row, and only the next one gets the filled button.
   const steps = openSteps(status, project?.workspace ?? null);
   // What follows the record on a phone. On a wide screen it sits under the card, with Saving and
@@ -220,10 +225,28 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   )}
                   {/* Outside the example world the real project directory links or creates the project. */}
                   {!example && !project && (
-                    <StatusLine actions={<ProjectAction variant={handoff && !save ? "primary" : "secondary"} size="sm" />}>
+                    <StatusLine
+                      actions={
+                        handoff || link === "not-linked" ? (
+                          <ProjectAction variant={handoff && !save ? "primary" : "secondary"} size="sm" />
+                        ) : link === "signed-out" ? (
+                          // Signing in is offered once: the save row above offers it while it is there.
+                          save?.needs === "sign-in" ? undefined : <SignInButton variant="secondary" size="sm" />
+                        ) : link === "unchecked" ? (
+                          liveSocial?.consent ? (
+                            <ConsentButton action="membership" />
+                          ) : (
+                            <button className="rc-button" data-variant="secondary" data-size="sm" type="button"
+                              onClick={() => void liveSocial?.reload?.()}>
+                              Try Again
+                            </button>
+                          )
+                        ) : undefined
+                      }
+                    >
                       {handoff
                         ? `Back from ${PROJECT_EDITORS[handoff.editor].name}? Link your project once it is published.`
-                        : "Not linked to a Certified project yet."}
+                        : projectLinkLine(link)}
                     </StatusLine>
                   )}
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}

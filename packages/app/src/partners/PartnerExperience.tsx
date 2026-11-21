@@ -5,6 +5,8 @@ import { activeInitiative, type ActiveInitiative } from "../account/active-initi
 import { SaveAction } from "../account/door.tsx";
 import { accountKey } from "../account/document.ts";
 import { useDraft } from "../describe/use-draft.ts";
+import { projectLinkLine } from "../initiative/list.ts";
+import { useProjectLink } from "../initiative/use-project-link.ts";
 import { STATUS } from "../intake/contracts.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -45,6 +47,7 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
   const social = useSocial();
   const project = social?.mode === "live" ? social.state.project : null;
   const { draft, ready } = useDraft();
+  const link = useProjectLink();
   const owner = state?.user?.id;
   const saved = draft.account.saved;
   const active = useMemo(() => activeInitiative(saved, owner), [saved, owner]);
@@ -74,7 +77,9 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
                 ? "Your team workspace needs approval and an access grant before partner suggestions can open."
                 : "Set up the team workspace to open partner suggestions."
               : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
-                : "Link a Certified project to get partner suggestions for your private needs and offers."}</p>
+                : link === "signed-out" ? "Sign in to get partner suggestions for your linked Certified project."
+                  : link === "checking" || link === "unchecked" ? projectLinkLine(link)
+                    : "Link a Certified project to get partner suggestions for your private needs and offers."}</p>
             {!compact && <div className="rc-action-bar"><SaveAction variant="secondary">Save your initiative</SaveAction></div>}
           </div>
         )
