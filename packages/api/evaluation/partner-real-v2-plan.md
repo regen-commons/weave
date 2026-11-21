@@ -89,6 +89,28 @@ matcher, `partner-concepts.ts`, the experiment, the v1 to v3 fixtures or any
 result. They write all 160, as the user decided on 21 November 2026; people
 write none.
 
+Written on 21 November 2026 with
+[`scripts/partner-real-v2.mjs`](../scripts/partner-real-v2.mjs):
+
+- **Corpus.** Read at 20:36 UTC: 993 listed and 979 kept, as counted above.
+- **Slots.** Each domain has 21 seeded, 4 hard-negative, 10 blind and 5 sparse
+  slots, so 100 seeded and 60 blind in all, with the language and direction
+  quotas met exactly. Art has 19 seed projects for 25 slots, so 6 repeat.
+- **Writing order.** Each writer did its blind and sparse slots before seeing any
+  project, then its seeded slots. None opened a file.
+- **Seed rule.** Added before any seeded query was written: a seed needs at least
+  100 characters of its own words and not Certified's form prompt. Five drawn
+  seeds had only a heading, one line or the prompt.
+- **Word check.** 34 seeded queries reused a word that at most 1% of projects use.
+  A fresh checker agent judged 32 of them plain words for the subject and 2 real
+  copies, which their writers rewrote. It also found an offer that read as a need.
+  Two sparse titles of five words were cut to four. Five answers were revised in
+  all.
+- **Where the files are.** The files sit in the repository's ignored
+  `docs/platform/research/local-only/partner-real-v2/` folder until they move to
+  the shared drive. Their hashes are in
+  [`partner-real-v2.sha256`](partner-real-v2.sha256).
+
 ### Engines, frozen before the pool is built
 
 1. The current matcher, `partner-concepts-v2`, as the bar to beat.
@@ -160,7 +182,9 @@ and are reported beside them, with raw agreement and Cohen's kappa.
 - The holdout files are not committed until the scored run. Before reviewers
   start, a manifest of SHA-256 hashes is committed: corpus, queries, worksheet,
   key, engine settings, model files and scoring script. The runner refuses to score
-  if any file differs.
+  if any file differs. The hashes of the corpus, the queries and the slots (part
+  of the key) were committed on 21 November 2026, in `partner-real-v2.sha256`;
+  the engine manifest is `partner-real-v2-engines.json`.
 - Until then the files live on a private shared drive, as the user decided on
   21 November 2026. The key never goes to reviewers.
 - Query writers never see an engine. Whoever builds the engines never sees the
@@ -238,7 +262,7 @@ site are not touched.
 2. Engines are prepared on development data and the manifest is committed, in a
    draft PR. Done on 21 November 2026.
 3. The corpus is frozen and the queries written. An agent checks the quotas,
-   without labelling anything.
+   without labelling anything. Done on 21 November 2026.
 4. The pool, worksheet and key are built, their hashes committed and the packets
    handed to reviewers.
 5. Calibration, independent judging and adjudication.

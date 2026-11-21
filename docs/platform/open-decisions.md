@@ -662,7 +662,12 @@ gates. The holdout now compares the current matcher with MiniLM-L12 only, which
 lowers the reviewer estimate to about 750 pairs, 3 to 4 hours each, as a lower
 bound. The
 [engine manifest](../../packages/api/evaluation/partner-real-v2-engines.json)
-freezes the settings, model files and scripts. No query is written yet.
+freezes the settings, model files and scripts.
+
+Corpus and queries frozen, 21 November 2026: the 979-project corpus and the 160
+queries, written by blind agent instances, are sealed by hash in
+[`partner-real-v2.sha256`](../../packages/api/evaluation/partner-real-v2.sha256).
+The files themselves stay private until the scored run, as the plan says.
 
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
