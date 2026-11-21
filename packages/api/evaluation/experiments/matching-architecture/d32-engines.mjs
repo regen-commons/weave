@@ -14,17 +14,24 @@
 //    upstream's own 8-bit files, pinned and hashed in models.mjs, and otherwise run exactly as retrieval-real.mjs
 //    ran them on 19 November 2026: the same candidates, query text, keyword evidence, ordering and top five.
 //
-// Cut-off rule, written down in the plan and committed here before the first run with these model files:
+// Cut-off rule. The plan's first version, committed in 1782908 before it ran with these model files, kept only
+// the recall floor at point 3. Run on 21 November 2026, it put both models at that floor, and on v1 both fell short
+// of the decision rule's language gate: MiniLM's Spanish recall was below the current matcher's, and e5-small's
+// Portuguese and Spanish recall were level with it. The user then chose to make point 3 mirror the holdout's gates.
+// No partner-real-v2 query existed. The rule now:
 // 1. Development data is partner-real-v1 with its frozen agent labels, scored on the full-corpus path with
 //    matching-real's definitions, as retrieval-real.mjs scores it.
 // 2. For each model, every pair of cut-offs on a grid: semantic z threshold from 0.0 to 6.0 and keyword veto z
 //    from -2.0 to 4.0, both in steps of 0.1.
-// 3. Keep the pairs whose recall at five is no lower than the current matcher's on the same data.
+// 3. Keep the pairs that pass, on the same data, the gates the holdout's decision rule applies: recall at five
+//    no lower than the current matcher's (stricter than the holdout's 5-point margin), Portuguese and Spanish
+//    recall at five above the current matcher's, and a share of no-match queries with a suggestion at most
+//    10 points above the current matcher's.
 // 4. Choose the highest share of relevant suggestions among the top five. Ties go to higher recall at five, then
 //    fewer no-match queries with a suggestion, then the lower semantic threshold, then the lower veto.
 // 5. If no pair qualifies, the engine gets no cut-offs and does not go forward.
-// Shown beside the choice and choosing nothing: v2 development scores at the chosen cut-offs, and the cut-offs
-// the 19 November rule picks on v2 development with these files.
+// Shown beside the choice and choosing nothing: what the first version picked, v2 development scores at the
+// chosen cut-offs, and the cut-offs the 19 November rule picks on v2 development with these files.
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
@@ -64,8 +71,12 @@ export const CODE_FILES = [
 const tenths = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => Number(((from + i) / 10).toFixed(1)));
 export const GRID = { semanticAtOrAboveZ: tenths(0, 60), vetoBelowZ: tenths(-20, 40) };
 export const CUT_OFF_RULE = "On partner-real-v1 with agent labels, full-corpus path: the highest share of relevant suggestions among the "
-  + "top five, with recall at five no lower than the current matcher's. Ties: higher recall, fewer no-match queries with a "
-  + "suggestion, lower semantic threshold, lower veto. Grid: semantic z 0.0 to 6.0, veto z -2.0 to 4.0, steps of 0.1.";
+  + "top five, among pairs with recall at five no lower than the current matcher's, Portuguese and Spanish recall at five above "
+  + "it, and a share of no-match queries with a suggestion at most 10 points above it. Ties: higher recall, fewer no-match "
+  + "queries with a suggestion, lower semantic threshold, lower veto. Grid: semantic z 0.0 to 6.0, veto z -2.0 to 4.0, steps of 0.1.";
+/** Point 3's gates, as the holdout's decision rule states them. */
+export const LANGUAGES_ABOVE = ["pt", "es"];
+export const NO_MATCH_MARGIN = 0.1;
 
 /** Each query's keyword evidence: the projects the production matcher accepts over every passage, best first. */
 export function keywordEvidence(projects, queries, now) {
@@ -94,15 +105,32 @@ export async function prepareModel(projects, queries, embedder, keywords) {
 export const modelPicks = (rows, cutOffs) => new Map(rows.map(row => [row.query.id,
   suggest(row, "hybrid", cutOffs.semanticAtOrAboveZ, "relative", cutOffs.vetoBelowZ)]));
 
-/** Points 3 to 5 of the rule, over a sweep of { semanticAtOrAboveZ, vetoBelowZ, relevantAmongReturnedAt5, finalRecallAt5, noMatchFalsePositives }. */
-export function chooseCutOffs(sweep, recallFloor) {
-  const qualifying = sweep.filter(point => point.relevantAmongReturnedAt5 !== null && point.finalRecallAt5 !== null
-    && point.finalRecallAt5 >= recallFloor);
+/**
+ * A point is one pair's v1 scores: { semanticAtOrAboveZ, vetoBelowZ, relevantAmongReturnedAt5, finalRecallAt5,
+ * recallByLanguage, noMatchFalsePositives, noMatchShare }. The floor is the current matcher's, in the same shape.
+ */
+const atLeast = (point, floor) => point.relevantAmongReturnedAt5 !== null && point.finalRecallAt5 !== null
+  && point.finalRecallAt5 >= floor.finalRecallAt5;
+/** Point 3. */
+export const passesGates = (point, floor) => atLeast(point, floor)
+  && LANGUAGES_ABOVE.every(language => (point.recallByLanguage[language] ?? -1) > (floor.recallByLanguage[language] ?? Infinity))
+  && Math.round((point.noMatchShare - floor.noMatchShare) * 10_000) <= NO_MATCH_MARGIN * 10_000;
+/** Point 3 as first committed in 1782908, kept to report what it chose. */
+export const passesFirstVersion = atLeast;
+
+/** Points 3 to 5 of the rule. */
+export function chooseCutOffs(sweep, floor, keep = passesGates) {
+  const qualifying = sweep.filter(point => keep(point, floor));
   qualifying.sort((a, b) => b.relevantAmongReturnedAt5 - a.relevantAmongReturnedAt5 || b.finalRecallAt5 - a.finalRecallAt5
     || a.noMatchFalsePositives - b.noMatchFalsePositives || a.semanticAtOrAboveZ - b.semanticAtOrAboveZ || a.vetoBelowZ - b.vetoBelowZ);
   const best = qualifying[0];
   return best ? { semanticAtOrAboveZ: best.semanticAtOrAboveZ, vetoBelowZ: best.vetoBelowZ } : null;
 }
+/** The floor or a point's fields, from one matching-real evaluation. */
+export const gateScores = result => ({ relevantAmongReturnedAt5: result.summary.relevantAmongReturnedAt5,
+  finalRecallAt5: result.summary.finalRecallAt5, noMatchFalsePositives: result.summary.noMatchFalsePositives,
+  noMatchShare: result.summary.noMatchQueries ? result.summary.noMatchFalsePositives / result.summary.noMatchQueries : 0,
+  recallByLanguage: Object.fromEntries(Object.entries(result.byLanguage).map(([language, summary]) => [language, summary.finalRecallAt5])) });
 
 const KEPT = ["positiveQueries", "noMatchQueries", "unresolvedQueries", "suggestionsAt5", "unresolvedSuggestionsAt5", "relevantSuggestionsAt5",
   "relevantAmongReturnedAt5", "relevantAmongReturnedAt3", "finalRecallAt5", "positiveQueriesWithARelevantSuggestion",
@@ -112,15 +140,13 @@ const scoreOnV1 = (v1, picks) => evaluateReal(v1.corpus, v1.queries, v1.labelMap
   (_, query) => ({ pool: v1.everyProject, matches: [], ids: picks.get(query.id).map(pick => pick.id) }));
 
 /** Points 2 to 5 for one model's prepared v1 rows. */
-export function setCutOffs(v1, rows, recallFloor) {
+export function setCutOffs(v1, rows, floor) {
   const sweep = [];
-  for (const semanticAtOrAboveZ of GRID.semanticAtOrAboveZ) for (const vetoBelowZ of GRID.vetoBelowZ) {
-    const summary = scoreOnV1(v1, modelPicks(rows, { semanticAtOrAboveZ, vetoBelowZ })).summary;
-    sweep.push({ semanticAtOrAboveZ, vetoBelowZ, relevantAmongReturnedAt5: summary.relevantAmongReturnedAt5,
-      finalRecallAt5: summary.finalRecallAt5, noMatchFalsePositives: summary.noMatchFalsePositives });
-  }
-  return { cutOffs: chooseCutOffs(sweep, recallFloor), pairsTried: sweep.length,
-    pairsMeetingRecallFloor: sweep.filter(point => point.finalRecallAt5 !== null && point.finalRecallAt5 >= recallFloor).length };
+  for (const semanticAtOrAboveZ of GRID.semanticAtOrAboveZ) for (const vetoBelowZ of GRID.vetoBelowZ)
+    sweep.push({ semanticAtOrAboveZ, vetoBelowZ, ...gateScores(scoreOnV1(v1, modelPicks(rows, { semanticAtOrAboveZ, vetoBelowZ }))) });
+  return { cutOffs: chooseCutOffs(sweep, floor), pairsTried: sweep.length,
+    pairsPassingGates: sweep.filter(point => passesGates(point, floor)).length,
+    firstVersionCutOffs: chooseCutOffs(sweep, floor, passesFirstVersion) };
 }
 
 async function codeHashes() {
@@ -141,16 +167,19 @@ export async function buildManifest(cutOffs, frozenOn) {
     status: "Frozen before any partner-real-v2 query was written. The v2 runner scores only with these engines and refuses to score if any hash differs.",
     frozenOn, plan: "packages/api/evaluation/partner-real-v2-plan.md",
     engines: [
-      { name: CURRENT.name, label: CURRENT.label, engineVersion: PARTNER_ENGINE_VERSION, conceptVersion: PARTNER_CONCEPT_VERSION },
-      ...MODEL_ENGINES.map(engine => ({ name: engine.name, label: engine.label, model: engine.model, cutOffs: cutOffs[engine.model],
-        cutOffRule: CUT_OFF_RULE })),
+      { name: CURRENT.name, label: CURRENT.label, goesForward: true, engineVersion: PARTNER_ENGINE_VERSION, conceptVersion: PARTNER_CONCEPT_VERSION },
+      ...MODEL_ENGINES.map(engine => cutOffs[engine.model]
+        ? { name: engine.name, label: engine.label, goesForward: true, model: engine.model, cutOffs: cutOffs[engine.model] }
+        : { name: engine.name, label: engine.label, goesForward: false, model: engine.model,
+          reason: "No pair of cut-offs on the grid passed the gates on development data." }),
     ],
+    cutOffRule: CUT_OFF_RULE,
     settings: { window: WINDOW, keywordEvidenceLimit: KEYWORD_LIMIT,
       keywordEvidenceDate: "the date the partner-real-v2 corpus is frozen, as matching-real.mjs uses partner-real-v1's",
       candidates: "one per project; its passages joined as clauses through retrieval-eval.mjs assertedText; the name is not used",
       queryText: "title, then description, joined as retrieval-real.mjs realDataset joins them, with each model's prefix",
       ordering: "retrieval-eval.mjs suggest, engine hybrid, relative (z-score) threshold, keyword veto" },
-    models: Object.fromEntries(MODEL_ENGINES.map(engine => [engine.model, modelPin(engine.model)])),
+    models: Object.fromEntries(MODEL_ENGINES.filter(engine => cutOffs[engine.model]).map(engine => [engine.model, modelPin(engine.model)])),
     code: await codeHashes(),
     runtime: await runtime(),
   };
@@ -162,7 +191,8 @@ export async function verifyManifest() {
   const differences = [];
   const code = await codeHashes();
   for (const path of new Set([...Object.keys(manifest.code), ...CODE_FILES])) if (manifest.code[path] !== code[path]) differences.push(`code:${path}`);
-  for (const engine of MODEL_ENGINES) if (!isDeepStrictEqual(manifest.models[engine.model], modelPin(engine.model))) differences.push(`model:${engine.model}`);
+  for (const engine of manifest.engines.filter(engine => engine.goesForward && engine.model))
+    if (!isDeepStrictEqual(manifest.models[engine.model], modelPin(engine.model))) differences.push(`model:${engine.model}`);
   const now = await runtime();
   for (const [name, value] of Object.entries(now)) if (manifest.runtime[name] !== value) differences.push(`runtime:${name}`);
   return { manifest, differences };
@@ -190,13 +220,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const ownCurrent = currentPicks(corpus.projects, queries.queries, V1_DATE);
   if (!isDeepStrictEqual(current.rows.map(row => row.results), queries.queries.map(query => ownCurrent.get(query.id).map(pick => pick.id))))
     throw Error("current_engine_differs_from_matching_real");
-  const recallFloor = current.summary.finalRecallAt5;
+  const floor = gateScores(current);
   const keywords = keywordEvidence(corpus.projects, queries.queries, V1_DATE);
   const development = fromV2((await loadEvaluation()).data, "development");
 
   const report = {
     reportDate: new Date().toISOString().slice(0, 10), dataset: "partner-real-v1 (development data)", labelSource: "agent-judged-provisional",
-    rule: CUT_OFF_RULE, fixtureSha256: hashes, recallFloor,
+    rule: CUT_OFF_RULE, fixtureSha256: hashes, floor,
     current: { label: CURRENT.label, ...brief(current.summary), byLanguage: Object.fromEntries(Object.entries(current.byLanguage).map(([k, v]) => [k, brief(v)])) },
     models: {},
   };
@@ -206,7 +236,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const rows = await prepareModel(corpus.projects, queries.queries, embedder, keywords);
     const developmentRows = await prepare(development, embedder);
     await embedder.close();
-    const chosen = setCutOffs(v1, rows, recallFloor);
+    const chosen = setCutOffs(v1, rows, floor);
     cutOffs[engine.model] = chosen.cutOffs;
     const atChosen = chosen.cutOffs && scoreOnV1(v1, modelPicks(rows, chosen.cutOffs));
     const oldRule = { semanticAtOrAboveZ: chooseThreshold(developmentRows, "relative").threshold, vetoBelowZ: chooseVeto(developmentRows) };
@@ -214,10 +244,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       ? brief(scoreOnV1(v1, modelPicks(rows, oldRule)).summary) : null;
     report.models[engine.model] = {
       engine: engine.name, label: engine.label, model: modelPin(engine.model), timing: embedder.timing(),
-      cutOffs: chosen.cutOffs, pairsTried: chosen.pairsTried, pairsMeetingRecallFloor: chosen.pairsMeetingRecallFloor,
+      cutOffs: chosen.cutOffs, goesForward: Boolean(chosen.cutOffs), pairsTried: chosen.pairsTried, pairsPassingGates: chosen.pairsPassingGates,
       v1AtCutOffs: atChosen && { ...brief(atChosen.summary),
         byLanguage: Object.fromEntries(Object.entries(atChosen.byLanguage).map(([k, v]) => [k, brief(v)])) },
       v2DevelopmentAtCutOffs: chosen.cutOffs && score(developmentRows, "hybrid", chosen.cutOffs.semanticAtOrAboveZ, "relative", chosen.cutOffs.vetoBelowZ).summary,
+      firstVersionOfTheRule: { cutOffs: chosen.firstVersionCutOffs,
+        v1: chosen.firstVersionCutOffs && gateScores(scoreOnV1(v1, modelPicks(rows, chosen.firstVersionCutOffs))) },
       nineteenNovemberRuleOnV2Development: { cutOffs: oldRule, v1: oldRuleOnV1 },
     };
   }
@@ -225,16 +257,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const output = flag("--output");
   if (output) await writeFile(output, JSON.stringify(report, null, 1) + "\n", { flag: "wx" });
   if (process.argv.includes("--write-manifest")) {
-    if (Object.values(cutOffs).some(value => !value)) throw Error("an_engine_has_no_cut_offs");
+    if (!Object.values(cutOffs).some(Boolean)) throw Error("no_model_engine_goes_forward");
     await writeFile(new URL(MANIFEST, root), JSON.stringify(await buildManifest(cutOffs, report.reportDate), null, 1) + "\n", { flag: "wx" });
   }
 
   const percent = value => value === null || value === undefined ? "n/a" : `${Math.round(value * 100)}%`;
   const line = (name, s) => `${name.padEnd(48)} relevant ${percent(s.relevantAmongReturnedAt5).padEnd(5)} recall ${percent(s.finalRecallAt5).padEnd(5)} silent ${String(s.positiveQueryAbstentions).padEnd(4)} no-match hits ${s.noMatchFalsePositives}/${s.noMatchQueries}`;
-  console.log(`partner-real-v1 as development data, agent labels; recall floor ${recallFloor}`);
+  console.log(`partner-real-v1 as development data, agent labels; current matcher's gates ${JSON.stringify(floor)}`);
   console.log(line(CURRENT.label, report.current));
   for (const value of Object.values(report.models)) {
-    console.log(`${value.label}: cut-offs ${JSON.stringify(value.cutOffs)}, ${value.pairsMeetingRecallFloor} of ${value.pairsTried} pairs meet the floor`);
+    console.log(`${value.label}: cut-offs ${JSON.stringify(value.cutOffs)}, ${value.pairsPassingGates} of ${value.pairsTried} pairs pass the gates`);
     if (value.v1AtCutOffs) console.log(line("  at those cut-offs", value.v1AtCutOffs));
     if (value.nineteenNovemberRuleOnV2Development.v1) console.log(line(`  19 Nov rule ${JSON.stringify(value.nineteenNovemberRuleOnV2Development.cutOffs)}`, value.nineteenNovemberRuleOnV2Development.v1));
   }

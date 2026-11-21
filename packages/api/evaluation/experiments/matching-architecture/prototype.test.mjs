@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { catalogParties, loadCatalog, SAMPLE } from "./catalog-shape.mjs";
-import { chooseCutOffs, GRID } from "./d32-engines.mjs";
+import { chooseCutOffs, GRID, passesFirstVersion } from "./d32-engines.mjs";
 import { allowed, assertedText, chooseThreshold, score } from "./retrieval-eval.mjs";
 import { catalogCoverage } from "./shape.mjs";
 import { loadFixtures, NOW, runExamples } from "./teams-demo.mjs";
@@ -107,17 +107,26 @@ test("the threshold rule picks the lowest cut-off that meets the target, and non
   assert.equal(chooseThreshold([row("q3", [], [["d", 0.99]])]).threshold, null);
 });
 
-test("the D32 cut-off rule keeps the recall floor, takes the most relevant, then breaks ties in its stated order", () => {
-  const point = (z, veto, relevant, recall, noMatch) => ({ semanticAtOrAboveZ: z, vetoBelowZ: veto, relevantAmongReturnedAt5: relevant,
-    finalRecallAt5: recall, noMatchFalsePositives: noMatch });
+test("the D32 cut-off rule applies the holdout's gates, takes the most relevant, then breaks ties in its stated order", () => {
+  const floor = { finalRecallAt5: 0.3, recallByLanguage: { en: 0.4, pt: 0.05, es: 0.3 }, noMatchShare: 0.25, noMatchFalsePositives: 2 };
+  const point = (z, veto, relevant, recall, { pt = 0.1, es = 0.35, noMatch = 2 } = {}) => ({ semanticAtOrAboveZ: z, vetoBelowZ: veto,
+    relevantAmongReturnedAt5: relevant, finalRecallAt5: recall, recallByLanguage: { en: 0.4, pt, es }, noMatchFalsePositives: noMatch,
+    noMatchShare: noMatch / 8 });
   const cut = (semanticAtOrAboveZ, vetoBelowZ) => ({ semanticAtOrAboveZ, vetoBelowZ });
-  // The most relevant pair is below the floor; recall exactly at the floor qualifies.
-  assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.29, 0), point(2, 1, 0.6, 0.3, 2), point(1, 1, 0.5, 0.4, 0)], 0.3), cut(2, 1));
-  assert.deepEqual(chooseCutOffs([point(2, 1, 0.6, 0.31, 0), point(3, 1, 0.6, 0.35, 4)], 0.3), cut(3, 1));
-  assert.deepEqual(chooseCutOffs([point(3, 1, 0.6, 0.35, 4), point(4, 1, 0.6, 0.35, 1)], 0.3), cut(4, 1));
-  assert.deepEqual(chooseCutOffs([point(4, 2, 0.6, 0.35, 1), point(3, 2, 0.6, 0.35, 1), point(3, 1.5, 0.6, 0.35, 1)], 0.3), cut(3, 1.5));
-  // No suggestions, or nothing at the floor, gives no cut-offs.
-  assert.equal(chooseCutOffs([point(6, 4, null, 0, 0), point(1, 0, 0.5, 0.2, 0)], 0.3), null);
+  // The most relevant pair is below the recall floor; recall exactly at the floor qualifies.
+  assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.29), point(2, 1, 0.6, 0.3), point(1, 1, 0.5, 0.4)], floor), cut(2, 1));
+  // Each language must be above the current matcher's, not level with it.
+  assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.4, { es: 0.3 }), point(4, 3, 0.8, 0.4, { pt: 0.05 }), point(2, 1, 0.6, 0.3)], floor), cut(2, 1));
+  // No-match share: 10 points above the current matcher's passes, more does not (3 of 8 is 12.5 points above).
+  assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.4, { noMatch: 3 }), point(2, 1, 0.6, 0.3, { noMatch: 2.8 })], floor), cut(2, 1));
+  // Ties: higher recall, then fewer no-match hits, then the lower threshold, then the lower veto.
+  assert.deepEqual(chooseCutOffs([point(2, 1, 0.6, 0.31), point(3, 1, 0.6, 0.35, { noMatch: 0 })], floor), cut(3, 1));
+  assert.deepEqual(chooseCutOffs([point(3, 1, 0.6, 0.35, { noMatch: 2 }), point(4, 1, 0.6, 0.35, { noMatch: 1 })], floor), cut(4, 1));
+  assert.deepEqual(chooseCutOffs([point(4, 2, 0.6, 0.35), point(3, 2, 0.6, 0.35), point(3, 1.5, 0.6, 0.35)], floor), cut(3, 1.5));
+  // No suggestions, or nothing passing, gives no cut-offs: that engine does not go forward.
+  assert.equal(chooseCutOffs([point(6, 4, null, 0.4), point(1, 0, 0.5, 0.2), point(1, 1, 0.5, 0.4, { pt: 0.05 })], floor), null);
+  // The first version kept only the recall floor.
+  assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.4, { es: 0.3 }), point(2, 1, 0.6, 0.3)], floor, passesFirstVersion), cut(5, 3));
   assert.deepEqual([GRID.semanticAtOrAboveZ.length, GRID.semanticAtOrAboveZ[0], GRID.semanticAtOrAboveZ.at(-1)], [61, 0, 6]);
   assert.deepEqual([GRID.vetoBelowZ.length, GRID.vetoBelowZ[0], GRID.vetoBelowZ.at(-1), GRID.vetoBelowZ[21]], [61, -2, 4, 0.1]);
 });
