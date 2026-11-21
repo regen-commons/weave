@@ -10,7 +10,7 @@ const FROM_WORDS = "From what you said.";
  * person's words is in pencil, dashed and said so in its hint, until they change it (DL-110).
  * Every field keeps one hint line, so a fill changes words in place and moves nothing. A problem
  * that stops Continue is written in the same line of the field it is about, as an alert, and the
- * field is marked invalid, so the answer is beside the question and nothing moves (DL-123).
+ * field is marked invalid, so the answer is beside the question and nothing moves (DL-124).
  * Each tells a phone's keyboard what it holds: names start each word with a capital, and the link
  * gets the address keys with no capitals and no corrections. The one-line fields label Enter as
  * Next, and the form they sit in moves the focus on (`moveOnEnter`, DL-096).

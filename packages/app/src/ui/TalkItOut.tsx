@@ -15,7 +15,7 @@ const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN"
  * the browser's own speech service, the first press on a device asks the person to agree in a
  * dialog, and listening starts only from their agreement. While the browser downloads and sets
  * up its speech pack, the button shows a Spinner and a Progress bar runs beside it; the browser
- * reports no amount, so neither does the bar (DL-123).
+ * reports no amount, so neither does the bar (DL-124).
  */
 export function TalkItOut({
   speech,

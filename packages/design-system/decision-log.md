@@ -425,7 +425,7 @@ The dock is a child of the page shell, after the page body and before the footer
 
 A docked action can be a screen away from the problem it raises. When Continue or Keep card stops on a problem, the problem is drawn at once and scrolled into view, at any width. While a card is being built the dock shows Building your card, and Cancel building stays with the conversation. A step's short dead ends, such as Describe your initiative first, keep their one link on the page and dock nothing.
 
-**Amended by DL-123, 21 November 2026.** On a wide screen the step's way forward is no longer in its place at the end of the page. It is in the Step bar under the app bar, beside the steps. A phone's dock is unchanged.
+**Amended by DL-124, 21 November 2026.** On a wide screen the step's way forward is no longer in its place at the end of the page. It is in the Step bar under the app bar, beside the steps. A phone's dock is unchanged.
 
 ## DL-090: On a phone a preview is a row that swipes, and a list card holds only what it has
 
@@ -645,7 +645,7 @@ Where the browser has no speech on the device, the page says so in one plain lin
 
 **Amended by DL-115, 19 November 2026.** A browser with its own speech service but no speech on the device now gets Talk It Out after the person agrees. The plain line is for a browser with no speech recognition at all, and on a touch screen it points to the keyboard's microphone key instead.
 
-**Amended by DL-123, 21 November 2026.** The suggested details are gone from the describe step. The page says which three things to say, a file is read as soon as it is added, the setup button reads Set Up Speech, and speech returned without capitals still fills Name and Where you work. In the person's own words, "we work in" now names a place when what follows has its capital or names a country; in a file it still never does.
+**Amended by DL-124, 21 November 2026.** The suggested details are gone from the describe step. The page says which three things to say, a file is read as soon as it is added, the setup button reads Set Up Speech, and speech returned without capitals still fills Name and Where you work. In the person's own words, "we work in" now names a place when what follows has its capital or names a country; in a file it still never does.
 
 ## DL-111: Four needs and four offers, short answers, one link
 
@@ -687,7 +687,7 @@ After needs and offers the last page keeps the stepper until the card is saved. 
 
 Button labels and page and section headings in this flow are written in title case, in the copy and not by the style sheet, as DL-105 on the manual QA branch decides for the whole app: every word takes a capital, short words included, as in Fill In The Fields and Say It In Your Own Words. Labels of fields, hints, chips, status lines and body text stay in sentence case, and so does a heading that reports something, such as a notice's.
 
-**Amended by DL-123, 21 November 2026.** No rows are kept for chips on the describe step, which has none. A problem with a field is written in that field's own hint line. Adding a file adds its row under the box, which is the one press on the step that moves what is below it.
+**Amended by DL-124, 21 November 2026.** No rows are kept for chips on the describe step, which has none. A problem with a field is written in that field's own hint line. Adding a file adds its row under the box, which is the one press on the step that moves what is below it.
 
 ## DL-114: Several drafts live in a new database, and an older tab is left as it is
 
@@ -815,7 +815,7 @@ DL-100 gave Sort a button that named the order in force, such as "Sort: Name A t
 
 Both Funding and Initiatives use the shared filter bar, so both change.
 
-## DL-123: A wide screen's steps and Continue share one bar, and the describe step asks for three things
+## DL-124: A wide screen's steps and Continue share one bar, and the describe step asks for three things
 
 **Status:** user decision from manual QA, 21 November 2026 ("we don't have a loading state when downloading and setting up", "the input to add your details can be full width of the section", "our speech flow is meant to be deriving from what was shared into the project name, location and description", "We should have a light guidance on what to share when you speak", "suggested details should be what we derive into the 3 core fields", "with files we should parse and derive relevant details", "We should better design how continue works and the steps as a header on desktop"). Amends DL-089, DL-110 and DL-113.
 

@@ -150,7 +150,7 @@ test("the app bars keep their place between pages, above the page's cross-fade (
   // A rule inside an at-rule applies at some widths only; the bars must be named at every width.
   const depthAt = (css, index) => [...css.slice(0, index)].reduce((depth, char) => depth + (char === "{") - (char === "}"), 0);
   // The dock stands in for the tab bar on a focused step, so it changes as the bars do (DL-089).
-  // A wide screen's step bar sticks under the app bar, so it changes as the bars do too (DL-123).
+  // A wide screen's step bar sticks under the app bar, so it changes as the bars do too (DL-124).
   for (const [bar, name] of [[".rc-app-header", "rc-app-header"], [".rc-bottom-nav", "rc-bottom-nav"], [".rc-dock", "rc-dock"], [".rc-step-bar", "rc-step-bar"]]) {
     const named = organisms.match(new RegExp(`\\${bar} \\{ view-transition-name: ${name}; \\}`));
     assert.ok(named, `${bar} has its own view transition name`);
@@ -398,7 +398,7 @@ test("on a phone a focused step docks its way forward where the tab bar would be
   }
 });
 
-test("on a wide screen a step's map and its way forward share one bar under the app bar (DL-123)", () => {
+test("on a wide screen a step's map and its way forward share one bar under the app bar (DL-124)", () => {
   const organisms = stripComments(read("packages/design-system/css/organisms.css"));
   const templates = stripComments(read("packages/design-system/css/templates.css"));
   const molecules = stripComments(read("packages/design-system/css/molecules.css"));
@@ -429,7 +429,7 @@ test("on a wide screen a step's map and its way forward share one bar under the 
   }
 });
 
-test("marking a field invalid changes neither its size nor the place of anything under it (DL-123)", () => {
+test("marking a field invalid changes neither its size nor the place of anything under it (DL-124)", () => {
   const atoms = stripComments(read("packages/design-system/css/atoms.css"));
   const invalid = /\.rc-input\[aria-invalid="true"\] \{([^}]*)\}/.exec(atoms)?.[1] ?? "";
   assert.match(invalid, /border: var\(--border-thick\) solid var\(--state-danger\);/);

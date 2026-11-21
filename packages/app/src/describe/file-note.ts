@@ -4,7 +4,7 @@ type FileRead = NonNullable<DeviceDraft["lastBuild"]>["files"][number];
 
 /**
  * What the page says under one added file: what the last reading made of it. A file is read on
- * this device as soon as it is added (DL-123), so the line names the result and not a promise. A
+ * this device as soon as it is added (DL-124), so the line names the result and not a promise. A
  * file whose kind cannot be read, and one a reading could not open, both say so plainly, and a
  * PDF read in part says how many pages were left.
  */
