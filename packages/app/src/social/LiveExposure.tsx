@@ -11,7 +11,8 @@ import { TaskDialog } from "../ui/TaskDialog.tsx";
 /** Agreed status rows; their reviews retain server receipts, conflict handling and the exact retry command. */
 export function LiveExposure({ saved, owner, readOnly = false, online = true, onExpired, onChanged, team = false }: {
   saved: SavedInitiative; owner: string; readOnly?: boolean; online?: boolean; team?: boolean;
-  onExpired(): void; onChanged?(): void;
+  /** Hears of a session that ended, after the screen was cleared. */
+  onExpired?(): void; onChanged?(): void;
 }) {
   const [step, setStep] = useState<"share" | "publish" | null>(null);
   const [opened, setOpened] = useState({ share: false, publish: false });

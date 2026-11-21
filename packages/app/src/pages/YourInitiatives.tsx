@@ -4,7 +4,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import { intakeFixture, type FixtureContext } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
 import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
-import { boundCardId, draftSaving, initiativeEntries, linkedProject, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
+import { boundCardId, draftSaving, initiativeEntries, linkedProject, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
 import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
 import { cardName, cardRoute, NOT_SAVED_YET, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
@@ -25,7 +25,7 @@ import { Doorway, ListLayout } from "../ui/layouts.tsx";
 import { useAccount } from "../account/context.tsx";
 import { accountKey } from "../account/document.ts";
 import { useSetAside } from "../account/set-aside.ts";
-import { choiceStorage, chosenProjectUri } from "../social/project-choice.ts";
+import { choiceStorage, chosenProjectUri, deviceChoosers } from "../social/project-choice.ts";
 import { uuid } from "@weave/api/account-contract";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { ProjectAction, ProjectStep } from "../social/Project.tsx";
@@ -187,7 +187,15 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
               </button>
             </div>
           )}
-          {linked(item) && <p className="rc-card-meta">Linked to your project on Certified.</p>}
+          {linked(item) ? (
+            <p className="rc-card-meta">Linked to your project on Certified.</p>
+          ) : (
+            // Signed out, a card linked on this device says so. Signed in, the page itself says while projects are being read.
+            live &&
+            projectLinkState({ linked: false, owner: state.identity?.id, choosers: deviceChoosers(item.id), loading: false, problem: false }) === "signed-out" && (
+              <p className="rc-card-meta">{projectLinkLine("signed-out")}</p>
+            )
+          )}
           {current && deviceWorkspace && (
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}

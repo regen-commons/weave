@@ -63,9 +63,11 @@ export function safeFundUrl(fund, value) {
     ? ""
     : safe;
 }
+// A source date with no stated time belongs to its UTC day, as the importer and the
+// rubric judge it, so every viewer sees a call open and close at the same moment.
 export function effectiveAccess(fund, now = new Date()) {
   if (["open", "restricted", "inquiry", "rolling"].includes(fund.access)) {
-    if (fund.openingDate && localDate(now) < fund.openingDate) return "future";
+    if (fund.openingDate && utcDate(now) < fund.openingDate) return "future";
     if (
       fund.deadlineInstant &&
       now.getTime() > Date.parse(fund.deadlineInstant)
@@ -74,11 +76,15 @@ export function effectiveAccess(fund, now = new Date()) {
     if (
       !fund.deadlineInstant &&
       fund.deadlineDate &&
-      localDate(now) > fund.deadlineDate
+      utcDate(now) > fund.deadlineDate
     )
       return "closed";
   }
   return fund.access;
+}
+/** The calendar date in UTC: the day a catalog date without a stated time belongs to. */
+export function utcDate(now = new Date()) {
+  return now.toISOString().slice(0, 10);
 }
 export function localDate(now = new Date()) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;

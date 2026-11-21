@@ -42,7 +42,7 @@ export function AccountMenu({
     const result =
       import.meta.env.DEV && example
         ? await signOut(() => example.service.signOut(), example.refresh)
-        : await signOut(() => accountRequest("", { action: "sign_out" }), account.clear);
+        : await signOut(() => accountRequest("", { action: "sign_out" }), account.signedOut);
     setBusy(false);
     if (result.cleared) return onSignedOut(result.message);
     setProblem(result.message);

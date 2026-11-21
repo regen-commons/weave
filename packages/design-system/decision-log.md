@@ -543,6 +543,8 @@ The card had two clocks, one on the deadline and one on "Sources checked". The s
 
 Days are counted to the end of the closing day in UTC, as the Closing filter counts them, so a card and the filter agree on what "within 30 days" holds.
 
+**One closing moment, 21 November 2026.** The Funding QA found a card reading "Open call" beside "Ended 20 Nov 2026" at 23:15 Pacific time, and the rubric still scoring the call as open. The access sign and the score came from `effectiveAccess` in `dist/domain.mjs`, which judged a source date by the viewer's own calendar, while the tag counted in UTC. UTC stays the rule, because the catalog importer and the rubric's own date already use it: `effectiveAccess` now compares a source date, and an opening date, with the UTC date. A call with an exact closing moment counts its days to that moment's UTC day, so a call that closes at 23:59 Pacific reads "Closes today" until then and not "Ended". The access sign, the tag, the Closing filter, Home's previews and the score now change at the same moment in every time zone.
+
 ## DL-104: A list's skeleton holds the loaded page's exact room
 
 **Status:** user decision from manual QA, 18 November 2026. Extends DL-081 and DL-085. A loading list drew skeletons, and the page still moved when the list arrived. At 375 px on Funding the grid started at 503 px while loading and 716 px loaded, and a skeleton card was 176 px tall against about 290. Four things did not match, and each now takes its size from the same rules the loaded page uses.
@@ -814,6 +816,14 @@ DL-100 gave Sort a button that named the order in force, such as "Sort: Name A t
 - **Clear Filters** now takes off the order too, since it is one of the chips it clears. This reverses the earlier rule that the sort order stays.
 
 Both Funding and Initiatives use the shared filter bar, so both change.
+
+## DL-123: A session that ends without Sign Out says so at the top of the page
+
+**Status:** maker's call, 21 November 2026, from the session-renewal work in regen-commons/weave#123. Extends DL-070's rule for Sign out.
+
+Before, when a session ended on its own (renewal refused, the session revoked elsewhere, or another tab signed out), Weave dropped the account from the screen and said nothing, so the person saw their saved cards vanish without a reason. Now a notice opens the page they were on: "You were signed out. What is in this browser is still here." It uses the words Sign out already uses, which hold true with no card in the browser, with several, and for saved cards, which leave the screen with the session. The header's live region reads it out, and focus stays where it was, since the person did not ask for anything. The notice stays until they sign in again or move to another page. Sign out keeps its own message (DL-070), so pressing it shows no notice.
+
+Partner matching and project requests read only the access cookie, which can lapse while the session still renews. A refusal from them is now checked with the account first, which renews the session; the request runs once more when it was only renewed, and the notice shows only when the session really ended. The partner panel's own "Your session ended" line is gone, so the page says it once. Above a doorway or Home's hero the notice keeps the page's usual step from the app bar. No new class. No tokens changed.
 
 ## DL-124: A wide screen's steps and Continue share one bar, and the describe step asks for three things
 

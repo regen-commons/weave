@@ -14,7 +14,7 @@ import {
   researchSnapshotDate,
 } from "../src/funding/catalog.ts";
 import { evaluateCatalog } from "../src/funding/engine.ts";
-import { EvaluationSchema, emptyFundingForm } from "../src/funding/contracts.ts";
+import { EvaluationSchema, FundSchema, emptyFundingForm } from "../src/funding/contracts.ts";
 import { projectFrom, keepFundingForm } from "../src/funding/profile.ts";
 import { teamCoverage } from "../src/funding/team.ts";
 import {
@@ -37,6 +37,7 @@ import {
 import { fundingSearch } from "../src/funding/catalog.ts";
 import { CLOSING_SOON_DAYS, fundingPreviews, FUNDING_PREVIEW_COUNT } from "../src/home.ts";
 import { fundingSourceUrl } from "../src/funding/source.ts";
+import { closingDay, deadlineSign } from "../src/funding/deadline.ts";
 import {
   DeviceDraftSchema,
   newDraft,
@@ -402,4 +403,47 @@ test("a record opened from a filtered list keeps every filter for the way back",
   assert.deepEqual(query.getAll("region"), ["Africa", "Asia"]);
   assert.equal(query.get("kind"), "grant");
   assert.ok(query.get("program"));
+});
+
+// Defect 4 of the Funding QA (21 November 2026): at 23:15 Pacific on a closing day a card read
+// "Open call" beside "Ended". The card's access sign, its deadline tag, the Closing filter and the
+// rubric must give one answer at every moment, wherever the browser's clock is set.
+test("a call ends at one moment for its access sign, deadline tag, Closing filter and score, in every time zone", () => {
+  const zones = ["America/Los_Angeles", "UTC", "Africa/Nairobi", "Pacific/Kiritimati"];
+  const cases = [
+    // A source date with no stated time ends with its UTC day (DL-103).
+    { id: "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027", at: "2026-11-20T21:30:00Z", closed: false },
+    { id: "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027", at: "2026-11-20T23:59:59.999Z", closed: false },
+    { id: "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027", at: "2026-11-21T00:00:00Z", closed: true },
+    { id: "rec9fBEyvIAOuPbVi::climate-smart-communities-initiative2027", at: "2026-11-21T07:15:00Z", closed: true },
+    // An exact closing moment on the UTC day after its source date: 23:59 Pacific on 20 November.
+    { id: "local-mozilla::mozilla-human-scale-ai", at: "2026-11-21T03:00:00Z", closed: false },
+    { id: "local-mozilla::mozilla-human-scale-ai", at: "2026-11-21T07:58:59Z", closed: false },
+    { id: "local-mozilla::mozilla-human-scale-ai", at: "2026-11-21T07:59:01Z", closed: true },
+  ];
+  const project = projectFrom(draft())!;
+  const before = process.env.TZ;
+  try {
+    for (const zone of zones) {
+      process.env.TZ = zone;
+      for (const { id, at: moment, closed } of cases) {
+        const now = new Date(moment);
+        const where = `${id} at ${moment} in ${zone}`;
+        const entry = entries.find((candidate) => candidate.id === id)!;
+        const fund = FundSchema.parse(programFund(entry.fund, entry.program));
+        const access = effectiveAccess(fund, now);
+        assert.equal(access === "closed", closed, `access sign: ${where}`);
+        const tag = deadlineSign(closingDay(fund.deadlineDate!, fund.deadlineInstant), access === "closed", now);
+        assert.equal(tag.label === "Ended", closed, `deadline tag "${tag.label}": ${where}`);
+        const closing = filterFunding([entry], { ...emptyFundingFilters, closing: "7" }, null, now);
+        assert.equal(closing.length, closed ? 0 : 1, `Closing filter: ${where}`);
+        const one = { ...bundle, catalog: { ...bundle.catalog, funds: [{ ...entry.fund, enrichment: { ...entry.fund.enrichment, programs: [entry.program!] } }] } };
+        const scored = evaluateCatalog(one, project, now).find((row) => row.documentId === id)!;
+        assert.equal(scored.access, access, `rubric: ${where}`);
+      }
+    }
+  } finally {
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
 });
