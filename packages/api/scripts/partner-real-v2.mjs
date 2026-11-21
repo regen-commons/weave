@@ -193,14 +193,23 @@ export function distinctiveWords(corpus, project) {
   return new Set(words(`${project.name} ${project.passages.join(" ")}`).filter(word => frequency.get(word) <= limit));
 }
 
-/** Joins the writers' answers to their slots and checks quotas, format, language and word reuse. Labels nothing. */
-export function assemble(corpus, slotFile, answers) {
+/**
+ * Joins the writers' answers to their slots and checks quotas, format, language and word reuse. Labels nothing.
+ * A revision is a writer's rewrite of one answer after the checks; it replaces that answer and is counted.
+ */
+export function assemble(corpus, slotFile, answers, revisions = []) {
   const byId = new Map(corpus.projects.map(project => [project.id, project]));
   const answered = new Map();
   const problems = [];
   for (const answer of answers) {
     if (answered.has(answer.id)) problems.push(`duplicate_answer:${answer.id}`);
     answered.set(answer.id, answer);
+  }
+  const revised = new Set();
+  for (const revision of revisions) {
+    if (!answered.has(revision.id) || revised.has(revision.id)) { problems.push(`bad_revision:${revision.id}`); continue; }
+    answered.set(revision.id, revision);
+    revised.add(revision.id);
   }
   const ids = new Set(slotFile.slots.map(slot => slot.id));
   for (const id of answered.keys()) if (!ids.has(id)) problems.push(`unknown_slot:${id}`);
@@ -225,7 +234,7 @@ export function assemble(corpus, slotFile, answers) {
   return {
     queries: { version: 1, dataset: "partner-real-v2-queries", corpus: "partner-real-v2-corpus.json", queries },
     problems, flags,
-    counts: { total: queries.length, byDomainAndDirection: count(q => `${q.domain}/${q.direction}`), byLanguage: count(q => q.language),
+    counts: { total: queries.length, revised: revised.size, byDomainAndDirection: count(q => `${q.domain}/${q.direction}`), byLanguage: count(q => q.language),
       byKind: count(q => slotFile.slots.find(slot => slot.id === q.id).kind) },
   };
 }
@@ -258,9 +267,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(JSON.stringify({ slots: slotFile.slots.length, seedsReused: slotFile.slots.filter(s => s.seed).length - new Set(slotFile.slots.map(s => s.seed).filter(Boolean)).size }));
   } else if (command === "assemble") {
     const [corpusPath, slotsPath, answersDir, outDir] = args;
-    const answers = [];
-    for (const name of (await readdir(answersDir)).filter(name => name.endsWith(".json")).sort()) answers.push(...await json(join(answersDir, name)));
-    const result = assemble(await json(corpusPath), await json(slotsPath), answers);
+    // Files named revisions-*.json hold rewrites; every other .json file holds a writer's first answers.
+    const answers = [], revisions = [];
+    for (const name of (await readdir(answersDir)).filter(name => name.endsWith(".json")).sort())
+      (name.startsWith("revisions-") ? revisions : answers).push(...await json(join(answersDir, name)));
+    const result = assemble(await json(corpusPath), await json(slotsPath), answers, revisions);
     console.log(JSON.stringify({ problems: result.problems, flags: result.flags, counts: result.counts }, null, 1));
     if (!result.problems.length) await write(join(outDir, "partner-real-v2-queries.json"), result.queries);
   } else if (command === "hashes") {

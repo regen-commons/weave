@@ -90,6 +90,13 @@ test("assembly refuses missing, duplicate, unknown and malformed answers, and fl
   const bad = assemble(corpus, slotFile, [good[0], good[0], { id: "q2", title: "A much longer title than sparse allows", description: null },
     { id: "q9", title: "x", description: "y" }]);
   assert.deepEqual(bad.problems.sort(), ["duplicate_answer:q1", "missing_answer:q3", "not_sparse:q2", "unknown_slot:q9"]);
+  // A revision replaces an existing answer once; it cannot add a slot or revise twice.
+  const fixed = assemble(corpus, slotFile, [good[0], { id: "q2", title: "A much longer title than sparse allows", description: null }, good[2]],
+    [{ id: "q2", title: "Seed library", description: null }]);
+  assert.deepEqual([fixed.problems, fixed.counts.revised, fixed.queries.queries[1].title], [[], 1, "Seed library"]);
+  const twice = assemble(corpus, slotFile, good, [{ id: "q2", title: "Seeds", description: null }, { id: "q2", title: "Seeds", description: null },
+    { id: "q7", title: "Seeds", description: null }]);
+  assert.deepEqual(twice.problems.sort(), ["bad_revision:q2", "bad_revision:q7"]);
 });
 
 test("pages are saved until the list ends, and a list that changes while reading is refused", async () => {
