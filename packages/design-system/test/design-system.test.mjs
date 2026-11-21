@@ -585,6 +585,21 @@ test("a filter's menu scrolls to its last row: scrolling inside it never places 
   assert.match(source, /const scrolledTo = panel\.scrollTop;[\s\S]*if \(panel\.scrollTop !== scrolledTo\) panel\.scrollTop = scrolledTo;\n\}/);
 });
 
+test("a menu of one choice opens on the choice in force, as a radio group does (DL-124)", async () => {
+  const { openingFocus } = await import("../behaviors/overlays.js");
+  // A stand-in panel that answers the two questions the behaviour asks of it.
+  const panel = (checked, first) => ({
+    querySelector: (selector) => selector === 'input[type="radio"]:checked' ? checked : selector === "a[href], input, select, button" ? first : null,
+  });
+  const firstRadio = { name: "the first radio" }, chosen = { name: "the checked radio" };
+  assert.equal(openingFocus(panel(chosen, firstRadio)), chosen, "Change Initiative reopens on the initiative chosen");
+  assert.equal(openingFocus(panel(null, firstRadio)), firstRadio, "with nothing chosen, the first control");
+  assert.equal(openingFocus(panel(null, null)), null);
+  // Both ways of opening use it: the native popover's toggle and the local fallback.
+  const source = read("packages/design-system/behaviors/overlays.js");
+  assert.equal(source.match(/openingFocus\(panel\)\?\.focus\(/g)?.length, 2);
+});
+
 test("a panel keeps a block's rhythm and paints nothing, at any width (DL-099)", () => {
   const molecules = stripComments(read("packages/design-system/css/molecules.css"));
   const rules = [...molecules.matchAll(/\.rc-panel[^{]*\{([^}]*)\}/g)].map((match) => match[1].trim());

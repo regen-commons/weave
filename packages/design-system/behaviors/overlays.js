@@ -206,6 +206,15 @@ export function connectTooltip(trigger, panel) {
   };
 }
 
+/**
+ * Where focus goes when a panel opens: the radio in force in a menu of one choice, as Tab lands on
+ * the checked radio of a group (DL-124), and otherwise the first thing to act on, a control or a
+ * link in a menu of places.
+ */
+export function openingFocus(panel) {
+  return panel.querySelector('input[type="radio"]:checked') ?? panel.querySelector("a[href], input, select, button");
+}
+
 export function connectPopover(trigger, panel) {
   const ui = overlay(trigger, panel);
   const sync = () => trigger.setAttribute("aria-expanded", String(ui.isOpen()));
@@ -214,18 +223,16 @@ export function connectPopover(trigger, panel) {
   trigger.setAttribute("aria-controls", panel.id);
   sync();
   ui.onChange(sync);
-  // Focus goes to the first thing in the panel to act on: a control, or a link in a menu of places.
-  const first = () => panel.querySelector("a[href], input, select, button");
   ui.on(panel, "toggle", (event) => {
     sync();
-    if (event.newState === "open") first()?.focus({ preventScroll: true });
+    if (event.newState === "open") openingFocus(panel)?.focus({ preventScroll: true });
   });
   if (!ui.native) {
     ui.on(trigger, "click", () => {
       if (ui.isOpen()) ui.close();
       else {
         ui.open();
-        first()?.focus();
+        openingFocus(panel)?.focus();
       }
       sync();
     });

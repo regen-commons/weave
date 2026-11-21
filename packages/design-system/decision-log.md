@@ -825,6 +825,14 @@ Before, when a session ended on its own (renewal refused, the session revoked el
 
 Partner matching and project requests read only the access cookie, which can lapse while the session still renews. A refusal from them is now checked with the account first, which renews the session; the request runs once more when it was only renewed, and the notice shows only when the session really ended. The partner panel's own "Your session ended" line is gone, so the page says it once. Above a doorway or Home's hero the notice keeps the page's usual step from the app bar. No new class. No tokens changed.
 
+## DL-124: A menu of one choice opens on the choice in force
+
+**Status:** maker's call, 21 November 2026, from the Funding fixture QA (regen-commons/weave#127, defects 5 and 11). Refines DL-100 and DL-118.
+
+A Menu focused its first control when it opened. For a menu of radios, such as Sort or Change Initiative, that put focus on the first option rather than the one in force, where Tab into a radio group lands on the checked radio. A menu with a checked radio now opens on it; any other menu still opens on its first control or link.
+
+Change Initiative takes effect as it is chosen, and each arrow press in its menu is a choice. Funding dropped every choice made while an initiative was opening, so Down three times left the page on the first initiative reached. Now one opening runs at a time, a choice made meanwhile waits, a later one replaces it, and the menu marks the last choice at once. The page ends on the initiative reached, and two openings never run at once (DL-112).
+
 ## DL-125: A wide screen's steps and Continue share one bar, and the describe step asks for three things
 
 **Status:** user decision from manual QA, 21 November 2026 ("we don't have a loading state when downloading and setting up", "the input to add your details can be full width of the section", "our speech flow is meant to be deriving from what was shared into the project name, location and description", "We should have a light guidance on what to share when you speak", "suggested details should be what we derive into the 3 core fields", "with files we should parse and derive relevant details", "We should better design how continue works and the steps as a header on desktop"). Amends DL-089, DL-110 and DL-113.
