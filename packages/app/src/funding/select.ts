@@ -1,6 +1,7 @@
 import { effectiveAccess } from "../../../../dist/domain.mjs";
 import { MATCH_GROUPS, programFund } from "../../../../dist/matching.mjs";
 import type { Entry, Evaluation } from "./contracts.ts";
+import { closingDay, closingDayEnds } from "./deadline.ts";
 
 /**
  * How to apply, as a visitor chooses it (DL-062). The catalog records twelve states and several are
@@ -109,13 +110,14 @@ export function writeFundingFilters(filters: FundingFilters, params: URLSearchPa
 }
 
 /**
- * Time left to apply, to the end of the closing day in UTC. NaN when the call states no closing
- * date or has closed, so the closing filter and Home's previews both leave it out.
+ * Time left to apply, to the end of the closing day in UTC (see `closingDay`). NaN when the call
+ * states no closing date or has closed, so the closing filter and Home's previews both leave it out.
  */
 export function timeToClose(entry: Entry, now = new Date()): number {
-  const deadline = entry.program?.application.closesOn;
-  if (!deadline || effectiveAccess(programFund(entry.fund, entry.program), now) === "closed") return Number.NaN;
-  return Date.parse(`${deadline}T23:59:59Z`) - now.getTime();
+  const application = entry.program?.application;
+  if (!application?.closesOn || effectiveAccess(programFund(entry.fund, entry.program), now) === "closed")
+    return Number.NaN;
+  return closingDayEnds(closingDay(application.closesOn, application.deadlineInstant)) - now.getTime();
 }
 
 const intersects = (chosen: readonly string[], values: readonly string[]) =>

@@ -16,6 +16,7 @@ declare module "*dist/matching.mjs" {
 }
 declare module "*dist/domain.mjs" {
   export function effectiveAccess(fund: unknown, now?: Date): string;
+  export function utcDate(now?: Date): string;
   export function safeFundUrl(fund: unknown, url: string): string;
   export const ACCESS: Record<string, { label: string; tone: string }>;
 }

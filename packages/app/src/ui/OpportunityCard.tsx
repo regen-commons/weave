@@ -3,7 +3,7 @@ import { FundSchema, type Entry, type Evaluation } from "../funding/contracts.ts
 import { programFund } from "../../../../dist/matching.mjs";
 import { fitLevel } from "../funding/select.ts";
 import { accessSign, fundingEyebrow, opportunityHref } from "../funding/catalog.ts";
-import { deadlineSign } from "../funding/deadline.ts";
+import { closingDay, deadlineSign } from "../funding/deadline.ts";
 import { fullDate } from "../home.ts";
 import { Link, routeSearch } from "../router.tsx";
 import { Card } from "./Card.tsx";
@@ -29,7 +29,9 @@ export function OpportunityCard({
   const access = effectiveAccess(fund);
   const sign = accessSign(access);
   const funder = entry.program && entry.program.name !== fund.displayName ? fund.displayName : "";
-  const deadline = fund.deadlineDate ? deadlineSign(fund.deadlineDate, access === "closed", new Date()) : null;
+  const deadline = fund.deadlineDate
+    ? deadlineSign(closingDay(fund.deadlineDate, fund.deadlineInstant), access === "closed", new Date())
+    : null;
   return (
     <Card kind="funding" rows="fixed">
       <p className="rc-eyebrow">
