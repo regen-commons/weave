@@ -33,7 +33,8 @@ export class AccountSession {
   /** The account last shown as signed in, so a state without one reads as an ending, not as a first check. */
   private holder: string | null = null;
   private ending: SessionEnding | null = null;
-  private confirming: Promise<AccountState> | null = null;
+  /** The `/api/account` check under way, which a scheduled renewal or a confirmation joins rather than aborts. */
+  private inflight: Promise<AccountState> | null = null;
   constructor(request = accountRequest, timers = browserTimers, spread = () => Math.random() * 20000) {
     this.request = request;
     this.timers = timers;
@@ -91,7 +92,7 @@ export class AccountSession {
     if (!seconds || !this.connection) return;
     this.timer = this.timers.set(() => {
       this.timer = null;
-      void this.refresh().catch(() => {});
+      void this.join().catch(() => {});
     }, seconds * 1000 + this.spread());
   }
   private invalidate() {
@@ -111,16 +112,18 @@ export class AccountSession {
   /** This tab's Sign Out was confirmed, or found the session already ended. Its own message says so. */
   signedOut = () => this.end(true, "signed_out");
   /**
-   * Another endpoint refused a request for want of a session. Asks `/api/account`, which renews it,
-   * and shares one check among every refusal that arrives meanwhile, so they do not cancel each other.
+   * Joins the check under way, or starts one. Aborting a check can lose a renewal: once Supabase has
+   * rotated the refresh token, a response that never arrives leaves the browser holding the spent one.
    */
-  confirm = (): Promise<AccountState> => {
-    // A check started meanwhile, by the schedule or a change in another tab, supersedes this one; its answer is the one to read.
-    this.confirming ??= this.refresh()
-      .catch((error: unknown) => error instanceof AccountFailure && error.code === "account_changed" ? this.refresh() : Promise.reject(error))
-      .finally(() => { this.confirming = null; });
-    return this.confirming;
-  };
+  private join = () => this.inflight ?? this.refresh();
+  /**
+   * Another endpoint refused a request for want of a session. Asks `/api/account`, which renews it,
+   * joining any check already under way, so refusals that arrive together share one and abort none.
+   */
+  confirm = (): Promise<AccountState> =>
+    // A check superseded by a change in another tab is not an answer; the one that replaced it is.
+    this.join().catch((error: unknown) =>
+      error instanceof AccountFailure && error.code === "account_changed" ? this.join() : Promise.reject(error));
   /** The callback has established a new cookie. Other tabs must check it themselves. */
   changed() {
     this.invalidate();
@@ -132,7 +135,15 @@ export class AccountSession {
     this.update(null);
     void this.refresh().catch(() => {});
   }
-  refresh = async (): Promise<AccountState> => {
+  /** Checks the session now, superseding any check under way. A change of account needs that; a renewal joins instead. */
+  refresh = (): Promise<AccountState> => {
+    const run = this.ask();
+    this.inflight = run;
+    const settle = () => { if (this.inflight === run) this.inflight = null; };
+    run.then(settle, settle);
+    return run;
+  };
+  private ask = async (): Promise<AccountState> => {
     const revision = ++this.revision;
     this.pending?.abort();
     const task = new AbortController();

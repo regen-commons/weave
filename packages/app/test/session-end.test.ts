@@ -189,3 +189,30 @@ test("Sign Out keeps its own message: a signed-out ending shows no notice here",
   assert.equal(sessionEndedNotice("signed_out", null, "/settings").text, "");
   assert.equal(sessionEndedNotice("signed_out", "/settings", "/funding").acknowledge, true);
 });
+
+test("a refusal during a scheduled renewal joins it, so the renewal is neither aborted nor the session cleared", async () => {
+  const signals: AbortSignal[] = [];
+  let release: (() => void) | undefined;
+  const request: typeof accountRequest = async (_path, _body, _endpoint, signal) => {
+    signals.push(signal!);
+    if (signals.length > 1) await new Promise<void>(resolve => { release = resolve; });
+    return { ...response(owner), renewIn: 300 };
+  };
+  let scheduled: (() => void) | undefined;
+  const session = new AccountSession(request, { set: run => { scheduled = run; return 1; }, clear() {} }, () => 0);
+  const close = session.connect(tabs());
+  await session.refresh();
+  // The schedule fires: a renewal is under way, and Supabase may already have rotated the refresh token.
+  scheduled!();
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(signals.length, 2);
+  const outcome = confirmRefusal(session.confirm, owner, false);
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(signals.length, 2, "the refusal asks no second question");
+  assert.equal(signals[1]!.aborted, false, "the renewal in flight is never aborted");
+  release!();
+  assert.deepEqual(await outcome, { outcome: "retry" });
+  assert.equal(session.getSnapshot()?.user?.id, owner);
+  assert.equal(session.getEnding(), null);
+  close();
+});
