@@ -185,9 +185,9 @@ export async function buildManifest(cutOffs, frozenOn) {
   };
 }
 
-/** Differences between the committed manifest and what is on disk now; empty when they agree. */
-export async function verifyManifest() {
-  const manifest = JSON.parse(await readFile(new URL(MANIFEST, root), "utf8"));
+/** Differences between the committed manifest, or the one given, and what is on disk now; empty when they agree. */
+export async function verifyManifest(given = null) {
+  const manifest = given ?? JSON.parse(await readFile(new URL(MANIFEST, root), "utf8"));
   const differences = [];
   const code = await codeHashes();
   for (const path of new Set([...Object.keys(manifest.code), ...CODE_FILES])) if (manifest.code[path] !== code[path]) differences.push(`code:${path}`);

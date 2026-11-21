@@ -642,8 +642,7 @@ approves nothing beyond the answer above.
 Holdout plan, 21 November 2026: the
 [`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md)
 sets out the new holdout, the frozen engines, the human review and the decision
-rule, with six questions for the user. Nothing in it is built. The user answered
-five on 21 November 2026. Its human review replaces the one planned for
+rule, with six questions for the user. The user answered five on 21 November 2026. Its human review replaces the one planned for
 `partner-real-v1`, which stays as development data with its agent labels. Its
 160 queries are 100 in English, 40 in Portuguese and 20 in Spanish, and blind
 agent instances write all of them. The decision rule stands as proposed: seed
@@ -653,6 +652,17 @@ private shared drive until the scored run. Reviewers judge the smaller pool: the
 engines' suggestions, the seed and two controls per query, about 1,100 pairs, which
 the plan puts at 4.5 to 6 hours each.
 Who the two reviewers are is still open.
+
+Engines frozen, 21 November 2026: the user chose to set the model cut-offs on
+`partner-real-v1` by the decision rule's own gates (recall no lower than the
+current matcher's, Portuguese and Spanish recall above it, no-match suggestions at
+most 10 points above its share). Multilingual MiniLM-L12 goes forward, loading
+upstream's own 8-bit file. Multilingual-e5-small does not: no cut-off passed the
+gates. The holdout now compares the current matcher with MiniLM-L12 only, which
+lowers the reviewer estimate to about 750 pairs, 3 to 4 hours each, as a lower
+bound. The
+[engine manifest](../../packages/api/evaluation/partner-real-v2-engines.json)
+freezes the settings, model files and scripts. No query is written yet.
 
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:

@@ -11,7 +11,9 @@ production modules (`dist/matching.mjs`, `packages/api/src/partner-matcher.ts`,
 `partner-concepts.ts`) and never change them. `bun run --filter @weave/api test`
 does not run the test file here.
 
-Results are in the [dated report](reports/2026-11-19.md).
+Results are in the [dated report](reports/2026-11-19.md). The engines the
+[`partner-real-v2` plan](../../partner-real-v2-plan.md) compares for D32 were
+frozen on 21 November 2026; see [D32 engines](#d32-engines-21-november-2026).
 
 ## Run it
 
@@ -39,26 +41,29 @@ already pins and needs no download.
 |---|---|
 | `shape.mjs` | The shared shape: a party with offers and asks, conditions on an entry, and where each statement comes from |
 | `catalog-shape.mjs` | Maps all catalog programs into that shape and counts what fills it |
-| `models.mjs` | The three embedding models compared, with a disk cache for vectors |
+| `models.mjs` | The embedding models compared, the upstream files the D32 engines load, and a disk cache for vectors |
 | `retrieval-eval.mjs` | Scores the current matcher and the hybrid variants on the v2 development split and the v3 holdout |
 | `retrieval-real.mjs` | Runs those engines once, with their v2 cut-offs, on the real-project set `partner-real-v1` ([report](reports/2026-11-19-partner-real-v1.md)) |
+| `d32-engines.mjs` | The engines `partner-real-v2` compares, the rule that set their cut-offs, and the engine manifest ([report](reports/2026-11-21-d32-engines.json)) |
 | `teams.mjs` | Gap enumeration, the smallest covering team, the reverse direction and the privacy projection |
 | `teams-demo.mjs` | Thirteen worked examples and the need-as-query comparison |
-| `prototype.test.mjs` | Twelve checks on the rules the prototype must keep |
+| `prototype.test.mjs` | Fourteen checks on the rules the prototype must keep |
 | `fixtures/` | Fictional initiatives, labelled team asks for three real programs, and one reading of the catalog's team wording |
 
 ## Models and dependencies
 
 No package or lockfile changed. The runtime is the root's pinned
 `@huggingface/transformers`. The pinned English model comes from the build's
-verified files. The two multilingual models are not pinned anywhere in the
-repository; using one in the product is a decision for the owner under D32.
+verified files. The multilingual models are pinned only for this experiment, in
+`models.mjs`; using one in the product is a decision for the owner under D32.
 
 | Key | Model | Revision | Licence |
 |---|---|---|---|
 | `mxbai-xsmall-en` | `mixedbread-ai/mxbai-embed-xsmall-v1` | `b0561d9a97e6b298da39f0ef3e7d3cf153b1b29a` | Apache-2.0 |
 | `me5-small` | `Xenova/multilingual-e5-small` | `761b726dd34fb83930e26aab4e9ac3899aa1fa78` | MIT upstream |
 | `mminilm-l12` | `Xenova/paraphrase-multilingual-MiniLM-L12-v2` | `2c4055b12046f11709e9df2c122e59ffbdc2f900` | Apache-2.0 upstream |
+| `me5-small-upstream` | `intfloat/multilingual-e5-small`, `onnx/model_qint8_avx512_vnni.onnx` | `614241f622f53c4eeff9890bdc4f31cfecc418b3` | MIT |
+| `mminilm-l12-upstream` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`, `onnx/model_qint8_avx512.onnx` | `e8f8c211226b894fcb81acc59f3b34ba3efd5f42` | Apache-2.0 |
 
 The two `Xenova` repositories are conversions of upstream models
 (`intfloat/multilingual-e5-small` and
@@ -104,7 +109,8 @@ What changes for the benchmark:
   carry over. The D32 holdout runs on the upstream files.
 - The pinned `@huggingface/transformers` 4.2.0 accepts a `model_file_name`
   option, so loading an upstream file by name should need no new dependency. This
-  is untried: nothing was downloaded for this check.
+  was untried at the time of the check. Both files loaded this way later the same
+  day (see [D32 engines](#d32-engines-21-november-2026)).
 - If upstream's files do not load or run, the fallback is to convert from
   upstream's weights ourselves and record the tool versions and hashes. That needs
   Python tooling outside the repository.
@@ -130,6 +136,42 @@ Not settled by this check:
 How it was checked: the Hugging Face model API, file listings and cards at the
 revisions above, and the MS MARCO site, read on 21 November 2026. No model file
 was downloaded.
+
+### D32 engines, 21 November 2026
+
+`d32-engines.mjs` freezes the engines the
+[`partner-real-v2` plan](../../partner-real-v2-plan.md) compares, and writes the
+[engine manifest](../../partner-real-v2-engines.json) the v2 runner checks before
+it scores.
+
+- **Loading.** Both models load upstream's own 8-bit file through
+  `model_file_name`, with `dtype` set to `fp32` so the runtime adds no file suffix.
+  The weights stay 8-bit. No package or lockfile changed. On this Mac, in Node 24 on
+  the CPU, each model loaded in about a second and embedded a text in about 12 ms.
+  That is not a hosting measurement.
+- **Cut-offs.** Set on `partner-real-v1` with agent labels, now development data,
+  by the rule in the script's header: the most relevant pair on a grid among those
+  that pass the holdout's own gates. The first version of the rule kept only the
+  recall floor; the [report](reports/2026-11-21-d32-engines.json) keeps what it
+  chose.
+- **Result.** MiniLM-L12 goes forward at z 3.5 with a keyword veto below z 1.8:
+  69% relevant among the top five and 34% recall on v1, against the current
+  matcher's 31% and 31%. e5-small does not: no pair on the grid passed the gates.
+- **Checks.** The current engine reproduces `matching-real.mjs` on every v1
+  query. `--verify` compares the manifest with the scripts, model pins and
+  lockfile on disk.
+
+To repeat it, from the repository root:
+
+```sh
+node packages/api/evaluation/experiments/matching-architecture/d32-engines.mjs --fetch
+node packages/api/evaluation/experiments/matching-architecture/d32-engines.mjs --output <report.json>
+node packages/api/evaluation/experiments/matching-architecture/d32-engines.mjs --verify
+```
+
+`--fetch` downloads the two models' pinned files, about 263 MB, into `.cache/` and
+checks every hash. Once those files are there, the other two make no network
+requests.
 
 ## Limits
 

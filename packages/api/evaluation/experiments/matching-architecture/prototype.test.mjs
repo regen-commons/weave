@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { catalogParties, loadCatalog, SAMPLE } from "./catalog-shape.mjs";
-import { chooseCutOffs, GRID, passesFirstVersion } from "./d32-engines.mjs";
+import { buildManifest, chooseCutOffs, GRID, passesFirstVersion, verifyManifest } from "./d32-engines.mjs";
 import { allowed, assertedText, chooseThreshold, score } from "./retrieval-eval.mjs";
 import { catalogCoverage } from "./shape.mjs";
 import { loadFixtures, NOW, runExamples } from "./teams-demo.mjs";
@@ -129,4 +129,16 @@ test("the D32 cut-off rule applies the holdout's gates, takes the most relevant,
   assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.4, { es: 0.3 }), point(2, 1, 0.6, 0.3)], floor, passesFirstVersion), cut(5, 3));
   assert.deepEqual([GRID.semanticAtOrAboveZ.length, GRID.semanticAtOrAboveZ[0], GRID.semanticAtOrAboveZ.at(-1)], [61, 0, 6]);
   assert.deepEqual([GRID.vetoBelowZ.length, GRID.vetoBelowZ[0], GRID.vetoBelowZ.at(-1), GRID.vetoBelowZ[21]], [61, -2, 4, 0.1]);
+});
+
+test("the D32 manifest check names each code file, model pin and runtime that differs", async () => {
+  const onDisk = await buildManifest({ "mminilm-l12-upstream": { semanticAtOrAboveZ: 3.5, vetoBelowZ: 1.8 } }, "2026-11-21");
+  assert.deepEqual((await verifyManifest(onDisk)).differences, []);
+  const changed = structuredClone(onDisk);
+  changed.code["packages/api/src/partner-matcher.ts"] = "0".repeat(64);
+  changed.models["mminilm-l12-upstream"].files["tokenizer.json"] = "0".repeat(64);
+  changed.runtime["@huggingface/transformers"] = "4.1.0";
+  delete changed.code["dist/semantic-config.mjs"];
+  assert.deepEqual((await verifyManifest(changed)).differences, ["code:packages/api/src/partner-matcher.ts", "code:dist/semantic-config.mjs",
+    "model:mminilm-l12-upstream", "runtime:@huggingface/transformers"]);
 });
