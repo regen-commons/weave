@@ -168,7 +168,7 @@ export function createHypercertsSource(options: {
           // The index answers an activity or tag it has not indexed with a 500 whose message names
           // RecordNotFound (measured 21 November 2026), so that answer is a missing record, not an outage.
           if ((method === getActivity || method === getWorkscopeTag)
-            && notIndexed(await readBounded(response, 16 * 1024).catch(() => null)))
+            && notIndexed(method, await readBounded(response, 16 * 1024).catch(() => null)))
             return { status: "missing", code: "record_not_found" };
           await response.body?.cancel().catch(() => undefined);
           const retryAfter = response.headers.get("Retry-After");
@@ -254,15 +254,21 @@ export function createHypercertsSource(options: {
     /**
      * Reads projects' kinds of work for one refresh. Tags are shared, 222 across the listed projects on 21
      * November 2026, so a reader reads each tag once and keeps the answer for every project that names it.
+     * No request starts at or after `deadline`: a project whose activity or a tag it still needs would be
+     * read late is answered `late`, so a slow project overruns the deadline by one request and its retry at most.
      */
-    workScopeReader() {
+    workScopeReader(deadline: number) {
       const tags = new Map<string, Promise<TagRead>>();
-      const tag = (uri: string) => {
-        let read = tags.get(uri);
-        if (!read) tags.set(uri, read = readTag(uri));
+      const tag = (uri: string): Promise<TagRead> => {
+        const known = tags.get(uri);
+        if (known) return known;
+        if (now() >= deadline) return Promise.resolve({ status: "late" });
+        const read = readTag(uri);
+        tags.set(uri, read);
         return read;
       };
-      return (activity: string) => readWorkScope(activity, tag);
+      return (activity: string): Promise<WorkScopeRead> =>
+        now() >= deadline ? Promise.resolve({ status: "late" }) : readWorkScope(activity, tag);
     },
   };
 
@@ -289,7 +295,7 @@ export function createHypercertsSource(options: {
     const keys = new Set<string>();
     for (const uri of uris) {
       const read = await tag(uri);
-      if (read.status === "failed") return read;
+      if (read.status !== "read") return read;
       if (read.key) keys.add(read.key);
       if (keys.size === WORK_SCOPES_MAX) break;
     }
@@ -309,16 +315,30 @@ export function createHypercertsSource(options: {
   }
 }
 
-/** What the source said about one project's kinds of work. A failure leaves what is stored as it is. */
-export type WorkScopeRead = { status: "read"; keys: string[] } | { status: "failed"; code: SourceError };
-type TagRead = { status: "read"; key: string | null } | { status: "failed"; code: SourceError };
+/**
+ * What the source said about one project's kinds of work. A failure, or a read the deadline stopped
+ * (`late`), leaves what is stored as it is.
+ */
+export type WorkScopeRead = { status: "read"; keys: string[] } | { status: "failed"; code: SourceError } | { status: "late" };
+type TagRead = { status: "read"; key: string | null } | { status: "failed"; code: SourceError } | { status: "late" };
 const failedRead = (result: { code: SourceError | "source_response_too_large" }): { status: "failed"; code: SourceError } =>
   ({ status: "failed", code: result.code === "source_response_too_large" ? "invalid_source_record" : result.code });
 
-/** The index's answer for an activity or tag it has not indexed: a script error that names RecordNotFound. */
-function notIndexed(body: unknown): boolean {
+/**
+ * The index's answer for an activity or tag it has not indexed: a script error from the method asked that
+ * says RecordNotFound for that kind of record, as measured on 21 November 2026. The message does not name
+ * the address. Any other 500 is an outage, which keeps what is stored, so a passing failure that merely
+ * mentions RecordNotFound cannot clear a project's kinds of work or a tag shared by hundreds of projects.
+ */
+const NOT_INDEXED: Readonly<Record<string, string>> = {
+  [getActivity]: "RecordNotFound: activity record is not indexed",
+  [getWorkscopeTag]: "RecordNotFound: work-scope tag is not indexed",
+};
+function notIndexed(method: string, body: unknown): boolean {
   const answer = object(body);
-  return answer?.error === "script_error" && typeof answer.message === "string" && /\bRecordNotFound\b/u.test(answer.message);
+  const expected = Object.hasOwn(NOT_INDEXED, method) ? NOT_INDEXED[method] : undefined;
+  return expected !== undefined && answer?.error === "script_error" && answer.method === method
+    && typeof answer.message === "string" && answer.message.startsWith(`runtime error: ${expected}\n`);
 }
 
 /**

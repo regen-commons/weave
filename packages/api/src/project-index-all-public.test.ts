@@ -233,6 +233,29 @@ test("a work scope read that fails, is rate limited or runs out of time keeps th
   assert.deepEqual(projects.map(work), afterOutage);
 });
 
+test("work scopes are read only for projects with words to show, in an order that changes every generation", async () => {
+  const projects = Array.from({ length: 12 }, (_, n) => n);
+  const SILENT = 11;
+  const views = projects.map((n) => projectView(n, { activities: [activityUri(n)], ...(n === SILENT ? { short: null } : {}) }));
+  const activities = new Map<string, unknown>(projects.map((n) => [activityUri(n), activityRecord([])]));
+  const index = setup(views, undefined, { activities });
+  const readOrder = async () => {
+    index.lookups.length = 0;
+    index.advance(24 * 60 * 60 * 1000);
+    const report = await index.run();
+    assert.equal(report.status, "complete");
+    assert.deepEqual([report.withoutText, report.workScopeRead, report.workScopeKept], [1, 11, 0]);
+    return [...index.lookups];
+  };
+  const first = await readOrder();
+  const second = await readOrder();
+  // A project with no words is never shown, so its activity is not read.
+  assert.deepEqual([...first].sort(), projects.filter((n) => n !== SILENT).map((n) => activityUri(n)).sort());
+  assert.deepEqual([...second].sort(), [...first].sort());
+  // When time runs short, the projects left waiting are not the same ones each day.
+  assert.notDeepEqual(second, first);
+});
+
 test("an outage, a partial traversal or a cursor cycle changes nothing that is shown", async () => {
   const views = Array.from({ length: 60 }, (_, n) => projectView(n));
   const outage = setup(views);

@@ -1,6 +1,6 @@
 import { refreshProjectIndex, type ProjectIndexStore } from "./project-index.ts";
 import { isCertifiedTestHost, type AccountHost, type AccountHostResolver } from "./project-index-hosts.ts";
-import type { createHypercertsSource, ProjectManifest, ProjectRead, WorkScopeRead } from "./project-index-source.ts";
+import { sha256, type createHypercertsSource, type ProjectManifest, type ProjectRead, type WorkScopeRead } from "./project-index-source.ts";
 import { traverseProjectNetwork } from "./project-index-traversal.ts";
 import { parseProjectUri } from "./project-uri.ts";
 
@@ -216,10 +216,17 @@ export async function refreshAllPublicProjects(input: {
   if (!input.allowShrink && shown.length >= SHRINK_GUARD_MINIMUM && report.withdrawn * 2 > shown.length)
     return { ...report, code: "suspicious_shrink" };
 
-  // What each project's own activity says the work is, read only for the projects about to be shown. A
-  // read that fails, or that time or a rate limit stops, keeps what is stored, so it never holds up the run.
-  const readWorkScope = input.source.workScopeReader();
-  const pending = [...reads.keys()];
+  // What each project's own activity says the work is, read only for the projects with words to show: one
+  // without is never shown, so what is stored for it is left alone. A read that fails, or that the deadline
+  // or a rate limit stops, keeps what is stored, and the reader starts no request after the deadline, so
+  // these reads never hold up the run. The order changes with every generation, so when time runs short
+  // it is not the same projects that wait each day.
+  const generation = state.generation + 1;
+  const readWorkScope = input.source.workScopeReader(lookupDeadline);
+  const pending = [...reads].filter(([, { passages }]) => passages.length)
+    .map(([uri]) => ({ uri, turn: sha256(`${generation} ${uri}`) }))
+    .sort((a, b) => a.turn < b.turn ? -1 : a.turn > b.turn ? 1 : 0)
+    .map(({ uri }) => uri);
   let halted = false;
   await Promise.all(Array.from({ length: Math.min(WORK_SCOPE_READS, pending.length) }, async () => {
     for (let uri = pending.pop(); uri !== undefined; uri = pending.pop()) {
@@ -237,7 +244,8 @@ export async function refreshAllPublicProjects(input: {
         report.workScopeRead++;
       } else {
         report.workScopeKept++;
-        if (result.code === "source_rate_limited" || result.code === "source_access_denied") halted = true;
+        if (result.status === "failed" && (result.code === "source_rate_limited" || result.code === "source_access_denied"))
+          halted = true;
       }
     }
   }));
@@ -247,7 +255,7 @@ export async function refreshAllPublicProjects(input: {
   const permissions = [...reads.keys()]
     .sort((a, b) => (checked.get(a) ?? -Infinity) - (checked.get(b) ?? -Infinity) || (a < b ? -1 : a > b ? 1 : 0))
     .map((uri) => ({ uri, redisplayUntil }));
-  return apply(input.store, { generation: state.generation + 1, permissions }, reads, report, input.deadline, now);
+  return apply(input.store, { generation, permissions }, reads, report, input.deadline, now);
 }
 
 /** Withdraws every project at once, for rollback. Stop the scheduled refresh first or it adds them back. */

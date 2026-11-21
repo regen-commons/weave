@@ -208,7 +208,7 @@ test("a work scope reads only tags with a usable key, and a strange answer from 
   const tags = new Map<string, unknown>();
   const activities = new Map<string, unknown>();
   const reader = () => createHypercertsSource({ wait: async () => undefined, fetch: projectListing({ views: [], activities, tags }) })
-    .workScopeReader();
+    .workScopeReader(Number.POSITIVE_INFINITY);
   const read = (n: number) => reader()(activityUri(n));
   const keys = ["Disaster Relief", "forest_protection", "x".repeat(61), "", "Bad.Key", "water"];
   keys.forEach((key, n) => tags.set(tagUri(`k${n}`), tagRecord(key)));
@@ -231,9 +231,55 @@ test("a work scope reads only tags with a usable key, and a strange answer from 
   assert.deepEqual(await read(7), { status: "read", keys: [] });
   activities.set(activityUri(8), () => Response.json({ error: "script_error", message: "runtime error: timeout" }, { status: 500 }));
   assert.deepEqual(await read(8), { status: "failed", code: "source_unavailable" });
+  // Only the exact answer for the record asked about is "not indexed": a passing failure that mentions
+  // RecordNotFound, names another kind of record or comes from another method is an outage, which keeps
+  // what is stored instead of clearing it.
+  const answer = async (body: unknown) => {
+    activities.set(activityUri(8), () => Response.json(body, { status: 500 }));
+    return read(8);
+  };
+  const exact = await notIndexed("activity").json() as Record<string, unknown>;
+  assert.deepEqual(await answer(exact), { status: "read", keys: [] });
+  for (const body of [
+    { ...exact, method: undefined },
+    { ...exact, method: "org.hypercerts.workscope.getWorkscopeTag" },
+    { ...exact, message: "runtime error: RecordNotFound: work-scope tag is not indexed\nstack traceback:" },
+    { ...exact, message: "runtime error: upstream lookup failed (RecordNotFound: activity record is not indexed)\n" },
+    { ...exact, message: "runtime error: RecordNotFound: activity record is not indexed yet, retry\n" },
+    { ...exact, error: "internal_error" },
+  ]) assert.deepEqual(await answer(body), { status: "failed", code: "source_unavailable" }, JSON.stringify(body));
+  tags.set(tagUri("misread"), () => notIndexed("activity"));
+  activities.set(activityUri(10), activityRecord([tagUri("misread")]));
+  assert.deepEqual(await read(10), { status: "failed", code: "source_unavailable" }, "an activity's answer for a tag");
   // A tag that fails fails the project, so a partial set never replaces a whole one.
   tags.set(tagUri("busy"), () => new Response("busy", { status: 503 }));
   activities.set(activityUri(9), activityRecord([tagUri("k5"), tagUri("busy")]));
   assert.deepEqual(await read(9), { status: "failed", code: "source_unavailable" });
-  assert.equal(notIndexed("x").status, 500);
+  assert.equal(notIndexed("workscopeTag").status, 500);
+});
+
+test("a work scope reader starts no request after its deadline, and a project it cannot finish is late, not none", async () => {
+  const tags = new Map<string, unknown>([[tagUri("water"), tagRecord("water")], [tagUri("energy"), tagRecord("energy")]]);
+  const activities = new Map<string, unknown>([
+    [activityUri(1), activityRecord([tagUri("water")])],
+    [activityUri(2), activityRecord([tagUri("water"), tagUri("energy")])],
+    [activityUri(3), activityRecord([tagUri("water")])],
+  ]);
+  const lookups: string[] = [];
+  const listing = projectListing({ views: [], activities, tags, lookups });
+  let clock = 0;
+  const deadline = 1_000;
+  const read = createHypercertsSource({ now: () => clock, wait: async () => undefined, fetch: async (url) => {
+    const answer = await listing(url);
+    // The second project's activity comes back just as the deadline passes.
+    if (new URL(String(url)).searchParams.get("uri") === activityUri(2)) clock = deadline;
+    return answer;
+  } }).workScopeReader(deadline);
+  assert.deepEqual(await read(activityUri(1)), { status: "read", keys: ["water"] });
+  // Its first tag was read in time and is reused; its second would start late, so the project is late and
+  // keeps what is stored rather than taking a partial set.
+  assert.deepEqual(await read(activityUri(2)), { status: "late" });
+  // A project that would start after the deadline is late without asking anything.
+  assert.deepEqual(await read(activityUri(3)), { status: "late" });
+  assert.deepEqual(lookups, [activityUri(1), tagUri("water"), activityUri(2)]);
 });

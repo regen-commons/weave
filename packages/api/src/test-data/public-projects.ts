@@ -87,9 +87,12 @@ export const activityRecord = (tags: readonly string[]) => ({
 export const tagRecord = (key: string, name = key) =>
   ({ $type: "org.hypercerts.workscope.tag", key, name, category: "topic", createdAt: "2026-10-01T12:00:00Z" });
 /** How the index answered a record it had not indexed on 21 November 2026: a 500 that names RecordNotFound. */
-export const notIndexed = (what: string) => Response.json({
+/** The index's answer for an activity or tag it has not indexed, as it was on 21 November 2026. */
+export const notIndexed = (lookup: "activity" | "workscopeTag") => Response.json({
   error: "script_error", errorType: "runtime", line: null,
-  message: `runtime error: RecordNotFound: ${what} is not indexed\nstack traceback:\n\t[C]: in function 'error'`,
+  message: `runtime error: RecordNotFound: ${lookup === "activity" ? "activity record" : "work-scope tag"} is not indexed`
+    + "\nstack traceback:\n\t[C]: in function 'error'",
+  method: lookup === "activity" ? "org.hypercerts.claim.getActivity" : "org.hypercerts.workscope.getWorkscopeTag",
 }, { status: 500 });
 
 /**
@@ -182,7 +185,7 @@ export function projectListing(state: {
       state.lookups?.push(uri);
       const held = (lookup === "activity" ? state.activities : state.tags)?.get(uri);
       if (typeof held === "function") return held() as Response;
-      if (held === undefined) return notIndexed(lookup === "activity" ? "activity record" : "work-scope tag");
+      if (held === undefined) return notIndexed(lookup);
       const did = uri.split("/")[2];
       return Response.json({ [lookup]: {
         uri, cid: `bafyrei${"v".repeat(52)}`, did, indexedAt: "2026-11-20T00:00:00Z", author: { did }, record: held,
