@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  chosenOrganizationType, chosenSort, countLine, emptyList, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage,
-  organizationTypeFacets, organizationTypeLabel, rememberIndex, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
-  PUBLIC_PROJECT_SORT_OPTIONS, sameAsk, searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, sharedLabel, showsIndex,
+  chosenOrganizationType, chosenSort, chosenWorkScope, countLine, emptyList, expectsStarter, filtersChosen, firstPage, INDEX_OFF_KEY,
+  indexLine, keyLabel, listView, nextPage, organizationTypeFacets, organizationTypeLabel, rememberIndex, publicProjectsPath,
+  PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects, PUBLIC_PROJECT_SORT_OPTIONS, sameAsk, searchNow, searchQuery, SEARCH_PAUSE_MS,
+  sharedByLine, sharedLabel, showsIndex, workScopeFacets,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:fixture${"a".repeat(13)}aaa${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -20,7 +21,7 @@ const page = (projects: ReturnType<typeof card>[], total: number, next: string |
 test("each page has one same-origin address, with the search trimmed and bounded", () => {
   assert.equal(publicProjectsPath(""), "/api/public-projects");
   assert.equal(publicProjectsPath("  river   soil "), "/api/public-projects?q=river+soil");
-  assert.equal(publicProjectsPath("", "abc", 3), "/api/public-projects?cursor=abc&limit=3");
+  assert.equal(publicProjectsPath("", { cursor: "abc", limit: 3 }), "/api/public-projects?cursor=abc&limit=3");
   assert.equal(publicProjectsPath("x".repeat(150)).length, "/api/public-projects?q=".length + 100);
 });
 
@@ -123,12 +124,15 @@ test("a browser that last heard the list is off opens on the starter list, with 
 });
 
 test("a kind of group goes into the page's address in one place, and only one the list can read", () => {
-  assert.equal(publicProjectsPath("soil", "abc", 3, "nonprofit"), "/api/public-projects?q=soil&organizationType=nonprofit&cursor=abc&limit=3");
-  assert.equal(publicProjectsPath("", null, undefined, "community-group"), "/api/public-projects?organizationType=community-group");
+  assert.equal(publicProjectsPath("soil", { cursor: "abc", limit: 3, organizationType: "nonprofit" }),
+    "/api/public-projects?q=soil&organizationType=nonprofit&cursor=abc&limit=3");
+  assert.equal(publicProjectsPath("", { organizationType: "community-group" }), "/api/public-projects?organizationType=community-group");
   for (const unreadable of ["Nonprofit", "non profit", "", "x".repeat(41), null])
-    assert.equal(publicProjectsPath("", null, undefined, unreadable), "/api/public-projects", String(unreadable));
+    assert.equal(publicProjectsPath("", { organizationType: unreadable }), "/api/public-projects", String(unreadable));
   assert.equal(chosenOrganizationType("?q=soil&organizationType=nonprofit"), "nonprofit");
-  assert.equal(chosenOrganizationType("?organizationType=grupo-comunit%C3%A1rio"), "grupo-comunitário");
+  // An address shared before the Portuguese spellings were read as Community group opens on Community group (DL-123).
+  assert.equal(chosenOrganizationType("?organizationType=grupo-comunit%C3%A1rio"), "community-group");
+  assert.equal(chosenOrganizationType("?organizationType=grupo-comunitario"), "community-group");
   for (const search of ["", "?organizationType=", "?organizationType=Non%20Profit", "?kind=nonprofit"])
     assert.equal(chosenOrganizationType(search), null, search);
 });
@@ -150,19 +154,52 @@ test("the filter offers only the kinds the list names, keeps a chosen one on off
   assert.equal(organizationTypeLabel("nonprofit"), "Nonprofit");
   assert.equal(organizationTypeLabel("for-profit-company"), "For profit company");
   assert.equal(organizationTypeLabel("grupo-comunitário"), "Grupo comunitário");
+  assert.equal(organizationTypeLabel("ngo"), "NGO");
+});
+
+test("a kind of work goes into the page's address beside the kind of group, as Focus in the bar (DL-123)", () => {
+  assert.equal(publicProjectsPath("soil", { organizationType: "nonprofit", workScope: "restoration", sort: "name", cursor: "abc" }),
+    "/api/public-projects?q=soil&organizationType=nonprofit&workScope=restoration&sort=name&cursor=abc");
+  for (const unreadable of ["Restoration", "forest_protection", "", "x".repeat(61), null])
+    assert.equal(publicProjectsPath("", { workScope: unreadable }), "/api/public-projects", String(unreadable));
+  assert.equal(chosenWorkScope("?workScope=biodiversity-monitoring"), "biodiversity-monitoring");
+  for (const search of ["", "?workScope=", "?workScope=Water", "?focus=water"]) assert.equal(chosenWorkScope(search), null, search);
+  assert.deepEqual(workScopeFacets(undefined, null), [], "a list from before the filter has none");
+  const [facet] = workScopeFacets(["restoration", "biodiversity-monitoring", "disaster-relief", "other"], "water");
+  assert.deepEqual(facet, {
+    key: "workScope", label: "Focus", kind: "one", chosen: ["water"],
+    options: [{ value: "", label: "Any focus" }, { value: "restoration", label: "Restoration" },
+      { value: "biodiversity-monitoring", label: "Biodiversity monitoring" }, { value: "disaster-relief", label: "Disaster relief" },
+      { value: "other", label: "Other" }, { value: "water", label: "Water" }],
+  });
+  const [waiting] = workScopeFacets("waiting", null);
+  assert.deepEqual([waiting?.label, waiting?.options.map(({ label }) => label)], ["Focus", ["Any focus"]]);
+  assert.equal(keyLabel("ngo-network"), "NGO network");
+  // A late page for another kind of work is dropped, like one for another search or kind of group.
+  const restoring = firstPage("", page([card(1)], 1), { workScope: "restoration" });
+  assert.equal(sameAsk(restoring, { q: "", workScope: "restoration" }), true);
+  assert.equal(sameAsk(restoring, { q: "" }), false);
+  assert.equal(filtersChosen(restoring), 1);
+  assert.equal(filtersChosen(firstPage("", page([], 0), { workScope: "water", organizationType: "nonprofit" })), 2);
+  assert.equal(showsIndex(firstPage("", page([], 0), { workScope: "water" })), true, "an empty filtered list still shows the index");
 });
 
 test("a list narrowed by a kind of group says so, and an empty one offers to clear it", () => {
-  assert.equal(countLine(3, false, true), "3 projects match your filter.");
-  assert.equal(countLine(1, true, true), "1 project matches your search and filter.");
-  assert.equal(countLine(1208, false, false), "1,208 projects shared on Certified.");
-  assert.deepEqual(emptyList(true, false), { title: "No projects match your search",
+  assert.equal(countLine(3, false, 1), "3 projects match your filter.");
+  assert.equal(countLine(1, true, 1), "1 project matches your search and filter.");
+  assert.equal(countLine(2, false, 2), "2 projects match your filters.");
+  assert.equal(countLine(1, true, 2), "1 project matches your search and filters.");
+  assert.equal(countLine(1208, false, 0), "1,208 projects shared on Certified.");
+  assert.deepEqual(emptyList(true, 0), { title: "No projects match your search",
     body: "Try other words, or clear the search to see every project.", action: "Clear Search" });
-  assert.deepEqual(emptyList(false, true), { title: "No projects match this filter",
-    body: "Try another kind of group, or clear the filters to see every project.", action: "Clear Filters" });
-  assert.equal(emptyList(true, true).title, "No projects match your search and filter");
+  assert.deepEqual(emptyList(false, 1), { title: "No projects match this filter",
+    body: "Try another choice, or clear the filters to see every project.", action: "Clear Filters" });
+  assert.deepEqual(emptyList(false, 2), { title: "No projects match these filters",
+    body: "Try fewer filters, or clear them to see every project.", action: "Clear Filters" });
+  assert.equal(emptyList(true, 1).title, "No projects match your search and filter");
+  assert.equal(emptyList(true, 2).title, "No projects match your search and filters");
   // A kind that matches nothing still shows the index and its empty state, not the starter list.
-  const none = firstPage("", page([], 0), "dao");
+  const none = firstPage("", page([], 0), { organizationType: "dao" });
   assert.deepEqual([showsIndex(none), none.status === "ready" && none.organizationType], [true, "dao"]);
   assert.equal(showsIndex(firstPage("", page([], 0))), false);
 });
@@ -179,15 +216,15 @@ test("the list can be read newest first, oldest first or by name, and the order 
   assert.deepEqual(PUBLIC_PROJECT_SORT_OPTIONS.map(({ value, label }) => `${value}: ${label}`),
     ["newest: Newest first", "oldest: Oldest first", "name: Name A to Z"]);
   // Newest first is the list's own order, so its pages keep the addresses they had.
-  assert.equal(publicProjectsPath("soil", null, undefined, null, "newest"), "/api/public-projects?q=soil");
-  assert.equal(publicProjectsPath("soil", "abc", 3, "nonprofit", "name"),
+  assert.equal(publicProjectsPath("soil", { sort: "newest" }), "/api/public-projects?q=soil");
+  assert.equal(publicProjectsPath("soil", { cursor: "abc", limit: 3, organizationType: "nonprofit", sort: "name" }),
     "/api/public-projects?q=soil&organizationType=nonprofit&sort=name&cursor=abc&limit=3");
   assert.equal(chosenSort("?sort=oldest"), "oldest");
   for (const search of ["", "?sort=", "?sort=Name", "?sort=fit"]) assert.equal(chosenSort(search), "newest", search);
   // A late page for another order is dropped, like one for another search or kind.
-  const named = firstPage("", page([card(1)], 1), undefined, "name");
+  const named = firstPage("", page([card(1)], 1), { sort: "name" });
   assert.equal(named.status === "ready" && named.sort, "name");
   assert.equal(sameAsk(named, { q: "", sort: "name" }), true);
   assert.equal(sameAsk(named, { q: "" }), false);
-  assert.equal("sort" in firstPage("", page([card(1)], 1), undefined, "newest"), false);
+  assert.equal("sort" in firstPage("", page([card(1)], 1), { sort: "newest" }), false);
 });

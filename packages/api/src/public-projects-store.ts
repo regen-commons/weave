@@ -3,11 +3,12 @@ import { connectRestrictedIndexDatabase, shownProject } from "./project-index-db
 import type { PublicProjectCard } from "./public-projects-contract.ts";
 
 /**
- * Every shown project, newest first, with the words search looks in and the kinds of group its publisher
+ * Every shown project, newest first, with the words search looks in (its passages and its publisher's
+ * organization description), the kinds of group its publisher names and the kinds of work its activity
  * names, and the index state at that moment.
  */
 export type PublicProjectSnapshot = {
-  cards: (PublicProjectCard & { text: string; organizationTypes: string[] })[];
+  cards: (PublicProjectCard & { text: string; organizationTypes: string[]; workScopes: string[] })[];
   checkpoint: { completedAt: string | null; offset: number } | null;
 };
 export type PublicProjectReader = {
@@ -18,8 +19,9 @@ export type PublicProjectReader = {
 /**
  * Reads every shown card in one read-only statement, so the cards and the index state describe the same
  * moment. A card is built from the project's current evidence rows: its name, its first two passages in
- * reading order and its dates, with the publisher, place and kinds of group from its source row. Search
- * covers the name, the publisher, the place and every passage. Projects with no evidence are not shown.
+ * reading order and its dates, with the publisher, place, kinds of group and kinds of work from its source row. Search
+ * covers the name, the publisher, the place, every passage and the opening of the publisher's organization
+ * description, which the card does not show. Projects with no evidence are not shown.
  */
 export function createPublicProjectReader(sql: postgres.Sql): PublicProjectReader {
   return {
@@ -27,7 +29,8 @@ export function createPublicProjectReader(sql: postgres.Sql): PublicProjectReade
       await tx`set local statement_timeout = '4s'`;
       const [row] = await tx<PublicProjectSnapshot[]>`
         with cards as (
-          select s.project_uri, s.fetched_at, s.publisher_name, s.place_name, s.organization_types,
+          select s.project_uri, s.fetched_at, s.publisher_name, s.place_name, s.organization_types, s.work_scope,
+            s.organization_description,
             min(e.evidence->>'projectName') as name,
             min(e.evidence->>'sourceUrl') as source_url,
             -- least() skips nulls: never later than the source's index time or Weave's read.
@@ -39,11 +42,14 @@ export function createPublicProjectReader(sql: postgres.Sql): PublicProjectReade
           join private.weave_project_index_evidence e
             on e.project_uri = s.project_uri and e.evidence->>'projectUri' = s.project_uri and e.evidence->>'cid' = s.cid
           where ${shownProject(tx)}
-          group by s.project_uri, s.fetched_at, s.publisher_name, s.place_name, s.organization_types
+          group by s.project_uri, s.fetched_at, s.publisher_name, s.place_name, s.organization_types, s.work_scope,
+            s.organization_description
         )
         select coalesce((select jsonb_agg(jsonb_build_object(
-            'uri', c.project_uri, 'name', c.name, 'passages', to_jsonb(c.passages), 'text', c.text,
+            'uri', c.project_uri, 'name', c.name, 'passages', to_jsonb(c.passages),
+            'text', concat_ws(' ', c.text, c.organization_description),
             'sourceUrl', c.source_url, 'organizationTypes', to_jsonb(c.organization_types),
+            'workScopes', to_jsonb(c.work_scope),
             'sharedAt', to_char(c.shared_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
             'checkedAt', to_char(c.fetched_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
           -- A card leaves out a publisher or place it does not have, as a server from before them did.

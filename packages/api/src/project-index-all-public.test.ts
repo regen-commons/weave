@@ -8,7 +8,9 @@ import { createProjectIndexRefreshHandler } from "./project-index-refresh-http.t
 import { createHypercertsSource, NO_PROJECT_FACTS, type ProjectFacts } from "./project-index-source.ts";
 import { traverseProjectNetwork } from "./project-index-traversal.ts";
 import type { ProjectCheckpoint } from "./project-index.ts";
-import { projectDid, projectListing, projectUri, projectView } from "./test-data/public-projects.ts";
+import {
+  activityRecord, activityUri, projectDid, projectListing, projectUri, projectView, tagRecord, tagUri,
+} from "./test-data/public-projects.ts";
 
 const start = Date.parse("2026-11-15T04:00:00Z");
 const noWait = async () => undefined;
@@ -45,12 +47,14 @@ function memoryStore(clock: () => number) {
     async commit({ checkpoint: expected, permission, read, nextOffset, checkedAt }) {
       if (expected.revision !== String(data.revision) || data.commits.length >= data.contendAfter) return null;
       Object.assign(data, { revision: data.revision + 1, offset: nextOffset });
-      // A transient failure keeps the words and the card's facts; any other read replaces both.
+      // A transient failure keeps the words and the card's facts; any other read replaces both. A read that
+      // did not look at the work scope keeps the stored one.
       const keep = read.status === "failed" && (read.code === "source_unavailable" || read.code === "source_rate_limited");
       const previous = data.sources.get(permission.uri);
+      const facts = keep ? previous?.facts ?? NO_PROJECT_FACTS : read.status === "indexed" ? read.facts : NO_PROJECT_FACTS;
       data.sources.set(permission.uri, { status: read.status, until: Date.parse(permission.redisplayUntil), checkedAt,
         passages: keep ? previous?.passages ?? 0 : read.status === "indexed" ? read.passages.length : 0,
-        facts: keep ? previous?.facts ?? NO_PROJECT_FACTS : read.status === "indexed" ? read.facts : NO_PROJECT_FACTS });
+        facts: { ...facts, workScope: facts.workScope ?? previous?.facts.workScope ?? [] } });
       data.commits.push(permission.uri);
       return { ...checkpoint(), sourceStatus: read.status };
     },
@@ -58,17 +62,19 @@ function memoryStore(clock: () => number) {
   return { store, data };
 }
 
-function setup(views: unknown[], fail?: Parameters<typeof projectListing>[0]["fail"]) {
+function setup(views: unknown[], fail?: Parameters<typeof projectListing>[0]["fail"],
+  held: { activities?: Map<string, unknown>; tags?: Map<string, unknown> } = {}) {
   let now = start;
   const clock = () => now;
   const requests: { limit: number; cursor: string | null }[] = [];
-  const listing = { views, fail, requests };
+  const lookups: string[] = [];
+  const listing = { views, fail, requests, lookups, ...held };
   const source = createHypercertsSource({ now: clock, wait: noWait, fetch: projectListing(listing) });
   const memory = memoryStore(clock);
   const hosts = accountHosts();
   const run = (options: Partial<Parameters<typeof refreshAllPublicProjects>[0]> = {}) =>
     refreshAllPublicProjects({ source, store: memory.store, hosts, deadline: now + 240_000, now: clock, wait: noWait, ...options });
-  return { ...memory, listing, requests, run, hosts, advance: (ms: number) => { now += ms; }, clock };
+  return { ...memory, listing, requests, lookups, run, hosts, advance: (ms: number) => { now += ms; }, clock };
 }
 
 test("a complete traversal becomes the permission set, and unlisted, removed and malformed projects are withdrawn", async () => {
@@ -104,27 +110,127 @@ test("a complete traversal becomes the permission set, and unlisted, removed and
 });
 
 test("each refresh writes who shared a project and where, and a withdrawal clears them with the words", async () => {
+  const about = (value: string) => ({ $type: "org.hypercerts.defs#descriptionString", value });
   const views: unknown[] = Array.from({ length: 4 }, (_, n) => projectView(n));
-  views[0] = projectView(0, { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"] });
+  views[0] = projectView(0, { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"],
+    organizationDescription: about("We guard the Awka river. Volunteers test the water.") });
   views[1] = projectView(1, { publisher: "Write to someone@example.com", place: 42 });
   const index = setup(views);
   await index.run();
   const facts = (n: number) => index.data.sources.get(projectUri(n))?.facts;
-  assert.deepEqual(facts(0), { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"] });
+  assert.deepEqual(facts(0), { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["nonprofit"],
+    organizationDescription: "We guard the Awka river. Volunteers test the water.", workScope: [] });
   assert.deepEqual([facts(1), facts(2)], [NO_PROJECT_FACTS, NO_PROJECT_FACTS], "a malformed or missing fact is left out");
   assert.equal(index.data.sources.get(projectUri(1))?.status, "indexed");
   // A publisher that renames itself changes no collection CID; the next refresh still carries the new name.
-  views[0] = projectView(0, { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["nonprofit", "cooperative"] });
+  views[0] = projectView(0, { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["nonprofit", "cooperative"],
+    organizationDescription: about("We guard rivers across Anambra.") });
   views[2] = projectView(2, { place: "Lagos, Nigeria" });
   index.advance(24 * 60 * 60 * 1000);
   await index.run();
-  assert.deepEqual(facts(0), { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["cooperative", "nonprofit"] });
-  assert.deepEqual(facts(2), { publisher: null, place: "Lagos, Nigeria", organizationTypes: [] });
+  assert.deepEqual(facts(0), { publisher: "River Keepers Awka", place: "Awka, Nigeria", organizationTypes: ["cooperative", "nonprofit"],
+    organizationDescription: "We guard rivers across Anambra.", workScope: [] });
+  assert.deepEqual(facts(2), { ...NO_PROJECT_FACTS, place: "Lagos, Nigeria" });
   views.splice(0, 1);
   index.advance(24 * 60 * 60 * 1000);
   const report = await index.run();
   assert.equal(report.withdrawn, 1);
   assert.deepEqual([index.data.sources.get(projectUri(0))?.status, facts(0)], ["restricted", NO_PROJECT_FACTS]);
+});
+
+test("each refresh reads the kinds of work a project's own activity names, and reads each shared tag once", async () => {
+  const restoration = tagUri("restoration");
+  const monitoring = tagUri("biodiversity_monitoring");
+  const unindexed = tagUri("rain-gardens");
+  const views = [
+    projectView(0, { activities: [activityUri(0)] }),
+    projectView(1, { activities: [activityUri(1, projectDid(9)), activityUri(1)] }),
+    projectView(2),
+    projectView(3, { activities: [activityUri(3, projectDid(9))] }),
+    projectView(4, { activities: [activityUri(4)] }),
+    projectView(5, { activities: [activityUri(5)] }),
+  ];
+  const freeText = { ...activityRecord([]), workScope: { $type: "org.hypercerts.claim.activity#workScopeString", scope: "restoration" } };
+  const activities = new Map<string, unknown>([
+    [activityUri(0), activityRecord([restoration, monitoring])],
+    [activityUri(1), activityRecord([monitoring, unindexed, restoration, monitoring])],
+    [activityUri(4), freeText],
+  ]);
+  const tags = new Map<string, unknown>([
+    [restoration, tagRecord("restoration", "Restoration")],
+    // The key is the same whatever language the tag's name is in.
+    [monitoring, tagRecord("biodiversity_monitoring", "Monitoreo de naturaleza")],
+  ]);
+  const index = setup(views, undefined, { activities, tags });
+  const report = await index.run();
+  assert.equal(report.status, "complete");
+  const work = (n: number) => index.data.sources.get(projectUri(n))?.facts.workScope;
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map(work), [
+    ["biodiversity-monitoring", "restoration"],
+    // Its first activity is another account's, so the first of its own is read, and a tag the index does
+    // not hold is left out.
+    ["biodiversity-monitoring", "restoration"],
+    // No activity, only another account's, a free-text scope, and an activity the index does not hold.
+    [], [], [], [],
+  ]);
+  assert.deepEqual([report.workScopeRead, report.workScopeKept], [6, 0]);
+  const count = (uri: string) => index.lookups.filter((looked) => looked === uri).length;
+  assert.deepEqual([count(restoration), count(monitoring), count(unindexed), count(activityUri(1, projectDid(9)))], [1, 1, 1, 0]);
+  assert.doesNotMatch(JSON.stringify(report), /at:\/\/|restoration|monitoring/u);
+
+  // The publisher changes its activity: the next refresh reads the new tags.
+  activities.set(activityUri(0), activityRecord([restoration]));
+  index.advance(24 * 60 * 60 * 1000);
+  await index.run();
+  assert.deepEqual(work(0), ["restoration"]);
+});
+
+test("a work scope read that fails, is rate limited or runs out of time keeps the stored kinds and never stops the run", async () => {
+  const restoration = tagUri("restoration");
+  const projects = Array.from({ length: 12 }, (_, n) => n);
+  const views = projects.map((n) => projectView(n, { activities: [activityUri(n)] }));
+  const activities = new Map<string, unknown>(projects.map((n) => [activityUri(n), activityRecord([restoration])]));
+  const tags = new Map<string, unknown>([[restoration, tagRecord("restoration")]]);
+  const index = setup(views, undefined, { activities, tags });
+  await index.run();
+  const work = (n: number) => index.data.sources.get(projectUri(n))?.facts.workScope;
+  const before = projects.map(() => ["restoration"]);
+  assert.deepEqual(projects.map(work), before);
+
+  // An outage on one activity keeps that project's kinds; the others are read again.
+  activities.set(activityUri(1), () => new Response("busy", { status: 503 }));
+  activities.set(activityUri(2), activityRecord([]));
+  index.advance(24 * 60 * 60 * 1000);
+  const outage = await index.run();
+  assert.equal(outage.status, "complete");
+  const afterOutage = before.map((kinds, n) => n === 2 ? [] : kinds);
+  assert.deepEqual(projects.map(work), afterOutage);
+  assert.deepEqual([outage.workScopeRead, outage.workScopeKept], [11, 1]);
+
+  // A rate limit stops the reads that follow: each of the six workers asks once, and every project keeps
+  // what it had.
+  for (const n of projects) activities.set(activityUri(n), () => new Response("slow down", { status: 429 }));
+  index.lookups.length = 0;
+  index.advance(24 * 60 * 60 * 1000);
+  const limited = await index.run();
+  assert.equal(limited.status, "complete");
+  assert.deepEqual([limited.workScopeRead, limited.workScopeKept, index.lookups.length], [0, 12, 6]);
+  assert.deepEqual(projects.map(work), afterOutage);
+
+  // Past the traversal's time, nothing is read and the run still applies the list.
+  for (const n of projects) activities.set(activityUri(n), activityRecord([]));
+  index.lookups.length = 0;
+  index.advance(24 * 60 * 60 * 1000);
+  let resolved = 0;
+  // The last account lookup ends just inside the traversal's time; the work scope reads come after it.
+  const slowHosts = { resolve: async (): Promise<AccountHost> => {
+    if (++resolved === views.length) index.advance(10_000);
+    return { status: "found", host: "certified.one" };
+  } };
+  const timed = await index.run({ hosts: slowHosts, traversalDeadline: index.clock() + 5_000 });
+  assert.equal(timed.status, "complete");
+  assert.deepEqual([timed.workScopeRead, timed.workScopeKept, index.lookups.length], [0, 12, 0]);
+  assert.deepEqual(projects.map(work), afterOutage);
 });
 
 test("an outage, a partial traversal or a cursor cycle changes nothing that is shown", async () => {

@@ -808,3 +808,32 @@ DL-100 gave Sort a button that named the order in force, such as "Sort: Name A t
 - **Clear Filters** now takes off the order too, since it is one of the chips it clears. This reverses the earlier rule that the sort order stays.
 
 Both Funding and Initiatives use the shared filter bar, so both change.
+
+## DL-123: Initiatives filters on Focus, and Kind of group reads the Portuguese spellings as Community group
+
+**Status:** user request, 21 November 2026 ("Yes, build both"), after a read of the whole list. Extends DL-120 and reverses its 20 November decision to keep Community group and Grupo comunitário apart.
+
+DL-120 chose its filters from the 100 newest listed projects, which turned out to be the sparsest. On 21 November every listed project was read, 1,021 of them. The kind of group was on 90%, not a third, and 95% linked an activity whose work scope uses tags. Two shared tag lists with the same ten keys covered about 844 projects: Restoration 519, Community 500, Education 355, Conservation 306, Agriculture 265, Water 101, Technology 60, Disaster relief 48, Energy 28 and Other 28. Newer projects use a second set (Nature monitoring, Community stewardship, Forest protection, Restoration maintenance, Reforestation), and their tag names are often Spanish or Portuguese, such as "Monitoreo de naturaleza", while the key stays `biodiversity_monitoring`. Tags on the collection itself, languages and founding dates were still too rare to filter on (0%, 1% and 3%). GainForest's organization record, with its fixed lists of objectives, countries and ecosystems, was on 4 projects.
+
+- **Focus.** A second filter, before Kind of group, with Any focus first. It filters on the keys of the tags the project's own activity uses, and names each choice from its key, so a tag named in another language reads the same as its English twin: `biodiversity-monitoring` is "Biodiversity monitoring". It offers only the kinds at least two shown projects name, most common first and Other last, because publishers make their own tags and about thirty were used once. It is called Focus, not type of work, because type of work is Weave's lens (VOICE.md) and these are Certified's tags, which the upstream records mark as topics. The chosen kind goes into the page's address as `workScope`.
+- **What is read.** The daily refresh reads the latest version of the first activity a project lists from its publisher's own repository, then each tag that activity uses, once per run. The pinned version is not used: 45 projects pinned an activity version the index no longer held, because the publisher had edited the activity since. A free-text scope (64 projects) names no keys. A read that fails, is rate limited or runs out of time keeps the kinds already stored, and the refresh carries on. The index answers an activity or tag it has not indexed with a 500 that names RecordNotFound, and that answer counts as missing, not as an outage.
+- **Kind of group.** `grupo-comunitário` and `grupo-comunitario` (5 projects) are read as Community group (260), and an address that names either opens on Community group. The index keeps what the publisher wrote; the list reads it as one kind. `ngo` reads "NGO".
+- **Two filters at once.** The count and the empty state say "filters" when both are chosen, and Clear Filters takes off both.
+
+The work scope needs `supabase/candidates/weave-project-index-work-scope.sql` applied before the API is deployed. Until the first refresh after that, no project has kinds of work stored, so Focus is drawn waiting and goes away when the list answers.
+
+**Measured locally, 21 November 2026,** with this change's refresh run against live Certified data and a throwaway database: 1,006 projects indexed, every one's kinds of work read and none kept back, in 70 seconds. The list showed 993 projects. Focus offered 17 kinds; Restoration matched 520 and Biodiversity monitoring 42. Community group matched 263 from either address, and Kind of group offered no Portuguese spelling.
+
+## DL-124: Initiatives search also reads the publisher's organization description
+
+**Status:** user request, 21 November 2026 ("Go ahead"), after a review of what Certified organization records carry. Extends DL-123.
+
+Projects stay the list. On Certified an organization and its project are nearly one to one: of 1,073 publishers with a public project on 21 November, 1,024 published exactly one and none more than six. Focus comes from a project's activity, which an organization record does not have, and Weave's Certified research treats an organization record as context about the publisher, not a description of the project.
+
+- **Search.** Search also looks in the opening of the publisher's organization description, so a search for an organization's mission finds its projects. The organizations of 953 of 1,142 listed projects had one. It is read under a project description's rules: plain text or a Leaflet document, five sentences and 3,000 characters at most, and no sentence with a link, an email address or a phone number. A reference to another record is not followed.
+- **Not shown, not matched.** The card does not show it. It is stored beside the card's other facts, not among the project's passages, so matching never reads it as the project's own words.
+- **Not read.** No organization record had a logo. Legal names and public email addresses are not read, and founding dates (28 projects) and languages (13) are too rare to use.
+
+The description needs `supabase/candidates/weave-project-index-organization-description.sql` applied after the work scope candidate and before the API is deployed. Until the next refresh after that, search reads no organization descriptions.
+
+**Measured locally, 21 November 2026,** with this change's refresh run against live Certified data and a throwaway database: 1,007 projects indexed in 74 seconds, 891 of them with an organization description, 668 characters long on average and 1,302 at most. Of the 994 shown, 889 had one. Searches found more projects: "mission" 179 instead of 76, "founded" 175 instead of 43, "women" 168 instead of 108 and "mangrove" 70 instead of 65. Each function instance's copy of the list grew from 1.5 MB to 2.1 MB.

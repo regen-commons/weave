@@ -42,6 +42,8 @@ before(async () => {
     create schema if not exists extensions;`);
   await admin.unsafe(await candidate("weave-project-index"));
   await admin.unsafe(await candidate("weave-project-index-card-facts"));
+  await admin.unsafe(await candidate("weave-project-index-work-scope"));
+  await admin.unsafe(await candidate("weave-project-index-organization-description"));
   await admin.unsafe(await candidate("weave-public-evidence-snapshot"));
   const password = randomBytes(18).toString("base64url");
   await admin.unsafe(`alter role weave_all_public_index login password '${password}'`);
@@ -292,4 +294,76 @@ integration("a temporary failure keeps a project's card facts with its words, an
   await run({ status: "failed", code: "invalid_source_record" });
   assert.deepEqual(await stored(53), { publisher: null, place: null, types: [] });
   assert.equal(await evidenceCount(projectUri(53)), 0);
+});
+
+integration("a project's kinds of work are stored by a read that looked, kept by one that did not or failed, and cleared with its words", async () => {
+  const redisplayUntil = new Date(Date.now() + 3_600_000).toISOString();
+  const run = async (read: ProjectRead) => {
+    const { generation } = await index.store.state();
+    return refreshProjectIndex({ manifest: { generation: generation + 1, permissions: [{ uri: projectUri(54), redisplayUntil }] },
+      store: index.store, source: { get: async () => read }, batchSize: 1, readsInHand: true });
+  };
+  const listed = extractCollection(projectView(54), projectUri(54), new Date().toISOString());
+  if (listed.status !== "indexed") throw Error("expected an indexed fixture");
+  const looked = (workScope: string[]): ProjectRead => ({ ...listed, facts: { ...listed.facts, workScope } });
+  const work = async () => (await admin<{ work: string[] }[]>`
+    select work_scope as work from private.weave_project_index_source where project_uri = ${projectUri(54)}`)[0]?.work;
+  await run(looked(["restoration", "water"]));
+  assert.deepEqual(await work(), ["restoration", "water"]);
+  // The list reads them and filters on them.
+  assert.deepEqual((await page("", "&workScope=water")).projects.map(({ uri }) => uri), [projectUri(54)]);
+  assert.deepEqual((await page("", "&workScope=energy")).projects, []);
+  // A read from the listing alone did not look at the activity, and a transient failure says nothing new.
+  await run(listed);
+  assert.deepEqual(await work(), ["restoration", "water"]);
+  await run({ status: "failed", code: "source_unavailable" });
+  assert.deepEqual(await work(), ["restoration", "water"]);
+  await run(looked([]));
+  assert.deepEqual(await work(), []);
+  await run(looked(["water"]));
+  await run({ status: "failed", code: "invalid_source_record" });
+  assert.deepEqual(await work(), [], "a malformed record clears the kinds with the words");
+  await run(looked(["water"]));
+  await withdrawAllPublicProjects({ store: index.store });
+  assert.deepEqual(await work(), [], "a withdrawn project keeps no kinds of work");
+});
+
+integration("an organization's description is stored for search, never shown or matched, and cleared with the project's words", async () => {
+  const redisplayUntil = new Date(Date.now() + 3_600_000).toISOString();
+  const run = async (read: ProjectRead) => {
+    const { generation } = await index.store.state();
+    return refreshProjectIndex({ manifest: { generation: generation + 1, permissions: [{ uri: projectUri(55), redisplayUntil }] },
+      store: index.store, source: { get: async () => read }, batchSize: 1, readsInHand: true });
+  };
+  const about = "We guard the Awka river. Volunteers test the water.";
+  const described = extractCollection(projectView(55, { publisher: "Riverkeepers Awka",
+    organizationDescription: { $type: "org.hypercerts.defs#descriptionString", value: about } }), projectUri(55), new Date().toISOString());
+  const description = async () => (await admin<{ about: string | null }[]>`
+    select organization_description as about from private.weave_project_index_source where project_uri = ${projectUri(55)}`)[0]?.about;
+  const found = async () => (await page("awka river guard")).projects.map(({ uri }) => uri);
+  await run(described);
+  assert.equal(await description(), about);
+  // Search finds the project by its organization's words, but the card does not carry them.
+  assert.deepEqual(await found(), [projectUri(55)]);
+  const [card] = (await page("awka river guard")).projects;
+  assert.doesNotMatch(JSON.stringify(card), /Awka river|test the water/u);
+  // The description is not one of the project's passages, so matching never reads it.
+  const evidence = (await admin<{ evidence: string }[]>`
+    select coalesce(string_agg(evidence::text, ' '), '') as evidence from private.weave_project_index_evidence
+    where project_uri = ${projectUri(55)}`)[0]?.evidence ?? "";
+  assert.ok(evidence.length > 0);
+  assert.doesNotMatch(evidence, /Awka river|test the water/u);
+  // A temporary failure keeps it with the words; a malformed record and a withdrawal clear it.
+  await run({ status: "failed", code: "source_unavailable" });
+  assert.equal(await description(), about);
+  await run({ status: "failed", code: "invalid_source_record" });
+  assert.equal(await description(), null);
+  await run(described);
+  assert.deepEqual(await found(), [projectUri(55)]);
+  await run(extractCollection(projectView(55), projectUri(55), new Date().toISOString()));
+  assert.equal(await description(), null, "an organization that removes its description is no longer searched by it");
+  assert.deepEqual(await found(), []);
+  await run(described);
+  await withdrawAllPublicProjects({ store: index.store });
+  assert.equal(await description(), null, "a withdrawn project keeps no description");
 });

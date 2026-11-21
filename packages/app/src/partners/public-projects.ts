@@ -1,6 +1,6 @@
 import {
-  isOrganizationType, isPublicProjectSort, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE, type PublicProjectCard,
-  type PublicProjectPage, type PublicProjectSort,
+  isOrganizationType, isPublicProjectSort, isWorkScope, organizationTypeOf, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE,
+  type PublicProjectCard, type PublicProjectPage, type PublicProjectSort,
 } from "@weave/api/public-projects-contract";
 import type { Facet, FacetOption } from "../filters.ts";
 
@@ -18,22 +18,30 @@ export function searchQuery(typed: string): string {
 export const SEARCH_PAUSE_MS = 300;
 /**
  * The search the list asks for now: what was typed once typing paused, except that an emptied box asks
- * at once. Clear Filters then sends one request, with the search and the kind of group both gone.
+ * at once. Clear Filters then sends one request, with the search and the filters all gone.
  */
 export const searchNow = (typed: string, paused: string): string => typed === "" ? "" : paused;
 
+/** What a list is narrowed and ordered by besides its search. A filter not chosen is null or left out. */
+export type ProjectChoice = {
+  organizationType?: string | null;
+  workScope?: string | null;
+  sort?: PublicProjectSort;
+};
+
 /**
  * The same-origin address of one page. Parameters keep one order, so each page has one cached copy. A
- * kind of group the list cannot read is left out, so the list never refuses the page for it.
+ * kind of group or of work the list cannot read is left out, so the list never refuses the page for it.
  */
 export function publicProjectsPath(
-  q: string, cursor: string | null = null, limit = PUBLIC_PROJECT_PAGE_SIZE, organizationType: string | null = null,
-  sort: PublicProjectSort = "newest",
+  q: string, { cursor = null, limit = PUBLIC_PROJECT_PAGE_SIZE, organizationType = null, workScope = null, sort = "newest" }:
+    ProjectChoice & { cursor?: string | null; limit?: number } = {},
 ): string {
   const params = new URLSearchParams();
   const search = searchQuery(q);
   if (search) params.set("q", search);
   if (isOrganizationType(organizationType)) params.set("organizationType", organizationType);
+  if (isWorkScope(workScope)) params.set("workScope", workScope);
   // Newest first is the list's own order, so it is left out and its pages keep the addresses they had.
   if (sort !== "newest") params.set("sort", sort);
   if (cursor) params.set("cursor", cursor);
@@ -53,26 +61,33 @@ export async function requestPublicProjects(path: string, signal: AbortSignal, r
   return parsePublicProjectPage(await response.json());
 }
 
-/** What a list was asked for: the search, the kind of group where one is chosen, and an order other than newest first. */
-type Asked = { q: string; organizationType?: string; sort?: Exclude<PublicProjectSort, "newest"> };
+/**
+ * What a list was asked for: the search, the kind of group and the kind of work where one is chosen, and an
+ * order other than newest first.
+ */
+type Asked = { q: string; organizationType?: string; workScope?: string; sort?: Exclude<PublicProjectSort, "newest"> };
 export type PublicProjectList =
   | ({ status: "loading" } & Asked)
   | ({ status: "failed" } & Asked)
   | ({ status: "ready"; page: PublicProjectPage; projects: PublicProjectCard[]; more: "idle" | "loading" | "failed" } & Asked);
 
 /** The fields a list records for what it was asked: a default is left out. */
-export const askedFor = (q: string, organizationType?: string, sort: PublicProjectSort = "newest"): Asked =>
-  ({ q, ...(organizationType ? { organizationType } : {}), ...(sort !== "newest" ? { sort } : {}) });
+export const askedFor = (q: string, { organizationType, workScope, sort = "newest" }: ProjectChoice = {}): Asked => ({
+  q, ...(organizationType ? { organizationType } : {}), ...(workScope ? { workScope } : {}), ...(sort !== "newest" ? { sort } : {}),
+});
 
-export const firstPage = (q: string, page: PublicProjectPage, organizationType?: string, sort?: PublicProjectSort): PublicProjectList =>
-  ({ status: "ready", ...askedFor(q, organizationType, sort), page, projects: page.projects, more: "idle" });
+export const firstPage = (q: string, page: PublicProjectPage, choice: ProjectChoice = {}): PublicProjectList =>
+  ({ status: "ready", ...askedFor(q, choice), page, projects: page.projects, more: "idle" });
 
-/** Whether a list answers what is being asked now, so a late page for an earlier search, kind or order is dropped. */
-export const sameAsk = (list: Asked, asked: Asked): boolean =>
-  list.q === asked.q && list.organizationType === asked.organizationType && list.sort === asked.sort;
+/** Whether a list answers what is being asked now, so a late page for an earlier search, filter or order is dropped. */
+export const sameAsk = (list: Asked, asked: Asked): boolean => list.q === asked.q
+  && list.organizationType === asked.organizationType && list.workScope === asked.workScope && list.sort === asked.sort;
 
-/** Whether a list is narrowed by a search or a kind of group. */
-const narrowed = (list: Asked) => list.q !== "" || !!list.organizationType;
+/** How many filters narrow a list, besides its search. */
+export const filtersChosen = (list: Asked): number => Number(!!list.organizationType) + Number(!!list.workScope);
+
+/** Whether a list is narrowed by a search or a filter. */
+const narrowed = (list: Asked) => list.q !== "" || filtersChosen(list) > 0;
 
 /** Adds the next page, skipping any project already shown, since the list can change between pages. */
 export function nextPage(list: PublicProjectList, page: PublicProjectPage): PublicProjectList {
@@ -136,26 +151,31 @@ export function indexLine(index: PublicProjectPage["index"], formatDate: (iso: s
   return "The latest check did not finish, so some projects may be missing.";
 }
 
-/** How many projects the list holds, or how many match a search or a kind of group, as one whole sentence. */
-export function countLine(total: number, searching: boolean, filtered = false): string {
-  const what = searching && filtered ? "your search and filter" : searching ? "your search" : "your filter";
-  if (searching || filtered) return total === 1 ? `1 project matches ${what}.` : `${count(total)} projects match ${what}.`;
+/** How many projects the list holds, or how many match a search or its filters, as one whole sentence. */
+export function countLine(total: number, searching: boolean, filters = 0): string {
+  const filter = filters > 1 ? "filters" : "filter";
+  const what = searching && filters ? `your search and ${filter}` : searching ? "your search" : `your ${filter}`;
+  if (searching || filters) return total === 1 ? `1 project matches ${what}.` : `${count(total)} projects match ${what}.`;
   return total === 1 ? "1 project shared on Certified." : `${count(total)} projects shared on Certified.`;
 }
 
 /** What an empty list says, and what its one button takes away. */
-export function emptyList(searching: boolean, filtered: boolean): { title: string; body: string; action: string } {
-  if (!filtered) return { title: "No projects match your search", body: "Try other words, or clear the search to see every project.",
+export function emptyList(searching: boolean, filters: number): { title: string; body: string; action: string } {
+  if (!filters) return { title: "No projects match your search", body: "Try other words, or clear the search to see every project.",
     action: "Clear Search" };
+  const filter = filters > 1 ? "filters" : "filter";
   return {
-    title: searching ? "No projects match your search and filter" : "No projects match this filter",
-    body: "Try another kind of group, or clear the filters to see every project.",
+    title: searching ? `No projects match your search and ${filter}` : `No projects match ${filters > 1 ? "these filters" : "this filter"}`,
+    body: filters > 1 ? "Try fewer filters, or clear them to see every project."
+      : "Try another choice, or clear the filters to see every project.",
     action: "Clear Filters",
   };
 }
 
 /** The page address's name for the kind of group, the same as the list's. */
 export const ORGANIZATION_TYPE_KEY = "organizationType";
+/** The page address's name for the kind of work, the same as the list's. */
+export const WORK_SCOPE_KEY = "workScope";
 /** The page address's name for the order, the same as the list's. */
 export const SORT_KEY = "sort";
 
@@ -172,36 +192,65 @@ export function chosenSort(search: string): PublicProjectSort {
   return isPublicProjectSort(value) ? value : "newest";
 }
 
-/** A kind of group as people read it: `community-group` is "Community group". */
-export function organizationTypeLabel(type: string): string {
-  const words = type.replace(/-/gu, " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
+/** Words a key spells in lower case that people read in capitals. */
+const ACRONYMS: ReadonlyMap<string, string> = new Map([["ngo", "NGO"]]);
 
 /**
- * The one filter the list can answer: the kind of group its publishers say they are (DL-081). It offers
- * only the kinds the list names, and a kind chosen through an address stays on offer so it can be taken
- * off. A list that names none, as one from before the filter, has no filter at all. Before the first
- * page answers (`"waiting"`) the filter is drawn waiting, so the bar does not grow when the list arrives
+ * A kind of group or of work as people read it, from its key: `community-group` is "Community group",
+ * `disaster-relief` is "Disaster relief" and `ngo` is "NGO". The key, not the tag's own name, is what is
+ * shown, so a tag named in another language reads the same as its English twin (DL-123).
+ */
+export function keyLabel(key: string): string {
+  const words = key.split("-").map((word) => ACRONYMS.get(word) ?? word).join(" ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+export const organizationTypeLabel = keyLabel;
+
+/**
+ * One filter with a short list to pick one from, whose first option means no filter (DL-081). It offers
+ * only the values the list names, and a value chosen through an address stays on offer so it can be taken
+ * off. A list that names none, as one from before the filter, has no such filter. Before the first page
+ * answers (`"waiting"`) the filter is drawn waiting, so the bar does not grow when the list arrives
  * (DL-108).
  */
-export function organizationTypeFacets(offered: readonly string[] | undefined | "waiting", chosen: string | null): Facet[] {
-  const kinds = offered === "waiting" ? [] : [...offered ?? []];
-  if (chosen && !kinds.includes(chosen)) kinds.push(chosen);
-  if (!kinds.length && offered !== "waiting") return [];
+function pickOne(facet: { key: string; label: string; any: string }, offered: readonly string[] | undefined | "waiting",
+  chosen: string | null): Facet[] {
+  const values = offered === "waiting" ? [] : [...offered ?? []];
+  if (chosen && !values.includes(chosen)) values.push(chosen);
+  if (!values.length && offered !== "waiting") return [];
   return [{
-    key: ORGANIZATION_TYPE_KEY,
-    label: "Kind of group",
+    key: facet.key,
+    label: facet.label,
     kind: "one",
-    options: [{ value: "", label: "Any kind" }, ...kinds.map((value) => ({ value, label: organizationTypeLabel(value) }))],
+    options: [{ value: "", label: facet.any }, ...values.map((value) => ({ value, label: keyLabel(value) }))],
     chosen: chosen ? [chosen] : [],
   }];
 }
 
-/** A kind of group from the page's address, or none where it is not one the list could read. */
+/** The kind of group the projects' publishers say they are (DL-120). */
+export const organizationTypeFacets = (offered: readonly string[] | undefined | "waiting", chosen: string | null): Facet[] =>
+  pickOne({ key: ORGANIZATION_TYPE_KEY, label: "Kind of group", any: "Any kind" }, offered, chosen);
+
+/**
+ * What the projects' own activities say the work is, their work scope (DL-123). It is called Focus, not
+ * type of work, because type of work is Weave's own lens and these are Certified's tags.
+ */
+export const workScopeFacets = (offered: readonly string[] | undefined | "waiting", chosen: string | null): Facet[] =>
+  pickOne({ key: WORK_SCOPE_KEY, label: "Focus", any: "Any focus" }, offered, chosen);
+
+/**
+ * A kind of group from the page's address, or none where it is not one the list could read. An address
+ * shared before two spellings were read as one kind opens on that kind.
+ */
 export function chosenOrganizationType(search: string): string | null {
   const value = new URLSearchParams(search).get(ORGANIZATION_TYPE_KEY);
-  return isOrganizationType(value) ? value : null;
+  return isOrganizationType(value) ? organizationTypeOf(value) : null;
+}
+
+/** A kind of work from the page's address, or none where it is not one the list could read. */
+export function chosenWorkScope(search: string): string | null {
+  const value = new URLSearchParams(search).get(WORK_SCOPE_KEY);
+  return isWorkScope(value) ? value : null;
 }
 
 /**

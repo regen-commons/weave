@@ -22,6 +22,10 @@ export type ViewOptions = {
   place?: unknown;
   /** The publisher organization's `organizationType`. */
   organizationTypes?: unknown;
+  /** The publisher organization's `longDescription`, as the record holds it. */
+  organizationDescription?: unknown;
+  /** Activity addresses the collection lists as items, in order. */
+  activities?: string[];
 };
 export const placeUri = (n: number) => `at://${projectDid(n)}/app.certified.location/place${n}`;
 export const placeCid = (n: number) => `bafyrei${"p".repeat(36)}${letters(n)}aaaa`;
@@ -29,11 +33,13 @@ export function projectView(n: number, options: ViewOptions = {}) {
   const did = projectDid(n);
   const listed = options.unlisted === "organization" ? { visibility: "unlisted" }
     : options.unlisted === "legacy" ? { unlisted: true } : {};
-  const organization = options.unlisted === "organization" || options.unlisted === "legacy" || options.organizationTypes !== undefined ? {
-    did, uri: `at://${did}/app.certified.actor.organization/self`,
-    record: { $type: "app.certified.actor.organization", ...listed,
-      ...(options.organizationTypes === undefined ? {} : { organizationType: options.organizationTypes }) },
-  } : null;
+  const organization = options.unlisted === "organization" || options.unlisted === "legacy" || options.organizationTypes !== undefined
+    || options.organizationDescription !== undefined ? {
+      did, uri: `at://${did}/app.certified.actor.organization/self`,
+      record: { $type: "app.certified.actor.organization", ...listed,
+        ...(options.organizationTypes === undefined ? {} : { organizationType: options.organizationTypes }),
+        ...(options.organizationDescription === undefined ? {} : { longDescription: options.organizationDescription }) },
+    } : null;
   const profile = options.publisher === undefined ? null : {
     did, uri: `at://${did}/app.certified.actor.profile/self`,
     record: { $type: "app.certified.actor.profile", displayName: options.publisher },
@@ -57,9 +63,34 @@ export function projectView(n: number, options: ViewOptions = {}) {
       ...(options.unlisted === "collection" ? { visibility: "unlisted" } : {}),
       ...(short === null ? {} : { shortDescription: short }),
       ...(options.place === undefined ? {} : { location: pinned }),
+      ...(options.activities === undefined ? {}
+        : { items: options.activities.map((uri) => ({ itemIdentifier: { uri, cid: `bafyrei${"a".repeat(52)}` } })) }),
     },
   };
 }
+
+/** An activity in project `n`'s own repository, or in another account's where `did` names one. */
+export const activityUri = (n: number, did = projectDid(n)) => `at://${did}/org.hypercerts.claim.activity/activity${n}`;
+/** A tag in a shared vocabulary repository, as most listed projects used on 21 November 2026. */
+export const tagUri = (key: string, did = "did:plc:fixturevocabularyaaaaaaa") =>
+  `at://${did}/org.hypercerts.workscope.tag/${key.replace(/[^A-Za-z0-9]/gu, "")}`;
+/** An activity whose structured work scope uses these tags. */
+export const activityRecord = (tags: readonly string[]) => ({
+  $type: "org.hypercerts.claim.activity", title: "Wetland work", shortDescription: "We restore wetlands.",
+  createdAt: "2026-10-01T12:00:00Z",
+  workScope: {
+    $type: "org.hypercerts.workscope.cel", version: "v1", createdAt: "2026-10-01T12:00:00Z",
+    expression: `scope.hasAll([${tags.map((uri) => `'${uri.split("/").pop()}'`).join(", ")}])`,
+    usedTags: tags.map((uri) => ({ uri, cid: `bafyrei${"t".repeat(52)}` })),
+  },
+});
+export const tagRecord = (key: string, name = key) =>
+  ({ $type: "org.hypercerts.workscope.tag", key, name, category: "topic", createdAt: "2026-10-01T12:00:00Z" });
+/** How the index answered a record it had not indexed on 21 November 2026: a 500 that names RecordNotFound. */
+export const notIndexed = (what: string) => Response.json({
+  error: "script_error", errorType: "runtime", line: null,
+  message: `runtime error: RecordNotFound: ${what} is not indexed\nstack traceback:\n\t[C]: in function 'error'`,
+}, { status: 500 });
 
 /**
  * One listing item with everything a card reads, in the shape listCollections returned for the 100 newest
@@ -132,10 +163,32 @@ export function projectListing(state: {
   views: unknown[];
   fail?: (request: { page: number; limit: number; cursor: string | null }) => Response | null;
   requests?: { limit: number; cursor: string | null }[];
+  /**
+   * The activities and tags the index holds, by address. A record answers as the index's view of it, and a
+   * function answers in its place, such as with an outage. An address it does not hold is not indexed.
+   */
+  activities?: Map<string, unknown>;
+  tags?: Map<string, unknown>;
+  /** Every activity and tag address looked up, in order. */
+  lookups?: string[];
 }) {
   let page = 0;
   return async (url: string | URL | Request): Promise<Response> => {
-    const params = new URL(String(url)).searchParams;
+    const target = new URL(String(url));
+    const lookup = target.pathname.endsWith("/org.hypercerts.claim.getActivity") ? "activity"
+      : target.pathname.endsWith("/org.hypercerts.workscope.getWorkscopeTag") ? "workscopeTag" : null;
+    if (lookup) {
+      const uri = target.searchParams.get("uri") ?? "";
+      state.lookups?.push(uri);
+      const held = (lookup === "activity" ? state.activities : state.tags)?.get(uri);
+      if (typeof held === "function") return held() as Response;
+      if (held === undefined) return notIndexed(lookup === "activity" ? "activity record" : "work-scope tag");
+      const did = uri.split("/")[2];
+      return Response.json({ [lookup]: {
+        uri, cid: `bafyrei${"v".repeat(52)}`, did, indexedAt: "2026-11-20T00:00:00Z", author: { did }, record: held,
+      } });
+    }
+    const params = target.searchParams;
     const limit = Number(params.get("limit"));
     const cursor = params.get("cursor");
     state.requests?.push({ limit, cursor });
