@@ -491,6 +491,9 @@ found the same 14 under the first rule and after each narrowing: 13 by name and
   than the project's own, so each refresh rewrites them and a withdrawal
   deletes them with the passages. Pictures still wait on D30, and an
   organization's links are never shown as the project's.
+- Amended 21 November 2026 ([DL-121](../../packages/design-system/decision-log.md#dl-121-initiatives-sorts-newest-first-oldest-first-or-by-name)):
+  the list can also be sorted oldest first or by name. Newest first stays
+  the default.
 - The Initiatives page and Home's Recently shared read the index. When the
   index is empty or does not answer, the Initiatives page shows the starter
   list of public sources instead.

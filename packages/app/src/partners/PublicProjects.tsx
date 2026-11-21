@@ -11,7 +11,8 @@ import { Icon } from "../ui/Icon.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
-  chosenOrganizationType, countLine, emptyList, firstPage, indexLine, nextPage, ORGANIZATION_TYPE_KEY, organizationTypeFacets,
+  askedFor, chosenOrganizationType, chosenSort, countLine, emptyList, firstPage, indexLine, nextPage, ORGANIZATION_TYPE_KEY,
+  isPublicProjectSort, organizationTypeFacets, PUBLIC_PROJECT_SORT_OPTIONS, sameAsk, SORT_KEY, type PublicProjectSort,
   PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects, expectsStarter, listView,
   rememberIndex, searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
@@ -60,11 +61,13 @@ export function PublicProjectCard({ project, level }: { project: Project; level:
 }
 
 /**
- * The first page for a search and kind of group, then further pages on request. `enabled: false` reads
- * nothing.
+ * The first page for a search, kind of group and order, then further pages on request. `enabled: false`
+ * reads nothing.
  */
-export function usePublicProjects(q: string, limit?: number, enabled = true, organizationType?: string) {
-  const asked = { q, ...(organizationType ? { organizationType } : {}) };
+export function usePublicProjects(q: string, { limit, enabled = true, organizationType, sort = "newest" }: {
+  limit?: number; enabled?: boolean; organizationType?: string; sort?: PublicProjectSort;
+} = {}) {
+  const asked = askedFor(q, organizationType, sort);
   const [list, setList] = useState<PublicProjectList>({ status: enabled ? "loading" : "failed", ...asked });
   const [attempt, setAttempt] = useState(0);
   const pending = useRef<AbortController | null>(null);
@@ -72,22 +75,22 @@ export function usePublicProjects(q: string, limit?: number, enabled = true, org
     if (!enabled) return;
     const controller = new AbortController();
     setList({ status: "loading", ...asked });
-    requestPublicProjects(publicProjectsPath(q, null, limit, organizationType ?? null), controller.signal)
-      .then((page) => { if (!controller.signal.aborted) setList(firstPage(q, page, organizationType)); })
+    requestPublicProjects(publicProjectsPath(q, null, limit, organizationType ?? null, sort), controller.signal)
+      .then((page) => { if (!controller.signal.aborted) setList(firstPage(q, page, organizationType, sort)); })
       .catch(() => { if (!controller.signal.aborted) setList({ status: "failed", ...asked }); });
     return () => {
       controller.abort();
       pending.current?.abort();
     };
-  }, [q, organizationType, limit, enabled, attempt]);
+  }, [q, organizationType, sort, limit, enabled, attempt]);
   function more() {
     if (list.status !== "ready" || !list.page.next || list.more === "loading") return;
     const controller = pending.current = new AbortController();
     setList({ ...list, more: "loading" });
-    requestPublicProjects(publicProjectsPath(q, list.page.next, limit, organizationType ?? null), controller.signal)
+    requestPublicProjects(publicProjectsPath(q, list.page.next, limit, organizationType ?? null, sort), controller.signal)
       .then((page) => {
         if (!controller.signal.aborted)
-          setList((latest) => latest.q === q && latest.organizationType === organizationType ? nextPage(latest, page) : latest);
+          setList((latest) => sameAsk(latest, asked) ? nextPage(latest, page) : latest);
       })
       .catch(() => {
         if (!controller.signal.aborted) setList((latest) => latest.status === "ready" ? { ...latest, more: "failed" } : latest);
@@ -126,15 +129,17 @@ export function PublicProjects() {
   // so searching keeps focus and scroll where they are.
   const [search, setSearch] = useState(() => searchQuery(new URLSearchParams(routeSearch()).get("q") ?? ""));
   const [organizationType, setOrganizationType] = useState(() => chosenOrganizationType(routeSearch()));
+  const [sort, setSort] = useState<PublicProjectSort>(() => chosenSort(routeSearch()));
   const q = usePaused(searchQuery(search), SEARCH_PAUSE_MS);
   useEffect(() => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (organizationType) params.set(ORGANIZATION_TYPE_KEY, organizationType);
+    if (sort !== "newest") params.set(SORT_KEY, sort);
     const query = params.toString();
     replaceRouteQuietly(query ? `${routePath()}?${query}` : routePath());
-  }, [q, organizationType]);
-  const { list, more, retry } = usePublicProjects(q, undefined, true, organizationType ?? undefined);
+  }, [q, organizationType, sort]);
+  const { list, more, retry } = usePublicProjects(q, { organizationType: organizationType ?? undefined, sort });
   // Whether a page has shown the list is switched on, so later searches keep the index while they load.
   const [indexSeen, setIndexSeen] = useState(false);
   // The last list that arrived stays on screen while the next search loads, so the cards do not blink.
@@ -177,6 +182,9 @@ export function PublicProjects() {
       maxLength={PUBLIC_PROJECT_QUERY_MAX}
       facets={facets}
       onFacet={(_key, chosen) => setOrganizationType(chosen[0] ?? null)}
+      // Newest first, oldest first or by name, read from the server, since the list comes a page at a time.
+      sort={{ value: sort, options: PUBLIC_PROJECT_SORT_OPTIONS }}
+      onSort={(value) => setSort(isPublicProjectSort(value) ? value : "newest")}
       // The list comes a page at a time, so the sheet's Show button counts every match, not the cards loaded.
       count={ready?.page.index.total ?? 0}
       total={ready?.page.index.total ?? 0}
@@ -245,7 +253,7 @@ export function PublicProjects() {
           {list.status !== "ready" && ready.projects.length > 0 && <ListEndHold things="projects" />}
           {list.status === "ready" && list.projects.length > 0 && (
             <ListEnd
-              key={`${list.q} ${list.organizationType ?? ""}`}
+              key={`${list.q} ${list.organizationType ?? ""} ${list.sort ?? ""}`}
               shown={list.projects.length}
               total={Math.max(list.page.index.total, list.projects.length)}
               things="projects"

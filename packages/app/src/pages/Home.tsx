@@ -45,7 +45,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const asOf = fixture?.asOf ?? new Date().toISOString().slice(0, 10);
   const previews = homePreviews(fixture?.initiatives ?? [], asOf);
   // Without the example world, Recently shared lists the newest public Certified projects.
-  const { list: published, retry: retryPublished } = usePublicProjects("", RECENT_PREVIEW_COUNT, !fixture);
+  const { list: published, retry: retryPublished } = usePublicProjects("", { limit: RECENT_PREVIEW_COUNT, enabled: !fixture });
   const publishedReady = published.status === "ready" ? published : null;
   const recent = fixture ? previews.recent : [];
   const sharedCount = fixture ? previews.sharedCount : publishedReady?.page.index.total ?? 0;
