@@ -143,6 +143,55 @@ export function linkedProject<Project extends { readonly uri: string; readonly w
 }
 
 /**
+ * What a card can say about its Certified project:
+ * - `linked`: it is linked to one of the projects listed now.
+ * - `not-linked`: nobody chose a project for it, or its account's choice is no longer listed.
+ * - `signed-out`: an account chose a project for it on this device, and nobody is signed in to see which.
+ * - `checking`: this account chose a project for it, and its projects are still being read.
+ * - `unchecked`: this account chose a project for it, and its projects could not be read.
+ *
+ * A stored choice is a note that the card was linked (DL-119). Only the account that made it can
+ * read it against its projects, so the card is never called unlinked while that cannot be done:
+ * signed out, or before the account's projects have been read.
+ */
+export type ProjectLinkState = "linked" | "not-linked" | "signed-out" | "checking" | "unchecked";
+
+export function projectLinkState({ linked, owner, choosers, loading, problem }: {
+  /** The card is linked to a project listed now, by `linkedProject`. */
+  readonly linked: boolean;
+  /** The account signed in now. */
+  readonly owner: string | null | undefined;
+  /** The accounts that chose a Certified project for the card on this device. */
+  readonly choosers: readonly string[];
+  /** The account's projects are being read. */
+  readonly loading: boolean;
+  /** Some of the account's projects could not be read. */
+  readonly problem: boolean;
+}): ProjectLinkState {
+  if (linked) return "linked";
+  if (!owner) return choosers.length ? "signed-out" : "not-linked";
+  if (!choosers.includes(owner)) return "not-linked";
+  if (loading) return "checking";
+  return problem ? "unchecked" : "not-linked";
+}
+
+/** The line a card shows about its project while it is not linked to one listed now. Empty once it is. */
+export function projectLinkLine(state: ProjectLinkState): string {
+  switch (state) {
+    case "linked":
+      return "";
+    case "not-linked":
+      return "Not linked to a Certified project yet.";
+    case "signed-out":
+      return "Linked to a Certified project. Sign in to see it.";
+    case "checking":
+      return "Checking your Certified project.";
+    case "unchecked":
+      return "Your Certified project could not be checked. The card is still linked to it.";
+  }
+}
+
+/**
  * Opens the account's version of a card in place of this browser's working copy, and returns
  * whether that copy is now a device backup. Either way the copy is kept, which the entry says
  * before the press: the page moves on to the card, so nothing said afterwards would be read. The loaded version is stored under the card's own

@@ -17,7 +17,8 @@ function fixture() {
   const calls: string[] = [];
   const provider: AccountProvider = {
     signInUrl: () => "https://supabase.example.test/auth/v1/authorize",
-    exchangeCode: async () => ({ token: "test.access.token", expiresIn: 3600 }),
+    exchangeCode: async () => ({ token: "test.access.token", expiresIn: 3600, refreshToken: "test-refresh" }),
+    renew: async () => { throw new Error("no renewal cookie was sent"); },
     authorize: async (token) => {
       assert.equal(token, "test.access.token");
       return user;
@@ -148,7 +149,9 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
     res.end(
       JSON.stringify(
         req.url === "/auth/v1/token?grant_type=pkce"
-          ? { access_token: "test.access.token", refresh_token: "never-return-this", expires_in: 7200 }
+          ? { access_token: "test.access.token", refresh_token: "synthetic-refresh-1", expires_in: 7200 }
+          : req.url === "/auth/v1/token?grant_type=refresh_token"
+            ? { access_token: "renewed.access.token", refresh_token: "synthetic-refresh-2", expires_in: 3600 }
           : req.url === "/auth/v1/user"
             ? user
             : req.url === "/rest/v1/rpc/account_access"
@@ -179,8 +182,13 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
   const target = new URL(provider.signInUrl("synthetic-challenge", "https://weave.test/api/sign-in?state=synthetic"));
   assert.equal(target.searchParams.get("provider"), "custom:certified");
   assert.equal(target.searchParams.get("code_challenge_method"), "s256");
-  assert.deepEqual(await provider.exchangeCode("synthetic-code", "synthetic-verifier"), { token: "test.access.token", expiresIn: 3600 });
+  assert.deepEqual(await provider.exchangeCode("synthetic-code", "synthetic-verifier"),
+    { token: "test.access.token", expiresIn: 3600, refreshToken: "synthetic-refresh-1" });
   assert.deepEqual(seen[0]!.body, { auth_code: "synthetic-code", code_verifier: "synthetic-verifier" });
+  assert.deepEqual(await provider.renew("synthetic-refresh-1"),
+    { token: "renewed.access.token", expiresIn: 3600, refreshToken: "synthetic-refresh-2" });
+  assert.deepEqual(seen[1]!.body, { refresh_token: "synthetic-refresh-1" });
+  assert.equal(seen[1]!.headers.authorization, undefined, "renewal sends only the refresh token and the publishable key");
   assert.deepEqual(await provider.authorize("test.access.token"), user);
   await provider.list("test.access.token", 0);
   assert.deepEqual(await provider.load("test.access.token", id), saved);

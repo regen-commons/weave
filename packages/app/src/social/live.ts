@@ -4,6 +4,7 @@ import type { AccountState } from "../account/client.ts";
 import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
 import { deleteSavedCard } from "../account/delete-card.ts";
+import { withConfirmedSession } from "../account/session-end.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { hasDraft } from "../describe/view.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
@@ -26,6 +27,8 @@ export type LiveSocialService = Pick<SocialService,
 };
 type Group = { groupDid: string; role: "owner" | "admin" | "member"; displayName?: string; handle?: string };
 type Options = { account: AccountState; controller: DraftController; refreshAccount(): Promise<AccountState>;
+  /** Asks /api/account, which renews the session, after the projects endpoint refused a request. Defaults to `refreshAccount`. */
+  confirmAccount?(): Promise<AccountState>;
   request?: typeof accountRequest; storage?: Pick<Storage, "getItem" | "setItem" | "removeItem"> & Partial<Pick<Storage, "length" | "key">>;
   /**
    * Where project choices are kept. The app gives the device's own storage, so a card linked to a
@@ -85,7 +88,13 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     workspaces: [], hasMoreCards: options.account.items.length === 20, reminders: [], leads: [], notifications: { funding: false, partners: false } };
   const emit = () => { if (!lifetime.signal.aborted) for (const notify of listeners) notify(); };
   const checked = () => { lifetime.signal.throwIfAborted(); if (!owner) throw new AccountFailure("sign_in_required"); return owner; };
-  async function post(body: unknown) { checked(); const result = await request("", body, "/api/projects", lifetime.signal); checked(); return result; }
+  const confirmAccount = options.confirmAccount ?? options.refreshAccount;
+  async function post(body: unknown) {
+    const account = checked();
+    const result = await withConfirmedSession(() => request("", body, "/api/projects", lifetime.signal), confirmAccount, account);
+    checked();
+    return result;
+  }
   /**
    * True when the tab's card belongs to another account than this one (DL-055): it was saved by
    * another, or another chose its Certified project for it on this device (DL-119).

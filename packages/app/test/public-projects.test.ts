@@ -130,7 +130,7 @@ test("a kind of group goes into the page's address in one place, and only one th
   for (const unreadable of ["Nonprofit", "non profit", "", "x".repeat(41), null])
     assert.equal(publicProjectsPath("", { organizationType: unreadable }), "/api/public-projects", String(unreadable));
   assert.equal(chosenOrganizationType("?q=soil&organizationType=nonprofit"), "nonprofit");
-  // An address shared before the Portuguese spellings were read as Community group opens on Community group (DL-123).
+  // An address shared before the Portuguese spellings were read as Community group opens on Community group (DL-124).
   assert.equal(chosenOrganizationType("?organizationType=grupo-comunit%C3%A1rio"), "community-group");
   assert.equal(chosenOrganizationType("?organizationType=grupo-comunitario"), "community-group");
   for (const search of ["", "?organizationType=", "?organizationType=Non%20Profit", "?kind=nonprofit"])
@@ -157,7 +157,7 @@ test("the filter offers only the kinds the list names, keeps a chosen one on off
   assert.equal(organizationTypeLabel("ngo"), "NGO");
 });
 
-test("a kind of work goes into the page's address beside the kind of group, as Focus in the bar (DL-123)", () => {
+test("a kind of work goes into the page's address beside the kind of group, as Focus in the bar (DL-124)", () => {
   assert.equal(publicProjectsPath("soil", { organizationType: "nonprofit", workScope: "restoration", sort: "name", cursor: "abc" }),
     "/api/public-projects?q=soil&organizationType=nonprofit&workScope=restoration&sort=name&cursor=abc");
   for (const unreadable of ["Restoration", "forest_protection", "", "x".repeat(61), null])

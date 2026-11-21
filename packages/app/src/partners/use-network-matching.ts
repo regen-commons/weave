@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { AccountFailure } from "../account/client.ts";
+import { AccountFailure, type AccountState } from "../account/client.ts";
 import type { ActiveInitiative } from "../account/active-initiative.ts";
 import {
-  entryKey, entryReference, matchingMessage, matchingRequest,
+  confirmedMatchingRequest, entryKey, entryReference, matchingMessage,
   type EntryRef, type MatchingEntry, type MatchingMutation, type MatchingSearch, type MatchingState,
   type NetworkLead, type SharingPreview,
 } from "./matching-client.ts";
@@ -12,7 +12,11 @@ export function sharedEntries(entries: MatchingEntry[], now = Date.now()): Match
     sharing === "shared" && status === "open" && (expiresAt === null || Date.parse(expiresAt) > now));
 }
 
-export function useNetworkMatching(active: ActiveInitiative, onExpired: () => void) {
+/**
+ * `confirm` asks /api/account, which renews the session, before a refusal from the matching endpoint
+ * reads as an ended session. `onExpired` hears of a session that did end, after the screen was cleared.
+ */
+export function useNetworkMatching(active: ActiveInitiative, confirm: () => Promise<AccountState>, onExpired?: () => void) {
   const [state, setState] = useState<MatchingState | null>(null);
   const [search, setSearch] = useState<MatchingSearch | null>(null);
   const [leads, setLeads] = useState<NetworkLead[] | null>(null);
@@ -27,10 +31,13 @@ export function useNetworkMatching(active: ActiveInitiative, onExpired: () => vo
   const reading = useRef(false);
   const expiryHandler = useRef(onExpired);
   expiryHandler.current = onExpired;
+  const confirmer = useRef(confirm);
+  confirmer.current = confirm;
+  const request = confirmedMatchingRequest(() => confirmer.current(), active.owner);
 
   function failure(cause: unknown, signal: AbortSignal) {
     if (signal.aborted) return;
-    if (cause instanceof AccountFailure && cause.code === "sign_in_required") expiryHandler.current();
+    if (cause instanceof AccountFailure && cause.code === "sign_in_required") expiryHandler.current?.();
     else setError(matchingMessage(cause));
   }
 
@@ -42,19 +49,19 @@ export function useNetworkMatching(active: ActiveInitiative, onExpired: () => vo
     setLoading(true);
     try {
       const id = active.id;
-      const next = await matchingRequest(id, "state", {}, signal);
+      const next = await request(id, "state", {}, signal);
       if (signal.aborted) return;
       setState(next);
       const entries = sharedEntries(next.entries).map(entryReference);
       const matching = next.initiativeRevision === active.revision && entries.length
-        ? matchingRequest(id, "search", { entries }, signal).then((result) => {
+        ? request(id, "search", { entries }, signal).then((result) => {
           const queried = new Map(entries.map((entry) => [entryKey(entry), entry.revision]));
           if (result.results.some(({ query }) => queried.get(entryKey(query)) !== query.revision))
             throw new AccountFailure("matching_unavailable");
           if (!signal.aborted) setSearch(result);
         }).catch((cause) => failure(cause, signal))
         : Promise.resolve();
-      const saved = matchingRequest(id, "leads", {}, signal).then((result) => {
+      const saved = request(id, "leads", {}, signal).then((result) => {
         if (!signal.aborted) setLeads(result.leads);
       }).catch((cause) => failure(cause, signal));
       await Promise.all([matching, saved]);
@@ -120,7 +127,7 @@ export function useNetworkMatching(active: ActiveInitiative, onExpired: () => vo
     setNotice("");
     setPreview(null);
     try {
-      const response = await matchingRequest(active.id, "preview", { initiativeRevision: state.initiativeRevision, entries }, signal);
+      const response = await request(active.id, "preview", { initiativeRevision: state.initiativeRevision, entries }, signal);
       const returned = new Map(response.entries.map((entry) => [entryKey(entry), entry]));
       if (response.initiativeRevision !== state.initiativeRevision || returned.size !== entries.length ||
           response.entries.length !== entries.length || entries.some((entry) => {
@@ -147,7 +154,7 @@ export function useNetworkMatching(active: ActiveInitiative, onExpired: () => vo
     setNotice("");
     try {
       if (command.action === "set_lead") {
-        const response = await matchingRequest(active.id, command.action, command.input, signal);
+        const response = await request(active.id, command.action, command.input, signal);
         if (signal.aborted) return;
         setLeads(response.leads);
         setNotice({
@@ -156,7 +163,7 @@ export function useNetworkMatching(active: ActiveInitiative, onExpired: () => vo
           removed: "Lead choice cleared.",
         }[command.input.disposition]);
       } else {
-        await matchingRequest(active.id, command.action, command.input, signal);
+        await request(active.id, command.action, command.input, signal);
         if (signal.aborted) return;
         setPreview(null);
         setNotice({

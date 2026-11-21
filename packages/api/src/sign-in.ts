@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { uuid, type SignInResult } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
-import { boundedJson, sessionCookies } from "./account-http.ts";
+import { boundedJson, RENEWAL_SECONDS, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
 import type { SignInStore } from "./sign-in-store.ts";
 import { signInEmail, type certifiedEmailHints } from "./certified/email-hint.ts";
@@ -32,9 +32,9 @@ interface Options { origin: string; secureCookies: boolean; store: SignInStore; 
 export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints }: Options) {
   const cookies = sessionCookies(secureCookies);
   const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff" };
-  const finish = (path: string, status: SignInResult, session?: string) => {
+  const finish = (path: string, status: SignInResult, session: string[] = []) => {
     const response = new Response(null, { status: 303, headers: { ...headers, Location: `${origin}${path}?account=${status}`, "Set-Cookie": cookies.pending() } });
-    if (session) response.headers.append("Set-Cookie", session);
+    for (const cookie of session) response.headers.append("Set-Cookie", cookie);
     return response;
   };
   return {
@@ -93,7 +93,9 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         established = session.token;
         // Authoritative database predicate rejects missing Certified identity, bans and revoked sessions.
         await provider.authorize(session.token);
-        return finish(returnTo, "signed-in", cookies.session(session.token, session.expiresIn));
+        // The refresh token lets /api/account renew the access token before its hour runs out.
+        return finish(returnTo, "signed-in", [cookies.session(session.token, session.expiresIn),
+          cookies.renewal(session.refreshToken, RENEWAL_SECONDS)]);
       } catch (error) {
         if (established) { try { await provider.signOut(established); } catch {} }
         return finish(returnTo, error instanceof AccountError && error.code === "sign_in_expired" ? "expired" : "failed");

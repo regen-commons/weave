@@ -19,9 +19,16 @@ export class AccountError extends Error {
     this.code = code;
   }
 }
+/** A Supabase session. The refresh token only ever travels in an HttpOnly cookie and to Supabase. */
+export interface AccountSessionTokens { token: string; expiresIn: number; refreshToken: string }
 export interface AccountProvider {
   signInUrl(challenge: string, callback: string, loginHint?: string): string;
-  exchangeCode(code: string, verifier: string): Promise<{ token: string; expiresIn: number }>;
+  exchangeCode(code: string, verifier: string): Promise<AccountSessionTokens>;
+  /**
+   * Rotates a refresh token into a new session pair. Supabase rejects a revoked, expired, reused or banned
+   * session; that is reported as sign_in_required. An outage is account_unavailable and ends nothing.
+   */
+  renew(refreshToken: string): Promise<AccountSessionTokens>;
   authorize(token: string): Promise<AccountUser>;
   signOut(token: string): Promise<void>;
   list(token: string, offset: number): Promise<InitiativeSummary[]>;
@@ -46,6 +53,23 @@ function supabaseErrorCode(response: Response, data: unknown): string | undefine
   } catch {
     return undefined;
   }
+}
+/** Reads a token response from the PKCE or refresh grant. Anything unexpected is an outage, never a session. */
+function sessionTokens(data: unknown): AccountSessionTokens {
+  let o: Record<string, unknown>;
+  try { o = record(data); } catch { throw new AccountError(503, "account_unavailable"); }
+  if (
+    typeof o.access_token !== "string" ||
+    !/^[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/u.test(o.access_token) ||
+    o.access_token.length > 3800 ||
+    typeof o.expires_in !== "number" ||
+    !Number.isFinite(o.expires_in) ||
+    o.expires_in <= 0 ||
+    typeof o.refresh_token !== "string" ||
+    !/^[\x21-\x7e]{8,1024}$/u.test(o.refresh_token)
+  )
+    throw new AccountError(503, "account_unavailable");
+  return { token: o.access_token, expiresIn: Math.min(Math.floor(o.expires_in), 3600), refreshToken: o.refresh_token };
 }
 function supabaseRequests(url: string, key: string, request: typeof fetch) {
   const call = async (path: string, method: string, body: unknown, token?: string, schema = false) => {
@@ -137,25 +161,23 @@ export function createSupabaseAccountProvider(
         throw new AccountError(401, "sign_in_expired");
       if (!response.ok) throw new AccountError(response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
         response.status === 429 ? "rate_limited" : response.status >= 500 ? "account_unavailable" : "sign_in_failed");
-      let o: Record<string, unknown>;
-      try { o = record(data); } catch { throw new AccountError(503, "account_unavailable"); }
-      if (
-        typeof o.access_token !== "string" ||
-        !/^[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/u.test(o.access_token) ||
-        o.access_token.length > 3800 ||
-        typeof o.expires_in !== "number" ||
-        !Number.isFinite(o.expires_in) ||
-        o.expires_in <= 0
-      )
-        throw new AccountError(503, "account_unavailable");
-      return { token: o.access_token, expiresIn: Math.min(Math.floor(o.expires_in), 3600) };
+      return sessionTokens(data);
+    },
+    async renew(refreshToken) {
+      const { response, data } = await call("/auth/v1/token?grant_type=refresh_token", "POST", { refresh_token: refreshToken });
+      // Any refusal (revoked, reused past Supabase's reuse window, expired, banned) ends the session.
+      // Only the status is read; Supabase's codes and messages never leave.
+      if (!response.ok) throw new AccountError(response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
+        response.status === 429 ? "rate_limited" : response.status >= 500 ? "account_unavailable" : "sign_in_required");
+      return sessionTokens(data);
     },
     async authorize(token) {
       const { response, data } = await call("/auth/v1/user", "GET", undefined, token);
+      // A rate limit is not a refusal: it must not end, or revoke, a session that can still renew.
       if (!response.ok)
         throw new AccountError(
-          response.status >= 500 ? 503 : 401,
-          response.status >= 500 ? "account_unavailable" : "sign_in_required",
+          response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
+          response.status === 429 ? "rate_limited" : response.status >= 500 ? "account_unavailable" : "sign_in_required",
         );
       let user: AccountUser;
       try {
