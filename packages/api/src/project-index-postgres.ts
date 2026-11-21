@@ -65,7 +65,7 @@ export async function connectProjectIndex(url: string, options: { ca?: string } 
           update private.weave_project_index_source
           set status = 'restricted', permission_until = least(permission_until, now()),
             embedding_model = null, error_code = 'permission_removed',
-            publisher_name = null, place_name = null, organization_types = '{}'
+            publisher_name = null, place_name = null, organization_types = '{}', organization_description = null, work_scope = '{}'
           where not (project_uri = any(${manifest.permissions.map(({ uri }) => uri)}::text[]))
         `;
         await tx`
@@ -139,23 +139,29 @@ export async function connectProjectIndex(url: string, options: { ca?: string } 
         const keepOld = read.status === "failed"
           && (read.code === "source_unavailable" || read.code === "source_rate_limited");
         // The card's facts follow the evidence: written on every indexed read, even when the passages are
-        // unchanged, kept with them through a transient failure and cleared whenever they are deleted.
+        // unchanged, kept with them through a transient failure and cleared whenever they are deleted. A read
+        // that did not look at the work scope (null) keeps the stored one.
         const facts = read.status === "indexed" ? read.facts : NO_PROJECT_FACTS;
+        const keepWorkScope = keepOld || facts.workScope === null;
         await tx`
           insert into private.weave_project_index_source as s (
             project_uri, status, permission_until, cid, content_hash, extraction_version, checked_at, fetched_at, error_code, embedding_model, source_indexed_at,
-            publisher_name, place_name, organization_types
+            publisher_name, place_name, organization_types, organization_description, work_scope
           ) values (
             ${permission.uri}, ${read.status}, ${permission.redisplayUntil},
             ${read.status === "indexed" ? read.cid : null}, ${read.status === "indexed" ? read.contentHash : null},
             ${read.status === "indexed" ? PROJECT_EXTRACTION_VERSION : null}, ${checkedAt},
             ${read.status === "indexed" ? read.fetchedAt : null}, ${read.status === "indexed" ? null : read.code},
             ${embedding?.modelVersion ?? null}, ${read.status === "indexed" ? read.sourceIndexedAt : null},
-            ${facts.publisher}, ${facts.place}, ${facts.organizationTypes}::text[]
+            ${facts.publisher}, ${facts.place}, ${facts.organizationTypes}::text[], ${facts.organizationDescription},
+            ${facts.workScope ?? []}::text[]
           ) on conflict (project_uri) do update set
             publisher_name = case when ${keepOld} then s.publisher_name else excluded.publisher_name end,
             place_name = case when ${keepOld} then s.place_name else excluded.place_name end,
             organization_types = case when ${keepOld} then s.organization_types else excluded.organization_types end,
+            organization_description =
+              case when ${keepOld} then s.organization_description else excluded.organization_description end,
+            work_scope = case when ${keepWorkScope} then s.work_scope else excluded.work_scope end,
             status = case when ${keepOld} and s.status in ('missing', 'restricted') then s.status else excluded.status end,
             permission_until =
               case when ${keepOld} then least(s.permission_until, excluded.permission_until) else excluded.permission_until end,

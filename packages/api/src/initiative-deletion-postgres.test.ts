@@ -18,7 +18,8 @@ const candidate = (name: string) => readFile(new URL(`../../../supabase/candidat
 const CANDIDATES = ["certified-private-access", "weave-matching", "weave-project-index", "weave-matching-vectors",
   "weave-project-oauth", "weave-project-workspaces", "weave-team-content", "weave-public-evidence-snapshot",
   "weave-project-discovery", "weave-workspace-invites", "weave-support-publication", "weave-open-ended-sharing",
-  "weave-initiative-deletion", "weave-project-index-card-facts"];
+  "weave-initiative-deletion", "weave-project-index-card-facts", "weave-project-index-work-scope",
+  "weave-project-index-organization-description"];
 
 before(async () => {
   if (!database) return;

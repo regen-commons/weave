@@ -15,16 +15,20 @@ const card = (n: number): PublicProjectCard => ({
   sourceUrl: `https://api.hypercerts.dev/xrpc/org.hypercerts.collection.getCollection?uri=${encodeURIComponent(projectUri(n))}`,
 });
 
-test("the query accepts only a bounded search, a kind of group, an opaque cursor and a page size", () => {
+test("the query accepts only a bounded search, a kind of group, a kind of work, an opaque cursor and a page size", () => {
   assert.deepEqual(parsePublicProjectQuery(url("")),
-    { q: "", terms: [], organizationType: null, sort: "newest", cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
+    { q: "", terms: [], organizationType: null, workScope: null, sort: "newest", cursor: null, limit: PUBLIC_PROJECT_PAGE_SIZE });
   assert.deepEqual(["oldest", "name", "newest"].map((sort) => parsePublicProjectQuery(url(`?sort=${sort}`)).sort), ["oldest", "name", "newest"]);
   // A cursor carries its order's key: a share date for newest and oldest, a name for name A to Z.
   const named = encodePublicProjectCursor({ key: "Community seed library", uri: projectUri(2) });
   assert.deepEqual(parsePublicProjectQuery(url(`?sort=name&cursor=${named}`)).cursor, { key: "Community seed library", uri: projectUri(2) });
   assert.throws(() => parsePublicProjectQuery(url(`?cursor=${named}`)), /invalid_project_query/u, "a name cursor is not a date cursor");
   assert.equal(parsePublicProjectQuery(url("?q=soil&organizationType=community-group")).organizationType, "community-group");
-  assert.equal(parsePublicProjectQuery(url("?organizationType=grupo-comunit%C3%A1rio")).organizationType, "grupo-comunitário");
+  // An address from before the Portuguese kinds were read as Community group still finds those projects.
+  assert.equal(parsePublicProjectQuery(url("?organizationType=grupo-comunit%C3%A1rio")).organizationType, "community-group");
+  assert.equal(parsePublicProjectQuery(url("?organizationType=grupo-comunitario")).organizationType, "community-group");
+  assert.equal(parsePublicProjectQuery(url("?organizationType=constructor")).organizationType, "constructor");
+  assert.equal(parsePublicProjectQuery(url("?q=soil&workScope=biodiversity-monitoring")).workScope, "biodiversity-monitoring");
   const search = parsePublicProjectQuery(url("?q=%20S%C3%A3o%20%20Paulo%20soil%20soil&limit=3"));
   assert.deepEqual([search.q, search.terms, search.limit], ["São Paulo soil soil", ["sao", "paulo", "soil"], 3]);
   assert.deepEqual(searchTerms("a b c d e f g h"), ["a", "b", "c", "d", "e", "f"]);
@@ -48,6 +52,8 @@ test("the query accepts only a bounded search, a kind of group, an opaque cursor
     "?organizationtype=nonprofit", "?type=nonprofit", "?sort=", "?sort=Name", "?sort=fit", "?sort=name&sort=oldest",
     `?sort=oldest&cursor=${encodePublicProjectCursor({ key: "Seed library", uri: projectUri(1) })}`,
     `?sort=name&cursor=${encodePublicProjectCursor({ key: "", uri: projectUri(1) })}`,
+    "?workScope=", "?workScope=Restoration", "?workScope=biodiversity_monitoring", "?workScope=disaster%20relief",
+    `?workScope=${"x".repeat(61)}`, "?workScope=water&workScope=energy", "?workscope=water", "?focus=water",
   ]) assert.throws(() => parsePublicProjectQuery(url(bad)), /invalid_project_query/u, bad);
 });
 
@@ -78,7 +84,7 @@ test("the list is overdue after 26 hours and partial while a sweep is unfinished
 
 test("pages come from a copy read once a minute, are cacheable and link the next page", async () => {
   let clock = Date.parse("2026-11-15T06:00:00Z");
-  const cards = [1, 2, 3, 4, 5].map((n) => ({ ...card(n), sharedAt: `2026-10-0${n}T12:00:00.000000Z`, organizationTypes: [],
+  const cards = [1, 2, 3, 4, 5].map((n) => ({ ...card(n), sharedAt: `2026-10-0${n}T12:00:00.000000Z`, organizationTypes: [], workScopes: [],
     text: n === 2 ? "Guardamos sementes crioulas em São Paulo." : "We restore wetlands along the river." }));
   const snapshot: PublicProjectSnapshot = { cards, checkpoint: { completedAt: "2026-11-15T04:01:00.000000Z", offset: 0 } };
   let loads = 0;
@@ -131,7 +137,7 @@ test("before the list is switched on it answers an empty off page, and errors ar
   let attempts = 0;
   const flaky = createPublicProjectsHandler({ reader: async () => ({ ...reader, load: async () => {
     if (++attempts === 1) throw Error("relation private.weave_project_index_source permission denied");
-    return { cards: [{ ...card(1), text: "", organizationTypes: [] }], checkpoint: null };
+    return { cards: [{ ...card(1), text: "", organizationTypes: [], workScopes: [] }], checkpoint: null };
   } }) });
   await expect(await flaky(new Request(url(""))), 503, "public_projects_unavailable");
   // A database that stops answering gives a quick 503, and the next request reads again.
@@ -183,7 +189,7 @@ test("search reads the publisher and the place, and a kind of group narrows the 
     [{ publisher: "Orchard Circle" }, ["other"]],
   ];
   const cards = facts.map(([fact, organizationTypes], index) => ({
-    ...card(index + 1), ...fact, organizationTypes, sharedAt: `2026-10-0${index + 1}T12:00:00.000000Z`, text: "We restore wetlands.",
+    ...card(index + 1), ...fact, organizationTypes, workScopes: [], sharedAt: `2026-10-0${index + 1}T12:00:00.000000Z`, text: "We restore wetlands.",
   }));
   const handler = createPublicProjectsHandler({ reader: async () => ({
     load: async () => ({ cards, checkpoint: { completedAt: "2026-11-19T04:01:00.000000Z", offset: 0 } }), close: async () => undefined,
@@ -193,7 +199,7 @@ test("search reads the publisher and the place, and a kind of group narrows the 
     assert.equal(response.status, 200, search);
     const body = await response.json() as { projects: Record<string, unknown>[] };
     for (const project of body.projects)
-      assert.deepEqual(Object.keys(project).filter((key) => ["text", "search", "organizationTypes"].includes(key)), []);
+      assert.deepEqual(Object.keys(project).filter((key) => ["text", "search", "organizationTypes", "workScopes"].includes(key)), []);
     return parsePublicProjectPage(body);
   };
   const all = await get("");
@@ -218,16 +224,16 @@ test("search reads the publisher and the place, and a kind of group narrows the 
   assert.deepEqual([(await get("?organizationType=dao")).index.total, (await get("?organizationType=dao")).projects], [0, []]);
   // A list whose publishers name no kind offers none, as a server from before the filter did.
   const plain = createPublicProjectsHandler({ reader: async () => ({
-    load: async () => ({ cards: [{ ...card(1), organizationTypes: [], text: "" }], checkpoint: null }), close: async () => undefined,
+    load: async () => ({ cards: [{ ...card(1), organizationTypes: [], workScopes: [], text: "" }], checkpoint: null }), close: async () => undefined,
   }) });
   const quiet = await (await plain(new Request(url("")))).json() as { index: Record<string, unknown> };
-  assert.ok(!("organizationTypes" in quiet.index));
+  assert.ok(!("organizationTypes" in quiet.index) && !("workScopes" in quiet.index));
 });
 
 test("a stored value the app would refuse is left out of its card, so one bad row cannot empty the list", async () => {
   const cards = [
-    { ...card(1), publisher: "", place: "x".repeat(121), organizationTypes: ["Bad Kind", "nonprofit", "nonprofit"], text: "" },
-    { ...card(2), publisher: "Lagoa\u0000Seed", place: "Awka, Nigeria", organizationTypes: ["community-group"], text: "" },
+    { ...card(1), publisher: "", place: "x".repeat(121), organizationTypes: ["Bad Kind", "nonprofit", "nonprofit"], workScopes: ["Bad Key", "water", "water"], text: "" },
+    { ...card(2), publisher: "Lagoa\u0000Seed", place: "Awka, Nigeria", organizationTypes: ["community-group"], workScopes: ["water"], text: "" },
   ];
   const handler = createPublicProjectsHandler({ reader: async () => ({
     load: async () => ({ cards, checkpoint: null }), close: async () => undefined,
@@ -238,11 +244,12 @@ test("a stored value the app would refuse is left out of its card, so one bad ro
   assert.deepEqual(page.projects.map(({ uri, publisher, place }) => [uri, publisher, place]).sort(),
     [[projectUri(1), undefined, undefined], [projectUri(2), undefined, "Awka, Nigeria"]].sort());
   assert.deepEqual(page.index.organizationTypes, ["community-group", "nonprofit"]);
+  assert.deepEqual(page.index.workScopes, ["water"], "a key the app would refuse is dropped and a repeat counts once");
 });
 
 test("the list reads newest first, oldest first or by name, and every order pages without gaps or repeats", async () => {
   const names = ["école verte", "Orchard 10", "Orchard 9", "acequia keepers", "Bee Commons", "Ecole Verte", "“Forest Friends”"];
-  const cards = names.map((name, n) => ({ ...card(n + 1), name, organizationTypes: [], text: "",
+  const cards = names.map((name, n) => ({ ...card(n + 1), name, organizationTypes: [], workScopes: [], text: "",
     sharedAt: `2026-10-0${[3, 1, 6, 2, 5, 4, 7][n]}T12:00:00.000000Z` }));
   const handler = createPublicProjectsHandler({ reader: async () => ({
     load: async () => ({ cards, checkpoint: null }), close: async () => undefined,
@@ -268,4 +275,54 @@ test("the list reads newest first, oldest first or by name, and every order page
   // A search keeps the order it was asked for.
   const response = await handler(new Request(url("?q=orchard&sort=name")));
   assert.deepEqual(parsePublicProjectPage(await response.json()).projects.map(({ name }) => name), ["Orchard 9", "Orchard 10"]);
+});
+
+test("a page may offer kinds of work, and an app of either age reads it", () => {
+  const page = {
+    index: { status: "bounded", checkedAt: "2026-11-21T04:01:00.000000Z", total: 1, workScopes: ["restoration", "biodiversity-monitoring"] },
+    projects: [card(1)], next: null,
+  };
+  assert.deepEqual(parsePublicProjectPage(page), page);
+  for (const workScopes of ["water", ["Water"], ["water", "water"], [""], [5], null, ["forest_protection"],
+    Array.from({ length: 25 }, (_, n) => `kind${n}`)])
+    assert.throws(() => parsePublicProjectPage({ ...page, index: { ...page.index, workScopes } }), /invalid_public_projects/u,
+      JSON.stringify(workScopes));
+});
+
+test("a kind of work narrows the list to projects whose activity names it, and only kinds two projects share are offered", async () => {
+  const work: [string[], string[]][] = [
+    [["restoration", "water"], ["nonprofit"]],
+    [["restoration", "biodiversity-monitoring"], ["grupo-comunitário"]],
+    [["other", "restoration"], ["community-group"]],
+    [["biodiversity-monitoring", "rain-gardens"], ["grupo-comunitario"]],
+    [["other"], []],
+    [[], ["community-group"]],
+  ];
+  const cards = work.map(([workScopes, organizationTypes], index) => ({
+    ...card(index + 1), organizationTypes, workScopes, sharedAt: `2026-10-0${index + 1}T12:00:00.000000Z`, text: "We restore wetlands.",
+  }));
+  const handler = createPublicProjectsHandler({ reader: async () => ({
+    load: async () => ({ cards, checkpoint: { completedAt: "2026-11-21T04:01:00.000000Z", offset: 0 } }), close: async () => undefined,
+  }), now: () => Date.parse("2026-11-21T06:00:00Z") });
+  const get = async (search: string) => {
+    const response = await handler(new Request(url(search)));
+    assert.equal(response.status, 200, search);
+    return parsePublicProjectPage(await response.json());
+  };
+  const name = (n: number) => `Watershed circle ${n}`;
+  const all = await get("");
+  // Most common first, `other` last, and a kind only one project names (rain gardens, water) is not offered.
+  assert.deepEqual(all.index.workScopes, ["restoration", "biodiversity-monitoring", "other"]);
+  // The Portuguese kinds are read as Community group, so the menu offers one choice for all four.
+  assert.deepEqual(all.index.organizationTypes, ["community-group", "nonprofit"]);
+  const restoration = await get("?workScope=restoration");
+  assert.deepEqual([restoration.index.total, restoration.projects.map((project) => project.name)], [3, [name(3), name(2), name(1)]]);
+  // A kind that is not offered still narrows the list, so an address that names it keeps working.
+  assert.deepEqual((await get("?workScope=rain-gardens")).projects.map((project) => project.name), [name(4)]);
+  // Both filters together: projects that match each.
+  const both = await get("?workScope=biodiversity-monitoring&organizationType=community-group");
+  assert.deepEqual([both.index.total, both.projects.map((project) => project.name)], [2, [name(4), name(2)]]);
+  const shared = await get("?organizationType=grupo-comunit%C3%A1rio");
+  assert.deepEqual(shared.projects.map((project) => project.name), [name(6), name(4), name(3), name(2)]);
+  assert.deepEqual([(await get("?workScope=energy")).index.total, (await get("?workScope=energy")).projects], [0, []]);
 });
