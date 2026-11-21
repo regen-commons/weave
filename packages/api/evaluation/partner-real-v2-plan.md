@@ -176,7 +176,9 @@ The owner confirms or changes these before the reviewers start:
    matcher, with the 95% interval of the paired difference above zero.
 3. **Recall floor.** Seed recall no more than 5 points below the current
    matcher's. This is the recall floor the spec asks to agree before tuning,
-   relative to today's matcher, because no absolute floor has been agreed.
+   relative to today's matcher, because no absolute floor has been agreed. It
+   takes the place of setting the floor from v1's human review, which was
+   replaced on 21 November 2026.
 4. **Languages.** Portuguese and Spanish seed recall above the current matcher's.
 5. **Quiet when nothing fits.** No-match queries with a suggestion no more than
    10 points above the current matcher's share.
@@ -221,10 +223,10 @@ site are not touched.
 
 1. Who are the two reviewers, and can each give about 5 to 6 hours, or 8 to 10.5
    for the larger pool?
-2. Should this review replace the human review of `partner-real-v1`? Recommended:
-   yes. v1 then serves as development data with its agent labels. Its human review
-   would mostly recheck an examined set whose pool cannot judge the models, so
-   reviewer time goes further here.
+2. Should this review replace the human review of `partner-real-v1`? **Answered
+   on 21 November 2026: yes.** v1 serves as development data with its agent
+   labels, and its worksheet does not go to reviewers. Its human review would
+   mostly have rechecked an examined set whose pool cannot judge the models.
 3. Is 100 English, 40 Portuguese and 20 Spanish the right language mix?
 4. Should blind agent instances write all the queries, or should people write some?
 5. Where do the sealed files live until the scored run?
