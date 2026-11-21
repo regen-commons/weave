@@ -66,8 +66,8 @@ reported separately for the 140 projects v1 used and the 839 it did not.
 ### Queries
 
 160 queries: 20 needs and 20 offers in each of art, software, research and place,
-the technical spec's minimum. Proposed languages: 100 English, 40 Portuguese and
-20 Spanish. Two kinds:
+the technical spec's minimum. Languages: 100 English, 40 Portuguese and 20
+Spanish, as the user confirmed on 21 November 2026. Two kinds:
 
 - **Seeded, about 100.** The writer sees one project drawn at random, from the new
   projects first and from the 19 art projects for art. They write a need that
@@ -228,6 +228,7 @@ site are not touched.
    labels, and its worksheet does not go to reviewers. Its human review would
    mostly have rechecked an examined set whose pool cannot judge the models.
 3. Is 100 English, 40 Portuguese and 20 Spanish the right language mix?
+   **Answered on 21 November 2026: yes, keep it.**
 4. Should blind agent instances write all the queries, or should people write some?
 5. Where do the sealed files live until the scored run?
 6. Do the margins in the decision rule (5 and 10 points) and the relative recall

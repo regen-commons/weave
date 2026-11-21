@@ -643,9 +643,10 @@ Holdout plan, 21 November 2026: the
 [`partner-real-v2` plan](../../packages/api/evaluation/partner-real-v2-plan.md)
 sets out the new holdout, the frozen engines, the human review and a proposed
 decision rule, with six questions for the user. Nothing in it is built. The user
-answered one on 21 November 2026: its human review replaces the one planned for
-`partner-real-v1`, which stays as development data with its agent labels. The
-other five questions are open.
+answered two on 21 November 2026. Its human review replaces the one planned for
+`partner-real-v1`, which stays as development data with its agent labels. Its
+160 queries are 100 in English, 40 in Portuguese and 20 in Spanish. The other
+four questions are open.
 
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
