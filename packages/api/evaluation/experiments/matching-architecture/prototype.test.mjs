@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { catalogParties, loadCatalog, SAMPLE } from "./catalog-shape.mjs";
+import { chooseCutOffs, GRID } from "./d32-engines.mjs";
 import { allowed, assertedText, chooseThreshold, score } from "./retrieval-eval.mjs";
 import { catalogCoverage } from "./shape.mjs";
 import { loadFixtures, NOW, runExamples } from "./teams-demo.mjs";
@@ -104,4 +105,19 @@ test("the threshold rule picks the lowest cut-off that meets the target, and non
   assert.equal(chooseThreshold(rows).threshold, 0.61);
   assert.equal(score(rows, "semantic", 0.61).summary.noMatchQueriesWithSuggestion, 0);
   assert.equal(chooseThreshold([row("q3", [], [["d", 0.99]])]).threshold, null);
+});
+
+test("the D32 cut-off rule keeps the recall floor, takes the most relevant, then breaks ties in its stated order", () => {
+  const point = (z, veto, relevant, recall, noMatch) => ({ semanticAtOrAboveZ: z, vetoBelowZ: veto, relevantAmongReturnedAt5: relevant,
+    finalRecallAt5: recall, noMatchFalsePositives: noMatch });
+  const cut = (semanticAtOrAboveZ, vetoBelowZ) => ({ semanticAtOrAboveZ, vetoBelowZ });
+  // The most relevant pair is below the floor; recall exactly at the floor qualifies.
+  assert.deepEqual(chooseCutOffs([point(5, 3, 0.9, 0.29, 0), point(2, 1, 0.6, 0.3, 2), point(1, 1, 0.5, 0.4, 0)], 0.3), cut(2, 1));
+  assert.deepEqual(chooseCutOffs([point(2, 1, 0.6, 0.31, 0), point(3, 1, 0.6, 0.35, 4)], 0.3), cut(3, 1));
+  assert.deepEqual(chooseCutOffs([point(3, 1, 0.6, 0.35, 4), point(4, 1, 0.6, 0.35, 1)], 0.3), cut(4, 1));
+  assert.deepEqual(chooseCutOffs([point(4, 2, 0.6, 0.35, 1), point(3, 2, 0.6, 0.35, 1), point(3, 1.5, 0.6, 0.35, 1)], 0.3), cut(3, 1.5));
+  // No suggestions, or nothing at the floor, gives no cut-offs.
+  assert.equal(chooseCutOffs([point(6, 4, null, 0, 0), point(1, 0, 0.5, 0.2, 0)], 0.3), null);
+  assert.deepEqual([GRID.semanticAtOrAboveZ.length, GRID.semanticAtOrAboveZ[0], GRID.semanticAtOrAboveZ.at(-1)], [61, 0, 6]);
+  assert.deepEqual([GRID.vetoBelowZ.length, GRID.vetoBelowZ[0], GRID.vetoBelowZ.at(-1), GRID.vetoBelowZ[21]], [61, -2, 4, 0.1]);
 });
