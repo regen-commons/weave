@@ -795,3 +795,16 @@ The Initiatives filter bar now has Sort, the same menu Funding uses (DL-100), wi
 The list arrives a page at a time, so the server sorts it, and each page's cursor records the last card's place in that order. A cursor made for one order is refused in another. Newest first is never written into a request, so its pages keep the addresses the cache already holds.
 
 Sort is in the bar from the first frame, waiting while the list loads, so the bar's controls row is there loading and loaded. On a phone the Sort button shares the row with Filters.
+
+## DL-122: Sort says only Sort, lives in a phone's Filters sheet, and a chosen order is a chip
+
+**Status:** user decision, 21 November 2026 ("Yes please do build it that way for both Initiatives and Funding"). Amends DL-100 and DL-117.
+
+DL-100 gave Sort a button that named the order in force, such as "Sort: Name A to Z". The button grew with each order's name, and a long one could overflow a phone's row beside Filters. On a phone the two buttons also asked for two taps to do one kind of thing.
+
+- **Wide screens.** Sort is still its own button and opens the same menu as before, but it reads only "Sort". It is marked in use, like a chosen filter, while an order other than the list's own is in force.
+- **Phones.** There is one button. The Filters sheet opens with Sort as its first group, chips with one to pick, above the filters. A list with nothing to filter on yet calls the button and its sheet "Sort".
+- **The order in force.** An order other than the list's own shows as a removable chip beside the filters, "Sort: Name A to Z". Removing it returns to the list's own order: Newest first on Initiatives, and on Funding Research priority when a card is being compared, otherwise Closing soon.
+- **Clear Filters** now takes off the order too, since it is one of the chips it clears. This reverses the earlier rule that the sort order stays.
+
+Both Funding and Initiatives use the shared filter bar, so both change.

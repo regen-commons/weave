@@ -163,6 +163,7 @@ export function PublicProjects() {
   function clear() {
     setSearch("");
     setOrganizationType(null);
+    setSort("newest");
     keepFocusOnPage();
   }
   // A list from before the filter refuses a kind of group, which can come from a shared address. Trying

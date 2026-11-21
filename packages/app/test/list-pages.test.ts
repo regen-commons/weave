@@ -96,14 +96,18 @@ test("a long list fills in as its end comes near, and Initiatives is one flat li
   assert.match(starter, /<CardGrid>\{shown\.map\(\(evidence\) => <li key=\{evidence\.id\}>\{card\(evidence\)\}<\/li>\)\}<\/CardGrid>/u);
 });
 
-test("Sort opens the same menu the filters open, and the sheet's Clear all is a button with its own edge (DL-100)", () => {
+test("Sort opens the same menu the filters open, says only Sort, and lives in a phone's sheet (DL-100, DL-122)", () => {
   const bar = read("ui/FilterBar.tsx");
   assert.doesNotMatch(bar, /<select\b|rc-sort/u);
   assert.match(bar, /<SortMenu sort=\{sort\} name=\{`\$\{id\}-sort`\} onSort=\{onSort\} \/>/u);
   // Sort is the menu of one choice, which is the system's Menu with radios. Funding's choice of
   // initiative opens the same one (DL-118).
   const sort = bar.slice(bar.indexOf("function SortMenu"), bar.indexOf("/**\n * Filter bar organism"));
-  assert.match(sort, /<RadioMenu\s+label=\{`Sort: \$\{current\?\.label\}`\}\s+legend="Sort"/u);
+  // The button never grows with an order's name; the order in force is a chip, and a phone's sheet holds Sort.
+  assert.match(sort, /<RadioMenu\s+label="Sort"\s+legend="Sort"/u);
+  assert.match(sort, /filter="one"/u, "a phone leaves the menu out, since its sheet holds Sort");
+  assert.match(bar, /aria-label=\{`Remove Sort: \$\{ordered\.label\}`\}/u);
+  assert.match(bar, /<legend>Sort<\/legend>/u);
   const menu = read("ui/RadioMenu.tsx");
   assert.match(menu, /className="rc-menu"/u);
   assert.match(menu, /className="rc-menu-option"/u);
@@ -111,7 +115,7 @@ test("Sort opens the same menu the filters open, and the sheet's Clear all is a 
   assert.match(menu, /data-close-popover/u, "a menu of controls has a visible way to close it");
   const funding = read("pages/Funding.tsx");
   assert.match(funding, /<StatusLine\s+actions=\{\s*subject\.choices\.length > 0 && \(\s*<RadioMenu/u, "the choice of initiative is offered only when there is another");
-  assert.match(bar, /data-variant="secondary"\s+type="button"\s+disabled=\{!query && choices\.length === 0\}\s+onClick=\{onClear\}/u);
+  assert.match(bar, /data-variant="secondary"\s+type="button"\s+disabled=\{!query && choices\.length === 0 && !ordered\}\s+onClick=\{onClear\}/u);
 });
 
 test("Your Initiatives holds its own cards' shape while it loads, under the heading that arrives, and never a funding card's", () => {
