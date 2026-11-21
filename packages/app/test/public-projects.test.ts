@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  chosenOrganizationType, countLine, emptyList, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage,
+  chosenOrganizationType, chosenSort, countLine, emptyList, expectsStarter, firstPage, INDEX_OFF_KEY, indexLine, listView, nextPage,
   organizationTypeFacets, organizationTypeLabel, rememberIndex, publicProjectsPath, PUBLIC_PROJECT_QUERY_MAX, requestPublicProjects,
-  searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, sharedLabel, showsIndex,
+  PUBLIC_PROJECT_SORT_OPTIONS, sameAsk, searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, sharedLabel, showsIndex,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:fixture${"a".repeat(13)}aaa${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -173,4 +173,21 @@ test("the line under a card's name says who shared it and where, in words for th
   assert.equal(sharedByLine({ publisher: "Riverkeepers" }), "Shared by Riverkeepers.");
   assert.equal(sharedByLine({ place: "Awka, Nigeria" }), "Place: Awka, Nigeria.");
   assert.equal(sharedByLine({}), "");
+});
+
+test("the list can be read newest first, oldest first or by name, and the order lives in the address (DL-121)", () => {
+  assert.deepEqual(PUBLIC_PROJECT_SORT_OPTIONS.map(({ value, label }) => `${value}: ${label}`),
+    ["newest: Newest first", "oldest: Oldest first", "name: Name A to Z"]);
+  // Newest first is the list's own order, so its pages keep the addresses they had.
+  assert.equal(publicProjectsPath("soil", null, undefined, null, "newest"), "/api/public-projects?q=soil");
+  assert.equal(publicProjectsPath("soil", "abc", 3, "nonprofit", "name"),
+    "/api/public-projects?q=soil&organizationType=nonprofit&sort=name&cursor=abc&limit=3");
+  assert.equal(chosenSort("?sort=oldest"), "oldest");
+  for (const search of ["", "?sort=", "?sort=Name", "?sort=fit"]) assert.equal(chosenSort(search), "newest", search);
+  // A late page for another order is dropped, like one for another search or kind.
+  const named = firstPage("", page([card(1)], 1), undefined, "name");
+  assert.equal(named.status === "ready" && named.sort, "name");
+  assert.equal(sameAsk(named, { q: "", sort: "name" }), true);
+  assert.equal(sameAsk(named, { q: "" }), false);
+  assert.equal("sort" in firstPage("", page([card(1)], 1), undefined, "newest"), false);
 });

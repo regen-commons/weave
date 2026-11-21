@@ -785,3 +785,13 @@ Pictures wait on D30, and an organization's links are never shown as the project
 Whether the filter stays is the maker's call. It rests on the third of projects whose publisher names a kind, and the coverage should be measured again on production after the first refresh with this change.
 
 Not held, and why. Before the first page answers, the bar draws Kind of group waiting, so the bar does not grow when the list arrives. If the list then names no kinds, that row goes away when it answers. That happens only with a server from before this change or a list where no publisher names a kind, and neither is the expected state.
+
+## DL-121: Initiatives sorts newest first, oldest first or by name
+
+**Status:** user request, 21 November 2026 ("I still don't see any filters or sorting"). Amends DL-081, which gave the public project list one order and no Sort.
+
+The Initiatives filter bar now has Sort, the same menu Funding uses (DL-100), with three orders: Newest first, which stays the list's own order and the default, Oldest first, and Name A to Z. Names sort as people read them, with case and accents aside and numbers by value, so "Orchard 9" comes before "Orchard 10". A tie keeps one fixed order by the project's address. The order goes into the page's address beside the search and the kind of group, and Clear Filters leaves it as it is, as on Funding.
+
+The list arrives a page at a time, so the server sorts it, and each page's cursor records the last card's place in that order. A cursor made for one order is refused in another. Newest first is never written into a request, so its pages keep the addresses the cache already holds.
+
+Sort is in the bar from the first frame, waiting while the list loads, so the bar's controls row is there loading and loaded. On a phone the Sort button shares the row with Filters.

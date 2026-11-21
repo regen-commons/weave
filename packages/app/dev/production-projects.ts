@@ -8,7 +8,7 @@ export const PRODUCTION_PROJECTS_FLAG = "WEAVE_PRODUCTION_PROJECTS";
 /** The one entry that may be read from production. */
 const ENTRY = "public-projects";
 /** The list's own parameters. Anything else in the address stays here. */
-const PARAMETERS = ["q", "organizationType", "cursor", "limit"] as const;
+const PARAMETERS = ["q", "organizationType", "sort", "cursor", "limit"] as const;
 const TIMEOUT_MS = 8000;
 
 /** Whether the dev server answers this entry from production: the public project list, with the flag on. */

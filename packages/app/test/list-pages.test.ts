@@ -152,7 +152,7 @@ test("a skeleton holds as many cards as the view loads, and the list end has its
   // Home asks each preview for the number it then holds shapes for.
   const home = read("pages/Home.tsx");
   assert.match(home, /count=\{preview === "row" \? FUNDING_PREVIEW_COUNT : RECENT_PREVIEW_COUNT\}/u);
-  assert.match(home, /usePublicProjects\("", RECENT_PREVIEW_COUNT, !fixture\)/u);
+  assert.match(home, /usePublicProjects\("", \{ limit: RECENT_PREVIEW_COUNT, enabled: !fixture \}\)/u);
   assert.match(read("home.ts"), /\.slice\(0, FUNDING_PREVIEW_COUNT\)/u);
 });
 
