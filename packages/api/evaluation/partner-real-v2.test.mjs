@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { assemble, buildCorpus, buildSlots, DOMAINS, savePages, seedOrder } from "../scripts/partner-real-v2.mjs";
 
-const project = (id, theme, v1Id = null, passage = `We run ${theme} work with neighbours.`) =>
+const project = (id, theme, v1Id = null, passage = `We run ${theme} work with our neighbours, share tools and skills, and keep careful records of each season.`) =>
   ({ id, uri: `at://did:plc:x/org.hypercerts.collection/${id}`, name: `Project ${id}`, passages: [passage], theme, v1Id, language: "en" });
 const corpus = { projects: [
   ...["a1", "a2", "a3"].map(id => project(id, "art", `rp-${id}`)),
@@ -44,6 +44,15 @@ test("seeds take projects new to v2 first, and repeat only when a theme has too 
   const art = buildSlots(corpus).slots.filter(slot => slot.domain === "art" && slot.seed);
   assert.equal(art.length, 25);
   assert.deepEqual(new Set(art.map(slot => slot.seed)), new Set(["a1", "a2", "a3"]));
+});
+
+test("a project with too little of its own text, or only the form prompt, is never a seed", () => {
+  const filler = "We grow food with our neighbours and teach children how to compost kitchen scraps in the school garden.";
+  const thin = { ...corpus, projects: [project("short", "place", null, "Local stewards are the best people."),
+    project("form", "place", null, "Start writing your story, and our AI assistant will help with the following: Spelling & grammar plus more."),
+    project("good", "place", null, filler)] };
+  assert.equal(filler.length >= 100, true);
+  assert.deepEqual(seedOrder(thin, "place").map(p => p.id), ["good"]);
 });
 
 test("the corpus keeps v1's rules, drops nothing else and marks v1's projects", () => {

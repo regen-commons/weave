@@ -88,9 +88,18 @@ const firstDirection = (domain, kind) => {
 };
 const other = direction => direction === "need" ? "offer" : "need";
 
+/**
+ * A seed must be a known fit from its own words, since engines never read names: at least 100 characters of passage
+ * text, and not Certified's form prompt, which v1's placeholder rule does not catch. Added on 21 November 2026, before
+ * any seeded query was written; the corpus keeps these projects.
+ */
+export const SEED_MIN_CHARACTERS = 100;
+const FORM_PROMPT = /start writing your story|our ai assistant will help/iu;
+export const canSeed = project => project.passages.join(" ").length >= SEED_MIN_CHARACTERS && !FORM_PROMPT.test(project.passages.join(" "));
+
 /** Seeds for one domain: projects of that theme, new to v2 first, each group in salted order, repeated if too few. */
 export function seedOrder(corpus, domain) {
-  const themed = corpus.projects.filter(project => project.theme === domain);
+  const themed = corpus.projects.filter(project => project.theme === domain && canSeed(project));
   const fresh = themed.filter(project => !project.v1Id).sort(bySalt("seed", domain));
   const seen = themed.filter(project => project.v1Id).sort(bySalt("seed", domain));
   return [...fresh, ...seen];
