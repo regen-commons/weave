@@ -150,7 +150,8 @@ test("the app bars keep their place between pages, above the page's cross-fade (
   // A rule inside an at-rule applies at some widths only; the bars must be named at every width.
   const depthAt = (css, index) => [...css.slice(0, index)].reduce((depth, char) => depth + (char === "{") - (char === "}"), 0);
   // The dock stands in for the tab bar on a focused step, so it changes as the bars do (DL-089).
-  for (const [bar, name] of [[".rc-app-header", "rc-app-header"], [".rc-bottom-nav", "rc-bottom-nav"], [".rc-dock", "rc-dock"]]) {
+  // A wide screen's step bar sticks under the app bar, so it changes as the bars do too (DL-123).
+  for (const [bar, name] of [[".rc-app-header", "rc-app-header"], [".rc-bottom-nav", "rc-bottom-nav"], [".rc-dock", "rc-dock"], [".rc-step-bar", "rc-step-bar"]]) {
     const named = organisms.match(new RegExp(`\\${bar} \\{ view-transition-name: ${name}; \\}`));
     assert.ok(named, `${bar} has its own view transition name`);
     assert.equal(depthAt(organisms, named.index), 0, `${bar} is named at every width`);
@@ -160,7 +161,7 @@ test("the app bars keep their place between pages, above the page's cross-fade (
   }
   // Any other named part of a page would be drawn over the bars while the page changes.
   const names = CSS_FILES.flatMap((file) => [...stripComments(read(file)).matchAll(/view-transition-name:\s*([a-z-]+)/g)].map((match) => match[1]));
-  assert.deepEqual(names.sort(), ["rc-app-header", "rc-bottom-nav", "rc-dock"]);
+  assert.deepEqual(names.sort(), ["rc-app-header", "rc-bottom-nav", "rc-dock", "rc-step-bar"]);
 });
 
 test("a side panel stays beside its page and never traps the wheel (DL-085)", () => {
@@ -395,6 +396,44 @@ test("on a phone a focused step docks its way forward where the tab bar would be
     assert.ok(at < html.indexOf('class="rc-footer"'), `${page}: the dock reads before the footer`);
     assert.doesNotMatch(html, /class="rc-bottom-nav"/, `${page}: a page has the tab bar or the dock, never both`);
   }
+});
+
+test("on a wide screen a step's map and its way forward share one bar under the app bar (DL-123)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  const templates = stripComments(read("packages/design-system/css/templates.css"));
+  const molecules = stripComments(read("packages/design-system/css/molecules.css"));
+  const wide = (css) => css.split("@media (min-width: 56.25rem) {").slice(1).join("\n");
+  // Not drawn on a phone, nor when it holds nothing.
+  assert.match(organisms, /\n\.rc-step-bar \{ display: none; \}/);
+  const bar = /\.rc-step-bar:not\(:empty\) \{([^}]*)\}/.exec(wide(organisms))?.[1] ?? "";
+  for (const declaration of ["position: sticky;", "inset-block-start: var(--app-header-height);", "z-index: var(--layer-sticky);", "background: var(--surface);"])
+    assert.ok(bar.includes(declaration), `the step bar has ${declaration}`);
+  // The page gives it a row under the app bar, though it comes after the page body in the markup,
+  // and whatever sticks under the bars or fills the window below them counts its height.
+  assert.match(templates, /\.rc-page \{ --step-bar-height: 0rem; \}/);
+  assert.ok(wide(templates).includes(".rc-page > .rc-step-bar { grid-row: 2; }"));
+  assert.ok(wide(templates).includes(".rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }"));
+  assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--step-bar-height\) \+ var\(--space-5\)\);/);
+  assert.match(templates, /min-block-size: calc\(100dvh - var\(--site-banner-height\) - var\(--app-header-height\) - var\(--step-bar-height\)\);/);
+  assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start:"));
+  // The steps and the end-of-step actions a wide screen shows in the bar are a phone's on the page.
+  assert.ok(wide(molecules).includes('.rc-stepper[data-until="wide"] { display: none; }'));
+  assert.ok(wide(molecules).includes('.rc-action-bar[data-until="wide"] { display: none; }'));
+  for (const [page, html] of Object.entries(PAGES)) {
+    const at = html.indexOf('class="rc-step-bar"');
+    if (at === -1) continue;
+    assert.ok(at > html.indexOf("</main>"), `${page}: the step bar comes after the page body, so its actions are reached after the step's fields`);
+    assert.ok(at < html.indexOf('class="rc-footer"'), `${page}: the step bar reads before the footer`);
+    assert.match(html, /class="rc-stepper" aria-label="Steps" data-until="wide"/, `${page}: the steps on the page are a phone's`);
+    assert.match(html.slice(at), /^class="rc-step-bar">\s*<ol class="rc-stepper" aria-label="Steps">/, `${page}: the bar opens with the steps`);
+  }
+});
+
+test("marking a field invalid changes neither its size nor the place of anything under it (DL-123)", () => {
+  const atoms = stripComments(read("packages/design-system/css/atoms.css"));
+  const invalid = /\.rc-input\[aria-invalid="true"\] \{([^}]*)\}/.exec(atoms)?.[1] ?? "";
+  assert.match(invalid, /border: var\(--border-thick\) solid var\(--state-danger\);/);
+  assert.match(invalid, /padding: calc\(var\(--space-3\) - \(var\(--border-thick\) - var\(--border-thin\)\)\);/, "the thicker edge comes out of the padding");
 });
 
 test("on a phone a preview is a row that swipes, and a list card holds only what it has (DL-090)", () => {

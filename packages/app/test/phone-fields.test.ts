@@ -40,11 +40,11 @@ test("the link field gets the address keys, with capitals, corrections and spell
   assert.doesNotMatch(field("ui/RecordFields.tsx", "id={`${id}-about`}"), /autoCapitalize|inputMode|spellCheck/u);
 });
 
-test("the last one-line field of the describe step labels Enter as Done, and as Next when details follow it", () => {
-  // The link is the last field while there are no suggested details, and Enter there sends the form.
-  assert.ok(has(field("ui/RecordFields.tsx", "id={`${id}-link`}"), 'enterKeyHint={last'));
-  assert.ok(source("ui/RecordFields.tsx").includes('enterKeyHint={last ? "done" : "next"}'));
-  assert.ok(source("pages/Describe.tsx").includes("last={chips.length === 0}"));
+test("the last one-line field of the describe step labels Enter as Done", () => {
+  // The link is the form's last field since the suggested details left the page (DL-123), and
+  // Enter there sends the form.
+  assert.ok(has(field("ui/RecordFields.tsx", "id={`${id}-link`}"), 'enterKeyHint="done"'));
+  assert.doesNotMatch(source("pages/Describe.tsx"), /rc-chip|detailChips/u, "no chips follow the link");
 });
 
 test("a one-line field with a field after it labels Enter as Next, and a field Enter writes in does not (DL-096)", () => {

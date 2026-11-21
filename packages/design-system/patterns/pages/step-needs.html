@@ -34,7 +34,7 @@
 <main class="rc-main" id="main">
     <div class="rc-step-layout">
       <div class="rc-step-main">
-        <ol class="rc-stepper" aria-label="Steps">
+        <ol class="rc-stepper" aria-label="Steps" data-until="wide">
           <li data-state="done"><a href="#"><span class="rc-stepper-mark"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#check"/></svg></span><span class="rc-visually-hidden">Done: </span>Initiative</a></li>
           <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
           <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
@@ -82,8 +82,7 @@
             <div class="rc-composer-actions"><button class="rc-button" data-variant="secondary" type="submit">Add need</button></div>
           </form>
         </section>
-        <div class="rc-action-bar">
-          <a class="rc-button" data-variant="primary" data-from="wide" href="finish.html">Next: what you can offer</a>
+        <div class="rc-action-bar" data-until="wide">
           <a class="rc-button" data-variant="quiet" href="#">Back</a>
         </div>
       </div>
@@ -118,7 +117,18 @@
       </aside>
     </div>
   </main>
-</div><div class="rc-dock"><a class="rc-button" data-variant="primary" href="finish.html">Next: what you can offer</a></div><footer class="rc-footer">
+</div><div class="rc-dock"><a class="rc-button" data-variant="primary" href="finish.html">Next: what you can offer</a></div>
+<div class="rc-step-bar">
+        <ol class="rc-stepper" aria-label="Steps">
+          <li data-state="done"><a href="#"><span class="rc-stepper-mark"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#check"/></svg></span><span class="rc-visually-hidden">Done: </span>Initiative</a></li>
+          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
+        </ol>
+        <div class="rc-action-bar">
+          <a class="rc-button" data-variant="quiet" href="#">Back</a>
+          <a class="rc-button" data-variant="primary" data-from="wide" href="finish.html">Next: what you can offer</a>
+        </div>
+</div><footer class="rc-footer">
         <div class="rc-footer-grid">
           <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>

@@ -347,7 +347,7 @@ test("Talk it out says plainly where speech stands, and where it cannot work it 
   );
   assert.deepEqual(
     [talkControls("offer").action, talkControls("offer").label],
-    ["set-up", "Set Up Speech On This Device"],
+    ["set-up", "Set Up Speech"],
   );
   assert.match(talkControls("offer").note, /Audio stays on this device/);
   assert.match(talkControls("offer").note, /may download/, "it does not claim a download that may not happen");

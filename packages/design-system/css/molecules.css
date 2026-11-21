@@ -12,6 +12,10 @@
   max-inline-size: var(--form-width);
 }
 .rc-field > label { font: var(--type-label-md); }
+/* A form in a column that is already a reading measure fills it (`data-width="full"`), so the
+   page's left and right edges are the column's and a long answer needs fewer rows (DL-123). */
+.rc-form[data-width="full"],
+.rc-form[data-width="full"] .rc-field { max-inline-size: none; }
 .rc-hint {
   font: var(--type-body-sm);
   color: var(--text-muted);
@@ -73,8 +77,6 @@
 /* Chip group: one question answered by tapping chips, such as one filter in the Filters sheet.
    The question is the legend of the fieldset around it; a narrower question can follow it. */
 .rc-chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-/* Chips that arrive later, such as suggested details, have their two rows kept for them (DL-110). */
-.rc-chip-group[data-reserve="rows"] { align-content: start; min-block-size: calc(2 * var(--chip-height) + var(--space-2)); }
 .rc-chip-group + fieldset { margin-block-start: var(--space-3); }
 
 /* Choice group: selectable cards for short vocabularies. */
@@ -190,6 +192,11 @@
   border-color: var(--action);
   background: var(--action);
   color: var(--on-action);
+}
+/* On a wide screen the steps are in the Step bar under the app bar, so the copy at the top of the
+   page is a phone's (`data-until="wide"`, DL-123). */
+@media (min-width: 56.25rem) {
+  .rc-stepper[data-until="wide"] { display: none; }
 }
 
 /* Reason: why this appears for you, in one plain line. */
@@ -468,6 +475,10 @@
 @media (width < 56.25rem) {
   .rc-action-bar > [data-from="wide"] { display: none; }
   .rc-action-bar:not(:has(> :not([data-from="wide"]))) { display: none; }
+}
+/* A bar whose actions a wide screen shows in the Step bar is a phone's (`data-until="wide"`, DL-123). */
+@media (min-width: 56.25rem) {
+  .rc-action-bar[data-until="wide"] { display: none; }
 }
 
 /* Progress: what is happening, how far along, and how to stop it. */

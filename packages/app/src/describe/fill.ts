@@ -19,8 +19,18 @@ import { editsFromForm, formFrom, parseRecordForm } from "./forms.ts";
 import { STAGE_LABELS } from "../listing.ts";
 import { previewFields } from "./view.ts";
 
-/** A problem with what the person typed, said in a sentence the page can show as it is. */
-export class FieldsProblem extends Error {}
+/**
+ * A problem with what the person typed, said in a sentence the page can show as it is. `field`
+ * is the one of the four fields it is about, so the page can say it there (DL-123); a problem
+ * with the box has none.
+ */
+export class FieldsProblem extends Error {
+  readonly field: FieldKey | undefined;
+  constructor(message: string, field?: FieldKey) {
+    super(message);
+    this.field = field;
+  }
+}
 
 const FIELDS: readonly FieldKey[] = ["name", "where", "about", "links"];
 const DETAILS = DETAIL_KEYS;
@@ -145,6 +155,8 @@ export interface FillResult {
   readonly draft: DeviceDraft;
   readonly fields: readonly FieldKey[];
   readonly details: number;
+  /** Which of Name and Where you work are still empty, so the page can ask for them by name. */
+  readonly missing: readonly FieldKey[];
 }
 
 /**
@@ -195,7 +207,12 @@ export function fillFields(
     },
     true,
   );
-  return { draft: next, fields, details: detailChips(next).filter((chip) => !chip.kept).length };
+  return {
+    draft: next,
+    fields,
+    details: detailChips(next).filter((chip) => !chip.kept).length,
+    missing: (["name", "where"] as const).filter((key) => !form[key].trim()),
+  };
 }
 
 /** The person changed a field. It is theirs from now on, so it leaves the filled list. */
@@ -282,17 +299,17 @@ export function earlierAbouts(draft: DeviceDraft): string[] {
  * held to its limit, except for words a card already held before the limit was shortened.
  */
 export function readFields(form: RecordForm, earlier: readonly string[] = []) {
-  if (!form.name.trim()) throw new FieldsProblem(NAME_HELP);
-  if (form.about.length > ABOUT_LIMIT && !earlier.includes(form.about)) throw new FieldsProblem(ABOUT_HELP);
+  if (!form.name.trim()) throw new FieldsProblem(NAME_HELP, "name");
+  if (form.about.length > ABOUT_LIMIT && !earlier.includes(form.about)) throw new FieldsProblem(ABOUT_HELP, "about");
   try {
     parseRecordForm({ ...form, links: "" });
   } catch {
-    throw new FieldsProblem(PLACES_HELP);
+    throw new FieldsProblem(PLACES_HELP, "where");
   }
   try {
     return parseRecordForm(form);
   } catch {
-    throw new FieldsProblem(LINK_HELP);
+    throw new FieldsProblem(LINK_HELP, "links");
   }
 }
 
@@ -337,12 +354,32 @@ export function nearLimit(length: number, limit: number): string {
   return length >= limit * 0.8 ? `${length} of ${limit}` : "";
 }
 
-/** One line for the reserved status place after a fill. */
-export function fillSummary({ fields, details }: Pick<FillResult, "fields" | "details">): string {
-  const filled = fields.length ? `Filled ${fields.length} ${fields.length === 1 ? "field" : "fields"}` : "";
-  const suggested = details ? `suggested ${details} ${details === 1 ? "detail" : "details"}` : "";
-  if (filled && suggested) return `${filled} and ${suggested}. Check them and change anything.`;
-  if (filled) return `${filled}. Check ${fields.length === 1 ? "it" : "them"} and change anything.`;
-  if (suggested) return `S${suggested.slice(1)}. Your own words in the fields were not changed.`;
-  return "Nothing new to fill in. You can type in the fields.";
+/** The four fields as their labels name them, for a line that says which were filled. */
+const FIELD_LABELS: Record<FieldKey, string> = {
+  name: "Name",
+  where: "Where you work",
+  about: "About it",
+  links: "Website or main link",
+};
+/** "Name", "Name and About it", "Name, Where you work and About it". */
+const listed = (words: readonly string[]): string =>
+  words.length < 2 ? words.join("") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
+
+/**
+ * One line for the reserved status place after a fill (DL-123). It names the fields that were
+ * filled, so the person knows where to look, and asks by name for a name or a place the words
+ * did not give. The suggested details are not counted: the page no longer shows them.
+ */
+export function fillSummary({ fields, missing = [] }: Pick<FillResult, "fields"> & { missing?: readonly FieldKey[] }): string {
+  const ask = missing.length
+    ? `Add ${listed(missing.map((key) => (key === "name" ? "a name" : "where you work")))} below.`
+    : "";
+  if (fields.length) return `Filled ${listed(fields.map((key) => FIELD_LABELS[key]))}. ${ask || "Check and change anything."}`;
+  return ask ? `Nothing new to fill in. ${ask}` : "Nothing new to fill in. You can type in the fields.";
+}
+
+/** Said in the status place while a fill reads the words, and any files, on the device. */
+export function readingNote(words: boolean, files: number): string {
+  const what = [words ? "your words" : "", files ? (files === 1 ? "your file" : "your files") : ""].filter(Boolean);
+  return `Reading ${listed(what.length ? what : ["your words"])} on this device.`;
 }

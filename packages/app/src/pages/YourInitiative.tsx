@@ -148,7 +148,13 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   return (
     <Stack wide>
       <Stack>
-        {inFlow && <IntakeStepper current={2} />}
+        {inFlow && (
+          <IntakeStepper current={2}>
+            <ButtonLink href={pathTo("needs")} variant="quiet">
+              Back To Needs And Offers
+            </ButtonLink>
+          </IntakeStepper>
+        )}
         {/* Once the card is checked the page names the initiative, echoing the name that led here.
             A wide screen's breadcrumbs already say which page this is. */}
         {ready && checked && (
@@ -165,7 +171,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           onRetry={() => controller.retry()}
         />
         {inFlow && (
-          <div className="rc-action-bar">
+          <div className="rc-action-bar" data-until="wide">
             <ButtonLink href={pathTo("needs")} variant="quiet">
               Back To Needs And Offers
             </ButtonLink>
