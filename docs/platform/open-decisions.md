@@ -631,6 +631,14 @@ the host or in a browser are unmeasured; and the licences of the two converted
 model repositories are unverified. The answer commits to testing. It approves no
 model dependency, hosting or CSP change, as the D32 row says.
 
+Licence check, 21 November 2026: the two converted repositories state no licence,
+while the upstream models are MIT (multilingual-e5-small) and Apache-2.0
+(multilingual MiniLM-L12) and publish their own 8-bit ONNX files. The benchmark
+should use those upstream files, pinned and hashed. The
+[experiment README](../../packages/api/evaluation/experiments/matching-architecture/README.md#licence-check-21-november-2026)
+has the revisions, hashes, shipping obligations and what stays unsettled. It
+approves nothing beyond the answer above.
+
 **D27, counts for private viewers on the team view.** On 19 November 2026 the
 user confirmed both parts the proposal asks:
 
