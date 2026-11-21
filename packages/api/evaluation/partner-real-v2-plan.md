@@ -106,10 +106,11 @@ Written on 21 November 2026 with
   copies, which their writers rewrote. It also found an offer that read as a need.
   Two sparse titles of five words were cut to four. Five answers were revised in
   all.
-- **Where the files are.** The files sit in the repository's ignored
-  `docs/platform/research/local-only/partner-real-v2/` folder until they move to
-  the shared drive. Their hashes are in
-  [`partner-real-v2.sha256`](partner-real-v2.sha256).
+- **Where the files are.** In a private Google Drive folder that only the owner
+  can open, uploaded on 21 November 2026 with a readme and one archive of the
+  pages, briefs, answers and checker files. The local copy where they were made
+  is in the repository's ignored `docs/platform/research/local-only/partner-real-v2/`
+  folder. Their hashes are in [`partner-real-v2.sha256`](partner-real-v2.sha256).
 
 ### Engines, frozen before the pool is built
 
