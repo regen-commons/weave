@@ -140,8 +140,8 @@ and are reported beside them, with raw agreement and Cohen's kappa.
   start, a manifest of SHA-256 hashes is committed: corpus, queries, worksheet,
   key, engine settings, model files and scoring script. The runner refuses to score
   if any file differs.
-- Until then the files live in private storage the owner chooses. The key never
-  goes to reviewers.
+- Until then the files live on a private shared drive, as the user decided on
+  21 November 2026. The key never goes to reviewers.
 - Query writers never see an engine. Whoever builds the engines never sees the
   queries before the manifest is committed, and the pool is built only from frozen
   engines.
@@ -232,7 +232,8 @@ site are not touched.
    **Answered on 21 November 2026: yes, keep it.**
 4. Should blind agent instances write all the queries, or should people write some?
    **Answered on 21 November 2026: agents write all of them.**
-5. Where do the sealed files live until the scored run?
+5. Where do the sealed files live until the scored run? **Answered on
+   21 November 2026: on a private shared drive.**
 6. Do the margins in the decision rule (5 and 10 points) and the relative recall
    floor stand? **Answered on 21 November 2026: yes, they stand.**
 
