@@ -7,6 +7,7 @@ import {
   safeUrl,
   safeFundUrl,
   effectiveAccess,
+  utcDate,
   applicationTiming,
   filterFunds,
   sortFunds,
@@ -427,4 +428,41 @@ test("thematic-fit sorting from a URL keeps the project and needs one", () => {
   assert.deepEqual(profileAndSortFromUrl(fit, saved, "garden-1"), { profile: "garden-1", sort: "fit" });
   assert.deepEqual(profileAndSortFromUrl(fit, saved, "all"), { profile: "all", sort: "recommended" });
   assert.deepEqual(profileAndSortFromUrl(fit, saved, "general"), { profile: "general", sort: "recommended" });
+});
+
+// A source date with no stated time ends with its UTC day, as the importer, the rubric's
+// own "today" and Weave's deadline tag (DL-103) judge it. The viewer's clock never moves it.
+const inZone = (zone, run) => {
+  const before = process.env.TZ;
+  process.env.TZ = zone;
+  try {
+    run();
+  } finally {
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
+};
+const CLOSING_ZONES = ["America/Los_Angeles", "UTC", "Africa/Nairobi", "Pacific/Kiritimati"];
+
+test("a dated call closes when its UTC day ends, in every time zone", () => {
+  const fund = { access: "open", openingDate: null, deadlineDate: "2026-11-20", deadlineInstant: null };
+  for (const zone of CLOSING_ZONES) {
+    inZone(zone, () => {
+      assert.equal(effectiveAccess(fund, new Date("2026-11-20T21:30:00Z")), "open", `${zone}: Nairobi's 21 Nov, UTC's 20th`);
+      assert.equal(effectiveAccess(fund, new Date("2026-11-20T23:59:59.999Z")), "open", `${zone}: the closing day's last moment`);
+      assert.equal(effectiveAccess(fund, new Date("2026-11-21T00:00:00Z")), "closed", `${zone}: the next UTC day`);
+      assert.equal(effectiveAccess(fund, new Date("2026-11-21T07:15:00Z")), "closed", `${zone}: 23:15 Pacific on the 20th`);
+      assert.equal(utcDate(new Date("2026-11-21T07:15:00Z")), "2026-11-21", zone);
+    });
+  }
+});
+
+test("a call with an opening date opens when that UTC day begins, in every time zone", () => {
+  const fund = { access: "open", openingDate: "2026-12-01", deadlineDate: "2026-12-31", deadlineInstant: null };
+  for (const zone of CLOSING_ZONES) {
+    inZone(zone, () => {
+      assert.equal(effectiveAccess(fund, new Date("2026-11-30T23:59:59Z")), "future", `${zone}: the day before`);
+      assert.equal(effectiveAccess(fund, new Date("2026-12-01T00:00:00Z")), "open", `${zone}: the opening UTC day`);
+    });
+  }
 });
