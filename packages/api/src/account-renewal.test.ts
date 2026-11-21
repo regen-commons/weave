@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { createAccountHandlers, RENEW_BEFORE_SECONDS } from "./account.ts";
 import { AccountError, createSupabaseAccountProvider, type AccountProvider, type AccountSessionTokens } from "./account-provider.ts";
 import { parseDocument } from "./account-contract.ts";
-import { withRenewedSession } from "./account-session.ts";
+import { SESSION_CAP_SECONDS, signedInAt, withRenewedSession } from "./account-session.ts";
 
 const document = parseDocument(JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")));
 const user = { id: "b1000000-0000-4000-8000-000000000001", email: null };
@@ -328,4 +328,84 @@ test("an account check and a matching call renewing together share one refresh a
   assert.deepEqual(calls.filter(call => call.startsWith("renew")), ["renew:shared-refresh"]);
   assert.deepEqual(setCookies(checked), renewedCookies);
   assert.deepEqual(setCookies(matched), renewedCookies);
+});
+
+/** A token Supabase issued for a session signed in `ago` seconds before the test clock, as its refresh grant returns. */
+const issuedFor = (ago: number, extra: unknown[] = []) => {
+  const payload = { exp: now / 1000 + 3600, amr: [...extra, { method: "oauth", timestamp: now / 1000 - ago }] };
+  return `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.c2ln`;
+};
+const day = 24 * 60 * 60;
+
+test("the original sign-in time is the earliest amr timestamp, and only numeric timestamps count", () => {
+  assert.equal(signedInAt(issuedFor(5 * day, [{ method: "totp", timestamp: now / 1000 - day }])), now / 1000 - 5 * day);
+  for (const amr of [undefined, ["oauth"], [{ method: "oauth" }], [{ method: "oauth", timestamp: "1700000000" }],
+    [{ method: "oauth", timestamp: -1 }], [{ method: "oauth", timestamp: 1.5 }], "oauth"]) {
+    const token = `a.${Buffer.from(JSON.stringify({ exp: 1, amr })).toString("base64url")}.c`;
+    assert.equal(signedInAt(token), null, JSON.stringify(amr));
+  }
+  assert.equal(signedInAt("not-a-token"), null);
+});
+
+test("renewal at or past 30 days from sign-in ends the session and revokes it", async () => {
+  for (const ago of [SESSION_CAP_SECONDS, SESSION_CAP_SECONDS + 1, SESSION_CAP_SECONDS + 10 * day]) {
+    const capped = issuedFor(ago);
+    const { handlers, provider, calls } = fixture(async () => ({ token: capped, expiresIn: 3600, refreshToken: "rotated-refresh" }));
+    const revoked: string[] = [];
+    provider.signOut = async (token) => { revoked.push(token); };
+    const response = await handlers.GET(get(cookie(jwt(-10), "first-refresh")));
+    assert.equal(response.status, 401, String(ago));
+    assert.deepEqual(await response.json(), { error: "sign_in_required" });
+    assert.deepEqual(setCookies(response), endedCookies);
+    assert.deepEqual(revoked, [capped], "the session Supabase just renewed is revoked");
+    assert.deepEqual(calls, ["renew:first-refresh"], "nothing private is read past the cap");
+  }
+});
+
+test("renewal just under 30 days works, and neither cookie outlives the cap", async () => {
+  const ago = SESSION_CAP_SECONDS - 2 * 60 * 60, token = issuedFor(ago);
+  const { handlers, calls } = fixture(async () => ({ token, expiresIn: 3600, refreshToken: "rotated-refresh" }));
+  const response = await handlers.GET(get(cookie(jwt(-10), "first-refresh")));
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls, ["renew:first-refresh", "authorize:old"]);
+  assert.deepEqual(setCookies(response), [
+    `__Host-weave_account=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600; Secure`,
+    `__Host-weave_account_renewal=${encoded("rotated-refresh")}; Path=/; HttpOnly; SameSite=Strict; Max-Age=7200; Secure`,
+  ]);
+  const late = issuedFor(SESSION_CAP_SECONDS - 600);
+  const lastHour = await fixture(async () => ({ token: late, expiresIn: 3600, refreshToken: "rotated-refresh" }))
+    .handlers.GET(get(cookie(jwt(-10), "first-refresh")));
+  assert.deepEqual(setCookies(lastHour).map(value => value.match(/Max-Age=\d+/)![0]), ["Max-Age=600", "Max-Age=600"]);
+  const fresh = issuedFor(day);
+  const early = await fixture(async () => ({ token: fresh, expiresIn: 3600, refreshToken: "rotated-refresh" }))
+    .handlers.GET(get(cookie(jwt(-10), "first-refresh")));
+  assert.deepEqual(setCookies(early).map(value => value.match(/Max-Age=\d+/)![0]), ["Max-Age=3600", "Max-Age=1209600"],
+    "far from the cap the usual lifetimes apply");
+});
+
+test("a renewed token without amr timestamps is allowed; the idle limit still bounds it", async () => {
+  // Failing closed here would sign everyone out hourly if Supabase ever stopped sending timestamps.
+  const { handlers } = fixture();
+  const response = await handlers.GET(get(cookie(jwt(-10), "first-refresh")));
+  assert.equal(response.status, 200);
+  assert.deepEqual(setCookies(response), renewedCookies);
+});
+
+test("the cap applies to matching and project calls, and concurrent renewals revoke once", async () => {
+  const capped = issuedFor(SESSION_CAP_SECONDS + day);
+  let release: () => void = () => {};
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const { provider } = fixture(async () => { await gate; return { token: capped, expiresIn: 3600, refreshToken: "rotated-refresh" }; });
+  let revocations = 0, handled = 0;
+  provider.signOut = async () => { revocations++; };
+  const lapsed = cookie(jwt(-30), "shared-refresh");
+  const account = createAccountHandlers({ provider, now: () => now }).GET(get(lapsed));
+  const matching = wrapped(provider, async (request) => { handled++; return echo(request); })(command(lapsed));
+  release();
+  const [checked, matched] = await Promise.all([account, matching]);
+  assert.equal(checked.status, 401);
+  assert.equal(matched.status, 401);
+  assert.deepEqual(setCookies(matched), endedCookies);
+  assert.equal(handled, 0);
+  assert.equal(revocations, 1);
 });

@@ -7,10 +7,11 @@ import { certifiedEmailHints } from "../../api/src/certified/email-hint.ts";
 import type { DeletedInitiative, SavedInitiative } from "@weave/api/account-contract";
 const sessions = new Map<string, string>();
 /** Refresh tokens rotate on use, as Supabase's do; a used or revoked one is refused. */
-const renewals = new Map<string, { id: string; token: string }>();
-const issue = (id: string) => {
-  const token = fixtureSession(id), refreshToken = `fixture-refresh-${crypto.randomUUID()}`;
-  renewals.set(refreshToken, { id, token });
+const renewals = new Map<string, { id: string; token: string; signedInAt: number }>();
+/** Renewals keep the original sign-in time in `amr`, as Supabase does, so the 30-day cap applies locally too. */
+const issue = (id: string, signedInAt = Math.floor(Date.now() / 1000)) => {
+  const token = fixtureSession(id, signedInAt), refreshToken = `fixture-refresh-${crypto.randomUUID()}`;
+  renewals.set(refreshToken, { id, token, signedInAt });
   return { token, expiresIn: 3600, refreshToken };
 };
 const records = new Map<string, { owner: string; saved: SavedInitiative }>();
@@ -23,9 +24,11 @@ const owner = (token: string) => {
   return id;
 };
 export const FIXTURE_ACCOUNT_ID = "b1000000-0000-4000-8000-000000000001";
-export function fixtureSession(id = FIXTURE_ACCOUNT_ID) {
-  // Shaped like Supabase's token, with a one-hour `exp`, so /api/account renews it on the real schedule.
-  const claims = Buffer.from(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url");
+export function fixtureSession(id = FIXTURE_ACCOUNT_ID, signedInAt = Math.floor(Date.now() / 1000)) {
+  // Shaped like Supabase's token, with a one-hour `exp` and the sign-in time in `amr`, so /api/account renews it
+  // on the real schedule and stops at the real cap.
+  const claims = Buffer.from(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + 3600,
+    amr: [{ method: "oauth", timestamp: signedInAt }] })).toString("base64url");
   const token = `fixture.${claims}.${crypto.randomUUID()}`;
   sessions.set(token, id);
   return token;
@@ -51,7 +54,7 @@ const provider: AccountProvider = {
     const renewal = renewals.get(refreshToken);
     if (!renewal) throw new AccountError(401, "sign_in_required");
     renewals.delete(refreshToken);
-    return issue(renewal.id);
+    return issue(renewal.id, renewal.signedInAt);
   },
   async authorize(token) {
     const id = owner(token);
