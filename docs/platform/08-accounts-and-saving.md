@@ -177,7 +177,7 @@ Certified membership synchronization remains a validation item.
 | Lost save response | Retry the same command with the same request ID; reconcile the saved revision without duplication. |
 | Changed draft in another tab | The latest edit wins. The replaced version is kept as a device backup that Settings can restore, at most three for one draft, with no warning and nothing stopped. Open tabs show the newest version when they have no edit of their own waiting (DL-112). |
 | Stale revision of a saved card | The account refuses the save, and the person opens the card's latest version from Your Initiatives. The device draft is kept. |
-| Session expires | Keep the draft; reauthenticate through Certified and explicitly retry Save/Load. |
+| Session expires | An open app renews the session before its hour runs out. When renewal is refused, or the browser sat idle past 14 days, keep the draft; reauthenticate through Certified and explicitly retry Save/Load. |
 | A Certified group workspace has no active Weave admin | The verified current Certified group owner can explicitly recover admin access. Weave records the grant and preserves the team's work. |
 | Certified confirms a teammate's removal from a group | Suspend their team workspace access. Preserve their personal saves. Existing team shares and listings stay active when other authorized teammates remain. If the person rejoins, a workspace admin can review access. |
 | A linked Certified project is deleted or made unlisted | Pause matching, request withdrawal of Weave-published listings and keep team work available to authorized teammates. Resume after the original project is restored and reviewed. A replacement project starts its own workspace. |

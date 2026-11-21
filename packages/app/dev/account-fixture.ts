@@ -6,6 +6,13 @@ import { AccountError, type AccountProvider } from "../../api/src/account-provid
 import { certifiedEmailHints } from "../../api/src/certified/email-hint.ts";
 import type { DeletedInitiative, SavedInitiative } from "@weave/api/account-contract";
 const sessions = new Map<string, string>();
+/** Refresh tokens rotate on use, as Supabase's do; a used or revoked one is refused. */
+const renewals = new Map<string, { id: string; token: string }>();
+const issue = (id: string) => {
+  const token = fixtureSession(id), refreshToken = `fixture-refresh-${crypto.randomUUID()}`;
+  renewals.set(refreshToken, { id, token });
+  return { token, expiresIn: 3600, refreshToken };
+};
 const records = new Map<string, { owner: string; saved: SavedInitiative }>();
 const requests = new Map<string, { input: string; saved: SavedInitiative }>();
 /** Removed IDs stay reserved, as in the database candidate, so a stale first save cannot bring a card back. */
@@ -17,7 +24,9 @@ const owner = (token: string) => {
 };
 export const FIXTURE_ACCOUNT_ID = "b1000000-0000-4000-8000-000000000001";
 export function fixtureSession(id = FIXTURE_ACCOUNT_ID) {
-  const token = `fixture.${id}.${crypto.randomUUID()}`;
+  // Shaped like Supabase's token, with a one-hour `exp`, so /api/account renews it on the real schedule.
+  const claims = Buffer.from(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url");
+  const token = `fixture.${claims}.${crypto.randomUUID()}`;
   sessions.set(token, id);
   return token;
 }
@@ -36,7 +45,13 @@ const provider: AccountProvider = {
   },
   async exchangeCode(code) {
     if (code !== "synthetic-certified") throw new AccountError(401, "sign_in_failed");
-    return { token: fixtureSession(process.env.WEAVE_ACCOUNT_FIXTURE_USER_ID ?? FIXTURE_ACCOUNT_ID), expiresIn: 3600 };
+    return issue(process.env.WEAVE_ACCOUNT_FIXTURE_USER_ID ?? FIXTURE_ACCOUNT_ID);
+  },
+  async renew(refreshToken) {
+    const renewal = renewals.get(refreshToken);
+    if (!renewal) throw new AccountError(401, "sign_in_required");
+    renewals.delete(refreshToken);
+    return issue(renewal.id);
   },
   async authorize(token) {
     const id = owner(token);
@@ -44,6 +59,7 @@ const provider: AccountProvider = {
   },
   async signOut(token) {
     sessions.delete(token);
+    for (const [refreshToken, renewal] of renewals) if (renewal.token === token) renewals.delete(refreshToken);
   },
   async list(token, offset) {
     const id = owner(token);
