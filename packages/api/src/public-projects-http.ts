@@ -1,6 +1,7 @@
 import {
-  encodePublicProjectCursor, isOrganizationType, isProjectLabel, ORGANIZATION_TYPE_OPTIONS_MAX, parsePublicProjectQuery, searchText,
-  type PublicProjectCard, type PublicProjectCursor, type PublicProjectPage, type PublicProjectQuery, type PublicProjectSort,
+  encodePublicProjectCursor, isOrganizationType, isProjectLabel, isWorkScope, ORGANIZATION_TYPE_OPTIONS_MAX, organizationTypeOf,
+  parsePublicProjectQuery, searchText, WORK_SCOPE_OPTIONS_MAX, type PublicProjectCard, type PublicProjectCursor,
+  type PublicProjectPage, type PublicProjectQuery, type PublicProjectSort,
 } from "./public-projects-contract.ts";
 import type { PublicProjectReader, PublicProjectSnapshot } from "./public-projects-store.ts";
 
@@ -36,11 +37,30 @@ export function indexStatus(checkpoint: PublicProjectSnapshot["checkpoint"], now
 }
 
 type Prepared = {
-  cards: (PublicProjectCard & { search: string; organizationTypes: string[] })[];
+  cards: (PublicProjectCard & { search: string; organizationTypes: string[]; workScopes: string[] })[];
   /** The kinds of group the shown projects' publishers name, most common first. */
   organizationTypes: string[];
+  /** The kinds of work at least two shown projects name, most common first. */
+  workScopes: string[];
   checkpoint: PublicProjectSnapshot["checkpoint"];
 };
+/**
+ * A kind of work only one project names narrows the list to that project, so it is not offered. Publishers
+ * make their own tags, and on 21 November 2026 about thirty of the kinds were named once each.
+ */
+const WORK_SCOPE_OFFER_MINIMUM = 2;
+
+/**
+ * The values the cards carry, most common first, ties by name, and `other`, which narrows to no
+ * particular kind, always last. A value fewer than `minimum` cards carry is not offered.
+ */
+function offered(values: readonly (readonly string[])[], max: number, minimum = 1): string[] {
+  const counts = new Map<string, number>();
+  for (const list of values) for (const value of list) counts.set(value, (counts.get(value) ?? 0) + 1);
+  return [...counts].filter(([, n]) => n >= minimum)
+    .sort(([a, m], [b, n]) => Number(a === "other") - Number(b === "other") || n - m || (a < b ? -1 : a > b ? 1 : 0))
+    .slice(0, max).map(([value]) => value);
+}
 /** A card's place in an order: what the cursor records for it. */
 const placeIn = (sort: PublicProjectSort, card: Pick<PublicProjectCard, "name" | "sharedAt" | "uri">): PublicProjectCursor =>
   ({ key: sort === "name" ? card.name : card.sharedAt, uri: card.uri });
@@ -61,42 +81,41 @@ function compare(sort: PublicProjectSort, a: PublicProjectCursor, b: PublicProje
 }
 
 function prepare(snapshot: PublicProjectSnapshot): Prepared {
-  const cards = snapshot.cards.map(({ text, publisher, place, organizationTypes, ...card }) => {
+  const cards = snapshot.cards.map(({ text, publisher, place, organizationTypes, workScopes, ...card }) => {
     // The app refuses a whole page for one invalid value, so a stored value it would refuse is left out
-    // here, and one bad row cannot send every visitor to the starter list.
+    // here, and one bad row cannot send every visitor to the starter list. A row from before work scopes
+    // were stored has none.
     const facts = { ...(isProjectLabel(publisher) ? { publisher } : {}), ...(isProjectLabel(place) ? { place } : {}) };
-    const kinds = [...new Set(Array.isArray(organizationTypes) ? organizationTypes.filter(isOrganizationType) : [])];
+    const kinds = [...new Set(Array.isArray(organizationTypes) ? organizationTypes.filter(isOrganizationType).map(organizationTypeOf) : [])];
+    const work = [...new Set(Array.isArray(workScopes) ? workScopes.filter(isWorkScope) : [])];
     return {
-      ...card, ...facts, organizationTypes: kinds,
+      ...card, ...facts, organizationTypes: kinds, workScopes: work,
       search: searchText([card.name, facts.publisher, facts.place, text].filter(Boolean).join(" ")),
     };
   });
-  const counts = new Map<string, number>();
-  for (const { organizationTypes } of cards)
-    for (const type of organizationTypes) counts.set(type, (counts.get(type) ?? 0) + 1);
-  // Most common first, ties by name, and `other`, which narrows to no particular kind, always last.
-  const organizationTypes = [...counts]
-    .sort(([a, m], [b, n]) => Number(a === "other") - Number(b === "other") || n - m || (a < b ? -1 : a > b ? 1 : 0))
-    .slice(0, ORGANIZATION_TYPE_OPTIONS_MAX).map(([type]) => type);
   return {
     cards: cards.sort((a, b) => compare("newest", placeIn("newest", a), placeIn("newest", b))),
-    organizationTypes, checkpoint: snapshot.checkpoint,
+    organizationTypes: offered(cards.map(({ organizationTypes }) => organizationTypes), ORGANIZATION_TYPE_OPTIONS_MAX),
+    workScopes: offered(cards.map(({ workScopes }) => workScopes), WORK_SCOPE_OPTIONS_MAX, WORK_SCOPE_OFFER_MINIMUM),
+    checkpoint: snapshot.checkpoint,
   };
 }
 
 /** One page of the matching cards after the cursor, and how many match in all. */
 export function selectPublicProjects(prepared: Prepared, query: PublicProjectQuery) {
-  const { organizationType, terms } = query;
-  const matched = terms.length || organizationType
-    ? prepared.cards.filter(({ search, organizationTypes }) => terms.every((term) => search.includes(term))
-      && (!organizationType || organizationTypes.includes(organizationType)))
+  const { organizationType, workScope, terms } = query;
+  const matched = terms.length || organizationType || workScope
+    ? prepared.cards.filter(({ search, organizationTypes, workScopes }) => terms.every((term) => search.includes(term))
+      && (!organizationType || organizationTypes.includes(organizationType))
+      && (!workScope || workScopes.includes(workScope)))
     : prepared.cards;
   // Cards are kept newest first; another order is sorted per request, a thousand cards at most.
   const { sort, cursor } = query;
   const ordered = sort === "newest" ? matched : [...matched].sort((a, b) => compare(sort, placeIn(sort, a), placeIn(sort, b)));
   const rest = cursor ? ordered.filter((card) => compare(sort, cursor, placeIn(sort, card)) < 0) : ordered;
   return {
-    projects: rest.slice(0, query.limit).map(({ search: _search, organizationTypes: _types, ...card }): PublicProjectCard => card),
+    projects: rest.slice(0, query.limit)
+      .map(({ search: _search, organizationTypes: _types, workScopes: _work, ...card }): PublicProjectCard => card),
     more: rest.length > query.limit,
     total: matched.length,
   };
@@ -148,6 +167,7 @@ export function createPublicProjectsHandler(options: {
       index: {
         status: indexStatus(prepared.checkpoint, now()), checkedAt: prepared.checkpoint?.completedAt ?? null, total,
         ...(prepared.organizationTypes.length ? { organizationTypes: prepared.organizationTypes } : {}),
+        ...(prepared.workScopes.length ? { workScopes: prepared.workScopes } : {}),
       },
       projects,
       next: more && last ? encodePublicProjectCursor(placeIn(query.sort, last)) : null,

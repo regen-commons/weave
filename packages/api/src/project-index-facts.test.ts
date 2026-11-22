@@ -2,8 +2,12 @@
 // optional, and never a reason to drop or change the project itself.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractCollection, NO_PROJECT_FACTS, type ProjectRead } from "./project-index-source.ts";
-import { projectDid, projectUri, projectView, realisticProjectView } from "./test-data/public-projects.ts";
+import {
+  createHypercertsSource, extractCollection, NO_PROJECT_FACTS, ORGANIZATION_DESCRIPTION_MAX, type ProjectRead,
+} from "./project-index-source.ts";
+import {
+  activityRecord, activityUri, notIndexed, projectDid, projectListing, projectUri, projectView, realisticProjectView, tagRecord, tagUri,
+} from "./test-data/public-projects.ts";
 
 const fetchedAt = "2026-11-19T04:00:00.000Z";
 type Indexed = Extract<ProjectRead, { status: "indexed" }>;
@@ -12,13 +16,17 @@ function indexed(view: unknown, uri: string): Indexed {
   if (read.status !== "indexed") assert.fail(`expected an indexed project, got ${JSON.stringify(read)}`);
   return read;
 }
-/** The project as it would be read with none of the three facts. */
+/** No facts from the listing. The work scope is not in the listing, so a listing read never looks at it. */
+const NOTHING_LISTED = { ...NO_PROJECT_FACTS, workScope: null };
 const bare = (n: number) => indexed(projectView(n), projectUri(n));
 
-test("a realistic listing item gives the publisher, the pinned place and the kind of group, and nothing else", () => {
+test("a realistic listing item gives the publisher, the pinned place, the kind of group and the organization's description, and nothing else", () => {
   const view = realisticProjectView();
   const read = indexed(view, view.uri);
-  assert.deepEqual(read.facts, { publisher: "Lagoa Seed Library", place: "São Paulo, Brazil", organizationTypes: ["nonprofit"] });
+  assert.deepEqual(read.facts, {
+    publisher: "Lagoa Seed Library", place: "São Paulo, Brazil", organizationTypes: ["nonprofit"],
+    organizationDescription: "Neighbours who keep and share seed.", workScope: null,
+  });
   assert.deepEqual(read.passages.map(({ passage }) => passage),
     ["We keep heirloom seed in a shared library.", "Neighbours borrow seed in spring and return seed after harvest."]);
   // The banner, the organization's links, the handle and the coordinates are never read.
@@ -26,16 +34,16 @@ test("a realistic listing item gives the publisher, the pinned place and the kin
   // The facts come from other records, so they change neither the passages nor the content hash.
   const { location: _location, ...rest } = view;
   const plain = indexed({ ...rest, author: { ...rest.author, profile: null, organization: null } }, view.uri);
-  assert.deepEqual(plain.facts, NO_PROJECT_FACTS);
+  assert.deepEqual(plain.facts, NOTHING_LISTED);
   assert.equal(plain.contentHash, read.contentHash);
   assert.deepEqual(plain.passages, read.passages);
 });
 
 test("a project with none of them is indexed exactly as before", () => {
   const read = bare(1);
-  assert.deepEqual(read.facts, { publisher: null, place: null, organizationTypes: [] });
+  assert.deepEqual(read.facts, NOTHING_LISTED);
   const named = indexed(projectView(1, { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["cooperative"] }), projectUri(1));
-  assert.deepEqual(named.facts, { publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["cooperative"] });
+  assert.deepEqual(named.facts, { ...NOTHING_LISTED, publisher: "Riverkeepers", place: "Awka, Nigeria", organizationTypes: ["cooperative"] });
   assert.equal(named.contentHash, read.contentHash);
   assert.deepEqual(named.passages, read.passages);
   assert.equal(named.cid, read.cid);
@@ -65,7 +73,7 @@ test("names and places are one line of plain text, and anything else is left out
   }
   // Each project is still indexed with the same words and hash.
   const read = indexed(projectView(2, { publisher: "See https://example.org", place: 5, organizationTypes: "nonprofit" }), projectUri(2));
-  assert.deepEqual(read.facts, NO_PROJECT_FACTS);
+  assert.deepEqual(read.facts, NOTHING_LISTED);
   assert.equal(read.contentHash, bare(2).contentHash);
 });
 
@@ -137,4 +145,141 @@ test("kinds of group are normalized words, unique and bounded, and anything else
   // An organization that asks to be unlisted is still not shown, whatever kind it says it is.
   assert.deepEqual(extractCollection(projectView(6, { unlisted: "organization", organizationTypes: ["nonprofit"] }), projectUri(6), fetchedAt),
     { status: "restricted", code: "not_discoverable" });
+});
+
+test("an organization's description is read under a project description's rules, and anything else is left out", () => {
+  const read = (value: unknown) => indexed(projectView(9, { organizationDescription: value }), projectUri(9));
+  const described = (value: unknown) => read(value).facts.organizationDescription;
+  const text = (value: string) => ({ $type: "org.hypercerts.defs#descriptionString", value });
+  assert.equal(described(text("  We guard the river.\n\nVolunteers   test the water each season. ")),
+    "We guard the river. Volunteers test the water each season.");
+  // A sentence with a link, an address or a phone number is dropped, as is one too short to be a passage.
+  assert.equal(described(text("Write to us at team@example.org. See https://example.org for more. Call +55 11 91234 5678. "
+    + "Hi. We keep heirloom seed in a shared library.")), "We keep heirloom seed in a shared library.");
+  // A Leaflet document gives its text and header blocks, up to a members-only boundary.
+  const block = (block: unknown) => ({ block });
+  assert.equal(described({ $type: "pub.leaflet.pages.linearDocument", blocks: [
+    block({ $type: "pub.leaflet.blocks.header", plaintext: "Our seed library" }),
+    block({ $type: "pub.leaflet.blocks.image", image: "bafkrei" }),
+    block({ $type: "pub.leaflet.blocks.text", plaintext: "Neighbours borrow seed in spring." }),
+    block({ $type: "pub.leaflet.blocks.membersOnlyDelimiter" }),
+    block({ $type: "pub.leaflet.blocks.text", plaintext: "Members meet on the first Sunday." }),
+  ] }), "Our seed library Neighbours borrow seed in spring.");
+  // Five passages at most, kept whole, and never past the column's limit: five of 600 characters would be.
+  const long = (k: number) => `${String.fromCharCode(65 + k)}${"e".repeat(598)}.`;
+  const kept = described(text(Array.from({ length: 6 }, (_, k) => long(k)).join(" ")));
+  assert.equal(kept, Array.from({ length: 4 }, (_, k) => long(k)).join(" "));
+  assert.ok(kept !== null && kept.length <= ORGANIZATION_DESCRIPTION_MAX);
+  const short = (k: number) => `Sentence ${String.fromCharCode(65 + k)} is short.`;
+  assert.equal(described(text(Array.from({ length: 8 }, (_, k) => short(k)).join(" "))),
+    Array.from({ length: 5 }, (_, k) => short(k)).join(" "));
+  // A reference to another record is not followed, and a malformed value is left out without failing the project.
+  const strongRef = { $type: "com.atproto.repo.strongRef", uri: `at://${projectDid(9)}/pub.leaflet.document/1`, cid: "bafyrei" };
+  for (const value of [strongRef, "We guard the river.", 42, null, [], { value: "We guard the river." }, text(""),
+    { $type: "org.hypercerts.defs#descriptionString", value: 7 }, { $type: "pub.leaflet.pages.linearDocument", blocks: "x" },
+    text("See https://example.org."), text("Lone \ud800 surrogate in a sentence.")]) {
+    const project = read(value);
+    assert.equal(project.facts.organizationDescription, null, JSON.stringify(value));
+    assert.equal(project.contentHash, bare(9).contentHash);
+  }
+  // It describes the publisher, so it is never one of the project's passages and never changes its hash.
+  const project = read(text("We guard the river."));
+  assert.equal(project.contentHash, bare(9).contentHash);
+  assert.deepEqual(project.passages, bare(9).passages);
+  assert.doesNotMatch(JSON.stringify(project.passages), /guard the river/u);
+});
+
+test("the activity read for a project's kinds of work is the first one from its publisher's own repository", () => {
+  const activity = (activities: string[] | undefined) => indexed(projectView(7, { activities }), projectUri(7)).activity;
+  assert.equal(activity([activityUri(7)]), activityUri(7));
+  assert.equal(activity([activityUri(7, projectDid(8)), activityUri(7)]), activityUri(7), "another account's is passed over");
+  assert.equal(activity([`at://${projectDid(7)}/org.hypercerts.collection/other`, activityUri(7)]), activityUri(7));
+  for (const items of [undefined, [], [activityUri(7, projectDid(8))]]) assert.equal(activity(items), null, JSON.stringify(items));
+  // A malformed item is passed over, never a reason to fail the project.
+  const view = projectView(7, { activities: [activityUri(7)] });
+  view.record = { ...view.record, items: [null, 5, { itemIdentifier: "x" }, { itemIdentifier: { uri: `${activityUri(7)}/extra` } },
+    { itemIdentifier: { uri: activityUri(7) } }] } as typeof view.record;
+  assert.equal(indexed(view, projectUri(7)).activity, activityUri(7));
+  // Items change neither the passages nor the content hash.
+  assert.equal(indexed(view, projectUri(7)).contentHash, bare(7).contentHash);
+});
+
+test("a work scope reads only tags with a usable key, and a strange answer from the index is a failure, not none", async () => {
+  const tags = new Map<string, unknown>();
+  const activities = new Map<string, unknown>();
+  const reader = () => createHypercertsSource({ wait: async () => undefined, fetch: projectListing({ views: [], activities, tags }) })
+    .workScopeReader(Number.POSITIVE_INFINITY);
+  const read = (n: number) => reader()(activityUri(n));
+  const keys = ["Disaster Relief", "forest_protection", "x".repeat(61), "", "Bad.Key", "water"];
+  keys.forEach((key, n) => tags.set(tagUri(`k${n}`), tagRecord(key)));
+  tags.set(tagUri("other-type"), { ...tagRecord("energy"), $type: "org.hypercerts.vocab.tag" });
+  tags.set(tagUri("gone"), () => Response.json({ error: "RecordNotFound" }, { status: 400 }));
+  activities.set(activityUri(1), activityRecord([...keys.map((_, n) => tagUri(`k${n}`)), tagUri("other-type"), tagUri("gone")]));
+  assert.deepEqual(await read(1), { status: "read", keys: ["disaster-relief", "forest-protection", "water"] });
+  // A tag reference that is not a tag's address is never looked up.
+  activities.set(activityUri(2), { ...activityRecord([]), workScope: { ...activityRecord([]).workScope,
+    usedTags: [{ uri: activityUri(2) }, { uri: "https://example.org/tag" }, null, 5] } });
+  assert.deepEqual(await read(2), { status: "read", keys: [] });
+  // A record that is not an activity names nothing; an answer about another address is not trusted.
+  activities.set(activityUri(3), { ...activityRecord([tagUri("k5")]), $type: "org.hypercerts.claim.rights" });
+  assert.deepEqual(await read(3), { status: "read", keys: [] });
+  activities.set(activityUri(4), () => Response.json({ activity: { uri: activityUri(5), record: activityRecord([tagUri("k5")]) } }));
+  assert.deepEqual(await read(4), { status: "failed", code: "invalid_source_record" });
+  // Not indexed, as a 500 or a 400, is none; any other 500 is an outage.
+  assert.deepEqual(await read(6), { status: "read", keys: [] });
+  activities.set(activityUri(7), () => Response.json({ error: "RecordNotFound" }, { status: 404 }));
+  assert.deepEqual(await read(7), { status: "read", keys: [] });
+  activities.set(activityUri(8), () => Response.json({ error: "script_error", message: "runtime error: timeout" }, { status: 500 }));
+  assert.deepEqual(await read(8), { status: "failed", code: "source_unavailable" });
+  // Only the exact answer for the record asked about is "not indexed": a passing failure that mentions
+  // RecordNotFound, names another kind of record or comes from another method is an outage, which keeps
+  // what is stored instead of clearing it.
+  const answer = async (body: unknown) => {
+    activities.set(activityUri(8), () => Response.json(body, { status: 500 }));
+    return read(8);
+  };
+  const exact = await notIndexed("activity").json() as Record<string, unknown>;
+  assert.deepEqual(await answer(exact), { status: "read", keys: [] });
+  for (const body of [
+    { ...exact, method: undefined },
+    { ...exact, method: "org.hypercerts.workscope.getWorkscopeTag" },
+    { ...exact, message: "runtime error: RecordNotFound: work-scope tag is not indexed\nstack traceback:" },
+    { ...exact, message: "runtime error: upstream lookup failed (RecordNotFound: activity record is not indexed)\n" },
+    { ...exact, message: "runtime error: RecordNotFound: activity record is not indexed yet, retry\n" },
+    { ...exact, error: "internal_error" },
+  ]) assert.deepEqual(await answer(body), { status: "failed", code: "source_unavailable" }, JSON.stringify(body));
+  tags.set(tagUri("misread"), () => notIndexed("activity"));
+  activities.set(activityUri(10), activityRecord([tagUri("misread")]));
+  assert.deepEqual(await read(10), { status: "failed", code: "source_unavailable" }, "an activity's answer for a tag");
+  // A tag that fails fails the project, so a partial set never replaces a whole one.
+  tags.set(tagUri("busy"), () => new Response("busy", { status: 503 }));
+  activities.set(activityUri(9), activityRecord([tagUri("k5"), tagUri("busy")]));
+  assert.deepEqual(await read(9), { status: "failed", code: "source_unavailable" });
+  assert.equal(notIndexed("workscopeTag").status, 500);
+});
+
+test("a work scope reader starts no request after its deadline, and a project it cannot finish is late, not none", async () => {
+  const tags = new Map<string, unknown>([[tagUri("water"), tagRecord("water")], [tagUri("energy"), tagRecord("energy")]]);
+  const activities = new Map<string, unknown>([
+    [activityUri(1), activityRecord([tagUri("water")])],
+    [activityUri(2), activityRecord([tagUri("water"), tagUri("energy")])],
+    [activityUri(3), activityRecord([tagUri("water")])],
+  ]);
+  const lookups: string[] = [];
+  const listing = projectListing({ views: [], activities, tags, lookups });
+  let clock = 0;
+  const deadline = 1_000;
+  const read = createHypercertsSource({ now: () => clock, wait: async () => undefined, fetch: async (url) => {
+    const answer = await listing(url);
+    // The second project's activity comes back just as the deadline passes.
+    if (new URL(String(url)).searchParams.get("uri") === activityUri(2)) clock = deadline;
+    return answer;
+  } }).workScopeReader(deadline);
+  assert.deepEqual(await read(activityUri(1)), { status: "read", keys: ["water"] });
+  // Its first tag was read in time and is reused; its second would start late, so the project is late and
+  // keeps what is stored rather than taking a partial set.
+  assert.deepEqual(await read(activityUri(2)), { status: "late" });
+  // A project that would start after the deadline is late without asking anything.
+  assert.deepEqual(await read(activityUri(3)), { status: "late" });
+  assert.deepEqual(lookups, [activityUri(1), tagUri("water"), activityUri(2)]);
 });
