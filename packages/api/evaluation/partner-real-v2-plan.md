@@ -89,6 +89,29 @@ matcher, `partner-concepts.ts`, the experiment, the v1 to v3 fixtures or any
 result. They write all 160, as the user decided on 21 November 2026; people
 write none.
 
+Written on 21 November 2026 with
+[`scripts/partner-real-v2.mjs`](../scripts/partner-real-v2.mjs):
+
+- **Corpus.** Read at 20:36 UTC: 993 listed and 979 kept, as counted above.
+- **Slots.** Each domain has 21 seeded, 4 hard-negative, 10 blind and 5 sparse
+  slots, so 100 seeded and 60 blind in all, with the language and direction
+  quotas met exactly. Art has 19 seed projects for 25 slots, so 6 repeat.
+- **Writing order.** Each writer did its blind and sparse slots before seeing any
+  project, then its seeded slots. None opened a file.
+- **Seed rule.** Added before any seeded query was written: a seed needs at least
+  100 characters of its own words and not Certified's form prompt. Five drawn
+  seeds had only a heading, one line or the prompt.
+- **Word check.** 34 seeded queries reused a word that at most 1% of projects use.
+  A fresh checker agent judged 32 of them plain words for the subject and 2 real
+  copies, which their writers rewrote. It also found an offer that read as a need.
+  Two sparse titles of five words were cut to four. Five answers were revised in
+  all.
+- **Where the files are.** In a private Google Drive folder that only the owner
+  can open, uploaded on 21 November 2026 with a readme and one archive of the
+  pages, briefs, answers and checker files. The local copy where they were made
+  is in the repository's ignored `docs/platform/research/local-only/partner-real-v2/`
+  folder. Their hashes are in [`partner-real-v2.sha256`](partner-real-v2.sha256).
+
 ### Engines, frozen before the pool is built
 
 1. The current matcher, `partner-concepts-v2`, as the bar to beat.
@@ -145,6 +168,24 @@ are cut by domain.
 | Time per reviewer, at an assumed 15 to 20 seconds a pair | 3 to 4 hours (4.5 to 6 with three engines) | 8 to 10.5 hours |
 | What it adds | Every suggestion any engine would show is judged | How much a different threshold could find |
 
+Built on 21 November 2026 by `partner-real-v2.mjs pool`, which runs only the
+engines the committed manifest lets go forward and refuses if it differs from
+what is on disk:
+
+- **Size.** The engines ran as of the day the corpus was read. The pool has 1,050
+  pairs, 6.6 per query on average and at most 12. By domain: art 260, software
+  270, research 270 and place 250. The 979-project corpus made the engines suggest
+  more than v1 did, so the 750 estimate above was low.
+- **Time.** At 15 to 20 seconds a pair, that is 4.4 to 5.8 hours per reviewer,
+  within the 4.5 to 6 hours agreed.
+- **Sources.** By where each pair came from: the current matcher 489, MiniLM-L12
+  287, seeds 100 (16 of them hard negatives) and controls 320. Pairs two engines
+  both suggested count under each.
+- **Calibration.** 20 v1 pairs in a salted order, by their frozen agent labels:
+  8 relevant, 8 irrelevant and 4 unresolved.
+- **Files.** The packets, the calibration set, the key and the engine runs are
+  in the private Drive folder, sealed by hash in `partner-real-v2.sha256`.
+
 ### Judging
 
 Two reviewers, labelled A and B and never named in the repository, judge with the
@@ -160,7 +201,10 @@ and are reported beside them, with raw agreement and Cohen's kappa.
 - The holdout files are not committed until the scored run. Before reviewers
   start, a manifest of SHA-256 hashes is committed: corpus, queries, worksheet,
   key, engine settings, model files and scoring script. The runner refuses to score
-  if any file differs.
+  if any file differs. On 21 November 2026, `partner-real-v2.sha256` came to hold
+  the corpus, the queries, the slots (part of the key), the engine runs, the four
+  packets, the key, the calibration files and the scoring script. The engine
+  manifest is `partner-real-v2-engines.json`.
 - Until then the files live on a private shared drive, as the user decided on
   21 November 2026. The key never goes to reviewers.
 - Query writers never see an engine. Whoever builds the engines never sees the
@@ -188,6 +232,27 @@ v1 or new project. Intervals come from a bootstrap over queries, paired against 
 current matcher. v1's intervals treated suggestions as independent and came out too
 narrow.
 
+The scoring script is
+[`scripts/partner-real-v2-score.mjs`](../scripts/partner-real-v2-score.mjs),
+written and sealed on 21 November 2026, before any reviewer started. It works like
+this:
+
+- **Seal.** It refuses to score if any sealed file, the engine manifest or the
+  script itself differs from the seal.
+- **Labels.** It needs both reviewers' judgment of every pair, and a recorded
+  settlement for every disagreement, by a third person or a joint discussion.
+- **Agreement.** It reports raw agreement and Cohen's kappa from before the
+  settlement.
+- **Seed recall.** It counts a seeded query only when the reviewers judged its
+  seed a fit.
+- **Hard gate.** It reruns the current matcher and refuses if the result differs
+  from the sealed run, then checks the matcher's explanations. MiniLM-L12's
+  suggestions get the provenance check.
+- **Decision.** It applies rules 1 to 5 below. Rule 6 comes from the host
+  measurement.
+
+It writes its report once and will not overwrite it.
+
 ### Decision rule
 
 The user confirmed these on 21 November 2026, margins and relative floor
@@ -210,10 +275,13 @@ Only MiniLM-L12 went forward, so it is the one candidate. The spec's 80% target 
 reported for each domain and direction but not used to choose, since the current
 matcher misses it too.
 
-Rule 1 is not yet fully checkable for MiniLM-L12. The frozen engine returns each
-project with the kind of evidence that let it in, not the explanation the app
-would show, so the scoring runner can check provenance but not explanation
-wording. How it judges explanations has to be settled before the pool is built.
+Rule 1 for MiniLM-L12 checks provenance only, as the user decided on 21 November
+2026. The frozen engine returns each project with the kind of evidence that let it
+in, not the explanation the app would show. So the scoring runner checks that
+every MiniLM-L12 suggestion traces to a passage of a public project in the frozen
+corpus, with that passage's source fields, and that none is marked confirmed. It
+reports that the engine has no explanation. Designing one is a condition before
+any model ships. The current matcher keeps the full check, explanations included.
 
 ## Host measurement
 
@@ -238,9 +306,10 @@ site are not touched.
 2. Engines are prepared on development data and the manifest is committed, in a
    draft PR. Done on 21 November 2026.
 3. The corpus is frozen and the queries written. An agent checks the quotas,
-   without labelling anything.
+   without labelling anything. Done on 21 November 2026.
 4. The pool, worksheet and key are built, their hashes committed and the packets
-   handed to reviewers.
+   handed to reviewers. Built and hashed on 21 November 2026; the packets go to
+   the reviewers once they are named.
 5. Calibration, independent judging and adjudication.
 6. One scored run. The files and the report are committed in a draft PR.
 7. Host measurement, with the owner's go-ahead for the preview deployment.
@@ -250,9 +319,9 @@ site are not touched.
 
 1. Who are the two reviewers, and can each give about 4.5 to 6 hours, or 8 to 10.5
    for the larger pool? **Partly answered on 21 November 2026: the suggestions-only
-   pool, about 4.5 to 6 hours each.** With two engines the estimate fell to 3 to
-   4 hours, a lower bound. Who the reviewers are is still open, and their names
-   stay out of this repository.
+   pool, about 4.5 to 6 hours each.** The built pool has 1,050 pairs, 4.4 to 5.8
+   hours each, plus the 20 calibration pairs. Who the reviewers are is still
+   open, and their names stay out of this repository.
 2. Should this review replace the human review of `partner-real-v1`? **Answered
    on 21 November 2026: yes.** v1 serves as development data with its agent
    labels, and its worksheet does not go to reviewers. Its human review would
