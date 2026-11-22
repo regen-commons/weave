@@ -1,7 +1,8 @@
 # Partner holdout for D32 (`partner-real-v2`): plan
 
-A plan for the owner's decisions, written on 21 November 2026. Nothing here is
-built: no query is written, no model is downloaded and no engine has changed.
+A plan for the owner's decisions, written on 21 November 2026. The engines were
+frozen the same day (see [Engines](#engines-frozen-before-the-pool-is-built)). No
+query is written and nothing else is built.
 
 ## What it decides
 
@@ -10,7 +11,9 @@ MiniLM-L12 with keyword veto, from multilingual-e5-small with keyword veto, or s
 with the current matcher (`partner-concepts-v2`)? This follows the D32 answer of
 19 November 2026 in [open decisions](../../../docs/platform/open-decisions.md).
 It does not decide hosting, browser use or the live site's fund vectors, and a
-result here approves no model dependency.
+result here approves no model dependency. On 21 November 2026 e5-small dropped out
+on development data, so the holdout now decides between MiniLM-L12 and the current
+matcher.
 
 ## Why a new set
 
@@ -90,39 +93,56 @@ write none.
 
 1. The current matcher, `partner-concepts-v2`, as the bar to beat.
 2. Multilingual MiniLM-L12 with keyword veto.
-3. Multilingual-e5-small with keyword veto.
+3. Multilingual-e5-small with keyword veto. It did not go forward (below).
 
 Both models load upstream's own 8-bit ONNX files at pinned revisions, with every
-file hashed. Their cut-offs are set again on development data with a rule fixed
-in advance: `partner-real-v1`, with its agent labels, becomes development data
-beside v2 development. The proposed rule is the highest share of relevant
-suggestions among the top five on v1, with recall at five no lower than the
-current matcher's there. e5-small needs this most: at its v2 cut-off it answered
-all eight no-match queries on v1. Engine settings, scripts and model hashes go into
-a committed manifest before any query is run.
+file hashed. Their cut-offs were set again on 21 November 2026 on development
+data, `partner-real-v1` with its agent labels, by
+[`d32-engines.mjs`](experiments/matching-architecture/d32-engines.mjs). The rule
+takes the highest share of relevant suggestions among the top five on v1, among
+the cut-offs that pass the decision rule's gates there: recall at five no lower
+than the current matcher's, Portuguese and Spanish recall above it, and no-match
+suggestions at most 10 points above its share.
+
+The first version of the rule kept only the recall floor. Run on v1, it put both
+models at that floor and short of the language gate, so the user chose to add the
+gates. No v2 query existed.
+
+The result:
+
+- **MiniLM-L12 goes forward** with a z threshold of 3.5 and a keyword veto below
+  z 1.8. On v1 it reached 69% relevant among the top five and 34% recall, against
+  the current matcher's 31% and 31%, and Portuguese recall of 15% against 5%.
+- **e5-small does not go forward.** No cut-off on the grid let it pass the gates.
+
+The [engine manifest](partner-real-v2-engines.json) holds the settings, the model
+file hashes, the hashes of every script the engines run, and the runtime versions.
+The [report](experiments/matching-architecture/reports/2026-11-21-d32-engines.json)
+has the figures.
 
 The frozen lexical baseline is left out. It is known to be weak (19% relevant on
 v1), and its suggestions would add reviewer time without informing this choice.
 
 ### Pool and worksheet
 
-For each query the pool holds every suggestion the three engines make (their top
-five), the seed project and two seeded random controls. In the v1 runs, those
-thresholded engines' suggestions came to 4.5 projects per query on average (at most
-10) over 140 projects. Adding each model's top five with no threshold raised that to
-9.6. With 979 projects the engines overlap less, so treat the estimates below as
-lower bounds. On 21 November 2026 the user chose the smaller pool: suggestions
-only, with no unthresholded top five.
+For each query the pool holds every suggestion the two frozen engines make (their
+top five), the seed project and two seeded random controls. On v1's 140 projects,
+the current matcher and MiniLM-L12 at its frozen cut-offs suggested 2.1 projects
+per query together on average (at most 8). With three engines and the 19 November
+cut-offs it had been 4.5, and adding each model's top five with no threshold raised
+that to 9.6. With 979 projects the engines will suggest more and overlap less, so
+treat the estimates below as lower bounds. On 21 November 2026 the user chose the
+smaller pool: suggestions only, with no unthresholded top five.
 
 The worksheet groups pairs by query, so a reviewer reads each need or offer once,
 and shuffles the projects within it. It shows no engine, seed or label. Packets
 are cut by domain.
 
-| | Suggestions only (chosen) | Also each model's top five, unthresholded |
+| | Suggestions only (chosen) | Also each model's top five, unthresholded (not chosen; estimated with three engines) |
 |---|---|---|
-| Pairs per query | about 7 | about 12 |
-| Pairs for 160 queries | about 1,100 | about 1,900 |
-| Time per reviewer, at an assumed 15 to 20 seconds a pair | 4.5 to 6 hours | 8 to 10.5 hours |
+| Pairs per query | about 5 (about 7 with three engines) | about 12 |
+| Pairs for 160 queries | about 750 (about 1,100 with three engines) | about 1,900 |
+| Time per reviewer, at an assumed 15 to 20 seconds a pair | 3 to 4 hours (4.5 to 6 with three engines) | 8 to 10.5 hours |
 | What it adds | Every suggestion any engine would show is judged | How much a different threshold could find |
 
 ### Judging
@@ -186,9 +206,14 @@ unchanged. They are fixed before any reviewer starts:
    10 points above the current matcher's share.
 6. **Host budget.** Met on the hosting tier, as measured below.
 
-If both candidates pass, the one with more relevant suggestions wins, and on a tie
-the smaller one. The spec's 80% target is reported for each domain and direction
-but not used to choose, since the current matcher misses it too.
+Only MiniLM-L12 went forward, so it is the one candidate. The spec's 80% target is
+reported for each domain and direction but not used to choose, since the current
+matcher misses it too.
+
+Rule 1 is not yet fully checkable for MiniLM-L12. The frozen engine returns each
+project with the kind of evidence that let it in, not the explanation the app
+would show, so the scoring runner can check provenance but not explanation
+wording. How it judges explanations has to be settled before the pool is built.
 
 ## Host measurement
 
@@ -211,7 +236,7 @@ site are not touched.
 
 1. The owner answers the questions below.
 2. Engines are prepared on development data and the manifest is committed, in a
-   draft PR.
+   draft PR. Done on 21 November 2026.
 3. The corpus is frozen and the queries written. An agent checks the quotas,
    without labelling anything.
 4. The pool, worksheet and key are built, their hashes committed and the packets
@@ -225,8 +250,9 @@ site are not touched.
 
 1. Who are the two reviewers, and can each give about 4.5 to 6 hours, or 8 to 10.5
    for the larger pool? **Partly answered on 21 November 2026: the suggestions-only
-   pool, about 4.5 to 6 hours each.** Who the reviewers are is still open, and
-   their names stay out of this repository.
+   pool, about 4.5 to 6 hours each.** With two engines the estimate fell to 3 to
+   4 hours, a lower bound. Who the reviewers are is still open, and their names
+   stay out of this repository.
 2. Should this review replace the human review of `partner-real-v1`? **Answered
    on 21 November 2026: yes.** v1 serves as development data with its agent
    labels, and its worksheet does not go to reviewers. Its human review would
