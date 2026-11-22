@@ -11,3 +11,6 @@ __pycache__/
 
 # Private planning notes (shared privately, never published)
 docs/platform/research/local-only/
+
+# Worktrees for isolated work (AGENTS.md, "Shared checkout safety")
+.claude/worktrees/
