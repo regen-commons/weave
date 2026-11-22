@@ -93,7 +93,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
   The page asks for three things, the name, the place and what the initiative does, and
   shows no suggested details. A file is read as soon as it is added, and words as a
   speech recognizer writes them, with capitals or without, are read by the spoken rules in
-  `names.ts` and `places.ts`, only where the written rules found nothing (DL-125). After
+  `names.ts` and `places.ts`, only where the written rules found nothing (DL-127). After
   the plainer words ("we're in", "it's in", "we work in") a place counts only with its
   capital or a country's name, and "we work in" is read only in the person's own words,
   never in a file's. On a wide screen a step's way

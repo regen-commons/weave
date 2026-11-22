@@ -13,7 +13,7 @@
 }
 .rc-field > label { font: var(--type-label-md); }
 /* A form in a column that is already a reading measure fills it (`data-width="full"`), so the
-   page's left and right edges are the column's and a long answer needs fewer rows (DL-125). */
+   page's left and right edges are the column's and a long answer needs fewer rows (DL-127). */
 .rc-form[data-width="full"],
 .rc-form[data-width="full"] .rc-field { max-inline-size: none; }
 .rc-hint {
@@ -194,7 +194,7 @@
   color: var(--on-action);
 }
 /* On a wide screen the steps are in the Step bar under the app bar, so the copy at the top of the
-   page is a phone's (`data-until="wide"`, DL-125). */
+   page is a phone's (`data-until="wide"`, DL-127). */
 @media (min-width: 56.25rem) {
   .rc-stepper[data-until="wide"] { display: none; }
 }
@@ -476,7 +476,7 @@
   .rc-action-bar > [data-from="wide"] { display: none; }
   .rc-action-bar:not(:has(> :not([data-from="wide"]))) { display: none; }
 }
-/* A bar whose actions a wide screen shows in the Step bar is a phone's (`data-until="wide"`, DL-125). */
+/* A bar whose actions a wide screen shows in the Step bar is a phone's (`data-until="wide"`, DL-127). */
 @media (min-width: 56.25rem) {
   .rc-action-bar[data-until="wide"] { display: none; }
 }

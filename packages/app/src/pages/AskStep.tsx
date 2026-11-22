@@ -120,7 +120,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   );
   return (
     <Stack>
-      {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-125). */}
+      {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-127). */}
       <IntakeStepper current={1}>
         <ButtonLink href={pathTo("initiative")} variant="quiet">
           Back

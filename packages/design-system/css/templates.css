@@ -16,7 +16,7 @@
 @media (width < 56.25rem) {
   :root:has(.rc-dock:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
 }
-/* On a wide screen a step's bar sticks under the app bar, so jumps and focus stop clear of both (DL-125). */
+/* On a wide screen a step's bar sticks under the app bar, so jumps and focus stop clear of both (DL-127). */
 @media (min-width: 56.25rem) {
   :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
 }
@@ -41,7 +41,7 @@
 .rc-page { --dock-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The step bar's height on a wide screen where a step fills it, and nothing anywhere else: a
    control, the bar's padding and its edge, as the app bar is. Whatever sticks under the two bars,
-   or fills the window below them, adds it to the app bar's height (DL-125). */
+   or fills the window below them, adds it to the app bar's height (DL-127). */
 .rc-page { --step-bar-height: 0rem; }
 @media (min-width: 56.25rem) {
   .rc-page:has(> .rc-step-bar:not(:empty)) {

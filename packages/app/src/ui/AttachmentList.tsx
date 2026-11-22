@@ -13,7 +13,7 @@ export function AttachmentList({
 }: {
   files: readonly Attachment[];
   readOnBuild?: boolean;
-  /** What the last reading made of each file, where the page reads a file as it is added (DL-125). */
+  /** What the last reading made of each file, where the page reads a file as it is added (DL-127). */
   reads?: readonly NonNullable<DeviceDraft["lastBuild"]>["files"][number][];
   /** A reading is under way, so a file with no result yet is being read. */
   reading?: boolean;

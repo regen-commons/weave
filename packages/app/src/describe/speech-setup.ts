@@ -219,7 +219,7 @@ const SILENT: TalkControls = { action: null, label: "", note: "", language: fals
  * The button and the line for each state of speech. The button keeps its place from Set up to
  * Talk it out to Stop, so pressing it never moves the page. Set Up Speech and Setting Up Speech
  * are close in width for the same reason: a longer label sent the line under the button on a wide
- * screen, and the box jumped when the setup began (DL-125). Where the browser cannot turn speech
+ * screen, and the box jumped when the setup began (DL-127). Where the browser cannot turn speech
  * into text, a plain line says so in the button's place, or on a touch screen points to the
  * keyboard's microphone key; the option is never hidden without a word. Beside a working Talk It
  * Out the keyboard line is not shown, so a page offers one way to talk at a time.

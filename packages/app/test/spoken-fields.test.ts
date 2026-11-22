@@ -1,5 +1,5 @@
 // Fill In The Fields from words as speech gives them, and from a file, with the keyword rules alone
-// (DL-125). Many browsers return what was said without capitals or full stops, and the written
+// (DL-127). Many browsers return what was said without capitals or full stops, and the written
 // rules read a name and a place by both. Each expectation is what the words state and nothing
 // more: where the shape the page asks for is not there, the field stays empty.
 import assert from "node:assert/strict";
@@ -202,7 +202,7 @@ test("the spoken rules stay cheap on any input", () => {
   assert.ok(performance.now() - started < 500, "each rule reads only the start");
 });
 
-test("a file is read for the name, the place and the description when it is added (DL-125)", async () => {
+test("a file is read for the name, the place and the description when it is added (DL-127)", async () => {
   const notes = textFile(
     "about.txt",
     "Project Proposal\n\nMarch 2026\n\nRiver Keepers is a community group based in Nairobi, Kenya. We restore the riverbank with local families and teach schools about clean water.\n\nBudget\n\n1. Tools",

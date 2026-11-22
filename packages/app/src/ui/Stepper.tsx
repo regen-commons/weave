@@ -50,7 +50,7 @@ export function Stepper({
  * The three steps of starting an initiative, on each of their pages, with the ones done as links
  * back. A phone shows them at the top of the page and docks the way forward (DL-089). A wide
  * screen shows them in the Step bar under the app bar, with the step's way forward (`children`)
- * at the bar's far end, so both stay in view while the page scrolls (DL-125). The steps are in
+ * at the bar's far end, so both stay in view while the page scrolls (DL-127). The steps are in
  * the markup twice and on screen once.
  */
 export function IntakeStepper({ current, children }: { current: number; children?: ReactNode }) {
