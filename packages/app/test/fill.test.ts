@@ -18,6 +18,8 @@ import {
   mainLink,
   nearLimit,
   otherLinks,
+  readFields,
+  readingNote,
   saidText,
   toggleDetail,
   withMainLink,
@@ -36,7 +38,7 @@ const suggest = (draft = said()) => keywordSuggestion({ ...draft, turns: [] }, s
 
 test("a fill puts the words into the four fields in place, marks each one, and suggests details in pencil", () => {
   const draft = said();
-  const { draft: filled, fields, details } = fillFields(draft, suggest(draft), build);
+  const { draft: filled, fields, details, missing } = fillFields(draft, suggest(draft), build);
   const form = fieldsForm(filled);
   assert.equal(form.name, "Riverside seed library", "no article, and a capital to start");
   assert.equal(form.where, "Lower Valley, Brazil");
@@ -59,7 +61,46 @@ test("a fill puts the words into the four fields in place, marks each one, and s
   // The preview card shows the fields and no detail nobody kept.
   assert.equal(previewFields(filled).name, "Riverside seed library");
   assert.equal(previewFields(filled).stage, null);
-  assert.equal(fillSummary({ fields, details }), `Filled 4 fields and suggested ${details} details. Check them and change anything.`);
+  // The line names the fields it filled, and asks for nothing when the name and the place are there.
+  assert.deepEqual(missing, []);
+  assert.equal(fillSummary({ fields, missing }), "Filled Name, Where you work, About it and Website or main link. Check and change anything.");
+});
+
+test("a fill says which fields it filled, and asks by name for a name or a place the words did not give (DL-127)", () => {
+  const draft = changeSaid(newDraft(), "Families share what they learn about the orchard and its water.");
+  const result = fillFields(draft, suggest(draft), build);
+  assert.deepEqual(result.fields, ["about"]);
+  assert.deepEqual(result.missing, ["name", "where"]);
+  assert.equal(fillSummary(result), "Filled About it. Add a name and where you work below.");
+  assert.equal(fillSummary({ fields: ["name", "about"], missing: ["where"] }), "Filled Name and About it. Add where you work below.");
+  assert.equal(fillSummary({ fields: ["name"], missing: [] }), "Filled Name. Check and change anything.");
+  assert.equal(fillSummary({ fields: [], missing: ["name"] }), "Nothing new to fill in. Add a name below.");
+  // A field the person typed counts as given, so it is not asked for again.
+  const typed = fillFields(editFields(draft, { name: "Orchard circle", where: "Upper Valley", about: "", links: "" }), suggest(draft), build);
+  assert.deepEqual(typed.missing, []);
+  // While it reads, the page says what it is reading.
+  assert.equal(readingNote(true, 0), "Reading your words on this device.");
+  assert.equal(readingNote(true, 2), "Reading your words and your files on this device.");
+  assert.equal(readingNote(false, 1), "Reading your file on this device.");
+});
+
+test("a problem that stops Continue names the field it is about, so the page can say it there (DL-127)", () => {
+  const field = (form: Parameters<typeof readFields>[0]) => {
+    try {
+      readFields(form);
+    } catch (error) {
+      return error instanceof FieldsProblem ? error.field : "not a fields problem";
+    }
+    return "no problem";
+  };
+  const good = { name: "Orchard circle", where: "Upper Valley", about: "We share an orchard.", links: "" };
+  assert.equal(field(good), "no problem");
+  assert.equal(field({ ...good, name: " " }), "name");
+  assert.equal(field({ ...good, about: "a".repeat(401) }), "about");
+  assert.equal(field({ ...good, where: Array.from({ length: 9 }, (_, index) => `Place ${index}`).join("; ") }), "where");
+  assert.equal(field({ ...good, links: "example" }), "links");
+  // A problem with the box is about no field.
+  assert.equal(new FieldsProblem("The box is full.").field, undefined);
 });
 
 test("a fill never writes over a field the person typed or changed, and refills only what it filled before", () => {
@@ -80,11 +121,11 @@ test("a fill never writes over a field the person typed or changed, and refills 
   assert.ok(form.about.includes("lend tools"));
   assert.equal(form.links, "https://example.org/seeds", "no new link was said, so the earlier one stays");
   assert.deepEqual(result.fields, ["about"]);
-  assert.equal(fillSummary(result).startsWith("Filled 1 field"), true);
+  assert.equal(fillSummary(result), "Filled About it. Check and change anything.");
   // Words that propose nothing change nothing, and say so.
   const empty = fillFields(result.draft, { ...EMPTY_INITIATIVE }, build, "");
   assert.deepEqual(fieldsForm(empty.draft), form);
-  assert.equal(fillSummary({ fields: [], details: 0 }), "Nothing new to fill in. You can type in the fields.");
+  assert.equal(fillSummary({ fields: [] }), "Nothing new to fill in. You can type in the fields.");
 });
 
 test("About it is cut to 400 characters at a sentence, and a link is read only when it is complete", () => {

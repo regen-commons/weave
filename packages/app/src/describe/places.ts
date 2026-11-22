@@ -1,4 +1,4 @@
-import { KIND } from "./names.ts";
+import { CLAUSE, heard, KIND, spokenLabels } from "./names.ts";
 
 /**
  * The words a place is looked for in, made cheap to read whatever was given: the first 20,000
@@ -222,8 +222,8 @@ export function statedWhere(words: string, name = ""): StatedWhere {
   for (const match of text.matchAll(NEAR)) {
     const next = after(text, match);
     const { place, unclear, list } = placeName(match[1]!, next);
-    // "in January", "from The": not a place at all, and not a reason to doubt the others.
-    if (!place) continue;
+    // "in January", "from The", "in Partnership with": not a place at all, and not a reason to doubt the others.
+    if (!place || place.split(/[ \t,]+/u).some((word) => NOT_WHERE.has(word.toLocaleLowerCase()))) continue;
     const sentence = before(text, match.index);
     if (sentence === null) continue;
     const opens = !sentence.trim() && /^,?[ \t]*(?:we|our|nós|nosotros)(?![\p{L}\p{M}])/iu.test(next);
@@ -245,4 +245,305 @@ export function statedWhere(words: string, name = ""): StatedWhere {
   // The initiative's own words, at their most explicit: "Awka, Nigeria" over "Awka".
   const place = stated.reduce((best, next) => (key(next).length > key(best).length ? next : best));
   return { locations: [place.slice(0, 120)], isGlobal: false };
+}
+
+/** No spoken place is longer than this many words, and no more than this many are read to find its end. */
+const SPOKEN_PLACE_WORDS = 4;
+const SPOKEN_PLACE_READ = 7;
+const SPOKEN_LOCATIVE =
+  /(?<![\p{L}\p{M}])(?:based|located|situated|headquartered)[ \t]+in[ \t]+(?:like[ \t]+)?(?:the[ \t]+(?:town|city|village|municipality)[ \t]+of[ \t]+|(the)[ \t]+)?/giu;
+/** Where a spoken place ends: the word that starts the next thing said. */
+const PLACE_STOP = words(
+  "we we're we’re and or but where which who that our i i'm i’m it it's it’s is are was to for with because so since",
+  "a an the in on at by this they there here also now",
+);
+/** After "and", these go on with the sentence; any other word names a second place. */
+const GOES_ON = words("we we're we’re i i'm i’m our it it's it’s they also have are is then");
+/** Words that say what kind of place, or how many, and never which. */
+const NOT_NAMED = words(
+  "rural urban local remote online several many various different multiple two three four communities community",
+  "villages village schools towns cities areas regions places countries cloud internet field countryside",
+);
+/**
+ * What an initiative works in that is not a place: "we work in education", "our work is in
+ * partnership with", "it's in Swahili".
+ */
+const NOT_WHERE = words(
+  "education health healthcare agriculture conservation partnership collaboration technology tech energy climate water",
+  "housing research science policy advocacy development sustainability regeneration permaculture agroforestry forestry",
+  "farming finance media arts culture tourism nutrition sanitation biodiversity restoration progress person touch",
+  "phase year stage round grade beta season talks need charge",
+  "management security services rights justice design software hardware engineering construction manufacturing",
+  "logistics retail fintech crypto blockchain data law governance peacebuilding humanitarian relief aid welfare",
+  "wellbeing wellness medicine sports sport music film fashion food transport mobility infrastructure mining fishing",
+  "aquaculture livestock dairy horticulture beekeeping recycling waste plastics carbon forests oceans marine wildlife",
+  "ecology environment communications marketing sales operations teams shifts pairs groups partnerships sectors",
+  "borders disciplines generations cultures",
+  "swahili kiswahili hindi german chinese mandarin yoruba igbo hausa zulu amharic italian dutch russian japanese korean turkish",
+);
+/** A word before a country that is part of its name as said, with no comma between: "Western Kenya". */
+const PART_OF = words("north south east west northern southern eastern western central coastal upper lower greater");
+
+/** Regions the browser names that are not places a person works in, and names people say that it does not list. */
+const NOT_COUNTRIES = new Set(["ZZ", "XA", "XB", "QO", "EZ", "UN"]);
+const ALSO_SAID = "usa|uk|uae|drc|england|scotland|wales|ivory coast|congo|burma|turkey|czech republic|palestine|cape verde|east timor|swaziland|macedonia";
+let countryNames: Set<string> | undefined;
+/**
+ * Country names in English and in lower case, as the browser lists them. A place said without a
+ * capital is taken after the plainer words ("we work in") only when it names one of these, and a
+ * place said without capitals ends at its country. No list is shipped: a browser without the
+ * names keeps the few above, and a place then needs its capital.
+ */
+function countries(): Set<string> {
+  if (countryNames) return countryNames;
+  const names = new Set(ALSO_SAID.split("|"));
+  try {
+    const regions = new Intl.DisplayNames(["en"], { type: "region", fallback: "none" });
+    for (let first = 65; first <= 90; first++)
+      for (let second = 65; second <= 90; second++) {
+        const code = String.fromCharCode(first, second);
+        const name = NOT_COUNTRIES.has(code) ? undefined : regions.of(code);
+        // "Myanmar (Burma)", "Congo - Kinshasa", "Hong Kong SAR China", "Bosnia & Herzegovina", "Côte d’Ivoire".
+        for (const part of name?.replace(/ SAR China$/u, "").split(/[ \t]*[()][ \t]*|[ \t]+-[ \t]+/u) ?? [])
+          if (part.trim()) names.add(part.trim().toLocaleLowerCase().replaceAll("’", "'").replaceAll("&", "and").replaceAll(".", ""));
+      }
+  } catch {
+    // Left with the names above.
+  }
+  return (countryNames = names);
+}
+/** The first country the words name, as the span of words that hold it. */
+function countryIn(lower: readonly string[]): { start: number; end: number } | null {
+  const names = countries();
+  for (let start = 0; start < lower.length; start++)
+    for (let size = Math.min(4, lower.length - start); size > 0; size--)
+      if (names.has(lower.slice(start, start + size).join(" ").replaceAll("’", "'"))) return { start, end: start + size };
+  return null;
+}
+
+/** A spoken place as it would be written: a capital on each word that has none, joining words apart. */
+const titledPlace = (parts: readonly string[]) =>
+  parts
+    .map((word, index) => (/\p{Lu}/u.test(word) || (index > 0 && PARTICLE.test(word)) ? word : word.replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase())))
+    .join(" ");
+
+interface SpokenPlace {
+  place: string;
+  /** A second place follows, so the words name a list. */
+  list: boolean;
+  /** The place was given its capital, or names a country: it is a place and not some other word. */
+  known: boolean;
+  country: boolean;
+}
+
+/**
+ * The place the words open with, or null when they do not settle on one. A place given capitals
+ * ends at the first word without one, as a written place does. A place without them ends at the
+ * word that starts the next thing said, or at its country: "nairobi kenya schools love us" is
+ * Nairobi, Kenya. `afterThe` is true for "in the …", which names a place only when it is known.
+ */
+function spokenPlace(rest: string, afterThe = false): SpokenPlace | null {
+  const tokens = [...rest.slice(0, AFTER).matchAll(/[^ \t,.;:!?\n]+|[,.;:!?\n]/gu)].map((match) => match[0]);
+  const capital = /^\p{Lu}/u.test(tokens[0] ?? "");
+  let said: string[] = [];
+  /** The words a comma came before. */
+  const breaks = new Set<number>();
+  let list = false;
+  for (const [index, token] of tokens.entries()) {
+    const lower = token.toLocaleLowerCase();
+    if (token === ",") {
+      if (said.length) breaks.add(said.length);
+      continue;
+    }
+    // "Bosnia and Herzegovina" is one country, not a list of two places.
+    const oneCountry =
+      lower === "and" &&
+      said.length > 0 &&
+      [1, 2].some((ahead) => countries().has([said.at(-1)!, "and", ...tokens.slice(index + 1, index + 1 + ahead)].join(" ").toLocaleLowerCase()));
+    const joins = said.length > 0 && (PARTICLE.test(lower) || oneCountry);
+    const ends =
+      /^[.;:!?\n]$/u.test(token) ||
+      (!joins && PLACE_STOP.has(lower)) ||
+      (said.length > 0 && /^\p{Ll}[\p{L}\p{M}]*ing$/u.test(token)) ||
+      (capital && !joins && !/^\p{Lu}/u.test(token));
+    if (!/^[.;:!?\n]$/u.test(token) && !/^\p{L}/u.test(token)) return null;
+    if (ends) {
+      const next = tokens[index + 1];
+      const after = next?.toLocaleLowerCase() ?? "";
+      list =
+        (lower === "and" || lower === "or") &&
+        !!next &&
+        !GOES_ON.has(after) &&
+        (capital ? /^\p{Lu}/u.test(next) : !CLAUSE.has(after) && !/ing$/u.test(after));
+      break;
+    }
+    if (said.length === SPOKEN_PLACE_READ) break;
+    said.push(token);
+  }
+  const found = countryIn(said.map((word) => word.toLocaleLowerCase()));
+  if (found && !capital) {
+    // Another country straight after the first is a list: "kenya uganda tanzania".
+    if (countryIn(said.slice(found.end).map((word) => word.toLocaleLowerCase()))?.start === 0) list = true;
+    said = said.slice(0, found.end);
+  }
+  while (said.length && (PARTICLE.test(said.at(-1)!) || said.at(-1)!.toLocaleLowerCase() === "and")) said.pop();
+  if (!said.length || said.length > (found ? SPOKEN_PLACE_READ : SPOKEN_PLACE_WORDS)) return null;
+  const lower = said.map((word) => word.toLocaleLowerCase());
+  // A country's own words are not doubted: the "and" of "Bosnia and Herzegovina" is part of its name.
+  const doubted = lower.filter((_, index) => !found || index < found.start || index >= found.end);
+  if (doubted.some((word) => NOT_NAMED.has(word) || NOT_WHERE.has(word) || UNCLEAR.has(word) || UNDECIDED.has(word) || NOT_PLACES.has(word)))
+    return null;
+  // A word all in capitals is an abbreviation, not a capital on a place: "WASH programmes", "ICT".
+  const shouted = said.some((word, index) => doubted.includes(lower[index]!) && /^\p{Lu}{2,}$/u.test(word));
+  const known = (capital && !shouted) || !!found;
+  if (afterThe && !known) return null;
+  // "nairobi kenya" is written "Nairobi, Kenya"; "western kenya" has no comma to add.
+  if (found && found.start > 0 && !PART_OF.has(lower[found.start - 1]!)) breaks.add(found.start);
+  const segments: string[][] = [[]];
+  for (const [index, word] of said.entries()) {
+    if (breaks.has(index) && segments.at(-1)!.length) segments.push([]);
+    segments.at(-1)!.push(word);
+  }
+  return { place: segments.map(titledPlace).join(", "), list, known, country: !!found };
+}
+
+/** Who a spoken "based in" is about: "we are", "we're a seed library", "our garden is", or the card's name. */
+function spokenSubject(name: string): RegExp {
+  // "Our initiative, the Green Corridor Project, is": its name may be set off by commas. "Green
+  // Earth, our partner organisation, is" opens with someone else, so it is not this.
+  const be = String.raw`(?:we[ \t]+are|we['’]re|i[ \t]+am|i['’]m|it[ \t]+is|it['’]s|our[ \t]+${NOUN}(?:[ \t]+${NOUN})?(?:,[^,.;:!?\n]{2,80},)?[ \t]+(?:is|are))`;
+  const what = String.raw`(?:[ \t]+(?:now|still|currently|mainly|mostly|also))?(?:[ \t]+(?:a|an)(?:[ \t]+[\p{L}\p{M}-]+){1,5})?`;
+  const named = name.trim()
+    ? String.raw`|(?:${be}[ \t]+)?(?:the[ \t]+)?${escape(name.trim())}(?:,?[ \t]+(?:a|an)(?:[ \t]+[\p{L}\p{M}'’-]+){1,5})?(?:[ \t]+(?:is|are)|,?[ \t]+which[ \t]+(?:is|are))?`
+    : "";
+  return new RegExp(String.raw`(?:^|(?:^|[ \t,])(?:and[ \t]+)?(?:${be}${what}${named}),?[ \t]*)$`, "iu");
+}
+
+/**
+ * The plainer ways people say aloud where the initiative is, each with it as the subject: "we're
+ * in", "we operate out of", "our office is in", "it's in", "where we work is", "location is",
+ * and the card's name followed by "in". The same words open things that are not places ("we're
+ * in our third year", "it's in Swahili"), so `spokenWhere` takes what follows only when it is
+ * known to be a place. "We work in" is apart, in `workLocatives`. "We're from" is not read: it
+ * says a hometown as often as a base.
+ */
+function ownLocatives(name: string): RegExp {
+  const adverb = String.raw`(?:[ \t]+(?:mainly|mostly|currently|also|now|primarily))?`;
+  const forms = [
+    String.raw`(?:we[ \t]+are|we['’]re)${adverb}[ \t]+(?:in|out[ \t]+of)`,
+    String.raw`(?:we|i)${adverb}[ \t]+(?:work|operate)[ \t]+out[ \t]+of`,
+    String.raw`our[ \t]+(?:office|base|headquarters|${NOUN})[ \t]+(?:is|are)${adverb}[ \t]+in`,
+    String.raw`(?:it[ \t]+is|it['’]?s)${adverb}[ \t]+in`,
+    String.raw`where[ \t]+(?:we|i)[ \t]+work[ \t]+is(?:[ \t]+in)?`,
+    String.raw`(?:(?:the|our|its)[ \t]+)?location(?:[ \t]+is(?:[ \t]+in)?|[ \t]*:)`,
+  ];
+  if (name.trim()) forms.push(String.raw`${escape(name.trim())},?[ \t]+(?:(?:is|are)[ \t]+)?in`);
+  return new RegExp(String.raw`(?<![\p{L}\p{M}'’-])(?:${forms.join("|")})[ \t]+(?:like[ \t]+)?(?:(the)[ \t]+)?`, "giu");
+}
+/**
+ * "We work in", "we operate across" and "our project works in". They name a sector as often as a
+ * place ("we work in education"), so the keyword rules never read a place after them in a file
+ * (19 November 2026). In the person's own words they answer what the page asks, where you work,
+ * so there they are read, and only where what follows is known to be a place (the owner's
+ * decision, 21 November 2026).
+ */
+function workLocatives(name: string): RegExp {
+  const adverb = String.raw`(?:[ \t]+(?:mainly|mostly|currently|also|now|primarily))?`;
+  const forms = [
+    String.raw`(?:we|i)${adverb}[ \t]+(?:work|operate|are[ \t]+working|are[ \t]+operating)${adverb}[ \t]+(?:in|across|throughout)`,
+    String.raw`(?:the|our|this)[ \t]+${NOUN}[ \t]+(?:works|operates|runs|takes[ \t]+place)${adverb}[ \t]+(?:in|across|throughout)`,
+  ];
+  if (name.trim()) forms.push(String.raw`${escape(name.trim())},?[ \t]+(?:works|work|operates|operate)${adverb}[ \t]+(?:in|across|throughout)`);
+  return new RegExp(String.raw`(?<![\p{L}\p{M}'’-])(?:${forms.join("|")})[ \t]+(?:like[ \t]+)?(?:(the)[ \t]+)?`, "giu");
+}
+/** "A Nairobi based group", "we are a Kenya-based nonprofit": the place is said before "based". */
+const BASED_AFTER =
+  /(?<![\p{L}\p{M}'’-])(?:an?|we[ \t]+are|we['’]re|is)[ \t]+((?:[\p{L}\p{M}'’]+[ \t]+){0,3}[\p{L}\p{M}'’]+)[ -]based(?![\p{L}\p{M}]|[ \t]+in(?![\p{L}\p{M}]))/giu;
+const NOT_BASED = words("faith volunteer web home school land nature place research membership science evidence church youth women farmer");
+
+const placeWords = (place: string) => place.toLocaleLowerCase().split(/[ \t,]+/u).filter(Boolean);
+/** True when one place's words are found, in order and together, in the other's: "Nairobi" in "Nairobi, Kenya". */
+function within(small: readonly string[], big: readonly string[]): boolean {
+  for (let start = 0; start + small.length <= big.length; start++)
+    if (small.every((word, index) => big[start + index] === word)) return true;
+  return false;
+}
+
+/**
+ * The place as speech gives it. Many browsers return what was said without full stops, and with a
+ * capital only on the places they know: "we are orchard learning circle and we work in Nairobi
+ * we help families". `statedWhere` reads a place by its sentence, so it finds none there. This
+ * reads "based in", "located in", "situated in" and "headquartered in" in any case, and the
+ * plainer words of `ownLocatives` where what follows is known to be a place: it has a capital,
+ * or it names a country. It holds to the same rules as the written words: the initiative says it
+ * about itself, every place so stated is the same one, and a list or a phrase that names no one
+ * place leaves Where empty. It is for words `statedWhere` found no place in, and it gives the
+ * place the capitals and comma a written place has. Nothing is added. `own` is the part of the
+ * words the person said or typed themself: only there is "we work in" read, as `workLocatives` says.
+ */
+export function spokenWhere(words: string, name = "", own = ""): StatedWhere {
+  const text = heard(readable(words));
+  const mentioned: string[] = [];
+  const stated: string[] = [];
+  // The three things the page asks for, said as labels: the place is what follows "location".
+  const labels = spokenLabels(text);
+  if (labels) {
+    // Up to a third label the words are the place, whatever they are. Without one, a place must be known to be one.
+    const found = spokenPlace(labels.where || labels.after);
+    const whole = !!found && (labels.where ? placeWords(found.place).length === placeWords(labels.where).length : found.known);
+    return found && whole && !found.list ? { locations: [found.place.slice(0, 120)], isGlobal: false } : NONE;
+  }
+  const subject = spokenSubject(name);
+  for (const match of text.matchAll(SPOKEN_LOCATIVE)) {
+    const found = spokenPlace(text.slice(match.index + match[0].length), !!match[1]);
+    if (!found || found.list) return NONE;
+    mentioned.push(found.place);
+    const sentence = before(text, match.index);
+    if (sentence !== null && subject.test(sentence)) stated.push(found.place);
+  }
+  for (const match of text.matchAll(ownLocatives(name))) {
+    const found = spokenPlace(text.slice(match.index + match[0].length), !!match[1]);
+    // "we're in our third year": not a place, and not a reason to doubt the others.
+    if (!found?.known) continue;
+    if (found.list) return NONE;
+    mentioned.push(found.place);
+    stated.push(found.place);
+  }
+  const mine = heard(readable(own));
+  for (const match of mine.matchAll(workLocatives(name))) {
+    const found = spokenPlace(mine.slice(match.index + match[0].length), !!match[1]);
+    // "we work in education": not a place, and not a reason to doubt the others.
+    if (!found?.known) continue;
+    if (found.list) return NONE;
+    mentioned.push(found.place);
+    stated.push(found.place);
+  }
+  for (const match of text.matchAll(BASED_AFTER)) {
+    // The place is the capitals that end the words before "based", or the country that ends them.
+    const said = match[1]!.split(/[ \t]+/u);
+    let from = said.length;
+    while (from > 0 && /^\p{Lu}/u.test(said[from - 1]!) && !NOT_PLACES.has(said[from - 1]!.toLocaleLowerCase())) from--;
+    const lower = said.map((word) => word.toLocaleLowerCase());
+    const country = countryIn(lower);
+    const place = from < said.length ? said.slice(from) : country?.end === said.length ? said.slice(country.start) : [];
+    // "a Faith-based group", "a Community based project": what it rests on, not where it is.
+    if (!place.length || place.some((word) => NOT_BASED.has(word.toLocaleLowerCase()) || NOT_NAMED.has(word.toLocaleLowerCase()))) continue;
+    mentioned.push(titledPlace(place));
+    stated.push(titledPlace(place));
+  }
+  // A sentence that is only a place, after one that is only the name: "River Keepers. Nairobi, Kenya. We restore riverbanks."
+  if (name.trim() && text.toLocaleLowerCase().startsWith(name.trim().toLocaleLowerCase())) {
+    const second = text.slice(name.trim().length).match(/^[ \t]*[.\n][ \t\n]*([^.!?\n]{1,80})(?:[.!?\n]|$)/u)?.[1];
+    const found = second ? spokenPlace(second) : null;
+    // Every sentence opens with a capital, so one word with one is not known to be a place: "River Keepers. Welcome."
+    const placed = !!found && (found.country || placeWords(found.place).length > 1);
+    if (found && placed && !found.list && placeWords(found.place).length === placeWords(second!).length) {
+      mentioned.push(found.place);
+      stated.push(found.place);
+    }
+  }
+  // Every place the words locate something in must be the same one: "Nairobi" and "Nairobi, Kenya" are.
+  const best = stated.reduce((longest, next) => (placeWords(next).length > placeWords(longest).length ? next : longest), "");
+  if (!best || !mentioned.every((place) => within(placeWords(place), placeWords(best)))) return NONE;
+  return { locations: [best.slice(0, 120)], isGlobal: false };
 }

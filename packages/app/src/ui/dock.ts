@@ -5,6 +5,12 @@ import { flushSync } from "react-dom";
 export const DockContext = createContext<HTMLElement | null>(null);
 
 /**
+ * The page shell's step bar, where a step shows its map and its way forward on a wide screen
+ * (DL-127). Null until the shell has drawn it.
+ */
+export const StepBarContext = createContext<HTMLElement | null>(null);
+
+/**
  * Shows a step's problem where the person is. A phone docks the step's way forward, so the problem a
  * press raises may be a screen away from it: this draws the problem now and brings it into view.
  */

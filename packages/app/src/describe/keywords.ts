@@ -1,7 +1,7 @@
 import { z } from "../validation.ts";
 import { wholeWords } from "../intake/keywords.ts";
-import { statedName } from "./names.ts";
-import { statedWhere, whereFromAnswer } from "./places.ts";
+import { fileName, spokenName, statedName } from "./names.ts";
+import { spokenWhere, statedWhere, whereFromAnswer } from "./places.ts";
 import {
   FileReadSchema,
   SuggestionSchema,
@@ -70,10 +70,18 @@ export function whereAnswer(draft: Pick<DeviceDraft, "turns" | "composer">): str
 export function keywordSuggestion(draft: DeviceDraft, text: string, settled = text): Initiative {
   // The words the person gave first: an answer to the name question, the box, or the first file.
   const first = draft.turns[0]?.text.trim() || draft.composer.trim() || text.trim();
-  const name = statedName(first);
-  // The person's answer to the Where question wins. Without one, only a place the words state is proposed.
+  // What the person said or typed, and what the files added after it (DL-127).
+  const said = [...draft.turns.map((turn) => turn.text), draft.composer.trim()].filter(Boolean).join("\n\n");
+  const fromFiles = said && text.startsWith(said) ? text.slice(said.length).trim() : said ? "" : text.trim();
+  // A name as written, then as speech gives it without capitals, then as a file states it.
+  const name = (said ? statedName(first) || spokenName(first) : "") || (fromFiles ? fileName(fromFiles) : "");
+  // The person's answer to the Where question wins. Without one, only a place the words state is
+  // proposed: as written first, and as speech gives it where the written rules found none.
   const answer = whereAnswer(draft);
-  const { locations, isGlobal } = answer ? whereFromAnswer(answer) : statedWhere(settled, name);
+  const written = answer ? whereFromAnswer(answer) : statedWhere(settled, name);
+  // "We work in" is read as a place only in the person's own finished words, never in a file's.
+  const own = said && settled.startsWith(said) ? said : "";
+  const { locations, isGlobal } = answer || written.locations.length || written.isGlobal ? written : spokenWhere(settled, name, own);
   const stage = /\b(just starting|starting now|começando agora)\b/iu.test(text)
     ? "seed"
     : /\b(getting going|recently started)\b/iu.test(text)
@@ -105,7 +113,7 @@ export function keywordSuggestion(draft: DeviceDraft, text: string, settled = te
     name: name.slice(0, 200),
     locations,
     isGlobal,
-    description: text.slice(0, 800),
+    description: aboutWords(said, fromFiles, text).slice(0, 800),
     links: [...draft.links],
     stage,
     lenses,
@@ -114,6 +122,50 @@ export function keywordSuggestion(draft: DeviceDraft, text: string, settled = te
     languages,
     confidence: 0.25,
   };
+}
+/** As many of the person's own words as make a description without a file's help. */
+const ABOUT_OWN_WORDS = 8;
+/** A sentence that says what an initiative is or does. */
+const ABOUT_CUE = wholeWords(
+  /we|our|mission|aims?|purpose|works?|helps?|supports?|provides?|brings?|restores?|teach(?:es)?|grows?|trains?|connects?|builds?|runs?|is an?|are an?|somos|nosso|nossa|trabalha|trabalhamos|apoia|nuestro|nuestra|trabajamos|apoya/,
+);
+/**
+ * The part of a file that says what the initiative does: the first sentence of eight words or
+ * more that speaks of it ("we", "our", "helps", "is a"), and the rest of its paragraph. A file
+ * opens with its title, a date or a contents list as often as with a description, so its first
+ * characters are not taken as they come, and the heading after the paragraph is not run into it.
+ * Empty when the file holds no such sentence.
+ */
+export function aboutPassage(text: string): string {
+  // The start of a long file, a paragraph at a time, with a line end inside one read as a space.
+  const paragraphs = text
+    .slice(0, 20_000)
+    .replace(/\r\n?/gu, "\n")
+    .split(/\n[ \t]*\n+/u)
+    .map((paragraph) =>
+      paragraph
+        .replace(/[ \t]*\n[ \t]*/gu, " ")
+        .replace(/[ \t]{2,}/gu, " ")
+        .trim()
+        .split(/(?<=[.!?])[ \t]+/u)
+        .filter(Boolean),
+    );
+  const long = (sentence: string) => countWords(sentence) >= ABOUT_OWN_WORDS && sentence.length <= 600;
+  for (const fits of [(sentence: string) => long(sentence) && ABOUT_CUE.test(sentence), long])
+    for (const sentences of paragraphs) {
+      const start = sentences.findIndex(fits);
+      if (start >= 0) return sentences.slice(start).join(" ");
+    }
+  return "";
+}
+/**
+ * About it is the person's own words when they said enough to describe the initiative. A file
+ * fills it only when they did not, so a description they gave is never mixed with a document's.
+ */
+function aboutWords(said: string, fromFiles: string, all: string): string {
+  if (!fromFiles) return all;
+  if (countWords(said) >= ABOUT_OWN_WORDS) return said;
+  return aboutPassage(fromFiles) || all;
 }
 export async function collectSource(
   draft: Pick<DeviceDraft, "turns" | "composer" | "attachments">,

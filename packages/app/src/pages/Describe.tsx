@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { MAX_FILE_BYTES, revise, type RecordForm } from "../describe/contracts.ts";
+import { flushSync } from "react-dom";
+import { MAX_FILE_BYTES, revise, type FieldKey, type RecordForm } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import {
   FieldsProblem,
@@ -7,13 +8,12 @@ import {
   boxNote,
   changeSaid,
   continueDescribe,
-  detailChips,
   editFields,
   fieldsForm,
   fillFields,
   fillSummary,
+  readingNote,
   saidText,
-  toggleDetail,
 } from "../describe/fill.ts";
 import { keywordExtract } from "../describe/keyword-client.ts";
 import { startSpeech } from "../describe/speech.ts";
@@ -47,11 +47,16 @@ import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 const FIELDS_ID = "describe-fields";
 const PROBLEM_ID = "describe-problem";
 
+/** What to say, shown as the box's hint: the shape the name, the place and the description are read from. */
+const SAY_EXAMPLE = "For example: We are River Keepers, based in Nairobi. We restore the riverbank.";
+
 /**
  * The describe step, on one page (DL-110). Talk it out leads: the person says or types a few
- * sentences in one box, and Weave fills the four fields under it in place, on this device. The
- * fields stay editable, the suggested details are optional chips, and one Continue goes on to
- * needs and offers. Nothing here opens, closes or moves when it is pressed.
+ * sentences in one box, and Weave fills the fields under it in place, on this device: the name,
+ * where they work and what they do. A file added beside the box is read at once for the same
+ * three. The fields stay editable, the link is the person's own to give, and one Continue goes
+ * on to needs and offers: in the Step bar on a wide screen and in the dock on a phone (DL-127).
+ * Nothing here opens, closes or moves when it is pressed.
  */
 export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const { draft, error: storageError, ready, controller, fixture } = useDraft();
@@ -67,7 +72,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const [working, setWorking] = useState(false);
   const [status, setStatus] = useState("");
   const [fileNote, setFileNote] = useState("");
-  const [problem, setProblem] = useState("");
+  // What stopped Continue: about one field, where it is then written, or about the form as a whole.
+  const [problem, setProblem] = useState<{ field?: FieldKey; message: string } | null>(null);
   const task = useRef<AbortController | null>(null);
   const mic = useRef<{ stop(): void; dispose(): void } | null>(null);
   const micTask = useRef<AbortController | null>(null);
@@ -77,14 +83,13 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const linked = import.meta.env.DEV && social?.state.identity ? social.state.project : null;
   const form = fieldsForm(draft);
   const said = saidText(draft);
-  const chips = detailChips(draft);
   useEffect(() => {
     setWorking(view === "building");
     setListening(view === "listening");
     setStatus(
       view === "speech-error" ? "The microphone did not work. Your words are still here, and you can type in the box." : "",
     );
-    setProblem("");
+    setProblem(null);
     return () => {
       task.current?.abort();
       task.current = null;
@@ -97,10 +102,10 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       controller.change((current) => changeSaid(current, saidText(current) || "A change that could not be saved."));
   }, [controller, view, ready, storageError]);
   function changeForm(value: RecordForm) {
-    setProblem("");
+    setProblem(null);
     controller.change((current) => editFields(current, value));
   }
-  /** Structures the words in the box into the four fields and the suggested details, on this device. */
+  /** Structures the words in the box, and any files, into the fields, on this device. */
   async function fill() {
     micTask.current?.abort();
     mic.current?.dispose();
@@ -114,7 +119,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     task.current?.abort();
     task.current = abort;
     setWorking(true);
-    setStatus("");
+    // Reading a long file takes a moment, so the page says what it is doing while it does.
+    setStatus(readingNote(!!saidText(source).trim(), source.attachments.length));
     const started = performance.now();
     try {
       // An example runs the keyword rules only, so it never depends on the browser it is shown in.
@@ -171,7 +177,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   }
   async function talk() {
     setStatus("");
-    setProblem("");
+    setProblem(null);
     const mode = speechMode(speech.state);
     if (!mode) return;
     const base = saidText(controller.getSnapshot().draft);
@@ -244,6 +250,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   function addFiles(input: HTMLInputElement) {
     const selected = [...(input.files ?? [])];
     if (!selected.length) return;
+    let added = false;
     try {
       const attachments = selected.map((file) => {
         if (file.size > MAX_FILE_BYTES) throw new Error();
@@ -251,20 +258,34 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       });
       controller.change((current) => revise(current, { attachments: [...current.attachments, ...attachments] }, true));
       setFileNote(attachments.length === 1 ? "File added. It stays on this device." : "Files added. They stay on this device.");
+      added = true;
     } catch {
-      setFileNote("No files were added. Each file must be 25 MB or smaller and have a name under 256 characters.");
+      const refused = "No files were added. Each file must be 25 MB or smaller and have a name under 256 characters.";
+      setFileNote(refused);
+      setStatus(refused);
     } finally {
       input.value = "";
     }
+    // A file is read as soon as it is added, for the name, the place and the description. A card
+    // linked to a Certified project takes its details from the project, so its files are only kept.
+    if (added && !linked) void fill();
   }
   function next(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
       controller.change(continueDescribe);
     } catch (error) {
-      // The press may come from a phone's dock, a screen away from where the problem is written.
+      // The press comes from the Step bar or a phone's dock, away from where the problem is. One
+      // about a field is written at that field, which takes the focus, so the answer can be typed
+      // at once. Any other is written at the end of the form and brought into view.
+      if (error instanceof FieldsProblem && error.field) {
+        const field = error.field;
+        flushSync(() => setProblem({ field, message: error.message }));
+        event.currentTarget.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+        return;
+      }
       revealProblem(PROBLEM_ID, () =>
-        setProblem(error instanceof FieldsProblem ? error.message : "Check the four fields and try again."),
+        setProblem({ message: error instanceof FieldsProblem ? error.message : "Check the four fields and try again." }),
       );
       return;
     }
@@ -275,8 +296,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const fresh = !said.trim() && !Object.values(form).some((value) => value.trim());
   // The browser's speech service leads only once the person has agreed to it on this device.
   const talkLeads = fresh && (speech.state === "ready" || (speech.state === "browser" && speech.agreed));
-  // The way forward is drawn twice and shown once: in its place on a wide screen, in the dock on a
-  // phone (DL-089). The dock is outside the form, so Continue names the form it sends.
+  // The way forward is drawn twice and shown once: in the Step bar on a wide screen, in the dock on
+  // a phone (DL-089, DL-127). Both are outside the form, so Continue names the form it sends.
   const forward = (from?: "wide") => (
     <button
       className="rc-button"
@@ -289,9 +310,34 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       Continue
     </button>
   );
+  // Add Files opens the file picker directly. Beside the box its file is read at once.
+  const addFilesButton = (
+    <button
+      className="rc-button"
+      data-variant="secondary"
+      type="button"
+      disabled={working || listening}
+      onClick={() => fileInput.current?.click()}
+    >
+      Add Files
+    </button>
+  );
+  const files = (
+    <AttachmentList
+      files={draft.attachments}
+      reads={linked ? undefined : (draft.lastBuild?.files ?? [])}
+      reading={working}
+      readOnBuild={!linked}
+      links={[]}
+      onRemoveFile={(id) =>
+        controller.change((current) => revise(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true))
+      }
+      onRemoveLink={() => {}}
+    />
+  );
   return (
     <Stack>
-      <IntakeStepper current={0} />
+      <IntakeStepper current={0}>{forward("wide")}</IntakeStepper>
       <Heading level={1} size="page">
         Tell Us About Your Initiative
       </Heading>
@@ -322,10 +368,11 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
               <Heading level={2} size="section" id="describe-talk">
                 Say It In Your Own Words
               </Heading>
+              {/* What to say, in the order the fields under the box are filled (DL-127). */}
               <p>
                 {!talksHere(speech.state)
-                  ? "Write a few sentences about what you do and where. Weave fills in the fields below, on this device."
-                  : "Talk for a minute about what you do and where, or type it. Weave fills in the fields below, on this device."}
+                  ? "Write three things: its name, where you work and what you do. Weave fills in the fields below, on this device."
+                  : "Say or type three things: its name, where you work and what you do. Weave fills in the fields below, on this device."}
               </p>
               <TalkItOut
                 speech={speech}
@@ -344,16 +391,21 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                   }
                 }}
                 boxLabel={!talksHere(speech.state) ? "A few sentences about your initiative" : "What you said, or type a few sentences"}
+                hint={SAY_EXAMPLE}
                 actionLabel="Fill In The Fields"
                 workingLabel="Stop Filling In"
                 working={working}
+                // A file added with an empty box is still something to read.
+                actionReady={draft.attachments.length > 0}
+                actions={addFilesButton}
                 onAction={() => void fill()}
                 onCancel={() => task.current?.abort()}
-                status={status || boxNote(said)}
+                status={status || boxNote(said) || (draft.attachments.length ? "" : "Files are optional, up to 25 MB each, and stay on this device.")}
                 lead={talkLeads}
               />
+              {files}
             </section>}
-            <form className="rc-form" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>
+            <form className="rc-form" data-width="full" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>
               <Heading level={2} size="section">
                 Your Initiative
               </Heading>
@@ -363,54 +415,27 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                     From your Certified project, published {fullDate(linked.publishedOn)}. Change these details on Certified.
                   </p>
                   <Facts items={publicFacts(publicCard(draft))} />
+                  <div className="rc-action-bar">
+                    {addFilesButton}
+                    <p className="rc-meta rc-status-slot" role="status">
+                      {fileNote || "Optional, up to 25 MB each. Files stay on this device."}
+                    </p>
+                  </div>
+                  {files}
                 </>
               ) : (
-                <RecordFields value={form} filled={draft.filled} last={chips.length === 0} onChange={changeForm} />
+                <RecordFields
+                  value={form}
+                  filled={draft.filled}
+                  problem={problem?.field ? { field: problem.field, message: problem.message } : null}
+                  onChange={changeForm}
+                />
               )}
-              <fieldset className="rc-field">
-                <legend>Suggested details (optional)</legend>
-                <p className="rc-hint" id="describe-details-hint">
-                  {chips.length
-                    ? "Tap the ones that fit. The rest are left off."
-                    : "They appear here once the fields are filled."}
-                </p>
-                <div className="rc-chip-group" data-reserve="rows" aria-describedby="describe-details-hint">
-                  {chips.map((chip) => (
-                    <label className="rc-chip" data-pencil={chip.kept ? undefined : true} key={`${chip.key}:${chip.value}`}>
-                      <input
-                        className="rc-check"
-                        type="checkbox"
-                        checked={chip.kept}
-                        onChange={() => controller.change((current) => toggleDetail(current, chip))}
-                      />
-                      {chip.label}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-              <div className="rc-action-bar">
-                <button className="rc-button" data-variant="secondary" type="button" onClick={() => fileInput.current?.click()}>
-                  Add Files
-                </button>
-                <p className="rc-meta rc-status-slot" role="status">
-                  {fileNote || "Optional, up to 25 MB each. Files stay on this device and are read when you fill in the fields."}
-                </p>
-              </div>
-              <AttachmentList
-                files={draft.attachments}
-                links={[]}
-                onRemoveFile={(id) =>
-                  controller.change((current) =>
-                    revise(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true),
-                  )
-                }
-                onRemoveLink={() => {}}
-              />
-              {/* A problem is written in a place that is always there, so it pushes nothing down. */}
+              {/* A problem with the form as a whole is written in a place that is always there, so
+                  it pushes nothing down. One about a field is written at the field. */}
               <p className="rc-error rc-status-slot" role="alert" id={PROBLEM_ID}>
-                {problem}
+                {problem && !problem.field ? problem.message : ""}
               </p>
-              <div className="rc-action-bar">{forward("wide")}</div>
               <Dock>{forward()}</Dock>
             </form>
             {/* Add Files opens the file picker directly. The input is not drawn, and it sits outside

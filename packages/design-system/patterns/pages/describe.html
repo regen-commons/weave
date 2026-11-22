@@ -47,7 +47,7 @@
       <div class="rc-page-body">
       <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
       <main class="rc-main" id="main">
-        <ol class="rc-stepper" aria-label="Steps">
+        <ol class="rc-stepper" aria-label="Steps" data-until="wide">
           <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">1</span>Initiative</li>
           <li><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
           <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
@@ -58,7 +58,7 @@
             <div class="rc-panel">
               <section class="rc-stack" aria-labelledby="example-talk">
                 <h2 class="rc-heading" data-size="section" id="example-talk">Say It In Your Own Words</h2>
-                <p>Talk for a minute about what you do and where, or type it. Weave fills in the fields below, on this device.</p>
+                <p>Say or type three things: its name, where you work and what you do. Weave fills in the fields below, on this device.</p>
                 <div class="rc-voice-input">
                   <div class="rc-voice-slot">
                     <button class="rc-button" data-variant="secondary" data-size="lg" type="button" aria-pressed="false">
@@ -70,19 +70,29 @@
                   </div>
                   <div class="rc-field">
                     <label for="example-said">What you said, or type a few sentences</label>
-                    <textarea class="rc-input rc-voice-transcript" id="example-said" rows="4" data-sizing="fixed">
+                    <p class="rc-hint" id="example-said-hint">For example: We are River Keepers, based in Nairobi. We restore the riverbank.</p>
+                    <textarea class="rc-input rc-voice-transcript" id="example-said" aria-describedby="example-said-hint" rows="4" data-sizing="fixed">
 We are Orchard learning circle. We are based in Upper Valley, Brazil. Families restore an orchard and share what they learn about water and soil.</textarea
                     >
                   </div>
                   <div class="rc-action-bar">
                     <button class="rc-button" data-variant="secondary" type="button">Fill In The Fields</button>
+                    <button class="rc-button" data-variant="secondary" type="button">Add Files</button>
                     <p class="rc-meta rc-status-slot" data-lines="2" role="status">
-                      Filled 3 fields and suggested 3 details. Check them and change anything.
+                      Filled Name, Where you work and About it. Check and change anything.
                     </p>
                   </div>
                 </div>
+                <ul class="rc-attachment-list">
+                  <li class="rc-attachment">
+                    <div>
+                      <strong>field-notes.txt</strong>
+                      <p class="rc-meta">1.2 KB, read on this device</p>
+                    </div>
+                  </li>
+                </ul>
               </section>
-              <form class="rc-form" action="#fields">
+              <form class="rc-form" data-width="full" action="#fields">
                 <h2 class="rc-heading" data-size="section">Your Initiative</h2>
                 <div class="rc-field">
                   <label for="example-name">Name</label>
@@ -106,31 +116,9 @@ Families restore an orchard and share what they learn about water and soil.</tex
                   <p class="rc-hint">Optional.</p>
                   <input class="rc-input" id="example-link" type="url" />
                 </div>
-                <fieldset class="rc-field">
-                  <legend>Suggested details (optional)</legend>
-                  <p class="rc-hint">Tap the ones that fit. The rest are left off.</p>
-                  <div class="rc-chip-group" data-reserve="rows">
-                    <label class="rc-chip" data-pencil><input class="rc-check" type="checkbox" />Getting going</label>
-                    <label class="rc-chip" data-pencil><input class="rc-check" type="checkbox" />Place-based</label>
-                    <label class="rc-chip" data-pencil><input class="rc-check" type="checkbox" />Families</label>
-                  </div>
-                </fieldset>
-                <div class="rc-action-bar">
-                  <button class="rc-button" data-variant="secondary" type="button">Add Files</button>
-                  <p class="rc-meta rc-status-slot" role="status">Optional, up to 25 MB each. Files stay on this device.</p>
-                </div>
-                <ul class="rc-attachment-list">
-                  <li class="rc-attachment">
-                    <div>
-                      <strong>field-notes.txt</strong>
-                      <p class="rc-meta">Text file read on this device</p>
-                    </div>
-                  </li>
-                </ul>
                 <p class="rc-error rc-status-slot" role="alert"></p>
                 <div class="rc-action-bar">
-                  <a class="rc-button" data-variant="primary" data-from="wide" href="needs.html">Continue</a
-                  ><button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-cloud">
+                  <button class="rc-button" data-variant="quiet" type="button" data-open-dialog="example-cloud">
                     Cloud consent example
                   </button>
                 </div>
@@ -151,6 +139,16 @@ Families restore an orchard and share what they learn about water and soil.</tex
       </main>
       </div>
       <div class="rc-dock"><a class="rc-button" data-variant="primary" href="needs.html">Continue</a></div>
+      <div class="rc-step-bar">
+        <ol class="rc-stepper" aria-label="Steps">
+          <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">1</span>Initiative</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
+          <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
+        </ol>
+        <div class="rc-action-bar">
+          <a class="rc-button" data-variant="primary" data-from="wide" href="needs.html">Continue</a>
+        </div>
+      </div>
       <footer class="rc-footer">
         <div class="rc-footer-grid">
           <section data-repeats="tabs">

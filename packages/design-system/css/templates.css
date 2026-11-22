@@ -16,6 +16,10 @@
 @media (width < 56.25rem) {
   :root:has(.rc-dock:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
 }
+/* On a wide screen a step's bar sticks under the app bar, so jumps and focus stop clear of both (DL-127). */
+@media (min-width: 56.25rem) {
+  :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+}
 
 .rc-page:has(> .rc-site-banner) {
   grid-template-rows: auto auto 1fr auto auto;
@@ -35,6 +39,20 @@
 /* The dock's height on a phone: a control, the bar's padding and its top edge, as the app bar is.
    The page keeps the same room for it as for the tab bar it stands in for (DL-089). */
 .rc-page { --dock-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
+/* The step bar's height on a wide screen where a step fills it, and nothing anywhere else: a
+   control, the bar's padding and its edge, as the app bar is. Whatever sticks under the two bars,
+   or fills the window below them, adds it to the app bar's height (DL-127). */
+.rc-page { --step-bar-height: 0rem; }
+@media (min-width: 56.25rem) {
+  .rc-page:has(> .rc-step-bar:not(:empty)) {
+    --step-bar-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin));
+    grid-template-rows: auto auto 1fr auto auto;
+  }
+  .rc-page:has(> .rc-site-banner):has(> .rc-step-bar:not(:empty)) { grid-template-rows: auto auto auto 1fr auto auto; }
+  /* The bar comes after the page body in the markup and is drawn in the row under the app bar. */
+  .rc-page > .rc-step-bar { grid-row: 2; }
+  .rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }
+}
 @media (width < 56.25rem) {
   .rc-page:has(> .rc-bottom-nav) { padding-block-end: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); }
   .rc-page:has(> .rc-dock:not(:empty)) { padding-block-end: calc(var(--dock-height) + env(safe-area-inset-bottom)); }
@@ -57,7 +75,7 @@
   isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height));
+  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--step-bar-height));
 }
 
 /* One line of words in a bar of a known height, which the page body reads (--site-banner-height). */
@@ -150,15 +168,16 @@
   }
   .rc-step-layout > * { grid-column: 1; }
   .rc-step-aside[data-from="wide"] { display: grid; }
-  /* The record beside the work stays whole under the app bar while the page scrolls. One taller
+  /* The record beside the work stays whole under the app bar, and under a step's bar where there
+     is one, while the page scrolls. One taller
      than the window scrolls inside itself, so its last row is always in reach, and the wheel moves
      the page again once the panel has nothing left to scroll. */
   .rc-step-layout > .rc-step-aside {
     position: sticky;
-    inset-block-start: calc(var(--app-header-height) + var(--space-5));
+    inset-block-start: calc(var(--app-header-height) + var(--step-bar-height) + var(--space-5));
     grid-column: 2;
     grid-row: 1 / span 6;
-    max-block-size: calc(100dvh - var(--app-header-height) - 2 * var(--space-5));
+    max-block-size: calc(100dvh - var(--app-header-height) - var(--step-bar-height) - 2 * var(--space-5));
     overflow-y: auto;
   }
   /* Beside one working column the record takes that column's row alone, so no empty rows follow. */
