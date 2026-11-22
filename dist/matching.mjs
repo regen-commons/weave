@@ -30,9 +30,15 @@ const STOP = new Set(
     " ",
   ),
 );
+// Related forms become one term before matching, on both the project and the program side.
+const TERM_FAMILIES = {
+  art: "arts", artistic: "arts", cultural: "culture", cultures: "culture",
+  ecosystems: "ecosystem", restoring: "restoration", restore: "restoration",
+  educational: "education", forests: "forest", farmers: "farmer",
+};
 export const terms = (value) => [
   ...new Set(
-    (fold(value).match(/[a-z0-9]{3,}/g) || []).filter((t) => !STOP.has(t)),
+    (fold(value).match(/[a-z0-9]{3,}/g) || []).filter((t) => !STOP.has(t)).map((t) => TERM_FAMILIES[t] || t),
   ),
 ];
 // One document per named program; overview-only records retain a fallback document.
@@ -59,8 +65,19 @@ export function corpusDocuments(funds) {
     }));
   });
 }
+// Keyword evidence comes from what a program funds and whom it serves. Program names
+// ("First Small Grant", "Pilot grants") carry rare administrative words that would
+// otherwise decide the order. The embedding text in corpusDocuments keeps the name.
+function keywordText(fund, program) {
+  return program ? programFocus(fund, program).join(". ") : fundText(fund);
+}
 export function createLexicalIndex(funds) {
-  const documents = corpusDocuments(funds);
+  const documents = funds.flatMap((fund) => {
+    const programs = fund.enrichment?.programs || [];
+    return (programs.length ? programs : [null]).map((program) => ({
+      id: documentId(fund, program), text: keywordText(fund, program),
+    }));
+  });
   const words = documents.map((d) => terms(d.text));
   const counts = new Map();
   for (const doc of words)
@@ -91,11 +108,13 @@ const TERM_FIT_ANCHORS = [0, 30, 50, 65, 75, 80, 85];
 export const THEMATIC_FIT_RUBRIC = {
   version: THEMATIC_SCORE_VERSION, semanticAnchors: SEMANTIC_FIT_ANCHORS, sharedTermGrades: TERM_FIT_ANCHORS,
 };
-const TERM_FAMILIES = {
-  art: "arts", artistic: "arts", cultural: "culture", cultures: "culture",
-  ecosystems: "ecosystem", restoring: "restoration", restore: "restoration",
-  educational: "education", forests: "forest", farmers: "farmer",
-};
+// Distinct specific shared terms; terms() has already joined related word forms.
+function evidenceTermsOf(lexical) {
+  return [...new Set((lexical.allShared || lexical.shared).filter((word) =>
+    /^[a-z]/.test(word) && !BROAD_PURPOSE_WORDS.has(word) && !["public", "general", "challenge", "challenges", "round", "cycle", "annual", "initiative"].includes(word)
+  ))];
+}
+const keywordGrade = (evidenceTerms) => TERM_FIT_ANCHORS[Math.min(evidenceTerms.length, TERM_FIT_ANCHORS.length - 1)];
 function semanticGrade(cosine) {
   if (cosine == null) return null;
   if (cosine <= SEMANTIC_FIT_ANCHORS[0][0]) return 0;
@@ -106,11 +125,9 @@ function semanticGrade(cosine) {
   return 100;
 }
 export function thematicFit(match, lexical) {
-  const evidenceTerms = [...new Set((lexical.allShared || lexical.shared).filter((word) =>
-    /^[a-z]/.test(word) && !BROAD_PURPOSE_WORDS.has(word) && !["public", "general", "challenge", "challenges", "round", "cycle", "annual", "initiative"].includes(word)
-  ).map((word) => TERM_FAMILIES[word] || word))];
+  const evidenceTerms = evidenceTermsOf(lexical);
   const semantic = semanticGrade(match.cosine);
-  const keywords = TERM_FIT_ANCHORS[Math.min(evidenceTerms.length, TERM_FIT_ANCHORS.length - 1)];
+  const keywords = keywordGrade(evidenceTerms);
   const assessed = match.focusAvailable && match.specificPurposeAvailable && !match.resourceOnly;
   const uncapped = Math.round(Math.max(keywords, semantic ?? 0));
   const score = assessed ? Math.min(uncapped, match.specificPurposeEvidence ? 100 : 59) : null;
@@ -363,7 +380,7 @@ function scoreMatch(match, project, today) {
   if (geographic.needsConfirmation)
     limit(24, "Geographic scope or an eligible local component needs confirmation before shortlisting.");
   if (geographic.countryMismatch)
-    limit(24, "Documented country mentions do not overlap your work. This lowers priority without asserting ineligibility.");
+    limit(19, "Documented country mentions do not overlap your work. This lowers priority without asserting ineligibility.");
   if (!program) limit(9, "No verified funding offer or researched program terms. Keep this overview for further research, below documented program candidates.");
   if (["unverified", "unconfirmed", "conflicting", "directory", "mismatch"].includes(access)) limit(29, "Current application access is not verified.");
   if (access === "closed") limit(19, "This application cycle is closed; retain it for a future-cycle watchlist.");
@@ -415,8 +432,13 @@ export function rankFunds(funds, project, index, rules = [], semantic = null, no
       // Cosine has a broad positive background. A fixed transparent scale removes that
       // background; it is a heuristic relevance scale, never a calibrated probability.
       const semanticFit = useSemantic ? Math.max(0, Math.min(1, (cosine - 0.2) / 0.65)) : null;
+      // Without a semantic score, the share-based keyword score stays below the 0.25
+      // weak-topic floor for almost every program, so access alone set the order.
+      // Keyword mode also reads the specific-term grade the fit label shows, halved as
+      // keywords are half the blended score: two specific shared terms reach 0.25.
       const fitScore = !focusAvailable ? 0 : useSemantic
-        ? 0.5 * semanticFit + 0.5 * lexical.score : lexical.score;
+        ? 0.5 * semanticFit + 0.5 * lexical.score
+        : Math.max(lexical.score, keywordGrade(evidenceTermsOf(lexical)) / 200);
       const specificShared = lexical.shared.filter((word) => !BROAD_PURPOSE_WORDS.has(word));
       const view = programFund(fund, program);
       const access = effectiveAccess(view, now);

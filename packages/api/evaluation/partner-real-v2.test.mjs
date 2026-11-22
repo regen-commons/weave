@@ -1,0 +1,146 @@
+// Checks for the partner-real-v2 tooling on synthetic data. The holdout files themselves stay private.
+import assert from "node:assert/strict";
+import { mkdtemp, readdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { test } from "node:test";
+import { assemble, buildCorpus, buildPool, buildSlots, calibrationPairs, DOMAINS, savePages, seedOrder } from "../scripts/partner-real-v2.mjs";
+import { loadReal } from "../scripts/matching-real.mjs";
+
+const project = (id, theme, v1Id = null, passage = `We run ${theme} work with our neighbours, share tools and skills, and keep careful records of each season.`) =>
+  ({ id, uri: `at://did:plc:x/org.hypercerts.collection/${id}`, name: `Project ${id}`, passages: [passage], theme, v1Id, language: "en" });
+const corpus = { projects: [
+  ...["a1", "a2", "a3"].map(id => project(id, "art", `rp-${id}`)),
+  ...Array.from({ length: 30 }, (_, i) => project(`s${i}`, "software")),
+  ...Array.from({ length: 30 }, (_, i) => project(`r${i}`, "research", i < 5 ? `rp-r${i}` : null)),
+  ...Array.from({ length: 30 }, (_, i) => project(`p${i}`, "place")),
+  project("solo", "place", null, "We restore the Xylocarpa marsh and its tidal creeks."),
+] };
+
+test("slots meet every quota the plan sets", () => {
+  const { slots } = buildSlots(corpus);
+  assert.equal(slots.length, 160);
+  assert.equal(new Set(slots.map(slot => slot.id)).size, 160);
+  const count = (list, key) => Object.fromEntries(Object.entries(Object.groupBy(list, key)).map(([k, v]) => [k, v.length]));
+  for (const domain of DOMAINS) {
+    const mine = slots.filter(slot => slot.domain === domain);
+    assert.deepEqual(count(mine, slot => slot.direction), { need: 20, offer: 20 }, domain);
+    assert.deepEqual(count(mine, slot => slot.language), { en: 25, pt: 10, es: 5 }, domain);
+    assert.deepEqual(count(mine, slot => slot.kind), { seeded: 21, "hard-negative": 4, blind: 10, sparse: 5 }, domain);
+    for (const slot of mine) assert.equal(Boolean(slot.seed), slot.kind === "seeded" || slot.kind === "hard-negative", slot.id);
+  }
+  assert.deepEqual(count(slots, slot => slot.language), { en: 100, pt: 40, es: 20 });
+  assert.deepEqual(count(slots, slot => slot.kind), { seeded: 84, "hard-negative": 16, blind: 40, sparse: 20 });
+  // Seeds come from the slot's own theme.
+  const theme = new Map(corpus.projects.map(p => [p.id, p.theme]));
+  for (const slot of slots.filter(slot => slot.seed)) assert.equal(theme.get(slot.seed), slot.domain, slot.id);
+  // The same corpus gives the same slots.
+  assert.deepEqual(buildSlots(corpus).slots, slots);
+});
+
+test("seeds take projects new to v2 first, and repeat only when a theme has too few", () => {
+  const research = seedOrder(corpus, "research");
+  assert.ok(research.slice(0, 25).every(p => !p.v1Id));
+  assert.ok(research.slice(25).every(p => p.v1Id));
+  const art = buildSlots(corpus).slots.filter(slot => slot.domain === "art" && slot.seed);
+  assert.equal(art.length, 25);
+  assert.deepEqual(new Set(art.map(slot => slot.seed)), new Set(["a1", "a2", "a3"]));
+});
+
+test("a project with too little of its own text, or only the form prompt, is never a seed", () => {
+  const filler = "We grow food with our neighbours and teach children how to compost kitchen scraps in the school garden.";
+  const thin = { ...corpus, projects: [project("short", "place", null, "Local stewards are the best people."),
+    project("form", "place", null, "Start writing your story, and our AI assistant will help with the following: Spelling & grammar plus more."),
+    project("good", "place", null, filler)] };
+  assert.equal(filler.length >= 100, true);
+  assert.deepEqual(seedOrder(thin, "place").map(p => p.id), ["good"]);
+});
+
+test("the corpus keeps v1's rules, drops nothing else and marks v1's projects", () => {
+  const card = (name, passage, n) => ({ uri: `at://did:plc:y/org.hypercerts.collection/${n}`, name, passages: [passage],
+    sharedAt: "2026-01-01T00:00:00Z", checkedAt: "2026-11-21T00:00:00Z", sourceUrl: "https://api.hypercerts.dev/x" });
+  const cards = [card("Soil school", "We teach composting to farmers in the valley.", "k1"), card("QA Test Project A", "QA story", "k2"),
+    card("Mural", "Lorem ipsum dolor sit amet.", "k3"), card("Call us", "Write to team@example.org for details.", "k4"),
+    card("Old friend", "A community radio station for fishers.", "k5")];
+  const v1 = { projects: [{ id: "rp-007", uri: cards[4].uri }] };
+  const built = buildCorpus(cards, { collectedAt: "2026-11-21T10:00:00Z", index: { status: "bounded", checkedAt: null }, v1 });
+  assert.deepEqual(built.exclusions, { qa_or_test: 1, placeholder_text: 1, contact_details: 1 });
+  assert.deepEqual(built.projects.map(p => p.name).sort(), ["Old friend", "Soil school"]);
+  assert.equal(built.projects.find(p => p.name === "Old friend").v1Id, "rp-007");
+  assert.equal(built.projects.find(p => p.name === "Soil school").v1Id, null);
+  assert.deepEqual(built.projects.map(p => p.id), ["rp2-0001", "rp2-0002"]);
+});
+
+test("assembly refuses missing, duplicate, unknown and malformed answers, and flags reused seed words", () => {
+  const slotFile = { slots: [
+    { id: "q1", domain: "place", direction: "need", language: "en", kind: "seeded", seed: "solo" },
+    { id: "q2", domain: "place", direction: "offer", language: "en", kind: "sparse", seed: null },
+    { id: "q3", domain: "place", direction: "need", language: "en", kind: "blind", seed: null },
+  ] };
+  const good = [
+    { id: "q1", title: "Help bringing a coastal wetland back", description: "We need people who know how to revive wetlands along the shore." },
+    { id: "q2", title: "Seed library", description: null },
+    { id: "q3", title: "Volunteers for tree planting", description: "We are planting a hedgerow this winter and need hands." },
+  ];
+  const ok = assemble(corpus, slotFile, good);
+  assert.deepEqual(ok.problems, []);
+  assert.equal(ok.queries.queries.length, 3);
+  assert.deepEqual(ok.flags, []);
+  const reused = assemble(corpus, slotFile, [{ ...good[0], description: "We need help in the Xylocarpa wetlands." }, good[1], good[2]]);
+  assert.deepEqual(reused.flags, [{ id: "q1", flag: "reuses_seed_words", words: ["xylocarpa"] }]);
+  const bad = assemble(corpus, slotFile, [good[0], good[0], { id: "q2", title: "A much longer title than sparse allows", description: null },
+    { id: "q9", title: "x", description: "y" }]);
+  assert.deepEqual(bad.problems.sort(), ["duplicate_answer:q1", "missing_answer:q3", "not_sparse:q2", "unknown_slot:q9"]);
+  // A revision replaces an existing answer once; it cannot add a slot or revise twice.
+  const fixed = assemble(corpus, slotFile, [good[0], { id: "q2", title: "A much longer title than sparse allows", description: null }, good[2]],
+    [{ id: "q2", title: "Seed library", description: null }]);
+  assert.deepEqual([fixed.problems, fixed.counts.revised, fixed.queries.queries[1].title], [[], 1, "Seed library"]);
+  const twice = assemble(corpus, slotFile, good, [{ id: "q2", title: "Seeds", description: null }, { id: "q2", title: "Seeds", description: null },
+    { id: "q7", title: "Seeds", description: null }]);
+  assert.deepEqual(twice.problems.sort(), ["bad_revision:q2", "bad_revision:q7"]);
+});
+
+test("pages are saved until the list ends, and a list that changes while reading is refused", async () => {
+  const page = (uris, next, total) => ({ index: { status: "bounded", checkedAt: null, total }, next,
+    projects: uris.map(u => ({ uri: `at://did:plc:car2bhnsobazchx5qybz422e/org.hypercerts.collection/3modh4ydw622${u}`, name: u, passages: ["Some words."],
+      sharedAt: "2026-01-01T00:00:00Z", checkedAt: "2026-11-21T00:00:00Z", sourceUrl: "https://api.hypercerts.dev/x" })) });
+  const reply = body => ({ ok: true, json: async () => body });
+  const dir = await mkdtemp(join(tmpdir(), "partner-real-v2-"));
+  const served = [page(["a", "b"], "c1", 3), page(["c"], null, 3)];
+  assert.deepEqual(await savePages(dir, async () => reply(served.shift())), { pages: 2, total: 3 });
+  assert.deepEqual((await readdir(dir)).sort(), ["p001.json", "p002.json"]);
+  const changing = [page(["a", "b"], "c1", 3), page(["c"], null, 4)];
+  await assert.rejects(savePages(await mkdtemp(join(tmpdir(), "partner-real-v2-")), async () => reply(changing.shift())), /listing_changed_while_reading/);
+});
+
+test("the pool merges every engine's suggestions, the seed and two controls, and packets show none of it", () => {
+  const queryFile = { queries: [
+    { id: "q1", domain: "place", direction: "need", language: "en", title: "Hands for planting", description: "We plant hedges in winter." },
+    { id: "q2", domain: "art", direction: "offer", language: "pt", title: "Oficinas", description: null },
+  ] };
+  const slotFile = { slots: [{ id: "q1", kind: "seeded", seed: "p5" }, { id: "q2", kind: "sparse", seed: null }] };
+  const runs = { engines: { current: { q1: [{ id: "p1" }, { id: "p2" }], q2: [] }, model: { q1: [{ id: "p2" }, { id: "p3" }], q2: [{ id: "a1" }] } } };
+  let n = 0;
+  const { packets, key } = buildPool(corpus, queryFile, slotFile, runs, () => `pair-${String(++n).padStart(3, "0")}`);
+  const sources = id => Object.fromEntries(key.filter(row => row.queryId === id).map(row => [row.projectId, row.from]));
+  const q1 = sources("q1");
+  assert.deepEqual([q1.p1, q1.p2, q1.p3, q1.p5], [["current"], ["current", "model"], ["model"], ["seed"]]);
+  assert.equal(Object.values(q1).filter(from => from[0] === "control").length, 2);
+  assert.equal(Object.values(sources("q2")).filter(from => from[0] === "control").length, 2);
+  assert.deepEqual([packets.place.length, packets.art.length, packets.software.length], [6, 3, 0]);
+  assert.deepEqual(new Set([...packets.place, ...packets.art].map(row => row.pairId)), new Set(key.map(row => row.pairId)));
+  for (const row of [...packets.place, ...packets.art]) assert.deepEqual(Object.keys(row), ["pairId", "queryNumber", "direction",
+    "queryTitle", "queryDescription", "projectName", "projectPassages", "judgment", "rationale", "reviewer"]);
+  // Controls follow a salted order, so a rebuild draws the same ones.
+  const again = buildPool(corpus, queryFile, slotFile, runs);
+  assert.deepEqual(new Set(again.key.map(row => `${row.queryId}:${row.projectId}`)), new Set(key.map(row => `${row.queryId}:${row.projectId}`)));
+  assert.throws(() => buildPool(corpus, queryFile, slotFile, { engines: { current: { q1: [] } } }), /missing_run:current:q2/);
+});
+
+test("calibration draws 8 relevant, 8 irrelevant and 4 unresolved v1 pairs, in a fixed order", async () => {
+  const { packet, key } = calibrationPairs(await loadReal());
+  const count = Object.fromEntries(Object.entries(Object.groupBy(key, row => row.agentLabel)).map(([k, v]) => [k, v.length]));
+  assert.deepEqual(count, { relevant: 8, irrelevant: 8, unresolved: 4 });
+  assert.deepEqual(packet.map(row => row.pairId), key.map(row => row.pairId));
+  assert.deepEqual(calibrationPairs(await loadReal()).key, key);
+});

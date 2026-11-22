@@ -711,6 +711,24 @@
       </div>
     </article>
 
+    <article class="lib-pattern" id="step-bar">
+      <h3>Step bar</h3>
+      <p class="lib-note">On a wide screen a step's map and its way forward share one bar under the app bar, so both stay in view while the page scrolls. It comes after the page body in the markup, so the keyboard reaches the way forward after the step's fields, and the page's grid draws it above them. A phone never draws it: its steps are at the top of the page and its way forward is in the Dock. Widen this window to see it.</p>
+      <div class="lib-frame" data-example>
+        <div class="rc-step-bar">
+          <ol class="rc-stepper" aria-label="Steps">
+            <li data-state="done"><a href="#step-bar"><span class="rc-stepper-mark" aria-hidden="true">1</span>Initiative</a></li>
+            <li aria-current="step"><span class="rc-stepper-mark" aria-hidden="true">2</span>Needs and offers</li>
+            <li><span class="rc-stepper-mark" aria-hidden="true">3</span>Funding and partners</li>
+          </ol>
+          <div class="rc-action-bar">
+            <a class="rc-button" data-variant="quiet" href="#step-bar">Back</a>
+            <button class="rc-button" data-variant="primary" type="button">Continue</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
     <article class="lib-pattern" id="footer">
       <h3>Footer</h3>
       <p class="lib-note">Three short lists on every page: the product's pages, data and privacy, and Regen Commons. Its link labels use title case, the one place that does. Data and privacy links are buttons that open a sheet in place. A page leaves out the link to itself.</p>

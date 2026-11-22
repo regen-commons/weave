@@ -5,6 +5,21 @@ which next steps appear first. Missing eligibility facts, funding preferences,
 application access and offer verification affect research priority and readiness;
 they do not change the thematic grade.
 
+## Keyword evidence
+
+Keyword matching compares the project's description and tags with what a program
+funds and whom it serves. Program names are left out, so words like "first",
+"pilot" or "seed" in a name are not topic evidence; the on-device model still
+reads the name. Related word forms such as "art" and "arts" count as one term.
+
+Without the model, topic strength is the larger of the shared-word score and half
+the specific-term grade the fit label shows. Two distinct specific shared terms
+clear the weak-topic limit of 24, and one does not. A program whose documented
+countries do not include the project's work countries is limited to 19, below
+that weak-topic limit, so open access cannot carry it above programs that work
+anywhere. [`tests/keyword-ranking.test.mjs`](../tests/keyword-ranking.test.mjs)
+covers these rules.
+
 ## Unverified funding offers
 
 An official organization overview is not evidence of an applicable funding
