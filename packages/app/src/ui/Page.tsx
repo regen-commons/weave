@@ -10,6 +10,7 @@ import { Breadcrumbs } from "./Breadcrumbs.tsx";
 import { Footer } from "./Footer.tsx";
 import { InformationDialog, type Information } from "./InformationDialog.tsx";
 import { Mycelium } from "./Mycelium.tsx";
+import { SessionEndedNotice, useSessionEndedNotice } from "../account/SessionEndedNotice.tsx";
 export function Page({
   pathname,
   form,
@@ -38,6 +39,7 @@ export function Page({
 }) {
   const [information, setInformation] = useState<Information | null>(null);
   const [dock, setDock] = useState<HTMLElement | null>(null);
+  const ended = useSessionEndedNotice(pathname);
   return (
     <InformationContext.Provider value={setInformation}>
       <DockContext.Provider value={dock}>
@@ -47,12 +49,12 @@ export function Page({
           Skip to content
         </a>
         <p className="rc-site-banner">Still in development will be live soon</p>
-        <AppHeader pathname={pathname} sections={!form} status={status} back={back} />
+        <AppHeader pathname={pathname} sections={!form} status={status} back={back} ended={ended} />
         {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
             network grows once. */}
         <div className="rc-page-body">
           <Mycelium extent="page" home={matchRoute(pathname)?.name === "home"} />
-          <Main key={pathname} pathname={pathname}>
+          <Main key={pathname} pathname={pathname} notice={<SessionEndedNotice text={ended} />}>
             {children}
           </Main>
         </div>
@@ -77,13 +79,14 @@ export function Page({
 }
 
 /** The page's content. A page reached with Back or Forward shows as the person left it, without arriving again. */
-function Main({ pathname, children }: { pathname: string; children: ReactNode }) {
+function Main({ pathname, notice, children }: { pathname: string; notice: ReactNode; children: ReactNode }) {
   const [returned] = useState(wasReturn);
   const route = matchRoute(pathname);
   const trail = breadcrumbTrail(route);
   return (
     <main className="rc-main" id="main" tabIndex={-1} data-move={returned ? "return" : undefined}>
       {route && trail.length > 0 && <Breadcrumbs trail={trail} current={navLabel(route.name)} />}
+      {notice}
       {children}
     </main>
   );

@@ -49,7 +49,7 @@ export function LiveSocialProvider({ children }: { children: ReactNode }) {
   const { controller } = useDraft();
   const service = useMemo(() => createLiveSocialService({
     account: account.state ?? { available: false, fixture: false, user: null, items: [] }, controller,
-    refreshAccount: account.refresh, signedOut: account.clear,
+    refreshAccount: account.refresh, confirmAccount: account.confirm, signedOut: account.signedOut,
     storage: (() => { try { return window.sessionStorage; } catch { return undefined; } })(),
     choices: choiceStorage(),
     openWorkspace: id => navigate(teamWorkspacePath(id)),

@@ -245,3 +245,71 @@ test("a late cloud Save receipt cannot restore the previous account binding or d
   assert.equal(controller.getSnapshot().draft.account.pending?.requestId, command!.requestId);
   assert.deepEqual(await controller.backups(), []);
 });
+
+function clock() {
+  const timers = new Map<number, { run: () => void; milliseconds: number }>();
+  let next = 0;
+  return {
+    timers: { set: (run: () => void, milliseconds: number) => { timers.set(++next, { run, milliseconds }); return next; },
+      clear: (handle: unknown) => { timers.delete(handle as number); } },
+    pending: () => [...timers.values()].map(timer => timer.milliseconds),
+    fire: () => { const [first] = [...timers.entries()]; assert.ok(first, "a check is scheduled"); timers.delete(first[0]); first[1].run(); },
+  };
+}
+
+test("a connected tab checks again when the server asks, so the session renews before it lapses", async () => {
+  const bus = tabs(), time = clock();
+  let calls = 0;
+  const session = new AccountSession(async () => { calls++; return { ...response(owner), renewIn: 3330 }; }, time.timers, () => 5000);
+  assert.equal((await session.refresh()).renewIn, 3330);
+  assert.deepEqual(time.pending(), [], "a session that is not connected to the page never schedules");
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  assert.deepEqual(time.pending(), [3335000], "the next check comes at the server's moment plus a spread between tabs");
+  time.fire();
+  await settled();
+  assert.equal(calls, 3);
+  assert.deepEqual(time.pending(), [3335000], "each successful check schedules exactly one more");
+  close();
+  assert.deepEqual(time.pending(), [], "closing the page connection cancels the check");
+});
+
+test("a scheduled check that finds the session ended signs every tab out; an offline one tries again", async () => {
+  const bus = tabs(), time = clock();
+  const replies: (() => Record<string, unknown>)[] = [
+    () => ({ ...response(owner), renewIn: 600 }),
+    () => { throw new AccountFailure("connection_failed"); },
+    () => { throw new AccountFailure("sign_in_required"); },
+  ];
+  const session = new AccountSession(async () => replies.shift()!(), time.timers, () => 0);
+  session.connect(bus.connect);
+  await session.refresh();
+  time.fire();
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, owner, "being offline does not end the session");
+  assert.deepEqual(time.pending(), [60000]);
+  time.fire();
+  await settled();
+  assert.equal(session.getSnapshot()?.user, null);
+  assert.deepEqual(bus.messages, ["ended"], "other tabs hear that the session ended");
+  assert.deepEqual(time.pending(), []);
+});
+
+test("signed-out and cleared sessions schedule nothing, and malformed hints are ignored", async () => {
+  const bus = tabs(), time = clock();
+  let reply: Record<string, unknown> = { ...response(null), renewIn: 600 };
+  const session = new AccountSession(async () => reply, time.timers, () => 0);
+  session.connect(bus.connect);
+  await session.refresh();
+  assert.deepEqual(time.pending(), []);
+  for (const renewIn of [10, 3601, 1.5, "600", null]) {
+    reply = { ...response(owner), renewIn };
+    assert.equal((await session.refresh()).renewIn, undefined, String(renewIn));
+    assert.deepEqual(time.pending(), []);
+  }
+  reply = { ...response(owner), renewIn: 600 };
+  await session.refresh();
+  assert.deepEqual(time.pending(), [600000]);
+  session.clear();
+  assert.deepEqual(time.pending(), [], "signing out cancels the check");
+});

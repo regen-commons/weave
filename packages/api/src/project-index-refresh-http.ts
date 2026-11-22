@@ -5,7 +5,8 @@ import { createHypercertsSource } from "./project-index-source.ts";
 
 /**
  * The refresh starts no new work after four minutes, inside the 300-second limit of a Hobby function.
- * The traversal gets half of it; measured on 15 November it took 18 seconds.
+ * The traversal, the account lookups and the work scope reads share the first half: on 15 November the
+ * first two took 18 and 14 seconds, and on 21 November the work scope reads took about 40.
  */
 const RUN_BUDGET_MS = 240_000;
 const TRAVERSAL_BUDGET_MS = 120_000;

@@ -15,6 +15,43 @@ user's existing Brave profile. Chromium 156 was reported by the user; the versio
 page was blocked, so the exact version was not independently verified. These evidence changes alter no Auth, deployment or catalog settings. The approved production cloud QA cleanup is
 recorded below. Public evidence uses account A and account B only.
 
+## Index refresh after #107 and #114, 21 November
+
+The first daily refresh with [#107](https://github.com/regen-commons/weave/pull/107)
+(leave out self-declared QA and test projects) and
+[#114](https://github.com/regen-commons/weave/pull/114) (publisher, place and kind of
+group on cards) ran and published at 04:19 UTC on 21 November. Both reached `main` in
+[#115](https://github.com/regen-commons/weave/pull/115) on 20 November. Production
+served `4e91273`, from release PR [#121](https://github.com/regen-commons/weave/pull/121),
+which merged at 03:48 UTC, before the refresh. Neither release has its own section in
+this record. The check ran at 07:10 UTC on 21 November (11:10 p.m. on 20 November,
+Pacific), reading `/api/health` and `/api/public-projects` and rendering Initiatives.
+
+| Check | Result |
+|---|---|
+| Health | Status ok, commit `4e91273`. |
+| Refresh | `index.checkedAt` was `2026-11-21T04:19:03.916000Z` and `index.status` was `bounded`. |
+| Total | 993, down from 1,007 on 20 November. Projects shared since then count too, so 14 is the net change, not the number left out. The shrink guard refuses a run only when it would withdraw more than half of the shown projects (`suspicious_shrink` in `packages/api/src/project-index-all-public.ts`); this run published. |
+| QA entries | `qa` returned 0 projects, and so did `qa test`, `wizard`, `v0.1` and `tutorial`. That covers the ten listed under `qa` on 20 November, including QA Test Project C, which appeared after the rule was written, and "Ma Earth Tutorial Demo (test)". |
+| Test entries | No project is named "Test project" or "Testing". `test project` returned 14 real projects whose text holds both words, and `testing` returned 4 real projects. |
+| Real projects with testing words | "GainForest Expedition" still shows under `testing`, `test` and its own name. "breadcrumbs", whose description says "attested", still shows under `test`. |
+| Card facts | Of the newest 100 cards, 96 carry `publisher` and 10 carry `place`. The 19 November sample was a different 100, with 96 and 17. `index.organizationTypes` lists ten kinds, and filtering on `nonprofit` returned 663 projects. |
+| Rendered check | Class `production`, the Claude desktop app's built-in Chromium 156 browser, signed out. At 1280 px, light and dark, cards show the publisher and, where valid, a pin with the place, such as Treecolor Alliance in Ipetí, Panamá Province, Panama. By keyboard, Tab from search reached Kind of group, Enter opened it with focus on Any kind, Arrow Down chose Nonprofit and the page said "663 projects match your filter.", and Enter on Done closed it with focus back on "Kind of group (1)". At 360 px with touch emulated, light and dark, Tab from search reached Filters, Enter opened the sheet with focus on Close, Tab reached Sort and Kind of group, Arrow Down chose Nonprofit and the button read Show 663 Results, and Enter closed the sheet with focus back on Filters. No page scrolled sideways at either width. |
+
+Found, none blocking:
+
+- The filter offers both "Grupo comunitário" and "Grupo comunitario". Publishers spelled
+  the same kind with and without the accent, and the index keeps values as written.
+- `ngo` reads "Ngo", because `organizationTypeLabel` in
+  `packages/app/src/partners/public-projects.ts` capitalizes only the first letter. It
+  should read "NGO".
+- Some cards repeat themselves. "Construction of the community headquarters" has two
+  passages that say the same thing in slightly different words, and the card shows both.
+
+**Not proven:** Vercel cron logs and runtime errors were not read. The evidence that
+the refresh ran and published is the list's own `checkedAt`, status, total and
+contents. Safari, Firefox and a real phone were not checked.
+
 ## Release of #99 and #100, 19 November
 
 The user approved releasing the "Start an initiative" redesign once the saved-card

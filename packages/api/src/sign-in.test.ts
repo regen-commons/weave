@@ -32,8 +32,9 @@ function fixture(emailHints?: ReturnType<typeof certifiedEmailHints>) {
     },
     async exchangeCode(code, verifier) {
       assert.equal(code, "synthetic-code"); assert.match(verifier, /^[A-Za-z0-9_-]{43}$/);
-      exchanges++; return { token: "synthetic.access.token", expiresIn: 3600 };
+      exchanges++; return { token: "synthetic.access.token", expiresIn: 3600, refreshToken: "synthetic-refresh" };
     },
+    async renew() { throw Error("sign-in must never renew"); },
     async authorize() { return { id: "b1000000-0000-4000-8000-000000000001", email: null }; },
     async signOut() { revocations++; },
     async save() { throw Error("sign-in must never save"); },
@@ -130,6 +131,10 @@ test("one-use PKCE callback survives handler replacement and establishes only an
   assert.ok(success);
   assert.equal(success.headers.get("location"), `${origin}/start/finish?account=signed-in`);
   assert.ok(success.headers.getSetCookie().some(c => c === "__Host-weave_account=synthetic.access.token; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600; Secure"));
+  // The refresh token is kept only in its own host-only HttpOnly cookie, never in the redirect.
+  assert.ok(success.headers.getSetCookie().some(c => c ===
+    `__Host-weave_account_renewal=${Buffer.from("synthetic-refresh").toString("base64url")}; Path=/; HttpOnly; SameSite=Strict; Max-Age=1209600; Secure`));
+  assert.doesNotMatch(success.headers.get("location")!, /refresh/);
   assert.equal(await success.text(), "");
   assert.deepEqual(f.counts(), { exchanges: 1, revocations: 0 });
   assert.ok(results.every(r => !r.headers.get("location")!.includes("synthetic")));
@@ -163,7 +168,8 @@ test("a newer sign-in cancels the old attempt; cancellation and rejected identit
   f.provider.authorize = async () => { throw new AccountError(401, "sign_in_required"); };
   const rejected = await f.make().GET(new Request(third.callback, { headers: { Cookie: third.cookie } }));
   assert.match(rejected.headers.get("location")!, /failed$/);
-  assert.equal(rejected.headers.getSetCookie().some(c => c.startsWith("__Host-weave_account=")), false);
+  assert.equal(rejected.headers.getSetCookie().some(c => c.startsWith("__Host-weave_account")), false,
+    "a rejected identity gets neither an access nor a renewal cookie");
   assert.deepEqual(f.counts(), { exchanges: 1, revocations: 1 });
 });
 test("start requires same-origin JSON and an allowlisted return task", async () => {

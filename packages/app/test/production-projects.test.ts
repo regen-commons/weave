@@ -26,11 +26,11 @@ test("the proxied entry answers GET alone, so the bridge refuses every other met
 
 test("the request that leaves goes to the production list with the list's own parameters and nothing else", () => {
   const target = productionProjectsUrl(new URL(
-    "http://localhost:5173/api/public-projects?q=water&organizationType=nonprofit&sort=name&cursor=abc&limit=6&fixture=draft&token=secret"));
+    "http://localhost:5173/api/public-projects?q=water&organizationType=nonprofit&workScope=restoration&sort=name&cursor=abc&limit=6&fixture=draft&token=secret"));
   assert.equal(target.origin, PUBLIC_ORIGIN);
   assert.equal(target.pathname, "/api/public-projects");
-  assert.deepEqual([...target.searchParams.keys()], ["q", "organizationType", "sort", "cursor", "limit"]);
-  assert.equal(target.search, "?q=water&organizationType=nonprofit&sort=name&cursor=abc&limit=6");
+  assert.deepEqual([...target.searchParams.keys()], ["q", "organizationType", "workScope", "sort", "cursor", "limit"]);
+  assert.equal(target.search, "?q=water&organizationType=nonprofit&workScope=restoration&sort=name&cursor=abc&limit=6");
   assert.equal(productionProjectsUrl(new URL("http://localhost:5173/api/public-projects")).href, `${PUBLIC_ORIGIN}/api/public-projects`);
 });
 

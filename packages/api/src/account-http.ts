@@ -40,9 +40,16 @@ export async function boundedJson(request: Request): Promise<Record<string, unkn
   }
 }
 
+/**
+ * How long a signed-in browser may stay idle before its renewal cookie lapses. Each renewal restarts it.
+ * Supabase still decides whether the session itself is alive.
+ */
+export const RENEWAL_SECONDS = 14 * 24 * 60 * 60;
 export function sessionCookies(secure = true) {
   const name = secure ? "__Host-weave_account" : "weave_local_account";
   const pendingName = secure ? "__Host-weave_sign_in" : "weave_local_sign_in";
+  // Host-only, HttpOnly and SameSite=Strict like the access token, so no sibling host can plant one.
+  const renewalName = secure ? "__Host-weave_account_renewal" : "weave_local_account_renewal";
   const write = (key: string, value: string, seconds: number, sameSite: "Strict" | "Lax") =>
     `${key}=${value}; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=${seconds}${secure ? "; Secure" : ""}`;
   const read = (request: Request, key: string) => {
@@ -52,6 +59,17 @@ export function sessionCookies(secure = true) {
   return {
     session: (token = "", seconds = 0) => write(name, token, seconds, "Strict"),
     pending: (id = "", seconds = 0) => write(pendingName, id, seconds, "Lax"),
+    /** Supabase's refresh token, base64url-encoded so any token it issues is a valid cookie value. */
+    renewal: (refreshToken = "", seconds = 0) =>
+      write(renewalName, refreshToken && Buffer.from(refreshToken).toString("base64url"), seconds, "Strict"),
+    /** Every cookie that carries the session, cleared. Sign-out and an ended session send all of them. */
+    ended: () => [write(name, "", 0, "Strict"), write(renewalName, "", 0, "Strict")],
+    renewalToken(request: Request) {
+      const raw = read(request, renewalName);
+      if (!raw || raw.length > 1400 || !/^[A-Za-z0-9_-]+$/u.test(raw)) return null;
+      const value = Buffer.from(raw, "base64url").toString("latin1");
+      return /^[\x21-\x7e]{8,1024}$/u.test(value) ? value : null;
+    },
     token(request: Request) {
       const token = read(request, name);
       return token && token.length <= 3800 && /^[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/u.test(token) ? token : null;

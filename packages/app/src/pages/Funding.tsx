@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { fundingFixture, teamFixture } from "../fixtures.ts";
 import { catalogEntries, researchSnapshotDate } from "../funding/catalog.ts";
+import { lastChoiceWins } from "../funding/change.ts";
 import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } from "../funding/facets.ts";
 import {
   emptyFundingFilters,
@@ -50,21 +51,30 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const comparing = catalog.subjectKnown ? subjectLine(subject) : null;
   const openInTab = useOpenDraft();
   const social = useSocial();
-  const [changing, setChanging] = useState(false);
+  // The initiative last picked in Change Initiative, while it opens. The menu marks it at once, as the
+  // Kind of group filter on Initiatives marks its choice before the list arrives.
+  const [chosen, setChosen] = useState<string | null>(null);
   const [changeProblem, setChangeProblem] = useState("");
-  /** Compares the catalog with another of this browser's initiatives. A refusal leaves the page as it was. */
-  async function compareWith(id: string) {
-    if (changing) return;
-    setChanging(true);
+  const latest = useRef({ openInTab, social });
+  useEffect(() => {
+    latest.current = { openInTab, social };
+  });
+  // Each arrow press in the menu is a choice. One opening runs at a time and the last choice wins, so
+  // the page ends on the initiative reached. A refusal leaves the page on the one it was on.
+  const [compareWith] = useState(() =>
+    lastChoiceWins(
+      (id) => latest.current.openInTab(id),
+      ({ problem }) => {
+        if (problem) setChangeProblem(problem instanceof Error ? problem.message : "That initiative did not open. Try again.");
+        else latest.current.social?.refresh();
+        setChosen(null);
+      },
+    ),
+  );
+  function choose(id: string) {
+    setChosen(id);
     setChangeProblem("");
-    try {
-      await openInTab(id);
-      social?.refresh();
-    } catch (error) {
-      setChangeProblem(error instanceof Error ? error.message : "That initiative did not open. Try again.");
-    } finally {
-      setChanging(false);
-    }
+    compareWith(id);
   }
   const [filters, setFilters] = useState<Filters>(() => readFundingFilters(routeSearch()));
   const [limit, setLimit] = useState(BATCH),
@@ -188,8 +198,8 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                     size="sm"
                     align="end"
                     options={subject.choices.map((option) => ({ value: option.id, label: choiceLabel(option) }))}
-                    value={subject.current?.id}
-                    onChange={(id) => void compareWith(id)}
+                    value={chosen ?? subject.current?.id}
+                    onChange={choose}
                   />
                 )
               }

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { SavedInitiative, TeamWorkspaceState } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
 import { useAccount } from "../account/context.tsx";
+import { confirmRefusal, RefusalRetries } from "../account/session-end.ts";
 import { continueToCertified } from "../account/sign-in.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { useSocial } from "../social/context.tsx";
@@ -95,7 +96,11 @@ function WorkspaceSignIn({ workspaceId, available }: { workspaceId: string; avai
 }
 
 function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
-  const { clear, state } = useAccount();
+  const { confirm, state } = useAccount();
+  // Rendered only while signed in, keyed by the account.
+  const account = state!.user!.id;
+  const retries = useRef<RefusalRetries | null>(null);
+  retries.current ??= new RefusalRetries();
   const social = useSocial();
   const { draft } = useDraft();
   // Another account's card stays on the device but is never copied into this account's team (DL-055).
@@ -127,9 +132,24 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
     });
     return () => controller.abort();
   }, [workspaceId, attempt, online, loseAccess]);
+  // The workspace and its parts read the access cookie only, which can lapse while the session still
+  // renews. /api/account says whether it ended; if it was only renewed, the workspace opens again.
   useEffect(() => {
-    if (failure === "sign_in_required") clear();
-  }, [failure, clear]);
+    if (failure !== "sign_in_required") return;
+    let current = true;
+    const tries = retries.current!;
+    void confirmRefusal(confirm, account, tries.recent()).then((check) => {
+      if (!current) return;
+      if (check.outcome === "retry") {
+        tries.retrying();
+        setFailure(null);
+        setLoaded(undefined);
+        setAttempt((value) => value + 1);
+      } else if (check.outcome === "unconfirmed") setFailure(errorCode(check.error) || "account_unavailable");
+      // An ended session has already left the screen, with the page's notice saying so.
+    });
+    return () => { current = false; };
+  }, [failure, confirm, account]);
   const queries = useMemo(() => teamPartnerQueries(loaded?.saved ?? null), [loaded]);
   const saveResult = useCallback((saved: SavedInitiative) => setLoaded((current) => current ? { ...current, saved } : current), []);
 
@@ -143,6 +163,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   }
 
   if (!online && loaded === undefined) return <><WorkspaceHeading /><p>Reconnect to open this workspace.</p></>;
+  if (failure === "sign_in_required") return <><WorkspaceHeading /><DraftSkeleton label="Checking your session" /></>;
   if (failure === "project_consent_required") return (
     <div className="rc-stack">
       <WorkspaceHeading />
@@ -176,7 +197,7 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
   const offerSave = !saved && !readOnly && online && !setAside && !saveBlocker(draft);
   const ownCard = offerSave && social?.mode === "live"
     && (social.state.project?.workspaceId === workspaceId || social.state.visit === workspaceId);
-  const owner = state!.user!.id;
+  const owner = account;
   const fields = saved ? SuggestionSchema.parse({ ...saved.document.initiative, confidence: 1 }) : null;
   return (
     <>

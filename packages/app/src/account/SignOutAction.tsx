@@ -14,7 +14,7 @@ export function SignOutAction({
   disabled?: boolean;
   onBusyChange?(busy: boolean): void;
 }) {
-  const { state, clear } = useAccount();
+  const { state, signedOut } = useAccount();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ message: string; failed: boolean } | null>(null);
   function report(message: string, failed: boolean) {
@@ -27,7 +27,7 @@ export function SignOutAction({
     onBusyChange?.(true);
     setNotice(null);
     try {
-      const result = await endSession(() => accountRequest("", { action: "sign_out" }), clear);
+      const result = await endSession(() => accountRequest("", { action: "sign_out" }), signedOut);
       report(result.message, result.failed);
     } finally {
       setBusy(false);

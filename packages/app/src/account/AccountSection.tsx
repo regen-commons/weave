@@ -6,8 +6,9 @@ import { useDraft } from "../describe/use-draft.ts";
 import { Link, navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import { accountKey, saveBlocker } from "./document.ts";
-import { accountMessage, accountRequest, assertAccount, AccountFailure } from "./client.ts";
+import { accountRequest, assertAccount } from "./client.ts";
 import { loadAccountCard, saveAccountCard } from "./actions.ts";
+import { settleActionFailure } from "./action-failure.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnFailed, signInReturnMessage } from "./sign-in.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
@@ -71,18 +72,13 @@ export function AccountSection({
     try {
       await action();
     } catch (error) {
-      if (error instanceof AccountFailure && error.code === "sign_in_required") clear();
-      if (error instanceof AccountFailure && error.code === "account_changed") {
-        try {
-          await refresh();
-        } catch {
-          clear();
-        }
+      const settled = await settleActionFailure(error, { refresh, clear });
+      if (settled.reset) {
         setSelection(null);
         setPage(null);
       }
-      setMessage(accountMessage(error));
-      setFailed(true);
+      setMessage(settled.message);
+      setFailed(!!settled.message);
     } finally {
       setBusy(false);
     }

@@ -220,6 +220,11 @@
    doorway keeps the middle of the room that is left, and the section keeps the page's own space
    above the footer. */
 .rc-main:has(> .rc-doorway) > .rc-section { padding-block-end: var(--space-8); }
+/* A notice can open a page before its content, as one does when a session ended without Sign Out.
+   Above a doorway or Home's hero, whose page has no room of its own under the app bar, it keeps
+   the page's usual step from the bar, and the doorway keeps the rest of the window. */
+.rc-main:has(> .rc-doorway, > .rc-home-hero) > .rc-notice:first-child { margin-block-start: var(--space-5); }
+.rc-main:has(> .rc-notice:first-child + .rc-doorway) { grid-template-rows: auto minmax(0, 1fr); }
 
 .rc-home-hero {
   display: grid;
