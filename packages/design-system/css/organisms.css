@@ -710,6 +710,8 @@
 /* Beside the button on a wide screen and under it on a phone: one line about speech, or the language choice. */
 .rc-voice-aside { display: grid; flex: 1 1 var(--card-min-width); align-content: center; justify-items: start; gap: var(--space-1); min-block-size: calc(2lh + var(--space-1)); }
 .rc-voice-aside > p { margin: 0; }
+/* Discard sits on the recording line's own row, so showing it moves nothing below (DL-138). */
+.rc-voice-aside:has(> [data-voice-discard]) { grid-template-columns: auto auto; justify-content: start; align-items: center; column-gap: var(--space-3); }
 /* While the browser downloads and sets up its speech pack, a Progress bar runs above the line. The
    browser reports no amount, so the bar has none (DL-127). */
 .rc-voice-aside > .rc-progress { inline-size: 100%; max-inline-size: var(--card-min-width); }

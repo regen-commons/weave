@@ -297,6 +297,65 @@ test("time ends a write grant within the hour and leaves the read grant; sign-ou
   await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/, "past 30 days it has ended on its own");
 });
 
+test("signing out deletes that session's grants, and only those; a failure there is passed over", async () => {
+  const f = await fixture();
+  assert.equal((await f.approve("membership")).status, 200);
+  f.fake.issuedScope = requested(membership, register, create);
+  assert.equal((await f.approve("create-project")).status, 200);
+  // The same person, signed in somewhere else, holds a grant of their own.
+  f.fake.actor = { did, sessionId: "another-session" };
+  f.fake.issuedScope = "";
+  assert.equal((await f.approve("membership")).status, 200);
+  const grants = () => [...f.rows.keys()].filter(key => key.startsWith("grant/")).length;
+  assert.equal(grants(), 3);
+
+  f.fake.actor = { did, sessionId: "weave-session" };
+  assert.equal(await f.auth.forget(f.cmd({})), 6, "every action's grant is asked for, since a session's grants cannot be listed");
+  assert.equal(grants(), 1, "the tokens and the key they are bound to are gone from the store");
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [register]), /project_consent_required/);
+  f.fake.actor = { did, sessionId: "another-session" };
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
+  assert.equal(await f.auth.forget(f.cmd({})), 6);
+  assert.equal(grants(), 0);
+  assert.equal(await f.auth.forget(f.cmd({})), 6, "forgetting twice is harmless");
+
+  // A consent that came back from Certified but was not finished is a receipt holding the same tokens.
+  // Sign-out removes it first, so a finish from another tab cannot make a grant of it afterwards.
+  f.fake.actor = { did, sessionId: "weave-session" };
+  const returned = await f.auth.callback(f.oauth(binding(await f.start("membership"))));
+  assert.equal(projectStatus(returned), "ready");
+  const receipts = () => [...f.rows.keys()].filter(key => key.startsWith("receipt/")).length;
+  assert.equal(receipts(), 1);
+  assert.equal(await f.auth.forget(f.cmd({}, binding(returned))), 6);
+  assert.equal(receipts(), 0);
+  assert.equal((await f.auth.consent(f.cmd({ action: "finish" }, binding(returned)))).status, 403, "the unfinished consent cannot be finished after sign-out");
+  assert.equal(grants(), 0);
+
+  // Nobody can be verified, or the check itself fails: nothing is touched and nothing is thrown.
+  f.fake.actor = null;
+  assert.equal(await f.auth.forget(f.cmd({})), 0);
+  const broken = await createCertifiedProjectAuth({ origin, cgsOrigin, signingKeys: [key], store: memoryStore().store,
+    allowsDid: () => true, resolveActor: async () => { throw new Error("session check failed"); } });
+  assert.equal(await broken.forget(f.cmd({})), 0);
+  // A removed tester's grants are deleted too: leaving does not depend on still being allowed in.
+  const removedTester = await fixture();
+  assert.equal((await removedTester.approve("membership")).status, 200);
+  removedTester.fake.allowed = false;
+  assert.equal(await removedTester.auth.forget(removedTester.cmd({})), 6);
+  assert.equal([...removedTester.rows.keys()].filter(key => key.startsWith("grant/")).length, 0);
+
+  // A store that fails for some grants, or a time limit that has passed, stops nothing else.
+  const flaky = memoryStore();
+  let locks = 0;
+  const failing = await createCertifiedProjectAuth({ origin, cgsOrigin, signingKeys: [key], allowsDid: () => true,
+    resolveActor: async () => ({ did, sessionId: "weave-session" }),
+    store: { ...flaky.store, withLock: async (id, run, signal) => { if (++locks % 2) throw new Error("database busy"); return flaky.store.withLock(id, run, signal); } } });
+  assert.equal(await failing.forget(f.cmd({})), 3, "the removals that could run did");
+  assert.equal(locks, 6);
+  assert.equal(await failing.forget(f.cmd({}), AbortSignal.abort()), 0, "past its limit it starts nothing");
+});
+
 test("the store itself keeps a grant no longer than its action allows", async () => {
   // Validation comes before any query, so a store with no database shows which writes it would send.
   const reached = Error("reached the database");

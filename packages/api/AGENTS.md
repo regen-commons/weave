@@ -31,6 +31,10 @@ In development, the app's Vite server answers `/api/*` from the same entry files
   row-level security still applies.
 - Validate methods, bodies, identifiers and sizes at the handler boundary, and cap
   bodies at 64 KB. Write endpoints require a same-origin `Origin` header and JSON.
+  `/api/transcribe` is the one exception to the size and to JSON: it takes one audio
+  recording of up to 3 MB, and still requires the same-origin `Origin` header. It
+  stores and logs nothing, and needs no sign-in, so nothing in it may depend on who
+  is asking.
 - Give every outbound call a timeout. Return stable error codes, never a raw provider
   response or personal data, and log neither.
 - Cloud AI runs only after consent that names the provider, model, region and

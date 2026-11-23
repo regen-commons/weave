@@ -635,7 +635,7 @@ Step 3 implements plain text, Markdown, CSV text and PDF text with approved `pdf
 
 - Server proxy `/api/ai` on the Vercel Node runtime (300 s maximum on Hobby); the browser never holds provider keys. Zero data retention requires server-side calls anyway (no CORS under ZDR).
 - Default provider: Anthropic `claude-haiku-5-5` with structured outputs (`output_config.format`) and `inference_geo` set to the EU where supported; monthly per-user token budget; alternative provider Cloudflare Workers AI for cost or as a fallback. A self-hosted vLLM or Ollama endpoint on a community server (Hetzner GEX45 class) can be configured as a third provider in Phase 2.
-- Consent dialog states provider, model, region, retention, what is sent (text only; audio and files never), and links to the ledger. Consent is per session or per field; withdrawal is one tap and is recorded.
+- Consent dialog states provider, model, region, retention, what is sent (text only; audio and files never), and links to the ledger. Consent is per session or per field; withdrawal is one tap and is recorded. Cloud speech is the one exception to "audio never", with its own endpoint, notice and agreement: see [Cloud speech](open-decisions.md#cloud-speech-23-november-2026).
 - The proxy stores only `input_sha256`, `output_sha256`, token counts and latency in `weave.ai_runs`, linked to the consent row; it strips email addresses and phone numbers before sending; the response is validated against the same Zod schema.
 - A "Where did my data go?" panel lists each cloud call with the retention statement in force and offers CSV export.
 
