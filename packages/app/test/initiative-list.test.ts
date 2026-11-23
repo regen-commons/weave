@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftKinds, draftSaving, ENTRY_KINDS, initiativeEntries, linkedProject, projectKind, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftKinds, draftSaving, ENTRY_KINDS, initiativeEntries, linkedProject, projectKind, projectLinkLine, projectLinkState, savingLine, standsForProject, strongestFirst, openSavedOver } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -188,4 +188,11 @@ test("every card says what it is, so a draft and a Certified project with one na
   assert.equal(new Set(labels).size, labels.length);
   assert.deepEqual(labels, ["Not saved yet", "Saved privately", "Personal project", "Group project", "Team workspace"]);
   for (const kind of Object.values(ENTRY_KINDS)) assert.ok(kind.icon);
+});
+
+test("example funding on Your Initiative reads strongest fit first, as the live list does", () => {
+  const records: readonly { id: string; fit?: "strong" | "good" | "possible" }[] =
+    [{ id: "a", fit: "good" }, { id: "b", fit: "strong" }, { id: "c" }, { id: "d", fit: "possible" }, { id: "e", fit: "strong" }];
+  assert.deepEqual(strongestFirst(records).map((record) => record.id), ["b", "e", "a", "d", "c"], "equal strengths keep their order");
+  assert.deepEqual(records.map((record) => record.id), ["a", "b", "c", "d", "e"], "the examples themselves are left as they are");
 });

@@ -249,3 +249,14 @@ export function draftKinds(
   const kept: EntryKind[] = saving === "unsaved" ? ["device"] : project ? [] : ["private"];
   return project ? [projectKind(project), ...kept] : kept;
 }
+
+const FIT_RANK = { strong: 3, good: 2, possible: 1 } as const;
+
+/**
+ * Records with the strongest fit first, as the live funding list sorts them. Records of one
+ * strength, and those with none, keep the order they came in.
+ */
+export function strongestFirst<T extends { readonly fit?: keyof typeof FIT_RANK | undefined }>(records: readonly T[]): T[] {
+  const rank = (record: T) => (record.fit ? FIT_RANK[record.fit] : 0);
+  return [...records].sort((a, b) => rank(b) - rank(a));
+}
