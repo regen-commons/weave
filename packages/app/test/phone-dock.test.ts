@@ -32,8 +32,8 @@ test("the page shell draws a step bar after the page body, and the steps fill it
   const stepper = source("ui/Stepper.tsx");
   // The steps are in the markup twice and on screen once: a phone's copy at the top of the page,
   // and the bar's with the step's way forward beside it.
-  assert.ok(stepper.includes('<Stepper current={current} steps={steps} until="wide" />'), "the copy on the page is a phone's");
-  assert.match(stepper, /createPortal\(\s*<>\s*<Stepper current=\{current\} steps=\{steps\} \/>\s*\{children && <div className="rc-action-bar">\{children\}<\/div>\}/u);
+  assert.ok(stepper.includes('<Stepper current={at} steps={steps} until="wide" />'), "the copy on the page is a phone's");
+  assert.match(stepper, /createPortal\(\s*<>\s*<Stepper current=\{at\} steps=\{steps\} \/>\s*\{children && <div className="rc-action-bar">\{children\}<\/div>\}/u);
 });
 
 test("each intake step docks its way forward, and shows the same action in the step bar on a wide screen", () => {
@@ -71,6 +71,6 @@ test("a problem a docked action raises is drawn where the person is", () => {
   // A problem about one field is written at that field, which takes the focus (DL-127).
   assert.ok(text.includes(`event.currentTarget.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();`));
   assert.ok(source("ui/RecordFields.tsx").includes('<p className="rc-error" role="alert" id={`${id}-${name}-hint`}>'));
-  // Needs and offers already moves the focus to the list that stopped the page.
-  assert.match(source("pages/AskStep.tsx"), /getElementById\(`ask-\$\{first\}-blocker`\)\?\.focus\(\)/u);
+  // The needs step and the offers step move the focus to the line that says why the list stopped.
+  assert.match(source("pages/AskStep.tsx"), /getElementById\(`ask-\$\{kind\}-blocker`\)\?\.focus\(\)/u);
 });

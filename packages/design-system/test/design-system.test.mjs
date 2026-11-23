@@ -398,7 +398,7 @@ test("on a phone a focused step docks its way forward where the tab bar would be
   }
 });
 
-test("on a wide screen a step's map and its way forward share one bar under the app bar (DL-127)", () => {
+test("on a wide screen a step's map and its way forward share one bar at the foot of the window (DL-127)", () => {
   const organisms = stripComments(read("packages/design-system/css/organisms.css"));
   const templates = stripComments(read("packages/design-system/css/templates.css"));
   const molecules = stripComments(read("packages/design-system/css/molecules.css"));
@@ -406,16 +406,19 @@ test("on a wide screen a step's map and its way forward share one bar under the 
   // Not drawn on a phone, nor when it holds nothing.
   assert.match(organisms, /\n\.rc-step-bar \{ display: none; \}/);
   const bar = /\.rc-step-bar:not\(:empty\) \{([^}]*)\}/.exec(wide(organisms))?.[1] ?? "";
-  for (const declaration of ["position: sticky;", "inset-block-start: var(--app-header-height);", "z-index: var(--layer-sticky);", "background: var(--surface);"])
+  for (const declaration of ["position: fixed;", "inset-block-end: 0;", "inset-inline: 0;", "z-index: var(--layer-sticky);", "background: var(--surface);", "border-block-start: var(--border-thin) solid var(--control-line);"])
     assert.ok(bar.includes(declaration), `the step bar has ${declaration}`);
-  // The page gives it a row under the app bar, though it comes after the page body in the markup,
-  // and whatever sticks under the bars or fills the window below them counts its height.
+  // It sits where the phone's dock does, so it takes no row of the page's grid: the page keeps
+  // room for it under the footer, and whatever fills or stays whole in the window leaves it out.
+  assert.doesNotMatch(templates, /\.rc-step-bar \{ grid-row/);
   assert.match(templates, /\.rc-page \{ --step-bar-height: 0rem; \}/);
-  assert.ok(wide(templates).includes(".rc-page > .rc-step-bar { grid-row: 2; }"));
-  assert.ok(wide(templates).includes(".rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }"));
-  assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--step-bar-height\) \+ var\(--space-5\)\);/);
+  assert.ok(wide(templates).includes("padding-block-end: calc(var(--step-bar-height) + env(safe-area-inset-bottom));"));
+  assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--space-5\)\);/);
+  assert.match(templates, /max-block-size: calc\(100dvh - var\(--app-header-height\) - var\(--step-bar-height\) - 2 \* var\(--space-5\)\);/);
   assert.match(templates, /min-block-size: calc\(100dvh - var\(--site-banner-height\) - var\(--app-header-height\) - var\(--step-bar-height\)\);/);
-  assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start:"));
+  assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-end:"));
+  // Each step's edge lies on the bar's top line, where it meets the page.
+  assert.ok(wide(organisms).includes('.rc-step-bar > .rc-stepper > li[aria-current="step"] { border-block-start-color: var(--action); }'));
   // The steps and the end-of-step actions a wide screen shows in the bar are a phone's on the page.
   assert.ok(wide(molecules).includes('.rc-stepper[data-until="wide"] { display: none; }'));
   assert.ok(wide(molecules).includes('.rc-action-bar[data-until="wide"] { display: none; }'));

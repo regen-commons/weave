@@ -57,7 +57,7 @@ export const ROUTES: readonly Route[] = [
     form: true,
     parent: "home",
   },
-  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, parent: "initiative" },
+  { name: "needs", path: "/start/needs", title: "What You Need", form: true, parent: "initiative" },
   { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, parent: "needs" },
   {
     name: "your-initiative",
@@ -121,7 +121,8 @@ export const ROUTES: readonly Route[] = [
 ];
 export const INTAKE_STEPS = [
   { route: "initiative", label: "Initiative" },
-  { route: "needs", label: "Needs And Offers" },
+  { route: "needs", label: "Needs" },
+  { route: "offers", label: "Offers" },
   { route: "your-initiative", label: "Funding And Partners" },
 ] as const satisfies readonly { route: RouteName; label: string }[];
 /**
