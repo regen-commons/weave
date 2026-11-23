@@ -20,6 +20,8 @@ import {
 import {
   activeItems,
   answerStep,
+  askFormProblem,
+  parseAskForm,
   changeStep,
   commitPending,
   decide,
@@ -793,4 +795,37 @@ test("a need's title and description are separate statements for kinds of suppor
   assert.deepEqual(suggestEntryKinds("Seeds", "Methods to store them through winter"), ["living", "intellectual"]);
   assert.deepEqual(suggestEntryKinds("Soil test data", null), ["intellectual"]);
   assert.deepEqual(suggestEntryKinds("We don't need money", "Seeds for the garden"), ["living"]);
+});
+
+test("a failed save in the need and offer editor names the field it is about and says what to do (WCAG 3.3.1)", () => {
+  const base = { ...formFromAsk(), title: "Seedlings", exchangeTerms: ["gift" as const] };
+  const money = { ...base, capitalForms: ["financial" as const] };
+  const problem = (form: typeof base) => {
+    try {
+      parseAskForm(form, "needs");
+    } catch (error) {
+      return askFormProblem(error);
+    }
+    assert.fail("the form should not have parsed");
+  };
+  assert.deepEqual(problem({ ...base, title: " " }), { field: "title", message: "Add a title." });
+  assert.deepEqual(problem({ ...money, amountMin: "1,000", currency: "USD" }), {
+    field: "amountMin",
+    message: "Use numbers with a dot for decimals, without grouping separators.",
+  });
+  assert.deepEqual(problem({ ...money, amountMax: "x", currency: "USD" }).field, "amountMax");
+  assert.deepEqual(problem({ ...money, amountMin: "500", amountMax: "100", currency: "USD" }), {
+    field: "amountMin",
+    message: "Add an amount or range in order.",
+  });
+  assert.deepEqual(problem({ ...money, amountMin: "500", currency: "US" }), {
+    field: "currency",
+    message: "Use a three-letter currency code, such as USD.",
+  });
+  assert.deepEqual(problem({ ...base, exchangeTerms: [] }), { field: "exchangeTerms", message: "Choose at least one term." });
+  assert.deepEqual(problem({ ...base, exchangeTerms: ["open", "gift"] }), {
+    field: "exchangeTerms",
+    message: "Open to anything includes the other terms.",
+  });
+  assert.deepEqual(askFormProblem(new Error("Four is the limit for each kind.")), { field: null, message: "Four is the limit for each kind." });
 });
