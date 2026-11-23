@@ -17,7 +17,7 @@ export type RouteName =
   | "settings"
   | "team-workspace";
 /** The four tabs. A page inside one keeps that tab marked. */
-export type Section = "home" | "initiatives" | "funding" | "your-initiatives";
+export type Section = "home" | "funding" | "initiatives" | "your-initiatives";
 export interface Route {
   readonly name: RouteName;
   readonly path: string;
@@ -25,6 +25,12 @@ export interface Route {
   /** The short name navigation uses where the title is a sentence. */
   readonly label?: string;
   readonly form: boolean;
+  /**
+   * Where the footer shows. `"wide"` leaves it out on a phone, for a page that should feel like an
+   * app there: the steps of describing an initiative and the Your Initiatives tab. A wide screen
+   * keeps it on every page.
+   */
+  readonly footer?: "wide";
   readonly section?: Section;
   /** The page one level up, where the back link goes when the app does not know where the person came from. Tabs have none. */
   readonly parent?: RouteName;
@@ -47,6 +53,7 @@ export const ROUTES: readonly Route[] = [
     path: "/start/new",
     title: "Start An Initiative",
     form: true,
+    footer: "wide",
     parent: "home",
   },
   {
@@ -55,10 +62,11 @@ export const ROUTES: readonly Route[] = [
     title: "Tell Us About Your Initiative",
     label: "Describe Your Initiative",
     form: true,
+    footer: "wide",
     parent: "home",
   },
-  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, parent: "initiative" },
-  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, parent: "needs" },
+  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, footer: "wide", parent: "initiative" },
+  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, footer: "wide", parent: "needs" },
   {
     name: "your-initiative",
     path: "/your-initiative",
@@ -72,6 +80,7 @@ export const ROUTES: readonly Route[] = [
     path: "/your-initiatives",
     title: "Your Initiatives",
     form: false,
+    footer: "wide",
     section: "your-initiatives",
   },
   {
