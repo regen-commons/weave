@@ -58,7 +58,7 @@ test("each intake step docks its way forward, and shows the same action in the s
 
 test("a docked submit names the form it sends, because the dock is outside the form", () => {
   const describe = source("pages/Describe.tsx");
-  assert.ok(describe.includes('<form className="rc-form" data-width="full" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>'));
+  assert.match(describe, /<form className="rc-form" data-width="full" id=\{FIELDS_ID\} noValidate [^>]*onSubmit=\{next\} onKeyDown=\{moveOnEnter\}>/u);
   assert.match(describe, /type="submit"\s+form=\{FIELDS_ID\}/u);
 });
 

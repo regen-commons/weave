@@ -53,7 +53,6 @@ import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { IntakeStepper } from "../ui/Stepper.tsx";
 import { TalkItOut } from "../ui/TalkItOut.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
-import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
 /** What each of the two steps asks, in the order the steps come. */
 const ASK_STEPS = {
@@ -106,7 +105,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       data-variant="primary"
       data-from={from}
       type="button"
-      disabled={waiting}
+      disabled={!ready || waiting}
       aria-busy={waiting || undefined}
       onClick={next}
     >
@@ -126,33 +125,31 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
       <p>{page.intro}</p>
       {kind === "needs" && <DuplicateNotice />}
       <DraftNotice error={storageError} text={draftText(draft)} onRetry={() => controller.retry()} />
-      {!ready ? (
-        <DraftSkeleton />
-      ) : (
-        // One list in the step's column, with the card beside it on a wide screen, as on step 1.
-        <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
-          {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
-            <p className="rc-notice" data-tone="info">
-              You are offline. Your words and cards stay on this device.
-            </p>
-          )}
-          <AskSection
-            key={kind}
-            kind={kind}
-            example={example}
-            blocker={blocked}
-            speech={speech}
-            consent={consent}
-            speechExample={example?.speech}
-            onWorking={setWaiting}
-          />
-          {/* A phone keeps the way back at the end of the step, above the docked way forward. */}
-          <div className="rc-action-bar" data-until="wide">
-            {back && <BackButton target={back}>Back</BackButton>}
-          </div>
-          <Dock>{forward()}</Dock>
-        </StepLayout>
-      )}
+      {/* The step is drawn at once, before this device's draft has opened, and its list takes input
+          once the draft is open (as on step 1), so nothing waits on storage to be seen. */}
+      {/* One list in the step's column, with the card beside it on a wide screen, as on step 1. */}
+      <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
+        {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
+          <p className="rc-notice" data-tone="info">
+            You are offline. Your words and cards stay on this device.
+          </p>
+        )}
+        <AskSection
+          key={kind}
+          kind={kind}
+          example={example}
+          blocker={blocked}
+          speech={speech}
+          consent={consent}
+          speechExample={example?.speech}
+          onWorking={setWaiting}
+        />
+        {/* A phone keeps the way back at the end of the step, above the docked way forward. */}
+        <div className="rc-action-bar" data-until="wide">
+          {back && <BackButton target={back}>Back</BackButton>}
+        </div>
+        <Dock>{forward()}</Dock>
+      </StepLayout>
     </Stack>
   );
 }
@@ -536,7 +533,8 @@ function AskSection({
     setEditorError("");
   }
   return (
-    <section className="rc-panel" aria-labelledby={part("title")}>
+    // Inert until this device's draft has opened, so nothing typed or pressed lands in a blank list.
+    <section className="rc-panel" aria-labelledby={part("title")} inert={!ready || undefined}>
       <div className="rc-ask-head">
         <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
           {need ? "Your Needs" : "Your Offers"}
