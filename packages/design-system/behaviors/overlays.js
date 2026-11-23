@@ -156,6 +156,9 @@ export function connectTooltip(trigger, panel) {
     ui.on(panel, "toggle", (event) => {
       if (event.newState === "open") frame = requestAnimationFrame(() => place(trigger, panel));
     });
+    // The browser shows interest on hover, on focus and on a long press. A tap is what a phone's
+    // reader tries first, and a press of the button from the keyboard after Escape, so either opens it.
+    ui.on(trigger, "click", () => ui.open());
   } else {
     if (ui.native) panel.popover = "manual";
     panel.setAttribute("role", "tooltip");

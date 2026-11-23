@@ -71,8 +71,15 @@ export function Dialog({
           <h2 className="rc-dialog-title" id={id}>
             {title}
           </h2>
-          <form method="dialog" onSubmit={event => { if (blockClose) { event.preventDefault(); onCloseBlocked?.(); } }}>
-            <button className="rc-button" data-variant="secondary" type="submit">
+          {/* While the dialog's work is under way, Close says why it stays rather than submitting: the
+              sheet behaviour closes on a dialog form's submit before React's handler could refuse it. */}
+          <form method="dialog">
+            <button
+              className="rc-button"
+              data-variant="secondary"
+              type={blockClose ? "button" : "submit"}
+              onClick={blockClose ? () => onCloseBlocked?.() : undefined}
+            >
               Close
             </button>
           </form>
