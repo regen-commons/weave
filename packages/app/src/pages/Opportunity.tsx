@@ -8,8 +8,8 @@ import { fundingSourceUrl } from "../funding/source.ts";
 import { programFund } from "../../../../dist/matching.mjs";
 import { FundSchema } from "../funding/contracts.ts";
 import { catalogEntries, findEntry, researchSnapshotDate } from "../funding/catalog.ts";
+import { readBrowsing } from "../funding/select.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
-import { fitLevel } from "../funding/select.ts";
 import { fundingFixture, teamFixture, type FixtureContext } from "../fixtures.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { useSetAside } from "../account/set-aside.ts";
@@ -19,7 +19,7 @@ import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
-import { Fit } from "../ui/Fit.tsx";
+import { FitLine } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { useDescribeDoor } from "../ui/describe-door.ts";
 
@@ -45,7 +45,9 @@ export function Opportunity({
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
   );
-  const catalog = useCatalog(example),
+  // Opened from Funding with No initiative chosen, the fund is not compared either (DL-129).
+  const browsing = readBrowsing(search);
+  const catalog = useCatalog(example, undefined, { compare: !browsing }),
     device = useDraft(),
     // Another account's card keeps its answers to itself (DL-055).
     setAside = useSetAside();
@@ -160,20 +162,14 @@ export function Opportunity({
           <LinesSkeleton label="Comparing your card on this device" lines={2} />
         ) : result ? (
           <>
-            {result.thematicFit.score === null ? (
-              <p>Fit not assessed</p>
-            ) : (
-              <Fit
-                level={fitLevel(result)}
-                label={result.thematicFit.label}
-                explanation={`Shared topics: ${result.shared.join(", ") || "none"}. Keyword rubric, not eligibility.`}
-              />
-            )}
+            <FitLine result={result} />
             <p>{result.readiness.label}</p>
             <p className="rc-meta">
               Keyword matching with the existing Funding Commons rubric. No model has downloaded.
             </p>
-            {result.shared.length > 0 && <p>Shared topics: {result.shared.join(", ")}</p>}
+            {result.thematicFit.evidenceTerms.length > 0 && (
+              <p>Shared topics: {result.thematicFit.evidenceTerms.join(", ")}</p>
+            )}
             <ul className="rc-reasons">
               {result.activeLimits.map((limit, index) => (
                 <li key={index}>{limit.reason}</li>
@@ -187,9 +183,11 @@ export function Opportunity({
           </>
         ) : (
           <p>
-            {described
-              ? "This record has not been compared with your card yet."
-              : "Describe your initiative to see how well this fits your work."}
+            {described && browsing
+              ? "No initiative chosen on Funding, so fit is not shown."
+              : described
+                ? "This record has not been compared with your card yet."
+                : "Describe your initiative to see how well this fits your work."}
           </p>
         )}
       </section>

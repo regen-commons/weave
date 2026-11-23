@@ -253,6 +253,7 @@ Server-only app configuration:
 | `WEAVE_SUPABASE_PUBLISHABLE_KEY` | Publishable key, never a service-role/secret key. |
 | `WEAVE_SIGN_IN_DATABASE_URL` | Separate LOGIN inheriting only `weave_app_auth_runtime`. Remote TLS verifies certificates. |
 | `WEAVE_SIGN_IN_ENCRYPTION_KEYS` | Same JSON format as bridge wrapping keys, with independent secrets bound to the app origin. |
+| `WEAVE_CERTIFIED_BRIDGE_ORIGIN` | Optional exact HTTPS origin of the identity bridge, used only to wake it before a sign-in. Production (`https://weave.regencommons.com`) defaults to `https://auth.regencommons.com`; any other Weave wakes no bridge unless this names one. A value that is not an exact HTTPS origin wakes none and changes nothing else. |
 
 The app role can only insert, read and delete its encrypted `app_signins` records.
 It cannot access bridge tokens/keys, Auth users or initiatives. The store refuses
@@ -308,6 +309,26 @@ For disposable loopback tests only, `WEAVE_LOCAL_AUTH=true` permits local HTTP a
 non-Secure cookies. It is refused when `VERCEL` is present or `NODE_ENV=production`.
 The bridge's test-only loopback callback option still enforces HTTPS ingress and
 Secure cookies when its own issuer is HTTPS. Neither exception belongs in a release.
+
+### Warm start
+
+A sign-in that met cold functions took about 6.3 seconds from the press to Certified's page, against
+1.5 seconds warm (production, 22 November 2026): 0.8 seconds in `/api/sign-in` and 4.7 seconds in the
+bridge's first redirects, where it loads its libraries, opens its database and reads its keys. So a page
+that shows Sign In to someone signed out first posts `{"warm": true}` to `/api/sign-in`. The handler
+applies the same origin and JSON rules as a start, runs the sign-in store's one-time role check for that
+function instance, and reads the bridge's public discovery document once, with an eight-second limit, at
+most once in 30 seconds for each instance. The database connection it opens closes after ten idle seconds,
+so the gain is the warm function, the finished role check and the woken bridge, not a held connection. It stores no attempt, sets no cookie, sends nothing of the person's to the bridge and
+answers `{"warm": true}` whether or not either step worked. A start wakes the bridge the same way without
+waiting for it. Sign-in works the same when the warm request is blocked or fails.
+
+The session checks behind `/api/account` also run together: `/auth/v1/user` beside the `account_access`
+predicate, and the list beside both. The user's answer is still judged first, then the predicate, then
+the list, so every outcome is the one the sequence gave. The database applies the access rule to the
+list itself, and a list read for a session that is then refused is dropped. The cost is accepted: a
+cookie Supabase refuses now reaches it as three requests where the sequence stopped at one, which is what
+every valid session has always cost.
 
 ## Rotation and shutdown
 

@@ -539,6 +539,8 @@ Not verified on a phone: built and measured in desktop Chromium, with touch emul
 
 The gap above it had three causes. The page's bottom padding (80 px on a wide screen) and the footer's top padding (40 px) added up to 120 px; they are now 40 and 32. An empty status line at the end of the starter list held a row of the page's spacing; it takes room only once it says something. And the page body filled the window under the app bar without counting the site banner, so on a short page the footer started a banner's height below the fold. The banner now has a known height, `--site-banner-height`, which the page body leaves out, on a phone as well.
 
+**Amended by DL-132, 22 November 2026.** The banner is now the first line of the page's header landmark, which sticks with the banner's height above the window's top. The page body still leaves the banner's height out of the window it fills.
+
 ## DL-103: A funding card counts the days to a deadline that is near
 
 **Status:** user decision from manual QA, 18 November 2026. A card gave its deadline as a date in a tag like any other, "Closes 30 Nov 2026", and the reader did the sum. Within 60 days the tag now counts: "Closes in 12 days", "Closes tomorrow", "Closes today". Further out the date says more than a count and stays. A date that has passed reads "Ended" with its date, whether or not the catalog marks the call closed; it read "Closes" with a past date before.
@@ -907,3 +909,69 @@ From Krug: a step map that is always in view, help that is brief and right where
 - **Preview rows bounce at their ends.** On a phone, a preview row that swipes sideways (DL-090) bounces when it reaches its start or its end, and when a finger, a wheel or a trackpad pushes past an end it is already at: the cards run on 16 px past the end and spring back, in one and a half times `--duration-slow`. `behaviors/carousel.js` says which end with `data-bounce` and clears it when the bounce has played; the stylesheet draws it, never under reduced motion. The row's own overscroll is now `none` instead of `contain`, so a phone's native stretch or rubber band never plays on top of it, and a swipe still never starts the browser's way back. A wide screen's grid does not scroll and does not bounce.
 
 Not verified on a real phone: captured in desktop Chromium with touch and a phone viewport emulated. How the bounce feels after a fast fling on iOS, where the native rubber band is now off for the row, is the part to try. Lighthouse on a production build of Home, before and after, is in the pull request.
+
+## DL-129: Funding fit has four levels, the list sorts by it, and anyone can browse without an initiative
+
+**Status:** user decision from manual QA, 22 November 2026: sort funds by fit, strongest first; allow no initiative for someone just browsing; shorten the line under the filters; give fit four levels. Amends DL-017, DL-118 and DL-122, and settles [D34](../../docs/platform/open-decisions.md#for-the-builders).
+
+**Four levels.** The app reads the shared rubric's thematic fit, a score from 0 to 100, unchanged ([technical spec](../../docs/platform/05-technical-spec.md), R13). The app matches on keywords alone, and there the score grades how many distinct specific topics a program and the initiative share: 0 for none, 30 for one, 50 for two, 65 for three, then 75, 80 and 85. Measured on 22 November 2026 with the 119 English descriptions in the partner-real-v1 corpus against all 771 programs (91,749 pairs): 86.8% scored 0, 7.9% scored 30, 1.0% scored 50, 0.15% scored 65 or more, and 4.2% could not be assessed because the program states no focus. The engine's own strong band, 80 and up, was empty for 115 of the 119 projects, so Strong fit almost never showed and nearly every card read Possible fit, whatever it shared.
+
+| Level | Score | With keywords | Share of pairs |
+|---|---|---|---|
+| Strong fit | 60 and up | Three or more shared topics | 0.15% |
+| Good fit | 40 to 59 | Two | 1.0% |
+| Possible fit | 20 to 39 | One | 7.9% |
+| Low fit | Under 20 | None | 86.8% |
+
+A program the rubric cannot assess still says Fit not assessed. Each floor sits between two of the rubric's grades, and 40 and 60 are the engine's own thresholds for partial and relevant themes, so the levels still read sensibly if the on-device model returns. The words describe overlap in topics and nothing else: a fit line's explanation names the shared topics, says it was worked out on the device from keywords, and says fit is not eligibility. The rule is one tested module, `funding/fit.ts`; if the rubric's grades move, its test fails and the floors are measured again. The live Funding Commons site keeps its own bands.
+
+**One bar.** The fit bar has four steps everywhere, and a word always fills the same number: Strong four, Good three, Possible two, Low one. Partner cards keep their three levels from DL-064 and never say Low; their Possible fit now fills two of four steps where it filled one of three.
+
+**Order.** With an initiative compared, Funding's own order is Strongest fit: the highest score first, programs that could not be assessed after them, and research priority settling ties. The sort used to be called Research priority and followed it. Research priority now orders equal fits, and its Priority group filter stays. Without an initiative the list's own order is Closing soon, and a call whose closing day has passed goes to the end even when its intake is not confirmed closed; before, those ended calls led the list. The list's own order is no longer written into the address. Your Initiative's Funding That Fits takes its two research leads in the same order.
+
+**No initiative.** Change Initiative also offers No initiative, and it is offered when there is one initiative too. The line above the cards then reads "No initiative chosen, so fit is not shown or sorted on." Nothing is ranked, Strongest fit and Priority group leave, and Details For Funding is hidden. The choice is kept in the address as `initiative=none`, so it goes with a fund that is opened and comes back, and Clear Filters leaves it alone because it is not a filter. A fund opened that way says fit is not shown. A visitor with no initiative still gets the prompt to describe one, which now says that until then fit is not shown or sorted on.
+
+**The line under the filters.** "771 funds." over "Checked on 16 November 2026.", as short as Initiatives' own line; filtered, "42 of 771 funds." It no longer counts funders or says that fit is worked out from keywords, which the fit line explains where it is used.
+
+Not done: the maker asked why Change Funding Details, at the foot of the page, is not a set of filters. Three options are with the maker, and the section stays as it is until they choose.
+
+## DL-131: Funding details sit beside the initiative and open in a dialog
+
+**Status:** user decision, 22 November 2026, from three rendered options. The maker asked why Change Funding Details, at the foot of Funding, was not a set of filters. Amends DL-118 and DL-129.
+
+The section sat after the whole list, and the list now fills in as its end comes near, so in practice nobody reached it. The catalog also cannot back these as filters: on 22 November 2026, 31% of the 730 programs stated an award, 20% listed the countries they fund work in, and applicant types were free text, with 135 rules the matcher can check. A filter on any of them would hide funds for what they do not say, which is an eligibility decision the app does not make.
+
+Three options were rendered on the real catalog: the details as filters (Where you work, Who is applying, Amount), each hiding only funds whose own terms rule the person out; the details beside the initiative with a dialog to edit them; and the details moved to Your Initiative, with a link from Funding. The maker chose the second.
+
+- Under "Showing what fits **Seed Commons Valley**." one line sums up the details, such as "Works in Kenya and Uganda. Based in Kenya. Nonprofit. Looking for USD 10,000 to 50,000.", or "No details for funding yet." Edit Details sits beside Change Initiative and opens Details For Funding, the system's task dialog. It is there only while a checked initiative is compared, so not while browsing with No initiative.
+- The dialog asks in plain words: Where you work, Where the people you serve live, Where you are based, Where you are registered, Who is applying (chips), and the amount looked for, From, Up to and Currency. Countries are written by name, with the browser's list of names to pick from, and codes still work; the card keeps codes as before. The two US state questions appear only once the United States is among the countries.
+- The details never hide a fund. They tell the matcher which funds may not take the initiative and order equal fits, as before. The dialog says so.
+- Save Details checks the details and closes; Close leaves them as they were. A problem is written in the hint's line of the field it is about, as an alert, and that field takes the focus (DL-127). The words being changed stay in the dialog, not on the card, because the card's form holds codes and the dialog holds names.
+- Funding types you would consider is gone: Kind of funding already filters by type. A card that stored a choice keeps it, but the matcher no longer reads it, since nothing on screen shows or changes it.
+
+## DL-132: The site banner is part of the page's header, and a short window lets the header scroll away
+
+**Status:** quality findings Q-10 and Q-11 from the baseline review, 22 November 2026, for the home-shell session. Amends DL-102 on where the banner sits.
+
+- **The banner is inside the header.** "Still in development will be live soon" ran two thoughts together and sat outside every landmark, so a screen reader moving by landmark skipped it. It now reads "Still in development. Live soon.", two sentences short enough for one line at 320 px, and it is the first line of the page's one header landmark (`rc-app-head`), before the app bar. The header sticks with the banner's height above the window's top, so the banner still scrolls away with the page and the bar stays, as when the two were apart. The page's grid no longer needs a row of its own for the banner.
+- **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar sticks at the window's top on its own, and the record beside the work sticks under it.
+
+Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. Not tried with a real browser's zoom on a real phone.
+
+## DL-133: Stop answers at once, and the wait for the last words has an end
+
+**Status:** user feedback from manual QA, 22 November 2026 ("Changing state after clicking stop was slow"; "The speech flow is slow while it works"), measured before anything changed. Extends DL-110.
+
+After Stop, a recognizer finishes the audio it has heard and only then ends. The page waited for that end before it changed anything, so for as long as the recognizer took, the button still said Stop and the line still said it was listening. With a recognizer that took 600 ms the page showed the press 620 to 632 ms later, at desktop speed and with the processor slowed four and six times alike. A recognizer that never ended left the page listening for good.
+
+- **Finishing.** Stop answers the press itself. The button reads Finishing with a Spinner in the microphone's place, the line beside it says "Finishing your words.", and the box takes its own label back. The button keeps the focus and its place, and a second press does nothing. When the recognizer ends, the button is Talk It Out again and the fields fill as before.
+- **A deadline.** A recognizer has 2.5 seconds after Stop to hand over its last words. One that has not ended by then is let go, and the page goes on with the words it already has, which include the phrase the recognizer had not settled yet. Stop therefore always finishes.
+- **Timings a device can report.** Each session leaves two entries in the browser's own performance record, from the start to the first words and from Stop to the recognizer's end. They stay in the browser, and `performance.getEntriesByType("measure")` reads them on any device.
+
+Measured on 22 November 2026 with a local production build in HeadlessChrome 159 and a replayed recognizer, which stands in for the browser's and says nothing about a real one: the page now shows the press 2 to 11 ms after it, and a recognizer that never ends is let go at 2.51 s. The words in the box were the same 84 before and after, and a session cut off at the deadline kept all 51 words heard so far. The records and what is not proven are in the [proof](../../docs/platform/prototype/proof/speech-speed/README.md).
+
+Kept as it was: the words still appear in the box while the person talks. Showing them costs 6% of the main thread at desktop speed and 28% slowed six times, with no frame held long enough to notice, and they are the only sign that Weave hears the person. Hiding them would not shorten the wait after Stop, which is the recognizer finishing and then the fill.
+
+Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
+
+From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.

@@ -80,6 +80,37 @@ export type SpeechMode = "device" | "browser";
  */
 export type SpeechProblem = string;
 
+/** Waits, then runs; the answer stops the wait. */
+export type Wait = (then: () => void, milliseconds: number) => () => void;
+export const wait: Wait = (then, milliseconds) => {
+  const timer = setTimeout(then, milliseconds);
+  return () => clearTimeout(timer);
+};
+
+/**
+ * How long a session may take, after the person's Stop, to hand over its last words. A recognizer
+ * finishes the audio it has heard and then ends, usually well inside this. One that never ends,
+ * or takes longer, is ended here with the words it has given, so Stop always finishes. Talk It
+ * Out shows Finishing for the same length of time at most (DL-133).
+ */
+export const STOP_WAIT_MS = 2500;
+
+/**
+ * How long a session took, kept where the browser's own tools can read it and nowhere else:
+ * `performance.getEntriesByType("measure")` in the console lists them after a session, on any
+ * device. `weave-speech-first-words` runs from the start to the first words heard, and
+ * `weave-speech-stop` from the person's Stop to the recognizer's end.
+ */
+export const SPEECH_MEASURES = { firstWords: "weave-speech-first-words", stop: "weave-speech-stop" } as const;
+function measure(name: string, start: number | undefined): void {
+  try {
+    if (start !== undefined) globalThis.performance?.measure?.(name, { start, end: globalThis.performance.now() });
+  } catch {
+    /* A browser without the measure options keeps no record. Speech is not affected. */
+  }
+}
+const now = (): number | undefined => globalThis.performance?.now?.();
+
 export interface SpeechCallbacks {
   result(finalText: string, interimText: string): void;
   error(problem: SpeechProblem): void;
@@ -95,11 +126,16 @@ export async function startSpeech(
     speech = speechConstructor(),
     consent,
     signal,
+    stopWait = STOP_WAIT_MS,
+    later = wait,
   }: {
     speech?: SpeechConstructor | null;
     /** Required for `browser`: a session starts only while it says the person agreed. */
     consent?: BrowserSpeechConsent;
     signal?: AbortSignal;
+    /** How long the recognizer may take to end after Stop before the session is ended for it. */
+    stopWait?: number;
+    later?: Wait;
   } = {},
 ): Promise<{ stop(): void; dispose(): void }> {
   if (!speech) throw new Error("This browser has no speech recognition.");
@@ -117,11 +153,16 @@ export async function startSpeech(
   let disposed = false;
   let requested = false;
   let withdrawn: (() => void) | undefined;
+  let stopWaiting: (() => void) | undefined;
+  let startedAt: number | undefined;
+  let stoppedAt: number | undefined;
+  let heard = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     signal?.removeEventListener("abort", dispose);
     withdrawn?.();
+    stopWaiting?.();
     session.onresult = null;
     session.onerror = null;
     session.onend = null;
@@ -141,6 +182,10 @@ export async function startSpeech(
     });
   session.onresult = (event) => {
     if (disposed) return;
+    if (!heard) {
+      heard = true;
+      measure(SPEECH_MEASURES.firstWords, startedAt);
+    }
     const final: string[] = [],
       interim: string[] = [];
     for (let index = 0; index < event.results.length; index++) {
@@ -153,11 +198,13 @@ export async function startSpeech(
   session.onend = () => {
     if (!disposed) {
       const byPerson = requested;
+      if (byPerson) measure(SPEECH_MEASURES.stop, stoppedAt);
       dispose();
       callbacks.end(byPerson);
     }
   };
   try {
+    startedAt = now();
     session.start();
   } catch (error) {
     dispose();
@@ -165,9 +212,18 @@ export async function startSpeech(
   }
   return {
     stop: () => {
-      if (disposed) return;
+      if (disposed || requested) return;
       requested = true;
+      stoppedAt = now();
       session.stop();
+      // The recognizer ends by itself once it has handed over its last words. If it has not by
+      // the deadline, the session ends here: the words already given are with the page.
+      stopWaiting = later(() => {
+        if (disposed) return;
+        measure(SPEECH_MEASURES.stop, stoppedAt);
+        dispose();
+        callbacks.end(true);
+      }, stopWait);
     },
     dispose,
   };

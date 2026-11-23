@@ -6,7 +6,7 @@ import { once } from "node:events";
 import { createSignInHandlers } from "./sign-in.ts";
 import type { SignInAttempt, SignInStore } from "./sign-in-store.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
-import { accountConfiguration } from "./account-runtime.ts";
+import { accountConfiguration, bridgeWarmer } from "./account-runtime.ts";
 import { createCipher } from "./certified/crypto.ts";
 import { certifiedEmailHints } from "./certified/email-hint.ts";
 import { certifiedEmailRedirect, type CertifiedClient } from "./certified/adapters.ts";
@@ -172,6 +172,103 @@ test("a newer sign-in cancels the old attempt; cancellation and rejected identit
     "a rejected identity gets neither an access nor a renewal cookie");
   assert.deepEqual(f.counts(), { exchanges: 1, revocations: 1 });
 });
+test("a warm request readies the store and wakes the bridge, and starts nothing", async () => {
+  const f = fixture();
+  let readied = 0, woken = 0;
+  const attempts = new Map<string, SignInAttempt>();
+  const store: SignInStore = { async ready() { readied++; }, async put(id, value) { attempts.set(id, value); },
+    async take(id) { const value = attempts.get(id); attempts.delete(id); return value; } };
+  const handlers = (overrides: Partial<Parameters<typeof createSignInHandlers>[0]> = {}) => createSignInHandlers({
+    origin, secureCookies: true, provider: f.provider, store, warmBridge: async () => { woken++; }, ...overrides });
+  const warm = (body: unknown = { warm: true }, headers: Record<string, string> = {}) => new Request(`${origin}/api/sign-in`, { method: "POST",
+    headers: { Origin: origin, "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
+  const response = await handlers().POST(warm());
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { warm: true });
+  assert.equal(response.headers.get("set-cookie"), null, "warming binds nothing to the browser");
+  assert.equal(response.headers.get("cache-control"), "private, no-store");
+  assert.deepEqual([readied, woken, attempts.size], [1, 1, 0], "no attempt is stored");
+  assert.deepEqual(f.counts(), { exchanges: 0, revocations: 0 });
+
+  // It is a write endpoint like the start: same origin and JSON only, and nothing rides along with it.
+  assert.equal((await handlers().POST(warm({ warm: true }, { Origin: "https://attacker.test" }))).status, 403);
+  assert.equal((await handlers().POST(warm({ warm: true }, { "Content-Type": "text/plain" }))).status, 415);
+  assert.equal((await handlers().POST(warm({ warm: true, returnTo: "/settings" }))).status, 400);
+  assert.equal((await handlers().POST(warm({ warm: "yes" }))).status, 400, "anything but the exact request is a start, and needs a task");
+  assert.deepEqual([readied, woken, attempts.size], [1, 1, 0]);
+
+  // A database or bridge that cannot be reached is not reported, and never blocks the sign-in that follows.
+  const failing = handlers({ store: { ...store, async ready() { throw Error("database unreachable"); } },
+    warmBridge: async () => { throw Error("bridge unreachable"); } });
+  const quiet = await failing.POST(warm());
+  assert.equal(quiet.status, 200);
+  assert.deepEqual(await quiet.json(), { warm: true });
+  const started = await failing.POST(f.post("/your-initiatives"));
+  assert.equal(started.status, 200, "a start still works when the bridge could not be woken");
+  assert.equal(attempts.size, 1);
+
+  // A store with nothing to open, and no bridge to wake, still answers.
+  assert.equal((await f.make().POST(warm())).status, 200);
+
+  // A sign-in already under way in this browser is left exactly as it was.
+  const pending = await f.begin("/funding");
+  const before = [...f.attempts.entries()];
+  const beside = await f.make().POST(warm({ warm: true }, { Cookie: pending.cookie }));
+  assert.equal(beside.status, 200);
+  assert.equal(beside.headers.get("set-cookie"), null);
+  assert.deepEqual([...f.attempts.entries()], before, "warming neither takes nor replaces the stored attempt");
+  const finished = await f.make().GET(new Request(pending.callback, { headers: { Cookie: pending.cookie } }));
+  assert.equal(finished.headers.get("location"), `${origin}/funding?account=signed-in`);
+});
+
+test("a start gives the bridge a head start without waiting for it", async () => {
+  const f = fixture();
+  let woken = 0;
+  const never = new Promise<void>(() => {});
+  const handlers = createSignInHandlers({ origin, secureCookies: true, provider: f.provider,
+    store: { async put() {}, async take() { return undefined; } }, warmBridge: () => { woken++; return never; } });
+  const response = await handlers.POST(f.post("/funding"));
+  assert.equal(response.status, 200, "the redirect is returned while the bridge is still waking");
+  assert.equal(woken, 1);
+  // A waker that breaks outright changes nothing either.
+  const broken = createSignInHandlers({ origin, secureCookies: true, provider: f.provider,
+    store: { async put() {}, async take() { return undefined; } }, warmBridge: () => { throw new Error("waker broke"); } });
+  assert.equal((await broken.POST(f.post("/funding"))).status, 200);
+});
+
+test("the bridge is woken by one bounded read of its public discovery document, at most once in 30 seconds", async () => {
+  const calls: { url: string; init: RequestInit }[] = [];
+  let now = 1_000_000, cancelled = 0, answer: () => Promise<Response> = async () =>
+    ({ body: { cancel: async () => { cancelled++; } } }) as unknown as Response;
+  const wake = bridgeWarmer("https://bridge.example.test", async (url, init) => { calls.push({ url: String(url), init: init! }); return answer(); }, () => now);
+  await Promise.all([wake(), wake(), wake()]);
+  assert.equal(calls.length, 1, "pages that ask together share one request");
+  assert.equal(calls[0]!.url, "https://bridge.example.test/.well-known/openid-configuration");
+  assert.equal(calls[0]!.init.method, undefined, "a read, never a write");
+  assert.equal(calls[0]!.init.body, undefined);
+  assert.equal(calls[0]!.init.redirect, "manual", "it follows the bridge nowhere");
+  assert.deepEqual(calls[0]!.init.headers, { Accept: "application/json" }, "no cookie, token or address of the person's goes with it");
+  assert.ok(calls[0]!.init.signal instanceof AbortSignal, "it cannot hang the function");
+  assert.equal(cancelled, 1, "the document is not read");
+  now += 29_000;
+  await wake();
+  assert.equal(calls.length, 1);
+  now += 2_000;
+  answer = async () => { throw new TypeError("fetch failed"); };
+  await assert.doesNotReject(wake(), "a bridge that cannot be reached never fails the caller");
+  assert.equal(calls.length, 2);
+  await wake();
+  assert.equal(calls.length, 2, "a failed wake is not repeated inside the 30 seconds either");
+  // Dropping the unread document is never waited for, so a body that will not close cannot pin the waker.
+  now += 31_000;
+  answer = async () => ({ body: { cancel: () => new Promise<void>(() => {}) } }) as unknown as Response;
+  await wake();
+  now += 31_000;
+  await wake();
+  assert.equal(calls.length, 4);
+  await bridgeWarmer(undefined, async () => { throw Error("no bridge is configured"); })();
+});
+
 test("start requires same-origin JSON and an allowlisted return task", async () => {
   const f = fixture();
   for (const path of ["https://other.test", "//other.test", "/api/account", "/settings?steal=1", "/funding/../api/account"])
@@ -190,6 +287,21 @@ test("configuration permits only explicit loopback tests, publishable keys and f
   assert.throws(() => accountConfiguration({ ...env, WEAVE_LOCAL_AUTH: "true", VERCEL: "1", WEAVE_APP_ORIGIN: "http://127.0.0.1:5173" }));
   assert.throws(() => accountConfiguration({ ...env, WEAVE_SUPABASE_PUBLISHABLE_KEY: "sb_secret_fixture" }));
   assert.equal(accountConfiguration({ ...env, WEAVE_LOCAL_AUTH: "true", WEAVE_APP_ORIGIN: "http://127.0.0.1:5173" })?.secureCookies, false);
+  // Only production wakes the production bridge unasked; any other Weave wakes the one it names, or none.
+  assert.equal(accountConfiguration(env)?.bridge, undefined);
+  assert.equal(accountConfiguration({ ...env, WEAVE_APP_ORIGIN: "https://weave.regencommons.com" })?.bridge, "https://auth.regencommons.com");
+  assert.equal(accountConfiguration({ ...env, WEAVE_CERTIFIED_BRIDGE_ORIGIN: "https://bridge.example.test" })?.bridge, "https://bridge.example.test");
+  // Waking has no part in who may sign in: a value that is not an exact HTTPS origin wakes none, and accounts stay on.
+  for (const bridge of ["http://bridge.example.test", "https://bridge.example.test/", "https://user@bridge.example.test", "https://bridge.example.test/path",
+    "HTTPS://BRIDGE.EXAMPLE.TEST", "not a url"]) {
+    const config = accountConfiguration({ ...env, WEAVE_CERTIFIED_BRIDGE_ORIGIN: bridge });
+    assert.ok(config?.secureCookies, bridge);
+    assert.equal(config.bridge, undefined, bridge);
+  }
+  // An empty setting is no setting: production still wakes its own bridge.
+  assert.equal(accountConfiguration({ ...env, WEAVE_APP_ORIGIN: "https://weave.regencommons.com", WEAVE_CERTIFIED_BRIDGE_ORIGIN: "" })?.bridge,
+    "https://auth.regencommons.com");
+  assert.equal(accountConfiguration({ ...env, WEAVE_CERTIFIED_BRIDGE_ORIGIN: "" })?.bridge, undefined);
 });
 test("a return without callback state recovers this browser's task as expired, never exchanging or signing in", async () => {
   const f = fixture(), pending = await f.begin("/start/finish");
