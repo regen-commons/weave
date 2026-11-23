@@ -241,7 +241,13 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     cancelAnimationFrame() { view.frame = null; },
     setTimeout(callback) { view.timers.push(callback); return view.timers.length; },
     clearTimeout(id) { view.timers[id - 1] = null; },
-    MutationObserver: class { observe() { view.observers += 1; } disconnect() { view.observers -= 1; } },
+    /** What each observer would be told: called by a test as a page's content changes. */
+    mutations: [],
+    MutationObserver: class {
+      constructor(callback) { view.mutations.push(callback); }
+      observe() { view.observers += 1; }
+      disconnect() { view.observers -= 1; }
+    },
   };
   const box = { left: 0, top: 0, right: width, bottom: height, width, height };
   const element = () => ({ width: 0, height: 0, getContext: context, getBoundingClientRect: () => box });
@@ -376,7 +382,33 @@ test("growth on its own ends five seconds after a page opens, and a mouse still 
   growing.dispose();
 });
 
-test("motion turned on within a page's five seconds ends with them, and nothing grows on its own after them", () => {
+test("growth on its own runs once, when the app opens: a new page neither starts it again nor moves its end", () => {
+  const { canvas, view, run } = stage();
+  view.location = { pathname: "/" };
+  const growth = growMycelium(canvas);
+  const first = view.timers.filter(Boolean).length;
+  assert.equal(first, 2, "growth on its own and its end are set as the app opens");
+  view.location.pathname = "/funding";
+  for (const changed of view.mutations) changed([]);
+  assert.equal(view.timers.filter(Boolean).length, first, "a page opened within the five seconds sets nothing new");
+  const [, end] = view.timers.filter(Boolean);
+  end();
+  run();
+  const realNow = Date.now;
+  Date.now = () => realNow() + OWN_GROWTH_FOR;
+  try {
+    const before = view.timers.length;
+    view.location.pathname = "/initiatives";
+    for (const changed of view.mutations) changed([]);
+    assert.equal(view.timers.slice(before).filter(Boolean).length, 0, "and one opened after them grows nothing on its own");
+    assert.equal(view.frame, null, "so nothing moves");
+  } finally {
+    Date.now = realNow;
+  }
+  growth.dispose();
+});
+
+test("motion turned on within the app's five seconds ends with them, and nothing grows on its own after them", () => {
   const reduce = "(prefers-reduced-motion: reduce)";
   const { canvas, view, queries, notify } = stage({ reducedMotion: true });
   const growth = growMycelium(canvas);
