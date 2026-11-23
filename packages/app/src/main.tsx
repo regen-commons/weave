@@ -8,6 +8,7 @@ import { watchInstallOffer } from "./install/prompt.ts";
 import { currentRoute, routePath } from "./router.tsx";
 import { retireFirstView } from "./first-view.ts";
 import { keepRecordFirstView } from "./record-first-view.ts";
+import { keepServedFirstPage } from "./partners/public-projects.ts";
 
 applyTheme(readTheme());
 
@@ -25,6 +26,9 @@ await preloadPage(currentRoute()).catch(() => {});
 // shows the same words while it loads, and the app's first draw takes the view's place. The words are
 // kept first: retiring a view drawn for another address clears the root, the words with it.
 keepRecordFirstView(root);
+// The Initiatives page from the server arrives with its first cards drawn, and their page as JSON, which
+// the list starts from, so its first draw has the same cards and asks for none.
+keepServedFirstPage(document);
 retireFirstView(root, routePath());
 // The app has started, so the note for a page whose script never ran is not needed.
 document.querySelector("[data-app-fallback]")?.remove();

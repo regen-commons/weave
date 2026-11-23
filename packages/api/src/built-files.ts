@@ -17,6 +17,7 @@ export const BUILT_FILES = {
   "shell.html": new URL("../../app/dist/shell.html", import.meta.url),
   "index.html": new URL("../../app/dist/index.html", import.meta.url),
   [RECORD_PREVIEWS_FILE]: new URL("../../app/dist/share/records.json", import.meta.url),
+  "share/initiatives.html": new URL("../../app/dist/share/initiatives.html", import.meta.url),
 } as const satisfies Record<string, URL>;
 export type BuiltFileName = keyof typeof BUILT_FILES;
 

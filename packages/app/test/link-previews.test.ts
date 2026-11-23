@@ -120,19 +120,22 @@ test("a person's own page and a describe step are left out of search: noindex an
 
 test("the record page function is deployed with the built files it reads", async () => {
   const { RECORD_PREVIEWS_FILE, TEMPLATE_FILES } = await import("@weave/api/record-page-http");
+  const { LIST_PAGE_FILE } = await import("@weave/api/list-first-view");
   const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
     functions: Record<string, { includeFiles?: string }>; rewrites: { source: string; destination: string }[];
   };
   // The record page runs in the shared router function (23 November 2026), which bundles the files.
   const include = vercel.functions["api/router.ts"]?.includeFiles ?? "";
   const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
-  assert.deepEqual(files.sort(), [...TEMPLATE_FILES, RECORD_PREVIEWS_FILE].sort(), include);
+  // And GET /initiatives, in the same function, reads the list's page.
+  assert.deepEqual(files.sort(), [...TEMPLATE_FILES, RECORD_PREVIEWS_FILE, LIST_PAGE_FILE].sort(), include);
   // The record addresses and the sitemap go to the router, ahead of the rewrite that serves the app.
   const sources = vercel.rewrites.map(({ source }) => source);
   const catchAll = sources.indexOf("/((?!api/).*)");
   for (const [source, destination] of [
     ["/funding/:id", "/api/router?__route=record-page&kind=funding&id=:id"],
     ["/initiatives/:id", "/api/router?__route=record-page&kind=initiative&id=:id"],
+    ["/initiatives", "/api/router?__route=initiatives-page"],
     ["/sitemap.xml", "/api/router?__route=sitemap"],
   ] as const) {
     assert.equal(vercel.rewrites.find((candidate) => candidate.source === source)?.destination, destination);
@@ -173,10 +176,11 @@ test("a page with no title to change, or two, is refused, never half changed", (
   assert.throws(() => withPreview("<html></html>", preview), /Expected one match/);
 });
 
-test("Home's preview is the app's own page, and each other section's is a file at its address", () => {
+test("Home's preview is the app's own page, and each other section's is a file at its address, but the list's", () => {
   assert.deepEqual(LINK_PREVIEWS.map(previewFile), [
     "index.html",
-    "initiatives/index.html",
+    // Read by GET /initiatives, which draws the first cards into it (vercel.json rewrites the address).
+    "share/initiatives.html",
     "funding/index.html",
     "start/initiative/index.html",
     "your-initiatives/index.html",

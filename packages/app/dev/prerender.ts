@@ -15,6 +15,7 @@ import type { Plugin } from "vite";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { LIST_FIRST_VIEW_PATH, LIST_PAGE_FILE } from "@weave/api/list-first-view";
 import { withPagePreview } from "@weave/api/page-preview";
 import { matchRoute, ROUTES, type RouteName } from "../src/routes.ts";
 import { LINK_PREVIEWS, pagePreview } from "./link-previews.ts";
@@ -28,7 +29,9 @@ export interface FirstView {
 /** Every address with a page of its own and no part that changes. Records and workspaces are not drawn. */
 export const FIRST_VIEWS: readonly FirstView[] = ROUTES.filter((route) => !route.path.includes(":")).map(({ path }) => ({
   path,
-  file: path === "/" ? "index.html" : `${path.slice(1)}/index.html`,
+  // Initiatives is sent by GET /initiatives, which draws its first cards into this page, so its file is
+  // where that route reads it, beside the link preview it is made from (@weave/api/list-first-view).
+  file: path === "/" ? "index.html" : path === LIST_FIRST_VIEW_PATH ? LIST_PAGE_FILE : `${path.slice(1)}/index.html`,
 }));
 
 const EMPTY_ROOT = '<div id="root"></div>';

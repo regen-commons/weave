@@ -17,6 +17,7 @@ type Handler = (request: Request) => Response | Promise<Response>;
  */
 export const ENDPOINTS = {
   health: { methods: ["GET"], load: () => import("./health.ts") },
+  "initiatives-page": { methods: ["GET", "HEAD"], load: () => import("./initiatives-page.ts") },
   matching: { methods: ["POST"], load: () => import("./matching.ts") },
   projects: { methods: ["POST"], load: () => import("./projects.ts") },
   "public-projects": { methods: ["GET"], load: () => import("./public-projects.ts") },
@@ -37,7 +38,7 @@ const RECORD_ADDRESS = /^\/(funding|initiatives)\/([^/]+)$/u;
 /**
  * Which endpoint a request is for, and the address its handler should see: `/api/<endpoint>` with the
  * request's own query, less the routing key. At the router's own address the rewrite names the endpoint
- * in `__route`, once. At an endpoint's, a record's or the sitemap's own address (if Vercel hands a
+ * in `__route`, once. At an endpoint's, a record's, the Initiatives list's or the sitemap's own address (if Vercel hands a
  * rewritten request on with the address it came to) the path decides and any `__route` a client added is ignored, so no address
  * can be made to answer as another endpoint. Anything else is for no endpoint.
  */
@@ -52,6 +53,8 @@ export function routeOf(url: URL): { endpoint: Endpoint; url: URL } | null {
     endpoint = named[0]!;
   } else if (url.pathname === "/sitemap.xml") {
     endpoint = "sitemap";
+  } else if (url.pathname === "/initiatives") {
+    endpoint = "initiatives-page";
   } else if (record) {
     let id: string;
     try { id = decodeURIComponent(record[2]!); } catch { return null; }

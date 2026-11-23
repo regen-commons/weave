@@ -12,7 +12,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/project-index-refresh.ts": { "maxDuration": 300 },
-    "api/router.ts": { "maxDuration": 60, "includeFiles": "dist/{shell.html,index.html,share/records.json}" }
+    "api/router.ts": { "maxDuration": 60, "includeFiles": "dist/{shell.html,index.html,share/records.json,share/initiatives.html}" }
   },
   "crons": [
     { "path": "/api/project-index-refresh", "schedule": "0 4 * * *" }
@@ -27,6 +27,7 @@
     { "source": "/api/transcribe", "destination": "/api/router?__route=transcribe" },
     { "source": "/funding/:id", "destination": "/api/router?__route=record-page&kind=funding&id=:id" },
     { "source": "/initiatives/:id", "destination": "/api/router?__route=record-page&kind=initiative&id=:id" },
+    { "source": "/initiatives", "destination": "/api/router?__route=initiatives-page" },
     { "source": "/sitemap.xml", "destination": "/api/router?__route=sitemap" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
