@@ -4,9 +4,10 @@ import { useDraft } from "../describe/use-draft.ts";
 import { intakeFixture, type FixtureContext } from "../fixtures.ts";
 import { fullDate } from "../home.ts";
 import { draftWithRecord, withProjectDetails } from "../initiative/import.ts";
-import { boundCardId, draftSaving, initiativeEntries, linkedProject, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver } from "../initiative/list.ts";
+import { boundCardId, draftKinds, draftSaving, ENTRY_KINDS, initiativeEntries, linkedProject, projectKind, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver, type EntryKind } from "../initiative/list.ts";
 import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
-import { cardName, cardRoute, NOT_SAVED_YET, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
+import { cardName, cardRoute, publicCard, publicKey, SAVED_SIGNED_OUT, savedSignedOut } from "../initiative/status.ts";
+import { dismissDuplicate, duplicateOffer } from "../initiative/duplicates.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo } from "../routes.ts";
@@ -43,11 +44,14 @@ import { SIGN_IN } from "../data/privacy.ts";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
 import { Tag } from "../ui/Tag.tsx";
 import { ThemeChoice } from "../ui/ThemeSwitch.tsx";
+import { SettingsSection } from "../ui/SettingsSection.tsx";
+import { InstallGuide } from "../install/InstallGuide.tsx";
 
 /**
- * A phone's Settings on the You tab, in every state of the page, signed out included: the theme,
- * which a wide screen changes from its header, and the way to the rest. It stands where the gear
- * in a phone's header stood (DL-086).
+ * A phone's Settings on the You tab, in every state of the page, signed out included. The tab is a
+ * phone's place for the person's own things (DL-086), so it holds the settings a phone uses most as
+ * their own groups, as Settings shows them: the theme, which a wide screen changes from its header,
+ * and installing Weave, which only a phone can do. The rest is one press away (DL-134).
  */
 function PhoneSettings() {
   return (
@@ -61,7 +65,14 @@ function PhoneSettings() {
         </ButtonLink>
       }
     >
-      <ThemeChoice />
+      <div className="rc-stack">
+        <SettingsSection level={3} title="Appearance" note="Light, dark, or the same as this device.">
+          <ThemeChoice />
+        </SettingsSection>
+        <SettingsSection level={3} title="Install Weave On Your Phone" note="It opens like an app, full screen.">
+          <InstallGuide />
+        </SettingsSection>
+      </div>
     </Section>
   );
 }
@@ -91,6 +102,9 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const [failed, setFailed] = useState(false);
   /** A project opened from its card while an unlinked card is on this device: link that card, or start apart. */
   const [choosing, setChoosing] = useState<CertifiedRecord | null>(null);
+  /** The dialog was opened from a draft's own card, to link that draft: there is no separate card to start. */
+  const [forDraft, setForDraft] = useState(false);
+  const [, setAnswered] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const access = new URLSearchParams(routeSearch()).get("access");
   const consentNotice = access === "failed" ? <p role="status">Certified access could not be confirmed. Try again.</p>
@@ -137,11 +151,18 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   /** The Certified project this account chose for a draft on this device, if any. */
   const chosenProject = (item: DeviceDraft): string | null =>
     item.id === draft.id && project ? project.uri : chosenProjectUri(choices, state.identity?.id, item.id);
-  /** Whether a draft is linked to one of this account's Certified projects, the tab's own draft or another. */
-  const linked = (item: DeviceDraft): boolean =>
+  /** The Certified project of this account's that a draft is linked to, the tab's own draft or another. */
+  const linkedTo = (item: DeviceDraft) =>
     item.id === draft.id
-      ? !!project
-      : !!state.identity && !!linkedProject(chosenProject(item), savedId(item), [...state.records, ...(state.workspaces ?? [])]);
+      ? project
+      : state.identity ? linkedProject(chosenProject(item), savedId(item), [...state.records, ...(state.workspaces ?? [])]) : null;
+  const linked = (item: DeviceDraft): boolean => !!linkedTo(item);
+  /** What a card is, as tags under its name (DL-134). */
+  const kindTags = (kinds: readonly EntryKind[]) => kinds.length > 0 && (
+    <div className="rc-tag-list">
+      {kinds.map((kind) => <Tag key={kind} icon={ENTRY_KINDS[kind].icon}>{ENTRY_KINDS[kind].label}</Tag>)}
+    </div>
+  );
   /** Opens one of this browser's drafts where it was left: its page once checked, otherwise its next step. */
   async function openDraft(item: DeviceDraft) {
     await openInTab(item.id);
@@ -158,6 +179,13 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     // The account's copy moved on. With no changes of its own here, the entry opens that version;
     // with changes on both sides it opens this browser's words and offers the saved version beside them.
     const behind = saving === "newer-in-account" || saving === "changed-both";
+    const line = savingLine(saving, saved ? fullDate(saved.savedOn) : null);
+    // A draft that looks like a project the person already has on Certified is offered that project,
+    // so the initiative is not kept twice. Once the projects are read, and never on its own (DL-134).
+    const owner = state.identity ? (state.identity.id ?? state.identity.handle) : null;
+    const duplicate = owner && !linked(item) && !social?.loading
+      ? duplicateOffer(owner, item.id, publicCard(item), [...state.records, ...(state.workspaces ?? [])])
+      : null;
     return (
       <li key={item.id}>
         <Card>
@@ -168,17 +196,14 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
               {cardName(item)}
             </button>
           </h3>
+          {kindTags(draftKinds(saving, linkedTo(item) ?? null, savedSignedOut(item, !!state.identity)))}
           {kept && !behind ? (
             <p className="rc-card-meta">{status.line}</p>
           ) : saving !== "unsaved" ? (
-            <p className="rc-card-meta">{savingLine(saving, saved ? fullDate(saved.savedOn) : null)}</p>
+            line && <p className="rc-card-meta">{line}</p>
           ) : savedSignedOut(item, !!state.identity) ? (
             <p className="rc-card-meta">{SAVED_SIGNED_OUT}</p>
-          ) : (
-            <div className="rc-tag-list">
-              <Tag icon="device">{NOT_SAVED_YET}</Tag>
-            </div>
-          )}
+          ) : null}
           {saving === "changed-both" && saved && (
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
@@ -187,15 +212,31 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
               </button>
             </div>
           )}
-          {linked(item) ? (
-            <p className="rc-card-meta">Linked to your project on Certified.</p>
-          ) : (
-            // Signed out, a card linked on this device says so. Signed in, the page itself says while projects are being read.
-            live &&
+          {duplicate && owner && (
+            <>
+              <p className="rc-card-meta">{`Looks like ${duplicate.name}, your project on Certified.`}</p>
+              <div className="rc-action-bar">
+                <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={busy}
+                  onClick={() => void run(async () => { await openInTab(item.id); setForDraft(true); setChoosing(duplicate); })}>
+                  Use That Project
+                </button>
+                <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
+                  onClick={(event) => {
+                    // The offer leaves with its buttons, so the card's name takes the focus they held.
+                    event.currentTarget.closest(".rc-card")?.querySelector<HTMLButtonElement>(".rc-card-title button")?.focus();
+                    dismissDuplicate(owner, item.id, duplicate.uri);
+                    setAnswered((count) => count + 1);
+                  }}>
+                  It's A Different Initiative
+                </button>
+              </div>
+            </>
+          )}
+          {/* Signed out, a card linked on this device says so. Signed in, its tag and its section say which project it is. */}
+          {!linked(item) && live &&
             projectLinkState({ linked: false, owner: state.identity?.id, choosers: deviceChoosers(item.id), loading: false, problem: false }) === "signed-out" && (
               <p className="rc-card-meta">{projectLinkLine("signed-out")}</p>
-            )
-          )}
+            )}
           {current && deviceWorkspace && (
             <div className="rc-action-bar">
               <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
@@ -300,6 +341,12 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     ? deletableCards(state.cards, (state.workspaces ?? []).map(record => record.workspaceId), [...savedHere])
     : [];
   const empty = total === 0 && !loading && !social.problem;
+  // A draft linked to a Certified project is listed with the projects; the rest exists only in Weave.
+  const certifiedDrafts = entries.filter((entry) => entry.kind === "draft" && linked(entry.draft)) as Extract<(typeof entries)[number], { kind: "draft" }>[];
+  const weaveEntries = entries.filter((entry) => !(entry.kind === "draft" && linked(entry.draft)));
+  const moreSaves = !!state.hasMoreCards && !!service.moreCards;
+  const certified = certifiedDrafts.length > 0 || listedWorkspaces.length > 0 || (!loading && records.length > 0);
+  const noProjectYet = total > 0 && records.length === 0 && workspaces.length === 0 && !project && !loading && !social.problem;
   async function openCard(card: SavedCard) {
     if (live) { await service.openCard(card.id, null); go(pathTo("your-initiative")); return; }
     if (import.meta.env.DEV) {
@@ -334,6 +381,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
       return;
     }
     if (opening === "choose") {
+      setForDraft(false);
       setChoosing(record);
       return;
     }
@@ -374,59 +422,88 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           {`Back from ${PROJECT_EDITORS[handoff.editor].name}? Link the project you published.`}
         </StatusLine>
       )}
-      {(entries.length > 0 || listedWorkspaces.length > 0) && (
-        <CardGrid>
-          {entries.map((entry) =>
-            entry.kind === "draft" ? draftCard(entry.draft, entry.saved) : (
-              <li key={entry.card.id}>
-                <Card>
-                  <h3 className="rc-card-title">
-                    <button type="button" disabled={busy} onClick={() => void run(() => openCard(entry.card))}>
-                      {entry.card.name}
-                    </button>
-                  </h3>
-                  <p className="rc-card-meta">Saved privately in Weave on {fullDate(entry.card.savedOn)}.</p>
-                </Card>
-              </li>
-            ),
+      {/* What exists only in Weave: drafts in this browser and private saves (DL-134). */}
+      {(weaveEntries.length > 0 || moreSaves || removable.length > 0) && (
+        <Section id="initiatives-weave" title="Drafts And Private Saves">
+          {weaveEntries.length > 0 && (
+            <CardGrid>
+              {weaveEntries.map((entry) =>
+                entry.kind === "draft" ? draftCard(entry.draft, entry.saved) : (
+                  <li key={entry.card.id}>
+                    <Card>
+                      <h3 className="rc-card-title">
+                        <button type="button" disabled={busy} onClick={() => void run(() => openCard(entry.card))}>
+                          {entry.card.name}
+                        </button>
+                      </h3>
+                      {kindTags(["private"])}
+                      <p className="rc-card-meta">Saved on {fullDate(entry.card.savedOn)}.</p>
+                    </Card>
+                  </li>
+                ),
+              )}
+            </CardGrid>
           )}
-          {listedWorkspaces.map(record => (
-            <li key={record.uri}><Card><h3 className="rc-card-title"><button type="button" disabled={busy}
-              onClick={() => void run(() => openRecord(record))}>{record.name}</button></h3>
-              <p className="rc-card-meta">{record.group ? `Team workspace, ${record.accessRole === "viewer" ? "you can view" : record.accessRole === "admin" ? "you manage teammates" : "you can edit"}` : "Personal Certified project"}</p>
-            </Card></li>
-          ))}
-        </CardGrid>
-      )}
-      {(state.hasMoreCards && service.moreCards || removable.length > 0) && <div className="rc-action-bar">
-        {state.hasMoreCards && service.moreCards && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-          onClick={() => void run(async () => { await service.moreCards?.(); })}>More Private Saves</button>}
-        {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-          onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
-      </div>}
-      {/* The shape of the section that arrives: its heading, then cards of this page's own kind. */}
-      {loading && (
-        <Section id="initiatives-certified" title="On Certified">
-          <div aria-busy="true">
-            <p className="rc-visually-hidden" role="status">
-              Checking your Certified projects
-            </p>
-            <CardGridSkeleton kind="own" count={2} />
-          </div>
+          {(moreSaves || removable.length > 0) && <div className="rc-action-bar">
+            {moreSaves && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => void run(async () => { await service.moreCards?.(); })}>More Private Saves</button>}
+            {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
+          </div>}
         </Section>
       )}
-      {/* A failed read is not an empty list, so it says so with its retry, and the lists below stay. */}
-      {social.problem && (
-        <section className="rc-notice" data-tone="warning" aria-label="Certified projects">
-          <div className="rc-notice-body">
-            <p role="status">{social.problem}</p>
-            <div className="rc-action-bar">
-              {social.consent ? <ConsentButton action="membership" /> : (
-                <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try Again</button>
-              )}
+      {/* Everything that is a Certified project, or a draft linked to one. A failed read is not an
+          empty list, so it says so with its retry, and what was read stays. */}
+      {(certified || loading || social.problem || noProjectYet) && (
+        <Section id="initiatives-certified" title="On Certified">
+          {certified && (
+            <CardGrid>
+              {certifiedDrafts.map((entry) => draftCard(entry.draft, entry.saved))}
+              {listedWorkspaces.map(record => (
+                <li key={record.uri}><Card><h3 className="rc-card-title"><button type="button" disabled={busy}
+                  onClick={() => void run(() => openRecord(record))}>{record.name}</button></h3>
+                  {kindTags([projectKind({ group: record.group, workspace: true })])}
+                  <p className="rc-card-meta">{record.group ? (record.accessRole === "viewer" ? "You can view." : record.accessRole === "admin" ? "You manage teammates." : "You can edit.") : "Only you work on it."}</p>
+                </Card></li>
+              ))}
+              {!loading && records.map((record) => (
+                <li key={record.uri}>
+                  <Card>
+                    <h3 className="rc-card-title">
+                      <button type="button" disabled={busy} onClick={() => void run(() => openRecord(record))}>
+                        {record.name}
+                      </button>
+                    </h3>
+                    {kindTags([projectKind(record)])}
+                    <p className="rc-card-meta">{record.group ? projectLine(record) : "Only you work on it."}</p>
+                  </Card>
+                </li>
+              ))}
+            </CardGrid>
+          )}
+          {/* The shape of the cards that arrive. */}
+          {loading && (
+            <div aria-busy="true">
+              <p className="rc-visually-hidden" role="status">
+                Checking your Certified projects
+              </p>
+              <CardGridSkeleton kind="own" count={2} />
             </div>
-          </div>
-        </section>
+          )}
+          {social.problem && (
+            <section className="rc-notice" data-tone="warning" aria-label="Certified projects">
+              <div className="rc-notice-body">
+                <p role="status">{social.problem}</p>
+                <div className="rc-action-bar">
+                  {social.consent ? <ConsentButton action="membership" /> : (
+                    <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try Again</button>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+          {noProjectYet && <p className="rc-meta">You have no project on Certified yet.</p>}
+        </Section>
       )}
       {!!state.setupRequests?.length && <Section id="setup-requests" title="Workspace Requests">
         <ul className="rc-ask-summary">{state.setupRequests.map(request => <li key={request.requestId}><strong>{request.name}</strong>
@@ -446,27 +523,6 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
         >
           Your Certified projects and what you save in Weave appear here.
         </EmptyState>
-      )}
-      {records.length > 0 && !loading && (
-        <Section id="initiatives-certified" title="On Certified">
-          <CardGrid>
-            {records.map((record) => (
-              <li key={record.uri}>
-                <Card>
-                  <h3 className="rc-card-title">
-                    <button type="button" disabled={busy} onClick={() => void run(() => openRecord(record))}>
-                      {record.name}
-                    </button>
-                  </h3>
-                  <p className="rc-card-meta">{projectLine(record)}</p>
-                </Card>
-              </li>
-            ))}
-          </CardGrid>
-        </Section>
-      )}
-      {total > 0 && records.length === 0 && workspaces.length === 0 && !project && !loading && !social.problem && (
-        <p className="rc-meta">You have no project on Certified yet.</p>
       )}
       <div className="rc-action-bar">
         {/* An empty list already offers to start one, so the page offers it once. */}
@@ -515,7 +571,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
             initial={choosing.uri}
             onDone={() => setChoosing(null)}
             onCancel={() => setChoosing(null)}
-            alternative={
+            alternative={forDraft ? undefined :
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
                 onClick={() => {
                   const record = choosing;

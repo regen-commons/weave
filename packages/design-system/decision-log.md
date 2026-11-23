@@ -941,6 +941,20 @@ A program the rubric cannot assess still says Fit not assessed. Each floor sits 
 
 Not done: the maker asked why Change Funding Details, at the foot of the page, is not a set of filters. Three options are with the maker, and the section stays as it is until they choose.
 
+## DL-130: A long list keeps filling in, its filters stay in reach, and only a sheet's choices scroll
+
+**Status:** user decision from manual QA, 22 November 2026. Amends DL-101 and DL-122. The QA notes asked for funds and initiatives to load more on their own as a person scrolls, for search, filters and Sort to be easy to reach while scrolling on a wide screen and on a phone, for the filter sheet's title row and foot to stay put, and for the filter button and the search field to be one height.
+
+- **No step in the list.** Under DL-101 a list brought three batches on its own and then waited for Show More, so the footer could be reached. People met that pause as a step. The list now keeps filling in for as long as a person scrolls and there is more. The keyboard rule stays: while the keyboard's focus is in the list nothing arrives unasked, Show More brings the next batch and moves focus to its first card, and Tab past it reaches the footer. Show More also stays for a batch that did not arrive. The count line still says how much is on the page, and "Showing all" at the end. The page opened with two filled status regions, the filter bar's count and this line, saying nearly the same thing. Now the bar's count is the list's one status as it opens, and the end reads out the new count politely only when a batch arrives.
+- **A pinned filter row, not a back-to-top button.** Once the filter bar's controls have gone up under the app bar, a row pinned under the app bar holds the same controls: on a phone Search and Filters, on a wide screen Search, a menu for each filter and Sort. Search goes back to the field and puts the focus there. A change made from the row's menus or the sheet starts the list again from its first card, so when the menu or the sheet closes the page goes back to the bar, at once, with focus on the same control there; one opened and closed with no change leaves the page where it was. A back-to-top button was the other choice. It takes two moves to change a filter and loses the person's place even to look at the choices in force, which the pinned row shows on its buttons. The row is 65 px, the app bar's height, and only appears below the bar. The row stays one row: until a screen has room for every filter's menu beside Search and Sort (62.25rem), it holds Filters, which opens them all with Sort in the sheet, as a phone's row does. In a window under 30rem tall, where the header scrolls away (DL-132), the row pins at the window's top instead.
+- **The sheet's choices scroll alone.** The filter sheet's choices sit in their own scrolling part (`rc-dialog-scroll`) between the title row and the foot, so the title row and Show Results neither scroll away nor bounce with the choices. A finger moving down on choices at their top still pulls the sheet away, as DL-091 set out.
+- **One title colour.** Some cards' titles were copper and the rest the text's colour. The copper ones were those the person had already opened: the browser's visited-link colour, which card titles took from the start. Nothing on a card said so, people read it as a difference between initiatives, and a page cannot add a label, because browsers keep which links were visited from the page. By the user's decision, a card's title is now always the text's colour. Links in running text keep the visited colour.
+- **One height.** The search field in the filter bar is a control's height, 48 px, as the Filters, filter and Sort buttons are. It was the taller field an inline form gives (56 px). A larger text size still makes both taller.
+
+Given up: on a long list read with a pointer, such as the 994 public projects, the footer is reached only at the list's end. Its links are the app's sections, which the app bar and a phone's tab bar repeat, and Data & Privacy, which Settings also reaches. The pinned row takes 65 px of a phone's window while it shows.
+
+From Krug: keep the controls a person needs where they are looking, and never make them hunt for the way back. From Refactoring UI: one bar's height for everything that sticks to the top.
+
 ## DL-131: Funding details sit beside the initiative and open in a dialog
 
 **Status:** user decision, 22 November 2026, from three rendered options. The maker asked why Change Funding Details, at the foot of Funding, was not a set of filters. Amends DL-118 and DL-129.
@@ -981,6 +995,17 @@ Kept as it was: the words still appear in the box while the person talks. Showin
 Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
+
+## DL-134: Your Initiatives says what each card is, and keeps Certified projects apart
+
+**Status:** the user's choice, 22 November 2026, from QA notes 4, 5 and 6 for the sign-in-initiatives session. Amends DL-112 on the single list and DL-086 on a phone's You tab.
+
+- **Every card carries a tag for what it is.** A draft and a Certified project with one name read the same in the list: only a line of small text differed. Each card now has a Tag under its name: Not saved yet, Saved privately, Personal project, Group project or Team workspace, each with its icon. A draft linked to a project carries the project's tag, and Not saved yet beside it while that is true. The line under the tag says only what the tag does not, such as the date of the save.
+- **Two sections.** Drafts And Private Saves holds what exists only in Weave. On Certified holds Certified projects, team workspaces and any draft linked to one, which is listed once, there. DL-112's one list kept a draft and its saved card as one entry; that stays, and an entry now sits in the section its link decides. Three sections (device, account, Certified) were turned down: a saved card being edited on this device belongs to two of them.
+- **A draft that looks like a Certified project is offered that project.** The check Weave already had for the needs step runs on Your Initiatives once the person's projects are read. The draft's card says which project it looks like and offers Use That Project and It's A Different Initiative. Use That Project opens the reviewed link step with the project chosen, so what changes is shown before anything does: the name, place, description and links come from Certified, and the needs and offers stay. Nothing links on its own, and a no is kept for the visit. Choosing each detail side by side was turned down: the card could then differ from what Certified shows.
+- **A phone's You tab holds more of Settings.** Appearance and Install Weave On Your Phone are their own groups there, drawn as Settings draws them, then All Settings. They are the two a phone uses most, and installing is something only a phone can do.
+
+Rendered from the dev server's example account in Chromium at 360 and 1280 px, in both themes, with the keyboard. Proof class: fixture.
 
 ## DL-135: On a step with fields to fill in, the mycelium keeps off the words
 
