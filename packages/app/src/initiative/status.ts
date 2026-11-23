@@ -3,6 +3,7 @@ import type { DeviceStorage } from "../describe/controller.ts";
 import { hasDraft, previewFields } from "../describe/view.ts";
 import { fullDate } from "../home.ts";
 import { intakeComplete } from "../intake/finish.ts";
+import { reviewStep } from "../intake/state.ts";
 import type { RouteName } from "../routes.ts";
 import type { Entries, PublicCard, SocialState, WorkspaceState } from "../social/fixture.ts";
 
@@ -44,9 +45,19 @@ export function cardName(draft: DeviceDraft): string {
 }
 
 /** Where to open the card: its page once checked, otherwise the step it is waiting on. */
+/** A step's list is checked as it stands now, by the rule `intakeComplete` applies to both. */
+function stepChecked(draft: DeviceDraft, kind: "needs" | "offers"): boolean {
+  try {
+    return draft[kind].reviewedVersion === draft[kind].inputVersion && reviewStep(draft[kind]).reviewedVersion === draft[kind].inputVersion;
+  } catch {
+    return false;
+  }
+}
+/** Where a card is waiting: its first step that is not done. Needs and offers are two steps. */
 export function cardRoute(draft: DeviceDraft): RouteName {
   if (intakeComplete(draft)) return "your-initiative";
-  return draft.confirmed && draft.proposalVersion === draft.inputVersion ? "needs" : "initiative";
+  if (!(draft.confirmed && draft.proposalVersion === draft.inputVersion)) return "initiative";
+  return stepChecked(draft, "needs") ? "offers" : "needs";
 }
 
 export function chosenEntries(draft: DeviceDraft, entries: Entries) {
