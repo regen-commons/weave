@@ -68,11 +68,17 @@ try {
     App: () => unknown;
     preloadPage: (location: string) => Promise<void>;
   };
+  const firstView = (await server.ssrLoadModule("/src/first-view.ts")) as {
+    retireFirstView: (root: { dataset: { firstView?: string }; removeAttribute(): void; replaceChildren(): void }, pathname: string) => void;
+  };
   const views: Record<string, string> = {};
   for (const path of paths as string[]) {
     const address = new URL(path, ORIGIN);
     Object.assign(location, { pathname: address.pathname, search: address.search, href: address.href });
     await app.preloadPage(path);
+    // Drawn as a page already on screen, with no fade in: a view that fades in is not the largest
+    // paint until the fade has run, by which time the app has replaced it.
+    firstView.retireFirstView({ dataset: { firstView: path }, removeAttribute: () => {}, replaceChildren: () => {} }, path);
     views[path] = renderToString(createElement(app.App as () => null));
   }
   // Written to a pipe, which may finish after this returns: wait for it before ending the process.
