@@ -41,12 +41,13 @@ export function Page({
   const [dock, setDock] = useState<HTMLElement | null>(null);
   const [stepBar, setStepBar] = useState<HTMLElement | null>(null);
   const ended = useSessionEndedNotice(pathname);
+  const route = matchRoute(pathname);
   return (
     <InformationContext.Provider value={setInformation}>
       <DockContext.Provider value={dock}>
       <StepBarContext.Provider value={stepBar}>
       {/* The section sets its accent: the current tab's bar, the page's eyebrow and step numbers (DL-050). */}
-      <div className="rc-page" data-section={matchRoute(pathname)?.section}>
+      <div className="rc-page" data-section={route?.section}>
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
@@ -55,7 +56,7 @@ export function Page({
         {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
             network grows once. */}
         <div className="rc-page-body">
-          <Mycelium extent="page" home={matchRoute(pathname)?.name === "home"} />
+          <Mycelium extent="page" home={route?.name === "home"} />
           <Main key={pathname} pathname={pathname} notice={<SessionEndedNotice text={ended} />}>
             {children}
           </Main>
@@ -67,7 +68,8 @@ export function Page({
             comes after the page body, so the keyboard reaches the way forward after the step's
             fields, and the page's grid draws it above them (DL-127). */}
         <div className="rc-step-bar" ref={setStepBar} />
-        <Footer current={current} onInformation={setInformation}>
+        {/* A route can leave the footer out on a phone, for focus (Route.footer). */}
+        <Footer current={current} from={route?.footer} onInformation={setInformation}>
           {after}
         </Footer>
         {!form && <BottomNav pathname={pathname} />}
