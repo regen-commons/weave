@@ -1,13 +1,15 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { connectPopover } from "@regen-commons/design-system/overlays";
 import {
   activeChoices,
+  choicesKey,
   chosenSort,
   defaultSort,
   narrowing,
   pickedValue,
   pressOption,
   sortChoice,
+  underAppBar,
   withoutChoice,
   type Facet,
   type SortChoice,
@@ -116,6 +118,59 @@ function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSo
 }
 
 /**
+ * The row of controls: on a phone one Filters button that opens the sheet, and on a wide screen a
+ * menu for each filter and Sort. The bar draws it under the search, and the pinned row draws it
+ * again while the bar is out of view, so each copy names its radios for its own place.
+ */
+function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, ordered, onSheet, lead }: {
+  place: string;
+  facets: readonly Facet[];
+  onFacet: ChangeFacet;
+  sort?: SortChoice;
+  onSort?(value: string): void;
+  sheetLabel: string;
+  narrowed: number;
+  ordered: boolean;
+  onSheet(): void;
+  /** What comes first in the row, such as the pinned row's way back to the search. */
+  lead?: ReactNode;
+}) {
+  return (
+    <div className="rc-filter-controls">
+      {lead}
+      <button
+        className="rc-button"
+        data-variant="secondary"
+        data-filter="all"
+        data-active={narrowed > 0 || ordered}
+        type="button"
+        onClick={onSheet}
+      >
+        <Icon name="filter" size="sm" />
+        {sheetLabel}{narrowed > 0 ? ` (${narrowed})` : ""}
+      </button>
+      {facets.map((facet) => (
+        <FilterMenu key={facet.key} facet={facet} name={`${place}-${facet.key}-menu`} onChange={onFacet} />
+      ))}
+      {sort && onSort && <SortMenu sort={sort} name={`${place}-sort`} onSort={onSort} />}
+    </div>
+  );
+}
+
+/** The app bar's height, which whatever sticks to the top of the window keeps clear of. */
+const appBarHeight = () => document.querySelector<HTMLElement>(".rc-app-header")?.offsetHeight ?? 0;
+
+/**
+ * Brings the bar back up under the app bar, at once: a glide back over a long list would be slow,
+ * and one that starts as focus moves can stop where it began.
+ */
+function toBar(section: HTMLElement) {
+  const gap = Number.parseFloat(getComputedStyle(section).rowGap) || 0;
+  const top = section.getBoundingClientRect().top + window.scrollY - appBarHeight() - gap;
+  window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+}
+
+/**
  * Filter bar organism (`rc-filter-bar`): the same on every list, in the same place under the page's
  * opening line (DL-061, DL-081). Search, the filters, Sort, the choices in force as removable chips,
  * and how much of the list is left. The list narrows as a person types, so the field has no button.
@@ -182,8 +237,97 @@ export function FilterBar({
   const sheetLabel = facets.length > 0 ? "Filters" : "Sort";
   // The fact under the count: the list's own once it is here, and a sentence about as long until then.
   const noted = loading ? reserve : note;
+
+  // The pinned row (DL-128). Once the bar's controls have gone up under the app bar, the same
+  // controls stay at the top of the window, so a person deep in the list changes the search, a
+  // filter or the order without scrolling back. While a menu or the sheet it opened is open it
+  // stays, even where the list has shrunk and brought the bar back into view.
+  const bar = useRef<HTMLElement>(null);
+  const pin = useRef<HTMLDivElement>(null);
+  const [above, setAbove] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
+  const [sheetFrom, setSheetFrom] = useState<"bar" | "pin">("bar");
+  const latestChoices = useRef("");
+  latestChoices.current = choicesKey(search, facets, sort);
+  // The choices as they stood when the pinned row opened a menu or the sheet; null when it opened none.
+  const openedWith = useRef<string | null>(null);
+  const pinned = !loading && (above || pinOpen);
+
+  useEffect(() => {
+    const target = bar.current?.querySelector(":scope > .rc-filter-controls, :scope > .rc-field");
+    if (!target || loading || typeof IntersectionObserver !== "function") return;
+    const header = appBarHeight();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) setAbove(!entry.isIntersecting && entry.boundingClientRect.top < (entry.rootBounds?.top ?? header));
+      },
+      { rootMargin: underAppBar(header) },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [loading, controls]);
+
+  // A change made from the pinned row starts the list again from its first card, so when the menu
+  // or the sheet closes the page goes back to the bar, and focus to the same control in it.
+  function settle(trigger: Element | null) {
+    const before = openedWith.current;
+    openedWith.current = null;
+    setPinOpen(false);
+    const section = bar.current;
+    const row = pin.current;
+    if (before === null || before === latestChoices.current || !section || !row) return;
+    const inRow = (root: Element) =>
+      [...root.querySelectorAll<HTMLElement>(":scope > .rc-filter-controls > .rc-button:not([data-filter='search'])")].filter(
+        (button) => button.offsetParent !== null,
+      );
+    const index = inRow(row).indexOf(trigger as HTMLElement);
+    toBar(section);
+    inRow(section)[Math.max(index, 0)]?.focus({ preventScroll: true });
+  }
+  const latestSettle = useRef(settle);
+  latestSettle.current = settle;
+  // A menu's toggle does not bubble, so the row listens as it passes down to the menu.
+  useEffect(() => {
+    const row = pin.current;
+    if (!row) return;
+    const toggled = (event: Event) => {
+      if (!(event instanceof ToggleEvent) || !(event.target instanceof HTMLElement)) return;
+      if (event.newState === "open") {
+        openedWith.current = latestChoices.current;
+        setPinOpen(true);
+      } else latestSettle.current(row.querySelector(`[aria-controls="${CSS.escape(event.target.id)}"]`));
+    };
+    row.addEventListener("toggle", toggled, true);
+    return () => row.removeEventListener("toggle", toggled, true);
+  }, []);
+  function openSheet(from: "bar" | "pin") {
+    if (from === "pin") {
+      openedWith.current = latestChoices.current;
+      setPinOpen(true);
+    }
+    setSheetFrom(from);
+    setSheet(true);
+  }
+  function closeSheet() {
+    setSheet(false);
+    if (sheetFrom === "pin") settle(pin.current?.querySelector("[data-filter='all']") ?? null);
+  }
+  // The pinned row's Search goes back to the field, which is where a search is typed and read.
+  function toSearch() {
+    const section = bar.current;
+    if (!section) return;
+    toBar(section);
+    section.querySelector<HTMLInputElement>("input[type='search']")?.focus({ preventScroll: true });
+  }
+  const searchButton = (
+    <button className="rc-button" data-variant="secondary" data-filter="search" data-active={!!query} type="button" onClick={toSearch}>
+      <Icon name="search" size="sm" />
+      Search
+    </button>
+  );
+  const controlProps = { facets, onFacet, sort, onSort, sheetLabel, narrowed, ordered: !!ordered };
   return (
-    <section className="rc-filter-bar" aria-label={`Filter ${noun}`} aria-busy={loading || undefined}>
+    <section className="rc-filter-bar" ref={bar} aria-label={`Filter ${noun}`} aria-busy={loading || undefined}>
       {/* The list follows each letter; Enter has nothing left to send. */}
       <form className="rc-field" role="search" onSubmit={(event) => event.preventDefault()}>
         <label htmlFor={`${id}-search`}>Search {noun}</label>
@@ -219,23 +363,7 @@ export function FilterBar({
           )}
         </div>
       ) : controls ? (
-        <div className="rc-filter-controls">
-          <button
-            className="rc-button"
-            data-variant="secondary"
-            data-filter="all"
-            data-active={narrowed > 0 || !!ordered}
-            type="button"
-            onClick={() => setSheet(true)}
-          >
-            <Icon name="filter" size="sm" />
-            {sheetLabel}{narrowed > 0 ? ` (${narrowed})` : ""}
-          </button>
-          {facets.map((facet) => (
-            <FilterMenu key={facet.key} facet={facet} name={`${id}-${facet.key}-menu`} onChange={onFacet} />
-          ))}
-          {sort && onSort && <SortMenu sort={sort} name={`${id}-sort`} onSort={onSort} />}
-        </div>
+        <Controls place={id} onSheet={() => openSheet("bar")} {...controlProps} />
       ) : null}
       {(query || choices.length > 0 || ordered) && (
         <div className="rc-active-filters" role="group" aria-label="Chosen filters">
@@ -286,42 +414,51 @@ export function FilterBar({
           </span>
         )}
       </p>
-      <Dialog presentation="information" title={sheetLabel} open={sheet} leaves onClose={() => setSheet(false)}>
-        {sort && onSort && (
-          <fieldset>
-            <legend>Sort</legend>
-            <div className="rc-chip-group">
-              {sort.options.map((option) => (
-                <label className="rc-chip" key={option.value}>
-                  <input
-                    className="rc-check"
-                    type="radio"
-                    name={`${id}-sort-sheet`}
-                    checked={sortChoice(sort)?.value === option.value}
-                    onChange={() => onSort(option.value)}
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+      <div className="rc-filter-pin" ref={pin} role="group" aria-label={`Filter ${noun}`} hidden={!pinned}>
+        {controls ? (
+          <Controls place={`${id}-pin`} onSheet={() => openSheet("pin")} lead={searchButton} {...controlProps} />
+        ) : (
+          <div className="rc-filter-controls">{searchButton}</div>
         )}
-        {facets.map((facet) => (
-          <fieldset key={facet.key}>
-            <legend>{facet.label}</legend>
-            <div className="rc-chip-group">
-              <Options facet={facet} name={`${id}-${facet.key}-sheet`} chips onChange={onFacet} />
-            </div>
-            {facet.scope && (
-              <fieldset>
-                <legend>{facet.scope.label}</legend>
-                <div className="rc-chip-group">
-                  <Options facet={facet.scope} name={`${id}-${facet.scope.key}-sheet`} chips onChange={onFacet} />
-                </div>
-              </fieldset>
-            )}
-          </fieldset>
-        ))}
+      </div>
+      <Dialog presentation="information" title={sheetLabel} open={sheet} leaves onClose={closeSheet}>
+        <div className="rc-dialog-scroll">
+          {sort && onSort && (
+            <fieldset>
+              <legend>Sort</legend>
+              <div className="rc-chip-group">
+                {sort.options.map((option) => (
+                  <label className="rc-chip" key={option.value}>
+                    <input
+                      className="rc-check"
+                      type="radio"
+                      name={`${id}-sort-sheet`}
+                      checked={sortChoice(sort)?.value === option.value}
+                      onChange={() => onSort(option.value)}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {facets.map((facet) => (
+            <fieldset key={facet.key}>
+              <legend>{facet.label}</legend>
+              <div className="rc-chip-group">
+                <Options facet={facet} name={`${id}-${facet.key}-sheet`} chips onChange={onFacet} />
+              </div>
+              {facet.scope && (
+                <fieldset>
+                  <legend>{facet.scope.label}</legend>
+                  <div className="rc-chip-group">
+                    <Options facet={facet.scope} name={`${id}-${facet.scope.key}-sheet`} chips onChange={onFacet} />
+                  </div>
+                </fieldset>
+              )}
+            </fieldset>
+          ))}
+        </div>
         <div className="rc-dialog-foot">
           <button
             className="rc-button"

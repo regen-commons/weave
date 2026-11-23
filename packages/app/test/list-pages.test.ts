@@ -99,7 +99,7 @@ test("a long list fills in as its end comes near, and Initiatives is one flat li
 test("Sort opens the same menu the filters open, says only Sort, and lives in a phone's sheet (DL-100, DL-122)", () => {
   const bar = read("ui/FilterBar.tsx");
   assert.doesNotMatch(bar, /<select\b|rc-sort/u);
-  assert.match(bar, /<SortMenu sort=\{sort\} name=\{`\$\{id\}-sort`\} onSort=\{onSort\} \/>/u);
+  assert.match(bar, /<SortMenu sort=\{sort\} name=\{`\$\{place\}-sort`\} onSort=\{onSort\} \/>/u);
   // Sort is the menu of one choice, which is the system's Menu with radios. Funding's choice of
   // initiative opens the same one (DL-118).
   const sort = bar.slice(bar.indexOf("function SortMenu"), bar.indexOf("/**\n * Filter bar organism"));
@@ -196,4 +196,16 @@ test("a funding list compared with a person's card holds the fit and readiness l
   assert.match(read("ui/FirstFunding.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
   // And the example of that page holds the same shape the live page holds.
   assert.match(read("pages/YourInitiative.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
+});
+
+test("the filter controls stay in reach deep in a list, and the sheet's title row and foot stay put (DL-128)", () => {
+  const bar = read("ui/FilterBar.tsx");
+  // The pinned row draws the bar's own controls, with Search first, and is gone from view and the tab order when hidden.
+  assert.match(bar, /<div className="rc-filter-pin" ref=\{pin\} role="group" aria-label=\{`Filter \$\{noun\}`\} hidden=\{!pinned\}>/u);
+  assert.match(bar, /<Controls place=\{`\$\{id\}-pin`\} onSheet=\{\(\) => openSheet\("pin"\)\} lead=\{searchButton\}/u);
+  assert.match(bar, /<Controls place=\{id\} onSheet=\{\(\) => openSheet\("bar"\)\}/u);
+  // Only the choices scroll; the foot is outside them.
+  assert.match(bar, /<div className="rc-dialog-scroll">[\s\S]*?<\/div>\s*<div className="rc-dialog-foot">/u);
+  const end = read("ui/ListEnd.tsx");
+  assert.doesNotMatch(end, /AUTO_BATCHES|autoLeft/u, "the list never stops filling in on its own");
 });
