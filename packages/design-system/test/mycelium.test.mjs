@@ -10,7 +10,11 @@ import {
   growsFromPointer,
   growsOnItsOwn,
   growsTrails,
+  inColumn,
   logoNetwork,
+  marginSpot,
+  QUIET_MARGIN,
+  QUIET_UNDER,
   mouseAtRest,
   movedEnough,
   restDensity,
@@ -199,7 +203,7 @@ test("the logo grows threads from its centre in several colours, and rests the s
 });
 
 // A stand-in for a window, a document and a canvas: enough to run the growth a frame at a time.
-function stage({ width = 1280, height = 800, reducedMotion = false, finePointer = true, pixelRatio = 3 } = {}) {
+function stage({ width = 1280, height = 800, reducedMotion = false, finePointer = true, pixelRatio = 3, inset = 128 } = {}) {
   const media = {
     "(prefers-reduced-motion: reduce)": reducedMotion,
     "(hover: hover) and (pointer: fine)": finePointer,
@@ -238,7 +242,7 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
   const box = { left: 0, top: 0, right: width, bottom: height, width, height };
   const element = () => ({ width: 0, height: 0, getContext: context, getBoundingClientRect: () => box });
   const document = { defaultView: view, documentElement: {}, hidden: false, createElement: element, ...listening("document") };
-  const canvas = { ...element(), ownerDocument: document, parentElement: { getBoundingClientRect: () => box }, nextElementSibling: { getBoundingClientRect: () => ({ ...box, left: 128, right: width - 128 }) } };
+  const canvas = { ...element(), ownerDocument: document, parentElement: { getBoundingClientRect: () => box }, nextElementSibling: { getBoundingClientRect: () => ({ ...box, left: inset, right: width - inset }) } };
   /** Runs frames until none is asked for, and says how many ran. */
   const run = (limit = 2000) => {
     let frames = 0;
@@ -354,4 +358,47 @@ test("the page's growth never reads the screen's pixel ratio or keeps a picture 
   const [page, logo] = source.split("export function growLogoMark");
   assert.doesNotMatch(page.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ""), /devicePixelRatio|createImageBitmap|scrollY/);
   assert.match(logo, /devicePixelRatio/, "a brand mark this small is drawn sharp");
+});
+
+test("on a quiet page the resting network is quieter under the column, and new growth keeps to wide margins (DL-135)", () => {
+  const column = { left: 80, right: 1200 };
+  assert.ok(QUIET_UNDER < 0.45, "quieter than a page with nothing to fill in");
+  assert.equal(restShare(640, column, QUIET_UNDER), QUIET_UNDER);
+  assert.equal(restShare(40, column, QUIET_UNDER), 1, "whole in the margins");
+  assert.deepEqual(restStops(column, 1280, QUIET_UNDER).map(([, share]) => share), [1, QUIET_UNDER, QUIET_UNDER, 1]);
+  assert.equal(inColumn(640, column), true);
+  assert.equal(inColumn(40, column), false);
+  // A desk's margins hold a tuft; a phone's column runs to its edges and holds none.
+  for (const pick of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const x = marginSpot(column, 1280, pick);
+    assert.ok(x !== null && !inColumn(x, column), `${pick} lands in a margin, at ${x}`);
+  }
+  assert.equal(marginSpot({ left: 0, right: 360 }, 360, 0.5), null, "a phone grows nothing new over its fields");
+  assert.equal(marginSpot({ left: QUIET_MARGIN - 1, right: 360 - QUIET_MARGIN + 1 }, 360, 0.5), null, "nor in a margin too narrow");
+  // A tuft's branches stop at the column's edge.
+  const branches = [];
+  const random = seededRandom(3);
+  const density = { reach: 60, forkRate: 0.015, limit: 24, avoid: column };
+  for (let i = 0; i < 6; i++) branches.push({ points: [76, 300 + i * 20], angle: 0, step: 1, width: 1, length: 80, generation: 0, colour: 0, growing: true });
+  settle(branches, 1280, 800, random, density);
+  for (const branch of branches) for (let i = 0; i < branch.points.length; i += 2) assert.ok(!inColumn(branch.points[i], column), "no point inside the column");
+});
+
+test("on a quiet page a mouse over the fields grows nothing, and one in the margin does", () => {
+  const { canvas, view, run, send } = stage({ inset: 80 });
+  const growth = growMycelium(canvas, { quiet: true });
+  run();
+  send("mousemove", { clientX: 640, clientY: 300 });
+  assert.equal(view.frame, null, "over the column");
+  send("mousemove", { clientX: 30, clientY: 300 });
+  assert.ok(view.frame, "in the margin");
+  growth.dispose();
+
+  const phone = stage({ width: 360, height: 780, finePointer: false, inset: 0 });
+  const onPhone = growMycelium(phone.canvas, { quiet: () => true });
+  phone.run();
+  const [grows] = phone.view.timers.filter(Boolean);
+  grows();
+  assert.equal(phone.view.frame, null, "a phone's form step grows nothing on its own");
+  onPhone.dispose();
 });

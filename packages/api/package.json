@@ -79,6 +79,21 @@
       "types": "./src/certified-project-callback.ts",
       "source": "./src/certified-project-callback.ts",
       "default": "./dist/certified-project-callback.js"
+    },
+    "./page-preview": {
+      "types": "./src/page-preview.ts",
+      "source": "./src/page-preview.ts",
+      "default": "./dist/page-preview.js"
+    },
+    "./record-page-http": {
+      "types": "./src/record-page-http.ts",
+      "source": "./src/record-page-http.ts",
+      "default": "./dist/record-page-http.js"
+    },
+    "./record-page": {
+      "types": "./src/record-page.ts",
+      "source": "./src/record-page.ts",
+      "default": "./dist/record-page.js"
     }
   },
   "scripts": {

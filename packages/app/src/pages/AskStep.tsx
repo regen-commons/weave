@@ -21,7 +21,7 @@ import {
   type Blocker,
 } from "../intake/ask-page.ts";
 import { ASK_LIMIT, ASK_LIMIT_HELP, type AskItem, type AskKind, type AskStep as Step } from "../intake/contracts.ts";
-import { extractAsks } from "../intake/extract-client.ts";
+import { closeAskReader, extractAsks, warmAskReader } from "../intake/extract-client.ts";
 import { spokenList } from "../intake/spoken.ts";
 import {
   activeItems,
@@ -84,6 +84,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   const consent = import.meta.env.DEV && example ? exampleConsent(example.speech) : undefined;
   // Changing the list clears why Continue stopped at it.
   useEffect(() => setBlocked(undefined), [draft[kind]]);
+  // The worker that reads words into cards is kept while the step is open, and ends when the person leaves it.
+  useEffect(() => closeAskReader, []);
   function next() {
     const result = continueStep(controller.getSnapshot().draft[kind]);
     if (result.ok) {
@@ -196,6 +198,12 @@ function AskSection({
   const focusIntent = useRef<string | null>(null);
   /** What the box held when listening began, so only what was said after it is split into lines. */
   const heardAfter = useRef("");
+  // Words the recognizer may still change. They show in the box and reach the draft only once
+  // settled, or when listening ends, so a phone does not store the draft five times a second.
+  const [heard, setHeard] = useState("");
+  const unsettled = useRef("");
+  // Stop pressed before the recognizer has started is kept, and applied once it has.
+  const stopWanted = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
@@ -410,10 +418,23 @@ function AskSection({
       update((current) => changeStep(current, { composer: [base, said].filter(Boolean).join(" ") }));
       return;
     }
+    warmAskReader();
+    mic.current?.dispose();
+    mic.current = null;
+    stopWanted.current = false;
     const abort = new AbortController();
     micTask.current = abort;
     setListening(true);
     let failed = false;
+    let settled = "";
+    /** Puts the words still unsettled into the box after the settled ones, when they fit. */
+    const keepUnsettled = () => {
+      const words = unsettled.current;
+      unsettled.current = "";
+      setHeard("");
+      const text = [base, settled, words].filter(Boolean).join(" ");
+      if (words && text.length <= 20000) update((current) => changeStep(current, { composer: text }));
+    };
     try {
       mic.current = await startSpeech(
         mode,
@@ -424,18 +445,26 @@ function AskSection({
             const text = [base, final, interim].filter(Boolean).join(" ");
             if (text.length > 20000) {
               failed = true;
+              keepUnsettled();
               abort.abort();
               setListening(false);
               setNotice("That is as much as the box holds. Add it to the list before saying more.");
               return;
             }
-            update((current) => changeStep(current, { composer: text }));
+            unsettled.current = interim;
+            setHeard(interim);
+            if (final !== settled) {
+              settled = final;
+              update((current) => changeStep(current, { composer: [base, final].filter(Boolean).join(" ") }));
+            }
           },
           error: (code) => {
             failed = true;
             setNotice(speechProblem(code, mode, speech.touch));
           },
           end: (requested) => {
+            // A session cut off at Stop's deadline ends with its last words unsettled; they are kept.
+            if (!abort.signal.aborted) keepUnsettled();
             setListening(false);
             if (failed || abort.signal.aborted) return;
             // Stop adds what was said, one card for each thing in it. A recognizer that ended by
@@ -448,6 +477,10 @@ function AskSection({
         },
         { consent: speech.consent, signal: abort.signal },
       );
+      if (stopWanted.current) {
+        stopWanted.current = false;
+        mic.current.stop();
+      }
     } catch {
       setListening(false);
       if (!abort.signal.aborted) setNotice(speechNotStarted(mode));
@@ -458,7 +491,8 @@ function AskSection({
     if (import.meta.env.DEV && fixture) {
       setListening(false);
       if (listSaid(heardAfter.current)) void addToList("voice");
-    } else mic.current?.stop();
+    } else if (mic.current) mic.current.stop();
+    else stopWanted.current = true;
   }
   function files(input: HTMLInputElement) {
     const selected = [...(input.files ?? [])];
@@ -518,8 +552,14 @@ function AskSection({
         onLanguage={setLanguage}
         onStart={() => void talk()}
         onStop={stop}
-        value={step.composer}
-        onChange={(text) => update((current) => changeStep(current, { composer: text }))}
+        value={heard ? [step.composer, heard].filter(Boolean).join(" ") : step.composer}
+        onChange={(text) => {
+          warmAskReader();
+          // A change typed while listening already holds the unsettled words it was shown.
+          unsettled.current = "";
+          setHeard("");
+          update((current) => changeStep(current, { composer: text }));
+        }}
         boxLabel={need ? "What you need, said or typed" : "What you can offer, said or typed"}
         hint={
           need
