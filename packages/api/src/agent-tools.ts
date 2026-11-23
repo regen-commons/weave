@@ -64,10 +64,26 @@ const NOT_CONFIRMED = "Listed from public Certified records. Weave has not confi
  * The catalog's own rules for access, filtering, ordering and safe links, which the live site and the app
  * also run. Loaded on first use, so a deployment that cannot find the file loses the fund tools only.
  */
-type Domain = typeof import("../../../dist/domain.mjs");
+type Domain = {
+  effectiveAccess(fund: unknown, now?: Date): string;
+  utcDate(now?: Date): string;
+  safeFundUrl(fund: unknown, url: string): string;
+  researchStatus(fund: unknown): string;
+  filterFunds<T>(funds: T[], state: { q?: string; region?: string; theme?: string; access?: string }, savedIds?: string[], now?: Date): T[];
+  sortFunds<T>(funds: T[], sort?: string, now?: Date): T[];
+  ACCESS: Record<string, { label: string } | undefined>;
+  RESEARCH: Record<string, string | undefined>;
+};
 let domain: Promise<Domain> | undefined;
 function catalogDomain(): Promise<Domain> {
-  const current = domain ??= import("../../../dist/domain.mjs");
+  const current = domain ??= (import("../../../dist/domain.mjs") as Promise<unknown>).then((module) => {
+    const loaded = module as Partial<Domain>;
+    // A catalog build without one of these would fail every call later, less clearly.
+    for (const name of ["effectiveAccess", "utcDate", "safeFundUrl", "researchStatus", "filterFunds", "sortFunds"] as const)
+      if (typeof loaded[name] !== "function") throw Error("invalid_catalog_code");
+    if (!loaded.ACCESS || !loaded.RESEARCH) throw Error("invalid_catalog_code");
+    return loaded as Domain;
+  });
   current.catch(() => { if (domain === current) domain = undefined; });
   return current;
 }
