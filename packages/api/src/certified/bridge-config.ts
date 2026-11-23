@@ -2,6 +2,11 @@ import type { certifiedEmailHints } from "./email-hint.ts";
 
 /** Weave's public address. A sign-in the bridge cannot finish returns to its callback there. */
 export const WEAVE_APP_ORIGIN = "https://weave.regencommons.com";
+/**
+ * Production's identity bridge. Weave's app only wakes it before a sign-in (see `bridgeWarmer`);
+ * Supabase's provider registration, not this address, decides where a sign-in goes.
+ */
+export const WEAVE_BRIDGE_ORIGIN = "https://auth.regencommons.com";
 /** The one Weave origin this bridge returns unfinishable sign-ins to, whichever Weave started them. */
 export const recoveryOrigin = (config: BridgeConfig): string => config.appOrigin ?? WEAVE_APP_ORIGIN;
 

@@ -27,9 +27,11 @@ export function errorReturn(params: URLSearchParams): Exclude<SignInResult, "sig
   // Supabase adds an error code to its own failures, including bans and disabled signup.
   return error === "access_denied" && code === undefined ? "cancelled" : "failed";
 }
-interface Options { origin: string; secureCookies: boolean; store: SignInStore; provider: AccountProvider; emailHints?: ReturnType<typeof certifiedEmailHints> }
+interface Options { origin: string; secureCookies: boolean; store: SignInStore; provider: AccountProvider; emailHints?: ReturnType<typeof certifiedEmailHints>;
+  /** Wakes the identity bridge. It never rejects and is never needed for a sign-in to work. */
+  warmBridge?: () => Promise<void> }
 /** Callback establishes identity only. Save and Load remain separate account commands. */
-export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints }: Options) {
+export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints, warmBridge }: Options) {
   const cookies = sessionCookies(secureCookies);
   const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff" };
   const finish = (path: string, status: SignInResult, session: string[] = []) => {
@@ -44,7 +46,19 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
           throw new AccountError(403, "origin_required");
         if (request.headers.get("content-type")?.split(";")[0]?.trim() !== "application/json")
           throw new AccountError(415, "json_required");
-        const body = await boundedJson(request), returnTo = returnTask(body.returnTo);
+        const body = await boundedJson(request);
+        // A page that shows Sign In to someone signed out asks this first, so the press that follows
+        // meets a warm function, a store whose one-time role check is done and a woken bridge. It
+        // starts no attempt, sets no cookie and says nothing about whether any of it worked.
+        if (body.warm === true) {
+          if (Object.keys(body).length !== 1) throw new AccountError(400, "invalid_data");
+          await Promise.allSettled([store.ready?.(), warmBridge?.()]);
+          return new Response(JSON.stringify({ warm: true }), { status: 200, headers: { ...headers, "Content-Type": "application/json" } });
+        }
+        const returnTo = returnTask(body.returnTo);
+        // A press with no warning still gives the bridge a head start on the redirects that follow.
+        // Nothing the waker does, or fails to do, changes the start.
+        try { void warmBridge?.().catch(() => {}); } catch { /* The start goes on. */ }
         // A cached form may still submit an address without the redirect disclosure.
         const useEmail = body.email !== undefined && body.emailRedirectConsent === true;
         const email = useEmail ? signInEmail(body.email) : undefined;

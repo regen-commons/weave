@@ -7,7 +7,7 @@ framework. It is the root directory of the Weave Vercel project. Read the
 [app dialect](../design-system/dialects/app.md) before changing a screen.
 
 The route table in [src/routes.ts](src/routes.ts) owns pages and their section cues.
-Home, frame, lists, the three-step intake through Your initiative, Your Initiatives,
+Home, frame, lists, the four-step intake through Your initiative, Your Initiatives,
 Funding and opportunity detail are built. Initiative details follow in later steps.
 Settings provides the private account connection. Development fixtures require an
 explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
@@ -97,11 +97,12 @@ production. Account saving uses the same-origin API and stays unavailable until 
   the plainer words ("we're in", "it's in", "we work in") a place counts only with its
   capital or a country's name, and "we work in" is read only in the person's own words,
   never in a file's. On a wide screen a step's way
-  forward goes in the Step bar through `IntakeStepper`, and in the dock on a phone.
+  forward goes in the Step bar at the foot of the window through `IntakeStepper`, and in the dock on a phone.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud
-  engine waits for D35 and its own consent. On the three steps nothing opens in the page when
+  engine waits for D35 and its own consent. On the four steps nothing opens in the page when
   pressed: use a Status slot for progress and problems, and a dialog for a choice (DL-113).
-- Needs and offers share the four-card rule and all eight kinds (DL-111). `ASK_LIMIT` is
+- Needs and offers are two steps, each with one list, and share the four-card rule and all eight kinds (DL-111). A
+  recording ends as one line per need or offer (`src/intake/spoken.ts`), so a list said in one go makes a card for each. `ASK_LIMIT` is
   what adding checks; a list stored with five stays valid, and the server keeps the earlier
   stored limits so saved cards still save. Keep and manual correction freeze a card; reading
   words again preserves those choices and removed source chunks. Linking a Certified project adds pencil entries from its description
