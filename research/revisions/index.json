@@ -20,6 +20,11 @@
       "id": "2026-11-16-haymarket-deadline-wording",
       "path": "research/revisions/2026-11-16-haymarket-deadline-wording.json",
       "sha256": "c5b8112f95049e2a6fcba171416fe54e1da817301359a2da4089b2ed61ae47f0"
+    },
+    {
+      "id": "2026-11-23-haymarket-name-spacing",
+      "path": "research/revisions/2026-11-23-haymarket-name-spacing.json",
+      "sha256": "351c70c53138369131ebe172287e40b61cfc05fd2046730644a449df3c975ff3"
     }
   ]
 }

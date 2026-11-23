@@ -64,11 +64,17 @@ where a freshness run keeps them current.
 When one funder has several rounds, tracks or tiers, add a label after a colon, such
 as "Restack: first call 2026" or "Seabury Community Grants: Chicago". If the funder's
 own name already has a colon, join the label with a comma. Never use an em dash in a
-program or funder name. A year range keeps its en dash, as in "2026–27".
+program or funder name. A year range keeps its en dash, as in "2026–27". Put a space
+between a word and a year: "Roots Fund 2026", not "Roots Fund2026". A label the
+funder writes as one token, such as FY2024, stays as written.
 
 Renaming a program never changes its id. A rename that only applies this rule is
 recorded in a rename archive under `research/maintenance-history/`, with the old and
-new name of every program, and is not a revision of terms.
+new name of every program, and is not a revision of terms. A program that already has
+a journaled revision is renamed through the
+[revision workflow](../../../docs/program-revisions.md), with the funder's page read
+that day as evidence for the name. `nameProblems` in `scripts/research-validation.mjs`
+checks the rule, and the test suite runs it over the current catalog.
 
 An opportunity is never an eligibility decision. The catalog records published terms;
 it does not rule on whether an initiative qualifies.

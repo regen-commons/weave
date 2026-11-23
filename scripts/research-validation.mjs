@@ -59,6 +59,17 @@ export function validateSchema(value, schema, path = "$") {
     }
   }
 }
+// The naming rule in the catalog-research verification standard, for the current catalog.
+// It is not part of validateResearch or validateSnapshot, because those also check
+// archived and rewound records that keep the names they had.
+const WORD_INTO_YEAR = /\p{L}(?:19|20)\d\d/u;
+const WRITTEN_AS_ONE = /\bFY(?:19|20)\d\d|\bLA2050\b/g;
+export function nameProblems(name) {
+  const problems = [];
+  if (name.includes("\u2014")) problems.push("has an em dash");
+  if (WORD_INTO_YEAR.test(name.replace(WRITTEN_AS_ONE, ""))) problems.push("has no space before a year");
+  return problems;
+}
 export function validateResearch(record, schema) {
   validateSchema(record, schema);
   const hasPath = (value, path) =>

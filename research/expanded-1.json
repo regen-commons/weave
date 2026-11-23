@@ -952,7 +952,7 @@
     "programs": [
       {
         "id": "resilient-futures2026-ideation-grants",
-        "name": "Resilient Futures2026: Ideation Grants",
+        "name": "Resilient Futures 2026: Ideation Grants",
         "instrument": "grant",
         "focus": [
           "political leadership",
@@ -1021,7 +1021,7 @@
       },
       {
         "id": "resilient-futures2026-incubation-grants",
-        "name": "Resilient Futures2026: Incubation Grants",
+        "name": "Resilient Futures 2026: Incubation Grants",
         "instrument": "grant",
         "focus": [
           "political leadership",
@@ -1380,7 +1380,7 @@
     "programs": [
       {
         "id": "ayni2026-small-grants",
-        "name": "AYNI2026: Small Grants",
+        "name": "AYNI 2026: Small Grants",
         "instrument": "grant",
         "focus": [
           "Indigenous women",
@@ -1468,7 +1468,7 @@
       },
       {
         "id": "ayni2026-medium-grants",
-        "name": "AYNI2026: Medium Grants",
+        "name": "AYNI 2026: Medium Grants",
         "instrument": "grant",
         "focus": [
           "Indigenous women",
@@ -2109,7 +2109,7 @@
     "programs": [
       {
         "id": "just-futures-initiative2026",
-        "name": "Just Futures Initiative2026",
+        "name": "Just Futures Initiative 2026",
         "instrument": "grant",
         "focus": [
           "community safety",
@@ -4032,7 +4032,7 @@
     "programs": [
       {
         "id": "climate-smart-communities-initiative2027",
-        "name": "Climate Smart Communities Initiative2027",
+        "name": "Climate Smart Communities Initiative 2027",
         "instrument": "grant",
         "focus": [
           "climate adaptation",
@@ -4573,7 +4573,7 @@
     "programs": [
       {
         "id": "community-foundation-general-grants2026",
-        "name": "Community Foundation General Grants2026",
+        "name": "Community Foundation General Grants 2026",
         "instrument": "grant",
         "focus": [
           "community development",
@@ -6153,7 +6153,7 @@
     "programs": [
       {
         "id": "roots-fund2026",
-        "name": "Roots Fund2026",
+        "name": "Roots Fund 2026",
         "instrument": "grant",
         "focus": [
           "grassroots organizing",
@@ -6574,7 +6574,7 @@
     "programs": [
       {
         "id": "connect2026-collaboration-grants",
-        "name": "CONNECT2026 collaboration grants",
+        "name": "CONNECT 2026 collaboration grants",
         "instrument": "grant",
         "focus": [
           "feminist movements",
@@ -8031,7 +8031,7 @@
     "programs": [
       {
         "id": "democracy-at-work-fund-consortium2025-call",
-        "name": "Democracy at Work Fund: consortium2025 call",
+        "name": "Democracy at Work Fund: consortium 2025 call",
         "instrument": "grant",
         "focus": [
           "workers’ rights",
@@ -8253,7 +8253,7 @@
     "programs": [
       {
         "id": "survivor-leadership-fund-nepal2026",
-        "name": "Survivor Leadership Fund: Nepal2026",
+        "name": "Survivor Leadership Fund: Nepal 2026",
         "instrument": "grant",
         "focus": [
           "modern slavery",
@@ -9497,7 +9497,7 @@
     "programs": [
       {
         "id": "movement-solidarity2026-funding-transition",
-        "name": "Movement Solidarity2026 funding transition",
+        "name": "Movement Solidarity 2026 funding transition",
         "instrument": "grant",
         "focus": [
           "reproductive justice",
@@ -9792,7 +9792,7 @@
     "programs": [
       {
         "id": "global-change-award2026",
-        "name": "Global Change Award2026",
+        "name": "Global Change Award 2026",
         "instrument": "prize",
         "focus": [
           "textile decarbonization",
@@ -9904,7 +9904,7 @@
     "programs": [
       {
         "id": "sustaining-grants2026-27",
-        "name": "Sustaining Grants2026–27",
+        "name": "Sustaining Grants 2026–27",
         "instrument": "grant",
         "focus": [
           "racial justice",
@@ -9977,6 +9977,14 @@
             "url": "https://www.haymarket.org/grants-1",
             "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
             "checkedOn": "2026-11-16"
+          },
+          {
+            "fields": [
+              "name"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Read the grants page for the program's name: the section is headed \"Sustaining Grants\" and the page says \"The 2026-2027 Sustaining Grant deadline is Wednesday, December 2, 2026.\" No other term was reviewed in this check.",
+            "checkedOn": "2026-11-23"
           }
         ],
         "unknowns": [
@@ -10001,6 +10009,11 @@
         "url": "https://www.haymarket.org/grants-1",
         "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
         "checkedOn": "2026-11-16"
+      },
+      {
+        "url": "https://www.haymarket.org/grants-1",
+        "title": "Haymarket People’s Fund grants page, name check",
+        "checkedOn": "2026-11-23"
       }
     ],
     "evidence": [
@@ -11245,7 +11258,7 @@
     "programs": [
       {
         "id": "bndes-periferias-fortes-norte2026-small",
-        "name": "BNDES Periferias Fortes Norte2026: Small",
+        "name": "BNDES Periferias Fortes Norte 2026: Small",
         "instrument": "grant",
         "focus": [
           "civil society",
@@ -11318,7 +11331,7 @@
       },
       {
         "id": "bndes-periferias-fortes-norte2026-medium",
-        "name": "BNDES Periferias Fortes Norte2026: Medium",
+        "name": "BNDES Periferias Fortes Norte 2026: Medium",
         "instrument": "grant",
         "focus": [
           "civil society",
@@ -11675,7 +11688,7 @@
     "programs": [
       {
         "id": "9th-regional-call2026-tier1",
-        "name": "9th Regional Call2026: Tier1",
+        "name": "9th Regional Call 2026: Tier1",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -11765,7 +11778,7 @@
       },
       {
         "id": "9th-regional-call2026-tier2",
-        "name": "9th Regional Call2026: Tier2",
+        "name": "9th Regional Call 2026: Tier2",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -11854,7 +11867,7 @@
       },
       {
         "id": "9th-regional-call2026-tier3",
-        "name": "9th Regional Call2026: Tier3",
+        "name": "9th Regional Call 2026: Tier3",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -12220,7 +12233,7 @@
     "programs": [
       {
         "id": "reforming-local-government-funding-in-scotland2026",
-        "name": "Reforming local government funding in Scotland2026",
+        "name": "Reforming local government funding in Scotland 2026",
         "instrument": "grant",
         "focus": [
           "poverty",
@@ -12444,7 +12457,7 @@
     "programs": [
       {
         "id": "national-grant-making-coordinating-organisation2026",
-        "name": "National Grant-making Coordinating Organisation2026",
+        "name": "National Grant-making Coordinating Organisation 2026",
         "instrument": "grant",
         "focus": [
           "community-led development",
@@ -12573,7 +12586,7 @@
     "programs": [
       {
         "id": "21st-practical-women-s-studies-fellowship2027",
-        "name": "21st Practical Women’s Studies Fellowship2027",
+        "name": "21st Practical Women’s Studies Fellowship 2027",
         "instrument": "fellowship",
         "focus": [
           "women’s studies",
@@ -12686,7 +12699,7 @@
     "programs": [
       {
         "id": "social-research-call2026",
-        "name": "Social Research Call2026",
+        "name": "Social Research Call 2026",
         "instrument": "grant",
         "focus": [
           "quantitative social research"
@@ -14071,7 +14084,7 @@
     "programs": [
       {
         "id": "see-change2024-medwf-call",
-        "name": "SEE CHANGE2024: MedWF call",
+        "name": "SEE CHANGE 2024: MedWF call",
         "instrument": "grant",
         "focus": [
           "feminist movements",
@@ -14655,7 +14668,7 @@
     "programs": [
       {
         "id": "6th-futuro-bem-maior2026",
-        "name": "6th Futuro Bem Maior2026",
+        "name": "6th Futuro Bem Maior 2026",
         "instrument": "grant",
         "focus": [
           "civil society",
@@ -15880,7 +15893,7 @@
     "programs": [
       {
         "id": "onside2025-group-grants",
-        "name": "ONSIDE2025 group grants",
+        "name": "ONSIDE 2025 group grants",
         "instrument": "grant",
         "focus": [
           "gender justice",
@@ -17860,7 +17873,7 @@
     "programs": [
       {
         "id": "visa-foundation-us-small-business-growth-and-innovation2026",
-        "name": "Visa Foundation US Small Business Growth and Innovation2026",
+        "name": "Visa Foundation US Small Business Growth and Innovation 2026",
         "instrument": "grant",
         "focus": [
           "small-business support",
@@ -18571,7 +18584,7 @@
     "programs": [
       {
         "id": "sports-small-grants2025",
-        "name": "Sports Small Grants2025",
+        "name": "Sports Small Grants 2025",
         "instrument": "grant",
         "focus": [
           "safe housing",
@@ -18695,7 +18708,7 @@
     "programs": [
       {
         "id": "community-action-grants2026",
-        "name": "Community Action Grants2026",
+        "name": "Community Action Grants 2026",
         "instrument": "grant",
         "focus": [
           "community action",
@@ -18903,7 +18916,7 @@
     "programs": [
       {
         "id": "systems-change-fellowship2026-27",
-        "name": "Systems Change Fellowship2026–27",
+        "name": "Systems Change Fellowship 2026–27",
         "instrument": "fellowship",
         "focus": [
           "systems change",
@@ -19134,7 +19147,7 @@
     "programs": [
       {
         "id": "adelante-fund2026",
-        "name": "Adelante Fund2026",
+        "name": "Adelante Fund 2026",
         "instrument": "grant",
         "focus": [
           "Latino communities",
@@ -19661,7 +19674,7 @@
     "programs": [
       {
         "id": "teladan2026-scholarship",
-        "name": "TELADAN2026 scholarship",
+        "name": "TELADAN 2026 scholarship",
         "instrument": "fellowship",
         "focus": [
           "undergraduate education",
@@ -21552,7 +21565,7 @@
     "programs": [
       {
         "id": "transforming-systems-grants-influence2026",
-        "name": "Transforming Systems Grants: Influence2026",
+        "name": "Transforming Systems Grants: Influence 2026",
         "instrument": "grant",
         "focus": [
           "community-led systems change",
@@ -23078,7 +23091,7 @@
     "programs": [
       {
         "id": "diaspora-investor-training-and-sme-matchmaking2026",
-        "name": "Diaspora Investor Training and SME Matchmaking2026",
+        "name": "Diaspora Investor Training and SME Matchmaking 2026",
         "instrument": "fellowship",
         "focus": [
           "diaspora investment",

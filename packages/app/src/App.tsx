@@ -12,6 +12,7 @@ import { hasDraft } from "./describe/view.ts";
 import { fundingBackHref, legacyFundingHref } from "./funding/catalog.ts";
 import { recoverConsentReturn } from "./initiative/consent-return.ts";
 import { headerStatus } from "./initiative/header-status.ts";
+import { forgetLandingHead } from "./landing-head.ts";
 import { lazyPage, type LazyPage } from "./lazy-page.ts";
 import { NotFound } from "./pages/NotFound.tsx";
 
@@ -312,6 +313,8 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     if (!route?.sheet) document.title = documentTitle(pageRoute);
     const before = last.current;
     if (before.location === location) return;
+    // The landing page's canonical link and JSON-LD would now name the wrong page.
+    forgetLandingHead(document.head);
     last.current = { location, pagePath, sheet: !!sheetRoute };
     // A sheet opening or closing leaves the page under it where it was.
     if ((before.sheet || sheetRoute) && before.pagePath === pagePath) return;
