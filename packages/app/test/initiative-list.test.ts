@@ -191,7 +191,8 @@ test("every card says what it is, so a draft and a Certified project with one na
 });
 
 test("example funding on Your Initiative reads strongest fit first, as the live list does", () => {
-  const records = [{ id: "a", fit: "good" }, { id: "b", fit: "strong" }, { id: "c" }, { id: "d", fit: "possible" }, { id: "e", fit: "strong" }] as const;
+  const records: readonly { id: string; fit?: "strong" | "good" | "possible" }[] =
+    [{ id: "a", fit: "good" }, { id: "b", fit: "strong" }, { id: "c" }, { id: "d", fit: "possible" }, { id: "e", fit: "strong" }];
   assert.deepEqual(strongestFirst(records).map((record) => record.id), ["b", "e", "a", "d", "c"], "equal strengths keep their order");
   assert.deepEqual(records.map((record) => record.id), ["a", "b", "c", "d", "e"], "the examples themselves are left as they are");
 });
