@@ -19,7 +19,7 @@ import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
 import { PartnerExperience } from "../partners/PartnerExperience.tsx";
-import { pathTo } from "../routes.ts";
+import { INTAKE_STEPS, pathTo } from "../routes.ts";
 import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
@@ -154,9 +154,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
     <Stack wide>
       <Stack>
         {inFlow && (
-          <IntakeStepper current={2}>
-            <ButtonLink href={pathTo("needs")} variant="quiet">
-              Back To Needs And Offers
+          <IntakeStepper current={INTAKE_STEPS.length - 1}>
+            <ButtonLink href={pathTo("offers")} variant="quiet">
+              Back To Offers
             </ButtonLink>
           </IntakeStepper>
         )}
@@ -177,8 +177,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
         />
         {inFlow && (
           <div className="rc-action-bar" data-until="wide">
-            <ButtonLink href={pathTo("needs")} variant="quiet">
-              Back To Needs And Offers
+            <ButtonLink href={pathTo("offers")} variant="quiet">
+              Back To Offers
             </ButtonLink>
           </div>
         )}
