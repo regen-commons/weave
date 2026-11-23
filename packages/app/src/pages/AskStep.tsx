@@ -360,6 +360,11 @@ function AskSection({
       if (task.current === abort) {
         task.current = null;
         setBusy(false);
+        // Add To List is held once the box is empty, so the press can leave nothing holding the
+        // focus. The line that says what happened takes it then, and a keyboard goes on from there (DL-032).
+        requestAnimationFrame(() => {
+          if (document.activeElement === document.body) document.getElementById(part("blocker"))?.focus();
+        });
       }
     }
   }
