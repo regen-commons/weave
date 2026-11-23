@@ -229,6 +229,8 @@ export class AccountSession {
       }
     }
     if (this.connection !== connection) return;
+    // One return is reported twice and both reports share the failed check: hide and count it once.
+    if (this.state === null && this.unverified) return;
     // Nothing is under way here, so nothing is aborted: the check has just failed.
     this.schedule(undefined);
     invalidateAccountRequests();

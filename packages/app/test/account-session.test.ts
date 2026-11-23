@@ -365,6 +365,32 @@ test("after failing closed the check is tried again until it answers", async () 
   assert.deepEqual(time.pending(), []);
 });
 
+test("one failed check lengthens the wait once, however many signals reported the return", async () => {
+  const bus = tabs(), time = clock();
+  let offline = false, calls = 0;
+  const session = new AccountSession(async () => { calls++; if (offline) throw new AccountFailure("connection_failed"); return response(owner); },
+    time.timers, () => 0);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  offline = true;
+  // Focus and visibility, as a browser reports one return.
+  bus.resume(); bus.resume();
+  await settled();
+  assert.equal(calls, 2);
+  assert.equal(session.getSnapshot(), null);
+  assert.deepEqual(time.pending(), [60000], "the first try comes after a minute, not later");
+  // A second return while still offline is one more failed check, counted once.
+  time.advance(5000);
+  bus.resume(); bus.resume();
+  await settled();
+  assert.equal(calls, 3);
+  assert.deepEqual(time.pending(), [120000]);
+  time.fire();
+  await settled();
+  assert.deepEqual(time.pending(), [240000]);
+  close();
+});
+
 test("an account hidden because the device's mark moved is tried again too; a tab that showed nobody is not", async () => {
   const bus = tabs(), time = clock(), device = note(true);
   let offline = false;
