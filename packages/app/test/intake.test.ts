@@ -42,7 +42,6 @@ import {
   ASK_KINDS,
   cardsNote,
   changeKind,
-  continueBoth,
   continueStep,
   entryId,
   kindFocus,
@@ -644,20 +643,20 @@ test("the page says when words still wait for cards", () => {
   assert.equal(cardsNote(changeStep(stale, { mode: "manual" })), "");
 });
 
-test("continue keeps every pencil entry in both lists, or changes neither", () => {
+test("each step's Continue keeps every pencil entry in its list, and an empty list may continue", () => {
   const needs = addEntry(seed(), "A fence for the tree nursery");
   const offers = addEntry(emptyAskStep(), "A workshop on mapping water");
-  const done = continueBoth({ needs, offers });
-  if (!done.ok) throw new Error("Both lists should continue");
-  for (const kind of ASK_KINDS) {
-    assert.ok(done.steps[kind].items.every((item) => item.decision === "kept"));
-    assert.equal(done.steps[kind].reviewedVersion, done.steps[kind].inputVersion);
+  for (const step of [needs, offers]) {
+    const done = continueStep(step);
+    if (!done.ok) throw new Error("The list should continue");
+    assert.ok(done.step.items.every((item) => item.decision === "kept"));
+    assert.equal(done.step.reviewedVersion, done.step.inputVersion);
   }
-  assert.equal(continueBoth({ needs: emptyAskStep(), offers: emptyAskStep() }).ok, true);
-  // Words still in the box stop the page at that list, so nothing typed is left behind unseen.
-  assert.deepEqual(continueBoth({ needs, offers: changeStep(offers, { composer: "Tools" }) }), {
+  assert.equal(continueStep(emptyAskStep()).ok, true);
+  // Words still in the box stop the step, so nothing typed is left behind unseen.
+  assert.deepEqual(continueStep(changeStep(offers, { composer: "Tools" })), {
     ok: false,
-    blocked: { offers: { where: "talk", message: "Add what is in the box to your list, or clear the box, then continue." } },
+    blocker: { where: "talk", message: "Add what is in the box to your list, or clear the box, then continue." },
   });
   const blocker = (step: AskStep) => {
     const result = continueStep(step);

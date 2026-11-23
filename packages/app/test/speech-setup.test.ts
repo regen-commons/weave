@@ -22,9 +22,6 @@ import {
   type SpeechSetupState,
   type Wait,
 } from "../src/describe/speech-setup.ts";
-import { speechSetupList } from "../src/intake/ask-page.ts";
-import { emptyAskStep } from "../src/intake/contracts.ts";
-import { addEntry } from "../src/intake/entries.ts";
 
 /** Lets every answer the stub browser has already given arrive. */
 const settle = () => new Promise((resolve) => setImmediate(resolve));
@@ -493,16 +490,6 @@ test("a failed session leaves Talk It Out in place, so the page does not move an
     assert.doesNotMatch(speechProblem(code, "browser"), /keyboard/, "a computer keyboard has no such key");
   }
   assert.doesNotMatch(speechProblem("not-allowed", "browser", true), /keyboard/, "a refused microphone would refuse the keyboard too");
-});
-
-test("the needs and offers page offers setup once, in the list the route opened unless it is full", () => {
-  let full = emptyAskStep();
-  for (const words of ["Seedlings", "Fencing", "A truck", "A map"]) full = addEntry(full, words);
-  const empty = emptyAskStep();
-  assert.equal(speechSetupList("needs", { needs: empty, offers: empty }), "needs");
-  assert.equal(speechSetupList("offers", { needs: empty, offers: empty }), "offers");
-  assert.equal(speechSetupList("needs", { needs: full, offers: empty }), "offers");
-  assert.equal(speechSetupList("offers", { needs: full, offers: full }), undefined);
 });
 
 test("a second Talk it out on a page stays quiet until talking works, so setup and the missing-speech line show once", () => {
