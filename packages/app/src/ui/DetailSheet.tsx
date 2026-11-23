@@ -4,6 +4,7 @@ import { Heading } from "./Heading.tsx";
 import { NarrowLayout } from "./layouts.tsx";
 import { keepFocusOnPage } from "./focus.ts";
 import { SectionLevelContext, type SectionLevel } from "./section-level.ts";
+import { RECORD_META_HOLD } from "../record-first-view.ts";
 
 /** Whether a record's sheet is on screen, and what follows once it has left. */
 export interface SheetState {
@@ -62,13 +63,32 @@ export function DetailSheet({
 }
 
 /**
+ * The first lines of a record that came with its page (GET /api/record-page): the room of the line the
+ * loaded record shows under its heading, then its summary, as the server drew them, so neither moves
+ * when the app takes over or when the record arrives.
+ */
+export function RecordLead({ summary }: { summary: string }) {
+  return (
+    <>
+      <p className="rc-card-meta" aria-hidden="true">
+        <span className="rc-skeleton" data-shape="hold">
+          {RECORD_META_HOLD}
+        </span>
+      </p>
+      {summary && <p className="rc-prose">{summary}</p>}
+    </>
+  );
+}
+
+/**
  * A record opening: the shape of its first screen (a line about it, its words, its actions and a
  * section), as tall as a phone's screen. A record's page and its sheet open at about their final height,
- * so nothing below the record shows and then moves when it arrives (quality finding Q-05).
+ * so nothing below the record shows and then moves when it arrives (quality finding Q-05). A page
+ * holds its footer back until the record is in (`data-loading="record"`).
  */
 export function RecordSkeleton({ label }: { label: string }) {
   return (
-    <div className="rc-stack" aria-busy="true">
+    <div className="rc-stack" aria-busy="true" data-loading="record">
       <p className="rc-visually-hidden" role="status">
         {label}
       </p>
