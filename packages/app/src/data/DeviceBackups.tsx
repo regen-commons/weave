@@ -135,14 +135,16 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
                     await controller.replace(step.backup.draft);
                     return "Device backup restored.";
                   })}>
-                  Restore Backup
+                  <span>Restore Backup</span>
+                  {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
               ) : (
                 <button className="rc-button" data-variant="danger" type="button" {...busyProps(busy)}
                   onClick={() => void run(async () => step.kind === "current"
                     ? discardedMessage(await controller.discardCurrent())
                     : removedBackupMessage(await controller.deleteBackup(step.backup)))}>
-                  {step.kind === "current" ? "Remove From This Device" : "Delete This Backup"}
+                  <span>{step.kind === "current" ? "Remove From This Device" : "Delete This Backup"}</span>
+                  {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
               )}
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
