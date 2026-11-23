@@ -67,22 +67,31 @@ export function createAccountHandlers({
         const access = current.access;
         if (!access) return response(200, { available: true, signIn: "certified", fixture, user: null, items: [],
           ...(emailHintAvailable ? { emailHintAvailable } : {}) });
-        const user = await authorized(provider, { ...current, access });
         const params = new URL(request.url).searchParams,
           id = params.get("id");
         if (id) {
+          const user = await authorized(provider, { ...current, access });
           if (!uuid(id)) throw new AccountError(400, "invalid_data");
           return response(200, { available: true, user, saved: await provider.load(access, id) }, current.setCookies);
         }
         const offset = Number(params.get("offset") ?? 0);
-        if (!Number.isSafeInteger(offset) || offset < 0 || offset > 10000)
-          throw new AccountError(400, "invalid_data");
+        const listable = Number.isSafeInteger(offset) && offset >= 0 && offset <= 10000;
+        // The list is read while the session is authorized, since every page asks for both. The database
+        // applies the same access rule to the list itself, and a list read for a session that is then
+        // refused is dropped unseen. The authorization's outcome is judged first, as when it ran first.
+        const listing = listable
+          ? provider.list(access, offset).then(items => ({ items }), (error: unknown) => ({ error }))
+          : undefined;
+        const user = await authorized(provider, { ...current, access });
+        if (!listing) throw new AccountError(400, "invalid_data");
+        const listed = await listing;
+        if ("error" in listed) throw listed.error;
         return response(200, {
           available: true,
           signIn: "certified",
           fixture,
           user,
-          items: await provider.list(access, offset),
+          items: listed.items,
           renewIn: renewIn(current.left, current.renewable),
         }, current.setCookies);
       } catch (error) {
