@@ -6,18 +6,8 @@ import { activeItems, decide, fromProjectPage, reviewStep } from "./state.ts";
 /** One of the eight forms of capital, shown to people as a kind of support. */
 export type CapitalForm = AskItem["value"]["capitalForms"][number];
 
-/** The two lists on the needs and offers page, in the order they show. */
+/** The two lists, needs and then offers, in the order their steps come. */
 export const ASK_KINDS = ["needs", "offers"] as const satisfies readonly AskKind[];
-
-/**
- * The one list that offers to set up speech, so the page asks once: the list the route opened on,
- * or the other when that one is full. Both lists get Speak once speech is ready.
- */
-export function speechSetupList(opened: AskKind, steps: Readonly<Record<AskKind, AskStep>>): AskKind | undefined {
-  return [opened, ...ASK_KINDS.filter((kind) => kind !== opened)].find(
-    (kind) => activeItems(steps[kind]).length < ASK_LIMIT,
-  );
-}
 
 /** "2 of 4": how many entries a list holds against the limit, as one phrase. */
 export const sectionCount = (step: AskStep): string => `${activeItems(step).length} of ${ASK_LIMIT}`;
@@ -63,9 +53,6 @@ export interface Blocker {
 export type StepResult =
   | { readonly ok: true; readonly step: AskStep }
   | { readonly ok: false; readonly blocker: Blocker };
-export type ContinueResult =
-  | { readonly ok: true; readonly steps: Record<AskKind, AskStep> }
-  | { readonly ok: false; readonly blocked: Partial<Record<AskKind, Blocker>> };
 
 function blockerFor(step: AskStep, error: unknown): Blocker {
   if (step.editor)
@@ -94,20 +81,6 @@ export function continueStep(step: AskStep): StepResult {
   } catch (error) {
     return { ok: false, blocker: blockerFor(step, error) };
   }
-}
-
-/** Continue for the page. Both lists pass together or neither is changed. */
-export function continueBoth(steps: Readonly<Record<AskKind, AskStep>>): ContinueResult {
-  const needs = continueStep(steps.needs);
-  const offers = continueStep(steps.offers);
-  if (needs.ok && offers.ok) return { ok: true, steps: { needs: needs.step, offers: offers.step } };
-  return {
-    ok: false,
-    blocked: {
-      ...(needs.ok ? {} : { needs: needs.blocker }),
-      ...(offers.ok ? {} : { offers: offers.blocker }),
-    },
-  };
 }
 
 /**

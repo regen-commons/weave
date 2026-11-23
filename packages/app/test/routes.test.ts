@@ -27,7 +27,7 @@ test("each route has a unique path and name; device and team routes use the same
   assert.equal(new Set(otherTitles).size, otherTitles.length);
   assert.deepEqual(
     INTAKE_STEPS.map((step) => step.route),
-    ["initiative", "needs", "your-initiative"],
+    ["initiative", "needs", "offers", "your-initiative"],
   );
 });
 test("the frame has four tabs, detail sheets, the person's initiative pages and Settings; saving is no longer a page", () => {
@@ -173,8 +173,14 @@ test("a later step of describing an initiative goes back to the step before it, 
       hops: 0,
       replace: true,
     }, from);
-  // The offers list is on the same step as needs, so it goes back to the same step.
-  assert.equal(backTarget(matchRoute("/start/offers"), { from: "/your-initiative", hops: 1 })?.href, "/start/initiative");
+  // Offers is the step after needs, so it goes back to needs.
+  assert.deepEqual(backTarget(matchRoute("/start/offers"), { from: "/your-initiative", hops: 1 }), {
+    label: "What You Need",
+    href: "/start/needs",
+    hops: 0,
+    replace: true,
+  });
+  assert.equal(backTarget(matchRoute("/start/offers"), { from: "/start/needs?fixture=draft", hops: 1 })?.hops, 1);
   // The first step returns to where the person came from, as before.
   assert.deepEqual(backTarget(matchRoute("/start/initiative"), { from: "/your-initiative", hops: 1 }), {
     label: "Your Initiative",
@@ -188,9 +194,9 @@ test("a later step of describing an initiative goes back to the step before it, 
     hops: 0,
   });
   // The last step is also an initiative's own page, so it keeps the way the person came.
-  assert.deepEqual(backTarget(matchRoute("/your-initiative"), { from: "/start/needs", hops: 1 }), {
-    label: "Needs And Offers",
-    href: "/start/needs",
+  assert.deepEqual(backTarget(matchRoute("/your-initiative"), { from: "/start/offers", hops: 1 }), {
+    label: "What You Can Offer",
+    href: "/start/offers",
     hops: 1,
   });
   assert.equal(backTarget(matchRoute("/your-initiative"), { from: "/your-initiatives", hops: 1 })?.label, "Your Initiatives");

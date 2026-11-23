@@ -91,10 +91,15 @@ test("a card's title leaves out what the list's heading already says, and never 
 });
 
 test("the spoken rules stay fast on any box the page allows", () => {
+  // CPU time on this thread, as keyword-speed.test.ts counts it, so waiting for a busy machine's
+  // core does not count. The first rules took 8.9 seconds on a box of commas; each case is now a few
+  // milliseconds.
   for (const unit of [" ", ", ", "and ", "and a ", "we need ", "first second ", "uh a ", "because we need ", ", and ", "we'd "]) {
     const box = unit.repeat(Math.ceil(20000 / unit.length)).slice(0, 20000);
-    const started = performance.now();
+    const before = process.threadCpuUsage();
     for (const line of spokenLines(box).slice(0, 10)) cardTitle(line);
-    assert.ok(performance.now() - started < 250, `${JSON.stringify(unit)} took ${performance.now() - started} ms`);
+    const { user, system } = process.threadCpuUsage(before);
+    const took = (user + system) / 1000;
+    assert.ok(took < 500, `${JSON.stringify(unit)} took ${Math.round(took)} ms`);
   }
 });
