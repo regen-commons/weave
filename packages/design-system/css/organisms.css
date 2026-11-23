@@ -108,7 +108,7 @@
 
 /* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the
    header scrolls away with the page, so the bars never take most of what there is to read. A
-   step's bar then sticks at the window's top on its own (DL-132). */
+   step's bar stays at the window's foot, as a phone's dock does (DL-132, DL-127). */
 @media (height < 30rem) {
   .rc-app-head, .rc-app-header { position: static; }
 }
