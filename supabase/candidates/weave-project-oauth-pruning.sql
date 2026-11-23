@@ -1,6 +1,9 @@
 -- Candidate for the website migration owner; this repository applies nothing. Apply after
 -- weave-project-oauth.sql, on a project where the pg_cron extension is available.
 --
+-- Applied to the shared Platform project (ztygpuzldujfsqrubxic) on 23 November 2026, as plain SQL and
+-- as postgres, the table's owner. It still has to be recorded in the website's migration folder.
+--
 -- weave_project_oauth.records holds short-lived consent state and the Certified project grants, all
 -- encrypted. Every read already ignores a row past its expires_at, and signing out deletes that
 -- session's grants. A session that lapses without a sign-out leaves its grant behind, and nothing

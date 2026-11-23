@@ -1,3 +1,4 @@
+import { busyProps } from "./busy.ts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useDraft } from "../describe/use-draft.ts";
@@ -28,7 +29,11 @@ export function PrivateSaveAction({ children = "Save Privately", size, onSaved, 
     } catch (error) { if (!current.signal.aborted) onFailed(accountMessage(error)); }
     finally { if (task.current === current) { task.current = null; if (!current.signal.aborted) setBusy(false); } }
   }
+  // The pressed button keeps the focus while the save runs, and `save` declines a second press (`busy.ts`).
   return <button className="rc-button" data-variant="primary" data-size={size} type="button"
-    disabled={busy || !state?.user || savedCheck === "checking" || savedCheck === "unavailable" || savedCheck === "changed"}
-    onClick={event => void save(event.currentTarget.closest(".rc-status-line"))}>{children}</button>;
+    {...busyProps(busy, !state?.user || savedCheck === "checking" || savedCheck === "unavailable" || savedCheck === "changed")}
+    onClick={event => void save(event.currentTarget.closest(".rc-status-line"))}>
+    <span>{children}</span>
+    {busy && <span className="rc-spinner" aria-hidden="true" />}
+  </button>;
 }
