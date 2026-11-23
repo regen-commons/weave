@@ -1,9 +1,10 @@
 import { InformationContext } from "./information-context.ts";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { breadcrumbTrail, matchRoute, navLabel, type BackTarget, type RouteName } from "../routes.ts";
 import type { SaveStatus } from "../initiative/header-status.ts";
 import { AppHeader } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
+import { firstViewReplaced, replacesFirstView } from "../first-view.ts";
 import { BottomNav } from "./BottomNav.tsx";
 import { DockContext, StepBarContext } from "./dock.ts";
 import { Breadcrumbs } from "./Breadcrumbs.tsx";
@@ -94,9 +95,13 @@ export function Page({
   );
 }
 
-/** The page's content. A page reached with Back or Forward shows as the person left it, without arriving again. */
+/**
+ * The page's content. A page reached with Back or Forward shows as the person left it, without
+ * arriving again, and so does one that replaces the first view the server sent, which already arrived.
+ */
 function Main({ pathname, notice, children }: { pathname: string; notice: ReactNode; children: ReactNode }) {
-  const [returned] = useState(wasReturn);
+  const [returned] = useState(() => wasReturn() || replacesFirstView(pathname));
+  useEffect(firstViewReplaced, []);
   const route = matchRoute(pathname);
   const trail = breadcrumbTrail(route);
   return (

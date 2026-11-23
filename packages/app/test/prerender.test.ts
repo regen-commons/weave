@@ -1,0 +1,50 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { FIRST_VIEWS, RESULT_MARK, readFirstViews, scriptsAfterFirstPaint, withFirstView } from "../dev/prerender.ts";
+import { ROUTES } from "../src/routes.ts";
+
+const PAGE = `<!doctype html>
+<html lang="en">
+  <head>
+    <title>Weave</title>
+    <script type="module" crossorigin src="/assets/index-a1.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/shared-b2.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-c3.css">
+    <link rel="preload" href="/assets/face-d4.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="/theme-boot.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`;
+
+test("every address with a page of its own and no changing part is drawn, each into the file the server sends for it", () => {
+  assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/"), { path: "/", file: "index.html" });
+  assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/funding"), { path: "/funding", file: "funding/index.html" });
+  assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/start/needs"), { path: "/start/needs", file: "start/needs/index.html" });
+  assert.equal(FIRST_VIEWS.some((view) => view.path.includes(":")), false, "records and workspaces are drawn in the browser");
+  assert.equal(FIRST_VIEWS.length, ROUTES.filter((route) => !route.path.includes(":")).length);
+});
+
+test("the first view goes into the empty root, marked with its address and inert until the app replaces it", () => {
+  const page = withFirstView(PAGE, "/funding", "<p>Funding $& $1</p>");
+  assert.match(page, /<div id="root" data-first-view="\/funding" inert><p>Funding \$& \$1<\/p><\/div>/u);
+  assert.throws(() => withFirstView(page, "/funding", "<p>again</p>"), /exactly one empty/u);
+  assert.throws(() => withFirstView(PAGE, "/funding", "  "), /came out empty/u);
+});
+
+test("the stylesheet, fonts and theme script come before the app's script, which waits for the page anyway", () => {
+  const page = scriptsAfterFirstPaint(PAGE);
+  const order = ["index-c3.css", "face-d4.woff2", "theme-boot.js", "index-a1.js", "shared-b2.js"].map((file) => page.indexOf(file));
+  assert.deepEqual([...order].sort((a, b) => a - b), order);
+  assert.ok(order.every((at) => at !== -1));
+  assert.ok(page.indexOf("shared-b2.js") < page.indexOf("</head>"));
+  assert.equal(scriptsAfterFirstPaint(page), page, "already in order");
+});
+
+test("only the drawing process's result line is read, and every address must have a view", () => {
+  const output = `vite says hello\n${RESULT_MARK}${JSON.stringify({ "/": "<p>Home</p>" })}\n`;
+  assert.deepEqual(readFirstViews(output, ["/"]), { "/": "<p>Home</p>" });
+  assert.throws(() => readFirstViews(output, ["/", "/funding"]), /No first view was drawn for \/funding/u);
+  assert.throws(() => readFirstViews("nothing", ["/"]), /were not drawn/u);
+});

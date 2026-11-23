@@ -92,12 +92,16 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   when the strip nears the viewport), parse and validate it in a worker, or give Home a
   small closing-soon file written at build time. Quality can add that build step in
   `dev/` if funding-page wants it.
-- [ ] **Q-02. Every page ships in one script.** Routes: all. `src/App.tsx` imports every
-  page statically, so the first visit downloads 838 kB (251 kB compressed) before
-  anything renders: React DOM 202 kB, Zod 92 kB, `describe/` 79 kB, `partners/` 70 kB,
-  `pages/` 65 kB. Owner: unassigned (`App.tsx`); proposed for quality in phase 2, after
-  the UX sessions land. Fix: load the intake, describe, workspace and record pages with
-  `React.lazy`, and keep Home and the lists in the first script.
+- [x] **Q-02. Every page ships in one script.** Routes: all. `src/App.tsx` imported every
+  page statically, so the first visit downloaded 838 kB (251 kB compressed) before
+  anything rendered: React DOM 202 kB, Zod 92 kB, `describe/` 79 kB, `partners/` 70 kB,
+  `pages/` 65 kB. Fixed in phase 2: each page is its own file (`src/lazy-page.ts`). On the
+  23 November build the main script went from 877 kB to 262 kB (83 kB compressed), and a
+  first visit to Home loads 677 kB in all. The first page's code arrives before the app
+  draws, and a move keeps the page on screen until the next page's code is here, so focus
+  still lands on the new page's heading (checked in Chrome: Home to Funding, Back,
+  Forward, a fund sheet, a fund page opened directly). Rolldown now writes about 40 small
+  shared files; merging them is a follow-up.
 - [x] **Q-03. Four font preloads compete with the script on slow phones.** Routes:
   all. The page preloaded four faces (180 kB). With only Space Grotesk and Fraunces
   preloaded, simulated mobile LCP on Settings fell from 4.0 s to 3.3 s and the score rose
@@ -130,6 +134,13 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   `index.html` per section for link previews. The user chose to prerender the main
   routes on 22 November 2026; quality builds it in phase 2, after the UX sessions land,
   with drafts and accounts kept client-only.
+  Built on 23 November (`dev/prerender.ts`): every static address's HTML carries its first
+  view as a visitor sees it, inert until the app replaces it, and the app's scripts now come
+  after the stylesheet, fonts and theme script in the head. Not yet shown to help. In a
+  local run with the CPU slowed 4x on Slow 4G, a copy of Settings without scripts painted
+  text at 2.1 s (LCP 2.35 s), but the real page's first text paint waited for the app, at
+  5.5 s. The cause is not found yet, and a load average of 130 to 300 on this machine made
+  further local timing meaningless. Next: measure on a Vercel preview.
 - [ ] **Q-07. The first visit downloads 7.1 MB for offline use.** Routes: all. The
   service worker precaches 38 files, 7.1 MB before compression, including the catalog
   (3.6 MB) and the PDF reader (1.7 MB with its worker). This does not affect Lighthouse,

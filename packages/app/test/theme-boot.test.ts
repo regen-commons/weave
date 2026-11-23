@@ -21,8 +21,9 @@ function meta(attributes: Record<string, string>) {
   };
 }
 /** The head as index.html has it when the script runs, and what the script did to it. */
-function boot(stored: () => string | null) {
-  const root = { dataset: {} as Record<string, string> };
+function boot(stored: () => string | null, pathname = "/") {
+  const marks: Record<string, string> = {};
+  const root = { dataset: {} as Record<string, string>, setAttribute: (name: string, value: string) => void (marks[name] = value) };
   const scheme = meta({ name: "color-scheme", content: "light dark" });
   const colours = SCHEMES.map((name) => meta({ name: "theme-color", "data-scheme": name, media: themeColorMedia(null, name) }));
   const document = {
@@ -30,9 +31,16 @@ function boot(stored: () => string | null) {
     querySelector: (selector: string) => (selector === 'meta[name="color-scheme"]' ? scheme : null),
     querySelectorAll: (selector: string) => (selector === 'meta[name="theme-color"][data-scheme]' ? colours : []),
   };
-  vm.runInNewContext(BOOT, { document, localStorage: { getItem: (key: string) => (key === THEME_KEY ? stored() : null) } });
-  return { theme: root.dataset.theme, scheme: scheme.attributes.content, media: colours.map((colour) => colour.attributes.media) };
+  vm.runInNewContext(BOOT, { document, location: { pathname }, localStorage: { getItem: (key: string) => (key === THEME_KEY ? stored() : null) } });
+  return { theme: root.dataset.theme, scheme: scheme.attributes.content, media: colours.map((colour) => colour.attributes.media), home: "data-home" in marks };
 }
+
+test("the page is marked as Home at / alone, so Home's first view shows nowhere else", () => {
+  assert.equal(boot(() => null, "/").home, true);
+  for (const pathname of ["/funding", "/settings", "/funding/some-fund", "/start/needs", "//"]) assert.equal(boot(() => null, pathname).home, false, pathname);
+  // The mark does not depend on the theme, or on storage being readable.
+  assert.equal(boot(() => { throw new Error("storage is closed"); }, "/").home, true);
+});
 
 test("a pinned theme is on the page, its colour scheme and its bar colours before anything is drawn", () => {
   for (const pinned of SCHEMES) {
@@ -45,7 +53,7 @@ test("a pinned theme is on the page, its colour scheme and its bar colours befor
 });
 
 test("with nothing pinned, or nothing it can read, the page follows the system as before", () => {
-  const untouched = { theme: undefined, scheme: "light dark", media: SCHEMES.map((scheme) => themeColorMedia(null, scheme)) };
+  const untouched = { theme: undefined, scheme: "light dark", media: SCHEMES.map((scheme) => themeColorMedia(null, scheme)), home: true };
   for (const stored of [null, "system", "", "DARK", "blue"]) assert.deepEqual(boot(() => stored), untouched, String(stored));
   assert.deepEqual(boot(() => { throw new Error("storage is closed"); }), untouched);
 });

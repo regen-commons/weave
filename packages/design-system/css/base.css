@@ -25,6 +25,11 @@
   :where(html) { overscroll-behavior-x: none; }
 }
 
+/* An app sends a page's first view as HTML, drawn at build time (data-first-view names the address
+   it was drawn for). Home's is also what a server sends for addresses it has no page of its own for,
+   so it shows only at Home, which the page marks before its body is drawn (data-home). */
+:root:not([data-home]) [data-first-view="/"] { display: none; }
+
 /* A section pinned to a theme paints its own surface. */
 :where(body, [data-theme]:not(:root)) {
   background: var(--surface);

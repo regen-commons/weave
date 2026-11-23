@@ -4,6 +4,13 @@
 // It is a file of the site's own, loaded like every other script, so the security policy
 // (script-src 'self', in vercel.json) stays as it is: nothing inline, no hash, no exception.
 // src/theme.ts owns the theme. This repeats what it stored, and a test holds the two together.
+//
+// It also marks Home before the body is drawn. index.html carries Home's first view as HTML (drawn at
+// build time, dev/prerender.ts), and the server sends the same file for addresses without a page of
+// their own, so the design system's base.css shows that view only on a page marked as Home.
+(function () {
+  if (location.pathname === "/") document.documentElement.setAttribute("data-home", "");
+})();
 (function () {
   try {
     var theme = localStorage.getItem("rc-theme");
