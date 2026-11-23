@@ -883,7 +883,7 @@ Given up: a new card no longer picks a stage, a type of work or themes on this s
 
 From Krug: a step map that is always in view, help that is brief and right where the hard question is, and an error beside the field it is about. From Refactoring UI: one primary action a region, elements only as wide as their column, and more space around a group than inside it, which the empty rows broke. From Dirksen: say what is happening while the person waits.
 
-## DL-128: A long list keeps filling in, its filters stay in reach, and only a sheet's choices scroll
+## DL-130: A long list keeps filling in, its filters stay in reach, and only a sheet's choices scroll
 
 **Status:** user decision from manual QA, 22 November 2026. Amends DL-101 and DL-122. The QA notes asked for funds and initiatives to load more on their own as a person scrolls, for search, filters and Sort to be easy to reach while scrolling on a wide screen and on a phone, for the filter sheet's title row and foot to stay put, and for the filter button and the search field to be one height.
 

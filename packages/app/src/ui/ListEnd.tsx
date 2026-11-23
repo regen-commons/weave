@@ -33,7 +33,7 @@ export function ListEndHold({ things }: { things: string }) {
 /**
  * List end (`rc-list-end`): the foot of a long list. It says how much of the list is on the page
  * and brings the next batch as a person scrolls near it, for as long as there is more (DL-101,
- * DL-128). Show More stays for the keyboard, which brings nothing unasked, and for a batch that did
+ * DL-130). Show More stays for the keyboard, which brings nothing unasked, and for a batch that did
  * not arrive. Every list that has cards ends in one, with or without more to come, so its room
  * never comes and goes (DL-108). Give it a `key` that changes with the search and filters, so a
  * new list starts from its first batch.

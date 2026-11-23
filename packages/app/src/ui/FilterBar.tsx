@@ -238,7 +238,7 @@ export function FilterBar({
   // The fact under the count: the list's own once it is here, and a sentence about as long until then.
   const noted = loading ? reserve : note;
 
-  // The pinned row (DL-128). Once the bar's controls have gone up under the app bar, the same
+  // The pinned row (DL-130). Once the bar's controls have gone up under the app bar, the same
   // controls stay at the top of the window, so a person deep in the list changes the search, a
   // filter or the order without scrolling back. While a menu or the sheet it opened is open it
   // stays, even where the list has shrunk and brought the bar back into view.

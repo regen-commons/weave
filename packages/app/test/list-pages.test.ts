@@ -198,7 +198,7 @@ test("a funding list compared with a person's card holds the fit and readiness l
   assert.match(read("pages/YourInitiative.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
 });
 
-test("the filter controls stay in reach deep in a list, and the sheet's title row and foot stay put (DL-128)", () => {
+test("the filter controls stay in reach deep in a list, and the sheet's title row and foot stay put (DL-130)", () => {
   const bar = read("ui/FilterBar.tsx");
   // The pinned row draws the bar's own controls, with Search first, and is gone from view and the tab order when hidden.
   assert.match(bar, /<div className="rc-filter-pin" ref=\{pin\} role="group" aria-label=\{`Filter \$\{noun\}`\} hidden=\{!pinned\}>/u);

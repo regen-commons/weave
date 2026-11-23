@@ -86,7 +86,7 @@ test("Sort shows the order in force, or the first on offer where the chosen one 
   assert.equal(sortChoice({ value: "name", options: [] }), undefined);
 });
 
-test("the pinned row tells a change of choices from a menu opened and closed (DL-128)", () => {
+test("the pinned row tells a change of choices from a menu opened and closed (DL-130)", () => {
   const sort = { value: "closing", options: [{ value: "closing", label: "Closing soon" }, { value: "name", label: "Name A to Z" }] };
   const before = choicesKey("soil", [region], sort);
   assert.equal(choicesKey(" soil ", [{ ...region }], { ...sort }), before, "the same choices, drawn again");

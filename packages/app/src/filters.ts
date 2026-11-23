@@ -101,7 +101,7 @@ export function withoutChoice(choice: ActiveChoice): readonly string[] {
 /**
  * Where a person's choices now stand: the search, every facet's values and the order. The pinned
  * filter row compares it before and after a menu or the sheet, and goes back to the bar only where
- * something changed (DL-128).
+ * something changed (DL-130).
  */
 export function choicesKey(search: string, facets: readonly Facet[], sort?: SortChoice): string {
   return JSON.stringify([

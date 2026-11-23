@@ -1,4 +1,4 @@
-// A long list fills in as a person reaches its end, for as long as there is more, without trapping the keyboard (DL-101, DL-128).
+// A long list fills in as a person reaches its end, for as long as there is more, without trapping the keyboard (DL-101, DL-130).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { AHEAD_MARGIN, loadsUnasked, shownLine } from "../src/list-more.ts";
@@ -15,7 +15,7 @@ test("the keyboard is never run past the list's end: tabbing through cards bring
   assert.equal(loadsUnasked({ ...scrolling, keyboardInList: true }), false);
 });
 
-test("scrolling never meets a step: batch after batch arrives until the list is whole (DL-128)", () => {
+test("scrolling never meets a step: batch after batch arrives until the list is whole (DL-130)", () => {
   const total = 771;
   const batch = 24;
   let shown = batch;

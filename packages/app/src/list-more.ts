@@ -11,7 +11,7 @@ export const AHEAD_MARGIN = "0px 0px 480px 0px";
 
 /**
  * Whether the next batch may arrive without a press. It keeps arriving for as long as a person
- * scrolls (DL-128), except while one is on its way or while the keyboard is working through the
+ * scrolls (DL-130), except while one is on its way or while the keyboard is working through the
  * list: a person tabbing from card to card would otherwise never reach the list's end, or the
  * footer after it, so there Show More brings the next batch.
  */
