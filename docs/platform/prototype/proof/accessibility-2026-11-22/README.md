@@ -1,9 +1,9 @@
 # Accessibility audit, 22 November 2026
 
-After the fixes listed here, Weave meets 49 of the 55 level A and AA criteria of WCAG
-2.2, counting those with nothing to apply to. Six still have an open item: on another
-session's files, on work that needs the account service, or on data the sources do not
-hold. Automated checks found nothing (Lighthouse accessibility 100, axe-core
+After the fixes listed here, Weave meets 53 of the 55 level A and AA criteria of WCAG
+2.2, counting those with nothing to apply to. Two still have an open item: text spacing
+after a page has loaded, which needs a change to the global layout tokens, and the
+language of text from Certified and the catalog, which neither source records. Automated checks found nothing (Lighthouse accessibility 100, axe-core
 no violations), so every finding below came from walking each flow with the keyboard
 and reading the accessibility tree and the live-region traffic.
 
@@ -123,26 +123,29 @@ are fixed in the pull requests named.
   at once, and a mouse or a finger still leaves trails. On Home, animation frames
   stopped 4.5 seconds after the first and none followed in the next seven.
 
+### Follow-ups ([#176](https://github.com/regen-commons/weave/pull/176), [#177](https://github.com/regen-commons/weave/pull/177), [#182](https://github.com/regen-commons/weave/pull/182))
+
+- [x] **A-13. Talk It Out said "Stop, pressed".** 4.1.2 Name, Role, Value (A). Every
+  describe step. Minor. The button was a toggle (`aria-pressed`) whose label also
+  changed to Stop, and its status line switched its role between status and alert on
+  the same element. Fixed by the speech session in #177: no `aria-pressed`, and one
+  role per element.
+- [x] **A-14. Busy buttons lost the focus.** 2.4.3 Focus Order (A). Delete A Saved Card,
+  account deletion, device backups and team workspace access. Moderate, from code; not
+  run, since most need the account service. The pressed button became `disabled` while
+  its request ran, and Chrome then dropped the focus. Fixed with `busyProps` in
+  `account/busy.ts`: the account's buttons in #176, device backups and team access in
+  [#182](https://github.com/regen-commons/weave/pull/182). The pressed button stays focusable and says it is busy.
+- [x] **A-15. The need and offer editor's error named no field.** 3.3.1 Error
+  Identification (A) and 3.3.3 Error Suggestion (AA). Change Details, and needs and
+  offers in a team workspace. Moderate. Any invalid value showed "Add a title. Check
+  amounts, currency and terms." at the foot of the form, with nothing marked. Fixed in
+  [#182](https://github.com/regen-commons/weave/pull/182): the message names what to do (the schema's own sentences where it has
+  them), sits at the field it is about, which is `aria-invalid` and described by it, and
+  takes the focus ([capture](fixture-chrome149-need-editor-error-360-light.jpeg)).
+
 ### Open
 
-- [ ] **A-13. Talk It Out says "Stop, pressed".** 4.1.2 Name, Role, Value (A). Every
-  describe step. Minor. The button is a toggle (`aria-pressed`) whose label also changes
-  to Stop, and its status line switches its role between status and alert on the same
-  element, which screen readers do not reliably follow. Owner: speech
-  (`ui/TalkItOut.tsx`). Fix: keep the label and drop `aria-pressed`, or keep
-  `aria-pressed` with one label; keep one role per element.
-- [ ] **A-14. Busy buttons lose the focus.** 2.4.3 Focus Order (A). Delete A Saved Card,
-  device backups, account deletion and team workspace access. Moderate, from code; not
-  run, since these need the account service. The pressed button becomes `disabled`
-  while the request runs, and Chrome then drops the focus. Fix: `aria-disabled` while
-  busy, as Sign In already does. Owners: sign-in-initiatives for `account/*`, this
-  audit for the rest.
-- [ ] **A-15. The need and offer editor's error names no field.** 3.3.1 Error
-  Identification (A) and 3.3.3 Error Suggestion (AA). Change Details. Moderate. An
-  invalid value shows "Add a title. Check amounts, currency and terms." for any field,
-  with no `aria-invalid` on the one at fault. An empty title is caught by the browser's
-  own required check. Fix: map each validation issue to its field, as Details For
-  Funding does.
 - [ ] **A-16. Wider text spacing slides the pinned filter row under the header.**
   1.4.12 Text Spacing (AA). Funding and Initiatives at phone width. Minor. The pinned
   row is placed at `--app-header-height`, a fixed token; with line height 1.5 applied
@@ -200,7 +203,7 @@ Weave has nothing the criterion covers.
 | 2.3.1 Three Flashes | Pass | Nothing flashes |
 | 2.4.1 Bypass Blocks | Pass | Skip to content is the first stop and focuses `main` |
 | 2.4.2 Page Titled | Pass | Each route and each open record sets the tab title |
-| 2.4.3 Focus Order | Fixed, one open | A-02, A-04, A-05, A-08 fixed; A-14 open. Sheets return focus to the card that opened them on Escape and on Back; Show More focuses the first new card |
+| 2.4.3 Focus Order | Fixed | A-02, A-04, A-05, A-08, A-14. Sheets return focus to the card that opened them on Escape and on Back; Show More focuses the first new card |
 | 2.4.4 Link Purpose (In Context) | Pass | Links name their place; new-tab links say so |
 | 2.4.5 Multiple Ways | Pass | Navigation, search and filters on every list, links between records |
 | 2.4.6 Headings and Labels | Pass | Card actions such as Change Details and Remove repeat per card, with the card heading as context |
@@ -219,13 +222,13 @@ Weave has nothing the criterion covers.
 | 3.2.3 Consistent Navigation | Pass | The same header, tab bar and footer order on every page |
 | 3.2.4 Consistent Identification | Pass | The same actions keep the same names |
 | 3.2.6 Consistent Help | Pass | The footer's Data & Privacy links keep one order wherever the footer shows |
-| 3.3.1 Error Identification | Open | A-15. Describe's own errors name the field, are tied to it and take the focus |
+| 3.3.1 Error Identification | Fixed | A-15. Describe's own errors name the field, are tied to it and take the focus |
 | 3.3.2 Labels or Instructions | Pass | Every field has a visible label and its hint above it |
-| 3.3.3 Error Suggestion | Open | A-15 |
+| 3.3.3 Error Suggestion | Fixed | A-15 |
 | 3.3.4 Error Prevention | Pass | Deleting a saved card or the account asks first; sharing and publishing show what leaves first (DL-032) |
 | 3.3.7 Redundant Entry | Pass | Words said once fill the fields; later steps never ask for them again |
 | 3.3.8 Accessible Authentication (Minimum) | Pass for Weave | Weave asks for no password or puzzle. Certified's own sign-in page was not audited |
-| 4.1.2 Name, Role, Value | Open | A-13 |
+| 4.1.2 Name, Role, Value | Fixed | A-13 |
 | 4.1.3 Status Messages | Fixed | A-01, A-07, A-09. Show More, Copy Link, Need Details Kept, the fund count on desktop and the describe step's reading and filling each speak once |
 
 ## Not covered
@@ -236,7 +239,8 @@ Weave has nothing the criterion covers.
 - **Other browsers and devices.** Safari and Firefox, and phones in the hand. Tooltips
   use Chrome's `interestfor`; other browsers take the design system's fallback.
 - **The account service.** Team workspaces, deleting a saved card and the busy states
-  behind A-04 and A-14 need it; A-04 is proved by a unit test.
+  behind A-04 and A-14 need it; A-04 is proved by a unit test, and A-14 follows the
+  pattern #176 tested for the account's buttons.
 - **Certified.** Its sign-in and consent pages are its own.
 - **An initiative opened from its link.** In this local setup it showed "Initiative Not
   Available" over the list; the record pages are changing in #168.
