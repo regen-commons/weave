@@ -1,0 +1,127 @@
+/**
+ * Sign-in and project access are two permissions at Certified, held by two clients, so they cannot
+ * be one Certified screen. Where a person signs in to reach their projects, Weave goes straight on
+ * from the first to the second, and the button says so before the press (the user's choice,
+ * 22 November 2026, DL-137). This is the note that carries that intent across the trip to Certified.
+ *
+ * It is kept for the tab only, names nobody and grants nothing. Certified still asks, and a no there
+ * leaves the person signed in with no project access, as before.
+ */
+const KEY = "weave-sign-in-then-projects";
+/** Long enough for a sign-in at Certified; a note older than this is not acted on. */
+const KEPT_MS = 10 * 60_000;
+
+type Kept = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+/** The person pressed a Sign In that said project access comes next. */
+export function expectProjectAccess(storage: () => Kept, now: () => number = Date.now): void {
+  try { storage().setItem(KEY, String(now() + KEPT_MS)); } catch { /* Without it the person presses Allow themselves. */ }
+}
+
+/** The sign-in did not start, so nothing follows it. */
+export function forgetProjectAccess(storage: () => Kept): void {
+  try { storage().removeItem(KEY); } catch { /* Nothing was kept. */ }
+}
+
+/**
+ * Whether this page load is the return from such a sign-in, and it finished. The note is used once:
+ * reading it removes it, so a reload or a later sign-in never repeats the trip. A sign-in that was
+ * cancelled, failed or expired removes it too, and so does a return to any page but the one that
+ * said project access comes next (`onProjectsPage`), which is how a sign-in started elsewhere reads.
+ */
+export function takeProjectAccess(storage: () => Kept, signInResult: string | null, onProjectsPage: boolean, now: () => number = Date.now): boolean {
+  let until: number;
+  try {
+    const kept = storage();
+    until = Number(kept.getItem(KEY));
+    kept.removeItem(KEY);
+  } catch {
+    return false;
+  }
+  return onProjectsPage && signInResult === "signed-in" && Number.isSafeInteger(until) && until > now() && until <= now() + KEPT_MS;
+}
+
+/**
+ * The trip itself, once the person is signed in and the device's drafts are read: wait for device
+ * writes to finish, refuse to leave while the latest words are not stored, then ask the server for
+ * Certified's address for the read-only permission. The same order as a pressed Allow. It returns
+ * the address to go to, or throws, and the page then shows the Allow button as before.
+ */
+export async function projectAccessAddress(device: {
+  settled(): Promise<void>;
+  /** The device store's state once writes have settled. */
+  storage(): string;
+  /** Starts the read-only permission and returns Certified's checked address. */
+  start(): Promise<string>;
+}): Promise<string> {
+  await device.settled();
+  if (!["saved", "none"].includes(device.storage())) throw new Error("device_storage_unsettled");
+  return device.start();
+}
+
+interface TripTimers {
+  set(run: () => void, milliseconds: number): unknown;
+  clear(handle: unknown): void;
+}
+/** Longer than the session check's own limit. A trip that cannot begin by then is given up. */
+const TRIP_LIMIT_MS = 20_000;
+
+/**
+ * One trip to Certified's project permission for one page load, and never a second. It waits until
+ * the page knows who is signed in and the device's drafts are read, starts once, and is over as soon
+ * as the start settles, whichever way. It is also over when nobody turns out to be signed in, and
+ * when it could not begin in time, so a session check that fails or a store that never opens cannot
+ * hold the page in its loading shape. The address is used only if the page is still on screen when
+ * it arrives: a person who has moved on is not taken to Certified, and the address is dropped.
+ */
+export class ProjectAccessTrip {
+  private phase: "wanted" | "under-way" | "over";
+  private listeners = new Set<() => void>();
+  private pages = 0;
+  private deadline: unknown = null;
+  private go: (address: string) => void;
+  private timers: TripTimers;
+  constructor(
+    wanted: boolean,
+    go: (address: string) => void,
+    timers: TripTimers = { set: (run, ms) => setTimeout(run, ms), clear: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>) },
+  ) {
+    this.phase = wanted ? "wanted" : "over";
+    this.go = go;
+    this.timers = timers;
+  }
+  /** True while the page should hold its loading shape for the trip. */
+  pending = (): boolean => this.phase !== "over";
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  };
+  /** The page that shows the trip is on screen. Returns what to call when it leaves. */
+  attend = (): (() => void) => {
+    this.pages++;
+    if (this.phase === "wanted" && this.deadline === null)
+      this.deadline = this.timers.set(() => { if (this.phase === "wanted") this.end(); }, TRIP_LIMIT_MS);
+    return () => { this.pages--; };
+  };
+  /** What the page knows now. The trip starts the first time all of it is known, and only then. */
+  update(known: { answered: boolean; signedIn: boolean; ready: boolean }, start: () => Promise<string>): void {
+    if (this.phase !== "wanted" || !known.answered) return;
+    if (!known.signedIn) return this.end();
+    if (!known.ready) return;
+    this.phase = "under-way";
+    start().then(
+      (address) => {
+        const onScreen = this.pages > 0;
+        this.end();
+        if (onScreen) this.go(address);
+      },
+      () => this.end(),
+    );
+  }
+  private end(): void {
+    this.phase = "over";
+    if (this.deadline !== null) this.timers.clear(this.deadline);
+    this.deadline = null;
+    for (const listener of this.listeners) listener();
+  }
+}
