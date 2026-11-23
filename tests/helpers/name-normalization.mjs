@@ -17,13 +17,13 @@ const programRenames = renameArchives.map(archive => new Map(archive.programs.ma
 const funderRenames = renameArchives.map(archive => new Map(archive.funders.map(row => [row.after, row.before])));
 export const renamedPaths = new Set(renameArchives.flatMap(archive => archive.programs.map(row => row.path)));
 
+// A record may already carry an earlier name, as in a catalog rewound past a pass, so
+// each pass only steps back from its own new name. Any name no pass recorded fails.
 function programBefore(fundId, program) {
-  for (const renames of programRenames) {
-    const row = renames.get(fundId + '::' + program.id);
-    if (!row || program.name === row.before) continue;
-    assert.equal(program.name, row.after, fundId + ' ' + program.id + ' name');
-    program.name = row.before;
-  }
+  const rows = programRenames.map(renames => renames.get(fundId + '::' + program.id)).filter(Boolean);
+  if (!rows.length) return;
+  assert.ok(rows.some(row => program.name === row.after || program.name === row.before), fundId + ' ' + program.id + ' name: ' + program.name);
+  for (const row of rows) if (program.name === row.after) program.name = row.before;
 }
 
 // Funder names were replaced wherever the whole string appeared, so they go back the same way.
