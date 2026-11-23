@@ -39,11 +39,13 @@ export function Stepper({
             {done && href ? (
               <Link
                 href={href}
-                aria-label={`Back to step ${index + 1}, ${label}`}
                 onClick={(event) => {
                   if (back && splitRoute(back.href).pathname === href) followBack(event, back);
                 }}
               >
+                {/* Words the eye does not need, so the name still contains the step's visible name
+                    and a person can say it to speech input (WCAG 2.5.3). */}
+                <span className="rc-visually-hidden">Back to step {index + 1}, </span>
                 {body}
               </Link>
             ) : (
