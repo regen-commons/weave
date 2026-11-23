@@ -131,28 +131,165 @@ test("new sign-in immediately hides the previous account, rechecks the cookie on
 });
 
 test("resuming a tab fails closed on an unavailable account and permits a later retry", async () => {
-  const bus = tabs();
+  const bus = tabs(), time = clock();
   let failure: string | null = null, calls = 0;
   const session = new AccountSession(async () => {
     calls++;
     if (failure) throw new AccountFailure(failure);
     return response(calls === 1 ? owner : other);
-  });
+  }, time.timers, () => 0);
   const close = session.connect(bus.connect);
   await session.refresh();
   failure = "connection_failed";
   bus.resume();
-  assert.equal(session.getSnapshot(), null);
+  assert.equal(session.getSnapshot()?.user?.id, owner, "the account stays on screen while the check is under way");
   await settled();
   assert.equal(session.getSnapshot(), null, "an outage never restores cached private account data");
+  assert.equal(session.getExpected(), false, "sign-in is offered again when the session cannot be checked");
+  assert.equal(session.getEnding(), null, "a check that could not be made has not signed anyone out");
+  assert.deepEqual(time.pending(), [60000], "the check is tried again without waiting for the next return");
   assert.deepEqual(bus.messages, []);
   failure = null;
-  await session.refresh();
+  time.fire();
+  await settled();
   assert.equal(session.getSnapshot()?.user?.id, other);
   close();
   const before = calls;
   bus.resume();
   assert.equal(calls, before, "closed tabs have no remaining resume listener");
+});
+
+test("returning to a tab keeps a signed-in account on screen, joins one check and cancels no request", async t => {
+  const bus = tabs(), answer = deferred<Record<string, unknown>>();
+  let calls = 0;
+  const session = new AccountSession(async () => ++calls === 1 ? response(owner) : answer.promise);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  const seen: (string | null | undefined)[] = [];
+  session.subscribe(() => seen.push(session.getSnapshot()?.user?.id ?? (session.getSnapshot() === null ? null : undefined)));
+  // A private request under way when the person comes back, such as a save.
+  const body = deferred<Record<string, unknown>>();
+  const fetcher = t.mock.method(globalThis, "fetch", async () => ({ ok: true, json: () => body.promise }) as Response);
+  const save = accountRequest("", { action: "save" });
+  // Focus and visibility both report one return.
+  bus.resume(); bus.resume();
+  assert.equal(session.getSnapshot()?.user?.id, owner);
+  assert.equal(calls, 2, "two signals of one return share one check");
+  answer.resolve(response(owner));
+  await settled();
+  assert.deepEqual(seen.filter(id => id !== owner), [], "the account never leaves the screen for someone still signed in");
+  body.resolve({ saved: true });
+  assert.deepEqual(await save, { saved: true }, "a request under way is not cancelled by coming back to the tab");
+  assert.equal(fetcher.mock.callCount(), 1);
+  assert.deepEqual(bus.messages, []);
+  close();
+});
+
+test("returning to a tab still shows a session that ended, or another account, as soon as the check answers", async () => {
+  const bus = tabs();
+  let reply: () => Record<string, unknown> = () => response(owner);
+  const session = new AccountSession(async () => reply());
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  reply = () => response(other);
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, other, "an account that changed while the tab was away replaces the old one");
+  assert.equal(session.getSnapshot()?.items[0]?.name, `Synthetic card for ${other}`);
+  reply = () => { throw new AccountFailure("sign_in_required"); };
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot()?.user, null, "a refused session signs the tab out");
+  assert.equal(session.getEnding(), "ended", "and the screen says so");
+  assert.deepEqual(bus.messages, ["ended"]);
+  reply = () => response(null);
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot()?.user, null);
+  close();
+
+  // Signed out in another window while this tab was suspended and heard nothing.
+  const quiet = tabs();
+  let signedIn = true;
+  const suspended = new AccountSession(async () => response(signedIn ? owner : null));
+  const closeSuspended = suspended.connect(quiet.connect);
+  await suspended.refresh();
+  signedIn = false;
+  quiet.resume();
+  await settled();
+  assert.equal(suspended.getSnapshot()?.user, null);
+  assert.equal(suspended.getEnding(), "ended", "a sign-out the tab missed is never hidden");
+  closeSuspended();
+});
+
+function note(present: boolean) {
+  const writes: boolean[] = [];
+  return { writes, presence: { read: () => present, write: (next: boolean) => { present = next; writes.push(next); } }, present: () => present };
+}
+
+test("a device that last saw an account signed in holds sign-in back only until the first answer", async () => {
+  const device = note(true), answer = deferred<Record<string, unknown>>();
+  const session = new AccountSession(async () => answer.promise, undefined, undefined, device.presence);
+  assert.equal(session.getSnapshot(), null, "the note never stands in for an account");
+  assert.equal(session.getExpected(), true);
+  const check = session.refresh();
+  answer.resolve(response(owner));
+  await check;
+  assert.equal(session.getExpected(), false);
+  assert.equal(device.present(), true);
+
+  // Nobody is signed in any more: the answer removes the note.
+  const stale = note(true);
+  const signedOut = new AccountSession(async () => response(null), undefined, undefined, stale.presence);
+  await signedOut.refresh();
+  assert.equal(signedOut.getExpected(), false);
+  assert.equal(stale.present(), false, "an answer that nobody is signed in removes the note");
+
+  // The check cannot be made: sign-in is offered, and the note is kept for the next visit.
+  const offline = note(true);
+  let notified = 0;
+  const unreachable = new AccountSession(async () => { throw new AccountFailure("connection_failed"); }, undefined, undefined, offline.presence);
+  unreachable.subscribe(() => { notified++; });
+  await assert.rejects(unreachable.refresh());
+  assert.equal(unreachable.getExpected(), false, "sign-in is never withheld for want of a connection");
+  assert.equal(notified, 1, "the page hears that sign-in is offered again");
+  assert.equal(offline.present(), true);
+
+  // An account service that is switched off says nothing about the person.
+  const off = note(true);
+  const disabled = new AccountSession(async () => ({ available: false }), undefined, undefined, off.presence);
+  await disabled.refresh();
+  assert.equal(disabled.getExpected(), false);
+  assert.equal(off.present(), true);
+});
+
+test("the note follows sign-in, sign-out and an ended session, and a new device has none", async () => {
+  const device = note(false);
+  let reply: () => Record<string, unknown> = () => response(owner);
+  const session = new AccountSession(async () => reply(), undefined, undefined, device.presence);
+  assert.equal(session.getExpected(), false, "a first visit is offered sign-in at once");
+  await session.refresh();
+  assert.equal(device.present(), true);
+  session.signedOut();
+  assert.equal(device.present(), false, "Sign Out removes the note");
+  await session.refresh();
+  assert.equal(device.present(), true);
+  reply = () => { throw new AccountFailure("sign_in_required"); };
+  await assert.rejects(session.refresh());
+  assert.equal(device.present(), false, "an ended session removes the note");
+
+  // Another tab finished a sign-in: this one expects an account while it checks.
+  const bus = tabs(), answer = deferred<Record<string, unknown>>();
+  const first = new AccountSession(async () => response(owner));
+  const second = new AccountSession(async () => answer.promise);
+  const closeFirst = first.connect(bus.connect), closeSecond = second.connect(bus.connect);
+  first.changed();
+  assert.equal(second.getSnapshot(), null);
+  assert.equal(second.getExpected(), true, "sign-in is not offered beside a sign-in that just finished");
+  answer.resolve(response(owner));
+  await settled();
+  assert.equal(second.getExpected(), false);
+  closeFirst(); closeSecond();
 });
 
 test("disconnecting and reconnecting rejects work from the earlier connection", async () => {

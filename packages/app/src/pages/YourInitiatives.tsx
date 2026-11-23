@@ -217,7 +217,8 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const exampleLoading = import.meta.env.DEV && !live && fixture?.state === "loading";
   const loading = !!social.loading || exampleLoading;
   // Whether anyone is signed in is not known yet: hold the page's shape instead of guessing a state.
-  const checking = (live || (import.meta.env.DEV && !!fixture)) && loading && !state.identity;
+  // An account this device expects is being checked too, before the live adapter has anyone to read for.
+  const checking = ((live || (import.meta.env.DEV && !!fixture)) && loading && !state.identity) || (live && account.expectsAccount);
   if (!state.identity && !listed.length && !checking)
     return (
       <>

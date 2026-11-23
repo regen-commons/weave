@@ -1,5 +1,6 @@
 import { accountRequest, accountState, AccountFailure, invalidateAccountRequests, type AccountState } from "./client.ts";
 import type { SessionEnding } from "./session-end.ts";
+import { noPresence, type AccountPresence } from "./presence.ts";
 
 export type SessionChange = "ended" | "changed";
 export interface SessionConnection {
@@ -35,12 +36,23 @@ export class AccountSession {
   private ending: SessionEnding | null = null;
   /** The `/api/account` check under way, which a scheduled renewal or a confirmation joins rather than aborts. */
   private inflight: Promise<AccountState> | null = null;
-  constructor(request = accountRequest, timers = browserTimers, spread = () => Math.random() * 20000) {
+  private presence: AccountPresence;
+  /** An account is expected, and the check that will say so has not answered yet. */
+  private awaited: boolean;
+  constructor(request = accountRequest, timers = browserTimers, spread = () => Math.random() * 20000, presence = noPresence) {
     this.request = request;
     this.timers = timers;
     this.spread = spread;
+    this.presence = presence;
+    this.awaited = presence.read();
   }
   getSnapshot = () => this.state;
+  /**
+   * True while the session is unknown and this device last saw an account signed in, or another tab
+   * has just signed in. A page then holds its shape instead of offering sign-in. It ends with the
+   * first answer, and with a check that fails, so sign-in is never withheld for want of a connection.
+   */
+  getExpected = () => this.state === null && this.awaited;
   /** Why the last session ended, until the person signs in again or the note is acknowledged. */
   getEnding = () => this.ending;
   acknowledgeEnding = () => {
@@ -60,11 +72,14 @@ export class AccountSession {
     if (state?.user) {
       this.holder = state.user.id;
       this.ending = null;
+      this.presence.write(true);
     } else if (state && this.holder !== null) {
       this.holder = null;
       // An account service that cannot answer has not signed anyone out.
       this.ending = state.available ? ending : null;
     }
+    // Only an answer that nobody is signed in removes the note. An unknown state keeps it.
+    if (state?.available && !state.user) this.presence.write(false);
     this.state = state;
     this.notify();
   }
@@ -72,7 +87,7 @@ export class AccountSession {
     const connection = connect(change => {
       if (change === "ended") this.end(false, "ended");
       else this.reconcile();
-    }, () => this.reconcile());
+    }, () => this.resume());
     this.connection = connection;
     return () => {
       connection.close();
@@ -127,13 +142,33 @@ export class AccountSession {
   /** The callback has established a new cookie. Other tabs must check it themselves. */
   changed() {
     this.invalidate();
+    this.awaited = true;
     this.update(null);
     this.connection?.publish("changed");
   }
+  /** Another tab finished a sign-in, so the account here may be someone else's: hide it, then check. */
   private reconcile() {
     this.invalidate();
+    this.awaited = true;
     this.update(null);
     void this.refresh().catch(() => {});
+  }
+  /**
+   * The tab is back in view, or restored from the back-forward cache, and may have missed another
+   * tab's change. It checks the session, joining a check already under way, and keeps what is on
+   * screen until the answer: a person who is still signed in sees nothing change, and requests
+   * under way are not cancelled. An answer that the account changed or the session ended takes
+   * effect as it does anywhere. A check that cannot be made fails closed: the account leaves the
+   * screen until one succeeds, because nothing here can vouch for it after time away.
+   */
+  private resume() {
+    void this.join().catch((error: unknown) => {
+      // A superseded check is answered by the one that replaced it; an ended session is already cleared.
+      if (error instanceof AccountFailure && (error.code === "account_changed" || error.code === "sign_in_required")) return;
+      this.invalidate();
+      this.update(null);
+      this.schedule(RETRY_SECONDS);
+    });
   }
   /** Checks the session now, superseding any check under way. A change of account needs that; a renewal joins instead. */
   refresh = (): Promise<AccountState> => {
@@ -161,6 +196,8 @@ export class AccountSession {
       return next;
     } catch (error) {
       check();
+      // Without an answer, sign-in is offered again; the note on the device stays for the next visit.
+      if (this.awaited) { this.awaited = false; if (this.state === null) this.notify(); }
       if (error instanceof AccountFailure && error.code === "sign_in_required") this.clear();
       else if (this.state?.user) this.schedule(RETRY_SECONDS);
       throw error;
