@@ -21,6 +21,55 @@ cli = module_from_spec(spec)
 spec.loader.exec_module(cli)
 
 
+RENAMES = 'research/maintenance-history/name-normalization-2026-11-22/renames.json'
+
+
+def rewind_names(root, catalog):
+    """Set back the names the November 22 normalization changed, in the inputs and the catalog."""
+    archive = read(root, RENAMES)
+    funders = {row['after']: row['before'] for row in archive['funders']}
+    programs = {(row['fundId'], row['programId']): row for row in archive['programs']}
+
+    def funder_names(value):
+        if isinstance(value, str):
+            return funders.get(value, value)
+        if isinstance(value, list):
+            return [funder_names(item) for item in value]
+        if isinstance(value, dict):
+            return {key: funder_names(item) for key, item in value.items()}
+        return value
+
+    def program_name(fund_id, program):
+        row = programs.get((fund_id, program['id']))
+        if row and program['name'] != row['before']:
+            if program['name'] != row['after']:
+                raise AssertionError('Unexpected program name: ' + fund_id + ' ' + program['id'])
+            program['name'] = row['before']
+
+    for path in sorted({row['path'] for row in archive['programs']}):
+        document = read(root, path)
+        if isinstance(document, list):
+            for record in document:
+                for program in record['programs']:
+                    program_name(record['sourceRecordId'], program)
+        else:
+            document = funder_names(document)
+            for row in document['funds']:
+                for program in row['enrichment']['programs']:
+                    program_name(row['fund']['id'], program)
+            for row in document.get('programAdditions', []):
+                program_name(row['sourceRecordId'], row['program'])
+        (root / path).write_bytes(encoded(document))
+    catalog['funds'] = funder_names(catalog['funds'])
+    for fund in catalog['funds']:
+        for row in archive['programs']:
+            if row['fundId'] == fund['id'] and row['after'] == fund.get('program'):
+                fund['program'] = row['before']
+        for program in (fund.get('enrichment') or {}).get('programs', []):
+            program_name(fund['id'], program)
+    return archive['journalLengthAtRename']
+
+
 def rewind_journal(root):
     """Return a copy to the empty journal the synthetic replays start from.
 
@@ -32,7 +81,11 @@ def rewind_journal(root):
     if not history:
         return
     catalog = read(root, 'dist/data/funders.json')
-    for revision in reversed(history):
+    renamed_after = read(root, RENAMES)['journalLengthAtRename']
+    for position, revision in reversed(list(enumerate(history))):
+        # The renames came after the first revisions, so they are undone before those are.
+        if position == renamed_after - 1:
+            rewind_names(root, catalog)
         for edit in reversed(revision['edits']):
             document = read(root, edit['path'])
             replace(document, edit['keys'], edit['before'])
@@ -40,8 +93,8 @@ def rewind_journal(root):
         for path, expected in revision['beforeFileSha256'].items():
             if hashlib.sha256((root / path).read_bytes()).hexdigest() != expected:
                 raise AssertionError('Rewound input differs from its archived hash: ' + path)
-        position = next(i for i, f in enumerate(catalog['funds']) if f['id'] == revision['fundId'])
-        catalog['funds'][position] = revision['priorFundRecord']
+        index = next(i for i, f in enumerate(catalog['funds']) if f['id'] == revision['fundId'])
+        catalog['funds'][index] = revision['priorFundRecord']
         (root / 'research/revisions' / (revision['id'] + '.json')).unlink()
     (root / INDEX).write_bytes(encoded({'version': 1, 'revisions': []}))
     (root / 'dist/data/funders.json').write_text(json.dumps(catalog, ensure_ascii=False, separators=(',', ':')))

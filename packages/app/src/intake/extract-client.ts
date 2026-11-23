@@ -1,5 +1,6 @@
 import { collectSource, countWords } from "../describe/keywords.ts";
-import { browserExtractUsing } from "../describe/engines.ts";
+import { availableBrowser, browserExtractUsing } from "../describe/engines.ts";
+import { reusableWorker, WorkerProblem } from "../describe/reusable-worker.ts";
 import {
   AskExtractionSchema,
   parseExtraction,
@@ -9,40 +10,40 @@ import {
   type AskStep,
 } from "./contracts.ts";
 import { candidateChunks, chunksFrom, keywordExtraction } from "./keywords.ts";
+/**
+ * The worker that reads words into cards, kept for the visit to a needs or offers step so every
+ * reading after the first skips starting it. The page warms it when the person starts to talk or
+ * type and closes it on leaving.
+ */
+const reader = reusableWorker(() => new Worker(new URL("./extract-worker.ts", import.meta.url), { type: "module" }));
+export const warmAskReader = (): void => {
+  if (typeof Worker !== "undefined") reader.warm();
+};
+export const closeAskReader = (): void => reader.close();
+
 async function keywordWorker(chunks: AskChunk[], kind: AskKind, signal: AbortSignal): Promise<AskExtraction> {
   signal.throwIfAborted();
   if (typeof Worker === "undefined") return keywordExtraction(chunks, kind);
-  return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL("./extract-worker.ts", import.meta.url), { type: "module" });
-    const cleanup = () => {
-      worker.terminate();
-      signal.removeEventListener("abort", abort);
-    };
-    const abort = () => {
-      cleanup();
-      reject(new DOMException("Cancelled", "AbortError"));
-    };
-    signal.addEventListener("abort", abort, { once: true });
-    worker.onmessage = (event) => {
-      cleanup();
-      const parsed = AskExtractionSchema.safeParse(event.data?.result);
-      if (event.data?.ok && parsed.success) resolve(parsed.data);
-      else reject(new Error("The local reader returned invalid cards."));
-    };
-    worker.onerror = () => {
-      cleanup();
-      reject(new Error("The local reader could not start. Add cards by hand instead."));
-    };
-    try {
-      worker.postMessage({ chunks, kind });
-    } catch {
-      cleanup();
-      reject(new Error("The local reader could not receive these words."));
-    }
-  });
+  let reply: { ok?: boolean; result?: unknown };
+  try {
+    reply = (await reader.run({ chunks, kind }, signal)) as typeof reply;
+  } catch (error) {
+    if (error instanceof WorkerProblem)
+      throw new Error(
+        error.stage === "start"
+          ? "The local reader could not start. Add cards by hand instead."
+          : "The local reader could not receive these words.",
+      );
+    throw error;
+  }
+  const parsed = AskExtractionSchema.safeParse(reply?.result);
+  if (reply?.ok && parsed.success) return parsed.data;
+  throw new Error("The local reader returned invalid cards.");
 }
 export async function extractAsks(step: AskStep, kind: AskKind, signal: AbortSignal, useBrowser: boolean) {
   signal.throwIfAborted();
+  // Whether the browser's model is there is asked while the keyword rules run, not after them.
+  const modelReady = useBrowser ? availableBrowser() : Promise.resolve(false);
   const hasPdf = step.attachments.some(
     (file) => file.type === "application/pdf" || /\.pdf$/iu.test(file.name),
   );
@@ -74,6 +75,7 @@ export async function extractAsks(step: AskStep, kind: AskKind, signal: AbortSig
   if (useBrowser && candidates.length) {
     const nativeStart = performance.now();
     try {
+      if (!(await modelReady)) throw new Error("The browser model is not ready. The keyword cards are ready.");
       const result = await browserExtractUsing(
         JSON.stringify(candidates),
         signal,

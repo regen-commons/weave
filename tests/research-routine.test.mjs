@@ -127,3 +127,20 @@ test('the verification standard states the intervals the planner applies', () =>
   assert.ok(row('Funder identity').includes(`| ${intervals.identityDays} days`));
   assert.deepEqual(Object.keys(intervals.routeDays).filter(route => route !== 'source-only').sort(), [...read('dist/data/enrichment.schema.json').properties.programs.items.properties.application.properties.route.enum].sort());
 });
+
+test('program and funder names carry no em dash, and every rename keeps its earlier name', () => {
+  const catalog = read('dist/data/funders.json');
+  const renames = read('research/maintenance-history/name-normalization-2026-11-22/renames.json');
+  const programs = new Map(catalog.funds.flatMap(fund => (fund.enrichment?.programs ?? []).map(program => [fund.id+'::'+program.id, program.name])));
+  for (const fund of catalog.funds) for (const name of [fund.name, fund.displayName, fund.program]) assert.ok(!name.includes('—'), fund.id+' '+name);
+  for (const [key, name] of programs) assert.ok(!name.includes('—'), key+' '+name);
+  for (const row of renames.programs) {
+    assert.ok(row.before.includes('—') && row.before !== row.after, row.programId);
+    assert.ok(programs.has(row.fundId+'::'+row.programId), 'program id kept: '+row.programId);
+  }
+  // A funder's programs stay distinguishable by name.
+  for (const fund of catalog.funds) {
+    const names = (fund.enrichment?.programs ?? []).map(program => program.name);
+    assert.equal(new Set(names).size, names.length, fund.id);
+  }
+});

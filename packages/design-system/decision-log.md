@@ -974,9 +974,9 @@ Three options were rendered on the real catalog: the details as filters (Where y
 **Status:** quality findings Q-10 and Q-11 from the baseline review, 22 November 2026, for the home-shell session. Amends DL-102 on where the banner sits.
 
 - **The banner is inside the header.** "Still in development will be live soon" ran two thoughts together and sat outside every landmark, so a screen reader moving by landmark skipped it. It now reads "Still in development. Live soon.", two sentences short enough for one line at 320 px, and it is the first line of the page's one header landmark (`rc-app-head`), before the app bar. The header sticks with the banner's height above the window's top, so the banner still scrolls away with the page and the bar stays, as when the two were apart. The page's grid no longer needs a row of its own for the banner.
-- **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar sticks at the window's top on its own, and the record beside the work sticks under it.
+- **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar stays fixed at the window's foot, as the dock does, since DL-127 moved it there, and the record beside the work sticks a step from the window's top.
 
-Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. Not tried with a real browser's zoom on a real phone.
+Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. The 1280 by 400 check was made while the step bar was still under the app bar. Not tried with a real browser's zoom on a real phone.
 
 ## DL-133: Stop answers at once, and the wait for the last words has an end
 
@@ -1006,6 +1006,20 @@ From Krug: every press gets an answer where the person is looking. From Dirksen:
 - **A phone's You tab holds more of Settings.** Appearance and Install Weave On Your Phone are their own groups there, drawn as Settings draws them, then All Settings. They are the two a phone uses most, and installing is something only a phone can do.
 
 Rendered from the dev server's example account in Chromium at 360 and 1280 px, in both themes, with the keyboard. Proof class: fixture.
+
+## DL-135: On a step with fields to fill in, the mycelium keeps off the words
+
+**Status:** finding from the speech session's review, 22 November 2026. Amends DL-071 and DL-106 for form steps, and DL-128 where it made new growth linger and grow on its own on a desk.
+
+On a phone at 360 px, in both themes, new strands crossed small text on the describe step: the line under Talk It Out and the label of the box. On a phone the column of content runs to the screen's edges, so the resting network's quieter share under it was the only thing between a thread and a label, and new growth was not dimmed at all. DL-128's longer-lived tufts, and its tufts that grow on their own on a desk, made that worse.
+
+A form step (a route with `form: true`: the steps of describing an initiative) now marks its mycelium quiet:
+
+- **The resting network is quieter under the column:** 20 percent of its strength there instead of 45, and still whole in the margins.
+- **New growth keeps to the margins.** A tuft, from a finger, a mouse or on its own, starts only in a margin at least 48 px wide, and its branches stop at the column's edge. A phone's column runs to its edges, so a phone grows nothing new on a form step. On a 1280 px desk the margins are 80 px wide, and tufts grow there and never cross the fields.
+- Every other page keeps DL-128's growth. Reduced motion still draws the resting network once and grows nothing.
+
+Measured in headless Chromium on the dev server. At 1280 by 800, a mouse moved across the describe form added no ink to the canvas over the fields in either theme, where the same move over Home added about a million units of alpha. At 360 by 780, a finger dragged across the fields, then 8 seconds of waiting, asked for no animation frame on the describe step, and 507 on Home.
 
 ## DL-136: A fund or an initiative has one address, a sheet inside the app and a page from a link
 

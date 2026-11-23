@@ -70,7 +70,7 @@ test('applied rounds sit under existing funders with evidence, unknowns and a sc
   const call2 = program(catalog.funds, 'local-nlnet', 'nlnet-restack-call2-2027');
   assert.equal(call2.application.deadlineInstant, '2027-01-03T11:00:00Z');
   assert.ok(!call2.costs.supported.join(' ').includes('accessibility'), 'accessibility is not a named eligible cost');
-  assert.deepEqual(program(catalog.funds, 'local-nlnet', 'nlnet-restack'), program(prior.funds, 'local-nlnet', 'nlnet-restack'), 'first call retained');
+  assert.deepEqual(program(afterPass.funds, 'local-nlnet', 'nlnet-restack'), program(prior.funds, 'local-nlnet', 'nlnet-restack'), 'first call retained');
   const articulacao = program(catalog.funds, 'local-funbio', 'funbio-articulacao-institucional-11-2026');
   assert.equal(articulacao.application.deadlineInstant, '2026-12-05T02:45:00Z');
   assert.equal(articulacao.award.max, 1000000);
