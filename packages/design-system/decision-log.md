@@ -981,3 +981,15 @@ Kept as it was: the words still appear in the box while the person talks. Showin
 Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
+
+## DL-136: A fund or an initiative has one address, a sheet inside the app and a page from a link
+
+**Status:** the user's choices, 22 November 2026. QA found that an initiative card opened the Certified API's raw JSON, and that a shared link showed no preview in Telegram. Extends DL-068.
+
+- **One address.** A fund is `/funding/<fund>`, with `?program=` for one of its programs. A public Certified project is `/initiatives/<account>-<record>`: its PLC account and its record key, which every project listed that day has.
+- **A sheet or a page.** Opened from inside the app, a record comes up over its list, and closing returns to the same search and filters. Opened from a link, a new tab or another record's page, it is a page of its own, with a back link and breadcrumbs to its list. Its sections are `h3` under a sheet's title and `h2` under a page's heading.
+- **Its own preview.** Vercel rewrites the two addresses to `GET /api/record-page`, which returns the app's `index.html` with the record's name and words in its head, so Telegram, WhatsApp and X show the record. The picture is its section's for now. A picture per record would need a new dependency.
+- **Share.** The menu offers Copy Link, the device's share sheet where there is one, and plain links to Email, Telegram, WhatsApp, X, LinkedIn and Bluesky. No script of theirs runs on Weave. Only the public record goes: its name, its address and one line. Nothing from the person's card goes, and nothing from the page's address but `program`.
+- **Fit on an initiative's page.** The page says whether the project could partner with the card on this device. Weave works that out on the device, from the card's kept needs and offers, as possible fits only (DL-052).
+
+Given up: a card with no record key of that shape has no page and opens its public record, as before. Certified records carry no website or contact, so Get In Touch can only say Weave makes no introductions yet.
