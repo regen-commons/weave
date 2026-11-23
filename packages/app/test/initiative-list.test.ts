@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { boundCardId, deviceDrafts, draftSaving, initiativeEntries, linkedProject, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
+import { boundCardId, deviceDrafts, draftKinds, draftSaving, ENTRY_KINDS, initiativeEntries, linkedProject, projectKind, projectLinkLine, projectLinkState, savingLine, standsForProject, openSavedOver } from "../src/initiative/list.ts";
 import { projectSource } from "../src/intake/project-page.ts";
 import { addEntry } from "../src/intake/entries.ts";
 
@@ -67,8 +67,10 @@ test("the entry says where a draft stands against its saved card, and never call
   // A card without a revision in its listing is never called newer.
   assert.equal(draftSaving(saved, {}, owner, key("same")), "saved");
   assert.equal(savingLine("unsaved", null), "", "the badge says it");
-  assert.equal(savingLine("saved", "15 November 2026"), "Saved privately in Weave on 15 November 2026.");
-  assert.equal(savingLine("saved-unlisted", null), "Saved privately in Weave.");
+  // The card's tag says where it is saved (DL-134), so the line only adds when.
+  assert.equal(savingLine("saved", "15 November 2026"), "Saved on 15 November 2026.");
+  assert.equal(savingLine("saved", null), "");
+  assert.equal(savingLine("saved-unlisted", null), "");
   assert.equal(savingLine("changed-here", null), "Changed on this device since you saved.");
   assert.match(savingLine("newer-in-account", null), /newer version is saved in your account/);
   assert.match(savingLine("changed-both", null), /on this device and in your account/);
@@ -160,4 +162,30 @@ test("opening the saved version over a working copy keeps the copy, and the entr
   calls.length = 0;
   await assert.rejects(openSavedOver({ id: "copy" }, { id: "card" }, async () => { throw new Error("offline"); }, retire(true)), /offline/);
   assert.deepEqual(calls, []);
+});
+
+test("every card says what it is, so a draft and a Certified project with one name can be told apart (DL-134)", () => {
+  // A Certified project is its own, a group's, or a group's with a team workspace in Weave.
+  assert.equal(projectKind({ group: null, workspace: false }), "personal-project");
+  assert.equal(projectKind({ group: null, workspace: "solo" }), "personal-project", "a personal project's own workspace is not a team's");
+  assert.equal(projectKind({ group: "Valley seed keepers", workspace: false }), "group-project");
+  assert.equal(projectKind({ group: "Valley seed keepers", workspace: "absent" }), "group-project");
+  assert.equal(projectKind({ group: "Valley seed keepers", workspace: "requested" }), "group-project");
+  assert.equal(projectKind({ group: "Valley seed keepers", workspace: true }), "team-workspace");
+  assert.equal(projectKind({ group: "Valley seed keepers", workspace: "open" }), "team-workspace");
+  // A draft that is linked to nothing says only where it is kept.
+  assert.deepEqual(draftKinds("unsaved", null), ["device"]);
+  for (const saving of ["saved", "saved-unlisted", "changed-here", "newer-in-account", "changed-both"] as const)
+    assert.deepEqual(draftKinds(saving, null), ["private"], saving);
+  // A linked draft is its project first, and still says so when it is not saved.
+  assert.deepEqual(draftKinds("unsaved", { group: null, workspace: "solo" }), ["personal-project", "device"]);
+  assert.deepEqual(draftKinds("saved", { group: "Valley seed keepers", workspace: "open" }), ["team-workspace"]);
+  assert.deepEqual(draftKinds("changed-here", { group: "Valley seed keepers", workspace: "absent" }), ["group-project"]);
+  // Signed out, a draft an account saved carries no tag: its line says to sign in.
+  assert.deepEqual(draftKinds("unsaved", null, true), []);
+  // Each kind has its own words and an icon, so colour is never the only sign.
+  const labels = Object.values(ENTRY_KINDS).map((kind) => kind.label);
+  assert.equal(new Set(labels).size, labels.length);
+  assert.deepEqual(labels, ["Not saved yet", "Saved privately", "Personal project", "Group project", "Team workspace"]);
+  for (const kind of Object.values(ENTRY_KINDS)) assert.ok(kind.icon);
 });
