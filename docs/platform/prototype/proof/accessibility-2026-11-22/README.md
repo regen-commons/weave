@@ -1,18 +1,18 @@
 # Accessibility audit, 22 November 2026
 
-After the fixes listed here, Weave meets 48 of the 55 level A and AA criteria of WCAG
-2.2, counting those with nothing to apply to. Seven still have an open item: one waits
-on the user's decision, the others on another session's files, on work that needs the
-account service, or on data the sources do not hold. Automated checks found nothing (Lighthouse accessibility 100, axe-core
+After the fixes listed here, Weave meets 49 of the 55 level A and AA criteria of WCAG
+2.2, counting those with nothing to apply to. Six still have an open item: on another
+session's files, on work that needs the account service, or on data the sources do not
+hold. Automated checks found nothing (Lighthouse accessibility 100, axe-core
 no violations), so every finding below came from walking each flow with the keyboard
 and reading the accessibility tree and the live-region traffic.
 
 The most serious problems were about where focus goes and what a screen reader hears:
 the phone Filters sheet said nothing when a filter changed the count, removing a
 filter chip dropped the focus on the page, and long dialogs scrolled the focused
-field under their own sticky title row or Save button. Those are fixed. The open
-Level A item is the background mycelium, which keeps growing on every page with no
-way to pause it from the page.
+field under their own sticky title row or Save button. Those are fixed, and so is the
+background mycelium, which kept growing on its own with no way to pause it from the
+page.
 
 ## How it was checked
 
@@ -90,7 +90,7 @@ are fixed in the pull requests named.
   explanation on hover, on focus and on a long press; a tap did nothing. Fix: a press
   opens it too. Focus, Escape and hover behave as before (1.4.13 passes).
 
-### Describing an initiative (this change)
+### Describing an initiative ([#174](https://github.com/regen-commons/weave/pull/174))
 
 - [x] **A-07. Each change to a list is announced twice, once without its noun.** 4.1.3
   Status Messages (AA). Needs and Offers. Moderate. The "2 of 4" count was its own live
@@ -113,14 +113,18 @@ are fixed in the pull requests named.
   and Needs and Offers followed as `h3` with their cards as `h4`. Fix: they are `h2`
   and `h3` wherever the page heading is the name.
 
+### Background motion
+
+- [x] **A-12. The background keeps moving with no way to pause it.** 2.2.2 Pause, Stop,
+  Hide (A). Every page. Serious. The mycelium grew a new strand on its own every 1.8 to
+  3.6 seconds for as long as a page was open (DL-128), and only the system's
+  reduced-motion setting stopped it. Fix, by the user's decision of 23 November: strands
+  grow on their own for the first five seconds of a page; one still growing then goes
+  at once, and a mouse or a finger still leaves trails. On Home, animation frames
+  stopped 4.5 seconds after the first and none followed in the next seven.
+
 ### Open
 
-- [ ] **A-12. The background keeps moving with no way to pause it.** 2.2.2 Pause, Stop,
-  Hide (A). Every page. Serious. The mycelium grows a new strand on its own every 1.8 to
-  3.6 seconds for as long as a page is open (DL-128). Only the system's reduced-motion
-  setting stops it, and WCAG asks for a way in the page. Needs the user's decision:
-  stop the strands that grow on their own after a few seconds, or add a motion switch to
-  Settings.
 - [ ] **A-13. Talk It Out says "Stop, pressed".** 4.1.2 Name, Role, Value (A). Every
   describe step. Minor. The button is a toggle (`aria-pressed`) whose label also changes
   to Stop, and its status line switches its role between status and alert on the same
@@ -192,7 +196,7 @@ Weave has nothing the criterion covers.
 | 2.1.2 No Keyboard Trap | Pass | Native modal dialogs; Escape and Close always leave |
 | 2.1.4 Character Key Shortcuts | Pass | None. Enter moves to the next field only inside a form |
 | 2.2.1 Timing Adjustable | Pass | No time limits; drafts stay on the device |
-| 2.2.2 Pause, Stop, Hide | Open | A-12. No carousel moves on its own |
+| 2.2.2 Pause, Stop, Hide | Fixed | A-12. No carousel moves on its own |
 | 2.3.1 Three Flashes | Pass | Nothing flashes |
 | 2.4.1 Bypass Blocks | Pass | Skip to content is the first stop and focuses `main` |
 | 2.4.2 Page Titled | Pass | Each route and each open record sets the tab title |

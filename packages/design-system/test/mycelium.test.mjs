@@ -17,6 +17,8 @@ import {
   QUIET_UNDER,
   mouseAtRest,
   movedEnough,
+  OWN_GROWTH_FOR,
+  ownGrowthOpen,
   restDensity,
   restShare,
   restStops,
@@ -339,6 +341,35 @@ test("a tuft grows on its own on a desk too, but not while the mouse is growing 
   grows();
   assert.ok(phone.view.frame, "and then grows it");
   onPhone.dispose();
+});
+
+test("growth on its own ends five seconds after a page opens, and a mouse still grows trails (WCAG 2.2.2)", () => {
+  assert.equal(OWN_GROWTH_FOR, 5000);
+  assert.equal(ownGrowthOpen(4999), true);
+  assert.equal(ownGrowthOpen(5000), false, "nothing starts on its own once five seconds have passed");
+
+  const { canvas, view, run, send } = stage();
+  const growth = growMycelium(canvas);
+  run();
+  const [own, end] = view.timers.filter(Boolean);
+  own();
+  assert.ok(view.frame, "a tuft grows on its own in the first seconds");
+  end();
+  const after = run();
+  assert.ok(after < 100, `what grew on its own goes quickly once the time is up: ${after} frames`);
+  assert.equal(view.frame, null, "and then nothing moves");
+  const waiting = view.timers.filter((timer) => timer && timer !== own && timer !== end);
+  assert.equal(waiting.length, 0, "and nothing is set to grow on its own again");
+  send("mousemove", { clientX: 300, clientY: 300 });
+  assert.ok(view.frame, "a mouse still leaves its trail");
+  growth.dispose();
+
+  const early = stage();
+  const growing = growMycelium(early.canvas);
+  const [, stopAt] = early.view.timers.filter(Boolean);
+  stopAt();
+  assert.ok(early.run() <= 2, "a resting network still growing in comes to rest at once");
+  growing.dispose();
 });
 
 test("disposing stops drawing and leaves no listener, observer or timer behind", () => {
