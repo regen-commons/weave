@@ -152,18 +152,15 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   value in `@weave/api/page-preview`. An `X-Robots-Tag` header would need a `vercel.json`
   change and the user's OK.
 - [ ] **Q-17. The main pages name no canonical address.** Routes: Home, Funding,
-  Initiatives. Each already has its own title and description in its section copy
-  (`dev/link-previews.ts`). Fix in phase 2: add a `rel="canonical"` link and keep the title
-  and description in each prerendered page. Every tag value comes from
-  `@weave/api/page-preview`, which the build's section copies and the `/api/record-page`
-  function also use. That function serves the prerendered shell for record pages and swaps
-  in each record's own canonical. Detail-sheet-sharing owns the record pages' canonicals,
-  their JSON-LD and the sitemap.
-- [ ] **Q-18. `robots.txt` names no sitemap.** Routes: all. Add
-  `Sitemap: https://weave.regencommons.com/sitemap.xml` once that address serves the
-  sitemap (detail-sheet-sharing's `/api/sitemap`, whose rewrite waits on the user's OK). Search Console verification
-  needs the user's own account; ask the user before adding a verification tag or file,
-  and leave DNS alone.
+  Initiatives. Owner: detail-sheet-sharing, which writes every canonical (Home, each
+  section copy and each record page) from `withPagePreview` in `@weave/api/page-preview`.
+  None goes in `index.html`, because the build copies it into every section page. Quality
+  keeps the title and description in each prerendered page.
+- [ ] **Q-18. `robots.txt` names no sitemap.** Routes: all. `robots.txt` now ends with
+  `Sitemap: https://weave.regencommons.com/sitemap.xml`; the user approved the rewrite to
+  detail-sheet-sharing's `/api/sitemap`. Before #140 merges, confirm that address serves
+  the sitemap. Search Console verification needs the user's own account; ask the user
+  before adding a verification tag or file, and leave DNS alone.
 
 ### Accessibility
 
