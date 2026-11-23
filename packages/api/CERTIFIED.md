@@ -575,6 +575,29 @@ through the PDS service proxy. Group-scoped reads and writes use one-use
 service tokens. Prove both paths with the selected Certified environment
 before enabling project writes.
 
+A grant is bound to one Weave session and one action. The grant for `membership`, which only reads
+the signed-in person's own group memberships, lasts 30 days from the consent, which is as long as a
+session can last (`grantLifetime` in `certified-project-auth.ts`; the user's choice, 22 November 2026,
+DL-137). It cannot be used from another session, so it is unusable after sign-out or a revoked session,
+and a new sign-in asks Certified again. Its stored tokens stay encrypted in
+`weave_project_oauth.records` until that expiry: nothing deletes them at sign-out, and expired rows go
+only when the operator's pruning runs (the candidate schema notes the statement and schedules nothing).
+Every other grant can write to Certified and still ends within the hour. The store refuses to keep a
+grant longer than its action allows, and a stored grant that claims a longer life is refused when read.
+
+Weave's own team commands (saving to a team workspace, invitations, workspace setup) check current group
+membership through this read grant. They used to stop after an hour until the person consented again;
+they now keep working for the session. Whoever holds a person's Weave session can therefore use those
+commands for as long as it lasts, as they already can save, load and delete that person's private cards.
+
+Signing in from Your Initiatives goes on to the `membership` consent without another press. The app
+keeps a note for the tab before leaving, reads it once on the callback's return to that page, waits
+for the session check and the device store, and then starts consent exactly as the Allow button does
+(`initiative/consent-chain.ts`). The trip is made at most once for a page load and is dropped if it
+cannot start within 20 seconds or the person has left the page. Certified still shows its consent
+screen, and the receipt is finished the same way. A sign-in from anywhere else leaves no note and
+clears an earlier one.
+
 The app finishes the one-use, session-bound project receipt before mounting its
 project loaders. React effect replay shares the same finish request. A missing,
 expired or unreadable browser task returns to Your Initiatives with a recovery

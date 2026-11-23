@@ -13,7 +13,7 @@ import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { PendingInvite } from "../initiative/WorkspaceAccess.tsx";
-import { ConsentButton } from "../initiative/ProjectConsent.tsx";
+import { ConsentButton, useProjectAccessAfterSignIn } from "../initiative/ProjectConsent.tsx";
 import { teamWorkspacePath } from "../routes.ts";
 import type { CertifiedRecord, SavedCard } from "../social/fixture.ts";
 import { projectLine } from "../social/words.ts";
@@ -46,6 +46,13 @@ import { Tag } from "../ui/Tag.tsx";
 import { ThemeChoice } from "../ui/ThemeSwitch.tsx";
 import { SettingsSection } from "../ui/SettingsSection.tsx";
 import { InstallGuide } from "../install/InstallGuide.tsx";
+
+/** Said before the press, so the second Certified screen is expected. */
+const PROJECT_ACCESS_NEXT =
+  "Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in.";
+/** The same, where the page has just said the initiatives are only in this browser. */
+const PROJECT_ACCESS_WITH_SIGN_IN =
+  "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is saved or shared until you choose it.";
 
 /**
  * A phone's Settings on the You tab, in every state of the page, signed out included. The tab is a
@@ -106,6 +113,8 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const [forDraft, setForDraft] = useState(false);
   const [, setAnswered] = useState(0);
   const [deleting, setDeleting] = useState(false);
+  // Signing in from this page goes on to Certified's project permission (the user's choice, 22 November 2026).
+  const continuing = useProjectAccessAfterSignIn();
   const access = new URLSearchParams(routeSearch()).get("access");
   const consentNotice = access === "failed" ? <p role="status">Certified access could not be confirmed. Try again.</p>
     : access === "denied" ? <p role="status">Certified access was declined.</p> : null;
@@ -256,7 +265,8 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   );
   // An example can hold the page in its loading state, so the shape it keeps can be seen and measured.
   const exampleLoading = import.meta.env.DEV && !live && fixture?.state === "loading";
-  const loading = !!social.loading || exampleLoading;
+  // On the way to Certified's project permission the projects are not read yet either.
+  const loading = !!social.loading || exampleLoading || continuing;
   // Whether anyone is signed in is not known yet: hold the page's shape instead of guessing a state.
   // An account this device expects is being checked too, before the live adapter has anyone to read for.
   const checking = ((live || (import.meta.env.DEV && !!fixture)) && loading && !state.identity) || (live && account.expectsAccount);
@@ -271,9 +281,10 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>
           {live && <PendingInvite />}
           <div className="rc-action-bar">
-            <SignInButton />
+            <SignInButton thenProjects={live} />
             {startAction("secondary")}
           </div>
+          {live && <p className="rc-meta">{PROJECT_ACCESS_NEXT}</p>}
           <AboutCertified />
           <SignInReturnNotice />
           {note}
@@ -305,10 +316,11 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
                 Sign in to save and open on another device
               </h2>
               <p>
-                {listed.length === 1 ? "Your initiative is" : "Your initiatives are"} kept in this browser only. {SIGN_IN.effect}
+                {listed.length === 1 ? "Your initiative is" : "Your initiatives are"} kept in this browser only.{" "}
+                {live ? PROJECT_ACCESS_WITH_SIGN_IN : SIGN_IN.effect}
               </p>
               <div className="rc-action-bar">
-                <SignInButton />
+                <SignInButton thenProjects={live} />
                 <AboutCertified />
               </div>
               <SignInReturnNotice />
@@ -490,7 +502,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
               <CardGridSkeleton kind="own" count={2} />
             </div>
           )}
-          {social.problem && (
+          {social.problem && !continuing && (
             <section className="rc-notice" data-tone="warning" aria-label="Certified projects">
               <div className="rc-notice-body">
                 <p role="status">{social.problem}</p>
