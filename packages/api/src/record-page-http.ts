@@ -6,6 +6,7 @@ import { parseProjectUri } from "./project-uri.ts";
 import { DESCRIPTION_MAX, previewLine, PUBLIC_ORIGIN, withoutPageHead, withPagePreview, type PagePreview, type StructuredData } from "./page-preview.ts";
 import { projectPassages, projectUriOf, type PublicProjectCard } from "./public-projects-contract.ts";
 import { withRecordFirstView, type RecordCrumbs, type RecordFirstView } from "./record-first-view.ts";
+import type { RecordImageWords } from "./record-image-drawing.ts";
 
 /**
  * What the build writes beside index.html for this handler: the two sections' previews, the breadcrumbs
@@ -132,14 +133,18 @@ export const fundAddress = (fund: string, program: string | null): string =>
 export const initiativeAddress = (slug: string): string => `${PUBLIC_ORIGIN}/initiatives/${slug}`;
 
 /**
- * A record's page: its preview (whose address is its canonical link), what it is, as JSON-LD, and its
- * heading and summary drawn as the page's first view.
+ * A record's page: its preview (whose address is its canonical link), what it is, as JSON-LD, its
+ * heading and summary drawn as the page's first view, and what its own link picture says.
  */
 export interface RecordPage {
   readonly preview: PagePreview;
   readonly structuredData: StructuredData;
   readonly firstView: RecordFirstView;
+  readonly picture: RecordImageWords;
 }
+
+/** A record's address as its pages and pictures key it: its path on the site, with its program. */
+const pagePath = (address: string): string => { const url = new URL(address); return `${url.pathname}${url.search}`; };
 
 /** The longest description the JSON-LD carries, cut at a word. */
 const ABOUT_MAX = 500;
@@ -181,6 +186,11 @@ export function fundPage(previews: RecordPreviews, ask: Extract<RecordAsk, { kin
       section: "funding", crumbs: previews.crumbs.funding,
       path: `/funding/${ask.id}`, program: ask.program, title: name, summary: fund.description,
     },
+    // A program's picture names its fund under its own name; a fund's names nothing more.
+    picture: {
+      section: "funding", path: pagePath(preview.url), title: name,
+      subtitle: program && program !== fund.name ? fund.name.replace(/\s+/gu, " ").trim() : "",
+    },
     structuredData: webPage(name, preview, program && program !== fund.name
       ? { "@type": "FundingScheme", name, parentOrganization: { "@type": "Organization", name: fund.name, ...fundWords } }
       : { "@type": "FundingScheme", name, ...fundWords }),
@@ -203,6 +213,11 @@ export function initiativePage(previews: RecordPreviews, ask: Extract<RecordAsk,
     firstView: {
       section: "initiatives", crumbs: previews.crumbs.initiatives,
       path: `/initiatives/${ask.id}`, program: null, title: name, summary: projectPassages(card)[0] ?? "",
+    },
+    // Who shared it and where, as its publisher gave them.
+    picture: {
+      section: "initiatives", path: pagePath(preview.url), title: name,
+      subtitle: [card.publisher && `Shared by ${card.publisher}`, card.place].filter(Boolean).join(" · ").replace(/\s+/gu, " ").trim(),
     },
     structuredData: webPage(name, preview, {
       "@type": "Project", name,
@@ -241,7 +256,7 @@ function withPreview(status: number, html: string, preview: PagePreview, cache: 
 export const LOOKUP_TIMEOUT_MS = 2000;
 
 /** A lookup that has not answered by the deadline is treated as failed; the page does not wait on it. */
-function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
+export function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error("lookup_timeout")), ms); });
   return Promise.race([work, late]).finally(() => clearTimeout(timer));
@@ -262,9 +277,20 @@ export function createRecordPageHandler(options: {
   previews(request: Request): Promise<RecordPreviews>;
   /** A public project's card, null when the list does not show it. Rejects when the list cannot be read. */
   project(uri: string): Promise<PublicProjectCard | null>;
+  /**
+   * The record's own picture's address and what it shows in words, or null where its section's picture
+   * stays. A picture that cannot be worked out leaves the section's picture too.
+   */
+  picture?(words: RecordImageWords): Promise<{ readonly image: string; readonly imageAlt: string } | null>;
   lookupTimeoutMs?: number;
 }) {
   const lookupTimeoutMs = options.lookupTimeoutMs ?? LOOKUP_TIMEOUT_MS;
+  /** The record with its own picture in its preview, where it has one. */
+  async function pictured(record: RecordPage): Promise<RecordPage> {
+    let own: { readonly image: string; readonly imageAlt: string } | null = null;
+    try { own = (await options.picture?.(record.picture)) ?? null; } catch { own = null; }
+    return own ? { ...record, preview: { ...record.preview, ...own } } : record;
+  }
   async function respond(request: Request): Promise<Response> {
     const ask = recordAsk(new URL(request.url));
     let html: string;
@@ -277,13 +303,14 @@ export function createRecordPageHandler(options: {
     catch { return page(ask ? 200 : 404, withoutPageHead(html), NOT_CACHED); }
     if (!ask) return page(404, withoutPageHead(html), CACHED);
     if (ask.kind === "funding") {
-      const record = fundPage(previews, ask);
+      const found = fundPage(previews, ask);
+      const record = found && await pictured(found);
       return record ? withPreview(200, html, record.preview, CACHED, record) : withPreview(404, html, previews.sections.funding, CACHED);
     }
     let card: PublicProjectCard | null;
     try { card = await withDeadline(options.project(ask.uri), lookupTimeoutMs); }
     catch { return withPreview(200, html, previews.sections.initiatives, NOT_CACHED); }
-    const record = card && initiativePage(previews, ask, card);
+    const record = card && await pictured(initiativePage(previews, ask, card));
     return record
       ? withPreview(200, html, record.preview, CACHED, record)
       : withPreview(404, html, previews.sections.initiatives, CACHED);

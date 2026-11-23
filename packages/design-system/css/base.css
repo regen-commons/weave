@@ -25,6 +25,33 @@
   :where(html) { overscroll-behavior-x: none; }
 }
 
+/* An app sends a page's first view as HTML, drawn at build time (data-first-view names the address
+   it was drawn for). Home's is also what a server sends for addresses it has no page of its own for,
+   so it shows only at Home, which the page marks before its body is drawn (data-home). */
+:root:not([data-home]) [data-first-view="/"] { display: none; }
+/* A page that changes with whether this device's draft holds a checked card draws the room for each
+   until the draft opens. The page marks before its body is drawn what the device last knew
+   (data-checked-card), and only that room shows, so nothing moves when the draft opens (DL-104). */
+:root[data-checked-card] [data-unless-checked-card],
+:root:not([data-checked-card]) [data-if-checked-card] { display: none; }
+/* If the app's script never runs, as when a connection drops while it loads, the first view stays
+   inert or the page stays empty. After a while the page says so, with a way to try again; the app
+   takes this away as it starts. */
+[data-app-fallback] {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--layer-toast);
+  margin: 0;
+  padding: var(--space-3) var(--gutter);
+  border-block-start: var(--border-thin) solid var(--line);
+  background: var(--surface-raised);
+  color: var(--on-surface-raised);
+  visibility: hidden;
+  animation: rc-app-fallback 0s 8s forwards;
+}
+@keyframes rc-app-fallback { to { visibility: visible; } }
+
 /* A section pinned to a theme paints its own surface. */
 :where(body, [data-theme]:not(:root)) {
   background: var(--surface);

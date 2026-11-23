@@ -2,6 +2,7 @@ import {
   isOrganizationType, isPublicProjectSort, isWorkScope, organizationTypeOf, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE,
   type PublicProjectCard, type PublicProjectPage, type PublicProjectSort,
 } from "@weave/api/public-projects-contract";
+import { LIST_FIRST_PAGE_ID, LIST_FIRST_PAGE_REQUEST } from "@weave/api/list-first-view";
 import type { Facet, FacetOption } from "../filters.ts";
 
 export type { PublicProjectCard, PublicProjectPage, PublicProjectSort };
@@ -50,15 +51,100 @@ export function publicProjectsPath(
   return `/api/public-projects${query ? `?${query}` : ""}`;
 }
 
-/** Reads one page. Any refusal, timeout or unexpected answer is a failure the page falls back from. */
-export async function requestPublicProjects(path: string, signal: AbortSignal, request: typeof fetch = fetch): Promise<PublicProjectPage> {
-  const response = await request(path, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)]),
-    headers: { accept: "application/json" },
-    credentials: "omit",
-  });
+/** How the list asks for a page: as JSON, carrying nothing of the browser's. The first-page script asks the same way. */
+export const PUBLIC_PROJECTS_REQUEST = { headers: { accept: "application/json" }, credentials: "omit" } as const satisfies RequestInit;
+
+/**
+ * Reads one page. Any refusal, timeout or unexpected answer is a failure the page falls back from.
+ * `started` is the same request already under way, from the Initiatives page's own HTML (see
+ * `takeFirstPage`); where it fails, the page is asked for again here, so the head start never costs a list.
+ */
+export async function requestPublicProjects(path: string, signal: AbortSignal, request: typeof fetch = fetch,
+  started?: Promise<Response>): Promise<PublicProjectPage> {
+  const limit = AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)]);
+  if (started) {
+    try {
+      const response = await Promise.race([started, aborted(limit)]);
+      if (response.ok) return parsePublicProjectPage(await response.json());
+    } catch {
+      // A head start that failed or was refused falls through to a request of its own.
+    }
+    // A page that left, or a wait past the limit, ends here.
+    limit.throwIfAborted();
+  }
+  const response = await request(path, { ...PUBLIC_PROJECTS_REQUEST, signal: limit });
   if (!response.ok) throw new Error("public_projects_unavailable");
   return parsePublicProjectPage(await response.json());
+}
+
+/** Rejects once the signal does, so a request already under way can be given up without being stopped. */
+function aborted(signal: AbortSignal): Promise<never> {
+  return new Promise((_, reject) => {
+    if (signal.aborted) reject(signal.reason);
+    else signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+  });
+}
+
+/**
+ * Where the Initiatives page's HTML leaves the first page it asked for: the address it asked for and the
+ * answer under way. The page's own script runs only once the app has loaded; this lets the list's first
+ * request run alongside the app's files instead of after them, so its cards come with the first drawing.
+ */
+export const FIRST_PAGE_GLOBAL = "__weaveFirstPage";
+/** What the HTML leaves: the address, the answer under way and, once it has been read, the page itself. */
+export type FirstPageHeadStart = { path: string; response: Promise<Response>; page?: unknown };
+
+const holderOf = () => globalThis as unknown as Record<string, unknown>;
+
+/**
+ * The first page the HTML already read, when it is the page now wanted and it reads as a list page. The
+ * list starts with it, so its very first drawing has the cards. Taken once; where the page is not read
+ * yet, the answer under way is left for `takeFirstPage`.
+ */
+export function takeReadFirstPage(path: string, holder: Record<string, unknown> = holderOf()): PublicProjectPage | undefined {
+  const early = holder[FIRST_PAGE_GLOBAL] as Partial<FirstPageHeadStart> | undefined;
+  if (!early || typeof early !== "object" || early.path !== path || early.page === undefined) return undefined;
+  delete holder[FIRST_PAGE_GLOBAL];
+  try {
+    return parsePublicProjectPage(early.page);
+  } catch {
+    return undefined;
+  }
+}
+
+/** The part of the document the served first page is read from. */
+export interface ServedFirstPageDocument {
+  getElementById(id: string): { readonly textContent: string | null } | null;
+}
+
+/**
+ * Keeps the first page GET /initiatives drew into the page (@weave/api/list-first-view), before the app's
+ * first draw, where the list will take it as one the HTML has read (`takeReadFirstPage`). Its first draw
+ * then has the same cards the server drew, and it sends no request for them. Anything that is not exactly
+ * the list's own first page, valid as the list reads one, is left, and the list asks as it always has.
+ */
+export function keepServedFirstPage(document: ServedFirstPageDocument, holder: Record<string, unknown> = holderOf()): void {
+  const text = document.getElementById(LIST_FIRST_PAGE_ID)?.textContent;
+  if (!text) return;
+  try {
+    const served = JSON.parse(text) as { path?: unknown; page?: unknown };
+    if (served.path !== LIST_FIRST_PAGE_REQUEST || served.path !== publicProjectsPath("")) return;
+    holder[FIRST_PAGE_GLOBAL] = { path: served.path, page: parsePublicProjectPage(served.page) };
+  } catch {
+    // Not the server's JSON: the list asks for its page.
+  }
+}
+
+/**
+ * The first page the HTML already asked for, once, when it is the page now wanted. Anything else, or a
+ * second call, gets nothing, and the list asks for itself.
+ */
+export function takeFirstPage(path: string, holder: Record<string, unknown> = holderOf()): Promise<Response> | undefined {
+  const early = holder[FIRST_PAGE_GLOBAL];
+  if (!early || typeof early !== "object") return undefined;
+  delete holder[FIRST_PAGE_GLOBAL];
+  const { path: asked, response } = early as Partial<FirstPageHeadStart>;
+  return asked === path && response instanceof Promise ? response : undefined;
 }
 
 /**

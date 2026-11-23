@@ -21,18 +21,48 @@ function meta(attributes: Record<string, string>) {
   };
 }
 /** The head as index.html has it when the script runs, and what the script did to it. */
-function boot(stored: () => string | null) {
-  const root = { dataset: {} as Record<string, string> };
+function boot(stored: () => string | null, pathname = "/", page: { root?: unknown } = {}) {
+  const timers: (() => void)[] = [];
+  const marks: Record<string, string> = {};
+  const root = { dataset: {} as Record<string, string>, setAttribute: (name: string, value: string) => void (marks[name] = value) };
   const scheme = meta({ name: "color-scheme", content: "light dark" });
   const colours = SCHEMES.map((name) => meta({ name: "theme-color", "data-scheme": name, media: themeColorMedia(null, name) }));
   const document = {
     documentElement: root,
     querySelector: (selector: string) => (selector === 'meta[name="color-scheme"]' ? scheme : null),
     querySelectorAll: (selector: string) => (selector === 'meta[name="theme-color"][data-scheme]' ? colours : []),
+    getElementById: (id: string) => (id === "root" ? page.root ?? null : null),
   };
-  vm.runInNewContext(BOOT, { document, localStorage: { getItem: (key: string) => (key === THEME_KEY ? stored() : null) } });
-  return { theme: root.dataset.theme, scheme: scheme.attributes.content, media: colours.map((colour) => colour.attributes.media) };
+  vm.runInNewContext(BOOT, {
+    document,
+    location: { pathname },
+    localStorage: { getItem: (key: string) => (key === THEME_KEY ? stored() : null) },
+    setTimeout: (run: () => void, ms: number) => void timers.push(() => { assert.equal(ms, 8000); run(); }),
+  });
+  return { theme: root.dataset.theme, scheme: scheme.attributes.content, media: colours.map((colour) => colour.attributes.media), home: "data-home" in marks, later: () => timers.forEach((run) => run()) };
 }
+
+test("the page is marked as Home at / alone, so Home's first view shows nowhere else", () => {
+  assert.equal(boot(() => null, "/").home, true);
+  for (const pathname of ["/funding", "/settings", "/funding/some-fund", "/start/needs", "//"]) assert.equal(boot(() => null, pathname).home, false, pathname);
+  // The mark does not depend on the theme, or on storage being readable.
+  assert.equal(boot(() => { throw new Error("storage is closed"); }, "/").home, true);
+});
+
+test("a first view the app never replaced has its links working after a while, and one it replaced is left alone", () => {
+  const attributes = new Set(["data-first-view", "inert"]);
+  const root = { hasAttribute: (name: string) => attributes.has(name), removeAttribute: (name: string) => void attributes.delete(name) };
+  const stuck = boot(() => null, "/settings", { root });
+  assert.ok(attributes.has("inert"), "inert until the wait is over");
+  stuck.later();
+  assert.deepEqual([...attributes], ["data-first-view"]);
+  // The app started: it took the first view's mark off, so nothing changes.
+  const started = new Set(["inert"]);
+  boot(() => null, "/settings", { root: { hasAttribute: (name: string) => started.has(name) && name !== "inert", removeAttribute: (name: string) => void started.delete(name) } }).later();
+  assert.deepEqual([...started], ["inert"]);
+  // No root at all, as on a page that is not the app's.
+  assert.doesNotThrow(() => boot(() => null, "/").later());
+});
 
 test("a pinned theme is on the page, its colour scheme and its bar colours before anything is drawn", () => {
   for (const pinned of SCHEMES) {
@@ -45,9 +75,10 @@ test("a pinned theme is on the page, its colour scheme and its bar colours befor
 });
 
 test("with nothing pinned, or nothing it can read, the page follows the system as before", () => {
-  const untouched = { theme: undefined, scheme: "light dark", media: SCHEMES.map((scheme) => themeColorMedia(null, scheme)) };
-  for (const stored of [null, "system", "", "DARK", "blue"]) assert.deepEqual(boot(() => stored), untouched, String(stored));
-  assert.deepEqual(boot(() => { throw new Error("storage is closed"); }), untouched);
+  const untouched = { theme: undefined, scheme: "light dark", media: SCHEMES.map((scheme) => themeColorMedia(null, scheme)), home: true };
+  const page = (stored: () => string | null) => { const { later: _later, ...rest } = boot(stored); return rest; };
+  for (const stored of [null, "system", "", "DARK", "blue"]) assert.deepEqual(page(() => stored), untouched, String(stored));
+  assert.deepEqual(page(() => { throw new Error("storage is closed"); }), untouched);
 });
 
 test("it reads the place the theme module writes, and is a file of the site's own with nothing inline", () => {

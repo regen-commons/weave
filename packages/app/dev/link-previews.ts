@@ -2,6 +2,7 @@ import type { Plugin } from "vite";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
+import { LIST_PAGE_FILE } from "@weave/api/list-first-view";
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
 import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
@@ -95,8 +96,13 @@ export const previewTags = (preview: LinkPreview, origin = PUBLIC_ORIGIN): strin
 export const withPreview = (html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string =>
   withPagePreview(html, pagePreview(preview, origin), { indexed: preview.indexed !== false });
 
-/** The file a section's copy is written to, beside the app's own index.html. Home is that file itself. */
+/**
+ * The file a section's copy is written to, beside the app's own index.html. Home is that file itself.
+ * Initiatives' copy is the page GET /initiatives draws its first cards into, so it is written where that
+ * route reads it, not at the list's address (@weave/api/list-first-view).
+ */
 export function previewFile(preview: LinkPreview): string {
+  if (preview.route === "initiatives") return LIST_PAGE_FILE;
   const path = pathTo(preview.route).replace(/^\/|\/$/g, "");
   return path ? `${path}/index.html` : "index.html";
 }

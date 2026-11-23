@@ -7,10 +7,12 @@ import { cardRoute } from "../initiative/status.ts";
 /**
  * The door on a page that is not fitted to an initiative yet: Continue for this person's card in
  * progress, otherwise a new card. Another account's card is not this person's to go on with (DL-055).
+ * Which door it is depends on this device's draft, so until the draft opens (`ready`) it is not
+ * known; `DescribeDoor` holds its button until then.
  */
-export function useDescribeDoor(): { href: string; label: string; started: boolean } {
-  const { draft } = useDraft();
+export function useDescribeDoor(): { href: string; label: string; started: boolean; ready: boolean } {
+  const { draft, ready } = useDraft();
   const setAside = useSetAside();
   const started = hasDraft(draft) && !setAside;
-  return { ...describeDoor(started, started ? cardRoute(draft) : "initiative"), started };
+  return { ...describeDoor(started, started ? cardRoute(draft) : "initiative"), started, ready };
 }

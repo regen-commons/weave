@@ -12,9 +12,12 @@ const ORIGIN = "https://weave.example";
 test("each shared endpoint keeps the methods its own function exported", () => {
   assert.deepEqual(Object.fromEntries(Object.entries(ENDPOINTS).map(([name, { methods }]) => [name, [...methods]])), {
     health: ["GET"],
+    "initiatives-page": ["GET", "HEAD"],
     matching: ["POST"],
+    mcp: ["GET", "POST", "DELETE"],
     projects: ["POST"],
     "public-projects": ["GET"],
+    "record-image": ["GET", "HEAD"],
     "record-page": ["GET", "HEAD"],
     sitemap: ["GET", "HEAD"],
     transcribe: ["GET", "POST"],
@@ -38,6 +41,11 @@ test("a request reaches its endpoint at its own address, with its query as it ca
   assert.equal(route("/funding/local-people-powered?program=a")?.url.href,
     `${ORIGIN}/api/record-page?program=a&kind=funding&id=local-people-powered`);
   assert.equal(route("/initiatives/c5lypin6swijs33nusbbtxfs-3n2t7jfkyl72j")?.url.searchParams.get("kind"), "initiative");
+  // The Initiatives list's own address, with whatever search or filter its query carries.
+  assert.deepEqual(route(`/initiatives?q=water&${ROUTE_KEY}=health`), {
+    endpoint: "initiatives-page", url: new URL("/api/initiatives-page?q=water", ORIGIN),
+  });
+  assert.equal(route(`/api/router?${ROUTE_KEY}=initiatives-page`)?.endpoint, "initiatives-page");
   // None for an endpoint that is not shared here, named twice, unknown, or a record path that does not decode.
   for (const path of [`/api/router?${ROUTE_KEY}=account`, `/api/router?${ROUTE_KEY}=health&${ROUTE_KEY}=transcribe`, `/api/router?${ROUTE_KEY}=`,
     `/api/router?${ROUTE_KEY}=__proto__`, `/api/router?${ROUTE_KEY}=constructor`, "/api/router", "/api/account", "/funding/%E0%A4%A"])
@@ -150,4 +158,12 @@ test("matching and projects behind the router still renew a lapsed session, and 
       ["__Host-weave_account", "__Host-weave_account_renewal"], `${endpoint}: both rotated cookies come back`);
   }
   assert.deepEqual(renewals, ["first-refresh", "first-refresh"]);
+});
+
+test("a record's picture is an endpoint of its own, at its own address and through the router's", () => {
+  for (const path of [`/api/router?${ROUTE_KEY}=record-image&kind=funding&id=local-people-powered&v=0123456789abcdef`, "/api/record-image?kind=funding&id=local-people-powered&v=0123456789abcdef"]) {
+    const found = routeOf(new URL(path, ORIGIN));
+    assert.equal(found?.endpoint, "record-image", path);
+    assert.equal(found?.url.href, `${ORIGIN}/api/record-image?kind=funding&id=local-people-powered&v=0123456789abcdef`, path);
+  }
 });

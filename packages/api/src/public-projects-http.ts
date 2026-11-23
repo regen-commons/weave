@@ -125,12 +125,16 @@ export function selectPublicProjects(prepared: Prepared, query: PublicProjectQue
   };
 }
 
+/** One shown project and the index state it was read at. */
+export type FoundPublicProject = { project: PublicProjectCard; index: Pick<PublicProjectPage["index"], "status" | "checkedAt"> };
+/** Finds one shown project by its address: `null` when the list shows none, `"off"` while the list is not switched on. Rejects when the list cannot be read. */
+export type FindPublicProject = (uri: string) => Promise<FoundPublicProject | null | "off">;
 /**
  * Serves one page of shown projects. It needs no session and sets no cookie, so pages are cacheable.
  * Before the list is switched on it answers an empty `off` page, so the app keeps its starter list without
  * an error. Errors carry a stable code only, never a database message, and are not cached.
  */
-export function createPublicProjectsHandler(options: {
+export function createPublicProjects(options: {
   /** null while the list is not switched on. A connection failure rejects. */
   reader(): Promise<PublicProjectReader | null>;
   now?: () => number;
@@ -149,7 +153,7 @@ export function createPublicProjectsHandler(options: {
     current.prepared.catch(() => { if (copy === current) copy = undefined; });
     return current.prepared;
   }
-  return async (request: Request): Promise<Response> => {
+  const handler = async (request: Request): Promise<Response> => {
     if (request.method !== "GET") return respond(405, { error: "method_not_allowed" });
     let query;
     try { query = parsePublicProjectQuery(new URL(request.url)); }
@@ -178,4 +182,18 @@ export function createPublicProjectsHandler(options: {
     };
     return respond(200, page, CACHED);
   };
+  /** Reads the same copy the list is answered from, so a lookup costs the database nothing more. */
+  const find: FindPublicProject = async (uri) => {
+    const reader = await options.reader();
+    if (!reader) return "off";
+    const prepared = await snapshot(reader);
+    const found = prepared.cards.find((card) => card.uri === uri);
+    if (!found) return null;
+    const { search: _search, organizationTypes: _types, workScopes: _work, ...project } = found;
+    return { project, index: { status: indexStatus(prepared.checkpoint, now()), checkedAt: prepared.checkpoint?.completedAt ?? null } };
+  };
+  return { handler, find };
 }
+
+/** The handler alone, for callers that only serve the list. */
+export const createPublicProjectsHandler = (options: Parameters<typeof createPublicProjects>[0]) => createPublicProjects(options).handler;

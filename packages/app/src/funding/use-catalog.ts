@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hasCheckedCard } from "../describe/checked-hint.ts";
 import type { Bundle, Evaluation } from "./contracts.ts";
 import { loadCatalog, loadClosingSoon, loadedCatalog, rankCatalog } from "./client.ts";
 import { closingSoonOf, type ClosingSoon } from "./catalog-requests.ts";
@@ -174,7 +175,7 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject, { compare
     loading,
     ranking,
     retry,
-    personalized: !!draft.confirmed?.description.trim(),
+    personalized: hasCheckedCard(draft),
     /** Whether the card to compare with is known yet. Until the device draft opens, `personalized` is a guess. */
     subjectKnown: !!subject || device.ready,
   };
