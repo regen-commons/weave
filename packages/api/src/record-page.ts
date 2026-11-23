@@ -3,7 +3,6 @@
 // build's index.html and share/records.json with the function, which reads them from the deployment's
 // own files. A deployment without them reads its own static copies instead.
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { PUBLIC_ORIGIN } from "./page-preview.ts";
 import { GET as publicProjects } from "./public-projects.ts";
 import { parsePublicProjectPage, type PublicProjectCard } from "./public-projects-contract.ts";
@@ -12,25 +11,30 @@ import { createRecordPageHandler, parseRecordPreviews, RECORD_PREVIEWS_FILE, typ
 const TIMEOUT_MS = 3000;
 
 /**
- * Where the bundled build may sit in the function: under the app's own folder when the function runs
- * from it, or under its path in the repository when the bundle keeps the repository's layout. Both are
- * tried before the deployment is asked for its copy.
+ * The app's build, each file at its own address beside this module: it runs from packages/api/src in
+ * tests and from packages/api/dist when deployed, so the app's dist is two folders up either way.
+ * Each address is written out in full. Vercel's file tracer reads these to decide what the function
+ * needs, and a path built while running (from `process.cwd()`, say) makes it take the whole repository,
+ * which broke the build on 22 November 2026 (it reached `.agents/skills`, a link to a folder Vercel
+ * does not have).
  */
-export const BUILT_FOLDERS = ["dist", "packages/app/dist"] as const;
+export const BUILT_FILES = {
+  "index.html": new URL("../../app/dist/index.html", import.meta.url),
+  [RECORD_PREVIEWS_FILE]: new URL("../../app/dist/share/records.json", import.meta.url),
+} as const satisfies Record<string, URL>;
+type BuiltFile = keyof typeof BUILT_FILES;
 
 /** Which copy served the last read, for the `X-Weave-Record-Source` header a check can read. */
 let source: "bundle" | "deployment" = "bundle";
 
 /** One of the build's files: from the function's bundle, or else from the deployment it belongs to. */
-async function builtFile(file: string, request: Request): Promise<string> {
-  for (const folder of BUILT_FOLDERS) {
-    try {
-      const text = await readFile(join(process.cwd(), folder, file), "utf8");
-      source = "bundle";
-      return text;
-    } catch {
-      // Not in this layout; try the next one.
-    }
+async function builtFile(file: BuiltFile, request: Request): Promise<string> {
+  try {
+    const text = await readFile(BUILT_FILES[file], "utf8");
+    source = "bundle";
+    return text;
+  } catch {
+    // Not bundled with this function: ask the deployment for its copy.
   }
   const response = await fetch(new URL(`/${file}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
   if (!response.ok) throw Error("record_page_unavailable");
