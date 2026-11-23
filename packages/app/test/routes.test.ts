@@ -27,7 +27,7 @@ test("each route has a unique path and name; device and team routes use the same
   assert.equal(new Set(otherTitles).size, otherTitles.length);
   assert.deepEqual(
     INTAKE_STEPS.map((step) => step.route),
-    ["initiative", "needs", "your-initiative"],
+    ["initiative", "needs", "offers", "your-initiative"],
   );
 });
 test("the frame has four tabs, detail sheets, the person's initiative pages and Settings; saving is no longer a page", () => {
@@ -97,16 +97,22 @@ test("a move records where it came from, and staying on a page keeps the first o
   assert.equal(nextVisit("/funding", visit, "/funding?q=water", true), visit);
   assert.equal(nextVisit("/funding", null, "/funding?q=water", true), null);
 });
-test("a sheet sits over the page it opened from, or over its list when opened from a link", () => {
+test("a record comes up over the page it was opened from, and is a page of its own when opened from a link", () => {
   const fund = matchRoute("/funding/water")!;
   assert.deepEqual(sheetBackground(fund, { from: "/?fixture=draft", hops: 1 }), { route: "/?fixture=draft", hops: 1 });
-  assert.deepEqual(sheetBackground(fund, null), { route: "/funding", hops: 0 });
-  // Another sheet cannot be the page underneath.
-  assert.deepEqual(sheetBackground(fund, { from: "/initiatives/orchard", hops: 1 }), { route: "/funding", hops: 0 });
-  assert.deepEqual(sheetBackground(matchRoute("/initiatives/orchard")!, null), { route: "/initiatives", hops: 0 });
+  assert.deepEqual(sheetBackground(fund, { from: "/funding?q=water", hops: 2 }), { route: "/funding?q=water", hops: 2 });
+  assert.equal(sheetBackground(fund, null), null, "a shared link, a new tab or a reloaded landing");
+  // Opened from another record's own page: that page is not a list to come up over.
+  assert.equal(sheetBackground(fund, { from: "/initiatives/orchard", hops: 1 }), null);
+  assert.equal(sheetBackground(matchRoute("/initiatives/orchard")!, null), null);
+  // As a page, a record has its list one level up, in the back link and the breadcrumbs.
+  assert.deepEqual(backTarget(fund, null), { label: "Funding", href: "/funding", hops: 0 });
+  assert.deepEqual(breadcrumbTrail(matchRoute("/initiatives/orchard")), [{ label: "Initiatives", href: "/initiatives" }]);
+  // From another record's page, Back returns to that page, named by its list.
+  assert.deepEqual(backTarget(fund, { from: "/initiatives/orchard", hops: 1 }), { label: "Initiatives", href: "/initiatives/orchard", hops: 1 });
 });
-test("a wide screen's breadcrumbs follow the route table, outermost first, and tabs, sheets and intake steps have none (DL-080)", () => {
-  for (const path of ["/", "/funding", "/initiatives", "/your-initiatives", "/funding/water", "/initiatives/orchard"])
+test("a wide screen's breadcrumbs follow the route table, outermost first, and tabs and intake steps have none (DL-080)", () => {
+  for (const path of ["/", "/funding", "/initiatives", "/your-initiatives"])
     assert.deepEqual(breadcrumbTrail(matchRoute(path)), [], path);
   // The steps of describing an initiative are a sequence the step bar already shows, not a hierarchy.
   for (const route of ROUTES.filter((route) => route.form))
@@ -122,8 +128,8 @@ test("a wide screen's breadcrumbs follow the route table, outermost first, and t
   assert.equal(breadcrumbTrail(matchRoute("/settings"))[0]?.label, "Your Initiatives");
 });
 test("the back link returns to where the person came from, otherwise one level up", () => {
-  // Tabs have no back link, and a sheet closes instead.
-  for (const path of ["/", "/funding", "/initiatives", "/your-initiatives", "/funding/water"])
+  // Tabs have no back link. A record over a page closes instead; the page keeps its own link.
+  for (const path of ["/", "/funding", "/initiatives", "/your-initiatives"])
     assert.equal(backTarget(matchRoute(path), { from: "/", hops: 1 }), null, path);
   assert.equal(backTarget(undefined, null), null);
   // Opened from a link: one level up, as a new page.
@@ -173,8 +179,14 @@ test("a later step of describing an initiative goes back to the step before it, 
       hops: 0,
       replace: true,
     }, from);
-  // The offers list is on the same step as needs, so it goes back to the same step.
-  assert.equal(backTarget(matchRoute("/start/offers"), { from: "/your-initiative", hops: 1 })?.href, "/start/initiative");
+  // Offers is the step after needs, so it goes back to needs.
+  assert.deepEqual(backTarget(matchRoute("/start/offers"), { from: "/your-initiative", hops: 1 }), {
+    label: "What You Need",
+    href: "/start/needs",
+    hops: 0,
+    replace: true,
+  });
+  assert.equal(backTarget(matchRoute("/start/offers"), { from: "/start/needs?fixture=draft", hops: 1 })?.hops, 1);
   // The first step returns to where the person came from, as before.
   assert.deepEqual(backTarget(matchRoute("/start/initiative"), { from: "/your-initiative", hops: 1 }), {
     label: "Your Initiative",
@@ -188,9 +200,9 @@ test("a later step of describing an initiative goes back to the step before it, 
     hops: 0,
   });
   // The last step is also an initiative's own page, so it keeps the way the person came.
-  assert.deepEqual(backTarget(matchRoute("/your-initiative"), { from: "/start/needs", hops: 1 }), {
-    label: "Needs And Offers",
-    href: "/start/needs",
+  assert.deepEqual(backTarget(matchRoute("/your-initiative"), { from: "/start/offers", hops: 1 }), {
+    label: "What You Can Offer",
+    href: "/start/offers",
     hops: 1,
   });
   assert.equal(backTarget(matchRoute("/your-initiative"), { from: "/your-initiatives", hops: 1 })?.label, "Your Initiatives");

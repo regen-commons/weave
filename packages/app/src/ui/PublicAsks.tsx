@@ -2,15 +2,18 @@ import { useId } from "react";
 import { CAPITALS } from "../capitals.ts";
 import type { PublicAsk } from "../listing.ts";
 import { Tag } from "./Tag.tsx";
+import { useSectionTag } from "./section-level.ts";
 
 /** Read-only Ask cards: supplied shared records carry no editing or commitment action. */
 export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: readonly PublicAsk[] }) {
   const id = useId();
+  // A section of the record it is drawn in, at that record's level (a sheet's or a page's).
+  const Heading = useSectionTag(), AskHeading = useSectionTag(1);
   return (
     <section className="rc-card-list" aria-labelledby={id}>
-      <h3 className="rc-heading" data-size="section" id={id}>
+      <Heading className="rc-heading" data-size="section" id={id}>
         {kind === "needs" ? "What They Need" : "What They Offer"}
-      </h3>
+      </Heading>
       {!asks.length ? (
         <p className="rc-meta">Nothing listed yet.</p>
       ) : (
@@ -25,7 +28,7 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
                     </li>
                   ))}
                 </ul>
-                <h4 className="rc-ask-title">{ask.title}</h4>
+                <AskHeading className="rc-ask-title">{ask.title}</AskHeading>
                 <p>{ask.description}</p>
                 <p className="rc-ask-terms">{ask.terms}</p>
               </article>
