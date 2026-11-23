@@ -145,7 +145,7 @@ Not built, and for the owner to decide:
 - **A server record of consent and calls.** R10 asks for a consent and call ledger the person can view and export. The device's record is viewable in Settings; it is not in the downloaded copy of the device's data, and the server has none.
 - **Brave.** It has a speech recognizer whose service does not work, so it is offered the browser's service, not this. What it reports was not established.
 
-Not proven: a real call to Cloudflare, which needs the account; which recording formats Cloudflare accepts (its page documents base64 audio and names no format); how well Whisper does in each language, Swahili above all; and any phone. See the [proof](prototype/proof/cloud-speech/README.md).
+On 23 November 2026 the owner switched it on in Production. One real call from the app's own page returned a short English sentence word for word in 1.5 seconds, from WebM with Opus. Not proven: the real Talk It Out flow in Firefox; MP4 and Ogg recordings; how well Whisper does in other languages, Swahili above all; and any phone. See the [proof](prototype/proof/cloud-speech/README.md).
 
 ### Step 3 PDF deck parser proposal
 
