@@ -412,7 +412,8 @@ test("on a wide screen a step's map and its way forward share one bar under the 
   // and whatever sticks under the bars or fills the window below them counts its height.
   assert.match(templates, /\.rc-page \{ --step-bar-height: 0rem; \}/);
   assert.ok(wide(templates).includes(".rc-page > .rc-step-bar { grid-row: 2; }"));
-  assert.ok(wide(templates).includes(".rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }"));
+  // The site banner is inside the page header, so a page with one has the same rows (DL-132).
+  assert.doesNotMatch(templates, /:has\(> \.rc-site-banner\)/);
   assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--step-bar-height\) \+ var\(--space-5\)\);/);
   assert.match(templates, /min-block-size: calc\(100dvh - var\(--site-banner-height\) - var\(--app-header-height\) - var\(--step-bar-height\)\);/);
   assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start:"));
@@ -670,4 +671,22 @@ test("the count line and the list end keep set room, and no section is a band (D
 test("on a phone a fixed-row card keeps two summary lines, kept and cut alike (DL-109)", () => {
   const molecules = stripComments(read("packages/design-system/css/molecules.css"));
   assert.match(molecules, /@container \(width < 37\.5rem\) \{\s*\.rc-card\[data-rows="fixed"\] > \.rc-card-summary \{ min-block-size: 2lh; -webkit-line-clamp: 2; line-clamp: 2; \}\s*\}/);
+});
+
+test("the site banner is the first line of the page header, which lets it scroll away, and a short window lets the whole header go (DL-132)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  const templates = stripComments(read("packages/design-system/css/templates.css"));
+  const head = /\n\.rc-app-head \{([^}]*)\}/.exec(organisms)?.[1] ?? "";
+  assert.match(head, /position: sticky;/);
+  assert.match(head, /inset-block-start: calc\(var\(--site-banner-height\) \* -1\);/, "the banner's height above the window's top");
+  assert.match(organisms, /\.rc-app-head > \.rc-app-header \{ position: static; \}/);
+  assert.match(templates, /\.rc-page:has\(\.rc-site-banner\) \{ --site-banner-height: var\(--space-7\); \}/);
+  // Under 30rem tall nothing at the top sticks but a step's bar, and focus stops clear of what does.
+  assert.match(organisms, /@media \(height < 30rem\) \{\s*\.rc-app-head, \.rc-app-header \{ position: static; \}\s*\}/);
+  assert.match(organisms, /@media \(height < 30rem\) and \(min-width: 56\.25rem\) \{\s*\.rc-step-bar:not\(:empty\) \{ inset-block-start: 0; \}\s*\}/);
+  assert.match(templates, /@media \(height < 30rem\) \{\s*:root:has\(\.rc-app-header\) \{ scroll-padding-block-start: var\(--space-4\); \}\s*\}/);
+  // The library's Home has the banner inside its header, in two sentences.
+  const home = PAGES.home;
+  const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
+  assert.match(header, /^<header class="rc-app-head">\s*<p class="rc-site-banner">[^<]*\.\s[^<]*\.<\/p>\s*<div class="rc-app-header">/);
 });
