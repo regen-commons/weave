@@ -22,8 +22,11 @@ export const ENDPOINTS = {
   "public-projects": { methods: ["GET"], load: () => import("./public-projects.ts") },
   "record-page": { methods: ["GET", "HEAD"], load: () => import("./record-page.ts") },
   transcribe: { methods: ["GET", "POST"], load: () => import("./transcribe.ts") },
-} as const satisfies Record<string, { methods: readonly Method[]; load: () => Promise<Partial<Record<Method, Handler>>> }>;
+} as const satisfies Endpoints;
 export type Endpoint = keyof typeof ENDPOINTS;
+
+/** An endpoint the router can hand a request to: the methods it answers and how to load its handlers. */
+export type Endpoints = Readonly<Record<string, { readonly methods: readonly Method[]; load: () => Promise<Partial<Record<Method, Handler>>> }>>;
 
 const isEndpoint = (name: string | null): name is Endpoint => name !== null && Object.hasOwn(ENDPOINTS, name);
 
@@ -57,22 +60,31 @@ export function routeOf(url: URL): { endpoint: Endpoint; url: URL } | null {
 
 const notFound = () => new Response(null, { status: 404 });
 
-async function route(request: Request): Promise<Response> {
-  const found = routeOf(new URL(request.url));
-  if (!found) return notFound();
-  const { methods, load } = ENDPOINTS[found.endpoint];
-  const method = request.method as Method;
-  // ENDPOINTS' `satisfies` checks each module's handlers; read one by the request's method.
-  const handlers: Partial<Record<Method, Handler>> | undefined = (methods as readonly string[]).includes(method) ? await load() : undefined;
-  const handler = handlers?.[method];
-  if (typeof handler !== "function") return new Response(null, { status: 405 });
-  // The same request at the endpoint's own address: method, headers, body and abort signal as they came.
-  const body = method === "GET" || method === "HEAD" ? undefined : request.body;
-  return handler(new Request(found.url, {
-    method, headers: request.headers, body, signal: request.signal, ...(body ? { duplex: "half" } : {}),
-  } as RequestInit));
+/**
+ * A router over these endpoints. A request is handed to its endpoint's own handler untouched: the same
+ * method, headers (Origin, Content-Type, cookies and the rest) and abort signal, its body as the stream it
+ * came as (never read, parsed or capped here: cloud speech reads up to 3 MB of audio itself), at its
+ * endpoint's own address on the same origin. The handler's response goes back as it is, Set-Cookie
+ * headers and all, so a session the handler's wrapper renewed reaches the browser.
+ */
+export function createRouter(endpoints: Endpoints = ENDPOINTS) {
+  return async function route(request: Request): Promise<Response> {
+    const found = routeOf(new URL(request.url));
+    const target = found && Object.hasOwn(endpoints, found.endpoint) ? endpoints[found.endpoint]! : undefined;
+    if (!found || !target) return notFound();
+    const method = request.method as Method;
+    // ENDPOINTS' `satisfies` checks each module's handlers; read one by the request's method.
+    const handlers = (target.methods as readonly string[]).includes(method) ? await target.load() : undefined;
+    const handler = handlers?.[method];
+    if (typeof handler !== "function") return new Response(null, { status: 405 });
+    const body = method === "GET" || method === "HEAD" ? undefined : request.body;
+    return handler(new Request(found.url, {
+      method, headers: request.headers, body, signal: request.signal, ...(body ? { duplex: "half" } : {}),
+    } as RequestInit));
+  };
 }
 
+const route = createRouter();
 export const GET = route;
 export const HEAD = route;
 export const POST = route;

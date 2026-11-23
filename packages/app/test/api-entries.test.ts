@@ -16,9 +16,11 @@ test("the app deploys at most 12 functions, and each shared endpoint's address r
   assert.ok(entries.includes("router.ts"));
   const { ENDPOINTS } = await import("@weave/api/router");
   const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
-    rewrites: { source: string; destination: string }[];
+    functions: Record<string, { maxDuration?: number }>; rewrites: { source: string; destination: string }[];
   };
   const sources = vercel.rewrites.map(({ source }) => source);
+  // Cloud speech can take 50 s (a 20 s upload and 30 s at the provider), so the shared function has 60.
+  assert.ok((vercel.functions["api/router.ts"]?.maxDuration ?? 0) >= 60);
   for (const endpoint of Object.keys(ENDPOINTS)) {
     assert.ok(!entries.includes(`${endpoint}.ts`), `a function of its own would take ${endpoint}'s address from the router`);
     const index = sources.indexOf(`/api/${endpoint}`);

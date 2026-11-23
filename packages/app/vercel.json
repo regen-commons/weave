@@ -12,7 +12,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/project-index-refresh.ts": { "maxDuration": 300 },
-    "api/router.ts": { "includeFiles": "dist/{index.html,share/records.json}" }
+    "api/router.ts": { "maxDuration": 60, "includeFiles": "dist/{index.html,share/records.json}" }
   },
   "crons": [
     { "path": "/api/project-index-refresh", "schedule": "0 4 * * *" }
