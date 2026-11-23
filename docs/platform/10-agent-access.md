@@ -3,7 +3,7 @@
 Status: proposal, waiting for the user's decision · Date: 2026-11-22
 Companions: [PRD interoperability requirements](04-prd.md#7-functional-requirements) · [technical spec, interoperability](05-technical-spec.md#10-interoperability-r29-to-r32) · [technical spec, security](05-technical-spec.md#12-security-and-privacy) · [repository layout](09-repository-layout.md) · [open decisions](open-decisions.md#agent-access)
 
-People increasingly ask an assistant instead of opening a site. This proposal lets them add Weave to that assistant, so it can search the fund catalog and the public project list and link back to Weave. It starts with public, read-only data over the Model Context Protocol (MCP), then offers the same tools inside the browser through WebMCP. Nothing here is approved or built. The questions it raises are D37 to D43 in [open decisions](open-decisions.md#agent-access).
+People increasingly ask an assistant instead of opening a site. This proposal lets them add Weave to that assistant, so it can search the fund catalog and the public project list and link back to Weave. It starts with public, read-only data over the Model Context Protocol (MCP), then offers the same tools inside the browser through WebMCP. Nothing here is approved or built. The questions it raises are D37 to D44 in [open decisions](open-decisions.md#agent-access).
 
 ## Recommendation
 
@@ -79,6 +79,17 @@ This is critical-tier work that touches sessions, consent and sharing. An assist
 - **Logging.** Tool name, outcome and duration only. Never arguments, since a query can hold someone's private plans.
 - **Attribution.** Each record carries its official source and the date research checked it. The data licence for public records is still open ([D4](open-decisions.md#for-the-council)); the server's instructions would state it once decided.
 
+## Discovery files
+
+The quality baseline (finding Q-15, 22 November 2026) reports that Lighthouse 13.6 scores Weave 46 to 50 in its "agentic browsing" category, because the site has no `llms.txt` and no agent resource manifest. Both are small static files, and both belong with this work because they tell an assistant what Weave is and where its tools are.
+
+| File | Served at | What it lists | Ships |
+|---|---|---|---|
+| `packages/app/public/llms.txt` | `/llms.txt` | A plain Markdown summary: what Weave is in two sentences; links to Funding, Partners and the privacy page; the fund catalog file and what its fields mean; that results are possibilities to check and never eligibility decisions; that private initiatives are not readable; and, once it is on, the MCP endpoint and its four tools | With slice 1. The endpoint lines are added when the switch is turned on |
+| `packages/app/public/.well-known/ai-catalog.json` | `/.well-known/ai-catalog.json` | One entry: the Weave MCP server, its URL, transport (Streamable HTTP), that it needs no sign-in, and its tool names | Only when the endpoint is on in production ([D40](open-decisions.md#agent-access)), so it never points at a route that answers 404 |
+
+Three cautions. We have not confirmed which manifest file Lighthouse's audit reads, so the quality session should check the audit's details before the second file is written; `ai-catalog.json` is the domain-level location the MCP server card extension names. Static files in `public/` are served before the app's catch-all rewrite, so neither needs a `vercel.json` change, and a test should prove `/llms.txt` returns text and not the app shell. And `public/` belongs to the quality session, so these files are theirs to add from the content agreed here ([D44](open-decisions.md#agent-access)).
+
 ## WebMCP
 
 WebMCP lets a page register tools that an agent in the browser can call, instead of the agent reading and clicking the interface. Checked on 22 November 2026:
@@ -111,8 +122,9 @@ The recommendation is to build this after the MCP slice, behind feature detectio
 3. Tests for each tool, each refusal (method, origin, size, unknown tool, bad arguments, switch off) and both handshakes, using fixtures.
 4. A local demo: Claude Code added with `claude mcp add --transport http weave http://localhost:5190/api/mcp`, listing and calling each tool. Labeled `fixture`.
 5. A short "Add Weave to your assistant" section in the API package's documents. A public page in the app waits for the owning sessions.
+6. The content for `/llms.txt`, handed to the quality session, which owns `public/`.
 
-Not in this slice: the description tool, WebMCP, sign-in, a registry listing, the Firewall rule and turning the switch on in production. Each needs its own yes.
+Not in this slice: the description tool, WebMCP, sign-in, a registry listing, the agent manifest, the Firewall rule and turning the switch on in production. Each needs its own yes.
 
 ## What needs a person
 

@@ -136,6 +136,7 @@ From the [agent access proposal](10-agent-access.md), 22 November 2026. These ar
 | D41 | When does the app register WebMCP tools, and does Weave join Chrome's origin trial? | Register the same tools behind feature detection after the MCP slice lands, through the sessions that own the app shell. Do not join the trial until an assistant people use is known to call the tools. | User | After slice 1 | Open |
 | D42 | Do assistants get signed-in tools (a person's initiatives, partner matches, saving a lead)? | Not yet. Wait for real use of the public tools, then write a separate proposal covering OAuth through Certified and how a person grants and withdraws an assistant's access. | User, then council | After slice 1 shows use | Open |
 | D43 | When is Weave listed in the MCP registry and in assistants' connector directories? | After the public endpoint has run in production for two weeks without incident. Listing is publishing, so it needs its own yes. | User | After D40 | Open |
+| D44 | Does Weave publish `/llms.txt` and an agent manifest at `/.well-known/ai-catalog.json`? | Yes. Add `llms.txt` with slice 1, describing Weave, its public pages and the catalog. Add the manifest only when the MCP endpoint is on in production. The quality session adds both, since it owns `public/`. | User | With slice 1 | Open |
 
 ## Waiting on people
 
