@@ -201,11 +201,17 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
 - [ ] **Q-09. No source maps for the main script.** Routes: all. Lighthouse lists it, but
   it carries no weight and best practices stays at 100. No action: publishing source
   maps would only help debugging in production.
-- [ ] **Q-16. Private and personal pages can be indexed.** Routes: Your Initiatives,
-  Your Initiative, Settings, Team Workspace and the describe steps (`/start/*`). Fix in
-  phase 2: a `robots` meta tag set to `noindex` in each route's prerendered HTML, with its
-  value in `@weave/api/page-preview`. An `X-Robots-Tag` header would need a `vercel.json`
-  change and the user's OK.
+- [x] **Q-16. Private and personal pages can be indexed.** Routes: Your Initiatives,
+  Your Initiative, Settings, Partners and the describe steps (`/start/*`). Fixed in phase 2:
+  their HTML asks not to be indexed and names no canonical page, through
+  `withPagePreview`'s `indexed: false` in `@weave/api/page-preview` (`/your-initiatives`
+  through its link preview, the others through `dev/prerender.ts`; `/start/initiative`
+  follows in detail-sheet-sharing's change to its link preview). Team Workspace is served
+  by the catch-all and keeps no tag, since it needs sign-in and a header would need a
+  `vercel.json` change. **SEO exception, decided by the orchestrator on 23 November:**
+  Lighthouse's `is-crawlable` audit fails every page that asks not to be indexed, by design,
+  so these routes score 63 for SEO. Keeping them out of search wins; SEO 100 is counted on
+  the public routes only (Home, Funding, Initiatives and the record pages).
 - [ ] **Q-17. The main pages name no canonical address.** Routes: Home, Funding,
   Initiatives. Owner: detail-sheet-sharing, which writes every canonical (Home, each
   section copy and each record page) from `withPagePreview` in `@weave/api/page-preview`.
