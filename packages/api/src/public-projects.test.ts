@@ -326,3 +326,31 @@ test("a kind of work narrows the list to projects whose activity names it, and o
   assert.deepEqual(shared.projects.map((project) => project.name), [name(6), name(4), name(3), name(2)]);
   assert.deepEqual([(await get("?workScope=energy")).index.total, (await get("?workScope=energy")).projects], [0, []]);
 });
+
+test("one project can be asked for by its address alone, and a project the list does not show is not found", async () => {
+  const cards = [1, 2, 3].map((n) => ({ ...card(n), organizationTypes: [], workScopes: [], text: "We restore wetlands along the river." }));
+  const reader: PublicProjectReader = {
+    load: async () => ({ cards, checkpoint: { completedAt: "2026-11-15T04:01:00.000000Z", offset: 0 } }), close: async () => undefined,
+  };
+  const handler = createPublicProjectsHandler({ reader: async () => reader, now: () => Date.parse("2026-11-15T06:00:00Z") });
+  const get = async (uri: string) => {
+    const response = await handler(new Request(url(`?uri=${encodeURIComponent(uri)}`)));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "public, max-age=60", "a project's page is cached like any page");
+    return parsePublicProjectPage(await response.json());
+  };
+  const found = await get(projectUri(2));
+  assert.deepEqual([found.index.total, found.projects.map(({ uri }) => uri), found.next], [1, [projectUri(2)], null]);
+  assert.deepEqual(found.projects[0], card(2), "the same card the list shows");
+  const gone = await get(projectUri(9));
+  assert.deepEqual([gone.index.total, gone.projects], [0, []]);
+  assert.equal(parsePublicProjectQuery(url(`?uri=${encodeURIComponent(projectUri(2))}`)).uri, projectUri(2));
+  assert.equal(parsePublicProjectQuery(url("?q=soil")).uri, undefined, "other queries carry no address");
+  for (const bad of [
+    `?uri=${encodeURIComponent(projectUri(2))}&q=soil`, `?uri=${encodeURIComponent(projectUri(2))}&limit=1`,
+    `?uri=${encodeURIComponent(projectUri(2))}&uri=${encodeURIComponent(projectUri(3))}`, "?uri=", "?uri=at%3A%2F%2Fdid%3Aweb%3Ax%2Fother%2Fkey",
+    "?uri=https%3A%2F%2Fexample.org%2Fproject",
+  ]) assert.throws(() => parsePublicProjectQuery(url(bad)), /invalid_project_query/u, bad);
+  const refused = await handler(new Request(url(`?uri=${encodeURIComponent(projectUri(2))}&q=x`)));
+  assert.deepEqual([refused.status, await refused.json()], [400, { error: "invalid_project_query" }]);
+});

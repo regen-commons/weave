@@ -88,7 +88,10 @@ test("a long list fills in as its end comes near, and Initiatives is one flat li
   }
   const end = read("ui/ListEnd.tsx");
   assert.match(end, /new IntersectionObserver\(/u);
-  assert.match(end, /<p className="rc-meta" role="status">\s*\{shownLine\(shown, total, things\)\}/u, "the count is on the page and announced politely");
+  assert.match(end, /<p className="rc-meta">\{shownLine\(shown, total, things\)\}<\/p>/u, "the count is on the page");
+  // One filled status region as the list opens, the bar's count; the end speaks only when a batch arrives (DL-130).
+  assert.match(end, /<p className="rc-visually-hidden" role="status">\s*\{arrived\}/u);
+  assert.match(end, /if \(shown > firstShown\.current\) setArrived\(shownLine\(shown, total, things\)\)/u);
   assert.match(end, /<button className="rc-button" data-variant="secondary" type="button" aria-disabled=\{busy\}/u, "the keyboard has a button");
   // The starter list has no sections: every card sits in one grid, as on every other list.
   const starter = read("partners/PartnerDiscovery.tsx");
@@ -99,7 +102,7 @@ test("a long list fills in as its end comes near, and Initiatives is one flat li
 test("Sort opens the same menu the filters open, says only Sort, and lives in a phone's sheet (DL-100, DL-122)", () => {
   const bar = read("ui/FilterBar.tsx");
   assert.doesNotMatch(bar, /<select\b|rc-sort/u);
-  assert.match(bar, /<SortMenu sort=\{sort\} name=\{`\$\{id\}-sort`\} onSort=\{onSort\} \/>/u);
+  assert.match(bar, /<SortMenu sort=\{sort\} name=\{`\$\{place\}-sort`\} onSort=\{onSort\} \/>/u);
   // Sort is the menu of one choice, which is the system's Menu with radios. Funding's choice of
   // initiative opens the same one (DL-118).
   const sort = bar.slice(bar.indexOf("function SortMenu"), bar.indexOf("/**\n * Filter bar organism"));
@@ -123,13 +126,15 @@ test("Sort opens the same menu the filters open, says only Sort, and lives in a 
 test("Your Initiatives holds its own cards' shape while it loads, under the heading that arrives, and never a funding card's", () => {
   const skeleton = read("ui/CardSkeleton.tsx");
   const own = skeleton.slice(skeleton.indexOf('if (kind === "own")'), skeleton.indexOf('if (kind === "project")'));
-  // A name and a line about where it is kept, as the loaded card has. Measured at 1280 px: 140 against 160.
-  for (const part of ["rc-card-title", "rc-card-meta"]) assert.match(own, new RegExp(`className="${part}"`, "u"), part);
-  for (const part of ["rc-eyebrow", "rc-tag-list", "rc-card-summary", "rc-time"]) assert.doesNotMatch(own, new RegExp(`className="${part}"`, "u"), part);
+  // A name, the tag that says what it is and a line about it, as the loaded card has (DL-134).
+  for (const part of ["rc-card-title", "rc-tag-list", "rc-card-meta"]) assert.match(own, new RegExp(`className="${part}"`, "u"), part);
+  for (const part of ["rc-eyebrow", "rc-card-summary", "rc-time"]) assert.doesNotMatch(own, new RegExp(`className="${part}"`, "u"), part);
   const page = read("pages/YourInitiatives.tsx");
   assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
   assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
-  assert.match(page, /\{loading && \(\s*<Section id="initiatives-certified" title="On Certified">/u, "the heading is there before its cards");
+  // The heading is there before its cards: the section is drawn as soon as its projects are being read.
+  assert.match(page, /\{\(certified \|\| loading \|\| social\.problem \|\| noProjectYet\) && \(\s*<Section id="initiatives-certified" title="On Certified">/u);
+  assert.match(page, /\{loading && \(\s*<div aria-busy="true">/u, "and the cards' shape is under it while they load");
 });
 
 test("a list card keeps set rows, so a card and its skeleton are one height by construction (DL-108)", () => {
@@ -198,4 +203,23 @@ test("a funding list compared with a person's card holds the fit and readiness l
   assert.match(read("ui/FirstFunding.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
   // And the example of that page holds the same shape the live page holds.
   assert.match(read("pages/YourInitiative.tsx"), /<CardGridSkeleton kind="funding" matched count=\{2\}/u);
+});
+
+test("the filter controls stay in reach deep in a list, and the sheet's title row and foot stay put (DL-130)", () => {
+  const bar = read("ui/FilterBar.tsx");
+  // The pinned row draws the bar's own controls, with Search first, and is gone from view and the tab order when hidden.
+  assert.match(bar, /<div className="rc-filter-pin" ref=\{pin\} role="group" aria-label=\{`Filter \$\{noun\}`\} hidden=\{!pinned\}>/u);
+  assert.match(bar, /<Controls place=\{`\$\{id\}-pin`\} onSheet=\{\(\) => openSheet\("pin"\)\} lead=\{searchButton\}/u);
+  assert.match(bar, /<Controls place=\{id\} onSheet=\{\(\) => openSheet\("bar"\)\}/u);
+  // Focus comes back to the same control by what it is, not where it sits, since the row can hold
+  // Filters where the bar holds a menu for each filter.
+  assert.match(bar, /data-facet=\{facet\.key\}/u);
+  assert.match(bar, /button\.dataset\.facet \?\? button\.dataset\.filter \?\? "sort"/u);
+  assert.doesNotMatch(bar, /indexOf\(trigger/u);
+  // The row keeps clear of a header that scrolls away in a short window (DL-132).
+  assert.match(bar, /getComputedStyle\(header\)\.position === "sticky"/u);
+  // Only the choices scroll; the foot is outside them.
+  assert.match(bar, /<div className="rc-dialog-scroll">[\s\S]*?<\/div>\s*<div className="rc-dialog-foot">/u);
+  const end = read("ui/ListEnd.tsx");
+  assert.doesNotMatch(end, /AUTO_BATCHES|autoLeft/u, "the list never stops filling in on its own");
 });

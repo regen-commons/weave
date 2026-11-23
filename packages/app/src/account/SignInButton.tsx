@@ -6,6 +6,8 @@ import { useAccount } from "./context.tsx";
 import { useAccountDoor } from "./door.tsx";
 import { continueToCertified } from "./sign-in.ts";
 import { warmSignIn } from "./warm.ts";
+import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
+import { pathTo } from "../routes.ts";
 
 /**
  * Sign in with one press, from the header or from a page that has already said why: it goes to
@@ -29,6 +31,7 @@ export function SignInButton({
   size,
   ref,
   onProblem,
+  thenProjects = false,
   children = "Sign In With Certified",
 }: {
   variant?: "primary" | "secondary";
@@ -36,6 +39,12 @@ export function SignInButton({
   ref?: Ref<HTMLButtonElement>;
   /** Takes the failure in place of the line under the button. */
   onProblem?: (message: string) => void;
+  /**
+   * The person is signing in to reach their Certified projects, and the page has said that Certified
+   * will ask for project access next. A finished sign-in then goes on to that permission by itself
+   * (`initiative/consent-chain.ts`). Without it, signing in only identifies the person (DL-032).
+   */
+  thenProjects?: boolean;
   children?: ReactNode;
 }) {
   const { state, expectsAccount } = useAccount();
@@ -56,6 +65,12 @@ export function SignInButton({
     if (!state?.available) return openDoor("sign-in");
     setBusy(true);
     setProblem("");
+    const tab = () => window.sessionStorage;
+    // Your Initiatives says what follows before any Sign In on it is pressed, the header's included.
+    // A sign-in from anywhere else clears an earlier note, so it can never be followed by project access.
+    const chained = thenProjects || window.location.pathname === pathTo("your-initiatives");
+    if (chained) expectProjectAccess(tab);
+    else forgetProjectAccess(tab);
     try {
       await continueToCertified(
         controller,
@@ -64,6 +79,7 @@ export function SignInButton({
         (target) => window.location.assign(target),
       );
     } catch (error) {
+      forgetProjectAccess(tab);
       const message = accountMessage(error);
       if (onProblem) onProblem(message);
       else setProblem(message);

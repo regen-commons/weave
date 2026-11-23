@@ -1,5 +1,6 @@
 import type { DeviceDraft } from "./contracts.ts";
 import { collectSource, fromSource, KeywordResultSchema, type KeywordResult } from "./keywords.ts";
+import { reusableWorker, WorkerProblem } from "./reusable-worker.ts";
 export async function keywordExtract(draft: DeviceDraft, signal: AbortSignal): Promise<KeywordResult> {
   signal.throwIfAborted();
   const pdfReader = draft.attachments.some(
@@ -11,39 +12,32 @@ export async function keywordExtract(draft: DeviceDraft, signal: AbortSignal): P
   signal.throwIfAborted();
   if (typeof Worker === "undefined")
     return fromSource(draft, source ?? (await collectSource(draft, undefined, signal)));
-  return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL("./keyword-worker.ts", import.meta.url), { type: "module" });
-    const cleanup = () => {
-      worker.terminate();
-      signal.removeEventListener("abort", abort);
-    };
-    const abort = () => {
-      cleanup();
-      reject(new DOMException("Cancelled", "AbortError"));
-    };
-    signal.addEventListener("abort", abort, { once: true });
-    worker.onmessage = (event: MessageEvent<unknown>) => {
-      cleanup();
-      const value = event.data as { ok?: boolean; result?: KeywordResult };
-      if (!value?.ok || !value.result) {
-        reject(new Error("The local reader could not finish. Your words are still here."));
-        return;
-      }
-      try {
-        resolve(KeywordResultSchema.parse(value.result));
-      } catch {
-        reject(new Error("The local reader returned an invalid card."));
-      }
-    };
-    worker.onerror = () => {
-      cleanup();
-      reject(new Error("The local reader could not start. You can fill the four fields instead."));
-    };
-    try {
-      worker.postMessage({ draft, source });
-    } catch {
-      cleanup();
-      reject(new Error("The local reader could not receive this draft."));
-    }
-  });
+  let reply: { ok?: boolean; result?: unknown };
+  try {
+    reply = (await reader.run({ draft, source }, signal)) as typeof reply;
+  } catch (error) {
+    if (error instanceof WorkerProblem)
+      throw new Error(
+        error.stage === "start"
+          ? "The local reader could not start. You can fill the four fields instead."
+          : "The local reader could not receive this draft.",
+      );
+    throw error;
+  }
+  if (!reply?.ok || !reply.result) throw new Error("The local reader could not finish. Your words are still here.");
+  try {
+    return KeywordResultSchema.parse(reply.result);
+  } catch {
+    throw new Error("The local reader returned an invalid card.");
+  }
 }
+
+/**
+ * The keyword worker, kept for the visit to the describe step so every fill after the first skips
+ * starting it. The page warms it when the person starts to talk or type and closes it on leaving.
+ */
+const reader = reusableWorker(() => new Worker(new URL("./keyword-worker.ts", import.meta.url), { type: "module" }));
+export const warmKeywordReader = (): void => {
+  if (typeof Worker !== "undefined") reader.warm();
+};
+export const closeKeywordReader = (): void => reader.close();

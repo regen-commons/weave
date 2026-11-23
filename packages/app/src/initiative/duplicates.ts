@@ -50,3 +50,27 @@ export function likelyDuplicate<T extends { readonly name: string; readonly link
   const named = (list: readonly T[]) => list.find((record) => sameName(name, words(record.name)));
   return named(byLink) ?? named(records) ?? null;
 }
+
+/** Drafts the person said are not that project, for this visit, so the offer is not made on every look. */
+const different = new Set<string>();
+const pair = (owner: string, draftId: string, uri: string) => `${owner}/${draftId}/${uri}`;
+
+/** The person answered that this draft is a different initiative from that project. */
+export function dismissDuplicate(owner: string, draftId: string, uri: string): void {
+  different.add(pair(owner, draftId, uri));
+}
+
+/**
+ * The Certified project to offer for a draft on Your Initiatives (DL-134): the one it looks like,
+ * unless the person already said it is a different initiative. Only an offer. Linking is the
+ * person's press, through the same reviewed step as any other link.
+ */
+export function duplicateOffer<T extends { readonly uri: string; readonly name: string; readonly links: readonly string[] }>(
+  owner: string,
+  draftId: string,
+  card: { readonly name: string; readonly links: readonly string[] },
+  projects: readonly T[],
+): T | null {
+  const match = likelyDuplicate(card, projects);
+  return match && !different.has(pair(owner, draftId, match.uri)) ? match : null;
+}

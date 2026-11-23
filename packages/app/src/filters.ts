@@ -97,3 +97,22 @@ export function activeChoices(facets: readonly Facet[]): ActiveChoice[] {
 export function withoutChoice(choice: ActiveChoice): readonly string[] {
   return choice.facet.chosen.filter((value) => value !== choice.value);
 }
+
+/**
+ * Where a person's choices now stand: the search, every facet's values and the order. The pinned
+ * filter row compares it before and after a menu or the sheet, and goes back to the bar only where
+ * something changed (DL-130).
+ */
+export function choicesKey(search: string, facets: readonly Facet[], sort?: SortChoice): string {
+  return JSON.stringify([
+    search.trim(),
+    facets.map((facet) => [facet.key, facet.chosen, facet.scope?.chosen ?? []]),
+    sort?.value ?? "",
+  ]);
+}
+
+/**
+ * The observer's root margin for noticing the bar's controls go up under the app bar, which is
+ * `header` pixels tall: the window less that strip at its top.
+ */
+export const underAppBar = (header: number): string => `-${Math.max(0, Math.round(header))}px 0px 0px 0px`;

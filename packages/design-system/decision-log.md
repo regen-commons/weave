@@ -941,6 +941,20 @@ A program the rubric cannot assess still says Fit not assessed. Each floor sits 
 
 Not done: the maker asked why Change Funding Details, at the foot of the page, is not a set of filters. Three options are with the maker, and the section stays as it is until they choose.
 
+## DL-130: A long list keeps filling in, its filters stay in reach, and only a sheet's choices scroll
+
+**Status:** user decision from manual QA, 22 November 2026. Amends DL-101 and DL-122. The QA notes asked for funds and initiatives to load more on their own as a person scrolls, for search, filters and Sort to be easy to reach while scrolling on a wide screen and on a phone, for the filter sheet's title row and foot to stay put, and for the filter button and the search field to be one height.
+
+- **No step in the list.** Under DL-101 a list brought three batches on its own and then waited for Show More, so the footer could be reached. People met that pause as a step. The list now keeps filling in for as long as a person scrolls and there is more. The keyboard rule stays: while the keyboard's focus is in the list nothing arrives unasked, Show More brings the next batch and moves focus to its first card, and Tab past it reaches the footer. Show More also stays for a batch that did not arrive. The count line still says how much is on the page, and "Showing all" at the end. The page opened with two filled status regions, the filter bar's count and this line, saying nearly the same thing. Now the bar's count is the list's one status as it opens, and the end reads out the new count politely only when a batch arrives.
+- **A pinned filter row, not a back-to-top button.** Once the filter bar's controls have gone up under the app bar, a row pinned under the app bar holds the same controls: on a phone Search and Filters, on a wide screen Search, a menu for each filter and Sort. Search goes back to the field and puts the focus there. A change made from the row's menus or the sheet starts the list again from its first card, so when the menu or the sheet closes the page goes back to the bar, at once, with focus on the same control there; one opened and closed with no change leaves the page where it was. A back-to-top button was the other choice. It takes two moves to change a filter and loses the person's place even to look at the choices in force, which the pinned row shows on its buttons. The row is 65 px, the app bar's height, and only appears below the bar. The row stays one row: until a screen has room for every filter's menu beside Search and Sort (62.25rem), it holds Filters, which opens them all with Sort in the sheet, as a phone's row does. In a window under 30rem tall, where the header scrolls away (DL-132), the row pins at the window's top instead.
+- **The sheet's choices scroll alone.** The filter sheet's choices sit in their own scrolling part (`rc-dialog-scroll`) between the title row and the foot, so the title row and Show Results neither scroll away nor bounce with the choices. A finger moving down on choices at their top still pulls the sheet away, as DL-091 set out.
+- **One title colour.** Some cards' titles were copper and the rest the text's colour. The copper ones were those the person had already opened: the browser's visited-link colour, which card titles took from the start. Nothing on a card said so, people read it as a difference between initiatives, and a page cannot add a label, because browsers keep which links were visited from the page. By the user's decision, a card's title is now always the text's colour. Links in running text keep the visited colour.
+- **One height.** The search field in the filter bar is a control's height, 48 px, as the Filters, filter and Sort buttons are. It was the taller field an inline form gives (56 px). A larger text size still makes both taller.
+
+Given up: on a long list read with a pointer, such as the 994 public projects, the footer is reached only at the list's end. Its links are the app's sections, which the app bar and a phone's tab bar repeat, and Data & Privacy, which Settings also reaches. The pinned row takes 65 px of a phone's window while it shows.
+
+From Krug: keep the controls a person needs where they are looking, and never make them hunt for the way back. From Refactoring UI: one bar's height for everything that sticks to the top.
+
 ## DL-131: Funding details sit beside the initiative and open in a dialog
 
 **Status:** user decision, 22 November 2026, from three rendered options. The maker asked why Change Funding Details, at the foot of Funding, was not a set of filters. Amends DL-118 and DL-129.
@@ -960,9 +974,9 @@ Three options were rendered on the real catalog: the details as filters (Where y
 **Status:** quality findings Q-10 and Q-11 from the baseline review, 22 November 2026, for the home-shell session. Amends DL-102 on where the banner sits.
 
 - **The banner is inside the header.** "Still in development will be live soon" ran two thoughts together and sat outside every landmark, so a screen reader moving by landmark skipped it. It now reads "Still in development. Live soon.", two sentences short enough for one line at 320 px, and it is the first line of the page's one header landmark (`rc-app-head`), before the app bar. The header sticks with the banner's height above the window's top, so the banner still scrolls away with the page and the bar stays, as when the two were apart. The page's grid no longer needs a row of its own for the banner.
-- **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar sticks at the window's top on its own, and the record beside the work sticks under it.
+- **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar stays fixed at the window's foot, as the dock does, since DL-127 moved it there, and the record beside the work sticks a step from the window's top.
 
-Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. Not tried with a real browser's zoom on a real phone.
+Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. The 1280 by 400 check was made while the step bar was still under the app bar. Not tried with a real browser's zoom on a real phone.
 
 ## DL-133: Stop answers at once, and the wait for the last words has an end
 
@@ -981,6 +995,53 @@ Kept as it was: the words still appear in the box while the person talks. Showin
 Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
+
+## DL-134: Your Initiatives says what each card is, and keeps Certified projects apart
+
+**Status:** the user's choice, 22 November 2026, from QA notes 4, 5 and 6 for the sign-in-initiatives session. Amends DL-112 on the single list and DL-086 on a phone's You tab.
+
+- **Every card carries a tag for what it is.** A draft and a Certified project with one name read the same in the list: only a line of small text differed. Each card now has a Tag under its name: Not saved yet, Saved privately, Personal project, Group project or Team workspace, each with its icon. A draft linked to a project carries the project's tag, and Not saved yet beside it while that is true. The line under the tag says only what the tag does not, such as the date of the save.
+- **Two sections.** Drafts And Private Saves holds what exists only in Weave. On Certified holds Certified projects, team workspaces and any draft linked to one, which is listed once, there. DL-112's one list kept a draft and its saved card as one entry; that stays, and an entry now sits in the section its link decides. Three sections (device, account, Certified) were turned down: a saved card being edited on this device belongs to two of them.
+- **A draft that looks like a Certified project is offered that project.** The check Weave already had for the needs step runs on Your Initiatives once the person's projects are read. The draft's card says which project it looks like and offers Use That Project and It's A Different Initiative. Use That Project opens the reviewed link step with the project chosen, so what changes is shown before anything does: the name, place, description and links come from Certified, and the needs and offers stay. Nothing links on its own, and a no is kept for the visit. Choosing each detail side by side was turned down: the card could then differ from what Certified shows.
+- **A phone's You tab holds more of Settings.** Appearance and Install Weave On Your Phone are their own groups there, drawn as Settings draws them, then All Settings. They are the two a phone uses most, and installing is something only a phone can do.
+
+Rendered from the dev server's example account in Chromium at 360 and 1280 px, in both themes, with the keyboard. Proof class: fixture.
+
+## DL-135: On a step with fields to fill in, the mycelium keeps off the words
+
+**Status:** finding from the speech session's review, 22 November 2026. Amends DL-071 and DL-106 for form steps, and DL-128 where it made new growth linger and grow on its own on a desk.
+
+On a phone at 360 px, in both themes, new strands crossed small text on the describe step: the line under Talk It Out and the label of the box. On a phone the column of content runs to the screen's edges, so the resting network's quieter share under it was the only thing between a thread and a label, and new growth was not dimmed at all. DL-128's longer-lived tufts, and its tufts that grow on their own on a desk, made that worse.
+
+A form step (a route with `form: true`: the steps of describing an initiative) now marks its mycelium quiet:
+
+- **The resting network is quieter under the column:** 20 percent of its strength there instead of 45, and still whole in the margins.
+- **New growth keeps to the margins.** A tuft, from a finger, a mouse or on its own, starts only in a margin at least 48 px wide, and its branches stop at the column's edge. A phone's column runs to its edges, so a phone grows nothing new on a form step. On a 1280 px desk the margins are 80 px wide, and tufts grow there and never cross the fields.
+- Every other page keeps DL-128's growth. Reduced motion still draws the resting network once and grows nothing.
+
+Measured in headless Chromium on the dev server. At 1280 by 800, a mouse moved across the describe form added no ink to the canvas over the fields in either theme, where the same move over Home added about a million units of alpha. At 360 by 780, a finger dragged across the fields, then 8 seconds of waiting, asked for no animation frame on the describe step, and 507 on Home.
+
+## DL-136: A fund or an initiative has one address, a sheet inside the app and a page from a link
+
+**Status:** the user's choices, 22 November 2026. QA found that an initiative card opened the Certified API's raw JSON, and that a shared link showed no preview in Telegram. Extends DL-068.
+
+- **One address.** A fund is `/funding/<fund>`, with `?program=` for one of its programs. A public Certified project is `/initiatives/<account>-<record>`: its PLC account and its record key, which every project listed that day has.
+- **A sheet or a page.** Opened from inside the app, a record comes up over its list, and closing returns to the same search and filters. Opened from a link, a new tab or another record's page, it is a page of its own, with a back link and breadcrumbs to its list. Its sections are `h3` under a sheet's title and `h2` under a page's heading.
+- **Its own preview.** Vercel rewrites the two addresses to `GET /api/record-page`, which returns the app's `index.html` with the record's name and words in its head, so Telegram, WhatsApp and X show the record. The picture is its section's for now. A picture per record would need a new dependency.
+- **Share.** The menu offers Copy Link, the device's share sheet where there is one, and plain links to Email, Telegram, WhatsApp, X, LinkedIn and Bluesky. No script of theirs runs on Weave. Only the public record goes: its name, its address and one line. Nothing from the person's card goes, and nothing from the page's address but `program`.
+- **Fit on an initiative's page.** The page says whether the project could partner with the card on this device. Weave works that out on the device, from the card's kept needs and offers, as possible fits only (DL-052).
+
+Given up: a card with no record key of that shape has no page and opens its public record, as before. Certified records carry no website or contact, so Get In Touch can only say Weave makes no introductions yet.
+
+## DL-137: Signing in from Your Initiatives goes on to project access, and reading projects lasts the session
+
+**Status:** the user's choice, 22 November 2026, from QA note 2 for the sign-in-initiatives session. Refines DL-032.
+
+- **Two permissions stay two, with one press in Weave.** Certified holds sign-in and project access as two permissions for two clients, so they cannot be one Certified screen. A person who signed in on Your Initiatives came back, saw "Allow Weave to check your Certified projects" and had to press again. Sign In on Your Initiatives now says before the press that Certified will ask to confirm it is you, then to let Weave read your projects, and a finished sign-in goes straight on to that second screen. Certified still asks, and a no there leaves the person signed in with no project access, as before.
+- **Only where projects are the point.** Sign In in the header, on Funding or while saving a card still only identifies the person (DL-032). Chaining on every sign-in was turned down: it would ask for project access from someone who only wants to save.
+- **Reading lasts the session; writing to Certified does not.** The permission that only reads a person's group memberships was asked for again every hour, signed in or not. It now lasts for the Weave session it is bound to: at most 30 days from the consent, and it cannot be used after sign-out, because it belongs to that one session. Its stored tokens stay encrypted on the server until that date. Every permission that writes to Certified (creating a project, adding a member, publishing, withdrawing) still ends within the hour. Weave checks a person's current group membership with the read permission before it saves to a team workspace or manages invitations, so those keep working through the session too, where they used to ask again each hour. One day for reading was turned down as an arbitrary middle. The page says before the press that the permission lasts for as long as the person stays signed in.
+
+The trip is carried by a note kept for the tab (`weave-sign-in-then-projects`), which names nobody, is read once and is not acted on after ten minutes, after a sign-in that did not finish, or on a return to any other page. A sign-in pressed anywhere else clears it. The trip happens at most once for a page load: if it cannot start within 20 seconds, or its start fails, the page shows the Allow button as before. Proof class: fixture for the start and its fallback. The trip through Certified's own screen has not been run against Certified.
 
 ## DL-138: Where a browser cannot turn speech into text, a recording can be sent, after the person agrees
 

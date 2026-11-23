@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { activeChoices, narrowing, pickedValue, pressOption, sortChoice, withoutChoice, type Facet } from "../src/filters.ts";
+import { activeChoices, choicesKey, narrowing, pickedValue, pressOption, sortChoice, underAppBar, withoutChoice, type Facet } from "../src/filters.ts";
 
 const region: Facet = {
   key: "region",
@@ -84,4 +84,19 @@ test("Sort shows the order in force, or the first on offer where the chosen one 
   assert.equal(sortChoice({ value: "name", options })?.label, "Name A to Z");
   assert.equal(sortChoice({ value: "fit", options })?.label, "Closing soon", "an order that needs a card falls back");
   assert.equal(sortChoice({ value: "name", options: [] }), undefined);
+});
+
+test("the pinned row tells a change of choices from a menu opened and closed (DL-130)", () => {
+  const sort = { value: "closing", options: [{ value: "closing", label: "Closing soon" }, { value: "name", label: "Name A to Z" }] };
+  const before = choicesKey("soil", [region], sort);
+  assert.equal(choicesKey(" soil ", [{ ...region }], { ...sort }), before, "the same choices, drawn again");
+  assert.notEqual(choicesKey("soil", [{ ...region, chosen: ["africa", "asia"] }], sort), before, "a filter");
+  assert.notEqual(choicesKey("soil", [region], { ...sort, value: "name" }), before, "the order");
+  assert.notEqual(choicesKey("peat", [region], sort), before, "the search");
+});
+
+test("the pinned row is noticed under the app bar, whatever its height", () => {
+  assert.equal(underAppBar(65), "-65px 0px 0px 0px");
+  assert.equal(underAppBar(64.6), "-65px 0px 0px 0px");
+  assert.equal(underAppBar(-3), "-0px 0px 0px 0px", "never a margin that grows the window");
 });

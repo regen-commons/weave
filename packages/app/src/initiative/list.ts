@@ -97,9 +97,10 @@ export function savingLine(saving: DraftSaving, savedOn: string | null): string 
     case "unsaved":
       return "";
     case "saved":
-      return savedOn ? `Saved privately in Weave on ${savedOn}.` : "Saved privately in Weave.";
+      // The card's tag says where; the line adds when.
+      return savedOn ? `Saved on ${savedOn}.` : "";
     case "saved-unlisted":
-      return "Saved privately in Weave.";
+      return "";
     case "changed-here":
       return "Changed on this device since you saved.";
     case "newer-in-account":
@@ -208,4 +209,54 @@ export async function openSavedOver(
 ): Promise<boolean> {
   await open();
   return copy.id === saved.id ? true : retire(copy.id);
+}
+
+/**
+ * What an entry in Your Initiatives is, said as a tag on its card, so a draft and a Certified project
+ * with one name can be told apart at a glance (DL-134):
+ * - `device`: a draft kept only in this browser.
+ * - `private`: saved to the account, where only the person sees it.
+ * - `personal-project`, `group-project`, `team-workspace`: a Certified project of the person's own, of a
+ *   group without a team workspace in Weave, or of a group with one.
+ */
+export type EntryKind = "device" | "private" | "personal-project" | "group-project" | "team-workspace";
+
+export const ENTRY_KINDS: Record<EntryKind, { readonly icon: "device" | "lock" | "person" | "people"; readonly label: string }> = {
+  device: { icon: "device", label: "Not saved yet" },
+  private: { icon: "lock", label: "Saved privately" },
+  "personal-project": { icon: "person", label: "Personal project" },
+  "group-project": { icon: "people", label: "Group project" },
+  "team-workspace": { icon: "people", label: "Team workspace" },
+};
+
+/** A Certified project's kind. `workspace` is true, or "open", once its group has a team workspace in Weave. */
+export function projectKind(project: { readonly group: string | null; readonly workspace: boolean | string }): EntryKind {
+  if (!project.group) return "personal-project";
+  return project.workspace === true || project.workspace === "open" ? "team-workspace" : "group-project";
+}
+
+/**
+ * The tags on a draft's card. A draft linked to a Certified project is that project, and says so
+ * first; one that is not saved says that too, whatever it is linked to. Signed out, a draft that an
+ * account saved carries no tag: its line says to sign in, and whose it is cannot be known here.
+ */
+export function draftKinds(
+  saving: DraftSaving,
+  project: { readonly group: string | null; readonly workspace: boolean | string } | null,
+  savedSignedOut = false,
+): EntryKind[] {
+  if (savedSignedOut) return [];
+  const kept: EntryKind[] = saving === "unsaved" ? ["device"] : project ? [] : ["private"];
+  return project ? [projectKind(project), ...kept] : kept;
+}
+
+const FIT_RANK = { strong: 3, good: 2, possible: 1 } as const;
+
+/**
+ * Records with the strongest fit first, as the live funding list sorts them. Records of one
+ * strength, and those with none, keep the order they came in.
+ */
+export function strongestFirst<T extends { readonly fit?: keyof typeof FIT_RANK | undefined }>(records: readonly T[]): T[] {
+  const rank = (record: T) => (record.fit ? FIT_RANK[record.fit] : 0);
+  return [...records].sort((a, b) => rank(b) - rank(a));
 }
