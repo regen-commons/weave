@@ -1,9 +1,8 @@
 # Accessibility audit, 22 November 2026
 
-After the fixes listed here, Weave meets 53 of the 55 level A and AA criteria of WCAG
-2.2, counting those with nothing to apply to. Two still have an open item. Text spacing
-applied after a page has loaded is fixed on quality's branch (#140) and closes when it
-merges. The language of text from Certified and the catalog, which neither source
+After the fixes listed here, Weave meets 54 of the 55 level A and AA criteria of WCAG
+2.2, counting those with nothing to apply to. One still has an open item. The language
+of text from Certified and the catalog, which neither source
 records, was deferred by the user and is recorded as D46 in the
 [open decisions](../../../open-decisions.md). Automated checks found nothing
 (Lighthouse accessibility 100, axe-core no violations), so every finding below came
@@ -150,14 +149,14 @@ are fixed in the pull requests named.
 
 ### Open
 
-- [ ] **A-16. Wider text spacing slides the pinned filter row under the header.**
+- [x] **A-16. Wider text spacing slides the pinned filter row under the header.**
   1.4.12 Text Spacing (AA). Funding and Initiatives at phone width. Minor. The pinned
   row is placed at `--app-header-height`, a fixed token; with line height 1.5 applied
   the header grows past it and covers the top of Search and Filters. Owner: quality
   (global CSS and tokens). Fixed on #140's branch, which measures the header: checked
   on 23 November at 320 by 568 with text spacing applied after load, the pinned row
-  starts at the header's bottom edge and Search and Filters are clear. Tick this when
-  #140 merges.
+  starts at the header's bottom edge and Search and Filters are clear. Closed by #140,
+  merged into develop on 23 November.
 - [ ] **A-17. Text in other languages is not marked.** 3.1.2 Language of Parts (AA).
   Initiatives and Funding. Deferred by the user on 23 November 2026 ("Record for
   later"). Certified initiatives and some catalog summaries are in Portuguese, Spanish
@@ -202,7 +201,7 @@ Weave has nothing the criterion covers.
 | 1.4.5 Images of Text | Pass | None |
 | 1.4.10 Reflow | Pass | No sideways scrolling at 320 by 256; card rows scroll inside their own list |
 | 1.4.11 Non-text Contrast | Pass | Field and button borders 3.52:1 light, 4.35:1 dark; chips 11:1; focus ring 5.9:1 and 8.1:1 |
-| 1.4.12 Text Spacing | Fixed, one pending | A-11 fixed; A-16 fixed on #140's branch, closes when it merges |
+| 1.4.12 Text Spacing | Fixed | A-11, and A-16 in #140 |
 | 1.4.13 Content on Hover or Focus | Pass | Tooltips open on focus, stay while hovered, close with Escape |
 | 2.1.1 Keyboard | Pass | Every flow done by keyboard; card rows scroll as their links take focus |
 | 2.1.2 No Keyboard Trap | Pass | Native modal dialogs; Escape and Close always leave |
