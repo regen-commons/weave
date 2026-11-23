@@ -9,6 +9,7 @@ import { programFund } from "../../../../dist/matching.mjs";
 import { FundSchema } from "../funding/contracts.ts";
 import { catalogEntries, findEntry, researchSnapshotDate } from "../funding/catalog.ts";
 import { readBrowsing } from "../funding/select.ts";
+import { deadlineSentence } from "../funding/deadline.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { fundingFixture, teamFixture, type FixtureContext } from "../fixtures.ts";
 import { useDraft } from "../describe/use-draft.ts";
@@ -133,8 +134,7 @@ export function Opportunity({
       <p>{fund.amount}</p>
       {fund.deadlineDate && (
         <p>
-          Source deadline {fullDate(fund.deadlineDate)}
-          {fund.deadlineInstant ? `, ${fund.deadlineInstant}` : ", exact time unverified"}.{" "}
+          {deadlineSentence(fund.deadlineDate, fund.deadlineInstant)}{" "}
           {access === "closed" ? "This cycle is closed." : ""}
         </p>
       )}
