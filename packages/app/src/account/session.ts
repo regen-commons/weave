@@ -22,8 +22,8 @@ const browserTimers: SessionTimers = {
 const RETRY_SECONDS = 60;
 /** A browser reports one return to a tab as focus and as visibility, a moment apart. */
 const SAME_RETURN_MS = 1000;
-/** How many times a return follows a check that an explicit one replaced before it stops vouching. */
-const RETURN_FOLLOWS = 3;
+/** The longest wait between tries while an account is hidden because it could not be checked. */
+const RETRY_LIMIT_SECONDS = 900;
 
 /** Account state belongs to the current browser session, never to device drafts or backups. */
 export class AccountSession {
@@ -47,8 +47,10 @@ export class AccountSession {
   private now: () => number;
   /** The device's mark as this tab last saw it. */
   private mark: string | undefined;
-  /** A return could not check the session, so nothing is shown until a check succeeds. */
+  /** An account was hidden because its session could not be checked, and is tried again until a check answers. */
   private unverified = false;
+  /** Seconds until the next of those tries. Each failure doubles it, up to the limit. */
+  private retryIn = RETRY_SECONDS;
   private presence: AccountPresence;
   /** An account is expected, and the check that will say so has not answered yet. */
   private awaited: boolean;
@@ -143,6 +145,7 @@ export class AccountSession {
   private end(publish: boolean, ending: SessionEnding) {
     this.invalidate();
     this.unverified = false;
+    this.retryIn = RETRY_SECONDS;
     this.update({ available: true, fixture: false, ...this.state, user: null, items: [] }, ending);
     if (publish) this.announce("ended");
   }
@@ -174,8 +177,16 @@ export class AccountSession {
   private reconcile() {
     this.invalidate();
     this.awaited = true;
-    this.update(null);
+    this.hide();
     void this.refresh().catch(() => {});
+  }
+  /**
+   * Takes the account off the screen until a check answers. If one was on screen, the check is
+   * tried again by itself, less often each time; a tab that showed nobody has nothing to bring back.
+   */
+  private hide() {
+    this.unverified = this.holder !== null;
+    this.update(null);
   }
   /**
    * The tab is back in view, or restored from the back-forward cache, and may have missed another
@@ -205,7 +216,7 @@ export class AccountSession {
     const connection = this.connection;
     const earlier = this.inflight;
     if (earlier && this.now() - this.inflightSince > SAME_RETURN_MS) await earlier.catch(() => {});
-    for (let follows = 0; follows <= RETURN_FOLLOWS; follows++) {
+    for (;;) {
       // The page has gone. A change heard meanwhile rejects the check, and the next one answers for it.
       if (this.connection !== connection) return;
       try {
@@ -213,14 +224,21 @@ export class AccountSession {
         return;
       } catch (error) {
         if (error instanceof AccountFailure && error.code === "sign_in_required") return;
+        // Replaced by another check: that one is under way or has answered, and the next turn asks it.
         if (!(error instanceof AccountFailure && error.code === "account_changed")) break;
       }
     }
     if (this.connection !== connection) return;
-    this.invalidate();
-    this.unverified = true;
-    this.update(null);
-    this.schedule(RETRY_SECONDS);
+    // Nothing is under way here, so nothing is aborted: the check has just failed.
+    this.schedule(undefined);
+    invalidateAccountRequests();
+    this.hide();
+    this.retryLater();
+  }
+  private retryLater() {
+    if (!this.unverified) return;
+    this.schedule(this.retryIn);
+    this.retryIn = Math.min(this.retryIn * 2, RETRY_LIMIT_SECONDS);
   }
   /** Checks the session now, superseding any check under way. A change of account needs that; a renewal joins instead. */
   refresh = (): Promise<AccountState> => {
@@ -246,6 +264,7 @@ export class AccountSession {
       if (this.state?.user?.id !== next.user?.id) invalidateAccountRequests();
       this.awaited = false;
       this.unverified = false;
+      this.retryIn = RETRY_SECONDS;
       this.update(next);
       this.schedule(next.user ? next.renewIn : undefined);
       return next;
@@ -254,8 +273,9 @@ export class AccountSession {
       // Without an answer, sign-in is offered again; the note on the device stays for the next visit.
       if (this.awaited) { this.awaited = false; if (this.state === null) this.notify(); }
       if (error instanceof AccountFailure && error.code === "sign_in_required") this.clear();
-      // An account on screen, or one a return could not check, is tried again until a check answers.
-      else if (this.state?.user || this.unverified) this.schedule(RETRY_SECONDS);
+      else if (this.state?.user) this.schedule(RETRY_SECONDS);
+      // An account hidden for want of a check is tried again until one answers, less often each time.
+      else this.retryLater();
       throw error;
     } finally {
       if (this.pending === task) this.pending = null;
