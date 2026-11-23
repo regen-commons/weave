@@ -4,27 +4,67 @@ import { AccountProvider, useAccount } from "./account/context.tsx";
 import { ForThisAccount } from "./account/SetAside.tsx";
 import { useSetAside } from "./account/set-aside.ts";
 import { accountKey } from "./account/document.ts";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { readFixtures, EXAMPLE_SUBJECT, type FixtureContext } from "./fixtures.ts";
 import { DraftProvider } from "./describe/context.tsx";
 import { useDraft } from "./describe/use-draft.ts";
 import { hasDraft } from "./describe/view.ts";
-import { Describe } from "./pages/Describe.tsx";
-import { StartNew } from "./pages/StartNew.tsx";
-import { Home } from "./pages/Home.tsx";
-import { AskStep } from "./pages/AskStep.tsx";
-import { YourInitiative } from "./pages/YourInitiative.tsx";
-import { YourInitiatives } from "./pages/YourInitiatives.tsx";
-import { Funding } from "./pages/Funding.tsx";
-import { Opportunity } from "./pages/Opportunity.tsx";
 import { fundingBackHref, legacyFundingHref } from "./funding/catalog.ts";
-import { ListPage } from "./pages/ListPage.tsx";
-import { RecordDetail } from "./pages/RecordDetail.tsx";
-import { TeamWorkspace } from "./pages/TeamWorkspace.tsx";
 import { recoverConsentReturn } from "./initiative/consent-return.ts";
 import { headerStatus } from "./initiative/header-status.ts";
-import { Settings } from "./pages/Settings.tsx";
+import { lazyPage, type LazyPage } from "./lazy-page.ts";
 import { NotFound } from "./pages/NotFound.tsx";
+
+// Each page's code is its own file, fetched when a person first goes there (Q-02).
+const Home = lazyPage(() => import("./pages/Home.tsx").then((page) => page.Home));
+const StartNew = lazyPage(() => import("./pages/StartNew.tsx").then((page) => page.StartNew));
+const Describe = lazyPage(() => import("./pages/Describe.tsx").then((page) => page.Describe));
+const AskStep = lazyPage(() => import("./pages/AskStep.tsx").then((page) => page.AskStep));
+const ListPage = lazyPage(() => import("./pages/ListPage.tsx").then((page) => page.ListPage));
+const Funding = lazyPage(() => import("./pages/Funding.tsx").then((page) => page.Funding));
+const Opportunity = lazyPage(() => import("./pages/Opportunity.tsx").then((page) => page.Opportunity));
+const RecordDetail = lazyPage(() => import("./pages/RecordDetail.tsx").then((page) => page.RecordDetail));
+const TeamWorkspace = lazyPage(() => import("./pages/TeamWorkspace.tsx").then((page) => page.TeamWorkspace));
+const Settings = lazyPage(() => import("./pages/Settings.tsx").then((page) => page.Settings));
+const YourInitiative = lazyPage(() => import("./pages/YourInitiative.tsx").then((page) => page.YourInitiative));
+const YourInitiatives = lazyPage(() => import("./pages/YourInitiatives.tsx").then((page) => page.YourInitiatives));
+
+/** The page code a route draws with: its own page, or the record it opens. */
+function pageFor(route: Route): LazyPage<never> {
+  const pages: Record<Route["name"], LazyPage<never>> = {
+    home: Home,
+    "new-initiative": StartNew,
+    initiative: Describe,
+    needs: AskStep,
+    offers: AskStep,
+    partners: ListPage,
+    initiatives: ListPage,
+    funding: Funding,
+    opportunity: Opportunity,
+    "initiative-detail": RecordDetail,
+    "team-workspace": TeamWorkspace,
+    settings: Settings,
+    "your-initiative": YourInitiative,
+    "your-initiatives": YourInitiatives,
+  };
+  return pages[route.name];
+}
+
+/** The pages an address draws: its own, and the page under a record opened as a sheet. */
+function pagesAt(location: string): LazyPage<never>[] {
+  const route = matchRoute(splitRoute(location).pathname);
+  if (!route) return [];
+  const under = route.sheet ? sheetBackground(route, currentVisit()) : null;
+  const page = under ? matchRoute(splitRoute(under.route).pathname) : undefined;
+  return page ? [pageFor(route), pageFor(page)] : [pageFor(route)];
+}
+
+const routeReady = (location: string): boolean => pagesAt(location).every((page) => page.ready());
+
+/** Fetches the code for the pages at an address. The app waits for it before its first draw. */
+export async function preloadPage(location: string): Promise<void> {
+  await Promise.all(pagesAt(location).map((page) => page.preload()));
+}
 import {
   currentVisit,
   goBack,
@@ -135,8 +175,34 @@ function recordBody(route: Route, search: string, state: SheetState, presentatio
     />
   );
 }
+/**
+ * The address the app draws. It follows the address bar at once when the next page's code is here,
+ * and otherwise keeps the page on screen until that code arrives, so the page never goes blank and
+ * the focus and scroll that follow a move (AppFrame) always find the new page.
+ */
+function useDrawnLocation(): string {
+  const target = usePathname();
+  const [drawn, setDrawn] = useState(target);
+  const ready = routeReady(target);
+  useEffect(() => {
+    if (ready) {
+      setDrawn(target);
+      return;
+    }
+    let current = true;
+    preloadPage(target).then(
+      () => { if (current) setDrawn(target); },
+      // The code could not be fetched, as after a new release removed the old files: load the
+      // address as a page instead, which fetches the release that has it.
+      () => { if (current) window.location.reload(); },
+    );
+    return () => { current = false; };
+  }, [target, ready]);
+  return ready ? target : drawn;
+}
+
 export function App() {
-  const location = usePathname();
+  const location = useDrawnLocation();
   const { pathname, search } = splitRoute(location);
   const returning = pathname === "/" && new URLSearchParams(search).has("projectConsent");
   const recovery = useRef<{ href: string; result: Promise<string> } | null>(null);
@@ -269,13 +335,13 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
       current={pageRoute?.name}
       sheet={
         shown && !shown.dismissed
-          ? recordBody(
+          ? <Suspense fallback={null}>{recordBody(
               shown.route,
               shown.search,
               { open: !!sheetRoute && shown.location === location, onClose: sheetClosed },
               "sheet",
               fixture,
-            )
+            )}</Suspense>
           : null
       }
       runs={device.draft.runs}
@@ -285,7 +351,7 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
         !(__WEAVE_PROTOTYPE__ && window.parent !== window) && <FixtureControls fixture={fixture} />
       }
     >
-      {pageRoute ? content(pageRoute, search, fixture) : <NotFound />}
+      {pageRoute ? <Suspense fallback={null}>{content(pageRoute, search, fixture)}</Suspense> : <NotFound />}
     </Page>
   );
 }
