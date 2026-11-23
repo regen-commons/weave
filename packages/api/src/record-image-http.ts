@@ -59,7 +59,7 @@ export function createRecordImageHandler(options: {
   project(uri: string): Promise<PublicProjectCard | null>;
   faces(): Promise<PictureFaces>;
   /** Draws the nodes as a 1200 x 630 PNG in the faces. */
-  render(nodes: PictureNode, faces: PictureFaces): Promise<Uint8Array>;
+  render(nodes: PictureNode, faces: PictureFaces): Promise<Uint8Array<ArrayBuffer>>;
   lookupTimeoutMs?: number;
 }) {
   const lookupTimeoutMs = options.lookupTimeoutMs ?? LOOKUP_TIMEOUT_MS;
@@ -86,7 +86,7 @@ export function createRecordImageHandler(options: {
     const cache = url.searchParams.get("v") === recordImageRevision(words) ? KEPT : BRIEF;
     const headers = { "Content-Type": "image/png", "X-Content-Type-Options": "nosniff", ...cache };
     if (request.method === "HEAD") return new Response(null, { status: 200, headers });
-    let png: Uint8Array;
+    let png: Uint8Array<ArrayBuffer>;
     try { png = await options.render(recordImageNodes(faces, words), faces); } catch { return sectionPicture(section, NOT_CACHED); }
     return new Response(png, { status: 200, headers: { ...headers, "Content-Length": String(png.byteLength) } });
   };
