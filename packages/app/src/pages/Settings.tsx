@@ -1,3 +1,4 @@
+import { busyProps } from "../account/busy.ts";
 import { useRef, useState } from "react";
 import { AccountSection } from "../account/AccountSection.tsx";
 import { SignOutAction } from "../account/SignOutAction.tsx";
@@ -358,7 +359,7 @@ export function Settings() {
             className="rc-button"
             data-variant="danger"
             type="button"
-            disabled={busy || !example.state.identity}
+            {...busyProps(busy, !example.state.identity)}
             onClick={() =>
               void perform(async () => {
                 await example.service.deleteAccount();
@@ -368,7 +369,8 @@ export function Settings() {
               })
             }
           >
-            Delete My Account
+            <span>Delete My Account</span>
+            {busy && <span className="rc-spinner" aria-hidden="true" />}
           </button>
         </TaskDialog>
       )}

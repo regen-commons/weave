@@ -22,7 +22,7 @@ export function SignOutAction({
     onResult?.(message, failed);
   }
   async function signOut() {
-    if (busy || disabled) return;
+    if (busy) return;
     setBusy(true);
     onBusyChange?.(true);
     setNotice(null);
@@ -45,7 +45,11 @@ export function SignOutAction({
           className="rc-button"
           data-variant="secondary"
           type="button"
-          disabled={busy || disabled}
+          // Its own press keeps the focus (`busy.ts`). The page that hosts it may report the same work
+          // back as `disabled`, which must not grey out the button being pressed.
+          aria-busy={busy || undefined}
+          aria-disabled={busy || undefined}
+          disabled={disabled && !busy}
           onClick={() => void signOut()}
         >
           {busy ? "Signing Out" : label}
