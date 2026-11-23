@@ -8,9 +8,11 @@
 // website's loop. A moving mouse grows tufts where it goes, and so does a finger. Growth uses the
 // website's depth 1 on Home and depth 2 everywhere else.
 //
-// Three things are the app's own. A light resting network lies under the trails, so a phone with no
+// Four things are the app's own. A light resting network lies under the trails, so a phone with no
 // mouse is never blank; it is quieter under the column that holds the content and whole beside it
-// (DL-071). Where there is no mouse a tuft grows on its own every few seconds. And drawing stops:
+// (DL-071). A tuft grows on its own every few seconds, on a phone and wherever a mouse has held
+// still. New growth lingers: a tuft lives twice as long as the website's and its trail fades more
+// slowly, so each strand stays a while after it appears (DL-128). And drawing stops:
 // once the last trail has faded nothing runs until something grows again, and nothing runs while
 // the page is hidden or the canvas is off screen. Under reduced motion the resting network is drawn
 // at once and nothing more grows.
@@ -33,28 +35,38 @@ export const DEPTHS = {
   1: { reach: 50, forkRate: 0.012, opacity: 0.22, fadeRate: 0.0014 },
   2: { reach: 60, forkRate: 0.015, opacity: 0.25, fadeRate: 0.0012 },
 };
-/** The website's fade fill: the share of the trails so far that goes each frame. */
-export const TRAIL_FADE = 0.035;
+/**
+ * The share of the trails so far that goes each frame: a little over half the website's 0.035, so a
+ * strand fades out slowly after its tuft has gone (DL-128).
+ */
+export const TRAIL_FADE = 0.02;
+/** A tuft lives this many times as long as the website's: its strength falls this much more slowly (DL-128). */
+export const LINGER = 2;
 /** Once nothing is alive the last of the trails goes faster, so no ghost of them is left. */
 const LAST_FADE = 0.2;
 /** Frames with nothing alive before the fade quickens, and before the trails are cleared. */
-const QUIET_FRAMES = 90;
-const CLEAR_FRAMES = 130;
+const QUIET_FRAMES = 150;
+const CLEAR_FRAMES = 210;
 /** A mouse or a finger must travel this far, in CSS pixels, before it grows a new tuft, as on the website. */
 const SPACING = 45;
-/** At most this many new tufts live at once, as on the website; the oldest goes first. */
-const LIVE_TUFTS = 30;
-/** The resting network has one seed for about this many CSS pixels of its region. */
-const REST_AREA = { phone: 30000, wide: 48000 };
+/** At most this many new tufts live at once; the oldest goes first. They live longer than the website's, so more are kept. */
+const LIVE_TUFTS = 40;
+/**
+ * The resting network has one seed for about this many CSS pixels of its region: about the same
+ * closeness on a desk as on a phone, so a wide window is as full as a narrow one (DL-128).
+ */
+const REST_AREA = { phone: 30000, wide: 28000 };
 /** How strongly the resting network shows. */
 const REST_ALPHA = 0.4;
 /** The share of its strength the resting network keeps under the column that holds the content. */
 const UNDER_CONTENT = 0.45;
 /** The resting network eases to that share over this many CSS pixels inside the column's edges. */
 const EASE = 32;
-/** Without a mouse, a tuft grows on its own after this many milliseconds, plus up to the spread. */
+/** A tuft grows on its own after this many milliseconds, plus up to the spread. */
 const OWN_GROWTH_AFTER = 1800;
 const OWN_GROWTH_SPREAD = 1800;
+/** A mouse that has moved within this many milliseconds is growing tufts itself, so none grows on its own. */
+const MOUSE_REST = 2400;
 /** A region that changes size is drawn again once it has held still this long, in milliseconds. */
 const RESIZE_REST = 160;
 /** Frames a new tuft of the logo takes to fade, and how strongly it starts. */
@@ -163,9 +175,17 @@ export function growsTrails(reducedMotion) {
   return !reducedMotion;
 }
 
-/** Whether new tufts grow on their own: only where there is no mouse to grow them, with motion allowed. */
-export function growsOnItsOwn(finePointer, reducedMotion) {
-  return !finePointer && !reducedMotion;
+/**
+ * Whether new tufts grow on their own: with motion allowed, on a phone and on a desk alike, so a
+ * wide window is never still for long. Where a mouse has just moved it grows them instead (DL-128).
+ */
+export function growsOnItsOwn(reducedMotion) {
+  return !reducedMotion;
+}
+
+/** Whether a mouse last moved long enough ago, in milliseconds, for a tuft to grow on its own. */
+export function mouseAtRest(sinceMove) {
+  return sinceMove >= MOUSE_REST;
 }
 
 /** Whether a mouse or a finger has travelled far enough since the last tuft to grow another. */
@@ -173,9 +193,12 @@ export function movedEnough(from, to) {
   return !from || Math.hypot(to.x - from.x, to.y - from.y) >= SPACING;
 }
 
-/** How strongly a tuft is drawn each frame at an age in frames: the website's opacity, less its fade for each frame. */
+/**
+ * How strongly a tuft is drawn each frame at an age in frames: the website's opacity, less its fade
+ * for each frame, slowed by LINGER so the tuft stays a while (DL-128).
+ */
 export function tuftStrength(age, depth) {
-  return Math.max(0, depth.opacity - depth.fadeRate * age);
+  return Math.max(0, depth.opacity - (depth.fadeRate / LINGER) * age);
 }
 
 /**
@@ -311,7 +334,6 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   if (!context || !view) return { dispose() {} };
   const documentElement = canvas.ownerDocument.documentElement;
   const still = view.matchMedia("(prefers-reduced-motion: reduce)");
-  const finePointer = view.matchMedia("(hover: hover) and (pointer: fine)");
   const darkScheme = view.matchMedia("(prefers-color-scheme: dark)");
   // Two pictures kept off screen: the resting network, drawn when it changes, and the trails,
   // rubbed out a little every frame. The canvas on the page shows one over the other.
@@ -336,6 +358,8 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   let shown = !canvas.ownerDocument.hidden;
   let onScreen = true;
   let lastMove = null;
+  /** When a mouse or a finger last grew a tuft, in milliseconds, so one grown on its own waits for it to rest. */
+  let movedAt = -Infinity;
   let ownTimer = 0;
   let resizeTimer = 0;
 
@@ -477,21 +501,23 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     if (at.x < 0 || at.y < 0 || at.x > box.width || at.y > box.height) return;
     if (!movedEnough(lastMove, at)) return;
     lastMove = at;
+    movedAt = Date.now();
     sprout(at.x, at.y);
   }
 
   /**
-   * Without a mouse, a tuft grows on its own every few seconds, somewhere in the part of the canvas
-   * that is in the window, while the page is shown. It stops under reduced motion (DL-048).
+   * A tuft grows on its own every few seconds, somewhere in the part of the canvas that is in the
+   * window, while the page is shown and no mouse or finger has just grown one. It stops under
+   * reduced motion (DL-048, DL-128).
    */
   function planOwnGrowth() {
-    if (ownTimer || disposed || !shown || !onScreen || !growsOnItsOwn(finePointer.matches, still.matches)) return;
+    if (ownTimer || disposed || !shown || !onScreen || !growsOnItsOwn(still.matches)) return;
     ownTimer = view.setTimeout(() => {
       ownTimer = 0;
       const box = canvas.getBoundingClientRect();
       const top = Math.max(0, -box.top);
       const bottom = Math.min(height, view.innerHeight - box.top);
-      if (bottom > top && resting()) sprout(Math.random() * width, top + Math.random() * (bottom - top));
+      if (bottom > top && resting() && mouseAtRest(Date.now() - movedAt)) sprout(Math.random() * width, top + Math.random() * (bottom - top));
       planOwnGrowth();
     }, OWN_GROWTH_AFTER + Math.random() * OWN_GROWTH_SPREAD);
   }
@@ -540,11 +566,6 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   listen(still, "change", () => {
     stopOwnGrowth();
     grow(true);
-  });
-  // A mouse plugged in or taken away decides whether tufts grow on their own.
-  listen(finePointer, "change", () => {
-    if (finePointer.matches) stopOwnGrowth();
-    else planOwnGrowth();
   });
   listen(darkScheme, "change", recolour);
 
