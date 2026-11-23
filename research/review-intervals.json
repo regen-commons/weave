@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "about": "How long a verified field stays fresh, in days. The verification standard in .claude/skills/catalog-research/verification-standard.md explains each number; scripts/research-plan.mjs reads this file.",
+  "closingWindowDays": 21,
+  "closingRecheckDays": 7,
+  "routeDays": {
+    "open": 30,
+    "rolling": 30,
+    "inquiry": 30,
+    "future": 30,
+    "unconfirmed": 30,
+    "unverified": 30,
+    "closed": 90,
+    "relationship": 90,
+    "restricted": 90,
+    "directory": 90,
+    "source-only": 90
+  },
+  "termsDays": {
+    "active": 90,
+    "inactive": 180
+  },
+  "identityDays": 180,
+  "failedRetrievalsBeforeFlag": 3,
+  "oldestDuePerRun": 125
+}
