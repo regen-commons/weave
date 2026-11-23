@@ -1068,3 +1068,13 @@ A browser with no speech recognition, such as Firefox, got one line saying it co
 Given up: on these browsers a person sees no words until they stop, and must trust the count. A recording that fails to arrive is dropped and not tried again, so "sent once" stays true and nothing is kept; the person records again.
 
 From Krug: say where things go before the press that sends them. From Dirksen: say what is happening while the person waits.
+
+## DL-139: Funding's first cards come with the page, and a list ranked by fit waits for its ranking
+
+**Status:** build change from quality's Lighthouse work toward 100, 23 November 2026, with the maker's standing approval for merges into `develop`. Amends DL-104 and DL-108 for Funding.
+
+Funding's cards used to wait for the whole catalog, 3.6 MB that a phone on a slow connection takes seconds to fetch. The build now writes the list's own first cards into the app: the 18 funds closing soonest, each with only what its card shows, about 15 kB compressed (`funding/first-funds.ts`, built by `dev/first-funds.ts`). With no initiative compared and no search or filter, the page shows up to 12 of them, those still open, as soon as it knows no initiative is compared, which is when the prompt to describe one appears. When the catalog arrives its first cards are the same ones in the same places, so it only adds cards after them; a test holds this for the build day and a week and two weeks later. Calls that close after the build drop out, and the catalog fills in after the ones left.
+
+With an initiative compared, the list's own order is its fit. Before, its cards arrived in closing order and moved when the ranking finished. Now the list keeps its cards' shape, at the height of a card with a fit line, until the ranking is ready, and the cards arrive once, in their order. A ranking that fails shows the list unranked, with its notice, as before.
+
+Measured locally (machine under load, so directional): on a phone emulation with slow 4G and 4x CPU, the first card appeared about 0.1 s after the first paint where it had waited for the catalog, layout shift stayed 0, and Lighthouse's mobile LCP stayed about 4.4 to 4.6 s. On a phone the first card starts below the fold, so the largest paint there is the prompt's note, which waits for the device draft to open (DL-104). That wait is the next thing to shorten.

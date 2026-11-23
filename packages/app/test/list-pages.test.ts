@@ -74,10 +74,10 @@ test("a list's skeleton is built from the loaded page's own parts, so nothing mo
   for (const part of ["rc-card-title", "rc-card-summary", "rc-meta", "rc-time"])
     assert.match(project, new RegExp(`className="${part}"`, "u"), part);
   assert.match(read("partners/PublicProjects.tsx"), /<CardGridSkeleton kind="project"/u);
-  // Funding's prompt depends on the card, not the catalog: it is there from the first paint, and
-  // its room is held while the device draft opens.
+  // Funding's prompt depends on the card, not the catalog: it is there from the first paint, its
+  // words drawn while the device draft opens and its action holding its room (test/prompt-at-once.test.ts).
   const page = read("pages/Funding.tsx");
-  assert.match(page, /\{!catalog\.subjectKnown \? \(\s*<div className="rc-skeleton" data-shape="room" aria-hidden="true">\s*\{prompt\}/u);
+  assert.match(page, /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && prompt\}/u);
   assert.doesNotMatch(page, /!loading && !catalog\.personalized/u);
   for (const file of ["pages/Funding.tsx", "partners/PublicProjects.tsx"]) assert.match(read(file), /\breserve="/u, file);
 });
@@ -156,7 +156,7 @@ test("a list card keeps set rows, so a card and its skeleton are one height by c
 
 test("a skeleton holds as many cards as the view loads, and the list end has its room from the start (DL-108)", () => {
   const funding = read("pages/Funding.tsx");
-  assert.match(funding, /<CardGridSkeleton kind="funding" count=\{BATCH\} \/>\s*<ListEndHold things=\{THINGS\} \/>/u);
+  assert.match(funding, /<CardGridSkeleton kind="funding" matched=\{awaitingFit \|\| expectsFit\} count=\{BATCH\} \/>\s*<ListEndHold things=\{THINGS\} \/>/u);
   assert.match(funding, /useState\(BATCH\)/u, "the first batch is what the skeleton counted");
   assert.doesNotMatch(funding, /selected\.length > BATCH &&/u, "a list with cards always has its end");
   const projects = read("partners/PublicProjects.tsx");

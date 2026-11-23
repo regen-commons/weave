@@ -16,6 +16,9 @@ import {
 } from "../funding/select.ts";
 import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../funding/subject.ts";
 import { detailsLine } from "../funding/details.ts";
+import { FIRST_FUNDS } from "../funding/first-funds-data.ts";
+import { firstPage, isFirstView } from "../funding/first-funds.ts";
+import type { Entry } from "../funding/contracts.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
 import { useSocial } from "../social/context.tsx";
@@ -115,6 +118,31 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const results = new Map(catalog.results?.map((result) => [result.documentId, result]));
   useEffect(() => setLimit(BATCH), [filters]);
   const added = useAddedFocus(Math.min(limit, selected.length));
+  // With an initiative compared, the list's own order is its fit, which the ranking gives.
+  const expectsFit = catalog.subjectKnown && catalog.personalized && !browsing;
+  const awaitingFit =
+    expectsFit && !catalog.results && !catalog.error && fundingOrder(filters.sort, true) === "fit";
+  // Funding's first cards come with the page (Q-01, first paint): while the catalog loads, once the
+  // page knows no initiative is compared, in the list's own first view.
+  const first = useMemo(() => (example ? [] : firstPage(FIRST_FUNDS, new Date())), [example]);
+  const early =
+    loading && catalog.subjectKnown && !expectsFit && !failed && isFirstView(visibleFilters) && first.length
+      ? first
+      : null;
+  const card = (entry: Entry, index: number) => (
+    <li key={entry.id} {...added.item(index)}>
+      <OpportunityCard
+        entry={entry}
+        search={listSearch}
+        result={results.get(entry.id)}
+        teamLine={
+          import.meta.env.DEV && example
+            ? `${teamFixture(null).length} partner asks, ${teamFixture(null).filter((ask) => ask.candidates.length).length} that people on the list could fill`
+            : undefined
+        }
+      />
+    </li>
+  );
   // The address for the choices in force, worked out as the page draws. The cards' links are built
   // from it in the same drawing, so a chip just removed is never still in a card's link.
   const listSearch = fundingListSearch(routeSearch(), filters, browsing);
@@ -251,38 +279,27 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             </p>
           )}
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
-              Until the device draft opens its room is held, unseen, so the list does not move (DL-104). */}
-          {!catalog.subjectKnown ? (
-            <div className="rc-skeleton" data-shape="room" aria-hidden="true">
-              {prompt}
-            </div>
-          ) : (
-            !catalog.personalized && prompt
-          )}
-          {loading ? (
-            // As many shapes as the first batch holds, and the list end's room under them (DL-108).
+              Its words are drawn before the device draft opens, and its action holds its room until
+              then (DescribePrompt), so it reads at once and the list does not move (DL-104). */}
+          {(!catalog.subjectKnown || !catalog.personalized) && prompt}
+          {early ? (
+            // The first cards, built into the app, while the catalog loads. The catalog's own first
+            // cards are these, so it adds cards after them and moves none.
             <>
-              <CardGridSkeleton kind="funding" count={BATCH} />
+              <CardGrid>{early.map(card)}</CardGrid>
+              <ListEndHold things={THINGS} />
+            </>
+          ) : loading || awaitingFit ? (
+            // As many shapes as the first batch holds, and the list end's room under them (DL-108).
+            // Cards that will carry a fit line wait in that shape for the ranking, so they arrive
+            // once, in their order, instead of in another order first.
+            <>
+              <CardGridSkeleton kind="funding" matched={awaitingFit || expectsFit} count={BATCH} />
               <ListEndHold things={THINGS} />
             </>
           ) : selected.length ? (
             <>
-              <CardGrid>
-                {selected.slice(0, limit).map((entry, index) => (
-                  <li key={entry.id} {...added.item(index)}>
-                    <OpportunityCard
-                      entry={entry}
-                      search={listSearch}
-                      result={results.get(entry.id)}
-                      teamLine={
-                        import.meta.env.DEV && example
-                          ? `${teamFixture(null).length} partner asks, ${teamFixture(null).filter((ask) => ask.candidates.length).length} that people on the list could fill`
-                          : undefined
-                      }
-                    />
-                  </li>
-                ))}
-              </CardGrid>
+              <CardGrid>{selected.slice(0, limit).map(card)}</CardGrid>
               {/* The list fills in as its end comes near; a new search or filter starts its run again (DL-101).
                   Every list with cards has its end, so its room does not come and go (DL-108). */}
               <ListEnd

@@ -26,3 +26,16 @@ export function describeDoor(started: boolean, route: RouteName): { href: string
     ? { href: pathTo(route), label: resumeLabel(route) }
     : { href: pathTo("new-initiative"), label: "Describe Your Initiative" };
 }
+
+/**
+ * What the prompt to describe an initiative shows. Its words are there before this device's draft
+ * has opened, in the words for someone without a card; its action, which depends on the draft,
+ * waits for it. With a card in progress the title asks to finish it. The two titles take the same
+ * room at 360 and 1280 px, so the change is in place.
+ */
+export function describePrompt(ready: boolean, started: boolean): { title: string; actionWaits: boolean } {
+  return {
+    title: ready && started ? "Finish Describing Your Initiative To See What Fits" : "Describe Your Initiative To See What Fits",
+    actionWaits: !ready,
+  };
+}

@@ -14,7 +14,7 @@ import { MatchingDate } from "./SharingReview.tsx";
 import {
   askedFor, chosenOrganizationType, chosenSort, chosenWorkScope, countLine, emptyList, filtersChosen, firstPage, indexLine,
   nextPage, ORGANIZATION_TYPE_KEY, isPublicProjectSort, organizationTypeFacets, PUBLIC_PROJECT_SORT_OPTIONS, sameAsk, SORT_KEY,
-  type PublicProjectSort, PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects,
+  type PublicProjectSort, PUBLIC_PROJECT_PAGE_SIZE, PUBLIC_PROJECT_QUERY_MAX, publicProjectsPath, requestPublicProjects, takeFirstPage, takeReadFirstPage,
   expectsStarter, listView, rememberIndex, searchNow, searchQuery, SEARCH_PAUSE_MS, sharedByLine, WORK_SCOPE_KEY, workScopeFacets,
   type PublicProjectCard as Project, type PublicProjectList,
 } from "./public-projects.ts";
@@ -75,14 +75,24 @@ export function usePublicProjects(q: string, { limit, enabled = true, organizati
 } = {}) {
   const choice = { organizationType: organizationType ?? null, workScope: workScope ?? null, sort };
   const asked = askedFor(q, choice);
-  const [list, setList] = useState<PublicProjectList>({ status: enabled ? "loading" : "failed", ...asked });
+  // The Initiatives page's HTML may already have read this first page (dev/first-page.ts): the list
+  // then starts with its cards, and the request it would have sent is not sent.
+  const [seeded] = useState(() => enabled ? takeReadFirstPage(publicProjectsPath(q, { ...choice, limit })) : undefined);
+  const [list, setList] = useState<PublicProjectList>(() =>
+    seeded ? firstPage(q, seeded, choice) : { status: enabled ? "loading" : "failed", ...asked });
   const [attempt, setAttempt] = useState(0);
   const pending = useRef<AbortController | null>(null);
+  // Held only while the ask is still the one the HTML answered; any other ask, or Try Again, asks afresh.
+  const seededAsk = useRef(seeded ? asked : null);
   useEffect(() => {
     if (!enabled) return;
+    if (seededAsk.current && sameAsk(seededAsk.current, asked) && attempt === 0) return;
+    seededAsk.current = null;
     const controller = new AbortController();
     setList({ status: "loading", ...asked });
-    requestPublicProjects(publicProjectsPath(q, { ...choice, limit }), controller.signal)
+    const path = publicProjectsPath(q, { ...choice, limit });
+    // The Initiatives page's HTML may already have asked for this first page (dev/first-page.ts).
+    requestPublicProjects(path, controller.signal, fetch, takeFirstPage(path))
       .then((page) => { if (!controller.signal.aborted) setList(firstPage(q, page, choice)); })
       .catch(() => { if (!controller.signal.aborted) setList({ status: "failed", ...asked }); });
     return () => {
