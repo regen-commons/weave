@@ -88,7 +88,10 @@ test("a long list fills in as its end comes near, and Initiatives is one flat li
   }
   const end = read("ui/ListEnd.tsx");
   assert.match(end, /new IntersectionObserver\(/u);
-  assert.match(end, /<p className="rc-meta" role="status">\s*\{shownLine\(shown, total, things\)\}/u, "the count is on the page and announced politely");
+  assert.match(end, /<p className="rc-meta">\{shownLine\(shown, total, things\)\}<\/p>/u, "the count is on the page");
+  // One filled status region as the list opens, the bar's count; the end speaks only when a batch arrives (DL-130).
+  assert.match(end, /<p className="rc-visually-hidden" role="status">\s*\{arrived\}/u);
+  assert.match(end, /if \(shown > firstShown\.current\) setArrived\(shownLine\(shown, total, things\)\)/u);
   assert.match(end, /<button className="rc-button" data-variant="secondary" type="button" aria-disabled=\{busy\}/u, "the keyboard has a button");
   // The starter list has no sections: every card sits in one grid, as on every other list.
   const starter = read("partners/PartnerDiscovery.tsx");
