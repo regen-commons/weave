@@ -59,20 +59,74 @@ const PREVIEW_LINE = new RegExp(`^[ \\t]*<meta (?:${WRITTEN.join("|")}) content=
 
 /**
  * The app's HTML with one page's words in its head: the title and description a browser tab and a search
- * result show, and the preview tags straight after the description, ahead of the scripts, styles and
- * fonts, so a reader that stops early still finds them. Any preview the page already had is taken out
- * first, each tag on its own line as this writes them, so a section's or a record's copy can be made from
- * the built page with Home's preview in it. The page must have exactly one title and one description,
- * or it is not the page this was written for, and it is refused rather than half changed.
+ * result show, the preview tags and the page's canonical link (its own address), all straight after the
+ * description, ahead of the scripts, styles and fonts, so a reader that stops early still finds them. A
+ * record's page also says what it is, as JSON-LD. Whatever preview, canonical link or JSON-LD the page
+ * already had is taken out first, so Home's copy, a section's and a record's are each made from the
+ * built page and none carries another's (22 November 2026: this module writes every canonical). The page
+ * must have exactly one title and one description, or it is not the page this was written for, and it is
+ * refused rather than half changed.
  */
-export function withPagePreview(html: string, preview: PagePreview): string {
-  const page = html.replace(PREVIEW_LINE, "");
+export function withPagePreview(html: string, preview: PagePreview, options: PageHeadOptions = {}): string {
+  const { structuredData, indexed = true } = options;
+  const page = withoutPageHead(html).replace(PREVIEW_LINE, "").replace(ROBOTS_LINE, "");
   const titled = replaceOnce(page, /<title>[^<]*<\/title>/g, () => `<title>${escapeHtml(preview.title)}</title>`);
+  const lines = [
+    `<meta name="description" content="${escapeHtml(preview.description)}">`,
+    // A page search engines should leave out says so, and names no canonical address to index instead.
+    ...(indexed ? pageTags(preview) : [...previewTags(preview), '<meta name="robots" content="noindex">']),
+    ...(indexed && structuredData ? [`<script type="application/ld+json">${scriptJson(structuredData)}</script>`] : []),
+  ];
   return replaceOnce(titled, /^([ \t]*)<meta name="description" content="[^"]*">$/gm, (indent) =>
-    [`<meta name="description" content="${escapeHtml(preview.description)}">`, ...previewTags(preview)]
-      .map((tag) => indent + tag)
-      .join("\n"));
+    lines.map((tag) => indent + tag).join("\n"));
 }
+
+/** Every tag a page's head gets from its preview: the preview tags, then its canonical link. */
+export function pageTags(preview: PagePreview): string[] {
+  return [...previewTags(preview), `<link rel="canonical" href="${escapeHtml(preview.url)}">`];
+}
+
+/**
+ * What a fund's or an initiative's own page says it is, as schema.org JSON-LD, built only from what the
+ * record itself says and never implying that anyone is eligible.
+ */
+export type StructuredData = Readonly<Record<string, unknown>>;
+
+/** What else a page's head says besides its preview. */
+export interface PageHeadOptions {
+  /** A record's JSON-LD. */
+  readonly structuredData?: StructuredData;
+  /**
+   * False for a page search engines should leave out: a person's own pages (Settings, Your Initiative,
+   * Your Initiatives), the steps of describing an initiative, and the not-found page. It gets
+   * `noindex` and no canonical link or JSON-LD. Pages are indexed unless they say otherwise.
+   */
+  readonly indexed?: boolean;
+}
+
+/** A robots meta tag, however it is written; this module writes the only one a page carries. */
+const ROBOTS_LINE = /^[ \t]*<meta\b[^>]*\bname\s*=\s*["']?robots["']?[^>]*>[ \t]*\r?\n/gimu;
+
+/** A canonical link, however it is written: attributes in any order or quoting, closed with `>` or `/>`. */
+const CANONICAL_LINE = /^[ \t]*<link\b[^>]*\brel\s*=\s*["']?canonical["']?[^>]*>[ \t]*\r?\n/gimu;
+/** A JSON-LD block on one line, however its tag is written. */
+const STRUCTURED_LINE = /^[ \t]*<script\b[^>]*\btype\s*=\s*["']?application\/ld\+json["']?[^>]*>.*?<\/script>[ \t]*\r?\n/gimu;
+
+/**
+ * The page without a canonical link or JSON-LD, for an answer that is not any one page's: a record that
+ * could not be looked up, or a page whose head is not the one expected. Naming another page there would
+ * fold the record into it.
+ */
+export const withoutPageHead = (html: string): string => html.replace(CANONICAL_LINE, "").replace(STRUCTURED_LINE, "");
+
+/**
+ * JSON that is safe inside a script element: no character can close it or start markup, and the two
+ * line separators JavaScript reads as line ends are escaped too.
+ */
+export const scriptJson = (value: unknown): string =>
+  JSON.stringify(value)
+    .replaceAll("<", "\\u003c").replaceAll(">", "\\u003e").replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028").replaceAll("\u2029", "\\u2029");
 
 /** Replaces the one match of `pattern`, given its first group, or refuses a page with none or several. */
 function replaceOnce(page: string, pattern: RegExp, replacement: (first: string) => string): string {

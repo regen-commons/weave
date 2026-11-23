@@ -98,23 +98,41 @@ test("a section's copy is made from the built page, Home's preview and all, what
   assert.equal(copy.match(/property="og:title"/g)?.length, 1);
   assert.equal(copy.match(/name="twitter:card"/g)?.length, 1);
   assert.ok(!copy.includes(home.description), "none of Home's words are left");
+  // Each page names its own address as canonical: Home its own, and a section's copy never Home's.
+  assert.equal(built.match(/rel="canonical"/g)?.length, 1);
+  assert.ok(built.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/">`));
+  assert.equal(copy.match(/rel="canonical"/g)?.length, 1);
+  assert.ok(copy.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding">`));
 });
 
-test("the record page function is deployed with the two built files it reads", async () => {
-  const { RECORD_PREVIEWS_FILE } = await import("@weave/api/record-page-http");
+test("a person's own page is left out of search: noindex and no canonical, but still a preview", () => {
+  const own = LINK_PREVIEWS.find(({ route }) => route === "your-initiatives")!;
+  const page = withPreview(index, own);
+  assert.ok(page.includes('<meta name="robots" content="noindex">'));
+  assert.ok(!page.includes('rel="canonical"'));
+  assert.match(page, /<meta property="og:title" content="Your Initiatives \| Weave">/);
+  for (const preview of LINK_PREVIEWS.filter(({ indexed }) => indexed !== false))
+    assert.ok(!withPreview(index, preview).includes('name="robots"'), `${preview.route} is indexed`);
+});
+
+test("the record page function is deployed with the built files it reads", async () => {
+  const { RECORD_PREVIEWS_FILE, TEMPLATE_FILES } = await import("@weave/api/record-page-http");
   const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
     functions: Record<string, { includeFiles?: string }>; rewrites: { source: string; destination: string }[];
   };
   // The record page runs in the shared router function (23 November 2026), which bundles the files.
   const include = vercel.functions["api/router.ts"]?.includeFiles ?? "";
   const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
-  assert.deepEqual(files.sort(), ["index.html", RECORD_PREVIEWS_FILE].sort(), include);
-  // The two record addresses go to it, ahead of the rewrite that serves the app for everything else.
+  assert.deepEqual(files.sort(), [...TEMPLATE_FILES, RECORD_PREVIEWS_FILE].sort(), include);
+  // The record addresses and the sitemap go to the router, ahead of the rewrite that serves the app.
   const sources = vercel.rewrites.map(({ source }) => source);
   const catchAll = sources.indexOf("/((?!api/).*)");
-  for (const [source, kind] of [["/funding/:id", "funding"], ["/initiatives/:id", "initiative"]] as const) {
-    const rewrite = vercel.rewrites.find((candidate) => candidate.source === source);
-    assert.equal(rewrite?.destination, `/api/router?__route=record-page&kind=${kind}&id=:id`);
+  for (const [source, destination] of [
+    ["/funding/:id", "/api/router?__route=record-page&kind=funding&id=:id"],
+    ["/initiatives/:id", "/api/router?__route=record-page&kind=initiative&id=:id"],
+    ["/sitemap.xml", "/api/router?__route=sitemap"],
+  ] as const) {
+    assert.equal(vercel.rewrites.find((candidate) => candidate.source === source)?.destination, destination);
     assert.ok(sources.indexOf(source) < catchAll, `${source} before the catch-all`);
   }
 });
@@ -126,7 +144,9 @@ test("the build gives each fund's words and the two sections' previews to the re
   assert.equal(previews.sections.funding.image, `${PUBLIC_ORIGIN}/share/funding.png`);
   assert.equal(previews.sections.initiatives.url, `${PUBLIC_ORIGIN}/initiatives`);
   const people = previews.funds["local-people-powered"];
-  assert.ok(people && people.name && Object.keys(people.programs).length > 0, "a fund with its programs");
+  assert.ok(people && people.name && people.programs.length > 0, "a fund with its programs, in the catalog's order");
+  assert.deepEqual(previews.pages, [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/initiatives`, `${PUBLIC_ORIGIN}/funding`, `${PUBLIC_ORIGIN}/start/initiative`],
+    "the sitemap's pages: the public sections and describing an initiative, not the person's own");
   assert.ok(JSON.stringify(previews).length < 600_000, "small enough to read on every cold start");
 });
 

@@ -60,3 +60,26 @@ export function DetailSheet({
     </Dialog>
   );
 }
+
+/**
+ * A record opening: the shape of its first screen (a line about it, its words, its actions and a
+ * section), as tall as a phone's screen. A record's page and its sheet open at about their final height,
+ * so nothing below the record shows and then moves when it arrives (quality finding Q-05).
+ */
+export function RecordSkeleton({ label }: { label: string }) {
+  return (
+    <div className="rc-stack" aria-busy="true">
+      <p className="rc-visually-hidden" role="status">
+        {label}
+      </p>
+      <span className="rc-skeleton" data-shape="short" />
+      <span className="rc-skeleton" data-shape="panel" />
+      <span className="rc-skeleton" data-shape="line" />
+      <span className="rc-skeleton" data-shape="line" />
+      <span className="rc-skeleton" data-shape="short" />
+      <span className="rc-skeleton" data-shape="panel" />
+      <span className="rc-skeleton" data-shape="title" />
+      <span className="rc-skeleton" data-shape="panel" />
+    </div>
+  );
+}

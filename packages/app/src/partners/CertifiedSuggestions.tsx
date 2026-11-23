@@ -12,6 +12,7 @@ import { projectSuggestions, rankCertifiedSuggestions, type ProjectSuggestion } 
 import { requestPublicEvidence } from "./matching-client.ts";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { projectAddress } from "./public-project.ts";
 
 type SnapshotState = { workspaceId: string } & (
   | { status: "ready"; snapshot: PublicEvidenceSnapshot }
@@ -138,7 +139,10 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
  * fits and which way, then the project's own words once and why each fits on request.
  */
 function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" }) {
-  const sources = [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
+  // The project opens at its Weave address, as on Initiatives (DL-136). Only one without an address
+  // falls back to its public record's data.
+  const address = projectAddress(project.id);
+  const sources = address ? [] : [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
   const several = project.fits.length > 1;
   const strength = strongestFit(project.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));
   const unknownForAll = availabilityUnknownForAll(project.fits);
@@ -171,6 +175,13 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
           </div>
         ))}
       </details>
+      {address && (
+        <div className="rc-action-bar">
+          <ButtonLink href={address} variant="secondary">
+            Open Initiative<span className="rc-visually-hidden">: {project.name}</span>
+          </ButtonLink>
+        </div>
+      )}
       {sources.length > 0 && (
         <div className="rc-action-bar">
           {sources.map((url, index) => (

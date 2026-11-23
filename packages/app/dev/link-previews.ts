@@ -1,7 +1,7 @@
 import type { Plugin } from "vite";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { previewTags as pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
+import { pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
 import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
@@ -22,6 +22,8 @@ export interface LinkPreview {
   readonly description: string;
   /** The picture's headline: plain lines, then the line set in italic, as the page's own title is. */
   readonly headline: { readonly lines: readonly string[]; readonly accent: readonly string[] };
+  /** False for a person's own page, which search engines should leave out (`noindex`, no canonical). */
+  readonly indexed?: false;
 }
 
 export const LINK_PREVIEWS: readonly LinkPreview[] = [
@@ -59,6 +61,7 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
     title: "Your Initiatives | Weave",
     description: "Open the initiatives you saved, see the partners that fit them, and choose what you share.",
     headline: { lines: ["Your"], accent: ["Initiatives"] },
+    indexed: false,
   },
 ];
 
@@ -78,12 +81,15 @@ export function pagePreview(preview: LinkPreview, origin = PUBLIC_ORIGIN): PageP
   return { title: preview.title, description: preview.description, url: page, image, imageAlt: previewAlt(preview) };
 }
 
-/** The head tags a section's preview is read from (see `previewTags` in `@weave/api/page-preview`). */
+/**
+ * The head tags a section's copy gets: its preview, then its canonical link, its own address, so no copy
+ * names Home's (see `pageTags` in `@weave/api/page-preview`, which writes every page's).
+ */
 export const previewTags = (preview: LinkPreview, origin = PUBLIC_ORIGIN): string[] => pageTags(pagePreview(preview, origin));
 
 /** The app's HTML with one section's words in its head, in place of any preview it had. */
 export const withPreview = (html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string =>
-  withPagePreview(html, pagePreview(preview, origin));
+  withPagePreview(html, pagePreview(preview, origin), { indexed: preview.indexed !== false });
 
 /** The file a section's copy is written to, beside the app's own index.html. Home is that file itself. */
 export function previewFile(preview: LinkPreview): string {
@@ -102,10 +108,20 @@ export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): Record
   const funds = CatalogSchema.parse(catalog).funds.map((fund) => [fund.id, {
     name: fund.displayName,
     description: fund.description,
-    programs: Object.fromEntries((fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => [id, name]) ?? []),
+    programs: (fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => ({ id, name })) ?? [],
   }] as const);
-  return parseRecordPreviews({ sections: { funding: section("funding"), initiatives: section("initiatives") }, funds: Object.fromEntries(funds) });
+  return parseRecordPreviews({
+    sections: { funding: section("funding"), initiatives: section("initiatives") },
+    pages: SITEMAP_PAGES.map((route) => origin + pathTo(route)),
+    funds: Object.fromEntries(funds),
+  });
 }
+
+/**
+ * The pages besides the records that the sitemap lists: the public sections and the start of describing an
+ * initiative. Your Initiatives is the person's own and is left out.
+ */
+export const SITEMAP_PAGES: readonly RouteName[] = ["home", "initiatives", "funding", "initiative"];
 
 /** The catalog the app bundles, from the repository's built data. */
 const CATALOG = "../../dist/data/funders.json";
