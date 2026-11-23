@@ -40,7 +40,7 @@
         "cost": "free",
         "terms": "Public US federal listings. No sign-in to read."
       },
-      "query": "The search page at /search-grants is a script-rendered app: a plain fetch returns a loading shell, which is not evidence of zero results. Use a real browser, or the public search API described at https://www.grants.gov/api (confirm the request shape on first use). Filter by status posted and forecasted, then open each opportunity's own page and the agency's notice.",
+      "query": "The search page redirects to https://simpler.grants.gov/search, a script-rendered app: a plain fetch, and a browser read taken before the table loads, both return a loading shell, which is not evidence of zero results. Wait for the table, or use the public search API described at https://www.grants.gov/api (confirm the request shape on first use). Filter by status posted and forecasted, then open each opportunity's own page and the agency's notice.",
       "reliability": {
         "level": "official",
         "note": "The listing is official for the fields it shows; the agency's notice of funding opportunity is the binding document."
@@ -48,9 +48,9 @@
       "cadenceDays": 7,
       "status": "active",
       "lastUsed": {
-        "on": "2026-11-09",
-        "runId": "monday-discovery-2026-11-09",
-        "result": "Homepage retrieved; search returned a loading shell, so opportunities were not enumerated."
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Redirected to simpler.grants.gov/search; the result table was still loading when read, so opportunities were not enumerated."
       }
     },
     {
@@ -88,9 +88,9 @@
       "cadenceDays": 7,
       "status": "active",
       "lastUsed": {
-        "on": "2026-11-15",
-        "runId": "reverification-2026-11-15",
-        "result": "Listing retrieved and selected fields verified for the Delta golden mussel call."
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Listing for Extreme Heat and Community Resilience Program Round 2 retrieved in a browser and read: status closed."
       }
     },
     {
@@ -342,9 +342,9 @@
       "cadenceDays": 7,
       "status": "active",
       "lastUsed": {
-        "on": "2026-11-15",
-        "runId": "reverification-2026-11-15",
-        "result": "Call pages retrieved; regulation downloads unreadable."
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Directory retrieved in a browser: two open calls, both already in the catalog, closing 02/12/2026 and 04/12/2026."
       }
     },
     {
@@ -490,11 +490,15 @@
       "query": "Read each program page for open application windows.",
       "reliability": {
         "level": "official",
-        "note": "Not yet used by a run."
+        "note": "Funder's own site. The programs page describes each program; open windows are on each program's own page."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Programs page retrieved in a browser; four program areas described, no dated call on the page."
+      }
     },
     {
       "id": "ef-esp",
@@ -703,7 +707,7 @@
     {
       "id": "karma-gap",
       "name": "Karma GAP funding map",
-      "url": "https://gap.karmahq.xyz/funding-map",
+      "url": "https://www.karmahq.org/funding-map",
       "kind": "ecosystem-list",
       "role": "discovery-only",
       "covers": {
@@ -725,14 +729,18 @@
         "cost": "free",
         "terms": "Public pages."
       },
-      "query": "Browse listed grant programs by ecosystem and status, then verify each at its operator. Confirm the address on first use.",
+      "query": "Browse listed grant programs, hackathons and accelerators, then verify each at its operator. The older gap.karmahq.xyz address redirects here.",
       "reliability": {
         "level": "community",
-        "note": "Community-maintained registry of web3 grant programs. Not yet used by a run."
+        "note": "Community-maintained registry of web3 funding programs. End dates shown are the registry's, not evidence."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Retrieved in a browser after a redirect to karmahq.org; program list readable without sign-in."
+      }
     },
     {
       "id": "daostar-grants",
@@ -1017,9 +1025,9 @@
       "cadenceDays": 7,
       "status": "active",
       "lastUsed": {
-        "on": "2026-11-09",
-        "runId": "monday-discovery-2026-11-09",
-        "result": "Category page retrieved; leads followed to owners."
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Energy and climate category retrieved in a browser; three first-page leads noted, none imported."
       }
     },
     {
@@ -1051,7 +1059,7 @@
         "cost": "free",
         "terms": "Public listing pages with a paid tier."
       },
-      "query": "Blocked: plain fetches return HTTP 403. Try a real browser once per month; record the gap otherwise.",
+      "query": "Blocked: plain fetches and a browser both get HTTP 403 behind a bot challenge, which a run must not bypass. Try once per cadence and record the gap.",
       "reliability": {
         "level": "curated",
         "note": "Unreachable for every run so far."
@@ -1059,9 +1067,9 @@
       "cadenceDays": 28,
       "status": "blocked",
       "lastUsed": {
-        "on": "2026-11-09",
-        "runId": "monday-discovery-2026-11-09",
-        "result": "HTTP 403."
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "HTTP 403 behind a bot challenge in a browser. Not bypassed."
       }
     },
     {

@@ -8,18 +8,16 @@ import type { BrowserSpeechConsent } from "../describe/speech-consent.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
 import { speechMode, speechNotStarted, speechPaused, speechProblem } from "../describe/speech-setup.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { draftText } from "../describe/view.ts";
+import { draftText, previewFields } from "../describe/view.ts";
 import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext, type SpeechExample } from "../fixtures.ts";
 import {
-  ASK_KINDS,
   cardsNote,
   changeKind,
-  continueBoth,
+  continueStep,
   entryId,
   kindFocus,
   pencilHint,
   sectionCount,
-  speechSetupList,
   type Blocker,
 } from "../intake/ask-page.ts";
 import { ASK_LIMIT, ASK_LIMIT_HELP, type AskItem, type AskKind, type AskStep as Step } from "../intake/contracts.ts";
@@ -48,66 +46,58 @@ import { Dock } from "../ui/Dock.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
-import { Stack } from "../ui/layouts.tsx";
+import { Stack, StepLayout } from "../ui/layouts.tsx";
+import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { IntakeStepper } from "../ui/Stepper.tsx";
 import { TalkItOut } from "../ui/TalkItOut.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
-type Blocked = Partial<Record<AskKind, Blocker>>;
-
-/** Clears one list's blocker once the person has changed that list. */
-function unblock(kind: AskKind) {
-  return (current: Blocked): Blocked => {
-    if (!current[kind]) return current;
-    const rest = { ...current };
-    delete rest[kind];
-    return rest;
-  };
-}
+/** What each of the two steps asks, in the order the steps come. */
+const ASK_STEPS = {
+  needs: {
+    step: 1,
+    title: "What You Need",
+    intro: "Say or type everything that would help, in one go if you like. Weave makes a card for each need, up to four.",
+    next: "offers",
+  },
+  offers: {
+    step: 2,
+    title: "What You Can Offer",
+    intro: "Say or type what you can share with others, in one go if you like. Weave makes a card for each offer, up to four.",
+    next: "your-initiative",
+  },
+} as const;
 
 /**
- * Needs and offers on one page: two lists, each with one Talk it out box, and one Continue that
- * keeps every suggestion still showing (DL-110, DL-111). Both routes open this page; the offers
- * route starts at the offers list. Nothing opens in the page when pressed: a card's details
- * are changed in a dialog, and progress and problems are written in places that are always there.
+ * Needs, then offers: two steps, each with one list and one Talk It Out box, and a Continue
+ * that keeps every suggestion still showing (DL-111). Nothing opens in the page when pressed: a
+ * card's details are changed in a dialog, and progress and problems are written in places that
+ * are always there (DL-113).
  */
 export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: FixtureContext }) {
   const { draft, controller, ready, error: storageError } = useDraft();
-  const [blocked, setBlocked] = useState<Blocked>({});
-  const [working, setWorking] = useState<Record<AskKind, boolean>>({ needs: false, offers: false });
-  const waiting = working.needs || working.offers;
+  const page = ASK_STEPS[kind];
+  const [blocked, setBlocked] = useState<Blocker | undefined>();
+  const [waiting, setWaiting] = useState(false);
   const speech = import.meta.env.DEV && example ? exampleSpeech(example.speech) : undefined;
   const consent = import.meta.env.DEV && example ? exampleConsent(example.speech) : undefined;
-  const setupList = speechSetupList(kind, draft);
-  useEffect(() => setBlocked(unblock("needs")), [draft.needs]);
-  useEffect(() => setBlocked(unblock("offers")), [draft.offers]);
-  useEffect(() => {
-    if (!ready || kind !== "offers") return;
-    // The app focuses the page heading after this effect, so the offers list waits one frame.
-    const frame = requestAnimationFrame(() => {
-      const title = document.getElementById("ask-offers-title");
-      title?.scrollIntoView({ block: "center" });
-      title?.focus({ preventScroll: true });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [ready, kind]);
+  // Changing the list clears why Continue stopped at it.
+  useEffect(() => setBlocked(undefined), [draft[kind]]);
   function next() {
-    const current = controller.getSnapshot().draft;
-    const result = continueBoth({ needs: current.needs, offers: current.offers });
+    const result = continueStep(controller.getSnapshot().draft[kind]);
     if (result.ok) {
-      controller.change((latest) => revise(latest, result.steps));
-      navigate(fixtureHref(pathTo("your-initiative"), routeSearch(), import.meta.env.DEV));
+      controller.change((latest) => revise(latest, { [kind]: result.step }));
+      navigate(fixtureHref(pathTo(page.next), routeSearch(), import.meta.env.DEV));
       return;
     }
-    // Rendered now, so the first list that stopped the page can take the focus.
-    flushSync(() => setBlocked(result.blocked));
-    const first = ASK_KINDS.find((entry) => result.blocked[entry]);
-    if (first) document.getElementById(`ask-${first}-blocker`)?.focus();
+    // Rendered now, so the line that says why can take the focus.
+    flushSync(() => setBlocked(result.blocker));
+    document.getElementById(`ask-${kind}-blocker`)?.focus();
   }
   // The way back is the step before, whichever page the person came from, as the app bar's is.
   const back = backTarget(matchRoute(routePath()), currentVisit());
-  /** The step's way forward: in its place on a wide screen, in the dock on a phone (DL-089). */
+  /** The step's way forward: in the Step bar on a wide screen, in the dock on a phone (DL-089). */
   const forward = (from?: "wide") => (
     <button
       className="rc-button"
@@ -124,56 +114,48 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   return (
     <Stack>
       {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-127). */}
-      <IntakeStepper current={1}>
+      <IntakeStepper current={page.step}>
         {back && <BackButton target={back}>Back</BackButton>}
         {forward("wide")}
       </IntakeStepper>
       <Heading level={1} size="page">
-        Needs And Offers
+        {page.title}
       </Heading>
-      <p>Say or type what would help and what you can share. A few words each is enough, up to four of each.</p>
+      <p>{page.intro}</p>
       {kind === "needs" && <DuplicateNotice />}
       <DraftNotice error={storageError} text={draftText(draft)} onRetry={() => controller.retry()} />
       {!ready ? (
         <DraftSkeleton />
       ) : (
-        <>
+        // One list in the step's column, with the card beside it on a wide screen, as on step 1.
+        <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
           {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
             <p className="rc-notice" data-tone="info">
               You are offline. Your words and cards stay on this device.
             </p>
           )}
-          {/* The two lists share the row on a wide screen. */}
-          <div className="rc-card-grid" data-layout="pair">
-            {ASK_KINDS.map((entry) => (
-              <AskSection
-                key={entry}
-                kind={entry}
-                example={entry === kind ? example : undefined}
-                blocker={blocked[entry]}
-                speech={speech}
-                consent={consent}
-                speechExample={example?.speech}
-                // One list offers the speech setup and says when the browser has no speech; the other stays quiet.
-                hostsSetup={entry === (setupList ?? kind)}
-                onWorking={(value) =>
-                  setWorking((current) => (current[entry] === value ? current : { ...current, [entry]: value }))
-                }
-              />
-            ))}
-          </div>
+          <AskSection
+            key={kind}
+            kind={kind}
+            example={example}
+            blocker={blocked}
+            speech={speech}
+            consent={consent}
+            speechExample={example?.speech}
+            onWorking={setWaiting}
+          />
           {/* A phone keeps the way back at the end of the step, above the docked way forward. */}
           <div className="rc-action-bar" data-until="wide">
             {back && <BackButton target={back}>Back</BackButton>}
           </div>
           <Dock>{forward()}</Dock>
-        </>
+        </StepLayout>
       )}
     </Stack>
   );
 }
 
-/** One of the page's two lists, with everything that adds to it or changes it. */
+/** The step's list, with everything that adds to it or changes it. */
 function AskSection({
   kind,
   example,
@@ -181,7 +163,6 @@ function AskSection({
   speech: speechStore,
   consent,
   speechExample = "ready",
-  hostsSetup,
   onWorking,
 }: {
   kind: AskKind;
@@ -195,8 +176,6 @@ function AskSection({
   consent?: BrowserSpeechConsent;
   /** Which example browser the page shows, so an example session can fail the way it would. */
   speechExample?: SpeechExample;
-  /** This list is the one that offers to set up speech for the page. */
-  hostsSetup: boolean;
   /** True while this list is making cards or listening, so the page holds Continue. */
   onWorking(value: boolean): void;
 }) {
@@ -381,6 +360,11 @@ function AskSection({
       if (task.current === abort) {
         task.current = null;
         setBusy(false);
+        // Add To List is held once the box is empty, so the press can leave nothing holding the
+        // focus. The line that says what happened takes it then, and a keyboard goes on from there (DL-032).
+        requestAnimationFrame(() => {
+          if (document.activeElement === document.body) document.getElementById(part("blocker"))?.focus();
+        });
       }
     }
   }
@@ -521,7 +505,7 @@ function AskSection({
     <section className="rc-panel" aria-labelledby={part("title")}>
       <div className="rc-ask-head">
         <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
-          {need ? "What You Need" : "What You Can Offer"}
+          {need ? "Your Needs" : "Your Offers"}
         </h2>
         <p className="rc-ask-count" aria-live="polite">
           {sectionCount(step)}
@@ -529,7 +513,6 @@ function AskSection({
       </div>
       <TalkItOut
         speech={speech}
-        secondary={!hostsSetup}
         listening={listening}
         language={language}
         onLanguage={setLanguage}
