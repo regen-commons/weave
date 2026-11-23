@@ -1020,3 +1020,25 @@ A form step (a route with `form: true`: the steps of describing an initiative) n
 - Every other page keeps DL-128's growth. Reduced motion still draws the resting network once and grows nothing.
 
 Measured in headless Chromium on the dev server. At 1280 by 800, a mouse moved across the describe form added no ink to the canvas over the fields in either theme, where the same move over Home added about a million units of alpha. At 360 by 780, a finger dragged across the fields, then 8 seconds of waiting, asked for no animation frame on the describe step, and 507 on Home.
+
+## DL-136: A fund or an initiative has one address, a sheet inside the app and a page from a link
+
+**Status:** the user's choices, 22 November 2026. QA found that an initiative card opened the Certified API's raw JSON, and that a shared link showed no preview in Telegram. Extends DL-068.
+
+- **One address.** A fund is `/funding/<fund>`, with `?program=` for one of its programs. A public Certified project is `/initiatives/<account>-<record>`: its PLC account and its record key, which every project listed that day has.
+- **A sheet or a page.** Opened from inside the app, a record comes up over its list, and closing returns to the same search and filters. Opened from a link, a new tab or another record's page, it is a page of its own, with a back link and breadcrumbs to its list. Its sections are `h3` under a sheet's title and `h2` under a page's heading.
+- **Its own preview.** Vercel rewrites the two addresses to `GET /api/record-page`, which returns the app's `index.html` with the record's name and words in its head, so Telegram, WhatsApp and X show the record. The picture is its section's for now. A picture per record would need a new dependency.
+- **Share.** The menu offers Copy Link, the device's share sheet where there is one, and plain links to Email, Telegram, WhatsApp, X, LinkedIn and Bluesky. No script of theirs runs on Weave. Only the public record goes: its name, its address and one line. Nothing from the person's card goes, and nothing from the page's address but `program`.
+- **Fit on an initiative's page.** The page says whether the project could partner with the card on this device. Weave works that out on the device, from the card's kept needs and offers, as possible fits only (DL-052).
+
+Given up: a card with no record key of that shape has no page and opens its public record, as before. Certified records carry no website or contact, so Get In Touch can only say Weave makes no introductions yet.
+
+## DL-137: Signing in from Your Initiatives goes on to project access, and reading projects lasts the session
+
+**Status:** the user's choice, 22 November 2026, from QA note 2 for the sign-in-initiatives session. Refines DL-032.
+
+- **Two permissions stay two, with one press in Weave.** Certified holds sign-in and project access as two permissions for two clients, so they cannot be one Certified screen. A person who signed in on Your Initiatives came back, saw "Allow Weave to check your Certified projects" and had to press again. Sign In on Your Initiatives now says before the press that Certified will ask to confirm it is you, then to let Weave read your projects, and a finished sign-in goes straight on to that second screen. Certified still asks, and a no there leaves the person signed in with no project access, as before.
+- **Only where projects are the point.** Sign In in the header, on Funding or while saving a card still only identifies the person (DL-032). Chaining on every sign-in was turned down: it would ask for project access from someone who only wants to save.
+- **Reading lasts the session; writing to Certified does not.** The permission that only reads a person's group memberships was asked for again every hour, signed in or not. It now lasts for the Weave session it is bound to: at most 30 days from the consent, and it cannot be used after sign-out, because it belongs to that one session. Its stored tokens stay encrypted on the server until that date. Every permission that writes to Certified (creating a project, adding a member, publishing, withdrawing) still ends within the hour. Weave checks a person's current group membership with the read permission before it saves to a team workspace or manages invitations, so those keep working through the session too, where they used to ask again each hour. One day for reading was turned down as an arbitrary middle. The page says before the press that the permission lasts for as long as the person stays signed in.
+
+The trip is carried by a note kept for the tab (`weave-sign-in-then-projects`), which names nobody, is read once and is not acted on after ten minutes, after a sign-in that did not finish, or on a return to any other page. A sign-in pressed anywhere else clears it. The trip happens at most once for a page load: if it cannot start within 20 seconds, or its start fails, the page shows the Allow button as before. Proof class: fixture for the start and its fallback. The trip through Certified's own screen has not been run against Certified.

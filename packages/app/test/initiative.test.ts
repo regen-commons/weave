@@ -348,6 +348,12 @@ test("the card opens where it is waiting", () => {
   // A card that is not confirmed yet waits on the one describe page (DL-110).
   assert.equal(cardRoute(revise(newDraft(), { proposal: complete.confirmed, proposalVersion: 0 })), "initiative");
   assert.equal(cardRoute(complete), "your-initiative");
+  // Needs and offers are two steps: a card waits on the first whose list is not checked as it stands.
+  const unchecked = (kind: "needs" | "offers") =>
+    revise(complete, { [kind]: { ...complete[kind], inputVersion: complete[kind].inputVersion + 1 } });
+  assert.equal(cardRoute(unchecked("offers")), "offers", "needs are checked, so the card opens on offers");
+  assert.equal(cardRoute(unchecked("needs")), "needs");
+  assert.equal(cardRoute(revise(unchecked("needs"), { offers: unchecked("offers").offers })), "needs", "the earlier step comes first");
   assert.equal(cardName(newDraft()), "Your initiative");
   assert.equal(cardName(complete), complete.confirmed!.name);
 });
