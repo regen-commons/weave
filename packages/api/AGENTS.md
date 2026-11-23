@@ -38,8 +38,11 @@ A record's link picture (`GET /api/record-image`, `src/record-image*.ts`) is dra
 `sharp`. Its faces are TrueType files in `assets/record-image`, written from the design
 system's fonts by `scripts/record-image-fonts.swift`. Run that on macOS after a font
 changes. A picture draws only characters its faces have, because the renderer would
-otherwise fetch a font from Google at run time. Raise `RECORD_IMAGE_DESIGN` whenever the
-drawing changes, so every picture gets a new address past the CDN's year-long cache.
+otherwise fetch a font from Google at run time. A picture's address carries a key of what
+it shows, the faces' bytes included. Raise `RECORD_IMAGE_DESIGN` whenever the drawing or
+`@vercel/og` changes, so every picture gets a new address past the CDN's cache: a fund's
+picture is kept a year, and an initiative's only as long as the public list, so a withdrawal
+reaches it as fast.
 
 ## Boundaries
 

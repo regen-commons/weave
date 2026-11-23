@@ -3,6 +3,7 @@
 // says which characters it has and how wide a line of them is, so the picture lays out its own lines and
 // draws only what its faces have: the renderer would otherwise fetch a missing character's font from
 // Google at run time.
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
@@ -23,6 +24,8 @@ export interface PictureFaces {
   readonly title: PictureFace;
   readonly label: PictureFace;
   readonly line: PictureFace;
+  /** A key of the three files' bytes, so a picture drawn in other faces gets another address. */
+  readonly digest: string;
 }
 
 /** The files, at addresses fixed in the code, so the bundler ships them with the function. */
@@ -52,7 +55,7 @@ function characterMap(font: Buffer, cmap: number): Map<number, number> {
     for (let group = 0; group < groups; group++) {
       const at = format12 + 16 + group * 12;
       const start = font.readUInt32BE(at), end = font.readUInt32BE(at + 4), first = font.readUInt32BE(at + 8);
-      for (let code = start; code <= end; code++) glyphs.set(code, first + code - start);
+      for (let code = start; code <= end; code++) if (first + code - start !== 0) glyphs.set(code, first + code - start);
     }
     return glyphs;
   }
@@ -96,10 +99,13 @@ let loading: Promise<PictureFaces> | undefined;
 export function pictureFaces(): Promise<PictureFaces> {
   loading ??= (async () => {
     const [title, label, line] = await Promise.all([FILES.title, FILES.label, FILES.line].map((file) => readFile(fileURLToPath(file))));
+    const digest = createHash("sha256");
+    for (const file of [title!, label!, line!]) digest.update(file);
     return {
       title: pictureFace(title!, "Fraunces", "italic", 400),
       label: pictureFace(label!, "Space Grotesk", "normal", 300),
       line: pictureFace(line!, "Source Serif 4", "italic", 400),
+      digest: digest.digest("hex").slice(0, 16),
     };
   })().catch((error: unknown) => {
     loading = undefined;

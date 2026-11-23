@@ -33,7 +33,7 @@ const EYEBROW: Record<RecordImageWords["section"], string> = { funding: "FUNDING
 export const SITE = "WEAVE.REGENCOMMONS.COM";
 export const FOOT = "Part of Regen Commons.";
 
-/** The words that are always drawn, so a face that lacks one of them is found before any record is. */
+/** The words that are always drawn, which a test checks the faces have. */
 export const FIXED_WORDS = { label: `WEAVE${SITE}${EYEBROW.funding}${EYEBROW.initiatives}`, line: FOOT };
 
 /**
@@ -99,7 +99,8 @@ export function pictureFrame(seedText: string): string {
 
 /**
  * Breaks the text into lines no wider than `width` at this size, a word at a time; a word wider than a
- * line is cut. Returns the lines, the last ending in an ellipsis when the text runs past `max` lines.
+ * line is cut, between characters, never inside one. Returns the lines, the last ending in an ellipsis
+ * when the text runs past `max` lines.
  */
 export function lineBreak(face: PictureFace, text: string, size: number, width: number, max: number): { lines: string[]; cut: boolean } {
   const lines: string[] = [];
@@ -109,11 +110,12 @@ export function lineBreak(face: PictureFace, text: string, size: number, width: 
     if (face.width(next, size) <= width) { current = next; continue; }
     if (current) lines.push(current);
     current = word;
-    while (face.width(current, size) > width && current.length > 1) {
-      let fit = current.length - 1;
-      while (fit > 1 && face.width(current.slice(0, fit), size) > width) fit--;
-      lines.push(current.slice(0, fit));
-      current = current.slice(fit);
+    while (face.width(current, size) > width && [...current].length > 1) {
+      const characters = [...current];
+      let fit = characters.length - 1;
+      while (fit > 1 && face.width(characters.slice(0, fit).join(""), size) > width) fit--;
+      lines.push(characters.slice(0, fit).join(""));
+      current = characters.slice(fit).join("");
     }
   }
   if (current) lines.push(current);
@@ -121,7 +123,8 @@ export function lineBreak(face: PictureFace, text: string, size: number, width: 
   const kept = lines.slice(0, max);
   const ellipsis = face.covers("…") ? "…" : "...";
   let last = kept[max - 1]!;
-  while (last && face.width(`${last}${ellipsis}`, size) > width) last = last.slice(0, last.lastIndexOf(" ") > 0 ? last.lastIndexOf(" ") : last.length - 1);
+  while (last && face.width(`${last}${ellipsis}`, size) > width)
+    last = last.lastIndexOf(" ") > 0 ? last.slice(0, last.lastIndexOf(" ")) : [...last].slice(0, -1).join("");
   kept[max - 1] = `${last.replace(/[\s,.;:]+$/u, "")}${ellipsis}`;
   return { lines: kept, cut: true };
 }
