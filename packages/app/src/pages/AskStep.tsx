@@ -24,6 +24,7 @@ import {
 } from "../intake/ask-page.ts";
 import { ASK_LIMIT, ASK_LIMIT_HELP, type AskItem, type AskKind, type AskStep as Step } from "../intake/contracts.ts";
 import { extractAsks } from "../intake/extract-client.ts";
+import { spokenList } from "../intake/spoken.ts";
 import {
   activeItems,
   addStepFiles,
@@ -214,6 +215,8 @@ function AskSection({
   const mic = useRef<{ stop(): void; dispose(): void } | null>(null);
   const micTask = useRef<AbortController | null>(null);
   const focusIntent = useRef<string | null>(null);
+  /** What the box held when listening began, so only what was said after it is split into lines. */
+  const heardAfter = useRef("");
   const fileInput = useRef<HTMLInputElement>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
@@ -291,6 +294,7 @@ function AskSection({
       return;
     }
     const added = source.turns.find((turn) => !before.has(turn.id))?.id;
+    const known = new Set(source.items.map((item) => item.sourceKey));
     const abort = new AbortController();
     task.current?.abort();
     task.current = abort;
@@ -328,13 +332,15 @@ function AskSection({
       })[kind];
       if (task.current === abort) {
         const unread = result.lastBuild.unreadFiles;
+        // Says how many, so a list said in one go can be checked against what was said.
+        const fresh = read.items.filter((item) => item.decision === "pencil" && !known.has(item.sourceKey)).length;
         setNotice(
           [
             !result.extraction.heard
               ? "No new cards were found in those words. Your list is unchanged."
               : read.omitted > 0
                 ? "The list holds four, so not everything fit. Remove one and add again to bring in another."
-                : "Added. Dashed cards and kinds are suggestions. Remove any that are wrong.",
+                : `${fresh ? `${fresh} ${one.toLowerCase()}${fresh === 1 ? "" : "s"} added.` : "Added."} Dashed cards and kinds are suggestions. Remove any that are wrong.`,
             result.lastBuild.fallback ? "The browser model could not finish, so these are keyword cards." : "",
             unread ? `${unread} ${unread === 1 ? "file was" : "files were"} kept but not read.` : "",
           ]
@@ -378,11 +384,29 @@ function AskSection({
       }
     }
   }
+  /**
+   * What was just said goes into the box one need or offer a line, after what was there before,
+   * so a list said in one go is read into a card for each thing in it. False when nothing but
+   * sounds of thinking was said, which leaves the box as it was before.
+   */
+  function listSaid(base: string): boolean {
+    const box = controller.getSnapshot().draft[kind].composer;
+    // Words changed in the box while it listened are read with the rest.
+    const before = box.startsWith(base) ? base.trimEnd() : "";
+    const lines = spokenList(box.startsWith(base) ? box.slice(base.length) : box);
+    try {
+      update((current) => changeStep(current, { composer: [before, lines].filter(Boolean).join("\n") }));
+    } catch {
+      // A box that cannot take the lines keeps the words as they were said.
+    }
+    return !!lines;
+  }
   async function talk() {
     setNotice("");
     const mode = speechMode(speech.state);
     if (!mode) return;
     const base = controller.getSnapshot().draft[kind].composer;
+    heardAfter.current = base;
     // An example pretends to listen, in a development-only branch that production drops.
     if (import.meta.env.DEV && fixture) {
       const outcome = exampleOutcome(speechExample);
@@ -395,9 +419,10 @@ function AskSection({
         return;
       }
       setListening(true);
+      // A list said in one go, as a recognizer without punctuation writes it.
       const said = need
-        ? "We need tools and volunteers for community planting."
-        : "We can offer a workshop and a method for mapping water.";
+        ? "um we need native seedlings and a water pump and we also need volunteers for planting day"
+        : "we can offer a workshop on water mapping uh and we can lend tools for planting";
       update((current) => changeStep(current, { composer: [base, said].filter(Boolean).join(" ") }));
       return;
     }
@@ -429,10 +454,12 @@ function AskSection({
           end: (requested) => {
             setListening(false);
             if (failed || abort.signal.aborted) return;
-            // Stop adds what was said. A recognizer that ended by itself leaves any words in the box.
-            const said = controller.getSnapshot().draft[kind].composer.trim();
-            if (!requested) setNotice(speechPaused(Boolean(said)));
-            else if (said) void addToList("voice");
+            // Stop adds what was said, one card for each thing in it. A recognizer that ended by
+            // itself leaves the words in the box, a line for each thing, to go on or add.
+            const heard = listSaid(base);
+            if (!requested) setNotice(speechPaused(!!controller.getSnapshot().draft[kind].composer.trim()));
+            else if (!heard) setNotice(speechProblem("no-speech", mode, speech.touch));
+            else void addToList("voice");
           },
         },
         { consent: speech.consent, signal: abort.signal },
@@ -446,7 +473,7 @@ function AskSection({
   function stop() {
     if (import.meta.env.DEV && fixture) {
       setListening(false);
-      void addToList("voice");
+      if (listSaid(heardAfter.current)) void addToList("voice");
     } else mic.current?.stop();
   }
   function files(input: HTMLInputElement) {
