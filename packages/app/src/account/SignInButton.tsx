@@ -15,6 +15,10 @@ import { continueToCertified } from "./sign-in.ts";
  * While the press is carried out the button keeps its label and its width and shows a spinner in the
  * label's place, so nothing beside it moves. A failure is said under the button, or handed to
  * `onProblem` where there is no room under it, as in the header.
+ *
+ * While the session has not been checked and an account is expected, the button is not drawn: a
+ * person who is signed in is not offered sign-in for the moment the check takes. It appears as soon
+ * as the check says nobody is signed in, or cannot be made.
  */
 export function SignInButton({
   variant = "primary",
@@ -30,7 +34,7 @@ export function SignInButton({
   onProblem?: (message: string) => void;
   children?: ReactNode;
 }) {
-  const { state } = useAccount();
+  const { state, expectsAccount } = useAccount();
   const { controller, ready } = useDraft();
   const example = useSocialFixture();
   const openDoor = useAccountDoor();
@@ -56,6 +60,7 @@ export function SignInButton({
       setBusy(false);
     }
   }
+  if (expectsAccount && !(import.meta.env.DEV && example)) return null;
   return (
     <>
       {/* Busy, it stays enabled to the eye and declines a second press, so it does not grey out mid-press. */}

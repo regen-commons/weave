@@ -131,28 +131,444 @@ test("new sign-in immediately hides the previous account, rechecks the cookie on
 });
 
 test("resuming a tab fails closed on an unavailable account and permits a later retry", async () => {
-  const bus = tabs();
+  const bus = tabs(), time = clock();
   let failure: string | null = null, calls = 0;
   const session = new AccountSession(async () => {
     calls++;
     if (failure) throw new AccountFailure(failure);
     return response(calls === 1 ? owner : other);
-  });
+  }, time.timers, () => 0);
   const close = session.connect(bus.connect);
   await session.refresh();
   failure = "connection_failed";
   bus.resume();
-  assert.equal(session.getSnapshot(), null);
+  assert.equal(session.getSnapshot()?.user?.id, owner, "the account stays on screen while the check is under way");
   await settled();
   assert.equal(session.getSnapshot(), null, "an outage never restores cached private account data");
+  assert.equal(session.getExpected(), false, "sign-in is offered again when the session cannot be checked");
+  assert.equal(session.getEnding(), null, "a check that could not be made has not signed anyone out");
+  assert.deepEqual(time.pending(), [60000], "the check is tried again without waiting for the next return");
   assert.deepEqual(bus.messages, []);
   failure = null;
-  await session.refresh();
+  time.fire();
+  await settled();
   assert.equal(session.getSnapshot()?.user?.id, other);
   close();
   const before = calls;
   bus.resume();
   assert.equal(calls, before, "closed tabs have no remaining resume listener");
+});
+
+test("returning to a tab keeps a signed-in account on screen, joins one check and cancels no request", async t => {
+  const bus = tabs(), answer = deferred<Record<string, unknown>>();
+  let calls = 0;
+  const session = new AccountSession(async () => ++calls === 1 ? response(owner) : answer.promise);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  const seen: (string | null | undefined)[] = [];
+  session.subscribe(() => seen.push(session.getSnapshot()?.user?.id ?? (session.getSnapshot() === null ? null : undefined)));
+  // A private request under way when the person comes back, such as a save.
+  const body = deferred<Record<string, unknown>>();
+  const fetcher = t.mock.method(globalThis, "fetch", async () => ({ ok: true, json: () => body.promise }) as Response);
+  const save = accountRequest("", { action: "save" });
+  // Focus and visibility both report one return.
+  bus.resume(); bus.resume();
+  assert.equal(session.getSnapshot()?.user?.id, owner);
+  assert.equal(calls, 2, "two signals of one return share one check");
+  answer.resolve(response(owner));
+  await settled();
+  assert.deepEqual(seen.filter(id => id !== owner), [], "the account never leaves the screen for someone still signed in");
+  body.resolve({ saved: true });
+  assert.deepEqual(await save, { saved: true }, "a request under way is not cancelled by coming back to the tab");
+  assert.equal(fetcher.mock.callCount(), 1);
+  assert.deepEqual(bus.messages, []);
+  close();
+});
+
+test("returning to a tab still shows a session that ended, or another account, as soon as the check answers", async () => {
+  const bus = tabs();
+  let reply: () => Record<string, unknown> = () => response(owner);
+  const session = new AccountSession(async () => reply());
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  reply = () => response(other);
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, other, "an account that changed while the tab was away replaces the old one");
+  assert.equal(session.getSnapshot()?.items[0]?.name, `Synthetic card for ${other}`);
+  reply = () => { throw new AccountFailure("sign_in_required"); };
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot()?.user, null, "a refused session signs the tab out");
+  assert.equal(session.getEnding(), "ended", "and the screen says so");
+  assert.deepEqual(bus.messages, ["ended"]);
+  reply = () => response(null);
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot()?.user, null);
+  close();
+
+  // Signed out in another window while this tab was suspended and heard nothing.
+  const quiet = tabs();
+  let signedIn = true;
+  const suspended = new AccountSession(async () => response(signedIn ? owner : null));
+  const closeSuspended = suspended.connect(quiet.connect);
+  await suspended.refresh();
+  signedIn = false;
+  quiet.resume();
+  await settled();
+  assert.equal(suspended.getSnapshot()?.user, null);
+  assert.equal(suspended.getEnding(), "ended", "a sign-out the tab missed is never hidden");
+  closeSuspended();
+});
+
+/** One device's storage, shared by its tabs. `readable: false` is a browser that blocks it. */
+function note(present: boolean, readable = true) {
+  const writes: boolean[] = [];
+  let mark = "", moves = 0;
+  return { writes, present: () => present, moves: () => moves,
+    /** Another tab or window signed in or ended a session, and this tab heard nothing. */
+    moveElsewhere: () => { mark = `elsewhere-${++moves}`; },
+    presence: { read: () => present, write: (next: boolean) => { present = next; writes.push(next); },
+      mark: () => readable ? mark : undefined, move: () => { mark = `moved-${++moves}`; } } };
+}
+
+test("a return waits for a check that began before it and asks again, so an old answer never vouches", async () => {
+  const bus = tabs(), time = clock();
+  const old = deferred<Record<string, unknown>>();
+  const replies: (() => Promise<Record<string, unknown>> | Record<string, unknown>)[] = [() => ({ ...response(owner), renewIn: 600 }), () => old.promise, () => response(other)];
+  let calls = 0;
+  const session = new AccountSession(async () => { calls++; return replies.shift()!(); }, time.timers, () => 0);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  // The renewal check goes out, the tab is suspended, and another account signs in unheard.
+  time.fire();
+  assert.equal(calls, 2);
+  time.advance(5 * 60_000);
+  bus.resume();
+  assert.equal(calls, 2, "the check under way is not aborted, which could lose a renewal");
+  old.resolve(response(owner));
+  await settled(); await settled();
+  assert.equal(calls, 3, "the return asks once more after the earlier check answers");
+  assert.equal(session.getSnapshot()?.user?.id, other, "the account that is signed in now replaces the old one");
+  close();
+});
+
+test("a return that joins a failing renewal check, or whose check is replaced by one that fails, still fails closed", async () => {
+  // The renewal timer's check began a moment before the return and cannot reach the server.
+  const bus = tabs(), time = clock();
+  let offline = false, calls = 0;
+  const session = new AccountSession(async () => { calls++; if (offline) throw new AccountFailure("connection_failed"); return { ...response(owner), renewIn: 600 }; },
+    time.timers, () => 0);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  offline = true;
+  time.fire();
+  bus.resume();
+  await settled();
+  assert.equal(calls, 2, "a check that began with the return is shared");
+  assert.equal(session.getSnapshot(), null, "a failed check after a return hides the account, whoever started it");
+  close();
+
+  // The return's own check is replaced by an explicit one, as after a save, and that one fails.
+  // The transport honours cancellation, as fetch does, so the replaced check rejects at once.
+  for (const outcome of ["fails", "answers"] as const) {
+    const second = tabs(), replacement = deferred<Record<string, unknown>>();
+    let asked = 0;
+    const replaced = new AccountSession(async (_path, _body, _endpoint, signal) => {
+      asked++;
+      if (asked === 1) return response(owner);
+      if (asked === 2) return new Promise((_resolve, reject) =>
+        signal!.addEventListener("abort", () => reject(new AccountFailure("connection_failed")), { once: true }));
+      if (asked === 3) return replacement.promise;
+      throw new Error("the return must follow the replacement, never ask a fourth time");
+    });
+    const closeReplaced = replaced.connect(second.connect);
+    await replaced.refresh();
+    second.resume();
+    const explicit = replaced.refresh();
+    await settled();
+    assert.equal(asked, 3, "the return follows the check that replaced its own");
+    if (outcome === "fails") {
+      replacement.reject(new AccountFailure("connection_failed"));
+      await assert.rejects(explicit);
+      await settled();
+      assert.equal(replaced.getSnapshot(), null, "the check that replaced the return's answers for it, and its failure hides the account");
+      assert.equal(replaced.getEnding(), null);
+    } else {
+      replacement.resolve(response(owner));
+      assert.equal((await explicit).user?.id, owner, "the explicit caller gets its own answer; the return aborts nothing");
+      await settled();
+      assert.equal(replaced.getSnapshot()?.user?.id, owner);
+    }
+    assert.equal(asked, 3);
+    closeReplaced();
+  }
+});
+
+test("checks that overlap a return are never aborted by it, however many replace each other", async () => {
+  const bus = tabs(), last = deferred<Record<string, unknown>>();
+  let asked = 0;
+  const session = new AccountSession(async (_path, _body, _endpoint, signal) => {
+    asked++;
+    if (asked === 1) return response(owner);
+    if (asked === 6) return last.promise;
+    return new Promise((_resolve, reject) =>
+      signal!.addEventListener("abort", () => reject(new AccountFailure("connection_failed")), { once: true }));
+  });
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  bus.resume();
+  // Four explicit checks in a row, each replacing the one before, as several actions finishing together do.
+  const replaced = [session.refresh(), session.refresh(), session.refresh()];
+  const final = session.refresh();
+  await Promise.all(replaced.map(check => assert.rejects(check, changed)));
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, owner, "the account stays while a live check is still to answer");
+  last.resolve(response(owner));
+  assert.equal((await final).user?.id, owner, "the last caller gets its answer");
+  await settled();
+  assert.equal(asked, 6);
+  assert.equal(session.getSnapshot()?.user?.id, owner);
+  close();
+});
+
+test("after failing closed the check is tried again until it answers", async () => {
+  const bus = tabs(), time = clock(), device = note(true);
+  let offline = false;
+  const session = new AccountSession(async () => { if (offline) throw new AccountFailure("connection_failed"); return response(owner); },
+    time.timers, () => 0, device.presence);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  offline = true;
+  bus.resume();
+  await settled();
+  assert.equal(session.getSnapshot(), null);
+  assert.equal(session.getExpected(), false, "with an account noted on the device, sign-in is still offered once the check fails");
+  assert.equal(device.present(), true, "an outage does not remove the note");
+  for (const wait of [60000, 120000, 240000, 480000, 900000, 900000]) {
+    assert.deepEqual(time.pending(), [wait], "each failed attempt schedules one more, less often, up to 15 minutes");
+    time.fire();
+    await settled();
+    assert.equal(session.getSnapshot(), null);
+  }
+  offline = false;
+  time.fire();
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, owner, "the account returns with the first check that answers");
+  // The wait starts over after an answer.
+  offline = true;
+  bus.resume();
+  await settled();
+  assert.deepEqual(time.pending(), [60000]);
+  close();
+  assert.deepEqual(time.pending(), []);
+});
+
+test("one failed check lengthens the wait once, however many signals reported the return", async () => {
+  const bus = tabs(), time = clock();
+  let offline = false, calls = 0;
+  const session = new AccountSession(async () => { calls++; if (offline) throw new AccountFailure("connection_failed"); return response(owner); },
+    time.timers, () => 0);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  offline = true;
+  // Focus and visibility, as a browser reports one return.
+  bus.resume(); bus.resume();
+  await settled();
+  assert.equal(calls, 2);
+  assert.equal(session.getSnapshot(), null);
+  assert.deepEqual(time.pending(), [60000], "the first try comes after a minute, not later");
+  // A second return while still offline is one more failed check, counted once.
+  time.advance(5000);
+  bus.resume(); bus.resume();
+  await settled();
+  assert.equal(calls, 3);
+  assert.deepEqual(time.pending(), [120000]);
+  time.fire();
+  await settled();
+  assert.deepEqual(time.pending(), [240000]);
+  close();
+});
+
+test("an account hidden because the device's mark moved is tried again too; a tab that showed nobody is not", async () => {
+  const bus = tabs(), time = clock(), device = note(true);
+  let offline = false;
+  const session = new AccountSession(async () => { if (offline) throw new AccountFailure("connection_failed"); return response(owner); },
+    time.timers, () => 0, device.presence);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  offline = true;
+  device.moveElsewhere();
+  bus.resume();
+  assert.equal(session.getSnapshot(), null);
+  await settled();
+  assert.deepEqual(time.pending(), [60000], "the hidden account is checked again without waiting for another return");
+  offline = false;
+  time.fire();
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, owner);
+  close();
+
+  // Nobody was signed in here: an offline return has no account to bring back, so nothing polls.
+  const quiet = tabs(), idle = clock();
+  let reachable = true;
+  const signedOut = new AccountSession(async () => { if (!reachable) throw new AccountFailure("connection_failed"); return response(null); },
+    idle.timers, () => 0, note(false).presence);
+  const closeQuiet = signedOut.connect(quiet.connect);
+  await signedOut.refresh();
+  reachable = false;
+  quiet.resume();
+  await settled();
+  assert.equal(signedOut.getSnapshot(), null);
+  assert.deepEqual(idle.pending(), [], "a signed-out tab that cannot check does not keep asking");
+  closeQuiet();
+});
+
+test("a tab that missed a sign-in or sign-out hides the account first, by the device's mark", async () => {
+  const bus = tabs(), device = note(true), answer = deferred<Record<string, unknown>>();
+  let calls = 0;
+  const session = new AccountSession(async () => ++calls === 1 ? response(owner) : answer.promise, undefined, undefined, device.presence);
+  const close = session.connect(bus.connect);
+  await session.refresh();
+  device.moveElsewhere();
+  bus.resume();
+  assert.equal(session.getSnapshot(), null, "the previous account leaves the screen before the network answers");
+  assert.equal(session.getExpected(), true);
+  answer.resolve(response(other));
+  await settled();
+  assert.equal(session.getSnapshot()?.user?.id, other);
+  // The mark it has now seen does not hide the account again.
+  const before = calls;
+  bus.resume();
+  assert.equal(session.getSnapshot()?.user?.id, other);
+  await settled();
+  assert.equal(calls, before + 1);
+  close();
+
+  // A browser that blocks storage cannot say, so a return assumes a change, as it always did.
+  const blocked = tabs(), unreadable = note(false, false), late = deferred<Record<string, unknown>>();
+  let asked = 0;
+  const cautious = new AccountSession(async () => ++asked === 1 ? response(owner) : late.promise, undefined, undefined, unreadable.presence);
+  const closeCautious = cautious.connect(blocked.connect);
+  await cautious.refresh();
+  blocked.resume();
+  assert.equal(cautious.getSnapshot(), null);
+  late.resolve(response(owner));
+  await settled();
+  assert.equal(cautious.getSnapshot()?.user?.id, owner);
+  closeCautious();
+});
+
+test("the tab that signs in or ends a session moves the mark, and tabs that hear it are not surprised", async () => {
+  const bus = tabs(), device = note(false);
+  let signedIn = true, calls = 0;
+  const request: typeof accountRequest = async () => { calls++; return response(signedIn ? owner : null); };
+  const first = new AccountSession(request, undefined, undefined, device.presence);
+  const second = new AccountSession(request, undefined, undefined, device.presence);
+  const closeFirst = first.connect(bus.connect), closeSecond = second.connect(bus.connect);
+  first.changed();
+  assert.equal(device.moves(), 1, "a finished sign-in moves the mark");
+  await Promise.all([first.refresh(), settled()]);
+  await settled();
+  assert.equal(second.getSnapshot()?.user?.id, owner);
+  // The second tab heard the change, so its next return keeps the account on screen.
+  const seen: unknown[] = [];
+  second.subscribe(() => seen.push(second.getSnapshot()));
+  bus.resume();
+  await settled();
+  assert.ok(seen.every(state => state !== null), "a change that was heard is not treated as missed");
+  signedIn = false;
+  first.signedOut();
+  assert.equal(device.moves(), 2, "ending a session moves the mark");
+  assert.equal(second.getSnapshot()?.user, null);
+  assert.equal(device.moves(), 2, "a tab that only hears the ending does not move it again");
+  closeFirst(); closeSecond();
+});
+
+test("a private request under way is rejected when the return finds another account or a sign-out", async t => {
+  for (const next of [other, null]) {
+    const bus = tabs();
+    let reply = response(owner);
+    const session = new AccountSession(async () => reply);
+    const close = session.connect(bus.connect);
+    await session.refresh();
+    const body = deferred<Record<string, unknown>>();
+    const fetcher = t.mock.method(globalThis, "fetch", async () => ({ ok: true, json: () => body.promise }) as Response);
+    const load = accountRequest("?id=b3000000-0000-4000-8000-000000000001");
+    reply = response(next);
+    bus.resume();
+    await settled();
+    body.resolve({ saved: { name: "Synthetic card of the earlier account" } });
+    await assert.rejects(load, changed, "an answer for the earlier account never reaches the page");
+    fetcher.mock.restore();
+    close();
+  }
+});
+
+test("a device that last saw an account signed in holds sign-in back only until the first answer", async () => {
+  const device = note(true), answer = deferred<Record<string, unknown>>();
+  const session = new AccountSession(async () => answer.promise, undefined, undefined, device.presence);
+  assert.equal(session.getSnapshot(), null, "the note never stands in for an account");
+  assert.equal(session.getExpected(), true);
+  const check = session.refresh();
+  answer.resolve(response(owner));
+  await check;
+  assert.equal(session.getExpected(), false);
+  assert.equal(device.present(), true);
+
+  // Nobody is signed in any more: the answer removes the note.
+  const stale = note(true);
+  const signedOut = new AccountSession(async () => response(null), undefined, undefined, stale.presence);
+  await signedOut.refresh();
+  assert.equal(signedOut.getExpected(), false);
+  assert.equal(stale.present(), false, "an answer that nobody is signed in removes the note");
+
+  // The check cannot be made: sign-in is offered, and the note is kept for the next visit.
+  const offline = note(true);
+  let notified = 0;
+  const unreachable = new AccountSession(async () => { throw new AccountFailure("connection_failed"); }, undefined, undefined, offline.presence);
+  unreachable.subscribe(() => { notified++; });
+  await assert.rejects(unreachable.refresh());
+  assert.equal(unreachable.getExpected(), false, "sign-in is never withheld for want of a connection");
+  assert.equal(notified, 1, "the page hears that sign-in is offered again");
+  assert.equal(offline.present(), true);
+
+  // An account service that is switched off says nothing about the person.
+  const off = note(true);
+  const disabled = new AccountSession(async () => ({ available: false }), undefined, undefined, off.presence);
+  await disabled.refresh();
+  assert.equal(disabled.getExpected(), false);
+  assert.equal(off.present(), true);
+});
+
+test("the note follows sign-in, sign-out and an ended session, and a new device has none", async () => {
+  const device = note(false);
+  let reply: () => Record<string, unknown> = () => response(owner);
+  const session = new AccountSession(async () => reply(), undefined, undefined, device.presence);
+  assert.equal(session.getExpected(), false, "a first visit is offered sign-in at once");
+  await session.refresh();
+  assert.equal(device.present(), true);
+  session.signedOut();
+  assert.equal(device.present(), false, "Sign Out removes the note");
+  await session.refresh();
+  assert.equal(device.present(), true);
+  reply = () => { throw new AccountFailure("sign_in_required"); };
+  await assert.rejects(session.refresh());
+  assert.equal(device.present(), false, "an ended session removes the note");
+
+  // Another tab finished a sign-in: this one expects an account while it checks.
+  const bus = tabs(), answer = deferred<Record<string, unknown>>();
+  const first = new AccountSession(async () => response(owner));
+  const second = new AccountSession(async () => answer.promise);
+  const closeFirst = first.connect(bus.connect), closeSecond = second.connect(bus.connect);
+  first.changed();
+  assert.equal(second.getSnapshot(), null);
+  assert.equal(second.getExpected(), true, "sign-in is not offered beside a sign-in that just finished");
+  answer.resolve(response(owner));
+  await settled();
+  assert.equal(second.getExpected(), false);
+  closeFirst(); closeSecond();
 });
 
 test("disconnecting and reconnecting rejects work from the earlier connection", async () => {
@@ -248,10 +664,11 @@ test("a late cloud Save receipt cannot restore the previous account binding or d
 
 function clock() {
   const timers = new Map<number, { run: () => void; milliseconds: number }>();
-  let next = 0;
+  let next = 0, at = 0;
   return {
     timers: { set: (run: () => void, milliseconds: number) => { timers.set(++next, { run, milliseconds }); return next; },
-      clear: (handle: unknown) => { timers.delete(handle as number); } },
+      clear: (handle: unknown) => { timers.delete(handle as number); }, now: () => at },
+    advance: (milliseconds: number) => { at += milliseconds; },
     pending: () => [...timers.values()].map(timer => timer.milliseconds),
     fire: () => { const [first] = [...timers.entries()]; assert.ok(first, "a check is scheduled"); timers.delete(first[0]); first[1].run(); },
   };
