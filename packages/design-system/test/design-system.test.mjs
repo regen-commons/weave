@@ -456,8 +456,11 @@ test("on a phone a preview is a row that swipes, and a list card holds only what
   assert.match(row, /margin: calc\(var\(--space-2\) \* -1\) calc\(var\(--gutter\) \* -1\)/);
   assert.match(row, /padding: var\(--space-2\) var\(--gutter\)/);
   assert.match(row, /scroll-padding-inline: var\(--gutter\)/);
-  // Only the row's own axis is held, so a finger that starts on a card still scrolls the page.
-  assert.match(row, /overscroll-behavior-x: contain/);
+  // Only the row's own axis is held, so a finger that starts on a card still scrolls the page. The
+  // row has no native stretch of its own: the cards' bounce is the one every phone plays (DL-128).
+  assert.match(row, /overscroll-behavior-x: none/);
+  assert.match(phone, /@media \(prefers-reduced-motion: no-preference\) \{\s*\.rc-card-grid\[data-preview\]\[data-bounce\] > li > \* \{ animation: rc-bounce-start /);
+  assert.match(phone, /\.rc-card-grid\[data-preview\]\[data-bounce="end"\] > li > \* \{ animation-name: rc-bounce-end; \}/);
   assert.doesNotMatch(row, /overscroll-behavior:|touch-action/);
   // A row has no short last row, so it hides no card. Its loading shapes do not move.
   assert.doesNotMatch(phone, /display: none/);
