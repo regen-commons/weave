@@ -113,14 +113,15 @@ are fixed in the pull requests named.
   and Needs and Offers followed as `h3` with their cards as `h4`. Fix: they are `h2`
   and `h3` wherever the page heading is the name.
 
-### Background motion
+### Background motion ([#175](https://github.com/regen-commons/weave/pull/175) and its follow-up)
 
 - [x] **A-12. The background keeps moving with no way to pause it.** 2.2.2 Pause, Stop,
   Hide (A). Every page. Serious. The mycelium grew a new strand on its own every 1.8 to
   3.6 seconds for as long as a page was open (DL-128), and only the system's
   reduced-motion setting stopped it. Fix, by the user's decision of 23 November: strands
-  grow on their own for the first five seconds of a page; one still growing then goes
-  at once, and a mouse or a finger still leaves trails. On Home, animation frames
+  grow on their own for the first five seconds after the app opens and never again in
+  that visit; one still growing then goes at once, and a mouse or a finger still leaves
+  trails. On Home, animation frames
   stopped 4.5 seconds after the first and none followed in the next seven.
 
 ### Follow-ups ([#176](https://github.com/regen-commons/weave/pull/176), [#177](https://github.com/regen-commons/weave/pull/177), [#182](https://github.com/regen-commons/weave/pull/182))
