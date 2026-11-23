@@ -11,6 +11,17 @@
 (function () {
   if (location.pathname === "/") document.documentElement.setAttribute("data-home", "");
 })();
+// It marks, too, whether this device's draft held a checked card when it was last open: a flag the
+// app keeps, with nothing of the card in it (src/describe/checked-hint.ts). Until the draft opens, a
+// page that changes with the card, such as Funding, draws the room for each, and base.css shows the
+// one the mark names, so the first paint holds the right room.
+(function () {
+  try {
+    if (localStorage.getItem("weave-checked-card") === "1") document.documentElement.setAttribute("data-checked-card", "");
+  } catch (error) {
+    // No storage to read: the page holds the room for no checked card.
+  }
+})();
 // The first view is inert until the app replaces it. If the app's code never arrives, as on a first
 // visit that loses its connection, the view would stay dead to clicks, taps and screen readers, so
 // after a while its links work as plain links. The app takes the mark off as it starts.

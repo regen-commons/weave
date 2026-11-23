@@ -6,6 +6,7 @@ import { DraftController } from "./controller.ts";
 import { MemoryDraftRepository } from "./repository.ts";
 import { IndexedDraftRepository } from "./indexed-repository.ts";
 import { broadcastChannel, sessionPointer } from "./tabs.ts";
+import { keepCheckedHint } from "./checked-hint.ts";
 // One controller for the tab. Its pointer keeps the tab on its draft across a reload, and the
 // channel tells the browser's other tabs about each write (DL-112).
 const device = new DraftController(new IndexedDraftRepository(), {
@@ -47,6 +48,9 @@ export function DraftProvider({ fixture, children }: { fixture?: FixtureContext;
   useEffect(() => {
     void controller.initialize();
   }, [controller]);
+  // The device remembers, as a flag only, whether its draft holds a checked card, so a page can hold
+  // the right room before the draft opens next time. Examples never write it.
+  useEffect(() => (fixture ? undefined : keepCheckedHint(controller)), [controller, !!fixture]);
   useEffect(() => {
     if (!!fixture) return;
     const warn = (event: BeforeUnloadEvent) => {
