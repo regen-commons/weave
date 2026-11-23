@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AiRun } from "../describe/contracts.ts";
 import { assistantExport } from "../data/export.ts";
 import { downloadJson } from "../data/download.ts";
@@ -7,6 +7,7 @@ import { fullDate } from "../home.ts";
 import { COMMONS } from "../links.ts";
 import { Link } from "../router.tsx";
 import { Dialog } from "./Dialog.tsx";
+import { focusDialogTitle } from "./focus.ts";
 import { Icon } from "./Icon.tsx";
 /** A run belongs to the part of the card it read, which is finer than the step map. */
 const RUN_LABELS = { initiative: "Initiative", needs: "Needs", offers: "Offers" } as const;
@@ -28,10 +29,17 @@ export function InformationDialog({
   runs: readonly AiRun[];
 }) {
   const [message, setMessage] = useState("");
-  useEffect(() => setMessage(""), [information]);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const shown = useRef<Information | null>(null);
+  useEffect(() => {
+    setMessage("");
+    // Read The Data Policy replaces what is shown, and with it the button that had the focus.
+    if (shown.current && information && shown.current !== information) focusDialogTitle(dialog.current);
+    shown.current = information;
+  }, [information]);
   const cloudWords = runs.reduce((sum, run) => sum + run.cloudWords, 0);
   return (
-    <Dialog presentation="information" title={TITLES[information ?? "storage"]} open={!!information} onClose={onClose}>
+    <Dialog ref={dialog} presentation="information" title={TITLES[information ?? "storage"]} open={!!information} onClose={onClose}>
         {information === "storage" ? (
           <>
             <dl className="rc-facts" data-kind="terms">
