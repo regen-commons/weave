@@ -32,7 +32,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Status slot | `rc-status-slot` | candidate | One line of progress, result or problem that keeps its height, so the words come and go without moving anything under them (DL-085, DL-113). Beside a button in an Action bar it takes the rest of the row | `data-lines`: 2 | One or two short sentences. Use it wherever a press reports back | describe |
 | Switch | `rc-switch` | stable | A setting that applies at once | `role="switch"` | Never pre-checked for email |  |
 | Chip | `rc-chip` | stable | A choice you tap. Parts: `rc-chip-remove`, and `rc-chip-group` for one question answered with chips, under its fieldset's legend | Selectable, removable, `data-pencil` for a suggested value: a tap keeps it, and one left in pencil is not kept | 44 px high; the remove button is a 44 px target inside the chip's end (DL-088) | funding, initiatives, signed-out, your-initiatives |
-| Tag | `rc-tag` | stable | A label you read | Plain, with an icon, `data-capital`, `data-kind`: work with `data-lens` for its type's hue (DL-065), `data-tone` for the icon's colour. `data-emphasis="strong"` for a tag that must not be missed in its row, such as a deadline: heavier words, and its tone along its start edge (DL-103) | Three words | funding, home, initiatives, needs, offers, step-needs |
+| Tag | `rc-tag` | stable | A label you read | Plain, with an icon, `data-capital`, `data-kind`: work with `data-lens` for its type's hue (DL-065), `data-tone` for the icon's colour. `data-emphasis="strong"` for a tag that must not be missed in its row, such as a deadline: heavier words, and its tone along its start edge (DL-103) | Three words | funding, home, initiatives, needs, offers, step-needs, your-initiatives |
 | Tile | `rc-tile` | stable | Glyph for a form of capital | `data-state`: suggested, empty | Two letters | home, needs, offers, step-needs |
 | Stage | `rc-stage` | stable | Stage of growth, with icon and plain word | `data-stage`: seed, sprout, flowering, tree |  | finish, matches, step-needs |
 | Fit | `rc-fit` | stable | Strength of a match as a word and a bar of four steps. Part: `rc-fit-bar`, four `i` | `data-level`: strong, good, possible, low | Never a number. On a partner card it comes from what is known: stated and both ways, stated, or read from public work (DL-064). On funding it counts the topics shared, three or more, two, one or none, and low is used only there (DL-129) | finish, funding, initiatives, matches |
@@ -57,7 +57,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Stepper | `rc-stepper` | stable | Where you are in a short sequence. A step already done is a link back to it (DL-113). Part: `rc-stepper-mark` | `aria-current`, `data-state`: done. `data-until="wide"`: the copy at the top of a page is a phone's where a wide screen shows the steps in the Step bar (DL-127) | Three to five steps, all on one row on a phone | check-card, describe, step-needs |
 | Reason | `rc-reasons` | stable | Why something appears for you. Part: `rc-reason` |  | Three lines of one sentence | finish, matches |
 | Card | `rc-card` | stable | One record, opened from its title: a link, or a button where opening changes what is on the device. Parts: `rc-card-header`, `rc-card-title`, `rc-card-meta`, `rc-card-summary`, `rc-draft-preview`, `rc-draft-status` | `data-stage`, `data-kind`: need, offer, funding, initiative (keeps its own colour wherever the card appears; a card that opens shows that colour, or else its section's, along its top on hover and focus, DL-050, DL-051). `data-pencil`, `data-layout`: listing. `data-rows="fixed"`: every part keeps a set number of lines (title two, summary three and two on a phone (DL-109), one each for the eyebrow, the line under the title and the foot, two rows of tags), so every card of its kind is one height and its skeleton is that height by construction (DL-108). In a fixed-row card an icon in the line under the title marks a second fact, such as a public project's place after who shared it (DL-120) | No button on a listing card. Listing titles clamp to two lines and reserve both only side by side; summaries three lines | check-card, describe, finish, funding, home, initiatives, intake-finish, matches, needs, offers, settings, step-needs, your-initiatives |
-| Tag list | `rc-tag-list` | stable | A row of tags |  |  | funding, home, initiatives, needs, offers, step-needs |
+| Tag list | `rc-tag-list` | stable | A row of tags |  |  | funding, home, initiatives, needs, offers, step-needs, your-initiatives |
 | Tile list | `rc-tile-list` | candidate | A row of tiles with each state in words |  | Eight tiles | step-needs |
 | Record | `rc-record` | candidate | What is known, with room for what is missing | `data-empty` on a value |  | step-needs |
 | Stamp | `rc-stamp` | stable | Last confirmed, and a way to confirm again |  |  | finish, matches |
@@ -323,12 +323,17 @@ partner suggestions come from public sources only.
 
 Your Initiatives is the fourth section and holds the account. Signed out, it offers Sign
 in with Certified and says what Certified is. Signed in, it shows the handle, Sign out
-and Settings, and lists what the person can open: the card on this device, private saves
-and Certified projects with their group, role and workspace state. Each card opens from
-its name. The project list is a development example until Weave can read projects.
+and Settings, and lists what the person can open in two sections (DL-134): Drafts And
+Private Saves, for what exists only in Weave, then On Certified, for Certified projects
+and any draft linked to one, which is listed once, there. Every card carries a Tag that
+says what it is: Not saved yet, Saved privately, Personal project, Group project or Team
+workspace. A draft that looks like one of the person's Certified projects offers Use That
+Project, which opens the same reviewed link step as anywhere else, and It's A Different
+Initiative, which ends the offer for the visit. Each card opens from its name.
 Opening a project with a team workspace opens that workspace. Opening one without brings
-its four details from Certified and goes on to needs and offers. Opening another
-initiative backs up the device card first.
+its four details from Certified and goes on to needs and offers. On a phone the section
+ends with Settings: the theme and installing Weave as their own groups, then the way to
+the rest.
 
 ## Your initiative, Keep card and Certified contracts
 

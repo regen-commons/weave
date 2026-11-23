@@ -126,13 +126,15 @@ test("Sort opens the same menu the filters open, says only Sort, and lives in a 
 test("Your Initiatives holds its own cards' shape while it loads, under the heading that arrives, and never a funding card's", () => {
   const skeleton = read("ui/CardSkeleton.tsx");
   const own = skeleton.slice(skeleton.indexOf('if (kind === "own")'), skeleton.indexOf('if (kind === "project")'));
-  // A name and a line about where it is kept, as the loaded card has. Measured at 1280 px: 140 against 160.
-  for (const part of ["rc-card-title", "rc-card-meta"]) assert.match(own, new RegExp(`className="${part}"`, "u"), part);
-  for (const part of ["rc-eyebrow", "rc-tag-list", "rc-card-summary", "rc-time"]) assert.doesNotMatch(own, new RegExp(`className="${part}"`, "u"), part);
+  // A name, the tag that says what it is and a line about it, as the loaded card has (DL-134).
+  for (const part of ["rc-card-title", "rc-tag-list", "rc-card-meta"]) assert.match(own, new RegExp(`className="${part}"`, "u"), part);
+  for (const part of ["rc-eyebrow", "rc-card-summary", "rc-time"]) assert.doesNotMatch(own, new RegExp(`className="${part}"`, "u"), part);
   const page = read("pages/YourInitiatives.tsx");
   assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
   assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
-  assert.match(page, /\{loading && \(\s*<Section id="initiatives-certified" title="On Certified">/u, "the heading is there before its cards");
+  // The heading is there before its cards: the section is drawn as soon as its projects are being read.
+  assert.match(page, /\{\(certified \|\| loading \|\| social\.problem \|\| noProjectYet\) && \(\s*<Section id="initiatives-certified" title="On Certified">/u);
+  assert.match(page, /\{loading && \(\s*<div aria-busy="true">/u, "and the cards' shape is under it while they load");
 });
 
 test("a list card keeps set rows, so a card and its skeleton are one height by construction (DL-108)", () => {
