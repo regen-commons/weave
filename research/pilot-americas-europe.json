@@ -114,7 +114,7 @@
     "programs": [
       {
         "id": "acento-fondo-raiz-2026",
-        "name": "Fondo Raíz — 2026 pilot",
+        "name": "Fondo Raíz: 2026 pilot",
         "instrument": "grant",
         "focus": [
           "local social justice movements",
@@ -232,7 +232,7 @@
     "programs": [
       {
         "id": "calala-radix-call-2-2026",
-        "name": "Fondo Radix — second call 2026",
+        "name": "Fondo Radix: second call 2026",
         "instrument": "grant",
         "focus": [
           "feminist organizing",
@@ -576,7 +576,7 @@
     "programs": [
       {
         "id": "wff-sustainability-2026",
-        "name": "Sustainability Grants — 2026 cycle",
+        "name": "Sustainability Grants: 2026 cycle",
         "instrument": "grant",
         "focus": [
           "gender equality",
@@ -1376,7 +1376,7 @@
     "programs": [
       {
         "id": "red-umbrella-core-2026",
-        "name": "Core Grants — 2026 call",
+        "name": "Core Grants: 2026 call",
         "instrument": "grant",
         "focus": [
           "sex workers’ rights",
@@ -1503,7 +1503,7 @@
     "programs": [
       {
         "id": "rwjf-msi-research-capacity-2026",
-        "name": "Seeding Research, Networking, and Capacity Building at Minority-Serving Institutions — 2026",
+        "name": "Seeding Research, Networking, and Capacity Building at Minority-Serving Institutions: 2026",
         "instrument": "grant",
         "focus": [
           "health equity research",
@@ -1739,7 +1739,7 @@
     "programs": [
       {
         "id": "gulbenkian-humanity-prize-2026",
-        "name": "Gulbenkian Prize for Humanity — 2026",
+        "name": "Gulbenkian Prize for Humanity: 2026",
         "instrument": "prize",
         "focus": [
           "climate action",

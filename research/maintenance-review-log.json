@@ -18351,6 +18351,45 @@
       },
       "result": "No catalog change. Coverage recorded for five cells and eight sources; seven leads held with reasons. No verification date advanced.",
       "publication": "Pull request into develop for review. No deployment, application or funder contact."
+    },
+    {
+      "id": "name-normalization-2026-11-22",
+      "runType": "manual-name-normalization",
+      "localDate": "2026-11-22",
+      "timeZone": "America/Los_Angeles",
+      "scheduledTimerObserved": false,
+      "executionModel": "claude-fable-5-2",
+      "reasoningEffort": "medium",
+      "executionNote": "Requested by the maintainer in a Claude Code session after the quality baseline found em dashes from program names in page headings and tab titles. Not a scheduled routine run; no timer is claimed.",
+      "repository": "regen-commons/weave",
+      "baselineCommit": "9c8cf616bae98e31433c908bae4f42e6d2f2609a",
+      "rule": ".claude/skills/catalog-research/verification-standard.md#program-names",
+      "renameArchive": "research/maintenance-history/name-normalization-2026-11-22/renames.json",
+      "programsRenamed": 296,
+      "fundersRenamed": 2,
+      "additions": [],
+      "appliedAdditions": [],
+      "appliedRevisions": [],
+      "revisedPrograms": [],
+      "sourceCounts": {
+        "attempted": 0,
+        "retrieved": 0,
+        "verified": 0
+      },
+      "countDefinition": "No source was opened. A rename under the naming rule is not a verification, so no evidence, source or verification date changed.",
+      "method": "The em dash our records used between a program's name and its round or status note became a colon, and status words left the name. The catalog was recompiled as of its existing compiledAt, so only names differ: 296 program names, the 243 displayed-program copies derived from them, and two funder names in four fields each. Program and funder ids, terms, evidence, sources, screening and the revision journal are unchanged.",
+      "coverageLimitations": [
+        "Names were normalized from our own records, not rechecked at each funder. A name that already differed from the funder's wording still does.",
+        "Status words were removed from names without rechecking routes. The freshness plan lists the programs whose route is stale.",
+        "Source titles, notes and other text fields still contain em dashes; only program and funder names were in scope.",
+        "The four programs with a journaled revision had no em dash and were not touched."
+      ],
+      "validation": {
+        "catalogChanged": true,
+        "checks": "bun run research:import with the existing compiledAt, bun run build, bun run test, bun run guidance:check, python3 scripts/revise-program.py --check-base, git diff --check"
+      },
+      "result": "296 program names and two funder names changed, each recorded with its earlier value. Historical audits read the earlier names through tests/helpers/name-normalization-2026-11-22.mjs.",
+      "publication": "Pull request into develop for review. No deployment, application or funder contact."
     }
   ]
 }
