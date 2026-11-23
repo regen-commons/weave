@@ -31,3 +31,7 @@ declare module "*dist/storage.mjs" {
   export const US_STATES: Record<string, string>;
   export const FUNDING_INSTRUMENTS: Record<string, string>;
 }
+declare module "virtual:first-funds" {
+  const file: import("./first-funds.ts").FirstFunds;
+  export default file;
+}
