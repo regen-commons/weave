@@ -15475,6 +15475,140 @@
       ],
       "nextReviewOn": "2026-11-19",
       "note": "HTTP 403 for the fetcher; the browser stopped at a bot-verification page, which was not bypassed. The November 5 closure finding is not reconfirmed today."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-01",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-15",
+      "result": "verified",
+      "fields": [
+        "application",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.emergentfund.net/apply"
+      ],
+      "revisions": [
+        "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+      ],
+      "nextReviewOn": "2027-01-07",
+      "note": "Grant cycles are closed for the remainder of 2026 and resume January 1, 2027; no closing date or cutoff for that intake."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-02",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-15",
+      "result": "verified",
+      "fields": [
+        "application",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.emergentfund.net/faqs"
+      ],
+      "revisions": [
+        "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+      ],
+      "nextReviewOn": "2027-01-07",
+      "note": "No set grant size; past grants USD 10,000 to 30,000. Intake generally closes on the third Thursday of the month, which conflicts with some dated 2026 windows."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-03",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-15",
+      "result": "verified",
+      "fields": [
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.emergentfund.net/"
+      ],
+      "revisions": [
+        "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+      ],
+      "nextReviewOn": "2027-01-07",
+      "note": "Homepage still describes monthly, open-access grants and does not mention the 2026 closure."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-04",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://whitleyaward.org/apply-for-conservation-funding/"
+      ],
+      "revisions": [
+        "local-whitley::whitley-2027"
+      ],
+      "nextReviewOn": "2026-11-19",
+      "note": "HTTP 403. Not evidence of closure; no revision without a readable official source."
+    },
+    {
+      "runId": "revisions-2026-11-15",
+      "recordKey": "revisions-2026-11-15::source-05",
+      "attemptedOn": "2026-11-15",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://whitleyaward.org/"
+      ],
+      "revisions": [
+        "local-whitley::whitley-2027"
+      ],
+      "nextReviewOn": "2026-11-19",
+      "note": "HTTP 403. The same host also blocked the application page earlier today."
+    },
+    {
+      "runId": "revision-2026-11-16-haymarket",
+      "recordKey": "revision-2026-11-16-haymarket::source-01",
+      "attemptedOn": "2026-11-16",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-16",
+      "result": "verified",
+      "fields": [
+        "application",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://www.haymarket.org/grants-1"
+      ],
+      "revisions": [
+        "recTQMgGnvmEseTmT::sustaining-grants2026-27"
+      ],
+      "nextReviewOn": "2026-11-19",
+      "note": "The 2026-2027 Sustaining Grant deadline is stated in the present tense, December 2, 2026, and requests for applications are considered until November 30, 2026. The page still says groups funded in the past three years will be emailed an application package in October 2025, and its Urgent Response section still names the 2024-2025 Grant Cycle. Both conflicts are kept as unknowns; the deadline date is unchanged."
+    },
+    {
+      "runId": "name-normalization-2026-11-23",
+      "recordKey": "name-normalization-2026-11-23::source-01",
+      "fundId": "recTQMgGnvmEseTmT",
+      "programId": "sustaining-grants2026-27",
+      "attemptedOn": "2026-11-23",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-23",
+      "result": "partial",
+      "fields": [
+        "name"
+      ],
+      "sourceUrls": [
+        "https://www.haymarket.org/grants-1"
+      ],
+      "revisions": [
+        "recTQMgGnvmEseTmT::sustaining-grants2026-27"
+      ],
+      "nextReviewOn": "2026-11-30",
+      "note": "Name only. The December 2, 2026 deadline is inside the closing window, so the route and dates are due a recheck within seven days."
     }
   ],
   "runs": [
@@ -17738,6 +17872,604 @@
       ],
       "result": "Applied three re-verified program rounds under existing funders and nine screening conditions; dropped one stale call; held three existing-term revisions for PR #9; superseded one duplicate proposal. No whole-record verification date advanced.",
       "publication": "Draft pull request into develop labeled automated/codex. No merge, deployment, application or funder contact."
+    },
+    {
+      "id": "revisions-2026-11-15",
+      "runType": "manual-revision",
+      "localDate": "2026-11-15",
+      "timeZone": "America/Los_Angeles",
+      "executionNote": "Requested in a Claude Code session: rebase PR #9 (revision-aware imports) onto the November 15 catalog pass and apply the held existing-term revisions through its journal. Not a scheduled routine run; no timer is claimed.",
+      "baselineCommit": "ef1990a6479d142ec4da2e21979317df63f515e2",
+      "branch": "codex/held-revisions-2026-11-15",
+      "repository": "regen-commons/weave",
+      "inspectedPrUrls": [
+        "https://github.com/regen-commons/weave/pull/70",
+        "https://github.com/regen-commons/weave/pull/69",
+        "https://github.com/regen-commons/weave/pull/9",
+        "https://github.com/regen-commons/weave/pull/3"
+      ],
+      "pullRequestCheck": {
+        "listing": "gh pr list --repo regen-commons/weave --state open",
+        "listingCount": 4,
+        "scopes": "#70 adds the three November 15 rounds; #9 adds the revision journal, stacked on #70; #69 agent documentation; #3 historical QA. None applies these revisions."
+      },
+      "sourceCounts": {
+        "attempted": 5,
+        "retrieved": 3,
+        "retrievalFailed": 2,
+        "verified": 3,
+        "reviewedNoTerms": 0,
+        "failed": 2
+      },
+      "countDefinition": "Unique URLs attempted in this pass. Buffett and Spencer reuse the same-day checks recorded in reverification-2026-11-15 rather than repeating them. Verified means only the listed fields.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.emergentfund.net/apply",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-15",
+          "fields": [
+            "application",
+            "unknowns"
+          ],
+          "revisions": [
+            "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+          ],
+          "finding": "Grant cycles are closed for the remainder of 2026 and resume January 1, 2027; no closing date or cutoff for that intake.",
+          "nextReviewOn": "2027-01-07"
+        },
+        {
+          "id": "source-02",
+          "url": "https://www.emergentfund.net/faqs",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-15",
+          "fields": [
+            "application",
+            "unknowns"
+          ],
+          "revisions": [
+            "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+          ],
+          "finding": "No set grant size; past grants USD 10,000 to 30,000. Intake generally closes on the third Thursday of the month, which conflicts with some dated 2026 windows.",
+          "nextReviewOn": "2027-01-07"
+        },
+        {
+          "id": "source-03",
+          "url": "https://www.emergentfund.net/",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-15",
+          "fields": [
+            "unknowns"
+          ],
+          "revisions": [
+            "recgDAwfqtJyo2MEx::rapid-response-organizing-grants"
+          ],
+          "finding": "Homepage still describes monthly, open-access grants and does not mention the 2026 closure.",
+          "nextReviewOn": "2027-01-07"
+        },
+        {
+          "id": "source-04",
+          "url": "https://whitleyaward.org/apply-for-conservation-funding/",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "revisions": [
+            "local-whitley::whitley-2027"
+          ],
+          "finding": "HTTP 403. Not evidence of closure; no revision without a readable official source.",
+          "nextReviewOn": "2026-11-19"
+        },
+        {
+          "id": "source-05",
+          "url": "https://whitleyaward.org/",
+          "attemptedOn": "2026-11-15",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "revisions": [
+            "local-whitley::whitley-2027"
+          ],
+          "finding": "HTTP 403. The same host also blocked the application page earlier today.",
+          "nextReviewOn": "2026-11-19"
+        }
+      ],
+      "reusedChecks": [
+        {
+          "runId": "reverification-2026-11-15",
+          "sourceIds": [
+            "source-17",
+            "source-18",
+            "source-19",
+            "source-20"
+          ]
+        }
+      ],
+      "revisionOutcomes": [
+        {
+          "proposalRunId": "thursday-2026-11-05",
+          "key": "recUfkfwM3ISTcnSH::susan-t-buffett-scholarship",
+          "outcome": "applied",
+          "revisionId": "2026-11-15-buffett-2027-dates",
+          "journal": "research/revisions/2026-11-15-buffett-2027-dates.json",
+          "reason": "Opens December 1 and is due March 1, 2027 before 5 p.m. CST, from the applicant page and FAQ checked November 15."
+        },
+        {
+          "proposalRunId": "thursday-2026-11-05",
+          "key": "recrvyr2BGCOy0NAI::spencer-small-research",
+          "outcome": "applied",
+          "revisionId": "2026-11-15-spencer-2027-pause",
+          "journal": "research/revisions/2026-11-15-spencer-2027-pause.json",
+          "reason": "No new competitions January to June 2027, from the program page checked November 15. The route stays closed."
+        },
+        {
+          "proposalRunId": "manual-thursday-2026-10-29",
+          "key": "recgDAwfqtJyo2MEx::rapid-response-organizing-grants",
+          "outcome": "applied",
+          "revisionId": "2026-11-15-emergent-2027-resumption",
+          "journal": "research/revisions/2026-11-15-emergent-2027-resumption.json",
+          "reason": "Intake resumes January 1, 2027, with no published closing date, from the application page checked November 15."
+        },
+        {
+          "proposalRunId": "thursday-2026-11-05",
+          "key": "local-whitley::whitley-2027",
+          "outcome": "held",
+          "reason": "Every official page tried on November 15 returned 403 or a bot check. The October 30 cutoff has passed, so the card already reads as closed; the closure note waits for a readable source."
+        }
+      ],
+      "appliedAdditions": [],
+      "appliedRevisions": [
+        "2026-11-15-buffett-2027-dates",
+        "2026-11-15-spencer-2027-pause",
+        "2026-11-15-emergent-2027-resumption"
+      ],
+      "notReviewed": [
+        "local-climate-curve::keeling-curve-prize: the October 29 proposal keeps its unresolved source conflict and was not re-checked in this pass."
+      ],
+      "result": "Applied three existing-term revisions through the revision journal; held Whitley for want of a readable official source. No whole-record verification date advanced.",
+      "publication": "Draft pull request stacked on PR #9, labeled automated/codex. No merge, deployment, application or funder contact."
+    },
+    {
+      "id": "revision-2026-11-16-haymarket",
+      "runType": "manual-revision",
+      "localDate": "2026-11-16",
+      "timeZone": "America/Los_Angeles",
+      "executionNote": "Requested in a Claude Code session to fix the stale Haymarket note found by the November 16 go-live deadline check (docs/platform/prototype/proof/go-live-2026-11-16/findings.md). Not a scheduled routine run; no timer is claimed.",
+      "baselineCommit": "921d236e16df13e1273c3ab117fbe59661235792",
+      "branch": "codex/fix-catalog-snapshot-date",
+      "repository": "regen-commons/weave",
+      "pullRequestCheck": {
+        "listing": "gh pr list --repo regen-commons/weave --state open",
+        "listingCount": 2,
+        "scopes": "#69 agent documentation; #3 historical QA. Neither touches Haymarket."
+      },
+      "sourceCounts": {
+        "attempted": 1,
+        "retrieved": 1,
+        "retrievalFailed": 0,
+        "verified": 1,
+        "reviewedNoTerms": 0,
+        "failed": 0
+      },
+      "countDefinition": "Unique URLs attempted in this pass. Verified means only the listed fields.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.haymarket.org/grants-1",
+          "attemptedOn": "2026-11-16",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-16",
+          "fields": [
+            "application",
+            "unknowns"
+          ],
+          "revisions": [
+            "recTQMgGnvmEseTmT::sustaining-grants2026-27"
+          ],
+          "finding": "The 2026-2027 Sustaining Grant deadline is stated in the present tense, December 2, 2026, and requests for applications are considered until November 30, 2026. The page still says groups funded in the past three years will be emailed an application package in October 2025, and its Urgent Response section still names the 2024-2025 Grant Cycle. Both conflicts are kept as unknowns; the deadline date is unchanged.",
+          "nextReviewOn": "2026-11-19"
+        }
+      ],
+      "appliedRevisions": [
+        "2026-11-16-haymarket-deadline-wording"
+      ],
+      "result": "Applied one existing-term revision through the revision journal: the application note and unknowns. Route and dates are unchanged. No whole-record verification date advanced.",
+      "publication": "Committed on a local branch for review. No push, merge, deployment, application or funder contact."
+    },
+    {
+      "id": "dry-run-discovery-2026-11-22",
+      "runType": "manual-dry-run",
+      "localDate": "2026-11-22",
+      "timeZone": "America/Los_Angeles",
+      "scheduledTimerObserved": false,
+      "executionModel": "claude-fable-5-2",
+      "reasoningEffort": "medium",
+      "executionNote": "Dry run of one discovery pass in a Claude Code session, to exercise the source registry, search playbook, verification standard and planner added in regen-commons/weave#147. Not a scheduled routine run; no timer is claimed. Bounded on purpose: it shows the records a run writes and is not a full week's discovery.",
+      "repository": "regen-commons/weave",
+      "baselineCommit": "d11fd32f2956707f0d04bb3ca3a5c2c921d84492",
+      "plan": {
+        "command": "node scripts/research-plan.mjs discovery --as-of 2026-11-22",
+        "sourcesDue": 27,
+        "cellsDue": 20,
+        "cellsPlanned": [
+          "open-source-public-goods/US-CA",
+          "climate-restoration/NG",
+          "community-energy-digital-inclusion/BR",
+          "culture-community-education/ZA",
+          "open-source-public-goods/NG"
+        ]
+      },
+      "additions": [],
+      "appliedAdditions": [],
+      "appliedRevisions": [],
+      "revisedPrograms": [],
+      "sourceCounts": {
+        "attempted": 8,
+        "retrieved": 7,
+        "retrievalFailed": 1,
+        "verifiedFields": 3,
+        "reviewedNoTerms": 3,
+        "failed": 2,
+        "wholeRecordVerifications": 0
+      },
+      "countDefinition": "Unique URLs opened in the built-in browser. Verified fields means only the fields listed on that source. No whole-record verification was made, so no verification date advances. The 15 earlier attempts through the fetch tool, which failed before any HTTP response, are listed in fetchToolFailures and not counted as source attempts.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems/nsf26-506/solicitation",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application",
+            "award"
+          ],
+          "finding": "NSF 26-506, posted February 19, 2026, replaces NSF 24-606. Full proposals due by 5 p.m. submitting organization's local time on September 1, 2026 and March 2, 2027, then the first Tuesday of September and March. Track 1 up to USD 300,000, Tracks 2 and 3 up to USD 1,500,000; 40 to 60 awards from an anticipated USD 40,000,000. First 6,000 characters read: the eligibility section was not reached."
+        },
+        {
+          "id": "source-02",
+          "url": "https://www.grants.ca.gov/?p=188472",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application",
+            "award",
+            "applicants"
+          ],
+          "finding": "Extreme Heat and Community Resilience Program Round 2, Governor's Office of Land Use and Climate Innovation: status Closed; full application was due October 13, 2026 at 2:00 PM PST. Awards USD 750,000 to 1.2 million and USD 3 million to 4.5 million. A closed round the catalog does not hold.",
+          "sourceId": "ca-grants-portal",
+          "finalUrl": "https://www.grants.ca.gov/grants/extreme-heat-and-community-resilience-program-round-2/"
+        },
+        {
+          "id": "source-03",
+          "url": "https://chamadas.funbio.org.br/",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application"
+          ],
+          "finding": "Two open selections: Articulação Institucional 11/2026 open until 04/12/2026 (total BRL 1,000,000) and Floresta Viva Águas do São Francisco open until 02/12/2026 (total BRL 17,760,000). Both match the catalog. No new call listed.",
+          "sourceId": "funbio-chamadas"
+        },
+        {
+          "id": "source-04",
+          "url": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Discovery only, first three entries read: IKI Small Grants (deadline given as January 8, 2027), EnAccess Innovations for Energy Access, and an Earth Journalism Network workshop in Jakarta. None opened at the owner in this pass.",
+          "sourceId": "terra-viva"
+        },
+        {
+          "id": "source-05",
+          "url": "https://www.sovereign.tech/programs",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Programs page readable: Sovereign Tech Fund, Resilience and Fellowship described. Fund applications go through its application platform; no dates on this page. The catalog already holds the fund as open.",
+          "sourceId": "sovereign-tech"
+        },
+        {
+          "id": "source-06",
+          "url": "https://gap.karmahq.xyz/funding-map",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirects to karmahq.org/funding-map. Lists grant programs, hackathons and accelerators with registry end dates, readable without sign-in. No entry opened at its operator.",
+          "sourceId": "karma-gap",
+          "finalUrl": "https://www.karmahq.org/funding-map"
+        },
+        {
+          "id": "source-07",
+          "url": "https://www.grants.gov/search-grants",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirected to simpler.grants.gov/search. The page text read 'Loading the table...' when captured, so no opportunities were enumerated. Not evidence of zero results.",
+          "sourceId": "grants-gov",
+          "finalUrl": "https://simpler.grants.gov/search"
+        },
+        {
+          "id": "source-08",
+          "url": "https://www.fundsforngos.org/",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403 with a bot challenge page. Not bypassed.",
+          "sourceId": "fundsforngos"
+        }
+      ],
+      "searches": [
+        {
+          "query": "open source public goods grant call for proposals California 2026 2027 apply",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/US-CA",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "Leads: NSF PESOSE (followed to owner), 20MM Spark Grants, California Grants Portal listings. No California-specific open-source call."
+        },
+        {
+          "query": "convocatoria subvención software libre código abierto California 2026 2027",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/US-CA",
+          "type": "new-call",
+          "language": "es",
+          "formOfCapital": "financial",
+          "outcome": "No Spanish-language call; results repeated NSF PESOSE and closed state listings."
+        },
+        {
+          "query": "in-kind equipment donation cloud credits program open source nonprofits 2026 apply",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/US-CA",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "material",
+          "outcome": "Cloud-credit programs from AWS, Cloudflare, Microsoft and DigitalOcean reported; none opened at the owner. No equipment program found."
+        },
+        {
+          "query": "climate adaptation restoration grant call for proposals Nigeria 2026 2027 deadline",
+          "searchedOn": "2026-11-22",
+          "cell": "climate-restoration/NG",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "GEF SGP Nigeria phase 8 concept call reported closed April 14, 2026; other dated calls reported past. No 2027 deadline found."
+        },
+        {
+          "query": "edital energia comunitária inclusão digital 2026 chamada pública inscrições",
+          "searchedOn": "2026-11-22",
+          "cell": "community-energy-digital-inclusion/BR",
+          "type": "new-call",
+          "language": "pt",
+          "formOfCapital": "financial",
+          "outcome": "Utility energy-efficiency calls (Enel, Equatorial, EDP) with reported cutoffs already past. Nothing for community energy or digital inclusion."
+        },
+        {
+          "query": "community arts cultural heritage funding call South Africa 2026 2027 applications open",
+          "searchedOn": "2026-11-22",
+          "cell": "culture-community-education/ZA",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "NAC, National Heritage Council and Western Cape 2026/27 calls reported closed March to May 2026. No 2027/28 call found."
+        },
+        {
+          "query": "open source digital public goods grant Nigeria 2026 2027 call for applications developers",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/NG",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "USPF Changemaker Challenge reported open by a newspaper; N-ATLAS challenge reported closed October 12, 2026."
+        }
+      ],
+      "fetchToolFailures": {
+        "attemptedOn": "2026-11-22",
+        "count": 15,
+        "error": "The fetch tool refused every host before any HTTP response (domain safety check). A tool failure, not a source failure.",
+        "urls": [
+          "https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems/nsf26-506/solicitation",
+          "https://www.grants.ca.gov/?p=188472",
+          "https://www.grants.ca.gov/grant_categories/disadvantaged-communities/?show_grants=active",
+          "https://www.undp.org/nigeria/news/call-project-concepts-gef-sgp-operational-phase-8",
+          "https://www.thisdaylive.com/2026/11/09/uspf-opens-nationwide-call-for-homegrown-tech-solutions/",
+          "https://www.grants.ca.gov/",
+          "https://www.terravivagrants.org/category/energy-climate-change/",
+          "https://chamadas.funbio.org.br/",
+          "https://casa.org.br/chamadas/",
+          "https://www.grants.gov/search-grants",
+          "https://explorer.gitcoin.co/",
+          "https://www.sovereign.tech/programs",
+          "https://prosas.com.br/editais",
+          "https://gap.karmahq.xyz/funding-map",
+          "https://www.fundsforngos.org/"
+        ]
+      },
+      "deferredLeads": [
+        {
+          "name": "NSF Pathways to Enable Secure Open-Source Ecosystems (PESOSE), NSF 26-506",
+          "discoveryUrl": "https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems/nsf26-506/solicitation",
+          "status": "partially-verified",
+          "reason": "Deadline and award read at the owner; eligibility, the restricted PI rules and the US-organization limits were not read. A new program under the existing funder recNrcMSWtSI1Gzpq once the eligibility section is reviewed. The deadline is 5 p.m. in each submitter's local time, so there is no single UTC instant to store."
+        },
+        {
+          "name": "IKI Small Grants, call with a January 8, 2027 deadline",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "status": "aggregator-only",
+          "reason": "Not a new program: the catalog holds local-iki::iki-small-grants-2027 as future. A freshness run should verify the open call at the owner and revise that record."
+        },
+        {
+          "name": "EnAccess Foundation, Innovations for Energy Access",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "status": "aggregator-only",
+          "reason": "Aggregator summary only; owner page not opened. Not in the catalog."
+        },
+        {
+          "name": "USPF Changemaker Challenge (Nigeria)",
+          "discoveryUrl": "https://www.thisdaylive.com/2026/11/09/uspf-opens-nationwide-call-for-homegrown-tech-solutions/",
+          "status": "unverified-news",
+          "reason": "Reported open by a newspaper in a search result; the article and the official application page were not opened."
+        },
+        {
+          "name": "20MM Spark Grants (California)",
+          "discoveryUrl": "https://20mm.org/spark-grants/",
+          "status": "search-result-only",
+          "reason": "Surfaced by search; page not opened. Not in the catalog."
+        },
+        {
+          "name": "California Extreme Heat and Community Resilience Program",
+          "discoveryUrl": "https://www.grants.ca.gov/grants/extreme-heat-and-community-resilience-program-round-2/",
+          "status": "closed-round",
+          "reason": "Round 2 verified closed on the state listing. Not imported: watch for Round 3."
+        },
+        {
+          "name": "Cloud-credit programs for open-source projects (AWS, Cloudflare Project Alexandria, Microsoft Azure, DigitalOcean)",
+          "discoveryUrl": "https://aws.amazon.com/blogs/opensource/aws-cloud-credits-for-open-source-projects-affirming-our-commitment",
+          "status": "non-cash-search-result-only",
+          "reason": "Material support, no money. Search results only; if confirmed at the owners they are non-cash-program dispositions, not catalog programs."
+        }
+      ],
+      "coverageLimitations": [
+        "Five of 20 due cells searched, one query per language. Only open-source-public-goods/US-CA was also searched for the rotating form of capital (material); the other four cells were searched for money only.",
+        "Eight of 27 due sources attempted. Not attempted: casa-chamadas and the 18 other candidates.",
+        "Search results are leads. Only three pages were read at an official source, and one of those only in part.",
+        "South Africa, Nigeria climate and Brazil energy leads were not followed to owners; their closed dates come from search summaries.",
+        "Grants.gov opportunities were not enumerated; FundsforNGOs stayed blocked.",
+        "Pending and unresolved historical leads were not revisited."
+      ],
+      "deduplication": {
+        "catalogRecordsCompared": 699,
+        "comparison": "Lead names checked against funder and program names in dist/data/funders.json. NSF, FUNBIO, IKI, Sovereign Tech and UNDP GEF SGP Nigeria are existing funders; EnAccess, 20MM and USPF are not present."
+      },
+      "validation": {
+        "catalogChanged": false,
+        "checks": "bun run build, bun run test, bun run guidance:check, git diff --check"
+      },
+      "result": "No catalog change. Coverage recorded for five cells and eight sources; seven leads held with reasons. No verification date advanced.",
+      "publication": "Pull request into develop for review. No deployment, application or funder contact."
+    },
+    {
+      "id": "name-normalization-2026-11-22",
+      "runType": "manual-name-normalization",
+      "localDate": "2026-11-22",
+      "timeZone": "America/Los_Angeles",
+      "scheduledTimerObserved": false,
+      "executionModel": "claude-fable-5-2",
+      "reasoningEffort": "medium",
+      "executionNote": "Requested by the maintainer in a Claude Code session after the quality baseline found em dashes from program names in page headings and tab titles. Not a scheduled routine run; no timer is claimed.",
+      "repository": "regen-commons/weave",
+      "baselineCommit": "9c8cf616bae98e31433c908bae4f42e6d2f2609a",
+      "rule": ".claude/skills/catalog-research/verification-standard.md#program-names",
+      "renameArchive": "research/maintenance-history/name-normalization-2026-11-22/renames.json",
+      "programsRenamed": 296,
+      "fundersRenamed": 2,
+      "additions": [],
+      "appliedAdditions": [],
+      "appliedRevisions": [],
+      "revisedPrograms": [],
+      "sourceCounts": {
+        "attempted": 0,
+        "retrieved": 0,
+        "verified": 0
+      },
+      "countDefinition": "No source was opened. A rename under the naming rule is not a verification, so no evidence, source or verification date changed.",
+      "method": "The em dash our records used between a program's name and its round or status note became a colon, and status words left the name. The catalog was recompiled as of its existing compiledAt, so only names differ: 296 program names, the 243 displayed-program copies derived from them, and two funder names in four fields each. Program and funder ids, terms, evidence, sources, screening and the revision journal are unchanged.",
+      "coverageLimitations": [
+        "Names were normalized from our own records, not rechecked at each funder. A name that already differed from the funder's wording still does.",
+        "Status words were removed from names without rechecking routes. The freshness plan lists the programs whose route is stale.",
+        "Source titles, notes and other text fields still contain em dashes; only program and funder names were in scope.",
+        "The four programs with a journaled revision had no em dash and were not touched."
+      ],
+      "validation": {
+        "catalogChanged": true,
+        "checks": "bun run research:import with the existing compiledAt, bun run build, bun run test, bun run guidance:check, python3 scripts/revise-program.py --check-base, git diff --check"
+      },
+      "result": "296 program names and two funder names changed, each recorded with its earlier value. Historical audits read the earlier names through tests/helpers/name-normalization-2026-11-22.mjs.",
+      "publication": "Pull request into develop for review. No deployment, application or funder contact."
+    },
+    {
+      "id": "name-normalization-2026-11-23",
+      "runType": "manual-name-normalization",
+      "localDate": "2026-11-23",
+      "timeZone": "America/Los_Angeles",
+      "scheduledTimerObserved": false,
+      "executionModel": "claude-fable-5-2",
+      "reasoningEffort": "medium",
+      "executionNote": "Requested in a Claude Code session after the accessibility audit found a program name read aloud as \"Grants2026\". Not a scheduled routine run; no timer is claimed.",
+      "repository": "regen-commons/weave",
+      "branch": "codex/catalog-name-spacing-2026-11-23",
+      "baselineCommit": "fecf537",
+      "rule": ".claude/skills/catalog-research/verification-standard.md#program-names",
+      "renameArchive": "research/maintenance-history/name-normalization-2026-11-23/renames.json",
+      "programsRenamed": 33,
+      "fundersRenamed": 0,
+      "additions": [],
+      "appliedAdditions": [],
+      "appliedRevisions": [
+        {
+          "id": "2026-11-23-haymarket-name-spacing",
+          "fundId": "recTQMgGnvmEseTmT",
+          "programId": "sustaining-grants2026-27"
+        }
+      ],
+      "sourceCounts": {
+        "attempted": 1,
+        "retrieved": 1,
+        "verifiedFields": 1,
+        "wholeRecordVerifications": 0
+      },
+      "countDefinition": "One URL opened in the built-in browser, for one field. The 33 archive renames opened no source and are not verifications.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.haymarket.org/grants-1",
+          "attemptedOn": "2026-11-23",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "name"
+          ],
+          "finding": "The section is headed \"Sustaining Grants\" and the page says \"The 2026-2027 Sustaining Grant deadline is Wednesday, December 2, 2026.\" Only the name was reviewed."
+        }
+      ],
+      "method": "A space was restored between a word and a year in 34 program names. 33 had no journaled revision and are recorded in the rename archive. The Haymarket Sustaining Grants program has journaled revisions, so its name changed through scripts/revise-program.py with the funder's page read that day as evidence and empty replacement screening, because the program has no screening rows. The revision command recompiled the catalog at the current time, which moved compiledAt and the count of upcoming dated deadlines.",
+      "coverageLimitations": [
+        "Names were corrected from our own records except Haymarket's, which was read at the funder.",
+        "Tier, track and phase labels run into a digit, such as Tier1, were not in scope.",
+        "FY2024 labels and LA2050 are left as written."
+      ],
+      "validation": {
+        "catalogChanged": true,
+        "checks": "bun run build, bun run test, bun run guidance:check, python3 scripts/revise-program.py --check-base, git diff --check"
+      },
+      "result": "34 program names corrected: 33 by rename archive and one by journaled revision. No whole-record verification date advanced.",
+      "publication": "Pull request into develop for review. No deployment, application or funder contact."
     }
   ]
 }

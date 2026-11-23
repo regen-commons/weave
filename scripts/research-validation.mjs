@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { isDeepStrictEqual } from "node:util";
+import {validateRevisionHistory} from './revision-history.mjs';
 export function validateSchema(value, schema, path = "$") {
   const fail = (message) => {
     throw new Error(`${path}: ${message}`);
@@ -57,6 +58,17 @@ export function validateSchema(value, schema, path = "$") {
         fail(`unexpected field ${key}`);
     }
   }
+}
+// The naming rule in the catalog-research verification standard, for the current catalog.
+// It is not part of validateResearch or validateSnapshot, because those also check
+// archived and rewound records that keep the names they had.
+const WORD_INTO_YEAR = /\p{L}(?:19|20)\d\d/u;
+const WRITTEN_AS_ONE = /\bFY(?:19|20)\d\d|\bLA2050\b/g;
+export function nameProblems(name) {
+  const problems = [];
+  if (name.includes("\u2014")) problems.push("has an em dash");
+  if (WORD_INTO_YEAR.test(name.replace(WRITTEN_AS_ONE, ""))) problems.push("has no space before a year");
+  return problems;
 }
 export function validateResearch(record, schema) {
   validateSchema(record, schema);
@@ -457,5 +469,6 @@ export function validateSnapshot(root) {
         );
     }
   }
+  validateRevisionHistory(root);
   return data;
 }

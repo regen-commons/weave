@@ -1,35 +1,1254 @@
 {
-  "version": 1,
-  "checkedOn": "2026-10-29",
+  "version": 2,
+  "checkedOn": "2026-11-22",
+  "about": "The source registry: the funding databases, portals and lists the catalog routines pull leads from. Rules for using it are in .claude/skills/catalog-research/search-playbook.md. A run updates lastUsed for every source it attempts, including failures.",
+  "fields": {
+    "kind": "government-portal | funder-directory | foundation-database | ecosystem-list | aggregator",
+    "role": "official-call-directory (the publisher is the funder or the government, so its listing is evidence for the fields it shows) | discovery-only (a lead to follow to the owner, never evidence)",
+    "covers": "Themes and places use the ids in research/search-coverage.json; formsOfCapital uses the eight PRD forms.",
+    "access.cost": "free | registration | paid. Paid sources are not used without the user's approval.",
+    "reliability.level": "official | curated | community",
+    "cadenceDays": "How often discovery sweeps the source. 0 means never on a schedule.",
+    "status": "active (a run has used it) | candidate (listed, not yet used: confirm address, access and query on first use) | blocked (retrieval keeps failing) | retired (kept for history)",
+    "lastUsed": "The latest attempt: date, the run or research pass that made it, and what happened. null until a run attempts it."
+  },
   "sources": [
     {
+      "id": "grants-gov",
       "name": "Grants.gov",
       "url": "https://www.grants.gov/",
+      "kind": "government-portal",
       "role": "official-call-directory",
-      "scope": "US federal grants",
-      "result": "reachable"
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "US"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public US federal listings. No sign-in to read."
+      },
+      "query": "The search page redirects to https://simpler.grants.gov/search, a script-rendered app: a plain fetch, and a browser read taken before the table loads, both return a loading shell, which is not evidence of zero results. Wait for the table, or use the public search API described at https://www.grants.gov/api (confirm the request shape on first use). Filter by status posted and forecasted, then open each opportunity's own page and the agency's notice.",
+      "reliability": {
+        "level": "official",
+        "note": "The listing is official for the fields it shows; the agency's notice of funding opportunity is the binding document."
+      },
+      "cadenceDays": 7,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Redirected to simpler.grants.gov/search; the result table was still loading when read, so opportunities were not enumerated."
+      }
     },
     {
+      "id": "ca-grants-portal",
       "name": "California Grants Portal",
       "url": "https://www.grants.ca.gov/",
+      "kind": "government-portal",
       "role": "official-call-directory",
-      "scope": "California grants and loans; distinguish instruments",
-      "result": "reachable"
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "US-CA"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public listings from California state agencies, grants and loans together."
+      },
+      "query": "Read the recent listings on the homepage, then each listing at /grants/<slug>/. Tell grants from loans. Follow the listing to the agency's guidelines for the binding deadline time and timezone.",
+      "reliability": {
+        "level": "official",
+        "note": "State-published listing. Times have appeared without a timezone, and guidelines have conflicted with the listing."
+      },
+      "cadenceDays": 7,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Listing for Extreme Heat and Community Resilience Program Round 2 retrieved in a browser and read: status closed."
+      }
     },
     {
-      "name": "Terra Viva Grants",
-      "url": "https://www.terravivagrants.org/",
+      "id": "epa-grants",
+      "name": "US EPA grants",
+      "url": "https://www.epa.gov/grants",
+      "kind": "government-portal",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "climate-restoration",
+          "community-energy-digital-inclusion"
+        ],
+        "places": [
+          "US"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public agency pages."
+      },
+      "query": "Start from the open announcements page and follow each program office's own notice. Recorded as a program directory, not one program.",
+      "reliability": {
+        "level": "official",
+        "note": "Agency directory; each notice is the evidence."
+      },
+      "cadenceDays": 28,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-10-29",
+        "runId": "history-verification-2026-10-29",
+        "result": "Reviewed as a program directory (history-lead-038)."
+      }
+    },
+    {
+      "id": "ntia-broadband",
+      "name": "NTIA BroadbandUSA funding programs",
+      "url": "https://broadbandusa.ntia.gov/funding-programs",
+      "kind": "government-portal",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "community-energy-digital-inclusion"
+        ],
+        "places": [
+          "US"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public agency pages."
+      },
+      "query": "Read the funding programs index and each program's notice.",
+      "reliability": {
+        "level": "official",
+        "note": "Agency directory. Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "eu-funding-tenders",
+      "name": "EU Funding and Tenders Portal",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals",
+      "kind": "government-portal",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "EU",
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public listings; an EU Login account is needed only to apply."
+      },
+      "query": "Script-rendered: use a real browser. Filter calls for proposals by status open and forthcoming and by programme (Horizon Europe, LIFE, Creative Europe, CERV). The topic page and the call document are the evidence. Check whether applicants outside the EU are eligible.",
+      "reliability": {
+        "level": "official",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 14,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "uk-find-a-grant",
+      "name": "UK Find a Grant",
+      "url": "https://www.find-government-grants.service.gov.uk/grants",
+      "kind": "government-portal",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "GB"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public UK government listings."
+      },
+      "query": "Browse or search the list, then follow each listing to the department's own guidance.",
+      "reliability": {
+        "level": "official",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "ukri-opportunities",
+      "name": "UKRI funding finder",
+      "url": "https://www.ukri.org/opportunity/",
+      "kind": "government-portal",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "culture-community-education"
+        ],
+        "places": [
+          "GB",
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial",
+          "intellectual"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public listings from the UK research councils and Innovate UK."
+      },
+      "query": "Filter by status open and upcoming. Check lead-organisation rules: most calls need a UK research organisation, some allow international partners.",
+      "reliability": {
+        "level": "official",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "au-grantconnect",
+      "name": "GrantConnect (Australia)",
+      "url": "https://www.grants.gov.au/",
+      "kind": "government-portal",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "AU"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "registration",
+        "terms": "Public listings; some documents need a free account."
+      },
+      "query": "Read current grant opportunities, then the guidelines document.",
+      "reliability": {
+        "level": "official",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 56,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "funbio-chamadas",
+      "name": "FUNBIO Chamadas",
+      "url": "https://chamadas.funbio.org.br/",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "climate-restoration"
+        ],
+        "places": [
+          "BR"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "pt"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public call pages."
+      },
+      "query": "Read the directory, then each call at /<slug> (the singular production path; the directory's own links and plural paths have failed). The regulation download has returned an unreadable shell: read errata and dates on the call page and record the regulation as unread.",
+      "reliability": {
+        "level": "official",
+        "note": "Funder's own call site. Errata change deadlines, so reread the call page each time."
+      },
+      "cadenceDays": 7,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Directory retrieved in a browser: two open calls, both already in the catalog, closing 02/12/2026 and 04/12/2026."
+      }
+    },
+    {
+      "id": "casa-chamadas",
+      "name": "Fundo Casa Socioambiental Chamadas",
+      "url": "https://casa.org.br/chamadas/",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "climate-restoration",
+          "culture-community-education"
+        ],
+        "places": [
+          "BR"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "pt",
+          "en",
+          "es"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public call pages."
+      },
+      "query": "Read the calls directory and its open and closed labels. The /editais path has been inaccessible; the English directory has worked.",
+      "reliability": {
+        "level": "official",
+        "note": "Funder's own site."
+      },
+      "cadenceDays": 14,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-10-29",
+        "runId": "manual-monday-discovery-2026-10-29",
+        "result": "Directory retrieved; displayed calls were labeled closed."
+      }
+    },
+    {
+      "id": "nac-za",
+      "name": "National Arts Council of South Africa funding",
+      "url": "https://www.nac.org.za/latest-funding-calls/",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "culture-community-education"
+        ],
+        "places": [
+          "ZA"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public call pages."
+      },
+      "query": "Read the latest funding calls page, then each call's own post. The directory has timed out and returned HTTP 429: retry once later in the run, then record the gap.",
+      "reliability": {
+        "level": "official",
+        "note": "Funder's own site; directory retrieval is unreliable."
+      },
+      "cadenceDays": 14,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-09",
+        "runId": "monday-discovery-2026-11-09",
+        "result": "Directory failed (page shell, then HTTP 429); two historical calls verified on their own posts."
+      }
+    },
+    {
+      "id": "nlnet",
+      "name": "NLnet open calls",
+      "url": "https://nlnet.nl/funding.html",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "EU",
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Read the funding page and the news list at /news/ for dated call announcements. Each fund has its own eligibility and guide pages.",
+      "reliability": {
+        "level": "official",
+        "note": "Funder's own site with dated announcements."
+      },
+      "cadenceDays": 28,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-15",
+        "runId": "reverification-2026-11-15",
+        "result": "Restack second call verified."
+      }
+    },
+    {
+      "id": "sovereign-tech",
+      "name": "Sovereign Tech Agency programs",
+      "url": "https://www.sovereign.tech/programs",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en",
+          "de"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Read each program page for open application windows.",
+      "reliability": {
+        "level": "official",
+        "note": "Funder's own site. The programs page describes each program; open windows are on each program's own page."
+      },
+      "cadenceDays": 28,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Programs page retrieved in a browser; four program areas described, no dated call on the page."
+      }
+    },
+    {
+      "id": "ef-esp",
+      "name": "Ethereum Foundation Ecosystem Support Program",
+      "url": "https://esp.ethereum.foundation/",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Read the applicants pages for open grant rounds and wishlist items.",
+      "reliability": {
+        "level": "official",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "arbitrum-grants",
+      "name": "Arbitrum Foundation grants",
+      "url": "https://arbitrum.foundation/grants",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Lists several grant programs with different operators; follow each to its operator.",
+      "reliability": {
+        "level": "official",
+        "note": "Recorded as a program directory, not one program."
+      },
+      "cadenceDays": 56,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-10-29",
+        "runId": "history-verification-2026-10-29",
+        "result": "Reviewed as a program directory (history-lead-008)."
+      }
+    },
+    {
+      "id": "optimism-gov",
+      "name": "Optimism Collective governance forum",
+      "url": "https://gov.optimism.io/",
+      "kind": "ecosystem-list",
       "role": "discovery-only",
-      "scope": "Agriculture, energy, environment and developing countries",
-      "result": "reachable"
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public forum."
+      },
+      "query": "Read the grants and retro funding categories for round announcements, then verify on the Collective's own application page.",
+      "reliability": {
+        "level": "community",
+        "note": "Forum posts are leads; proposals are not open calls. Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
     },
     {
+      "id": "gitcoin-explorer",
+      "name": "Gitcoin Grants explorer",
+      "url": "https://explorer.gitcoin.co/",
+      "kind": "ecosystem-list",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "List active and upcoming rounds. Each round has its own operator and eligibility: verify on the operator's page. Record matching pools as pools, never as awards.",
+      "reliability": {
+        "level": "community",
+        "note": "Rounds are run by many operators. Not yet used by a run."
+      },
+      "cadenceDays": 14,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "giveth-qf",
+      "name": "Giveth quadratic funding rounds",
+      "url": "https://giveth.io/qf",
+      "kind": "ecosystem-list",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Read active and upcoming rounds and their eligibility posts.",
+      "reliability": {
+        "level": "community",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "octant",
+      "name": "Octant",
+      "url": "https://octant.app/",
+      "kind": "ecosystem-list",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Check epoch dates and the project submission rules in Octant's own documentation.",
+      "reliability": {
+        "level": "community",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 56,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "karma-gap",
+      "name": "Karma GAP funding map",
+      "url": "https://www.karmahq.org/funding-map",
+      "kind": "ecosystem-list",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Browse listed grant programs, hackathons and accelerators, then verify each at its operator. The older gap.karmahq.xyz address redirects here.",
+      "reliability": {
+        "level": "community",
+        "note": "Community-maintained registry of web3 funding programs. End dates shown are the registry's, not evidence."
+      },
+      "cadenceDays": 28,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Retrieved in a browser after a redirect to karmahq.org; program list readable without sign-in."
+      }
+    },
+    {
+      "id": "daostar-grants",
+      "name": "DAOstar grant data (DAOIP-5)",
+      "url": "https://daostar.org/",
+      "kind": "ecosystem-list",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Open standard and published grant-pool data."
+      },
+      "query": "Find grant systems that publish DAOIP-5 grant pools; use them to find operators, then verify at the operator.",
+      "reliability": {
+        "level": "community",
+        "note": "Structured data of past and current pools. Not yet used by a run."
+      },
+      "cadenceDays": 84,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "floss-fund",
+      "name": "FLOSS/fund",
+      "url": "https://floss.fund/",
+      "kind": "funder-directory",
+      "role": "official-call-directory",
+      "covers": {
+        "themes": [
+          "open-source-public-goods"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public pages."
+      },
+      "query": "Read the fund's own application and eligibility pages.",
+      "reliability": {
+        "level": "official",
+        "note": "Appeared in a November 9 query; not yet reviewed as a source."
+      },
+      "cadenceDays": 56,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "microgrants-list",
+      "name": "Microgrants list (nayafia/microgrants)",
+      "url": "https://github.com/nayafia/microgrants",
+      "kind": "ecosystem-list",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "culture-community-education"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public repository."
+      },
+      "query": "Read the list for small no-strings programs, then verify each at its owner. Check the last commit date before trusting an entry.",
+      "reliability": {
+        "level": "community",
+        "note": "May be stale. Not yet used by a run."
+      },
+      "cadenceDays": 84,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "fito-funders",
+      "name": "Fito Network funders database",
+      "url": "https://www.fito.network/funders-database",
+      "kind": "foundation-database",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "climate-restoration",
+          "culture-community-education"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public database; the source of the 593 original identities."
+      },
+      "query": "Compare its rows with research/source-record-ids.json for new or renamed funders. Nine rows remain unresolved in research/deferred-identities.json.",
+      "reliability": {
+        "level": "curated",
+        "note": "Publisher-curated funder names with little program detail; identities need official confirmation."
+      },
+      "cadenceDays": 84,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-10-15",
+        "runId": "policy-followup-2026-10-15",
+        "result": "Baseline source of the catalog; nine identities deferred."
+      }
+    },
+    {
+      "id": "grantnav-360giving",
+      "name": "360Giving GrantNav",
+      "url": "https://grantnav.threesixtygiving.org/",
+      "kind": "foundation-database",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "GB"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Open data on grants already made, published by UK funders to the 360Giving standard. Check each publisher's licence before reusing data."
+      },
+      "query": "Search awarded grants by keyword and place to find who funds similar work, then look for that funder's current program on its own site. It lists past grants, not open calls.",
+      "reliability": {
+        "level": "curated",
+        "note": "Publisher-supplied data. Not yet used by a run."
+      },
+      "cadenceDays": 84,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "propublica-nonprofits",
+      "name": "ProPublica Nonprofit Explorer",
+      "url": "https://projects.propublica.org/nonprofits/",
+      "kind": "foundation-database",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "US"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public US tax filings with a free API. Read its terms of use before bulk queries."
+      },
+      "query": "Look up a US foundation's legal name, EIN and Form 990-PF to settle identity and whether it makes grants. It never establishes an open call.",
+      "reliability": {
+        "level": "curated",
+        "note": "Derived from IRS filings, one to two years behind. Not yet used by a run."
+      },
+      "cadenceDays": 84,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "candid-fdo",
+      "name": "Candid Foundation Directory",
+      "url": "https://candid.org/find-funding",
+      "kind": "foundation-database",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "US",
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "paid",
+        "terms": "Subscription product. Not used: a subscription needs the user's approval, and its licence may limit what can be republished."
+      },
+      "query": "Not queried. If approved, use only to find funders, and take all terms from the funder.",
+      "reliability": {
+        "level": "curated",
+        "note": "Paid; listed so the choice is recorded."
+      },
+      "cadenceDays": 0,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "terra-viva",
+      "name": "Terra Viva Grants Directory",
+      "url": "https://www.terravivagrants.org/",
+      "kind": "aggregator",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "climate-restoration",
+          "community-energy-digital-inclusion"
+        ],
+        "places": [
+          "global",
+          "NG",
+          "ZA",
+          "BR"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public listing pages; a paid tier exists and is not used."
+      },
+      "query": "Read category pages such as /category/energy-climate-change/ (first page each run) and follow every lead to the owner.",
+      "reliability": {
+        "level": "curated",
+        "note": "Summaries can be out of date or wrong; never import its text."
+      },
+      "cadenceDays": 7,
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "Energy and climate category retrieved in a browser; three first-page leads noted, none imported."
+      }
+    },
+    {
+      "id": "fundsforngos",
       "name": "FundsforNGOs",
       "url": "https://www.fundsforngos.org/",
+      "kind": "aggregator",
       "role": "discovery-only",
-      "scope": "NGO calls; corroborate on official sources",
-      "result": "fetch-blocked-403"
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "global",
+          "NG",
+          "ZA"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public listing pages with a paid tier."
+      },
+      "query": "Blocked: plain fetches and a browser both get HTTP 403 behind a bot challenge, which a run must not bypass. Try once per cadence and record the gap.",
+      "reliability": {
+        "level": "curated",
+        "note": "Unreachable for every run so far."
+      },
+      "cadenceDays": 28,
+      "status": "blocked",
+      "lastUsed": {
+        "on": "2026-11-22",
+        "runId": "dry-run-discovery-2026-11-22",
+        "result": "HTTP 403 behind a bot challenge in a browser. Not bypassed."
+      }
+    },
+    {
+      "id": "prosas",
+      "name": "Prosas",
+      "url": "https://prosas.com.br/editais",
+      "kind": "aggregator",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "climate-restoration",
+          "culture-community-education"
+        ],
+        "places": [
+          "BR"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "pt"
+        ]
+      },
+      "access": {
+        "cost": "registration",
+        "terms": "Brazilian platform of editais; some detail needs a free account."
+      },
+      "query": "List open editais by area, then verify at the sponsor's own edital. Confirm access on first use.",
+      "reliability": {
+        "level": "curated",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 14,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "opportunities-for-africans",
+      "name": "Opportunities for Africans",
+      "url": "https://www.opportunitiesforafricans.com/",
+      "kind": "aggregator",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "open-source-public-goods",
+          "climate-restoration",
+          "community-energy-digital-inclusion",
+          "culture-community-education"
+        ],
+        "places": [
+          "NG",
+          "ZA",
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial",
+          "experiential"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public blog listings."
+      },
+      "query": "Read the grants and fellowships categories and follow leads to owners.",
+      "reliability": {
+        "level": "community",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 14,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "on-the-move",
+      "name": "On the Move funding",
+      "url": "https://on-the-move.org/funding",
+      "kind": "aggregator",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "culture-community-education"
+        ],
+        "places": [
+          "global",
+          "EU"
+        ],
+        "formsOfCapital": [
+          "financial",
+          "experiential",
+          "cultural"
+        ],
+        "languages": [
+          "en",
+          "fr"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public cultural mobility funding guides and calls."
+      },
+      "query": "Read current calls and the country funding guides, then verify at the owner.",
+      "reliability": {
+        "level": "curated",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 28,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "climate-funds-update",
+      "name": "Climate Funds Update",
+      "url": "https://climatefundsupdate.org/",
+      "kind": "foundation-database",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "climate-restoration",
+          "community-energy-digital-inclusion"
+        ],
+        "places": [
+          "global"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public data on multilateral climate funds."
+      },
+      "query": "Use the fund profiles to find multilateral funds and their access routes; most reach projects through accredited entities, so record the route honestly.",
+      "reliability": {
+        "level": "curated",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 84,
+      "status": "candidate",
+      "lastUsed": null
+    },
+    {
+      "id": "dsire",
+      "name": "DSIRE",
+      "url": "https://www.dsireusa.org/",
+      "kind": "foundation-database",
+      "role": "discovery-only",
+      "covers": {
+        "themes": [
+          "community-energy-digital-inclusion"
+        ],
+        "places": [
+          "US",
+          "US-CA"
+        ],
+        "formsOfCapital": [
+          "financial"
+        ],
+        "languages": [
+          "en"
+        ]
+      },
+      "access": {
+        "cost": "free",
+        "terms": "Public database of US clean energy incentives and policies."
+      },
+      "query": "Filter by state and by grant or loan program, then verify at the administering agency.",
+      "reliability": {
+        "level": "curated",
+        "note": "Not yet used by a run."
+      },
+      "cadenceDays": 84,
+      "status": "candidate",
+      "lastUsed": null
     }
-  ],
-  "directSources": "Use official sources in the catalog and historical intake queue. Rotate categories and regions; record failures and skipped coverage, and verify each new program at its owner."
+  ]
 }

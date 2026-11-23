@@ -15,6 +15,7 @@
     "prepare:ai": "node scripts/build-ai.mjs",
     "research:collect": "python3 scripts/collect-sources.py",
     "research:import": "python3 scripts/import-data.py",
+    "research:revise": "python3 scripts/revise-program.py",
     "design:tokens": "bun run --filter @regen-commons/design-system tokens",
     "design:check": "bun run --filter @regen-commons/design-system check",
     "design:serve": "SERVE_ROOT=packages/design-system PORT=4173 bun serve.mjs",
