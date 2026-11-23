@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FIRST_VIEWS, RESULT_MARK, readFirstViews, scriptsAfterFirstPaint, unlistedPage, withFirstView } from "../dev/prerender.ts";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { FIRST_VIEWS, PAGE_MODULES, RESULT_MARK, pageChunks, readFirstViews, scriptsAfterFirstPaint, unlistedPage, withFirstView, withModuleHints } from "../dev/prerender.ts";
 import { LINK_PREVIEWS, previewFile, withPreview } from "../dev/link-previews.ts";
 import { ROUTES } from "../src/routes.ts";
 
@@ -59,4 +61,33 @@ test("the addresses with no link preview of their own are a person's pages and t
   assert.match(page, /<meta name="robots" content="noindex">/u);
   assert.doesNotMatch(page, /rel="canonical"|application\/ld\+json/u);
   assert.match(home, /rel="canonical"/u, "Home itself keeps its canonical link");
+});
+
+test("each route's page module is the one App.tsx loads for it", () => {
+  const app = readFileSync(fileURLToPath(new URL("../src/App.tsx", import.meta.url)), "utf8");
+  for (const [route, module] of Object.entries(PAGE_MODULES)) {
+    assert.ok(app.includes(`import("./pages/${module}")`), `${route}: ${module}`);
+  }
+});
+
+test("a page names its own files that the app's script does not bring, and no other page's", () => {
+  const chunk = (fileName: string, imports: string[], extra: { isEntry?: boolean; facade?: string } = {}) =>
+    [fileName, { type: "chunk" as const, fileName, isEntry: extra.isEntry ?? false, facadeModuleId: extra.facade ?? null, imports }] as const;
+  const bundle = Object.fromEntries([
+    chunk("assets/index.js", ["assets/react.js", "assets/shared.js"], { isEntry: true, facade: "/r/src/main.tsx" }),
+    chunk("assets/react.js", []),
+    chunk("assets/shared.js", []),
+    chunk("assets/Funding.js", ["assets/shared.js", "assets/cards.js"], { facade: "/r/src/pages/Funding.tsx" }),
+    chunk("assets/cards.js", ["assets/tag.js"]),
+    chunk("assets/tag.js", []),
+    chunk("assets/Home.js", ["assets/hero.js"], { facade: "/r/src/pages/Home.tsx" }),
+    chunk("assets/hero.js", []),
+    ["assets/index.css", { type: "asset" as const }],
+  ]);
+  assert.deepEqual(pageChunks(bundle, "Funding.tsx"), ["assets/Funding.js", "assets/cards.js", "assets/tag.js"]);
+  assert.deepEqual(pageChunks(bundle, "Home.tsx"), ["assets/Home.js", "assets/hero.js"]);
+  assert.throws(() => pageChunks(bundle, "Settings.tsx"), /No built chunk for Settings\.tsx/u);
+  const page = withModuleHints(PAGE, ["assets/Home.js"], "/");
+  assert.match(page, /<link rel="modulepreload" crossorigin href="\/assets\/Home\.js">\n  <\/head>/u);
+  assert.equal(withModuleHints(PAGE, [], "/"), PAGE);
 });

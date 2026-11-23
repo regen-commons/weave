@@ -16,7 +16,7 @@ import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { withPagePreview } from "@weave/api/page-preview";
-import { ROUTES } from "../src/routes.ts";
+import { matchRoute, ROUTES, type RouteName } from "../src/routes.ts";
 import { LINK_PREVIEWS, pagePreview } from "./link-previews.ts";
 
 /** An address drawn at build time, and the file the server sends it as. */
@@ -71,6 +71,67 @@ export function unlistedPage(html: string): string {
   return withPagePreview(html, pagePreview(LINK_PREVIEWS[0]!), { indexed: false });
 }
 
+/** The page module each route draws with, as src/App.tsx imports it (a test holds the two together). */
+export const PAGE_MODULES: Readonly<Record<RouteName, string>> = {
+  home: "Home.tsx",
+  "new-initiative": "StartNew.tsx",
+  initiative: "Describe.tsx",
+  needs: "AskStep.tsx",
+  offers: "AskStep.tsx",
+  partners: "ListPage.tsx",
+  initiatives: "ListPage.tsx",
+  funding: "Funding.tsx",
+  opportunity: "Opportunity.tsx",
+  "initiative-detail": "RecordDetail.tsx",
+  "team-workspace": "TeamWorkspace.tsx",
+  settings: "Settings.tsx",
+  "your-initiative": "YourInitiative.tsx",
+  "your-initiatives": "YourInitiatives.tsx",
+};
+
+/** The part of a built chunk this reads. */
+export interface BuiltChunk {
+  readonly type: "chunk";
+  readonly fileName: string;
+  readonly isEntry: boolean;
+  readonly facadeModuleId: string | null;
+  readonly imports: readonly string[];
+}
+type Built = Readonly<Record<string, BuiltChunk | { readonly type: "asset" }>>;
+
+function withImports(bundle: Built, start: readonly string[]): Set<string> {
+  const seen = new Set<string>();
+  const next = [...start];
+  for (let file = next.pop(); file !== undefined; file = next.pop()) {
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const chunk = bundle[file];
+    if (chunk?.type === "chunk") next.push(...chunk.imports);
+  }
+  return seen;
+}
+
+/**
+ * The files a page's code needs that the app's own script does not already bring: the page's chunk
+ * and what it imports. The app fetches them only once its script has run, a round trip later, so the
+ * page's HTML names them up front (Q-02). Other pages' files are left out, so no page pays for them.
+ */
+export function pageChunks(bundle: Built, pageModule: string): string[] {
+  const chunks = Object.values(bundle).filter((chunk): chunk is BuiltChunk => chunk.type === "chunk");
+  const entry = chunks.find((chunk) => chunk.isEntry);
+  const page = chunks.find((chunk) => chunk.facadeModuleId?.endsWith(`/src/pages/${pageModule}`));
+  if (!entry || !page) throw new Error(`No built chunk for ${pageModule}.`);
+  const loaded = withImports(bundle, [entry.fileName]);
+  return [...withImports(bundle, [page.fileName])].filter((file) => !loaded.has(file)).sort();
+}
+
+/** The page with module preloads for these files at the end of its head. */
+export function withModuleHints(html: string, files: readonly string[], base: string): string {
+  if (files.length === 0) return html;
+  const tags = files.map((file) => `    <link rel="modulepreload" crossorigin href="${base}${file}">\n`).join("");
+  return html.replace("</head>", () => `${tags}  </head>`);
+}
+
 /** The line the drawing process writes its result on, so nothing else it prints is read as the result. */
 export const RESULT_MARK = "@@weave-first-views@@";
 
@@ -105,6 +166,7 @@ async function drawFirstViews(root: string, paths: readonly string[]): Promise<R
 
 export function prerender(): Plugin {
   let root = process.cwd();
+  let base = "/";
   return {
     name: "weave-prerender",
     apply: "build",
@@ -112,6 +174,7 @@ export function prerender(): Plugin {
     enforce: "post",
     configResolved(config) {
       root = config.root;
+      base = config.base;
     },
     // After the build has written its tags, and before the link previews copy the page.
     transformIndexHtml: { order: "post", handler: scriptsAfterFirstPaint },
@@ -124,9 +187,13 @@ export function prerender(): Plugin {
       this.emitFile({ type: "asset", fileName: SHELL_FILE, source: shell });
       const views = await drawFirstViews(root, FIRST_VIEWS.map((view) => view.path));
       for (const { path, file } of FIRST_VIEWS) {
+        const route = matchRoute(path);
+        if (!route) throw new Error(`${path} is not a route.`);
+        const hints = pageChunks(bundle as unknown as Built, PAGE_MODULES[route.name]);
+        const page = (html: string) => withModuleHints(withFirstView(html, path, views[path]!), hints, base);
         const existing = bundle[file];
-        if (existing?.type === "asset" && typeof existing.source === "string") existing.source = withFirstView(existing.source, path, views[path]!);
-        else this.emitFile({ type: "asset", fileName: file, source: withFirstView(unlistedPage(shell), path, views[path]!) });
+        if (existing?.type === "asset" && typeof existing.source === "string") existing.source = page(existing.source);
+        else this.emitFile({ type: "asset", fileName: file, source: page(unlistedPage(shell)) });
       }
     },
   };
