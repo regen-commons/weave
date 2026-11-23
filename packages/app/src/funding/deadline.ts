@@ -55,3 +55,22 @@ export function deadlineSign(day: string, closed: boolean, now: Date): DeadlineS
   if (days <= DEADLINE_COUNTED_DAYS) return { label: `Closes in ${days} days`, dated: false, soon };
   return { label: "Closes", dated: true, soon: false };
 }
+
+const dayInWords = new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" });
+const timeInWords = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" });
+
+/**
+ * The fund sheet's sentence for a call's deadline, in words a screen reader says naturally: the
+ * source's date and, where the source gives an exact moment, its time in UTC. A moment that falls
+ * on another UTC day says that day too. An instant written as an ISO string is never read out as
+ * one (quality finding Q-12).
+ */
+export function deadlineSentence(deadlineDate: string, deadlineInstant?: string | null): string {
+  const day = dayInWords.format(new Date(`${deadlineDate}T00:00:00Z`));
+  const instant = deadlineInstant ? new Date(deadlineInstant) : null;
+  if (!instant || !Number.isFinite(instant.getTime())) return `Source deadline ${day}, exact time unverified.`;
+  const time = `${timeInWords.format(instant)} UTC`;
+  return closingDay(deadlineDate, deadlineInstant) === deadlineDate
+    ? `Source deadline ${day}, ${time}.`
+    : `Source deadline ${day}, which is ${time} on ${dayInWords.format(instant)}.`;
+}

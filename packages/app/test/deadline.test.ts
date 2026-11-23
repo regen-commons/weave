@@ -7,6 +7,7 @@ import {
   closingDay,
   closingDayEnds,
   daysToDeadline,
+  deadlineSentence,
   deadlineSign,
 } from "../src/funding/deadline.ts";
 
@@ -51,4 +52,16 @@ test("the tone marks the last two weeks only; the count runs on for two months",
 test("a date that has passed, or a call the catalog reads as closed, has ended and is never toned", () => {
   assert.deepEqual(sign("2026-11-17"), { label: "Ended", dated: true, soon: false });
   assert.deepEqual(sign("2026-11-30", true), { label: "Ended", dated: true, soon: false });
+});
+
+test("the fund sheet says a deadline's time in words with its zone, never as an ISO string (Q-12)", () => {
+  assert.equal(deadlineSentence("2026-11-03", "2026-11-03T11:00:00Z"), "Source deadline 3 November 2026, 11:00 UTC.");
+  assert.equal(
+    deadlineSentence("2026-11-20", "2026-11-21T07:59:00Z"),
+    "Source deadline 20 November 2026, which is 07:59 UTC on 21 November 2026.",
+    "23:59 Pacific on the 20th falls on the 21st in UTC, and the sentence says so",
+  );
+  assert.equal(deadlineSentence("2026-11-03", null), "Source deadline 3 November 2026, exact time unverified.");
+  assert.equal(deadlineSentence("2026-11-03", "not a time"), "Source deadline 3 November 2026, exact time unverified.");
+  assert.doesNotMatch(deadlineSentence("2026-11-03", "2026-11-03T11:00:00Z"), /\dT\d|Z\b/u);
 });
