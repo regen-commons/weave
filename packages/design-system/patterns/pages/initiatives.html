@@ -70,6 +70,13 @@
             </div>
             <div class="rc-active-filters" data-example-chips></div>
             <p class="rc-meta" role="status" data-example-count>3 of 3 examples</p>
+            <!-- The pinned row: the app shows it once the bar's controls have gone up under the app bar (DL-130). -->
+            <div class="rc-filter-pin" role="group" aria-label="Filter initiatives" hidden>
+              <div class="rc-filter-controls">
+                <button class="rc-button" data-variant="secondary" data-filter="search" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#search"/></svg>Search</button>
+                <button class="rc-button" data-variant="secondary" data-filter="all" type="button" data-open-dialog="initiative-filters"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#filter"/></svg>Filters</button>
+              </div>
+            </div>
           </div>
           <dialog class="rc-dialog" data-presentation="information" id="initiative-filters" aria-labelledby="initiative-filters-title">
             <div class="rc-dialog-grip" data-sheet-handle aria-hidden="true"></div>
@@ -78,20 +85,22 @@
                 <h2 class="rc-dialog-title" id="initiative-filters-title">Filters</h2>
                 <form method="dialog" id="initiative-filters-close"><button class="rc-button" data-variant="secondary" type="submit">Close</button></form>
               </div>
-              <fieldset>
-                <legend>Sort</legend>
-                <div class="rc-chip-group">
-                  <label class="rc-chip"><input class="rc-check" type="radio" name="initiative-sort-sheet" value="name" checked />Name A to Z</label>
-                  <label class="rc-chip"><input class="rc-check" type="radio" name="initiative-sort-sheet" value="reverse" />Name Z to A</label>
-                </div>
-              </fieldset>
-              <fieldset>
-                <legend>Country</legend>
-                <div class="rc-chip-group">
-                  <label class="rc-chip"><input class="rc-check" type="checkbox" value="Brazil" data-example-country />Brazil</label>
-                  <label class="rc-chip"><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label>
-                </div>
-              </fieldset>
+              <div class="rc-dialog-scroll">
+                <fieldset>
+                  <legend>Sort</legend>
+                  <div class="rc-chip-group">
+                    <label class="rc-chip"><input class="rc-check" type="radio" name="initiative-sort-sheet" value="name" checked />Name A to Z</label>
+                    <label class="rc-chip"><input class="rc-check" type="radio" name="initiative-sort-sheet" value="reverse" />Name Z to A</label>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend>Country</legend>
+                  <div class="rc-chip-group">
+                    <label class="rc-chip"><input class="rc-check" type="checkbox" value="Brazil" data-example-country />Brazil</label>
+                    <label class="rc-chip"><input class="rc-check" type="checkbox" value="Kenya" data-example-country />Kenya</label>
+                  </div>
+                </fieldset>
+              </div>
               <div class="rc-dialog-foot">
                 <button class="rc-button" data-variant="secondary" type="button" data-example-clear>Clear All</button>
                 <button class="rc-button" data-variant="primary" type="submit" form="initiative-filters-close">Show Results</button>

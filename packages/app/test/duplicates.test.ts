@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { likelyDuplicate } from "../src/initiative/duplicates.ts";
+import { dismissDuplicate, duplicateOffer, likelyDuplicate } from "../src/initiative/duplicates.ts";
 import { certifiedRecord } from "../src/social/live.ts";
 
 const orchard = { name: "Orchard learning circle", links: ["https://example.org/orchard"] };
@@ -55,4 +55,18 @@ test("when several projects share a card's link, a project with the card's own n
   const school = { name: "Valley seed school", links: site };
   const notes = { name: "Riverbank water notes", links: [] };
   assert.equal(likelyDuplicate({ name: "Riverbank water notes", links: site }, [nursery, school, notes]), notes);
+});
+
+test("Your Initiatives offers a draft the project it looks like, until the person says it is a different initiative (DL-134)", () => {
+  const project = { uri: "at://did:plc:example/org.hypercerts.collection/water", name: "Water notes (fixture)", links: [] as string[] };
+  const other = { uri: "at://did:plc:example/org.hypercerts.collection/seeds", name: "Seed library of the upper valley", links: [] as string[] };
+  const owner = "b1000000-0000-4000-8000-000000000001", draft = "d1000000-0000-4000-8000-000000000001";
+  assert.equal(duplicateOffer(owner, draft, { name: "Water notes", links: [] }, [other, project]), project);
+  assert.equal(duplicateOffer(owner, draft, { name: "Seed library at the school garden", links: [] }, [other, project]), null, "a name that only shares words is not offered");
+  assert.equal(duplicateOffer(owner, draft, { name: "Water notes", links: [] }, []), null, "nothing is offered before projects are read");
+  dismissDuplicate(owner, draft, project.uri);
+  assert.equal(duplicateOffer(owner, draft, { name: "Water notes", links: [] }, [other, project]), null, "the answer holds for the visit");
+  // The answer belongs to one account, one draft and one project.
+  assert.equal(duplicateOffer("b1000000-0000-4000-8000-000000000002", draft, { name: "Water notes", links: [] }, [project]), project);
+  assert.equal(duplicateOffer(owner, "d1000000-0000-4000-8000-000000000002", { name: "Water notes", links: [] }, [project]), project);
 });

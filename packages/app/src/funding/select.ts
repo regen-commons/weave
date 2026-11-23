@@ -144,6 +144,29 @@ export function timeToClose(entry: Entry, now = new Date()): number {
 
 const intersects = (chosen: readonly string[], values: readonly string[]) =>
   chosen.some((value) => values.includes(value));
+const within = (remaining: number, limit: number) => remaining >= 0 && remaining <= limit;
+
+/** A fund's words as search reads them: accents aside and in lower case. Worked out once per entry. */
+const folded = new WeakMap<Entry, string>();
+function searchText(entry: Entry): string {
+  let text = folded.get(entry);
+  if (text === undefined) {
+    text = [
+      entry.fund.displayName,
+      entry.fund.description,
+      ...entry.fund.sectors,
+      ...entry.fund.regions,
+      entry.program?.name,
+      ...(entry.program?.focus ?? []),
+    ]
+      .join(" ")
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .toLowerCase();
+    folded.set(entry, text);
+  }
+  return text;
+}
 
 /**
  * Any of the chosen values within one filter, and every filter at once. Filtering never computes a
@@ -167,32 +190,19 @@ export function filterFunding(
     .trim()
     .split(/\s+/u)
     .filter(Boolean);
-  const selected = entries.filter((entry) => {
-    const access = effectiveAccess(programFund(entry.fund, entry.program), now);
-    const text = [
-      entry.fund.displayName,
-      entry.fund.description,
-      ...entry.fund.sectors,
-      ...entry.fund.regions,
-      entry.program?.name,
-      ...(entry.program?.focus ?? []),
-    ]
-      .join(" ")
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "")
-      .toLowerCase();
-    const remaining = timeToClose(entry, now);
-    return (
-      query.every((word) => text.includes(word)) &&
-      (!filters.access.length || filters.access.includes(routeGroupOf(access) ?? "")) &&
+  // Each check runs only for a filter in use, and each fund's words are folded for search once.
+  const selected = entries.filter(
+    (entry) =>
+      query.every((word) => searchText(entry).includes(word)) &&
+      (!filters.access.length ||
+        filters.access.includes(routeGroupOf(effectiveAccess(programFund(entry.fund, entry.program), now)) ?? "")) &&
       (!filters.region.length || intersects(filters.region, entry.fund.regions)) &&
       (!filters.theme.length || intersects(filters.theme, entry.fund.sectors)) &&
       // An overview record names no program, so it has no kind to match.
       (!filters.kind.length || (!!entry.program && filters.kind.includes(entry.program.instrument))) &&
       (!filters.group || ranks.get(entry.id)?.result.group === filters.group) &&
-      (!filters.closing || (remaining >= 0 && remaining <= Number(filters.closing) * 86400000))
-    );
-  });
+      (!filters.closing || within(timeToClose(entry, now), Number(filters.closing) * 86400000)),
+  );
   // The closing order counts only calls still open to their closing day. One whose date has passed
   // goes to the end with the undated, even where its intake is not confirmed closed.
   const deadlines = new Map(
