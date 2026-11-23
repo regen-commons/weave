@@ -67,7 +67,7 @@ export function createCloudflareSpeech({
   accountId,
   token,
   send = fetch,
-  timeoutMs = 60000,
+  timeoutMs = 30000,
 }: {
   accountId: string;
   token: string;

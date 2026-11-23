@@ -17,11 +17,17 @@ No screenshots are committed; the captures were looked at during the check.
 - **Not run: a real call to Cloudflare.** There is no account or token yet, so nothing here shows
   a real recording becoming real words.
 
+An independent review of the first version found seven defects in the recording session and in
+what the page said at the time limit, during the microphone question and after a withdrawal.
+They are fixed, each has a test, and the runs below are of the fixed version.
+
 ## The flow, with the keyboard only
 
-`/start/initiative` with no fixture, at 360 and 1280 wide, light and dark. Each of the four passed
-in one run; two earlier runs at 1280 went out of step when the dev server reloaded the page and
-were repeated. Tab reached Talk It Out in four presses on a phone and five on a wide screen.
+`/start/initiative` with no fixture, at 360 and 1280 wide, light and dark, with reduced motion
+set. Without it, headless Chrome does not finish a dialog's leaving motion after Escape and the
+dialog closes without telling the page; in the app's own browser pane (fixture, `?speech=cloud`)
+Escape closed the notice, it opened again on the next press, and nothing was stored. Tab reached
+Talk It Out in four presses on a phone and five on a wide screen.
 
 | Step | Button | Line beside it | Box label | Stored agreement |
 |---|---|---|---|---|
@@ -29,7 +35,7 @@ were repeated. Tab reached Talk It Out in four presses on a phone and five on a 
 | Enter | the same | the same | the same | none; the notice is open with focus on Close |
 | Escape | the same, with the focus back on it | the same | the same | none |
 | Enter, Tab to Agree And Record, Enter | Stop | Waiting for the microphone. Nothing is recorded yet. | Waiting for the microphone | agreed |
-| The browser opens the microphone | Stop | Recording on this device. Nothing is sent until you press Stop. | Recording 0:00 of 3:00, counting each second | agreed |
+| The browser opens the microphone | Stop | Recording. Nothing is sent yet. With Discard beside it | Recording 0:00 of 3:00, counting each second | agreed |
 | Enter | Finishing, with a Spinner, busy | Sending your recording to Cloudflare to be turned into text. | What you said, or type a few sentences | agreed |
 | Words back | Talk It Out | the language choice | the same | agreed |
 
@@ -41,9 +47,13 @@ were repeated. Tab reached Talk It Out in four presses on a phone and five on a 
   `POST /api/transcribe` after Stop with `Content-Type: audio/webm`,
   `x-weave-speech-agreement: cloud` and `x-weave-speech-language: en-US`. Nothing was sent
   before Stop, and no request went to any other origin.
+- **Discard**, at 360 light and 1280 dark: Tab from Stop landed on Discard, and Enter dropped the
+  recording. The line under the box said "The recording was discarded. Nothing was sent. Press
+  Talk It Out to try again, or type in the box.", the focus went back to Talk It Out, the box did
+  not move, and no `POST` was made.
 - **What a screen reader is told.** The polite line beside the button changed in this order:
-  "Waiting for the microphone. Nothing is recorded yet.", "Recording on this device. Nothing is
-  sent until you press Stop.", "Sending your recording to Cloudflare to be turned into text.", and
+  "Waiting for the microphone. Nothing is recorded yet.", "Recording. Nothing is sent yet.",
+  "Sending your recording to Cloudflare to be turned into text.", and
   then the line under the box said "Reading your words on this device." and what was filled. The
   counting label is not a live region, so the seconds are not read out. This is the text the
   regions held; it was not listened to in a screen reader.
@@ -56,7 +66,7 @@ which is why the page says it is waiting until recording has begun.
 `/settings` with the agreement stored and two recordings noted, at 360 and 1280, light and dark,
 keyboard only. The Speech section said "Where this browser cannot turn speech into text, Weave
 sends your recording to Cloudflare Workers AI to turn it into text. Weave does not keep it." and
-"This device has sent 2 recordings to Cloudflare, the last on 23 November 2026." Tab reached Stop
+"This device has sent 2 recordings to be turned into text, the last on 23 November 2026." Tab reached Stop
 Using Cloud Speech. Enter removed the stored agreement and the button, moved the focus to the
 status line, which then read "Talking uses speech on this device where your browser offers it.
 Anywhere else, Weave asks before your voice leaves this device.", and left the count in place.
@@ -74,8 +84,11 @@ Anywhere else, Weave asks before your voice leaves this device.", and left the c
   The synthetic provider never answers on a deployment.
 - The page records nothing and does not ask for the microphone without the agreement. Withdrawing
   it stops a recording and sends nothing, and cancels a recording already on its way.
-- A recording is sent once, whole, with the language and nothing else. One that did not arrive, or
-  met a busy provider, is tried once more and no more.
+- A recording is sent once, whole, with the language, no cookie and nothing else, and is never
+  tried a second time. Discard, a withdrawn agreement and leaving the page drop it unsent.
+- The session ends once whatever happens: Stop before the microphone opens, the time limit, a
+  recorder that stops by itself or never reports that it stopped, and a page that fails on the
+  words. The device counts a recording only when it left the device.
 - Every way it stops says what happened, that the recording was not kept, and that typing works.
 - The two agreements are stored apart. `test/privacy.test.ts` fails if any module but
   `speech-cloud.ts` records, if that module stores anything, or if the server gains a second

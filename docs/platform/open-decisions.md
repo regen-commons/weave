@@ -121,7 +121,7 @@ Which browsers this reaches, from [MDN's compatibility data](https://github.com/
 
 On 23 November 2026 the owner approved a cloud option for talking ("Yes, build it"), after a [comparison of providers](prototype/proof/cloud-speech/README.md#providers-compared). It adds one step before "no talking" and changes nothing above it. It settles D35 for transcription only: cloud structuring of words is still not approved.
 
-4. **Cloud speech.** Where the browser has no speech recognition at all, as in Firefox, and the server has cloud speech switched on, Talk It Out records in the page and, on Stop, sends the recording once through Weave's own `/api/transcribe` to Cloudflare Workers AI, which turns it into text with Whisper. A browser with its own speech service keeps it and is never offered this.
+4. **Cloud speech.** Where the browser has no speech recognition at all, as in Firefox, and the server has cloud speech switched on, Talk It Out records in the page and, on Stop or after three minutes, sends the recording once through Weave's own `/api/transcribe` to Cloudflare Workers AI, which turns it into text with Whisper. A browser with its own speech service keeps it and is never offered this.
 
 What the owner chose:
 
@@ -133,7 +133,7 @@ What the owner chose:
 What the code holds to (`packages/app/src/describe/speech-cloud.ts`, `speech-consent.ts`, `packages/api/src/transcribe.ts`):
 
 - Nothing records before the agreement. Withdrawing it stops a recording at once and sends nothing.
-- The recording stays in the tab's memory until Stop, goes once to Weave's own server with the chosen language and nothing else, and is dropped whether or not words come back. The server stores and logs nothing about it. The device notes the time and length of each recording sent, and Settings shows how many.
+- The recording stays in the tab's memory until Stop or the three-minute limit, goes once to Weave's own server with the chosen language, no cookies and nothing else, and is dropped whether or not words come back. It is never tried a second time. Discard drops it unsent. The server stores and logs nothing about it. The device notes the time and length of each recording that left it, and Settings shows how many.
 - The notice says what Weave can vouch for ("Weave does not keep the recording") and gives the rest as the provider's own statement ("Cloudflare says"). Cloudflare can run a request in any of its regions, so the notice says the recording may be processed outside the person's country and promises no place.
 - One recording is three minutes and 3 MB at most. It is off until `WEAVE_CLOUD_SPEECH_ENABLED=true` with the Cloudflare account and token set, and the page offers it only while the server says it is on. The production CSP is unchanged, because the page calls only its own origin. No dependency was added.
 

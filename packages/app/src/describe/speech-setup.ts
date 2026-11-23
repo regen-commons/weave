@@ -224,7 +224,8 @@ export const CLOUD_SPEECH_NOTE = `Weave can turn a recording of your voice into 
 
 /**
  * The notice before the first recording on a device. Each sentence is what the code does or what
- * the provider states: the page records and sends the recording once, through Weave's own server
+ * the provider states: the page records and sends the recording once, on Stop or at the time
+ * limit, through Weave's own server
  * (`speech-cloud.ts`, `@weave/api/transcribe`), Weave stores neither the recording nor the words
  * there, and the two things only the provider can know are given as what it says. Cloudflare can
  * run a request in any of its regions, so the notice does not name a place.
@@ -232,7 +233,7 @@ export const CLOUD_SPEECH_NOTE = `Weave can turn a recording of your voice into 
 export const CLOUD_SPEECH_NOTICE = {
   title: "Send Your Recording To Be Turned Into Text?",
   body: [
-    `This browser cannot turn speech into text on this device. Weave can record what you say and send the recording to ${CLOUD_SPEECH.provider}, which turns it into text with the ${CLOUD_SPEECH.model} model.`,
+    `This browser cannot turn speech into text on this device. Weave can record what you say and, when you press Stop or after ${CLOUD_SPEECH.maxSeconds / 60} minutes, send the recording to ${CLOUD_SPEECH.provider}, which turns it into text with the ${CLOUD_SPEECH.model} model.`,
     `Weave does not keep the recording. ${CLOUD_SPEECH.company} says it does not keep it or use it to train models. It may be processed outside your country.`,
     "Only the recording and the language you chose are sent. Typing always works instead. You can turn this off in Settings.",
   ],
@@ -268,8 +269,8 @@ export function cloudSpeechUseLine(uses: readonly { at: string }[]): string {
   if (!last) return "";
   const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(last.at));
   return uses.length === 1
-    ? `This device has sent 1 recording to ${CLOUD_SPEECH.company}, on ${day}.`
-    : `This device has sent ${uses.length} recordings to ${CLOUD_SPEECH.company}, the last on ${day}.`;
+    ? `This device has sent 1 recording to be turned into text, on ${day}.`
+    : `This device has sent ${uses.length} recordings to be turned into text, the last on ${day}.`;
 }
 
 /** The longest one recording runs, as Talk It Out shows it: "3:00". */
@@ -278,14 +279,24 @@ export const recordingTime = (seconds: number): string => {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 };
 /**
- * The box's label while cloud speech has the microphone: the time used and the time one recording
- * may take. Until the browser has opened the microphone, which can wait on its own question to
- * the person, nothing is being recorded yet, and the label says so (`null`).
+ * The box's label while cloud speech records: the time used and the time one recording may take.
+ * Until the browser has opened the microphone, which can wait on its own question to the person,
+ * nothing is being recorded yet, and the label says so. An example, which records nothing, has
+ * no time to count and says only Recording.
  */
-export const recordingLabel = (elapsedSeconds: number | null, maxSeconds: number = CLOUD_SPEECH.maxSeconds): string =>
-  elapsedSeconds === null
+export const recordingLabel = (
+  phase: "starting" | "recording" | "example",
+  elapsedSeconds = 0,
+  maxSeconds: number = CLOUD_SPEECH.maxSeconds,
+): string =>
+  phase === "starting"
     ? "Waiting for the microphone"
-    : `Recording ${recordingTime(Math.min(elapsedSeconds, maxSeconds))} of ${recordingTime(maxSeconds)}`;
+    : phase === "example"
+      ? "Recording"
+      : `Recording ${recordingTime(Math.min(elapsedSeconds, maxSeconds))} of ${recordingTime(maxSeconds)}`;
+
+/** Drops the recording being made, unsent. Shown beside the line only while cloud speech records. */
+export const DISCARD_RECORDING = "Discard";
 
 const SILENT: TalkControls = { action: null, label: "", note: "", language: false, mode: null, agreement: false };
 
@@ -349,7 +360,8 @@ export function talkControls(
         mode === "cloud"
           ? starting
             ? "Waiting for the microphone. Nothing is recorded yet."
-            : "Recording on this device. Nothing is sent until you press Stop."
+            : // Short, so Discard fits beside it in the room the line always keeps.
+              "Recording. Nothing is sent yet."
           : mode === "browser"
             ? "Listening. Your browser's speech service turns your voice into text."
             : "Listening on this device. Audio is not sent to a server.",
@@ -445,6 +457,11 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
       return mode === "cloud"
         ? "Cloud speech was turned off in Settings. Nothing was sent, and you can type in the box."
         : "Browser speech was turned off in Settings. Your words are still here, and you can type in the box.";
+    // Turned off while the recording was on its way. It was cancelled, but may already have arrived.
+    case "withdrawn-sending":
+      return "Cloud speech was turned off in Settings while the recording was being sent. No words were added, and you can type in the box.";
+    case "discarded":
+      return "The recording was discarded. Nothing was sent. Press Talk It Out to try again, or type in the box.";
     // Cloud speech (`speech-cloud.ts`). The recording is dropped in every one of these.
     case "cloud-offline":
       return "You are offline, so the recording could not be sent. It was not kept. You can type in the box.";

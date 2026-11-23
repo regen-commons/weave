@@ -119,7 +119,10 @@ test("what the copy says about cloud speech is what the recorder and the server 
   const cloud = read("src/describe/speech-cloud.ts");
   // Nothing records before the agreement, and the recording is kept nowhere on the device.
   assert.match(cloud, /if \(!consent\?\.agreed\(\)\) throw/u);
-  assert.match(cloud, /if \(!consent\.agreed\(\)\) fail\("withdrawn"\)/u);
+  assert.match(cloud, /if \(!consent\.agreed\(\)\) fail\(phase === "sending" \? "withdrawn-sending" : "withdrawn"\)/u);
+  // One request asks whether it is on, one sends the recording, and neither carries a cookie.
+  assert.equal((cloud.match(/await send\(/gu) ?? []).length, 2, "sent once: there is no second try");
+  assert.equal((cloud.match(/credentials: "omit"/gu) ?? []).length, 2);
   assert.doesNotMatch(cloud, /localStorage|sessionStorage|indexedDB|caches\.|createObjectURL|download/u);
   // It goes to Weave's own server and nowhere else, as the content security policy also holds.
   assert.equal(CLOUD_SPEECH.path, "/api/transcribe");
@@ -138,7 +141,10 @@ test("what the copy says about cloud speech is what the recorder and the server 
     assert.match(line, /Cloudflare says it does not keep (it|them) or use (it|them) to train models/u);
     assert.match(line, /may be processed outside your country/u);
     assert.match(line, /turn (this|it) off in Settings/u);
+    // The time limit sends it too, and both places say so before the person agrees.
+    assert.match(line, /when you press Stop or after (3|three) minutes/u);
   }
+  assert.equal(CLOUD_SPEECH.maxSeconds, 180);
   assert.equal(CLOUD_SPEECH.provider, "Cloudflare Workers AI");
   assert.doesNotMatch(said, /Europe|EU\b|United States|never leaves/u, "no region is promised");
   assert.match(policy, /Where Weave offers cloud speech there, and only if you agree/u, "it is not offered everywhere");

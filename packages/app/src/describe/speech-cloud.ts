@@ -6,10 +6,11 @@
  * What the code holds to:
  * - Nothing records before the person agrees (`speech-consent.ts`), and withdrawing the
  *   agreement stops a recording at once and sends nothing.
- * - The recording stays in this tab's memory until Stop. It is then sent once to Weave's own
- *   `/api/transcribe`, with the language chosen and nothing else, and dropped whether or not
- *   the words come back. It is never stored on the device or the server. The device notes only
- *   when a recording was sent and how long it was (`speech-cloud-log.ts`).
+ * - The recording stays in this tab's memory until Stop, or until it reaches the time limit. It
+ *   is then sent once to Weave's own `/api/transcribe`, with the language chosen, no cookies and
+ *   nothing else, and dropped whether or not the words come back. It is never tried a second
+ *   time and never stored, on the device or the server. Discard drops it unsent. The device
+ *   notes only when a recording was sent and how long it was (`speech-cloud-log.ts`).
  * - A session is one mode from start to end. A failure never starts another way of listening.
  * - It is offered only while the server says cloud speech is on.
  */
@@ -66,26 +67,35 @@ export const browserDevices = (): RecordingDevices | undefined => {
 const OFF: SpeechStatus = parseSpeechStatus(null);
 
 /**
- * Asks the server whether cloud speech is on. A server that cannot be reached, or answers
- * anything unexpected, counts as off, and is asked again the next time.
+ * Asks the server whether cloud speech is on. Null means the server did not answer: it could not
+ * be reached, or said something unexpected.
  */
-export async function fetchSpeechStatus(send: typeof fetch = fetch, timeoutMs = 8000): Promise<SpeechStatus> {
+export async function fetchSpeechStatus(send: typeof fetch = fetch, timeoutMs = 4000): Promise<SpeechStatus | null> {
   try {
-    const response = await send(CLOUD_SPEECH.path, { cache: "no-store", signal: AbortSignal.timeout(timeoutMs) });
-    return response.ok ? parseSpeechStatus(await response.json()) : OFF;
+    const response = await send(CLOUD_SPEECH.path, { cache: "no-store", credentials: "omit", signal: AbortSignal.timeout(timeoutMs) });
+    if (!response.ok) return null;
+    const body: unknown = await response.json();
+    return body !== null && typeof body === "object" && "enabled" in body ? parseSpeechStatus(body) : null;
   } catch {
-    return OFF;
+    return null;
   }
 }
 
-let known: Promise<SpeechStatus> | undefined;
-/** The server's answer for this visit. Only an answer that cloud speech is on is kept. */
-export function speechStatusOnce(ask: () => Promise<SpeechStatus> = fetchSpeechStatus): Promise<SpeechStatus> {
+let known: Promise<SpeechStatus | null> | undefined;
+/**
+ * The server's answer for this visit, asked once. An answer, on or off, is kept, so a browser
+ * that cannot be offered cloud speech asks once and not on every page. No answer counts as off
+ * and is asked for again the next time.
+ */
+export async function speechStatusOnce(ask: () => Promise<SpeechStatus | null> = fetchSpeechStatus): Promise<SpeechStatus> {
   const current = (known ??= ask());
-  void current.then((status) => {
-    if (!status.enabled && known === current) known = undefined;
-  });
-  return current;
+  const status = await current;
+  if (status === null && known === current) known = undefined;
+  return status ?? OFF;
+}
+/** Forgets the server's answer. For tests. */
+export function forgetSpeechStatus(): void {
+  known = undefined;
 }
 
 /**
@@ -106,34 +116,49 @@ export async function cloudSpeechAvailable({
   return (await status()).enabled;
 }
 
-/** How long one attempt to send a recording and get its words may take. */
-export const CLOUD_SEND_MS = 60000;
-/** How long before a recording that could not be sent is tried once more. */
-const RETRY_AFTER_MS = 1500;
 /**
- * The longest a session can take from Stop to its end: two attempts and the wait between them.
- * Talk It Out shows Finishing for no longer than this.
+ * How long sending a recording and getting its words may take. It is longer than the server
+ * allows itself (`@weave/api` transcribe), so the server's own answer arrives first.
  */
-export const CLOUD_FINISH_MS = CLOUD_SEND_MS * 2 + RETRY_AFTER_MS;
+export const CLOUD_SEND_MS = 60000;
+/** How long a recorder may take to hand over its last piece after it is told to stop. */
+const HANDOVER_MS = 5000;
+/** The longest a session can take from Stop to its end. Talk It Out shows Finishing for no longer. */
+export const CLOUD_FINISH_MS = HANDOVER_MS + CLOUD_SEND_MS;
 
 const delay: Wait = (then, milliseconds) => {
   const timer = setTimeout(then, milliseconds);
   return () => clearTimeout(timer);
 };
 
-/** When this tab's recording began, for the time Talk It Out shows. Null while nothing records. */
-let recordingSince: number | null = null;
-const clockListeners = new Set<() => void>();
-function setRecordingSince(value: number | null) {
-  if (recordingSince === value) return;
-  recordingSince = value;
-  for (const listener of clockListeners) listener();
+/**
+ * Where this tab's cloud speech session stands, for what Talk It Out shows: `starting` while the
+ * browser opens the microphone, when nothing is recorded yet; `recording`, with the time it
+ * began; `sending` once the recording is on its way, whether Stop or the time limit ended it.
+ */
+export interface CloudSessionView {
+  readonly phase: "idle" | "starting" | "recording" | "sending";
+  /** When the recording began, as `Date.now()` gives it. Null unless recording. */
+  readonly since: number | null;
 }
-export const recordingClock = {
-  since: (): number | null => recordingSince,
+const IDLE: CloudSessionView = { phase: "idle", since: null };
+let view: CloudSessionView = IDLE;
+let discardCurrent: (() => void) | undefined;
+const viewListeners = new Set<() => void>();
+function show(next: CloudSessionView) {
+  if (view.phase === next.phase && view.since === next.since) return;
+  view = next;
+  for (const listener of viewListeners) listener();
+}
+export const cloudSession = {
+  view: (): CloudSessionView => view,
   subscribe(listener: () => void): () => void {
-    clockListeners.add(listener);
-    return () => clockListeners.delete(listener);
+    viewListeners.add(listener);
+    return () => viewListeners.delete(listener);
+  },
+  /** Drops the recording being made, unsent. Does nothing once it is on its way or when nothing records. */
+  discard(): void {
+    discardCurrent?.();
   },
 };
 
@@ -156,9 +181,6 @@ function problemFor(failure: SpeechFailure): SpeechProblem {
       return "cloud-failed";
   }
 }
-
-/** A failure worth one more try: the recording never arrived, or the provider was busy for a moment. */
-const RETRIED: readonly SpeechProblem[] = ["cloud-unreachable", "cloud-busy"];
 
 export async function startCloudSpeech(
   language: string,
@@ -199,14 +221,23 @@ export async function startCloudSpeech(
   if (!consent.agreed()) throw new Error("Cloud speech needs the person's agreement first.");
 
   let phase: "starting" | "recording" | "sending" | "ended" = "starting";
-  let stopAsked = false;
   let stream: RecordingStream | undefined;
   let session: RecorderSession | undefined;
   let chunks: Blob[] = [];
   let bytes = 0;
+  let began: number | null = null;
+  let uploading = false;
   const waits = new Set<() => void>();
   const sending = new AbortController();
   let withdrawn: () => void = () => {};
+  const ended = () => phase === "ended";
+  const after = (run: () => void, milliseconds: number) => {
+    const stop = later(() => {
+      waits.delete(stop);
+      run();
+    }, milliseconds);
+    waits.add(stop);
+  };
   const release = () => {
     for (const track of stream?.getTracks() ?? []) track.stop();
     stream = undefined;
@@ -235,7 +266,8 @@ export async function startCloudSpeech(
     // The recording is dropped here whatever happened to it.
     chunks = [];
     release();
-    setRecordingSince(null);
+    if (discardCurrent === discard) discardCurrent = undefined;
+    show(IDLE);
   };
   const fail = (problem: SpeechProblem) => {
     if (phase === "ended") return;
@@ -243,17 +275,26 @@ export async function startCloudSpeech(
     dispose();
     callbacks.end(false);
   };
+  /** The person's own Discard: the recording is dropped and nothing is sent. Too late once it is on its way. */
+  const discard = () => {
+    if (phase === "starting" || phase === "recording") fail("discarded");
+  };
+  discardCurrent = discard;
+  show({ phase: "starting", since: null });
   signal?.addEventListener("abort", dispose, { once: true });
-  // Withdrawing the agreement, here or in another tab, stops the recording and sends nothing.
+  // Withdrawing the agreement, here or in another tab, stops the recording and sends nothing. One
+  // already on its way is cancelled, but may have arrived, so the page does not say it was not sent.
   withdrawn = consent.subscribe(() => {
-    if (!consent.agreed()) fail("withdrawn");
+    if (!consent.agreed()) fail(phase === "sending" ? "withdrawn-sending" : "withdrawn");
   });
 
-  /** One attempt to send the recording. Answers the words, or the problem to say. */
-  const attempt = async (recording: Blob): Promise<{ text: string } | { problem: SpeechProblem }> => {
+  /** Sends the recording, once. Answers the words, or the problem to say. */
+  const post = async (recording: Blob): Promise<{ text: string } | { problem: SpeechProblem }> => {
     const timeout = AbortSignal.timeout(CLOUD_SEND_MS);
+    const note = () => log.add({ at: new Date(now()).toISOString(), seconds: began === null ? 0 : Math.max(0, Math.round((now() - began) / 1000)) });
+    let response: Response;
     try {
-      const response = await send(CLOUD_SPEECH.path, {
+      response = await send(CLOUD_SPEECH.path, {
         method: "POST",
         headers: {
           "Content-Type": type.split(";")[0]!,
@@ -262,62 +303,73 @@ export async function startCloudSpeech(
         },
         body: recording,
         cache: "no-store",
+        // The endpoint needs no sign-in, so no cookie goes with the recording.
+        credentials: "omit",
         signal: AbortSignal.any([sending.signal, timeout]),
       });
-      const body: unknown = await response.json().catch(() => null);
-      if (!response.ok) return { problem: problemFor(parseSpeechFailure(body)) };
-      try {
-        return parseTranscript(body);
-      } catch {
-        // An answer that is not words is never shown as words.
+    } catch {
+      // A request that timed out had been sent. One the network refused is taken as not sent.
+      if (timeout.aborted) {
+        note();
         return { problem: "cloud-failed" };
       }
-    } catch {
-      if (timeout.aborted) return { problem: "cloud-failed" };
       return { problem: online() ? "cloud-unreachable" : "cloud-offline" };
+    }
+    // The server answered, so the recording left this device, whatever the answer.
+    note();
+    const body: unknown = await response.json().catch(() => null);
+    if (!response.ok) return { problem: problemFor(parseSpeechFailure(body)) };
+    try {
+      return parseTranscript(body);
+    } catch {
+      // An answer that is not words is never shown as words.
+      return { problem: "cloud-failed" };
     }
   };
   const upload = async () => {
+    if (uploading || phase !== "sending") return;
+    uploading = true;
+    for (const stop of waits) stop();
+    waits.clear();
     release();
-    const began = recordingSince;
-    setRecordingSince(null);
     const recording = new Blob(chunks, { type: type.split(";")[0] });
     chunks = [];
     if (!recording.size) return fail("no-speech");
-    // Noted once, as the recording leaves the device, whatever comes back.
-    log.add({ at: new Date(now()).toISOString(), seconds: began === null ? 0 : Math.max(0, Math.round((now() - began) / 1000)) });
-    let outcome = await attempt(recording);
+    const outcome = await post(recording);
     if (phase !== "sending") return;
-    if ("problem" in outcome && RETRIED.includes(outcome.problem)) {
-      await new Promise<void>((resolve) => {
-        const stop = later(() => {
-          waits.delete(stop);
-          resolve();
-        }, RETRY_AFTER_MS);
-        waits.add(stop);
-      });
-      if (phase !== "sending") return;
-      outcome = await attempt(recording);
-      if (phase !== "sending") return;
-    }
     if ("problem" in outcome) return fail(outcome.problem);
     const text = outcome.text.trim();
     if (!text) return fail("no-speech");
-    callbacks.result(text, "");
+    try {
+      callbacks.result(text, "");
+    } catch (error) {
+      // The page's own failure is reported as any uncaught error is, and the session still ends.
+      (globalThis as { reportError?: (error: unknown) => void }).reportError?.(error);
+    }
+    // A page that ended the session from inside `result`, as when its box is full, gets no second end.
+    if (ended()) return;
     dispose();
     callbacks.end(true);
+  };
+  /** The recording is over and goes on its way: from Stop, the limit, or a recorder that stopped by itself. */
+  const handOver = () => {
+    if (phase !== "recording") return;
+    phase = "sending";
+    show({ phase: "sending", since: null });
+    for (const stop of waits) stop();
+    waits.clear();
   };
   /** Stops the recording and sends it: from the person's Stop, or at the limit. */
   const finish = () => {
     if (phase !== "recording" || !session) return;
-    phase = "sending";
-    for (const stop of waits) stop();
-    waits.clear();
-    session.onstop = () => void upload();
+    handOver();
+    // A recorder hands over its last piece and then stops. One that never says it has stopped is
+    // not waited for: what it gave is sent.
+    after(() => void upload(), HANDOVER_MS);
     try {
       session.stop();
     } catch {
-      fail("audio-capture");
+      void upload();
     }
   };
   const begin = async () => {
@@ -334,17 +386,21 @@ export async function startCloudSpeech(
       return;
     }
     stream = granted;
-    // Stop pressed before anything was recorded ends quietly, with nothing to send.
-    if (stopAsked) return fail("aborted");
     try {
       session = new recorder(granted, { mimeType: type, audioBitsPerSecond: 32000 });
       session.ondataavailable = (event) => {
         // The last piece arrives after stop() and before `onstop`, so it is kept while sending too.
-        if ((phase !== "recording" && phase !== "sending") || !event.data?.size) return;
+        if ((phase !== "recording" && phase !== "sending") || uploading || !event.data?.size) return;
         chunks.push(event.data);
         bytes += event.data.size;
         // A browser that ignores the bit rate fills the limit early. Stop while it still fits.
         if (phase === "recording" && bytes > limits.maxBytes * 0.9) finish();
+      };
+      // Also when the recorder stops by itself, as when the microphone is unplugged: what it
+      // recorded is sent, as after Stop, and the session ends.
+      session.onstop = () => {
+        handOver();
+        void upload();
       };
       session.onerror = () => fail("audio-capture");
       phase = "recording";
@@ -352,18 +408,17 @@ export async function startCloudSpeech(
     } catch {
       return fail("audio-capture");
     }
-    setRecordingSince(now());
-    const stop = later(() => {
-      waits.delete(stop);
-      finish();
-    }, limits.maxSeconds * 1000);
-    waits.add(stop);
+    began = now();
+    show({ phase: "recording", since: began });
+    after(finish, limits.maxSeconds * 1000);
   };
   void begin();
   return {
     stop: () => {
-      stopAsked = true;
-      finish();
+      // Stop before the browser has opened the microphone ends at once and quietly: nothing was
+      // recorded, so there is nothing to send and nothing to say.
+      if (phase === "starting") fail("aborted");
+      else finish();
     },
     dispose,
   };

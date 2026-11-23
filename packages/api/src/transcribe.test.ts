@@ -269,6 +269,8 @@ test("cloud speech stays off until it is switched on with a well-formed account 
 test("the local stand-in never answers on a deployment, and calls nothing", async () => {
   const fixture = { WEAVE_CLOUD_SPEECH_FIXTURE: "true" };
   assert.equal(configuredSpeech({ ...fixture, VERCEL: "1" }), null, "Vercel sets VERCEL on every deployment");
+  assert.equal(configuredSpeech({ ...fixture, NODE_ENV: "production" }), null, "nor in any production build");
+  assert.ok(configuredSpeech({ ...fixture, VERCEL: "1", WEAVE_CLOUD_SPEECH_ENABLED: "true", WEAVE_CLOUDFLARE_ACCOUNT_ID: ACCOUNT, WEAVE_CLOUDFLARE_AI_TOKEN: TOKEN }), "a deployment with the real settings uses the real provider");
   const local = configuredSpeech(fixture);
   assert.ok(local);
   const sent = globalThis.fetch;

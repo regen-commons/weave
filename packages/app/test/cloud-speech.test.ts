@@ -6,10 +6,13 @@ import { test } from "node:test";
 import { CLOUD_SPEECH, type SpeechStatus } from "@weave/api/transcribe-contract";
 import {
   CLOUD_FINISH_MS,
+  CLOUD_SEND_MS,
+  cloudSession,
   cloudSpeechAvailable,
   fetchSpeechStatus,
-  recordingClock,
+  forgetSpeechStatus,
   recordingType,
+  speechStatusOnce,
   startCloudSpeech,
   type RecorderConstructor,
   type RecorderSession,
@@ -158,7 +161,7 @@ test("a recording is sent once, on Stop, with the language and nothing else, and
   const session = recorders[0]!;
   assert.deepEqual(session.options, { mimeType: "audio/webm;codecs=opus", audioBitsPerSecond: 32000 });
   assert.equal(session.slice, 1000, "pieces arrive each second, so the size is known as it grows");
-  assert.equal(recordingClock.since(), 5000, "Talk It Out can show the time used");
+  assert.deepEqual(cloudSession.view(), { phase: "recording", since: 5000 }, "Talk It Out can show the time used");
   assert.deepEqual(waits.map((wait) => wait.milliseconds), [180000], "one limit, the longest a recording runs");
   session.give(100);
   session.give(100);
@@ -171,8 +174,9 @@ test("a recording is sent once, on Stop, with the language and nothing else, and
   assert.equal(requests.length, 0, "the recorder hands over its last piece first");
   session.end(50);
   assert.equal(track.stopped, 1, "the microphone is let go before the recording is sent");
-  assert.equal(recordingClock.since(), null);
+  assert.equal(cloudSession.view().phase, "sending", "Talk It Out says it is on its way");
   await settle();
+  assert.equal(cloudSession.view().phase, "idle");
   assert.equal(requests.length, 1);
   const [{ url, init, bytes }] = requests as [(typeof requests)[number]];
   assert.equal(url, "/api/transcribe", "Weave's own server, the only address the page may call");
@@ -183,8 +187,10 @@ test("a recording is sent once, on Stop, with the language and nothing else, and
     "x-weave-speech-agreement": "cloud",
     "x-weave-speech-language": "pt-BR",
   });
+  assert.equal(init.credentials, "omit", "no session cookie goes with the recording");
+  assert.equal(init.cache, "no-store");
   assert.deepEqual(heard, ["result:We grow seedlings for the school|", "end:true"], "the words once, then the person's Stop");
-  assert.equal(waits[0]?.stopped, true, "the limit no longer runs");
+  assert.ok(waits.every((wait) => wait.stopped), "no limit or wait is left running");
   handle.stop();
   handle.dispose();
   session.end();
@@ -234,7 +240,7 @@ test("withdrawing the agreement stops the recording at once and sends nothing", 
   assert.deepEqual(heard, ["error:withdrawn", "end:false"]);
   assert.equal(recorders[0]!.stopped, 1);
   assert.equal(track.stopped, 1);
-  assert.equal(recordingClock.since(), null);
+  assert.equal(cloudSession.view().phase, "idle");
   recorders[0]!.end();
   await settle();
   assert.equal(requests.length, 0, "the recording made before the withdrawal is dropped, not sent");
@@ -261,12 +267,16 @@ test("withdrawing the agreement stops the recording at once and sends nothing", 
   agreed.withdraw();
   await settle();
   assert.equal(cancelled, true);
-  assert.deepEqual(second.heard, ["error:withdrawn", "end:false"]);
+  assert.deepEqual(second.heard, ["error:withdrawn-sending", "end:false"]);
+  // It was cancelled, but may have arrived first, so the page does not claim that nothing was sent.
+  assert.doesNotMatch(speechProblem("withdrawn-sending", "cloud"), /Nothing was sent|not kept/u);
+  assert.match(speechProblem("withdrawn-sending", "cloud"), /No words were added, and you can type in the box\.$/u);
 });
 
 test("each way the server can refuse says what happened, that the recording was not kept, and keeps typing open", async () => {
   const refusals: [Response | Error, boolean, string, RegExp][] = [
     [Response.json({ error: "speech_limit_reached" }, { status: 503 }), true, "cloud-limit", /reached its limit for today/u],
+    [Response.json({ error: "speech_busy" }, { status: 503 }), true, "cloud-busy", /^Cloudflare is busy right now/u],
     [Response.json({ error: "speech_unavailable" }, { status: 503 }), true, "cloud-off", /not available right now/u],
     [Response.json({ error: "recording_too_large" }, { status: 413 }), true, "cloud-too-long", /too long to send/u],
     [Response.json({ error: "recording_unreadable" }, { status: 422 }), true, "cloud-unreadable", /could not be read/u],
@@ -279,53 +289,21 @@ test("each way the server can refuse says what happened, that the recording was 
   ];
   for (const [answer, online, problem, said] of refusals) {
     const { recorder, recorders, devices } = studio();
-    // A second answer of the same kind, for the failures that are tried once more.
-    const again = answer instanceof Response ? answer.clone() : answer;
-    const { send } = server(answer, again);
-    const { later, waits } = clock();
+    const { send, requests } = server(answer, Response.json({ text: "never asked for" }));
     const { heard, callbacks } = page();
-    const handle = await startCloudSpeech("en-US", callbacks, { consent: memoryConsent(true), recorder, devices, send, later, status: async () => ON, online: () => online });
+    const handle = await startCloudSpeech("en-US", callbacks, { consent: memoryConsent(true), recorder, devices, send, status: async () => ON, online: () => online, log: memoryLog() });
     await settle();
     handle.stop();
     recorders[0]!.end();
     await settle();
-    waits.find((wait) => wait.milliseconds === 1500 && !wait.stopped)?.run();
-    await settle();
     assert.deepEqual(heard, [`error:${problem}`, "end:false"], problem);
+    assert.equal(requests.length, 1, `${problem}: sent once and never tried again`);
     const line = speechProblem(problem, "cloud");
     assert.match(line, said, problem);
     assert.match(line, /(It|The recording) was not kept\./u, `${problem}: the recording is gone`);
     assert.match(line, /type in the box\.$/u, `${problem}: typing still works`);
     assert.doesNotMatch(line, /[—→]/u);
   }
-});
-
-test("a recording that did not arrive, or met a busy provider, is tried once more and no more", async () => {
-  const busy = () => Response.json({ error: "speech_busy" }, { status: 503 });
-  const cases: [(Response | Error)[], number, string[]][] = [
-    [[new TypeError("Failed to fetch"), Response.json({ text: "second try" })], 2, ["result:second try|", "end:true"]],
-    [[busy(), Response.json({ text: "after a moment" })], 2, ["result:after a moment|", "end:true"]],
-    [[busy(), busy(), Response.json({ text: "never asked" })], 2, ["error:cloud-busy", "end:false"]],
-    [[new TypeError("Failed to fetch"), new TypeError("Failed to fetch")], 2, ["error:cloud-unreachable", "end:false"]],
-    [[Response.json({ error: "speech_limit_reached" }, { status: 503 }), Response.json({ text: "never asked" })], 1, ["error:cloud-limit", "end:false"]],
-  ];
-  for (const [answers, sends, expected] of cases) {
-    const { recorder, recorders, devices } = studio();
-    const { send, requests } = server(...answers);
-    const { later, waits } = clock();
-    const { heard, callbacks } = page();
-    const handle = await startCloudSpeech("en-US", callbacks, { consent: memoryConsent(true), recorder, devices, send, later, status: async () => ON, online: () => true });
-    await settle();
-    handle.stop();
-    recorders[0]!.end(64);
-    await settle();
-    waits.find((wait) => wait.milliseconds === 1500 && !wait.stopped)?.run();
-    await settle();
-    assert.equal(requests.length, sends, expected.join(","));
-    assert.deepEqual(requests.map((request) => request.bytes), Array(sends).fill(64), "the same recording each time");
-    assert.deepEqual(heard, expected);
-  }
-  assert.match(speechProblem("cloud-busy", "cloud"), /^Cloudflare is busy right now/u);
 });
 
 test("silence, or a recording with nothing in it, is said plainly as no speech", async () => {
@@ -361,6 +339,9 @@ test("a recording stops by itself at the time limit or before it outgrows what t
   assert.equal(waits[0]?.milliseconds, 60000, "the server's limit is the one used");
   waits[0]!.run();
   assert.equal(timed.recorders[0]!.stopped, 1);
+  // No press brought this about, so the session itself says the recording is on its way.
+  assert.equal(cloudSession.view().phase, "sending");
+  assert.equal(talkControls("cloud", { agreed: true, listening: true, stopping: true }).note, "Sending your recording to Cloudflare to be turned into text.");
   timed.recorders[0]!.end();
   await settle();
   assert.deepEqual(one.heard, ["result:We grow seedlings|", "end:true"], "what was said in time is turned into text, as after Stop");
@@ -390,11 +371,13 @@ test("Stop before the microphone answers ends quietly, and leaving the page drop
   const { send, requests } = server();
   const { heard, callbacks } = page();
   const handle = await startCloudSpeech("en-US", callbacks, { consent: memoryConsent(true), recorder, devices: waiting, send, status: async () => ON });
+  assert.equal(cloudSession.view().phase, "starting", "nothing is recorded yet, and Talk It Out says so");
   handle.stop();
-  assert.deepEqual(heard, [], "Talk It Out shows Finishing until the browser answers");
+  assert.deepEqual(heard, ["error:aborted", "end:false"], "ended at once, whether or not the browser ever answers");
+  assert.equal(cloudSession.view().phase, "idle");
   grant({ getTracks: () => [track] });
   await settle();
-  assert.deepEqual(heard, ["error:aborted", "end:false"]);
+  assert.deepEqual(heard, ["error:aborted", "end:false"], "a late answer ends nothing twice");
   assert.equal(speechProblem("aborted", "cloud"), "", "nothing to say: the person stopped it themselves");
   assert.equal(track.stopped, 1, "the microphone is let go at once");
   assert.equal(recorders.length, 0);
@@ -449,20 +432,32 @@ test("the server is asked about cloud speech only where the browser can record, 
   assert.equal(asked, 1, "a browser that cannot record never calls the server");
   assert.equal(await cloudSpeechAvailable({ recorder, devices, status: async () => ({ ...ON, enabled: false }) }), false);
 
-  const answers: [Response | Error, boolean][] = [
+  // An answer, on or off, is an answer. Anything else is no answer at all.
+  const answers: [Response | Error, boolean | null][] = [
     [Response.json({ enabled: true, maxSeconds: 180, maxBytes: 3_000_000 }), true],
     [Response.json({ enabled: false, maxSeconds: 180, maxBytes: 3_000_000 }), false],
     [Response.json({ enabled: true }), false],
-    [Response.json({ enabled: true, maxSeconds: 180, maxBytes: 3_000_000 }, { status: 500 }), false],
-    [new Response("<!doctype html>", { status: 200 }), false],
-    [new TypeError("Failed to fetch"), false],
+    [Response.json({ enabled: true, maxSeconds: 180, maxBytes: 3_000_000 }, { status: 500 }), null],
+    [Response.json({ other: 1 }), null],
+    [new Response("<!doctype html>", { status: 200 }), null],
+    [new TypeError("Failed to fetch"), null],
   ];
   for (const [answer, enabled] of answers) {
     const { send, requests } = server(answer);
-    assert.equal((await fetchSpeechStatus(send)).enabled, enabled);
+    assert.equal((await fetchSpeechStatus(send))?.enabled ?? null, enabled);
     assert.equal(requests[0]?.url, CLOUD_SPEECH.path);
     assert.equal(requests[0]?.init.method, undefined, "a plain GET");
+    assert.equal(requests[0]?.init.credentials, "omit");
   }
+  // The server is asked once a visit, whatever it answers, and again only if it did not answer.
+  for (const [reply, calls] of [[ON, 1], [{ ...ON, enabled: false }, 1], [null, 3]] as const) {
+    forgetSpeechStatus();
+    let count = 0;
+    const ask = async () => (count++, reply);
+    for (let time = 0; time < 3; time++) assert.equal((await speechStatusOnce(ask)).enabled, reply?.enabled ?? false);
+    assert.equal(count, calls, JSON.stringify(reply));
+  }
+  forgetSpeechStatus();
 });
 
 test("cloud speech is offered only where the browser has no speech recognition at all", async () => {
@@ -517,7 +512,7 @@ test("Talk It Out says where the recording goes before, during and after, and as
   assert.deepEqual([agreed.action, agreed.agreement, agreed.language, agreed.note], ["talk", false, true, ""]);
   const recording = talkControls("cloud", { agreed: true, listening: true });
   assert.deepEqual([recording.action, recording.label], ["stop", "Stop"]);
-  assert.equal(recording.note, "Recording on this device. Nothing is sent until you press Stop.");
+  assert.equal(recording.note, "Recording. Nothing is sent yet.");
   // Until the browser opens the microphone, which may wait on its own question, nothing is recorded.
   const waiting = talkControls("cloud", { agreed: true, listening: true, starting: true });
   assert.deepEqual([waiting.action, waiting.note], ["stop", "Waiting for the microphone. Nothing is recorded yet."]);
@@ -528,7 +523,7 @@ test("Talk It Out says where the recording goes before, during and after, and as
   // Neither other way of talking ever says a recording is sent.
   for (const state of ["ready", "browser"] as const)
     for (const options of [{}, { agreed: true }, { listening: true }, { listening: true, stopping: true }])
-      assert.doesNotMatch(talkControls(state, options).note, /Recording|Cloudflare|sent until/u, state);
+      assert.doesNotMatch(talkControls(state, options).note, /Recording|Cloudflare|sent yet/u, state);
   // A second list on the page gets Talk It Out too, and the agreement asked for in one counts for both.
   assert.equal(talkControls("cloud", { secondary: true }).action, "talk");
   // The notice is plain sentences, names the provider and offers a way out.
@@ -539,17 +534,20 @@ test("Talk It Out says where the recording goes before, during and after, and as
     assert.doesNotMatch(line, /[—→·]/u, line);
   }
   assert.match(CLOUD_SPEECH_NOTICE.body.join(" "), /Typing always works instead/u);
+  assert.match(CLOUD_SPEECH_NOTICE.body[0]!, /when you press Stop or after 3 minutes, send the recording to Cloudflare Workers AI/u, "said before agreeing: the limit sends it too");
   assert.match(speechNotStarted("cloud"), /Nothing was sent/u);
 });
 
 test("the box counts the time while it records, up to the limit", () => {
-  assert.equal(recordingLabel(null), "Waiting for the microphone", "nothing is recorded until the browser opens the microphone");
-  assert.equal(recordingLabel(0), "Recording 0:00 of 3:00");
-  assert.equal(recordingLabel(42.9), "Recording 0:42 of 3:00");
-  assert.equal(recordingLabel(125), "Recording 2:05 of 3:00");
-  assert.equal(recordingLabel(999), "Recording 3:00 of 3:00", "never past the limit");
-  assert.equal(recordingLabel(30, 60), "Recording 0:30 of 1:00");
+  assert.equal(recordingLabel("starting"), "Waiting for the microphone", "nothing is recorded until the browser opens the microphone");
+  assert.equal(recordingLabel("recording", 0), "Recording 0:00 of 3:00");
+  assert.equal(recordingLabel("recording", 42.9), "Recording 0:42 of 3:00");
+  assert.equal(recordingLabel("recording", 125), "Recording 2:05 of 3:00");
+  assert.equal(recordingLabel("recording", 999), "Recording 3:00 of 3:00", "never past the limit");
+  assert.equal(recordingLabel("recording", 30, 60), "Recording 0:30 of 1:00");
+  assert.equal(recordingLabel("example"), "Recording", "an example records nothing, so it counts nothing");
   assert.ok(CLOUD_FINISH_MS > STOP_WAIT_MS, "sending a recording may take longer than a recognizer's last words");
+  assert.ok(CLOUD_FINISH_MS > CLOUD_SEND_MS, "Finishing lasts as long as the one send may");
 });
 
 test("the two agreements are kept apart, and Settings says which are in force", () => {
@@ -620,14 +618,21 @@ test("the device notes each recording sent, with its time and length and nothing
   const refused = studio({ deny: "NotAllowedError" });
   await startCloudSpeech("en-US", page().callbacks, { consent: memoryConsent(true), recorder: refused.recorder, devices: refused.devices, send: server().send, status: async () => ON, log });
   await settle();
+  // Offline, the recording never left, so it is not counted as sent.
+  const offline = studio();
+  const fourth = await startCloudSpeech("en-US", page().callbacks, { consent: memoryConsent(true), recorder: offline.recorder, devices: offline.devices, send: server(new TypeError("Failed to fetch")).send, status: async () => ON, online: () => false, log });
+  await settle();
+  fourth.stop();
+  offline.recorders[0]!.end();
+  await settle();
   assert.equal(log.list().length, 2, "only what left the device is noted");
   assert.equal(changes, 2);
   assert.deepEqual(Object.keys(log.list()[0]!), ["at", "seconds"], "no words, no audio, no language");
 
   // Settings says how many, and when the last one was. It says nothing where none was sent.
   assert.equal(cloudSpeechUseLine([]), "");
-  assert.equal(cloudSpeechUseLine(log.list().slice(0, 1)), "This device has sent 1 recording to Cloudflare, on 23 November 2026.");
-  assert.equal(cloudSpeechUseLine(log.list()), "This device has sent 2 recordings to Cloudflare, the last on 23 November 2026.");
+  assert.equal(cloudSpeechUseLine(log.list().slice(0, 1)), "This device has sent 1 recording to be turned into text, on 23 November 2026.");
+  assert.equal(cloudSpeechUseLine(log.list()), "This device has sent 2 recordings to be turned into text, the last on 23 November 2026.");
 });
 
 test("the device's record is read as data, kept short, and kept for the visit where storage refuses", () => {
@@ -655,4 +660,138 @@ test("the device's record is read as data, kept short, and kept for the visit wh
   }, undefined);
   refusing.add({ at: "2026-11-23T10:00:00.000Z", seconds: 3 });
   assert.deepEqual(refusing.list(), [{ at: "2026-11-23T10:00:00.000Z", seconds: 3 }]);
+});
+
+test("Discard drops the recording unsent, and is too late only once it is on its way", async () => {
+  const { recorder, recorders, devices, track } = studio();
+  const { send, requests } = server();
+  const { heard, callbacks } = page();
+  const log = memoryLog();
+  await startCloudSpeech("en-US", callbacks, { consent: memoryConsent(true), recorder, devices, send, status: async () => ON, log });
+  await settle();
+  recorders[0]!.give(300);
+  cloudSession.discard();
+  assert.deepEqual(heard, ["error:discarded", "end:false"]);
+  assert.equal(recorders[0]!.stopped, 1);
+  assert.equal(track.stopped, 1);
+  assert.equal(cloudSession.view().phase, "idle");
+  recorders[0]!.end();
+  await settle();
+  assert.equal(requests.length, 0);
+  assert.equal(log.list().length, 0);
+  assert.equal(speechProblem("discarded", "cloud"), "The recording was discarded. Nothing was sent. Press Talk It Out to try again, or type in the box.");
+  cloudSession.discard();
+  assert.deepEqual(heard.length, 2, "with nothing recording, Discard does nothing");
+
+  // Once Stop has been pressed the recording is on its way, and Discard cannot call it back.
+  const sent = studio();
+  const second = page();
+  const gone = server();
+  const handle = await startCloudSpeech("en-US", second.callbacks, { consent: memoryConsent(true), recorder: sent.recorder, devices: sent.devices, send: gone.send, status: async () => ON, log: memoryLog() });
+  await settle();
+  handle.stop();
+  cloudSession.discard();
+  sent.recorders[0]!.end();
+  await settle();
+  assert.deepEqual(second.heard, ["result:We grow seedlings|", "end:true"]);
+});
+
+test("a recorder that stops by itself, or never says it stopped, still ends the session", async () => {
+  // The microphone is unplugged: the browser stops the recorder with no press at all.
+  const unplugged = studio();
+  const first = server();
+  const one = page();
+  await startCloudSpeech("en-US", one.callbacks, { consent: memoryConsent(true), recorder: unplugged.recorder, devices: unplugged.devices, send: first.send, status: async () => ON, log: memoryLog() });
+  await settle();
+  unplugged.recorders[0]!.give(200);
+  unplugged.recorders[0]!.end(10);
+  assert.equal(cloudSession.view().phase, "sending");
+  await settle();
+  assert.equal(first.requests[0]?.bytes, 210, "what it recorded is sent, as after Stop");
+  assert.deepEqual(one.heard, ["result:We grow seedlings|", "end:true"]);
+  assert.equal(unplugged.track.stopped, 1);
+
+  // Stop is pressed and the recorder never reports that it stopped.
+  const silent = studio();
+  const second = server();
+  const two = page();
+  const { later, waits } = clock();
+  const handle = await startCloudSpeech("en-US", two.callbacks, { consent: memoryConsent(true), recorder: silent.recorder, devices: silent.devices, send: second.send, later, status: async () => ON, log: memoryLog() });
+  await settle();
+  silent.recorders[0]!.give(120);
+  handle.stop();
+  await settle();
+  assert.deepEqual(two.heard, [], "it has a moment to hand over its last piece");
+  const watchdog = waits.find((wait) => !wait.stopped);
+  assert.equal(watchdog?.milliseconds, 5000);
+  watchdog!.run();
+  await settle();
+  assert.equal(second.requests[0]?.bytes, 120);
+  assert.deepEqual(two.heard, ["result:We grow seedlings|", "end:true"]);
+  silent.recorders[0]!.end();
+  await settle();
+  assert.equal(second.requests.length, 1, "a late stop sends nothing twice");
+
+  // A recorder whose stop() throws, as one already inactive does.
+  const broken = studio();
+  const third = server();
+  const three = page();
+  const last = await startCloudSpeech("en-US", three.callbacks, { consent: memoryConsent(true), recorder: broken.recorder, devices: broken.devices, send: third.send, status: async () => ON, log: memoryLog() });
+  await settle();
+  broken.recorders[0]!.give(64);
+  broken.recorders[0]!.stop = () => {
+    throw new DOMException("inactive", "InvalidStateError");
+  };
+  last.stop();
+  await settle();
+  assert.equal(third.requests[0]?.bytes, 64);
+  assert.deepEqual(three.heard, ["result:We grow seedlings|", "end:true"]);
+});
+
+test("the page hears one end whatever it does with the words", async () => {
+  // The page's own handling of the words fails: the session still ends, once.
+  const { recorder, recorders, devices } = studio();
+  const heard: string[] = [];
+  const handle = await startCloudSpeech(
+    "en-US",
+    {
+      result: () => {
+        heard.push("result");
+        throw new Error("the page could not take the words");
+      },
+      error: (problem) => heard.push(`error:${problem}`),
+      end: (requested) => heard.push(`end:${requested}`),
+    },
+    { consent: memoryConsent(true), recorder, devices, send: server().send, status: async () => ON, log: memoryLog() },
+  );
+  await settle();
+  const reported: unknown[] = [];
+  const scope = globalThis as { reportError?: (error: unknown) => void };
+  const before = scope.reportError;
+  scope.reportError = (error) => void reported.push(error);
+  try {
+    handle.stop();
+    recorders[0]!.end();
+    await settle();
+  } finally {
+    scope.reportError = before;
+  }
+  assert.deepEqual(heard, ["result", "end:true"]);
+  assert.equal(reported.length, 1, "the page's failure is reported, not hidden");
+
+  // The page ends the session from inside `result`, as when its box is full: no end after that,
+  // which is what the other ways of talking do.
+  const full = studio();
+  const second: string[] = [];
+  const cancel = new AbortController();
+  const other = await startCloudSpeech(
+    "en-US",
+    { result: () => (second.push("result"), cancel.abort()), error: (problem) => second.push(`error:${problem}`), end: (requested) => second.push(`end:${requested}`) },
+    { consent: memoryConsent(true), recorder: full.recorder, devices: full.devices, send: server().send, signal: cancel.signal, status: async () => ON, log: memoryLog() },
+  );
+  await settle();
+  other.stop();
+  full.recorders[0]!.end();
+  await settle();
+  assert.deepEqual(second, ["result"]);
 });

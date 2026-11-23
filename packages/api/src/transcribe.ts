@@ -9,8 +9,9 @@
 // It is off until WEAVE_CLOUD_SPEECH_ENABLED=true with WEAVE_CLOUDFLARE_ACCOUNT_ID and
 // WEAVE_CLOUDFLARE_AI_TOKEN set, and then GET answers `enabled: true` and the app offers it.
 // It needs no sign-in, because describing an initiative comes before one. What bounds its use is
-// the size of one recording, the provider's daily allowance, which fails closed when used up,
-// and the same-origin and agreement checks below. It keeps no count of its own.
+// the size of one recording, the same-origin and agreement checks below, and the provider's
+// daily allowance, which on Cloudflare's Workers Free plan fails closed when used up and on its
+// Paid plan is billed instead. It keeps no count of its own.
 import { CLOUD_SPEECH, TRANSCRIPT_LIMIT, type SpeechFailure, type SpeechStatus } from "./transcribe-contract.ts";
 import { createCloudflareSpeech, createSyntheticSpeech, SpeechError, whisperLanguage, type SpeechProvider } from "./transcribe-provider.ts";
 
@@ -59,12 +60,16 @@ export function createTranscribeHandlers({
   provider,
   maxSeconds = CLOUD_SPEECH.maxSeconds,
   maxBytes = CLOUD_SPEECH.maxBytes,
-  uploadTimeoutMs = 60000,
+  uploadTimeoutMs = 20000,
 }: {
   /** null: cloud speech is off or not configured. */
   provider: SpeechProvider | null;
   maxSeconds?: number;
   maxBytes?: number;
+  /**
+   * How long the recording may take to arrive. With the provider's 30 seconds this keeps one
+   * request under a minute, inside the app's own wait and a function's time limit.
+   */
   uploadTimeoutMs?: number;
 }) {
   const answer = (status: number, body: unknown) =>
@@ -104,10 +109,10 @@ export function createTranscribeHandlers({
 /**
  * The provider this deployment is configured for, or null. A missing or malformed setting leaves
  * cloud speech off and says nothing about why. The synthetic provider answers local runs only:
- * Vercel sets VERCEL on every deployment, and there it is never used.
+ * never where VERCEL is set, as on every deployment, and never in a production build.
  */
 export function configuredSpeech(env: Record<string, string | undefined> = process.env): SpeechProvider | null {
-  if (env.WEAVE_CLOUD_SPEECH_FIXTURE === "true" && !env.VERCEL) return createSyntheticSpeech();
+  if (env.WEAVE_CLOUD_SPEECH_FIXTURE === "true" && !env.VERCEL && env.NODE_ENV !== "production") return createSyntheticSpeech();
   if (env.WEAVE_CLOUD_SPEECH_ENABLED !== "true") return null;
   const accountId = env.WEAVE_CLOUDFLARE_ACCOUNT_ID ?? "";
   const token = env.WEAVE_CLOUDFLARE_AI_TOKEN ?? "";

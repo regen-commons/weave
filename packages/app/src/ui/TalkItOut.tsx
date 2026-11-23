@@ -1,7 +1,14 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { STOP_WAIT_MS } from "../describe/speech.ts";
-import { CLOUD_FINISH_MS, recordingClock } from "../describe/speech-cloud.ts";
-import { BROWSER_SPEECH_NOTICE, CLOUD_SPEECH_NOTICE, recordingLabel, talkControls, talkHold } from "../describe/speech-setup.ts";
+import { CLOUD_FINISH_MS, cloudSession } from "../describe/speech-cloud.ts";
+import {
+  BROWSER_SPEECH_NOTICE,
+  CLOUD_SPEECH_NOTICE,
+  DISCARD_RECORDING,
+  recordingLabel,
+  talkControls,
+  talkHold,
+} from "../describe/speech-setup.ts";
 import type { SpeechSetup } from "../describe/use-speech.ts";
 import { Icon } from "./Icon.tsx";
 import { TaskDialog } from "./TaskDialog.tsx";
@@ -95,30 +102,31 @@ export function TalkItOut({
   // last words, which can take a moment, so the button says Finishing from the press itself.
   const [stopPressed, setStopPressed] = useState(false);
   if (stopPressed && !listening) setStopPressed(false);
-  const stopping = listening && stopPressed;
+  // Where a recording is made (cloud speech), its session says where it stands: still opening the
+  // microphone, recording, or on its way, which the time limit can bring about with no press at all.
+  const cloud = speech.state === "cloud";
+  const session = useSyncExternalStore(cloudSession.subscribe, cloudSession.view);
+  const recording = cloud && listening ? session : null;
+  const stopping = listening && (stopPressed || recording?.phase === "sending");
   // A session ends inside STOP_WAIT_MS of its Stop, or inside CLOUD_FINISH_MS where a recording
   // is sent. If the page is still listening after that, the press did not reach a session, so
   // Stop comes back and can be pressed again.
-  const cloud = speech.state === "cloud";
   useEffect(() => {
     if (!stopPressed) return;
     const timer = setTimeout(() => setStopPressed(false), (cloud ? CLOUD_FINISH_MS : STOP_WAIT_MS) + 500);
     return () => clearTimeout(timer);
   }, [stopPressed, cloud]);
   // Cloud speech shows no words while it records, so the box's label counts the time instead.
-  const recordingSince = useSyncExternalStore(recordingClock.subscribe, recordingClock.since);
-  const [elapsed, setElapsed] = useState<number | null>(null);
-  const timing = cloud && listening && !stopping && recordingSince !== null;
+  const since = recording?.phase === "recording" ? recording.since : null;
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    if (!timing) {
-      setElapsed(null);
-      return;
-    }
-    const tick = () => setElapsed((Date.now() - recordingSince) / 1000);
+    if (since === null) return;
+    const tick = () => setElapsed((Date.now() - since) / 1000);
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [timing, recordingSince]);
+  }, [since]);
+  const talkButton = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   // While listening, the newest words stay in view inside the box.
   useEffect(() => {
@@ -127,7 +135,7 @@ export function TalkItOut({
   const controls = talkControls(speech.state, {
     listening,
     stopping,
-    starting: cloud && recordingSince === null,
+    starting: recording?.phase === "starting",
     setUpHere: speech.setUpHere,
     asking: speech.asking,
     secondary,
@@ -156,6 +164,7 @@ export function TalkItOut({
         {controls.action && (
           <button
             className="rc-button"
+            ref={talkButton}
             data-variant={controls.action === "talk" && lead ? "primary" : "secondary"}
             // Which recognizer it uses, for tests and for anyone reading the page's markup.
             data-speech={controls.mode ?? undefined}
@@ -191,11 +200,32 @@ export function TalkItOut({
               Speaking In {names.of(language) ?? language}
             </button>
           )}
+          {/* While a recording is made, the way to drop it unsent. Stop sends it; this never does. */}
+          {recording?.phase === "recording" && !stopping && (
+            <button
+              className="rc-button"
+              data-variant="quiet"
+              data-size="sm"
+              data-voice-discard=""
+              type="button"
+              onClick={() => {
+                cloudSession.discard();
+                // The button goes away with the recording, so the focus goes back to Talk It Out.
+                talkButton.current?.focus();
+              }}
+            >
+              {DISCARD_RECORDING}
+            </button>
+          )}
         </div>
       </div>
       <div className="rc-field">
         <label htmlFor={`${id}-box`}>
-          {!listening || stopping ? boxLabel : cloud ? recordingLabel(recordingSince === null ? null : (elapsed ?? 0)) : "Listening"}
+          {!listening || stopping
+            ? boxLabel
+            : !recording
+              ? "Listening"
+              : recordingLabel(recording.phase === "starting" ? "starting" : since === null ? "example" : "recording", elapsed)}
         </label>
         {hint && (
           <p className="rc-hint" id={`${id}-hint`}>
@@ -246,7 +276,7 @@ export function TalkItOut({
             <label htmlFor={`${id}-language`}>The language you will speak in</label>
             <p className="rc-hint" id={`${id}-language-hint`}>
               {controls.mode === "cloud"
-                ? "The recording is turned into text in the language you choose."
+                ? "The language you choose is sent with the recording, to help turn it into text."
                 : controls.mode === "browser"
                   ? "Your browser's speech service listens for one language at a time."
                   : "Speech is recognized on this device, one language at a time."}
