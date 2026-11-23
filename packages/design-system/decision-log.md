@@ -975,3 +975,17 @@ Kept as it was: the words still appear in the box while the person talks. Showin
 Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
+
+## DL-135: On a step with fields to fill in, the mycelium keeps off the words
+
+**Status:** finding from the speech session's review, 22 November 2026. Amends DL-071 and DL-106 for form steps, and DL-128 where it made new growth linger and grow on its own on a desk.
+
+On a phone at 360 px, in both themes, new strands crossed small text on the describe step: the line under Talk It Out and the label of the box. On a phone the column of content runs to the screen's edges, so the resting network's quieter share under it was the only thing between a thread and a label, and new growth was not dimmed at all. DL-128's longer-lived tufts, and its tufts that grow on their own on a desk, made that worse.
+
+A form step (a route with `form: true`: the steps of describing an initiative) now marks its mycelium quiet:
+
+- **The resting network is quieter under the column:** 20 percent of its strength there instead of 45, and still whole in the margins.
+- **New growth keeps to the margins.** A tuft, from a finger, a mouse or on its own, starts only in a margin at least 48 px wide, and its branches stop at the column's edge. A phone's column runs to its edges, so a phone grows nothing new on a form step. On a 1280 px desk the margins are 80 px wide, and tufts grow there and never cross the fields.
+- Every other page keeps DL-128's growth. Reduced motion still draws the resting network once and grows nothing.
+
+Measured in headless Chromium on the dev server. At 1280 by 800, a mouse moved across the describe form added no ink to the canvas over the fields in either theme, where the same move over Home added about a million units of alpha. At 360 by 780, a finger dragged across the fields, then 8 seconds of waiting, asked for no animation frame on the describe step, and 507 on Home.

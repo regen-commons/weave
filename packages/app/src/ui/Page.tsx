@@ -62,7 +62,7 @@ export function Page({
         {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
             network grows once. */}
         <div className="rc-page-body">
-          <Mycelium extent="page" home={route?.name === "home"} />
+          <Mycelium extent="page" home={route?.name === "home"} quiet={form} />
           <Main key={pathname} pathname={pathname} notice={<SessionEndedNotice text={ended} />}>
             {children}
           </Main>
