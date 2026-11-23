@@ -23,6 +23,7 @@
     { "source": "/api/mcp", "destination": "/api/router?__route=mcp" },
     { "source": "/api/projects", "destination": "/api/router?__route=projects" },
     { "source": "/api/public-projects", "destination": "/api/router?__route=public-projects" },
+    { "source": "/api/record-image", "destination": "/api/router?__route=record-image" },
     { "source": "/api/record-page", "destination": "/api/router?__route=record-page" },
     { "source": "/api/sitemap", "destination": "/api/router?__route=sitemap" },
     { "source": "/api/transcribe", "destination": "/api/router?__route=transcribe" },

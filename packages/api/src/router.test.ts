@@ -16,6 +16,7 @@ test("each shared endpoint keeps the methods its own function exported", () => {
     mcp: ["GET", "POST", "DELETE"],
     projects: ["POST"],
     "public-projects": ["GET"],
+    "record-image": ["GET", "HEAD"],
     "record-page": ["GET", "HEAD"],
     sitemap: ["GET", "HEAD"],
     transcribe: ["GET", "POST"],
@@ -151,4 +152,12 @@ test("matching and projects behind the router still renew a lapsed session, and 
       ["__Host-weave_account", "__Host-weave_account_renewal"], `${endpoint}: both rotated cookies come back`);
   }
   assert.deepEqual(renewals, ["first-refresh", "first-refresh"]);
+});
+
+test("a record's picture is an endpoint of its own, at its own address and through the router's", () => {
+  for (const path of [`/api/router?${ROUTE_KEY}=record-image&kind=funding&id=local-people-powered&v=0123456789abcdef`, "/api/record-image?kind=funding&id=local-people-powered&v=0123456789abcdef"]) {
+    const found = routeOf(new URL(path, ORIGIN));
+    assert.equal(found?.endpoint, "record-image", path);
+    assert.equal(found?.url.href, `${ORIGIN}/api/record-image?kind=funding&id=local-people-powered&v=0123456789abcdef`, path);
+  }
 });
