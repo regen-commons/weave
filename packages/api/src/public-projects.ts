@@ -1,7 +1,7 @@
 // GET /api/public-projects lists the listed public Certified projects Weave indexes. Until
 // WEAVE_PUBLIC_PROJECTS_ENABLED=true and WEAVE_INDEX_DATABASE_URL are set it answers an empty `off`
 // page, and the app shows its starter list.
-import { createPublicProjectsHandler } from "./public-projects-http.ts";
+import { createPublicProjects } from "./public-projects-http.ts";
 import { connectPublicProjectReader, type PublicProjectReader } from "./public-projects-store.ts";
 
 let reader: Promise<PublicProjectReader> | undefined;
@@ -16,4 +16,7 @@ function currentReader(): Promise<PublicProjectReader | null> {
   });
 }
 
-export const GET = createPublicProjectsHandler({ reader: currentReader });
+const list = createPublicProjects({ reader: currentReader });
+export const GET = list.handler;
+/** One shown project by its address, from the copy GET answers from. For other handlers in this package. */
+export const findPublicProject = list.find;

@@ -45,7 +45,7 @@ Tool names use the platform's terms: fund, program, project. Results say "fit" a
 | `search_projects` | `query`, optional `organization_type`, `work_scope`, `sort`, `limit` up to 24, `cursor` | Public Certified projects: address, name, publisher, place, passages, when Weave last read it, the Certified source link and the Weave link. Also how fresh the index is (`bounded`, `partial` or `stale`) |
 | `get_project` | A project address | One project's card |
 
-As built, `get_project` returns the same card `search_projects` does. The public list has no lookup by address, so the tool reads the list's pages from the copy the function already holds until it finds the project.
+As built, `get_project` returns the same card `search_projects` does, found by address in the copy of the list the function already holds.
 
 `search_funds` reuses the catalog's own filtering and keyword index, and `search_projects` calls the reader behind `/api/public-projects`, so the app and the tools cannot disagree. The assistant's own model does the reasoning about fit in this slice. Weave returns records and their evidence.
 

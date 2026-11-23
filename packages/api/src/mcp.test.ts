@@ -4,7 +4,7 @@ import { AGENT_TOOLS, AgentToolArgumentError, parseAgentToolCall } from "./agent
 import { createAgentTools, type CatalogFund, type FundCatalog } from "./agent-tools.ts";
 import { createMcpHandler, MCP_BODY_MAX_BYTES, MCP_LEGACY_VERSIONS, MCP_MODERN_VERSION, type McpLog } from "./mcp-http.ts";
 import type { PublicProjectCard } from "./public-projects-contract.ts";
-import { createPublicProjectsHandler } from "./public-projects-http.ts";
+import { createPublicProjects } from "./public-projects-http.ts";
 import type { PublicProjectSnapshot } from "./public-projects-store.ts";
 import { projectUri } from "./test-data/public-projects.ts";
 
@@ -53,7 +53,7 @@ const SNAPSHOT: PublicProjectSnapshot = {
 function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null } = {}) {
   let loads = 0;
   const snapshot = over.snapshot === undefined ? SNAPSHOT : over.snapshot;
-  const publicProjects = createPublicProjectsHandler({
+  const list = createPublicProjects({
     reader: async () => {
       if (snapshot === null) return null;
       if (snapshot === "down") throw Error("connection refused: postgres://secret@db");
@@ -62,7 +62,7 @@ function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; 
     now: () => NOW.getTime(),
   });
   const tools = over.tools === null ? null : createAgentTools({
-    catalog: over.catalog ?? (async () => CATALOG), publicProjects, origin: "https://weave.example", now: () => NOW,
+    catalog: over.catalog ?? (async () => CATALOG), publicProjects: list.handler, findPublicProject: list.find, origin: "https://weave.example", now: () => NOW,
   });
   const handler = createMcpHandler({ enabled: () => over.enabled ?? true, tools, log: over.log });
   return { handler, loads: () => loads };
@@ -111,6 +111,11 @@ test("only a bounded, same-site, single JSON request by POST is read", async () 
   const cross = await handler.POST(modern("tools/list", {}, { origin: "https://evil.example" }));
   assert.deepEqual([cross.status, (await read(cross)).error?.message], [403, "Origin not allowed."]);
   assert.equal((await handler.POST(modern("tools/list", {}, { origin: "https://weave.example" }))).status, 200);
+  assert.equal((await handler.POST(modern("tools/list", {}, { origin: "null" }))).status, 403);
+  // A body that never says how long it is stops being read at the limit.
+  const endless = new ReadableStream<Uint8Array>({ pull(controller) { controller.enqueue(new Uint8Array(4096).fill(32)); } });
+  const streamed = await handler.POST(new Request(ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: endless, duplex: "half" } as RequestInit));
+  assert.equal(streamed.status, 413);
   assert.equal((await handler.POST(modern("tools/list", {}, { "content-type": "text/plain" }))).status, 415);
   const big = await handler.POST(legacy({ jsonrpc: "2.0", id: 1, method: "ping", params: { pad: "x".repeat(MCP_BODY_MAX_BYTES) } }));
   assert.equal(big.status, 413);
@@ -261,7 +266,6 @@ test("search_projects reads the public list as the app does, and get_project fin
   assert.deepEqual([second.projects.length, second.next], [5, null]);
   assert.deepEqual((await search({ organization_type: "cooperative" })).projects, []);
   assert.equal((await search({ work_scope: "restoration", sort: "oldest", limit: 1 })).projects[0]!.uri, projectUri(1));
-  // The last card in the order is two pages in.
   const found = (await call(handler, "get_project", { uri: projectUri(1) })).structuredContent as { project: PublicProjectCard };
   assert.equal(found.project.name, "Watershed circle 1");
   const missing = await call(handler, "get_project", { uri: projectUri(99) });
@@ -297,6 +301,11 @@ test("a tool that cannot reach its data says so with a stable code and no detail
   assert.match(await failing({ snapshot: null }, "search_projects", {}), /^projects_unavailable: .*not switched on/u);
   assert.match(await failing({ snapshot: null }, "get_project", { uri: projectUri(1) }), /^projects_unavailable: /u);
   assert.match(await failing({ tools: null }, "search_funds", {}), /^tools_unavailable: /u);
+  // One record the tools cannot read safely is left out, and the rest of the catalog still answers.
+  const broken = [{ ...fund("nosectors"), sectors: undefined }, { ...fund("badwarning"), sourceWarnings: [{ url: "not a url", reason: "r" }] }, { ...fund("bad id!") }, null] as unknown as CatalogFund[];
+  const mixed = setup({ catalog: async () => ({ ...CATALOG, funds: [...broken, ...CATALOG.funds] }) }).handler;
+  const partial = (await call(mixed, "search_funds", {})).structuredContent as { total: number; catalog: { funds: number } };
+  assert.deepEqual([partial.total, partial.catalog.funds], [4, 4]);
   // The project tools keep working when the catalog cannot be read.
   const { handler } = setup({ catalog: async () => { throw Error("gone"); } });
   assert.equal((await call(handler, "search_projects", {})).isError, undefined);
@@ -321,6 +330,12 @@ test("arguments outside a tool's bounds are refused before anything is read", as
     assert.equal(/unavailable|internal_error/u.test(result.content[0]!.text), false, `${name} ${JSON.stringify(args)} reached the data`);
   }
   assert.equal(loads(), 0);
+  // Names every object has are not tools, and not arguments either.
+  for (const name of ["__proto__", "constructor", "toString", "hasOwnProperty"]) {
+    const response = await handler.POST(modern("tools/call", { name }));
+    assert.deepEqual([response.status, (await read(response)).error?.code], [400, -32602], name);
+  }
+  assert.equal((await call(handler, "search_funds", JSON.parse('{"__proto__":{"limit":1},"constructor":"x"}'))).isError, true);
   assert.throws(() => parseAgentToolCall("toString", {}), AgentToolArgumentError);
   assert.throws(() => parseAgentToolCall(undefined, {}), AgentToolArgumentError);
   // Leaving the arguments out is the same as sending none.

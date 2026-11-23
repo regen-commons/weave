@@ -1,8 +1,8 @@
 // Runs the tools in agent-tools-contract.ts against the fund catalog and the public project list. It
 // reads public data only, keeps nothing a caller sent and never reads a cookie or a session.
-import { ACCESS, effectiveAccess, filterFunds, RESEARCH, researchStatus, safeFundUrl, sortFunds, utcDate } from "../../../dist/domain.mjs";
 import type { AgentToolCall, GetFundArguments, GetProjectArguments, SearchFundsArguments, SearchProjectsArguments } from "./agent-tools-contract.ts";
-import { parsePublicProjectPage, PUBLIC_PROJECT_PAGE_MAX, type PublicProjectCard, type PublicProjectPage } from "./public-projects-contract.ts";
+import type { FindPublicProject } from "./public-projects-http.ts";
+import { parsePublicProjectPage, type PublicProjectCard, type PublicProjectPage } from "./public-projects-contract.ts";
 
 /** A fund as the catalog file holds it. Only the fields the tools read are named. */
 export type CatalogFund = {
@@ -50,6 +50,8 @@ export type AgentToolSources = {
   catalog(): Promise<FundCatalog>;
   /** Answers a request as GET /api/public-projects does. */
   publicProjects(request: Request): Promise<Response>;
+  /** One shown project by its address, from the same copy of the list. */
+  findPublicProject: FindPublicProject;
   /** Weave's public address, for the links results carry. */
   origin: string;
   now?: () => Date;
@@ -58,47 +60,74 @@ export type AgentToolSources = {
 const POSSIBILITY = "A possibility to check against the funder's own page. Weave does not decide eligibility.";
 const NOT_CONFIRMED = "Listed from public Certified records. Weave has not confirmed availability or interest, and nothing here contacts anyone.";
 
+/**
+ * The catalog's own rules for access, filtering, ordering and safe links, which the live site and the app
+ * also run. Loaded on first use, so a deployment that cannot find the file loses the fund tools only.
+ */
+type Domain = typeof import("../../../dist/domain.mjs");
+let domain: Promise<Domain> | undefined;
+function catalogDomain(): Promise<Domain> {
+  const current = domain ??= import("../../../dist/domain.mjs");
+  current.catch(() => { if (domain === current) domain = undefined; });
+  return current;
+}
+
+const isText = (value: unknown): value is string => typeof value === "string";
+const isTextList = (value: unknown): value is string[] => Array.isArray(value) && value.every(isText);
+const parses = (value: unknown) => { try { return isText(value) && !!new URL(value); } catch { return false; } };
+/** Whether a fund holds the fields the tools and the catalog's search read, in the shapes they read them. */
+function usableFund(fund: unknown): fund is CatalogFund {
+  if (!fund || typeof fund !== "object") return false;
+  const f = fund as Record<string, unknown>;
+  return isText(f.id) && /^[A-Za-z0-9_-]{1,80}$/u.test(f.id) && isText(f.name) && isText(f.access)
+    && isTextList(f.sectors) && isTextList(f.regions) && isTextList(f.approaches)
+    && (f.sourceWarnings === undefined || (Array.isArray(f.sourceWarnings) && f.sourceWarnings.every((w) => !!w && typeof w === "object" && parses((w as { url?: unknown }).url) && isText((w as { reason?: unknown }).reason))));
+}
+/** Each catalog is checked once. A fund the tools could not read safely is left out, so one bad record cannot fail every search. */
+const checked = new WeakMap<FundCatalog, FundCatalog>();
+
 /** http and https links only, and none on a host the catalog warns about. An unsafe link is left out. */
-function link(fund: CatalogFund, value: unknown): string | undefined {
-  return typeof value === "string" && value ? safeFundUrl(fund, value) || undefined : undefined;
+function link(d: Domain, fund: CatalogFund, value: unknown): string | undefined {
+  if (typeof value !== "string" || !value) return undefined;
+  try { return d.safeFundUrl(fund, value) || undefined; } catch { return undefined; }
 }
 /** A program with every link checked the same way, wherever the catalog nests it. */
-function withSafeLinks(fund: CatalogFund, value: unknown): unknown {
-  if (Array.isArray(value)) return value.map((item) => withSafeLinks(fund, item));
+function withSafeLinks(d: Domain, fund: CatalogFund, value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => withSafeLinks(d, fund, item));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => {
-    if (key !== "url") return [[key, withSafeLinks(fund, item)]];
-    const safe = link(fund, item);
+    if (key !== "url") return [[key, withSafeLinks(d, fund, item)]];
+    const safe = link(d, fund, item);
     return safe ? [[key, safe]] : [];
   }));
 }
 
-function fundSummary(fund: CatalogFund, origin: string, now: Date) {
-  const access = effectiveAccess(fund, now);
+function fundSummary(d: Domain, fund: CatalogFund, origin: string, now: Date) {
+  const access = d.effectiveAccess(fund, now);
   return {
     id: fund.id,
     name: fund.displayName || fund.name,
     summary: fund.enrichment?.summary || fund.description || "",
     sectors: fund.sectors,
     regions: fund.regions,
-    access: { state: access, label: ACCESS[access]?.label ?? access, detail: fund.accessDetail ?? "" },
+    access: { state: access, label: d.ACCESS[access]?.label ?? access, detail: fund.accessDetail ?? "" },
     amount: fund.amount ?? "",
     timing: fund.timing ?? "",
     deadline: fund.deadlineDate ?? null,
-    research: { status: RESEARCH[researchStatus(fund)] ?? researchStatus(fund), checkedOn: fund.verifiedOn ?? fund.enrichment?.researchedOn ?? null },
+    research: { status: d.RESEARCH[d.researchStatus(fund)] ?? d.researchStatus(fund), checkedOn: fund.verifiedOn ?? fund.enrichment?.researchedOn ?? null },
     programs: (fund.enrichment?.programs ?? []).map(({ id, name }) => ({ id: `${fund.id}::${id}`, name })),
-    sourceUrl: link(fund, fund.evidenceUrl) ?? link(fund, fund.website) ?? null,
+    sourceUrl: link(d, fund, fund.evidenceUrl) ?? link(d, fund, fund.website) ?? null,
     weaveUrl: `${origin}/funding/${fund.id}`,
   };
 }
 
 async function searchFunds(sources: AgentToolSources, a: SearchFundsArguments, now: Date) {
-  const catalog = await loadCatalog(sources);
-  const today = utcDate(now);
-  const matched = sortFunds(
-    filterFunds(catalog.funds, { q: a.query, region: a.region ?? "", theme: a.sector ?? "", access: a.access ?? "" }, [], now)
+  const { catalog, d } = await loadCatalog(sources);
+  const today = d.utcDate(now);
+  const matched = d.sortFunds(
+    d.filterFunds(catalog.funds, { q: a.query, region: a.region ?? "", theme: a.sector ?? "", access: a.access ?? "" }, [], now)
       .filter((fund) => !a.deadlineBefore || (!!fund.deadlineDate && fund.deadlineDate <= a.deadlineBefore
-        && fund.deadlineDate >= today && effectiveAccess(fund, now) !== "closed")),
+        && fund.deadlineDate >= today && d.effectiveAccess(fund, now) !== "closed")),
     a.sort, now,
   );
   if (a.offset > matched.length) throw new AgentToolError("invalid_cursor", "That cursor is past the end of this search. Start the search again.");
@@ -108,13 +137,13 @@ async function searchFunds(sources: AgentToolSources, a: SearchFundsArguments, n
     note: POSSIBILITY,
     catalog: { compiledAt: catalog.compiledAt, researchCheckedOn: catalog.researchCheckedOn ?? null, funds: catalog.funds.length },
     total: matched.length,
-    funds: page.map((fund) => fundSummary(fund, sources.origin, now)),
+    funds: page.map((fund) => fundSummary(d, fund, sources.origin, now)),
     next: end < matched.length ? String(end) : null,
   };
 }
 
 async function getFund(sources: AgentToolSources, a: GetFundArguments, now: Date) {
-  const catalog = await loadCatalog(sources);
+  const { catalog, d } = await loadCatalog(sources);
   const fund = catalog.funds.find(({ id }) => id === a.fundId);
   if (!fund) throw new AgentToolError("not_found", "The catalog has no fund with that identifier.");
   const all = fund.enrichment?.programs ?? [];
@@ -123,10 +152,10 @@ async function getFund(sources: AgentToolSources, a: GetFundArguments, now: Date
   return {
     note: POSSIBILITY,
     fund: {
-      ...fundSummary(fund, sources.origin, now),
-      programs: programs.map((program) => ({ ...(withSafeLinks(fund, program) as CatalogProgram), id: `${fund.id}::${program.id}` })),
+      ...fundSummary(d, fund, sources.origin, now),
+      programs: programs.map((program) => ({ ...(withSafeLinks(d, fund, program) as CatalogProgram), id: `${fund.id}::${program.id}` })),
       sources: (fund.enrichment?.sources ?? []).flatMap((source) => {
-        const url = link(fund, source.url);
+        const url = link(d, fund, source.url);
         return url ? [{ url, title: source.title ?? "", checkedOn: source.checkedOn ?? null }] : [];
       }),
       researchNotes: fund.enrichment?.researchNotes ?? "",
@@ -137,11 +166,13 @@ async function getFund(sources: AgentToolSources, a: GetFundArguments, now: Date
   };
 }
 
-async function loadCatalog(sources: AgentToolSources): Promise<FundCatalog> {
+async function loadCatalog(sources: AgentToolSources): Promise<{ catalog: FundCatalog; d: Domain }> {
   try {
-    const catalog = await sources.catalog();
-    if (!Array.isArray(catalog?.funds)) throw Error("invalid_catalog");
-    return catalog;
+    const [loaded, d] = await Promise.all([sources.catalog(), catalogDomain()]);
+    if (!loaded || typeof loaded !== "object" || !Array.isArray(loaded.funds) || !isText(loaded.compiledAt)) throw Error("invalid_catalog");
+    let catalog = checked.get(loaded);
+    if (!catalog) checked.set(loaded, catalog = { ...loaded, funds: loaded.funds.filter(usableFund) });
+    return { catalog, d };
   } catch {
     throw new AgentToolError("catalog_unavailable", "The fund catalog could not be read. Try again later.");
   }
@@ -180,22 +211,13 @@ async function searchProjects(sources: AgentToolSources, a: SearchProjectsArgume
   };
 }
 
-/** The most pages get_project reads: the list holds about a thousand projects. */
-const GET_PROJECT_PAGES_MAX = 200;
-/**
- * The list has no lookup by address, so this reads its pages until the project appears. Every page comes
- * from the copy the function already holds, so the walk reads the database no more than one search does.
- */
 async function getProject(sources: AgentToolSources, a: GetProjectArguments) {
-  let cursor = "";
-  for (let pages = 0; pages < GET_PROJECT_PAGES_MAX; pages += 1) {
-    const page = await projectPage(sources, { limit: String(PUBLIC_PROJECT_PAGE_MAX), cursor });
-    const found = page.projects.find(({ uri }) => uri === a.uri);
-    if (found) return { note: NOT_CONFIRMED, index: { status: page.index.status, checkedAt: page.index.checkedAt }, project: projectCard(found, sources.origin) };
-    if (!page.next) break;
-    cursor = page.next;
-  }
-  throw new AgentToolError("not_found", "Weave lists no public project at that address. It may have been withdrawn.");
+  let found;
+  try { found = await sources.findPublicProject(a.uri); }
+  catch { throw new AgentToolError("projects_unavailable", "The public project list could not be read. Try again later."); }
+  if (found === "off") throw new AgentToolError("projects_unavailable", "The public project list is not switched on here.");
+  if (!found) throw new AgentToolError("not_found", "Weave lists no public project at that address. It may have been withdrawn.");
+  return { note: NOT_CONFIRMED, index: found.index, project: projectCard(found.project, sources.origin) };
 }
 
 /** Runs one checked tool call and returns its result as plain data. Throws AgentToolError for a failure the caller can report. */

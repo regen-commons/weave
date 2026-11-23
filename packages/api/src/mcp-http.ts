@@ -128,6 +128,7 @@ export function createMcpHandler(options: McpOptions) {
     const header = request.headers.get("mcp-protocol-version")?.trim();
     if (typeof version !== "string" || !header || header !== version)
       return failure(400, id, CODE.headerMismatch, "The MCP-Protocol-Version header must match the request's protocol version.");
+    // The 2025 revisions are supported too, but only by opening with `initialize`.
     if (version !== MCP_MODERN_VERSION)
       return failure(400, id, CODE.unsupportedVersion, "Unsupported protocol version",
         { supported: [MCP_MODERN_VERSION, ...MCP_LEGACY_VERSIONS], requested: version.slice(0, 40) });

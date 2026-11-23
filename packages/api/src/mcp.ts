@@ -3,7 +3,7 @@
 // WEAVE_MCP_ENABLED=true. It takes no sign-in, reads no cookie and keeps nothing a caller sends.
 import { createAgentTools, type FundCatalog } from "./agent-tools.ts";
 import { createMcpHandler } from "./mcp-http.ts";
-import { GET as publicProjects } from "./public-projects.ts";
+import { findPublicProject, GET as publicProjects } from "./public-projects.ts";
 
 /** Weave's public address, for the links results carry. */
 const PUBLIC_ORIGIN = "https://weave.regencommons.com";
@@ -20,6 +20,6 @@ function fundCatalog(): Promise<FundCatalog> {
 
 export const { POST, GET, DELETE } = createMcpHandler({
   enabled: () => process.env.WEAVE_MCP_ENABLED === "true",
-  tools: createAgentTools({ catalog: fundCatalog, publicProjects, origin: PUBLIC_ORIGIN }),
+  tools: createAgentTools({ catalog: fundCatalog, publicProjects, findPublicProject, origin: PUBLIC_ORIGIN }),
   log: (entry) => console.log(JSON.stringify({ event: "mcp_tool", ...entry })),
 });

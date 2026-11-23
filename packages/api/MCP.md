@@ -24,6 +24,15 @@ the public project list to be on (`WEAVE_PUBLIC_PROJECTS_ENABLED`). Turning eith
 adding a Firewall rate limit rule for `/api/mcp`, are the maintainer's steps
 ([D40](../../docs/platform/open-decisions.md#agent-access)).
 
+Two things come before the switch, and neither has been done:
+
+- **A preview deployment that answers the route.** The compiled function imports the catalog's code
+  (`dist/domain.mjs`) and data (`dist/data/funders.json`) from the repository root, outside the Weave
+  project's root directory. Local builds find them; whether Vercel's file tracing ships them is unproven.
+  If it does not, the fund tools answer `catalog_unavailable` and the project tools keep working.
+- **The rate limit rule.** The endpoint has no limit of its own. A fund search reads the whole catalog in
+  memory on each call, so the Firewall rule is what bounds the cost of an unauthenticated caller.
+
 ## Adding it to an assistant
 
 Once it is on, any client that speaks Streamable HTTP can add the address with no sign-in:

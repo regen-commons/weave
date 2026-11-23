@@ -143,7 +143,7 @@ function fields(value: unknown, allowed: readonly string[]): Record<string, unkn
 }
 function text(value: unknown, name: string, max: number): string | null {
   if (value === undefined || value === null) return null;
-  if (typeof value !== "string" || value.length > max || controls.test(value)) return refuse(`${name} must be text of at most ${max} characters.`);
+  if (typeof value !== "string" || value.length > max || controls.test(value)) return refuse(`${name} must be text of at most ${max} characters, with no control or invisible formatting characters.`);
   const trimmed = value.trim().replace(/\s+/gu, " ");
   return trimmed === "" ? null : trimmed;
 }
