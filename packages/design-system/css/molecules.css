@@ -267,7 +267,9 @@
   text-align: start;
   cursor: pointer;
 }
-.rc-card-title > a:visited { color: var(--link-visited); }
+/* A card's title keeps the text's colour once it has been opened. The visited colour said "opened"
+   with nothing on the card to say so, and read as a kind of card (DL-130). Links in running text keep it. */
+.rc-card-title > a:visited { color: inherit; }
 @media (hover: hover) {
   .rc-card-title > :is(a, button):hover { text-decoration: underline; }
 }

@@ -6,7 +6,10 @@ import { STAGE_LABELS } from "../listing.ts";
 import { fullDate } from "../home.ts";
 import { currentRoute, navigate } from "../router.tsx";
 import { routeWith } from "../routes.ts";
-import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { sectionTag } from "../ui/section-level.ts";
+import { PublicProjectRecord } from "../partners/PublicProjectRecord.tsx";
+import { projectUriOf } from "../partners/public-project.ts";
 import { LinkPreview } from "../ui/LinkPreview.tsx";
 import { Media } from "../ui/Media.tsx";
 import { PublicAsks } from "../ui/PublicAsks.tsx";
@@ -14,36 +17,62 @@ import { WorkTag } from "../ui/WorkTag.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 
 /**
- * One shared initiative, opened over the page the person was on. Public records only: the
- * production public-directory adapter is not connected yet.
+ * One initiative, over the page the person was on or as a page of its own. An address that names a
+ * public Certified project shows that project; any other is one of the development examples, and
+ * production has none of those.
  */
 export function RecordDetail({
+  id,
   record,
   fixture,
   sheet,
+  presentation,
+}: {
+  id: string;
+  record?: ListingRecord;
+  fixture?: FixtureContext;
+  sheet: SheetState;
+  presentation: Presentation;
+}) {
+  const project = projectUriOf(id);
+  return project ? (
+    <PublicProjectRecord uri={project} sheet={sheet} presentation={presentation} />
+  ) : (
+    <ExampleRecord record={record} fixture={fixture} sheet={sheet} presentation={presentation} />
+  );
+}
+
+/** A development example of a shared initiative, with its needs, offers and links. */
+function ExampleRecord({
+  record,
+  fixture,
+  sheet,
+  presentation,
 }: {
   record?: ListingRecord;
   fixture?: FixtureContext;
   sheet: SheetState;
+  presentation: Presentation;
 }) {
   const available = import.meta.env.DEV && !!fixture;
   const shown = available ? record : undefined;
   const state = fixture?.state;
   const title = shown?.title ?? "Initiative Not Available";
   useEffect(() => {
-    if (sheet.open) document.title = `${title} | Weave`;
-  }, [title, sheet.open]);
+    if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
+  }, [title, sheet.open, presentation]);
+  const Section = sectionTag(recordSectionLevel(presentation));
   function retry() {
     navigate(routeWith(currentRoute(), "state", "ready"), true);
   }
   return (
-    <DetailSheet title={title} state={sheet}>
+    <DetailSheet title={title} state={sheet} presentation={presentation}>
       {state === "loading" ? (
         <LinesSkeleton label="Loading initiative" panel />
       ) : state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
-            <h3 className="rc-notice-title">The initiative did not load</h3>
+            <Section className="rc-notice-title">The initiative did not load</Section>
             <p>Your device card is safe.</p>
             <button type="button" className="rc-button" data-variant="secondary" onClick={retry}>
               Try Again
@@ -72,9 +101,9 @@ export function RecordDetail({
           <PublicAsks kind="needs" asks={shown.publicDetails?.needs ?? []} />
           <PublicAsks kind="offers" asks={shown.publicDetails?.offers ?? []} />
           <section className="rc-stack">
-            <h3 className="rc-heading" data-size="section">
+            <Section className="rc-heading" data-size="section">
               Get In Touch
-            </h3>
+            </Section>
             <p>Weave makes no introductions yet. Their links may say how to reach them.</p>
             {shown.publicDetails?.links.length ? (
               shown.publicDetails.links.map((link) => <LinkPreview key={link.url} {...link} />)
