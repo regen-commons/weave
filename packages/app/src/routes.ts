@@ -132,7 +132,7 @@ export const INTAKE_STEPS = [
   { route: "initiative", label: "Initiative" },
   { route: "needs", label: "Needs" },
   { route: "offers", label: "Offers" },
-  { route: "your-initiative", label: "Funding And Partners" },
+  { route: "your-initiative", label: "Matches" },
 ] as const satisfies readonly { route: RouteName; label: string }[];
 /**
  * How a move between two pages is drawn on a phone (DL-094). A page deeper in is pushed on, the
