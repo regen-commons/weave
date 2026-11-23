@@ -1,6 +1,8 @@
 // The tools Weave offers to assistants: their names, what they say about themselves, the arguments they
 // accept and how those are checked. Free of Node APIs, so a page can register the same tools later.
-// Every tool only reads public data. Tool names use the platform's terms: fund, program, project.
+// Every tool only reads public data. One, find_funds_for_initiative, also takes a description the person
+// wrote (D39): it is ranked in memory and never stored or logged. Tool names use the platform's terms:
+// fund, program, project.
 import { isOrganizationType, isPublicProjectSort, isWorkScope, PUBLIC_PROJECT_PAGE_MAX, PUBLIC_PROJECT_SORTS, type PublicProjectSort } from "./public-projects-contract.ts";
 import { parseProjectUri } from "./project-uri.ts";
 
@@ -30,6 +32,26 @@ export type SearchFundsArguments = {
   offset: number;
 };
 export type GetFundArguments = { fundId: string; programId: string | null };
+/** Who would apply, as the fund rubric asks. `unknown` leaves the question open. */
+export const APPLICANT_TYPES = ["unknown", "nonprofit", "informal", "individual", "business", "university", "public-body"] as const;
+export type ApplicantType = (typeof APPLICANT_TYPES)[number];
+export const INITIATIVE_DESCRIPTION_MIN = 40;
+/** Long enough for a full paragraph. The rubric reads the text once per program, so its cost grows with length. */
+export const INITIATIVE_DESCRIPTION_MAX = 1500;
+const THEMES_MAX = 12;
+const COUNTRIES_MAX = 30;
+export type FindFundsArguments = {
+  /** The initiative in its own words. Read for this one answer and never kept. */
+  description: string;
+  themes: string[];
+  /** Two-letter country codes, upper case. Whether each is a country the catalog knows is checked when the tool runs. */
+  workCountries: string[];
+  benefitCountries: string[];
+  applicantBaseCountry: string;
+  registrationCountry: string;
+  applicantType: ApplicantType;
+  limit: number;
+};
 export type SearchProjectsArguments = {
   query: string;
   organizationType: string | null;
@@ -42,6 +64,7 @@ export type GetProjectArguments = { uri: string };
 export type AgentToolCall =
   | { name: "search_funds"; arguments: SearchFundsArguments }
   | { name: "get_fund"; arguments: GetFundArguments }
+  | { name: "find_funds_for_initiative"; arguments: FindFundsArguments }
   | { name: "search_projects"; arguments: SearchProjectsArguments }
   | { name: "get_project"; arguments: GetProjectArguments };
 export type AgentToolName = AgentToolCall["name"];
@@ -92,6 +115,32 @@ export const AGENT_TOOLS: readonly AgentToolDefinition[] = [
       required: ["id"],
       properties: {
         id: { type: "string", maxLength: 200, description: "A fund identifier from search_funds, or `fund::program` to read one program." },
+      },
+    },
+  },
+  {
+    name: "find_funds_for_initiative",
+    title: "Find Funds For An Initiative",
+    description: "Rank Weave's catalog of funding programs for an initiative you describe, using the same published rubric "
+      + "Weave's Funding page uses. Fit is graded from the specific topics the description and a program's documented purpose "
+      + "share. Each result also says how the program can be approached and what must still be checked with the funder, "
+      + "including a published requirement that may conflict with the details sent. Fit "
+      + "is about topics only: it is never a decision that someone may apply or will be funded. The description is read on "
+      + "Weave's server to work out this one answer, then discarded: it is not stored, logged or shared. Send only what "
+      + "the person is content to send, and leave out names and contact details. " + QUOTED,
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["description"],
+      properties: {
+        description: { type: "string", minLength: INITIATIVE_DESCRIPTION_MIN, maxLength: INITIATIVE_DESCRIPTION_MAX, description: "What the initiative does, where and for whom, in plain words. A few specific sentences work better than a slogan." },
+        themes: { type: "array", maxItems: THEMES_MAX, items: { type: "string", maxLength: 60 }, description: "Optional topics the work centers on, such as watershed restoration or seed saving." },
+        work_countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional two-letter country codes where the work happens, such as NG or BR." },
+        benefit_countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional two-letter country codes where the people who benefit are." },
+        applicant_base_country: { type: "string", pattern: "^[A-Za-z]{2}$", description: "Optional two-letter country code where the applicant is based." },
+        registration_country: { type: "string", pattern: "^[A-Za-z]{2}$", description: "Optional two-letter country code where the applicant is legally registered." },
+        applicant_type: { type: "string", enum: APPLICANT_TYPES, description: "Optional kind of applicant. Leave out, or send unknown, when not sure." },
+        limit: limitSchema,
       },
     },
   },
@@ -168,6 +217,15 @@ function offset(value: unknown): number {
   if (cursor === null) return 0;
   return /^\d{1,6}$/u.test(cursor) ? Number(cursor) : refuse("cursor must be the `next` value from the previous page.");
 }
+function list(value: unknown, name: string, max: number): unknown[] {
+  if (value === undefined || value === null) return [];
+  return Array.isArray(value) && value.length <= max ? value : refuse(`${name} must be a list of at most ${max}.`);
+}
+/** A two-letter country code, upper case. Null when left out. */
+function country(value: unknown, name: string): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  return typeof value === "string" && /^[A-Za-z]{2}$/u.test(value) ? value.toUpperCase() : refuse(`${name} must be a two-letter country code.`);
+}
 const IDENTIFIER = /^[A-Za-z0-9_-]{1,80}$/u;
 
 /**
@@ -195,6 +253,21 @@ export function parseAgentToolCall(name: unknown, input: unknown): AgentToolCall
     if (rest.length || !IDENTIFIER.test(fundId) || (programId !== undefined && !IDENTIFIER.test(programId)))
       return refuse("id must be a fund identifier from search_funds, or fund::program.");
     return { name, arguments: { fundId, programId: programId ?? null } };
+  }
+  if (name === "find_funds_for_initiative") {
+    const a = fields(input, ["description", "themes", "work_countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"]);
+    const description = text(a.description, "description", INITIATIVE_DESCRIPTION_MAX) ?? refuse("description is required.");
+    if (description.length < INITIATIVE_DESCRIPTION_MIN) return refuse(`description must be at least ${INITIATIVE_DESCRIPTION_MIN} characters, so there are topics to match.`);
+    return { name, arguments: {
+      description,
+      themes: list(a.themes, "themes", THEMES_MAX).flatMap((item) => text(item, "themes", 60) ?? []),
+      workCountries: list(a.work_countries, "work_countries", COUNTRIES_MAX).map((item) => country(item, "work_countries") ?? refuse("work_countries must hold two-letter country codes.")),
+      benefitCountries: list(a.benefit_countries, "benefit_countries", COUNTRIES_MAX).map((item) => country(item, "benefit_countries") ?? refuse("benefit_countries must hold two-letter country codes.")),
+      applicantBaseCountry: country(a.applicant_base_country, "applicant_base_country") ?? "",
+      registrationCountry: country(a.registration_country, "registration_country") ?? "",
+      applicantType: choice(a.applicant_type, "applicant_type", APPLICANT_TYPES) ?? "unknown",
+      limit: limit(a.limit),
+    } };
   }
   if (name === "search_projects") {
     const a = fields(input, ["query", "organization_type", "work_scope", "sort", "limit", "cursor"]);
