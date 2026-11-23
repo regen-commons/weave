@@ -18,6 +18,8 @@ type Handler = (request: Request) => Response | Promise<Response>;
 export const ENDPOINTS = {
   health: { methods: ["GET"], load: () => import("./health.ts") },
   matching: { methods: ["POST"], load: () => import("./matching.ts") },
+  // Answers GET and DELETE itself, with 405, so the switch that turns it off covers them too.
+  mcp: { methods: ["GET", "POST", "DELETE"], load: () => import("./mcp.ts") },
   projects: { methods: ["POST"], load: () => import("./projects.ts") },
   "public-projects": { methods: ["GET"], load: () => import("./public-projects.ts") },
   "record-page": { methods: ["GET", "HEAD"], load: () => import("./record-page.ts") },

@@ -13,6 +13,7 @@ Planning documents for growing Funding Commons into a platform where regenerativ
 | [07 Agent scaffolding](07-agent-scaffolding.md) | The instructions, skills, rules and checks coding agents will use, and what we took from Green Goods and the Regen Commons site | Builders |
 | [08 Saving and accounts](08-accounts-and-saving.md) | Certified-only sign-in, private saving, returning and recovery | Council, builders, designers |
 | [09 Repository layout](09-repository-layout.md) | Where the live site, catalog, design system, app, API and migrations live, and what each move must keep working | Builders |
+| [10 Agent access](10-agent-access.md) | A proposal to let people add Weave to their assistants: a public read-only MCP endpoint first, then WebMCP in the browser | Builders, council |
 | [Interface prototype](prototype/README.md) | The click-through design of the first version, the decisions from its two reviews, and how to run it | Builders, designers, council |
 | [Open decisions](open-decisions.md) | Everything unresolved, with a recommendation and an owner | Council, builders |
 

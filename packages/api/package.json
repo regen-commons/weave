@@ -25,6 +25,11 @@
       "source": "./src/health.ts",
       "default": "./dist/health.js"
     },
+    "./agent-tools-contract": {
+      "types": "./src/agent-tools-contract.ts",
+      "source": "./src/agent-tools-contract.ts",
+      "default": "./dist/agent-tools-contract.js"
+    },
     "./matching": {
       "types": "./src/matching.ts",
       "source": "./src/matching.ts",

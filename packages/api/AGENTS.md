@@ -3,7 +3,8 @@
 Use the [root guide](../../AGENTS.md) for shared workflow. `@weave/api` holds Weave's
 server functions: the consented cloud AI proxy, sharing, introductions, the pulse and
 the catalog, as [spec 2](../../docs/platform/05-technical-spec.md#2-system-context)
-lists. It includes the health check and private account sign-in, save and load. This whole package is a critical surface:
+lists. It includes the health check and private account sign-in, save and load. The public, read-only
+MCP endpoint for assistants is described in [MCP.md](MCP.md). This whole package is a critical surface:
 read every touched line and prove the failure paths.
 
 ## How a handler is deployed
