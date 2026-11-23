@@ -1,13 +1,12 @@
 import { effectiveAccess } from "../../../../dist/domain.mjs";
 import { FundSchema, type Entry, type Evaluation } from "../funding/contracts.ts";
 import { programFund } from "../../../../dist/matching.mjs";
-import { fitLevel } from "../funding/select.ts";
 import { accessSign, fundingEyebrow, opportunityHref } from "../funding/catalog.ts";
 import { closingDay, deadlineSign } from "../funding/deadline.ts";
 import { fullDate } from "../home.ts";
 import { Link, routeSearch } from "../router.tsx";
 import { Card } from "./Card.tsx";
-import { Fit } from "./Fit.tsx";
+import { FitLine } from "./Fit.tsx";
 import { Icon } from "./Icon.tsx";
 import { Tag } from "./Tag.tsx";
 
@@ -47,16 +46,7 @@ export function OpportunityCard({
       <p className="rc-card-meta" title={funder || undefined}>
         {funder}
       </p>
-      {result &&
-        (result.thematicFit.score === null ? (
-          <p className="rc-meta">Fit not assessed</p>
-        ) : (
-          <Fit
-            level={fitLevel(result)}
-            label={result.thematicFit.label}
-            explanation={`Keyword topics: ${result.shared.join(", ") || "none"}. Fit is not eligibility.`}
-          />
-        ))}
+      {result && <FitLine result={result} />}
       <ul className="rc-tag-list" aria-label="How to apply">
         <li>
           <Tag icon={sign.icon} tone={sign.tone}>

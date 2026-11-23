@@ -10,8 +10,9 @@
 //
 // Four things are the app's own. A light resting network lies under the trails, so a phone with no
 // mouse is never blank; it is quieter under the column that holds the content and whole beside it
-// (DL-071). A tuft grows on its own every few seconds, on a phone and wherever a mouse has held
-// still. New growth lingers: a tuft lives twice as long as the website's and its trail fades more
+// (DL-071), and quieter still on a page with fields to fill in, where new growth keeps to the
+// margins (DL-135). A tuft grows on its own every few seconds, on a phone and wherever a mouse has held
+// still, for the first five seconds after the app opens and never again in that visit (WCAG 2.2.2). New growth lingers: a tuft lives twice as long as the website's and its trail fades more
 // slowly, so each strand stays a while after it appears (DL-128). And drawing stops:
 // once the last trail has faded nothing runs until something grows again, and nothing runs while
 // the page is hidden or the canvas is off screen. Under reduced motion the resting network is drawn
@@ -60,11 +61,25 @@ const REST_AREA = { phone: 30000, wide: 28000 };
 const REST_ALPHA = 0.4;
 /** The share of its strength the resting network keeps under the column that holds the content. */
 const UNDER_CONTENT = 0.45;
+/**
+ * On a quiet page, such as a step with fields to fill in, the share the resting network keeps under
+ * the column, so no thread competes with a label or a hint (DL-135).
+ */
+export const QUIET_UNDER = 0.2;
+/** On a quiet page a new tuft grows only in a margin at least this wide, in CSS pixels, and never into the column. */
+export const QUIET_MARGIN = 48;
 /** The resting network eases to that share over this many CSS pixels inside the column's edges. */
 const EASE = 32;
 /** A tuft grows on its own after this many milliseconds, plus up to the spread. */
 const OWN_GROWTH_AFTER = 1800;
 const OWN_GROWTH_SPREAD = 1800;
+/**
+ * Growth that starts on its own ends this long after the app opens, in milliseconds, and nothing
+ * starts it again in that visit: not another page, the page shown again, a resize or motion turned
+ * back on. A strand it is still growing then goes at once, so nothing moves by itself for more than
+ * five seconds (WCAG 2.2.2). A mouse or a finger still grows trails, as that motion follows the person.
+ */
+export const OWN_GROWTH_FOR = 5000;
 /** A mouse that has moved within this many milliseconds is growing tufts itself, so none grows on its own. */
 const MOUSE_REST = 2400;
 /** A region that changes size is drawn again once it has held still this long, in milliseconds. */
@@ -155,6 +170,11 @@ export function advance(branches, width, height, random, density) {
       branch.growing = false;
       continue;
     }
+    // A tuft on a quiet page stops at the column's edge and never grows across the fields (DL-135).
+    if (density.avoid && inColumn(x, density.avoid)) {
+      branch.growing = false;
+      continue;
+    }
     points.push(x, y);
     growing = true;
     if (branch.generation < 3 && segments > 8 && branches.length < density.limit && random() < density.forkRate) {
@@ -176,11 +196,16 @@ export function growsTrails(reducedMotion) {
 }
 
 /**
- * Whether new tufts grow on their own: with motion allowed, on a phone and on a desk alike, so a
- * wide window is never still for long. Where a mouse has just moved it grows them instead (DL-128).
+ * Whether new tufts grow on their own: with motion allowed, on a phone and on a desk alike, for the
+ * first five seconds after the app opens (OWN_GROWTH_FOR). Where a mouse has just moved it grows them instead (DL-128).
  */
 export function growsOnItsOwn(reducedMotion) {
   return !reducedMotion;
+}
+
+/** Whether a tuft may still grow on its own, so many milliseconds after the app opened. */
+export function ownGrowthOpen(sinceOpened) {
+  return sinceOpened < OWN_GROWTH_FOR;
 }
 
 /** Whether a mouse last moved long enough ago, in milliseconds, for a tuft to grow on its own. */
@@ -232,19 +257,45 @@ export function settle(branches, width, height, random, density) {
  * the threads that pass under words never compete with them (DL-071). `column` is that column's
  * two sides, in the same coordinates as `x`.
  */
-export function restShare(x, column) {
+export function restShare(x, column, under = UNDER_CONTENT) {
   const inside = Math.min(x - column.left, column.right - x);
-  return inside <= 0 ? 1 : UNDER_CONTENT + (1 - UNDER_CONTENT) * (1 - Math.min(1, inside / EASE));
+  return inside <= 0 ? 1 : under + (1 - under) * (1 - Math.min(1, inside / EASE));
+}
+
+/** Whether a place across the region lies under the column that holds the content. */
+export function inColumn(x, column) {
+  return x > column.left && x < column.right;
+}
+
+/**
+ * Where a tuft may start on a quiet page: a place in a margin at least QUIET_MARGIN wide, chosen by
+ * `pick`, a number from 0 to 1. Null where neither margin is that wide, as on a phone, whose
+ * column runs to the screen's edges: there nothing new grows over the fields (DL-135).
+ */
+export function marginSpot(column, width, pick) {
+  const margins = [
+    [0, Math.max(0, column.left)],
+    [Math.min(width, column.right), width],
+  ].filter(([from, to]) => to - from >= QUIET_MARGIN);
+  if (!margins.length) return null;
+  const total = margins.reduce((sum, [from, to]) => sum + to - from, 0);
+  let at = pick * total;
+  for (const [from, to] of margins) {
+    if (at < to - from) return from + at;
+    at -= to - from;
+  }
+  const [from, to] = margins[margins.length - 1];
+  return (from + to) / 2;
 }
 
 /**
  * The same shares as the stops of a mask across a region this wide: each a place from 0 to 1 and
  * the share that shows there. A column too narrow to ease into and out of leaves the region whole.
  */
-export function restStops(column, width) {
+export function restStops(column, width, under = UNDER_CONTENT) {
   if (!(width > 0) || column.right - column.left < 2 * EASE) return [[0, 1], [1, 1]];
   const at = (x) => Math.min(1, Math.max(0, x / width));
-  return [column.left, column.left + EASE, column.right - EASE, column.right].map((x) => [at(x), restShare(x, column)]);
+  return [column.left, column.left + EASE, column.right - EASE, column.right].map((x) => [at(x), restShare(x, column, under)]);
 }
 
 const whole = () => 1;
@@ -328,7 +379,7 @@ function drawBranches(context, branches, colours, base) {
  * pages. `depth` is the website's depth, or a function that gives it: 1 on Home, 2 anywhere else.
  * Returns `dispose`, which stops drawing and removes every listener and observer; call it on unmount.
  */
-export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?? canvas, column: holder, depth: depthName = 2 } = {}) {
+export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?? canvas, column: holder, depth: depthName = 2, quiet: quietName = false } = {}) {
   const context = canvas.getContext("2d");
   const view = canvas.ownerDocument.defaultView;
   if (!context || !view) return { dispose() {} };
@@ -344,6 +395,7 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   if (!restContext || !trailContext) return { dispose() {} };
   const cleanup = [];
   const depth = () => depthFor(typeof depthName === "function" ? depthName() : depthName);
+  const quietPage = () => !!(typeof quietName === "function" ? quietName() : quietName);
   let width = 0;
   let height = 0;
   let density = restDensity(0, 0);
@@ -362,6 +414,9 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   let movedAt = -Infinity;
   let ownTimer = 0;
   let resizeTimer = 0;
+  /** When the app opened, and the timer that ends the growth that starts on its own. */
+  const openedAt = Date.now();
+  let endTimer = 0;
 
   const listen = (target, type, listener, options) => {
     target.addEventListener(type, listener, options);
@@ -400,7 +455,7 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     restContext.clearRect(0, 0, width, height);
     drawBranches(restContext, branches, colours, REST_ALPHA);
     const mask = restContext.createLinearGradient(0, 0, width, 0);
-    for (const [place, share] of restStops(columnSides(), width)) mask.addColorStop(place, `rgba(0, 0, 0, ${share})`);
+    for (const [place, share] of restStops(columnSides(), width, quietPage() ? QUIET_UNDER : UNDER_CONTENT)) mask.addColorStop(place, `rgba(0, 0, 0, ${share})`);
     restContext.globalCompositeOperation = "destination-in";
     restContext.fillStyle = mask;
     restContext.fillRect(0, 0, width, height);
@@ -482,12 +537,17 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     planOwnGrowth();
   }
 
-  /** Grows a new tuft that is drawn bright and fades while it grows, as the website's do. */
-  function sprout(x, y) {
+  /**
+   * Grows a new tuft that is drawn bright and fades while it grows, as the website's do. On a quiet
+   * page it grows only beside the column, and stops at its edge (DL-135).
+   */
+  function sprout(x, y, own = false) {
+    const avoid = quietPage() ? columnSides() : null;
+    if (avoid && inColumn(x, avoid)) return;
     const tuftDepth = depth();
     const tuftBranches = [];
     sow(tuftBranches, x, y, Math.random, tuftDepth.reach);
-    tufts.push({ branches: tuftBranches, age: 0, depth: tuftDepth, density: { reach: tuftDepth.reach, forkRate: tuftDepth.forkRate, limit: 24 } });
+    tufts.push({ own, branches: tuftBranches, age: 0, depth: tuftDepth, density: { reach: tuftDepth.reach, forkRate: tuftDepth.forkRate, limit: 24, avoid } });
     if (tufts.length > LIVE_TUFTS) tufts.shift();
     trailsDrawn = true;
     schedule();
@@ -507,17 +567,19 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
 
   /**
    * A tuft grows on its own every few seconds, somewhere in the part of the canvas that is in the
-   * window, while the page is shown and no mouse or finger has just grown one. It stops under
-   * reduced motion (DL-048, DL-128).
+   * window, while the page is shown and no mouse or finger has just grown one, for the first five
+   * seconds after the app opens. It stops under reduced motion (DL-048, DL-128).
    */
   function planOwnGrowth() {
-    if (ownTimer || disposed || !shown || !onScreen || !growsOnItsOwn(still.matches)) return;
+    const open = () => ownGrowthOpen(Date.now() - openedAt);
+    if (ownTimer || disposed || !shown || !onScreen || !growsOnItsOwn(still.matches) || !open()) return;
     ownTimer = view.setTimeout(() => {
       ownTimer = 0;
       const box = canvas.getBoundingClientRect();
       const top = Math.max(0, -box.top);
       const bottom = Math.min(height, view.innerHeight - box.top);
-      if (bottom > top && resting() && mouseAtRest(Date.now() - movedAt)) sprout(Math.random() * width, top + Math.random() * (bottom - top));
+      const x = quietPage() ? marginSpot(columnSides(), width, Math.random()) : Math.random() * width;
+      if (x !== null && bottom > top && resting() && open() && mouseAtRest(Date.now() - movedAt)) sprout(x, top + Math.random() * (bottom - top), true);
       planOwnGrowth();
     }, OWN_GROWTH_AFTER + Math.random() * OWN_GROWTH_SPREAD);
   }
@@ -525,6 +587,32 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   function stopOwnGrowth() {
     if (ownTimer) view.clearTimeout(ownTimer);
     ownTimer = 0;
+  }
+
+  /**
+   * The app's five seconds of growth on its own are over: a tuft it grew goes, its trail fades out
+   * quickly, and a resting network still growing in comes to rest at once (WCAG 2.2.2).
+   */
+  function endOwnGrowth() {
+    endTimer = 0;
+    stopOwnGrowth();
+    if (disposed) return;
+    if (!resting()) {
+      settle(branches, width, height, random, density);
+      paintRest();
+    }
+    tufts = tufts.filter((tuft) => !tuft.own);
+    if (!tufts.length && trailsDrawn) quiet = Math.max(quiet, QUIET_FRAMES + 1);
+    show();
+    schedule();
+  }
+
+  /** Ends the growth that starts on its own when the app's five seconds are up. Under reduced motion none starts. */
+  function endOwnGrowthLater() {
+    if (endTimer) view.clearTimeout(endTimer);
+    endTimer = 0;
+    const left = OWN_GROWTH_FOR - (Date.now() - openedAt);
+    if (!still.matches && left > 0) endTimer = view.setTimeout(endOwnGrowth, left);
   }
 
   /** A new theme draws the same network in the new colours, and lets go of trails in the old ones. */
@@ -545,6 +633,7 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   }
 
   grow();
+  endOwnGrowthLater();
 
   // The website listens on the window for a mouse and for a finger, and so does this.
   listen(view, "mousemove", (event) => onMove(event.clientX, event.clientY), { passive: true });
@@ -563,9 +652,11 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     }
   });
   // Motion turned off or on: draw it at rest and start again from there.
+  // Turned on within the app's five seconds, growth on its own ends with them; after them, none starts.
   listen(still, "change", () => {
     stopOwnGrowth();
     grow(true);
+    endOwnGrowthLater();
   });
   listen(darkScheme, "change", recolour);
 
@@ -617,6 +708,7 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
       stop();
       stopOwnGrowth();
       if (resizeTimer) view.clearTimeout(resizeTimer);
+      if (endTimer) view.clearTimeout(endTimer);
       for (const undo of cleanup.splice(0)) undo();
     },
   };

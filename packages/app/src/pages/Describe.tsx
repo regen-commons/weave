@@ -15,7 +15,7 @@ import {
   readingNote,
   saidText,
 } from "../describe/fill.ts";
-import { keywordExtract } from "../describe/keyword-client.ts";
+import { closeKeywordReader, keywordExtract, warmKeywordReader } from "../describe/keyword-client.ts";
 import { startSpeech } from "../describe/speech.ts";
 import { deviceEngines, ledgerRows, structureWords } from "../describe/structure.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
@@ -77,7 +77,14 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   const task = useRef<AbortController | null>(null);
   const mic = useRef<{ stop(): void; dispose(): void } | null>(null);
   const micTask = useRef<AbortController | null>(null);
+  // Words the recognizer may still change. They show in the box and reach the draft only once
+  // settled, or when listening ends, so a phone does not store the draft five times a second.
+  const [heard, setHeard] = useState("");
+  const unsettled = useRef("");
+  // Stop pressed before the recognizer has started is kept, and applied once it has.
+  const stopWanted = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const addFilesRef = useRef<HTMLButtonElement>(null);
   const view = examples?.describe;
   // A card linked to a Certified project lists its four public details read-only: the project owns them.
   const linked = import.meta.env.DEV && social?.state.identity ? social.state.project : null;
@@ -101,6 +108,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     if (import.meta.env.DEV && view === "storage-error" && ready && !storageError)
       controller.change((current) => changeSaid(current, saidText(current) || "A change that could not be saved."));
   }, [controller, view, ready, storageError]);
+  // The keyword worker is kept while the step is open, and ends when the person leaves it.
+  useEffect(() => closeKeywordReader, []);
   function changeForm(value: RecordForm) {
     setProblem(null);
     controller.change((current) => editFields(current, value));
@@ -124,7 +133,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     const started = performance.now();
     try {
       // An example runs the keyword rules only, so it never depends on the browser it is shown in.
-      const engines = fixture ? [] : await deviceEngines();
+      // The browser is asked about its model while the keyword rules run, not before them.
+      const engines = fixture ? [] : deviceEngines();
       const result = await structureWords(source, abort.signal, { keywords: keywordExtract, engines });
       abort.signal.throwIfAborted();
       // The result belongs to the draft whose words were read. If the tab has moved to another, it is dropped.
@@ -198,10 +208,23 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       controller.change((current) => changeSaid(current, [base, said].filter(Boolean).join(" ")));
       return;
     }
+    warmKeywordReader();
+    mic.current?.dispose();
+    mic.current = null;
+    stopWanted.current = false;
     const abort = new AbortController();
     micTask.current = abort;
     setListening(true);
     let failed = false;
+    let settled = "";
+    /** Puts the words still unsettled into the draft after the settled ones, when they fit the box. */
+    const keepUnsettled = () => {
+      const words = unsettled.current;
+      unsettled.current = "";
+      setHeard("");
+      const text = [base, settled, words].filter(Boolean).join(" ");
+      if (words && text.length <= SAID_LIMIT) controller.change((current) => changeSaid(current, text));
+    };
     try {
       mic.current = await startSpeech(
         mode,
@@ -212,18 +235,26 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
             const text = [base, final, interim].filter(Boolean).join(" ");
             if (text.length > SAID_LIMIT) {
               failed = true;
+              keepUnsettled();
               abort.abort();
               setListening(false);
               setStatus("That is as much as the box holds. Fill in the fields from what is here.");
               return;
             }
-            controller.change((current) => changeSaid(current, text));
+            unsettled.current = interim;
+            setHeard(interim);
+            if (final !== settled) {
+              settled = final;
+              controller.change((current) => changeSaid(current, [base, final].filter(Boolean).join(" ")));
+            }
           },
           error: (code) => {
             failed = true;
             setStatus(speechProblem(code, mode, speech.touch));
           },
           end: (requested) => {
+            // A session cut off at Stop's deadline ends with its last words unsettled; they are kept.
+            if (!abort.signal.aborted) keepUnsettled();
             setListening(false);
             if (failed || abort.signal.aborted) return;
             // Stop fills the fields from what was said. A recognizer that ended by itself after a
@@ -235,6 +266,10 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
         },
         { consent: speech.consent, signal: abort.signal },
       );
+      if (stopWanted.current) {
+        stopWanted.current = false;
+        mic.current.stop();
+      }
     } catch {
       setListening(false);
       if (!abort.signal.aborted) setStatus(speechNotStarted(mode));
@@ -245,7 +280,8 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
     if (import.meta.env.DEV && fixture) {
       setListening(false);
       void fill();
-    } else mic.current?.stop();
+    } else if (mic.current) mic.current.stop();
+    else stopWanted.current = true;
   }
   function addFiles(input: HTMLInputElement) {
     const selected = [...(input.files ?? [])];
@@ -313,6 +349,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   // Add Files opens the file picker directly. Beside the box its file is read at once.
   const addFilesButton = (
     <button
+      ref={addFilesRef}
       className="rc-button"
       data-variant="secondary"
       type="button"
@@ -333,11 +370,12 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
         controller.change((current) => revise(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true))
       }
       onRemoveLink={() => {}}
+      afterLast={addFilesRef}
     />
   );
   return (
     <Stack>
-      <IntakeStepper current={0}>{forward("wide")}</IntakeStepper>
+      <IntakeStepper>{forward("wide")}</IntakeStepper>
       <Heading level={1} size="page">
         Tell Us About Your Initiative
       </Heading>
@@ -381,8 +419,12 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                 onLanguage={setLanguage}
                 onStart={() => void talk()}
                 onStop={stop}
-                value={said}
+                value={heard ? [said, heard].filter(Boolean).join(" ") : said}
                 onChange={(text) => {
+                  warmKeywordReader();
+                  // A change typed while listening already holds the unsettled words it was shown.
+                  unsettled.current = "";
+                  setHeard("");
                   try {
                     controller.change((current) => changeSaid(current, text));
                   } catch (error) {

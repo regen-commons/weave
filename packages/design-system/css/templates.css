@@ -16,22 +16,33 @@
 @media (width < 56.25rem) {
   :root:has(.rc-dock:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
 }
-/* On a wide screen a step's bar sticks under the app bar, so jumps and focus stop clear of both (DL-127). */
+/* On a wide screen a step's bar is fixed to the foot of the window, as the dock is on a phone, so
+   a field that takes the focus stops a little above it (DL-127). */
 @media (min-width: 56.25rem) {
-  :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+  :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
+}
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the app
+   bar scrolls away with the page instead of sticking, so the bars never take most of what there
+   is to read. A step's bar stays at the foot of the window, as a phone's dock does, because it
+   holds the way forward (DL-132, DL-127). */
+@media (height < 30rem) {
+  :root:has(.rc-app-header) { scroll-padding-block-start: var(--space-4); }
+}
+/* A list's pinned filter row sits under the app bar, or at the window's top where the bar has
+   scrolled away, so jumps and focus stop clear of it too (DL-130). */
+:root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+@media (height < 30rem) {
+  :root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
 }
 
-.rc-page:has(> .rc-site-banner) {
-  grid-template-rows: auto auto 1fr auto auto;
-}
 /* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
    window below it, reads this. */
 .rc-page { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The site banner's height where a page has one, and nothing where it has none. The page body
    leaves it out of the window it fills, so the footer starts at the fold and not a banner below
-   it (DL-102). */
+   it (DL-102). The banner is the first line of the page's header (DL-132). */
 .rc-page { --site-banner-height: 0rem; }
-.rc-page:has(> .rc-site-banner) { --site-banner-height: var(--space-7); }
+.rc-page:has(.rc-site-banner) { --site-banner-height: var(--space-7); }
 /* The tab bar's height on a phone: a tab and the bar's top edge. The bar is fixed to the bottom
    of the window, so the page keeps that much room under its footer, and the room the phone's
    home indicator takes, and the footer's last line is never under the bar (DL-086). */
@@ -40,18 +51,15 @@
    The page keeps the same room for it as for the tab bar it stands in for (DL-089). */
 .rc-page { --dock-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The step bar's height on a wide screen where a step fills it, and nothing anywhere else: a
-   control, the bar's padding and its edge, as the app bar is. Whatever sticks under the two bars,
-   or fills the window below them, adds it to the app bar's height (DL-127). */
+   control, the bar's padding and its edge, as the dock is. The bar is fixed to the foot of the
+   window, so the page keeps that much room under its footer, and whatever fills the window, or
+   stays whole in it, leaves it out (DL-127). */
 .rc-page { --step-bar-height: 0rem; }
 @media (min-width: 56.25rem) {
   .rc-page:has(> .rc-step-bar:not(:empty)) {
     --step-bar-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin));
-    grid-template-rows: auto auto 1fr auto auto;
+    padding-block-end: calc(var(--step-bar-height) + env(safe-area-inset-bottom));
   }
-  .rc-page:has(> .rc-site-banner):has(> .rc-step-bar:not(:empty)) { grid-template-rows: auto auto auto 1fr auto auto; }
-  /* The bar comes after the page body in the markup and is drawn in the row under the app bar. */
-  .rc-page > .rc-step-bar { grid-row: 2; }
-  .rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }
 }
 @media (width < 56.25rem) {
   .rc-page:has(> .rc-bottom-nav) { padding-block-end: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); }
@@ -78,7 +86,8 @@
   min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--step-bar-height));
 }
 
-/* One line of words in a bar of a known height, which the page body reads (--site-banner-height). */
+/* One line of words in a bar of a known height, which the page body and the header's sticky
+   offset read (--site-banner-height). */
 .rc-site-banner {
   display: grid;
   place-items: center;
@@ -168,13 +177,13 @@
   }
   .rc-step-layout > * { grid-column: 1; }
   .rc-step-aside[data-from="wide"] { display: grid; }
-  /* The record beside the work stays whole under the app bar, and under a step's bar where there
+  /* The record beside the work stays whole under the app bar, and above a step's bar where there
      is one, while the page scrolls. One taller
      than the window scrolls inside itself, so its last row is always in reach, and the wheel moves
      the page again once the panel has nothing left to scroll. */
   .rc-step-layout > .rc-step-aside {
     position: sticky;
-    inset-block-start: calc(var(--app-header-height) + var(--step-bar-height) + var(--space-5));
+    inset-block-start: calc(var(--app-header-height) + var(--space-5));
     grid-column: 2;
     grid-row: 1 / span 6;
     max-block-size: calc(100dvh - var(--app-header-height) - var(--step-bar-height) - 2 * var(--space-5));
@@ -185,6 +194,14 @@
   /* Work that carries on below the panel on a phone sits under the first column here, and the
      panel stays beside both for the length of the page. */
   .rc-step-layout:has(> .rc-step-main ~ .rc-step-main) > .rc-step-aside { grid-row: 1 / span 2; }
+}
+/* In a short window the app bar scrolls away, so the record beside the work sticks a step from
+   the window's top, clear of the step's bar at its foot (DL-132, DL-127). */
+@media (height < 30rem) and (min-width: 56.25rem) {
+  .rc-step-layout > .rc-step-aside {
+    inset-block-start: var(--space-5);
+    max-block-size: calc(100dvh - var(--step-bar-height) - 2 * var(--space-5));
+  }
 }
 @media (min-width: 100rem) {
   .rc-step-layout[data-main="wide"] { row-gap: var(--space-9); }

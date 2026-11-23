@@ -130,7 +130,7 @@ export function withRenewedSession(
   };
 }
 /** The same request, with its access cookie replaced by the renewed token. */
-function withAccessToken(request: Request, cookies: ReturnType<typeof sessionCookies>, token: string) {
+export function withAccessToken(request: Request, cookies: ReturnType<typeof sessionCookies>, token: string) {
   const name = cookies.session().split("=")[0]!;
   const kept = (request.headers.get("cookie") ?? "").split(";").map(value => value.trim())
     .filter(value => value && !value.startsWith(`${name}=`));

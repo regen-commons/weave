@@ -1,3 +1,4 @@
+import { busyProps } from "../account/busy.ts";
 import { useAccount } from "../account/context.tsx";
 import { belongsToAnotherAccount } from "../account/document.ts";
 import { useSetAside } from "../account/set-aside.ts";
@@ -129,19 +130,21 @@ export function DeviceBackups({ manage = false, disabled = false }: { manage?: b
             {busy && <p role="status">{step.kind === "restore" ? "Restoring" : "Removing"}</p>}
             <div className="rc-action-bar">
               {step.kind === "restore" ? (
-                <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-task-focus
+                <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy)} data-task-focus
                   onClick={() => void run(async () => {
                     await controller.replace(step.backup.draft);
                     return "Device backup restored.";
                   })}>
-                  Restore Backup
+                  <span>Restore Backup</span>
+                  {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
               ) : (
-                <button className="rc-button" data-variant="danger" type="button" disabled={busy}
+                <button className="rc-button" data-variant="danger" type="button" {...busyProps(busy)}
                   onClick={() => void run(async () => step.kind === "current"
                     ? discardedMessage(await controller.discardCurrent())
                     : removedBackupMessage(await controller.deleteBackup(step.backup)))}>
-                  {step.kind === "current" ? "Remove From This Device" : "Delete This Backup"}
+                  <span>{step.kind === "current" ? "Remove From This Device" : "Delete This Backup"}</span>
+                  {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
               )}
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy}

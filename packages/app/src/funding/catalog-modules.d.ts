@@ -13,6 +13,12 @@ declare module "*dist/matching.mjs" {
   export function programFund(fund: unknown, program: unknown): unknown;
   export function validConditions(data: unknown, funds: unknown[]): boolean;
   export const MATCH_GROUPS: Record<string, string>;
+  /** The thematic fit rubric's published anchors, which the app's fit levels are measured against. */
+  export const THEMATIC_FIT_RUBRIC: {
+    version: string;
+    semanticAnchors: [number, number][];
+    sharedTermGrades: number[];
+  };
 }
 declare module "*dist/domain.mjs" {
   export function effectiveAccess(fund: unknown, now?: Date): string;

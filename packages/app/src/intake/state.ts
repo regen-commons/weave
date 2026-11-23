@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { LinkSchema, type Attachment, type Turn } from "../describe/source-contracts.ts";
+import { askFormText, askText } from "./presentation.ts";
 import {
   ASK_DESCRIPTION_LIMIT,
   ASK_LIMIT,
@@ -194,12 +196,48 @@ export function formFromAsk(value: AskFields = EMPTY_ASK): AskForm {
     status: value.status,
   };
 }
-function numeric(text: string): number | null {
+/** The editor's fields a problem can belong to: the ones a person can correct in it. */
+export type AskFormField = "title" | "description" | "capitalForms" | "amountMin" | "amountMax" | "currency" | "exchangeTerms";
+/** A problem with one field of the editor, so the editor can mark that field and move to it. */
+export class AskFieldError extends Error {
+  readonly field: AskFormField;
+  constructor(field: AskFormField, message: string) {
+    super(message);
+    this.field = field;
+  }
+}
+/** What the editor says when nothing more precise is known. */
+export const ASK_FORM_PROBLEM = "Add a title. Check amounts, currency and terms. Your unfinished values are still here.";
+/**
+ * Says which field a failed save is about and what to do, so the editor can mark that field and
+ * move the focus to it (WCAG 3.3.1, 3.3.3). The schema's own sentences are used where they exist.
+ */
+export function askFormProblem(error: unknown): { field: AskFormField | null; message: string } {
+  if (error instanceof AskFieldError) return { field: error.field, message: error.message };
+  if (error instanceof z.ZodError) {
+    const issue = error.issues[0];
+    const [first, second] = issue?.path ?? [];
+    if (first === "title") return { field: "title", message: "Add a title." };
+    if (first === "description") return { field: "description", message: `Keep the description to ${ASK_DESCRIPTION_LIMIT} characters or fewer.` };
+    if (first === "amount" && second === "currency") return { field: "currency", message: "Use a three-letter currency code, such as USD." };
+    if (first === "amount" && (second === "min" || second === "max"))
+      return { field: second === "min" ? "amountMin" : "amountMax", message: "Use a number of zero or more." };
+    if (first === "amount") return { field: "amountMin", message: issue?.message ?? ASK_FORM_PROBLEM };
+    if (first === "exchangeTerms") return { field: "exchangeTerms", message: "Choose at least one term." };
+    const message = issue?.message ?? ASK_FORM_PROBLEM;
+    if (/Open to anything/u.test(message)) return { field: "exchangeTerms", message };
+    if (/kind of support|Financial support/u.test(message)) return { field: "capitalForms", message };
+    return { field: null, message: issue && !first ? message : ASK_FORM_PROBLEM };
+  }
+  if (error instanceof Error && !error.message.startsWith("[")) return { field: null, message: error.message };
+  return { field: null, message: ASK_FORM_PROBLEM };
+}
+function numeric(text: string, field: "amountMin" | "amountMax"): number | null {
   if (!text.trim()) return null;
   if (!/^\d+(?:\.\d+)?$/u.test(text.trim()))
-    throw new Error("Use numbers with a dot for decimals, without grouping separators.");
+    throw new AskFieldError(field, "Use numbers with a dot for decimals, without grouping separators.");
   const number = Number(text);
-  if (!Number.isFinite(number)) throw new Error("Check the amount.");
+  if (!Number.isFinite(number)) throw new AskFieldError(field, "Check the amount.");
   return number;
 }
 export function parseAskForm(form: AskForm, kind: AskKind, allowUnclassified = true): AskFields {
@@ -211,8 +249,8 @@ export function parseAskForm(form: AskForm, kind: AskKind, allowUnclassified = t
     capitalForms: form.capitalForms,
     amount: hasAmount
       ? {
-          min: numeric(form.amountMin),
-          max: numeric(form.amountMax),
+          min: numeric(form.amountMin, "amountMin"),
+          max: numeric(form.amountMax, "amountMax"),
           currency: form.currency.trim().toUpperCase(),
         }
       : null,
@@ -234,7 +272,7 @@ export function keepEditor(step: AskStep, kind: AskKind): AskStep {
   if (step.editor.id && !old) throw new Error("This card changed. Cancel the editor and open it again.");
   // A description written before the shorter limit stays as it is; a new or changed one fits it.
   if ((value.description?.length ?? 0) > ASK_DESCRIPTION_LIMIT && value.description !== old?.value.description)
-    throw new Error(`Keep the description to ${ASK_DESCRIPTION_LIMIT} characters or fewer.`);
+    throw new AskFieldError("description", `Keep the description to ${ASK_DESCRIPTION_LIMIT} characters or fewer.`);
   const item: AskItem = {
     id: old?.id ?? crypto.randomUUID(),
     sourceKey: old?.sourceKey ?? null,
@@ -275,7 +313,9 @@ export function stepHasWords(step: AskStep): boolean {
     step.editor
   );
 }
-export function stepText(step: AskStep): string {
+/** How each card's state reads in the copy of the words, for a person and not a program. */
+const DECISION_WORDS = { kept: "Kept card", pencil: "Card to check", removed: "Removed card" } as const;
+export function stepText(step: AskStep, kind: AskKind): string {
   return [
     ...step.turns.map((turn) => `${turn.prompt}\n${turn.text}`),
     step.composer,
@@ -283,8 +323,8 @@ export function stepText(step: AskStep): string {
     step.pendingLink,
     ...step.links,
     ...step.attachments.map((file) => `File kept locally: ${file.name}`),
-    ...step.items.map((item) => `${item.decision}: ${JSON.stringify(item.value)}`),
-    step.editor ? `Unfinished card: ${JSON.stringify(step.editor.form)}` : "",
+    ...step.items.map((item) => `${DECISION_WORDS[item.decision]}\n${askText(item.value)}`),
+    step.editor ? `Unfinished card\n${askFormText(step.editor.form, kind)}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");

@@ -51,12 +51,18 @@ export function Page({
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
-        <p className="rc-site-banner">Still in development will be live soon</p>
-        <AppHeader pathname={pathname} sections={!form} status={status} back={back} ended={ended} />
+        <AppHeader
+          pathname={pathname}
+          sections={!form}
+          status={status}
+          back={back}
+          ended={ended}
+          banner="Still in development. Live soon."
+        />
         {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
             network grows once. */}
         <div className="rc-page-body">
-          <Mycelium extent="page" home={route?.name === "home"} />
+          <Mycelium extent="page" home={route?.name === "home"} quiet={form} />
           <Main key={pathname} pathname={pathname} notice={<SessionEndedNotice text={ended} />}>
             {children}
           </Main>
@@ -64,9 +70,10 @@ export function Page({
         {/* A focused step has no tabs. On a phone its way forward docks where they would be, and
             reads after the step and before the footer (DL-089). */}
         {form && <div className="rc-dock" ref={setDock} />}
-        {/* On a wide screen a step's map and its way forward share one bar under the app bar. It
-            comes after the page body, so the keyboard reaches the way forward after the step's
-            fields, and the page's grid draws it above them (DL-127). */}
+        {/* On a wide screen a step's map and its way forward share one bar fixed to the foot of
+            the window, where a phone's dock is, and it stays there in a short window too. It comes
+            after the page body, so the keyboard reaches the way forward after the step's fields
+            (DL-127). */}
         <div className="rc-step-bar" ref={setStepBar} />
         {/* A route can leave the footer out on a phone, for focus (Route.footer). */}
         <Footer current={current} from={route?.footer} onInformation={setInformation}>

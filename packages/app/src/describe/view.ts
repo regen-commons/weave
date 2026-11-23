@@ -1,6 +1,8 @@
 import { EMPTY_INITIATIVE, SuggestionSchema, type DeviceDraft, type Initiative } from "./contracts.ts";
 import { keptDetails } from "./details.ts";
 import { stepHasWords, stepText } from "../intake/state.ts";
+import type { FundingDetails, FundingForm } from "../funding/contracts.ts";
+import { APPLICANT_TYPES, countryList } from "../funding/details.ts";
 /**
  * The card as it stands before Continue: the four fields as they read, and the details the
  * person kept. Words in the box that have not been put into the fields are not on it, and
@@ -34,13 +36,53 @@ export function hasDraft(draft: DeviceDraft): boolean {
     draft.confirmed
   );
 }
+/**
+ * One set of funding details as lines labeled the way the Details For Funding dialog labels its
+ * fields, with nothing for a field left empty. The kept details hold country codes, which read as
+ * names; what is still open in the dialog is copied exactly as typed, so nothing typed is lost.
+ */
+function fundingLines(form: FundingForm, typed: boolean): string[] {
+  const places = (text: string) => (typed ? text.trim() : countryList(text));
+  const goal = [form.goalMin.trim() && `from ${form.goalMin.trim()}`, form.goalMax.trim() && `up to ${form.goalMax.trim()}`, form.currency.trim()]
+    .filter(Boolean)
+    .join(" ");
+  const line = (label: string, value: string | false) => (value ? `${label}: ${value}` : "");
+  return [
+    line("Where you work", places(form.workCountries)),
+    line("Where the people you serve live", places(form.benefitCountries)),
+    line("Where you are based", places(form.applicantBaseCountry)),
+    line("Where you are registered", places(form.registrationCountry)),
+    line("Who is applying", form.applicantType !== "unknown" && APPLICANT_TYPES[form.applicantType]),
+    line("Kinds of funding", form.fundingInstruments.join(", ")),
+    line("Amount you are looking for", goal),
+    line("States where you work", form.usWorkStates.trim()),
+    line("States where the people you serve live", form.usBenefitStates.trim()),
+  ].filter(Boolean);
+}
+
+/** The funding details, any still open in their dialog, and the answers given to a fund's requirements, as plain lines. */
+export function fundingText(funding: FundingDetails): string {
+  const section = (title: string, lines: string[]) => (lines.length ? [title, ...lines].join("\n") : "");
+  return [
+    section("Unfinished funding details", funding.editor ? fundingLines(funding.editor, true) : []),
+    section("Funding details", fundingLines(funding.form, false)),
+    section(
+      "Answers to funding requirements",
+      Object.entries(funding.programAnswers).map(
+        ([key, { answer, sourceCheckedOn }]) =>
+          `${key.split("::").join(", ")}: ${answer === "yes" ? "Yes" : "No"}, for the requirement as checked on ${sourceCheckedOn}`,
+      ),
+    ),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 export function draftText(draft: DeviceDraft): string {
   return [
-    draft.funding.editor ? `Unfinished funding details: ${JSON.stringify(draft.funding.editor)}` : "",
-    `Funding details: ${JSON.stringify(draft.funding.form)}`,
-    `Funding requirement answers: ${JSON.stringify(draft.funding.programAnswers)}`,
-    stepText(draft.needs),
-    stepText(draft.offers),
+    fundingText(draft.funding),
+    stepText(draft.needs, "needs"),
+    stepText(draft.offers, "offers"),
     ...draft.turns.map((turn) => `${turn.prompt}\n${turn.text}`),
     draft.composer,
     draft.pendingLink,

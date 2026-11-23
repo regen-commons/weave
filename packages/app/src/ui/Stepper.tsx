@@ -57,22 +57,26 @@ export function Stepper({
 }
 
 /**
- * The three steps of starting an initiative, on each of their pages, with the ones done as links
+ * The four steps of starting an initiative, on each of their pages, with the ones done as links
  * back. A phone shows them at the top of the page and docks the way forward (DL-089). A wide
- * screen shows them in the Step bar under the app bar, with the step's way forward (`children`)
- * at the bar's far end, so both stay in view while the page scrolls (DL-127). The steps are in
- * the markup twice and on screen once.
+ * screen shows them in the Step bar at the foot of the window, with the step's way forward
+ * (`children`) at the bar's far end, so both stay in view while the page scrolls (DL-127). The
+ * steps are in the markup twice and on screen once. A page that is one of the steps shows its own
+ * place, so it passes no `current`; `current` is for an address that stands for a step, as
+ * /start/new does for step 1.
  */
-export function IntakeStepper({ current, children }: { current: number; children?: ReactNode }) {
+export function IntakeStepper({ current = 0, children }: { current?: number; children?: ReactNode }) {
   const bar = useContext(StepBarContext);
   const steps = INTAKE_STEPS.map((step) => ({ label: step.label, href: pathTo(step.route) }));
+  const own = INTAKE_STEPS.findIndex((step) => step.route === matchRoute(routePath())?.name);
+  const at = own === -1 ? current : own;
   return (
     <>
-      <Stepper current={current} steps={steps} until="wide" />
+      <Stepper current={at} steps={steps} until="wide" />
       {bar &&
         createPortal(
           <>
-            <Stepper current={current} steps={steps} />
+            <Stepper current={at} steps={steps} />
             {children && <div className="rc-action-bar">{children}</div>}
           </>,
           bar,

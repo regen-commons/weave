@@ -253,6 +253,7 @@ Server-only app configuration:
 | `WEAVE_SUPABASE_PUBLISHABLE_KEY` | Publishable key, never a service-role/secret key. |
 | `WEAVE_SIGN_IN_DATABASE_URL` | Separate LOGIN inheriting only `weave_app_auth_runtime`. Remote TLS verifies certificates. |
 | `WEAVE_SIGN_IN_ENCRYPTION_KEYS` | Same JSON format as bridge wrapping keys, with independent secrets bound to the app origin. |
+| `WEAVE_CERTIFIED_BRIDGE_ORIGIN` | Optional exact HTTPS origin of the identity bridge, used only to wake it before a sign-in. Production (`https://weave.regencommons.com`) defaults to `https://auth.regencommons.com`; any other Weave wakes no bridge unless this names one. A value that is not an exact HTTPS origin wakes none and changes nothing else. |
 
 The app role can only insert, read and delete its encrypted `app_signins` records.
 It cannot access bridge tokens/keys, Auth users or initiatives. The store refuses
@@ -263,8 +264,10 @@ Before redirecting, the browser waits for device persistence and checks for edit
 made while the request was in flight. A storage failure leaves the tab open.
 
 The callback exchanges the code server-side, checks the authoritative access rule,
-and sets a host-only Secure HttpOnly SameSite=Strict session cookie for at most one
-hour. It never stores refresh tokens or writes/loads a draft. The temporary state
+and sets two host-only Secure HttpOnly SameSite=Strict cookies: the access token, for at most one
+hour, and Supabase's refresh token, which lets `/api/account` renew the access token. A browser stays
+signed in for up to 30 days from sign-in (`SESSION_CAP_SECONDS`) and no longer than 14 days without use
+(`RENEWAL_SECONDS`); past the cap Weave revokes the session. The callback never writes or loads a draft. The temporary state
 cookie uses SameSite=Lax so it can return from Certified. Invalid, missing, expired
 or replayed state cannot establish a session. Failures return fixed messages without
 provider details. Supabase receives only the publishable key and the person's JWT
@@ -308,6 +311,26 @@ For disposable loopback tests only, `WEAVE_LOCAL_AUTH=true` permits local HTTP a
 non-Secure cookies. It is refused when `VERCEL` is present or `NODE_ENV=production`.
 The bridge's test-only loopback callback option still enforces HTTPS ingress and
 Secure cookies when its own issuer is HTTPS. Neither exception belongs in a release.
+
+### Warm start
+
+A sign-in that met cold functions took about 6.3 seconds from the press to Certified's page, against
+1.5 seconds warm (production, 22 November 2026): 0.8 seconds in `/api/sign-in` and 4.7 seconds in the
+bridge's first redirects, where it loads its libraries, opens its database and reads its keys. So a page
+that shows Sign In to someone signed out first posts `{"warm": true}` to `/api/sign-in`. The handler
+applies the same origin and JSON rules as a start, runs the sign-in store's one-time role check for that
+function instance, and reads the bridge's public discovery document once, with an eight-second limit, at
+most once in 30 seconds for each instance. The database connection it opens closes after ten idle seconds,
+so the gain is the warm function, the finished role check and the woken bridge, not a held connection. It stores no attempt, sets no cookie, sends nothing of the person's to the bridge and
+answers `{"warm": true}` whether or not either step worked. A start wakes the bridge the same way without
+waiting for it. Sign-in works the same when the warm request is blocked or fails.
+
+The session checks behind `/api/account` also run together: `/auth/v1/user` beside the `account_access`
+predicate, and the list beside both. The user's answer is still judged first, then the predicate, then
+the list, so every outcome is the one the sequence gave. The database applies the access rule to the
+list itself, and a list read for a session that is then refused is dropped. The cost is accepted: a
+cookie Supabase refuses now reaches it as three requests where the sequence stopped at one, which is what
+every valid session has always cost.
 
 ## Rotation and shutdown
 
@@ -553,6 +576,47 @@ Group registration and the signed-in person's group membership list go
 through the PDS service proxy. Group-scoped reads and writes use one-use
 service tokens. Prove both paths with the selected Certified environment
 before enabling project writes.
+
+A grant is bound to one Weave session and one action. The grant for `membership`, which only reads
+the signed-in person's own group memberships, lasts 30 days from the consent, which is as long as a
+session can last (`grantLifetime` in `certified-project-auth.ts`; the user's choice, 22 November 2026,
+DL-137). It cannot be used from another session, so it is unusable after sign-out or a revoked session,
+and a new sign-in asks Certified again.
+
+Signing out deletes that session's grants before the session is revoked (`forget` in
+`certified-project-auth.ts`, called from `/api/account`'s `sign_out`, which loads the project runtime
+only then). That removes the stored tokens together with the DPoP key they are bound to, so nobody can
+use them afterwards; Weave does not also call Certified's revocation endpoint. Each removal waits behind
+a token refresh that may be under way, so a rotation cannot write the grant back. An unfinished consent receipt named by
+the browser's consent cookie is removed first, so it cannot become a grant meanwhile. The step has five
+seconds and can never stop or fail a sign-out. It runs before the revocation, so a sign-out that Supabase
+could not confirm (`sign_out_unconfirmed`) leaves the person signed in without project access, and the
+next project request asks Certified again. With the project database unreachable, a sign-out waits out
+those five seconds. When it could not run, or a session ended without a
+sign-out because it lapsed or was revoked, the grant stays in `weave_project_oauth.records`, encrypted
+and unusable, until its expiry. Expired rows go when the daily job in
+`supabase/candidates/weave-project-oauth-pruning.sql` runs. The user chose pg_cron for this on
+23 November 2026, and the job was applied to the shared Platform project (`ztygpuzldujfsqrubxic`) the
+same day, at the user's request, by the session coordinating this work: pg_cron 1.6.4, job
+`weave-project-oauth-prune`, daily at 03:17 UTC, scheduled as `postgres`, which owns the table and so is
+not held back by its row-level security. It was run as plain SQL and is not yet recorded in the
+website's migration folder, which owns Platform's migration history. Any other database, the isolated
+Weave Preview project included, has no such job until the candidate is applied there.
+Every other grant can write to Certified and still ends within the hour. The store refuses to keep a
+grant longer than its action allows, and a stored grant that claims a longer life is refused when read.
+
+Weave's own team commands (saving to a team workspace, invitations, workspace setup) check current group
+membership through this read grant. They used to stop after an hour until the person consented again;
+they now keep working for the session. Whoever holds a person's Weave session can therefore use those
+commands for as long as it lasts, as they already can save, load and delete that person's private cards.
+
+Signing in from Your Initiatives goes on to the `membership` consent without another press. The app
+keeps a note for the tab before leaving, reads it once on the callback's return to that page, waits
+for the session check and the device store, and then starts consent exactly as the Allow button does
+(`initiative/consent-chain.ts`). The trip is made at most once for a page load and is dropped if it
+cannot start within 20 seconds or the person has left the page. Certified still shows its consent
+screen, and the receipt is finished the same way. A sign-in from anywhere else leaves no note and
+clears an earlier one.
 
 The app finishes the one-use, session-bound project receipt before mounting its
 project loaders. React effect replay shares the same finish request. A missing,

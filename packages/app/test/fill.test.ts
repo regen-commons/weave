@@ -374,6 +374,29 @@ test("structuring stays on the device: keyword rules first, an engine may improv
   await assert.rejects(structureWords(draft, stop.signal, { keywords, now, engines: [engine(async () => { stop.abort(); return better; })] }));
 });
 
+test("the browser is asked about its model while the keyword rules run, and a question that fails tries no model", async () => {
+  const draft = said();
+  const signal = new AbortController().signal;
+  const order: string[] = [];
+  let answer!: (engines: StructureEngine[]) => void;
+  const asking = new Promise<StructureEngine[]>((resolve) => (answer = resolve));
+  const better: Initiative = { ...keywordSuggestion(draft, SAID), name: "Riverside Seed Library" };
+  const keywords = async (source: typeof draft) => {
+    order.push("keywords");
+    // The model's answer arrives while the keyword rules are still reading.
+    answer([{ engine: "browser", model: "Browser-managed model", refine: async () => (order.push("model"), better) }]);
+    return { text: SAID, unreadFiles: 0, files: [], words: 27, suggestion: keywordSuggestion(source, SAID) };
+  };
+  const refined = await structureWords(draft, signal, { keywords, engines: asking });
+  assert.deepEqual(order, ["keywords", "model"]);
+  assert.equal(refined.suggestion.name, "Riverside Seed Library");
+  // A question that fails leaves the keyword card, with no model tried and nothing reported as failed.
+  const unanswered = await structureWords(draft, signal, { keywords, engines: Promise.reject(new Error("no answer")) });
+  assert.equal(unanswered.lastBuild.engine, "keywords");
+  assert.equal(unanswered.lastBuild.fallback, false);
+  assert.deepEqual(unanswered.attempts.map((attempt) => attempt.engine), ["keywords"]);
+});
+
 test("the one link field keeps its own slot: clearing it leaves it empty, and typing never changes a link kept from an earlier save", () => {
   const start = { name: "Earlier card", where: "", about: "", links: "https://example.org/one\nhttps://example.org/two\nhttps://example.org/three" };
   const kept = ["https://example.org/two", "https://example.org/three"];

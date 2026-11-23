@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { confirmDraft, newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import { describeFixture } from "../src/fixtures.ts";
-import { choiceLabel, fundingSubject, subjectLine } from "../src/funding/subject.ts";
+import { choiceLabel, fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../src/funding/subject.ts";
 import { deviceDrafts } from "../src/initiative/list.ts";
 
 const checked = (name: string): DeviceDraft => {
@@ -51,4 +51,34 @@ test("an empty tab or another account's card is never named, and the person's ow
   assert.equal(subject.current, null);
   assert.deepEqual(subject.choices.map((option) => option.name), ["Seed library"]);
   assert.equal(sentence(subjectLine(subject)), "Choose an initiative to see what fits it.");
+});
+
+test("Change Initiative offers No initiative while a checked one is compared, even when it is the only one (DL-129)", () => {
+  const orchard = checked("Orchard commons");
+  const alone = fundingSubject(orchard, deviceDrafts(orchard, []));
+  assert.deepEqual(subjectOptions(alone), [
+    { value: orchard.id, label: "Orchard commons" },
+    { value: NO_INITIATIVE, label: "No initiative" },
+  ]);
+  const seeds = checked("Seed library");
+  const several = fundingSubject(orchard, deviceDrafts(orchard, [orchard, seeds]));
+  assert.equal(subjectOptions(several).at(-1)?.value, NO_INITIATIVE);
+  assert.equal(subjectOptions(several).length, 3);
+  assert.equal(
+    sentence(subjectLine(alone, true)),
+    "No initiative chosen, so fit is not shown or sorted on.",
+    "browsing says plainly that fit is left out",
+  );
+  assert.equal(sentence(subjectLine(alone, false)), "Showing what fits Orchard commons.");
+});
+
+test("No initiative is not offered where nothing is compared anyway", () => {
+  const blank = newDraft();
+  assert.deepEqual(subjectOptions(fundingSubject(blank, deviceDrafts(blank, []))), [], "a visitor gets the prompt, not a menu");
+  const crew = words("We clean the river every month");
+  assert.deepEqual(subjectOptions(fundingSubject(crew, deviceDrafts(crew, []))), []);
+  const seeds = checked("Seed library");
+  const unchecked = subjectOptions(fundingSubject(crew, deviceDrafts(crew, [seeds])));
+  assert.ok(unchecked.length === 2 && unchecked.every((option) => option.value !== NO_INITIATIVE));
+  assert.equal(subjectLine(fundingSubject(blank, deviceDrafts(blank, [])), true), null, "browsing with nothing to compare adds no line");
 });

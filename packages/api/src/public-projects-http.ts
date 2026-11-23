@@ -101,10 +101,14 @@ function prepare(snapshot: PublicProjectSnapshot): Prepared {
   };
 }
 
-/** One page of the matching cards after the cursor, and how many match in all. */
+/**
+ * One page of the matching cards after the cursor, and how many match in all. A query for one address
+ * gets that project's card, or none where the list does not show it, as after its publisher withdrew it.
+ */
 export function selectPublicProjects(prepared: Prepared, query: PublicProjectQuery) {
-  const { organizationType, workScope, terms } = query;
-  const matched = terms.length || organizationType || workScope
+  const { organizationType, workScope, terms, uri } = query;
+  const matched = uri ? prepared.cards.filter((card) => card.uri === uri)
+    : terms.length || organizationType || workScope
     ? prepared.cards.filter(({ search, organizationTypes, workScopes }) => terms.every((term) => search.includes(term))
       && (!organizationType || organizationTypes.includes(organizationType))
       && (!workScope || workScopes.includes(workScope)))

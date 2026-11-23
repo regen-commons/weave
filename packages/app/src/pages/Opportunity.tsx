@@ -8,8 +8,9 @@ import { fundingSourceUrl } from "../funding/source.ts";
 import { programFund } from "../../../../dist/matching.mjs";
 import { FundSchema } from "../funding/contracts.ts";
 import { catalogEntries, findEntry, researchSnapshotDate } from "../funding/catalog.ts";
+import { readBrowsing } from "../funding/select.ts";
+import { deadlineSentence } from "../funding/deadline.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
-import { fitLevel } from "../funding/select.ts";
 import { fundingFixture, teamFixture, type FixtureContext } from "../fixtures.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { useSetAside } from "../account/set-aside.ts";
@@ -17,9 +18,12 @@ import { revise } from "../describe/contracts.ts";
 import { fullDate } from "../home.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { sectionTag } from "../ui/section-level.ts";
+import { ShareMenu } from "../ui/ShareMenu.tsx";
+import { fundShare } from "../record-share.ts";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
-import { Fit } from "../ui/Fit.tsx";
+import { FitLine } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { useDescribeDoor } from "../ui/describe-door.ts";
 
@@ -32,11 +36,14 @@ export function Opportunity({
   search,
   fixture,
   sheet,
+  presentation = "sheet",
 }: {
   fundId: string;
   search: string;
   fixture?: FixtureContext;
   sheet: SheetState;
+  /** Over the page it was opened from, or a page of its own when opened from a link. */
+  presentation?: Presentation;
 }) {
   const social = useSocialFixture();
   // A share the card has moved on from is out of matching, so it opens no other team's slots.
@@ -45,7 +52,9 @@ export function Opportunity({
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
   );
-  const catalog = useCatalog(example),
+  // Opened from Funding with No initiative chosen, the fund is not compared either (DL-129).
+  const browsing = readBrowsing(search);
+  const catalog = useCatalog(example, undefined, { compare: !browsing }),
     device = useDraft(),
     // Another account's card keeps its answers to itself (DL-055).
     setAside = useSetAside();
@@ -60,11 +69,14 @@ export function Opportunity({
     ? "Opening Opportunity"
     : (entry?.program?.name ?? entry?.fund.displayName ?? "Opportunity Not Available");
   useEffect(() => {
-    if (sheet.open) document.title = `${title} | Weave`;
-  }, [title, sheet.open]);
+    if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
+  }, [title, sheet.open, presentation]);
+  // Under a page's own heading the sections are the next level down; in a sheet, under its title.
+  const Section = sectionTag(recordSectionLevel(presentation)),
+    Subsection = sectionTag(recordSectionLevel(presentation), 1);
   if (catalog.loading || !entry)
     return (
-      <DetailSheet title={title} state={sheet}>
+      <DetailSheet title={title} state={sheet} presentation={presentation}>
         {catalog.loading ? (
           <LinesSkeleton label="Opening the catalog copy" panel />
         ) : (
@@ -99,7 +111,7 @@ export function Opportunity({
   // The next step depends on the person: describe the work first, then go to the funder.
   const described = catalog.personalized;
   return (
-    <DetailSheet title={title} state={sheet}>
+    <DetailSheet title={title} state={sheet} presentation={presentation}>
       {(fixture?.state === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
           Showing the bundled catalog copy. The funder's page needs a connection.
@@ -131,8 +143,7 @@ export function Opportunity({
       <p>{fund.amount}</p>
       {fund.deadlineDate && (
         <p>
-          Source deadline {fullDate(fund.deadlineDate)}
-          {fund.deadlineInstant ? `, ${fund.deadlineInstant}` : ", exact time unverified"}.{" "}
+          {deadlineSentence(fund.deadlineDate, fund.deadlineInstant)}{" "}
           {access === "closed" ? "This cycle is closed." : ""}
         </p>
       )}
@@ -152,28 +163,25 @@ export function Opportunity({
         )}
       </div>
       {!url && <p className="rc-meta">The source link needs checking, so no link is offered.</p>}
+      <ShareMenu
+        share={fundShare({ id: entry.fund.id, name: entry.fund.displayName }, program ? { id: program.id, name: program.name } : null)}
+      />
       <section className="rc-stack">
-        <h3 className="rc-heading" data-size="section">
+        <Section className="rc-heading" data-size="section">
           Why It Fits
-        </h3>
+        </Section>
         {catalog.ranking ? (
           <LinesSkeleton label="Comparing your card on this device" lines={2} />
         ) : result ? (
           <>
-            {result.thematicFit.score === null ? (
-              <p>Fit not assessed</p>
-            ) : (
-              <Fit
-                level={fitLevel(result)}
-                label={result.thematicFit.label}
-                explanation={`Shared topics: ${result.shared.join(", ") || "none"}. Keyword rubric, not eligibility.`}
-              />
-            )}
+            <FitLine result={result} />
             <p>{result.readiness.label}</p>
             <p className="rc-meta">
               Keyword matching with the existing Funding Commons rubric. No model has downloaded.
             </p>
-            {result.shared.length > 0 && <p>Shared topics: {result.shared.join(", ")}</p>}
+            {result.thematicFit.evidenceTerms.length > 0 && (
+              <p>Shared topics: {result.thematicFit.evidenceTerms.join(", ")}</p>
+            )}
             <ul className="rc-reasons">
               {result.activeLimits.map((limit, index) => (
                 <li key={index}>{limit.reason}</li>
@@ -187,16 +195,18 @@ export function Opportunity({
           </>
         ) : (
           <p>
-            {described
-              ? "This record has not been compared with your card yet."
-              : "Describe your initiative to see how well this fits your work."}
+            {described && browsing
+              ? "No initiative chosen on Funding, so fit is not shown."
+              : described
+                ? "This record has not been compared with your card yet."
+                : "Describe your initiative to see how well this fits your work."}
           </p>
         )}
       </section>
       <section className="rc-stack">
-        <h3 className="rc-heading" data-size="section">
+        <Section className="rc-heading" data-size="section">
           Before You Apply
-        </h3>
+        </Section>
         <dl className="rc-facts">
           <div>
             <dt>Who can apply</dt>
@@ -265,7 +275,7 @@ export function Opportunity({
         })}
         {program?.unknowns.length ? (
           <>
-            <h4 className="rc-card-title">What Still Needs Checking</h4>
+            <Subsection className="rc-card-title">What Still Needs Checking</Subsection>
             <ul className="rc-reasons">
               {program.unknowns.map((unknown, index) => (
                 <li key={index}>{unknown}</li>

@@ -1,5 +1,15 @@
 /* Organisms: distinct sections of an interface. */
 
+/* Page header (`rc-app-head`): the site banner and the app bar in one header landmark, so the
+   banner is read as part of the page's header (DL-132). It sticks with the banner's height above
+   the window's top, so the banner scrolls away with the page and the bar stays, as when the two
+   were apart. A page with no banner has the app bar alone as its header. */
+.rc-app-head {
+  position: sticky;
+  inset-block-start: calc(var(--site-banner-height) * -1);
+  z-index: var(--layer-sticky);
+}
+.rc-app-head > .rc-app-header { position: static; }
 /* App header: product name top-left returns home on every page. */
 /* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
    under it, and its contents keep the page's edges. */
@@ -96,6 +106,13 @@
 ::view-transition-new(rc-dock),
 ::view-transition-new(rc-step-bar) { animation: none; }
 
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the
+   header scrolls away with the page, so the bars never take most of what there is to read. A
+   step's bar stays at the window's foot, as a phone's dock does (DL-132, DL-127). */
+@media (height < 30rem) {
+  .rc-app-head, .rc-app-header { position: static; }
+}
+
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
    quarter of the narrowest phone; with very large text a label wraps inside its own tab. */
@@ -177,34 +194,36 @@
   .rc-dock > * { inline-size: 100%; max-inline-size: var(--form-width); }
 }
 
-/* Step bar: on a wide screen a step's map and its way forward share one bar under the app bar,
-   so both stay in view however far the page has scrolled. It is the wide screen's answer to the
-   phone's dock (DL-127). It is a child of the page shell and comes after the page body, so the
-   keyboard reaches the way forward after the step's fields; the page's grid draws it above them
-   (templates.css). It spans the window as the app bar does, keeps the page's edges, and an empty
-   one is not drawn. A phone never draws it: its steps are at the top of the page and its way
-   forward is in the dock. */
+/* Step bar: on a wide screen a step's map and its way forward share one bar fixed to the foot of
+   the window, so both stay in view however far the page has scrolled, and the way forward is where
+   a phone's dock puts it (DL-127). It is a child of the page shell and comes after the page body,
+   so the keyboard reaches the way forward after the step's fields, and the page keeps room for it
+   under its footer (templates.css). It spans the window as the app bar does, keeps the page's
+   edges, and an empty one is not drawn. A phone never draws it: its steps are at the top of the
+   page and its way forward is in the dock. */
 .rc-step-bar { display: none; }
 @media (min-width: 56.25rem) {
   .rc-step-bar:not(:empty) {
-    position: sticky;
-    inset-block-start: var(--app-header-height);
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
     z-index: var(--layer-sticky);
     display: flex;
     align-items: center;
     gap: var(--space-2) var(--space-7);
-    min-block-size: var(--step-bar-height);
+    min-block-size: calc(var(--step-bar-height) + env(safe-area-inset-bottom));
+    padding-block-end: env(safe-area-inset-bottom);
     padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
-    border-block-end: var(--border-thin) solid var(--line);
+    border-block-start: var(--border-thin) solid var(--control-line);
     background: var(--surface);
   }
-  /* The steps take the room the actions leave. Each step's edge lies on the bar's own line, as
-     the current section's does in the app bar. */
+  /* The steps take the room the actions leave. Each step's edge lies on the bar's top line, where
+     the bar meets the page. */
   .rc-step-bar > .rc-stepper {
     flex: 1 1 0;
     align-self: stretch;
     max-inline-size: var(--list-width);
-    margin-block-end: calc(-1 * var(--border-thin));
+    margin-block-start: calc(-1 * var(--border-thin));
   }
   .rc-step-bar > .rc-stepper > li,
   .rc-step-bar > .rc-stepper > li > a {
@@ -212,7 +231,13 @@
     gap: var(--space-2);
     text-align: start;
   }
-  .rc-step-bar > .rc-stepper > li { padding-block-end: 0; }
+  .rc-step-bar > .rc-stepper > li {
+    padding-block-end: 0;
+    border-block-end: 0;
+    border-block-start: var(--border-edge) solid var(--line);
+  }
+  .rc-step-bar > .rc-stepper > li[data-state="done"] { border-block-start-color: var(--control-line); }
+  .rc-step-bar > .rc-stepper > li[aria-current="step"] { border-block-start-color: var(--action); }
   /* The way forward sits at the far end and never wraps under the steps. */
   .rc-step-bar > .rc-action-bar { flex: none; flex-wrap: nowrap; margin-inline-start: auto; }
 }
@@ -302,6 +327,12 @@
      still in view. behaviors/sheet.js writes both while a keyboard is up. */
   --sheet-keyboard: 0;
   --sheet-room: 100dvh;
+  /* How far the title row and a foot that stay put reach over the content, with room for the focus
+     ring, so the keyboard's focus is scrolled clear of them (WCAG 2.4.11). behaviors/sheet.js
+     measures them as the dialog opens and changes size. */
+  --dialog-head-clear: var(--space-2);
+  --dialog-foot-clear: var(--space-2);
+  scroll-padding-block: var(--dialog-head-clear) var(--dialog-foot-clear);
   /* Room above and below a centred dialog: 8 percent of the window's height, from 24 to 80 px. */
   --dialog-inset: clamp(var(--space-5), 8dvh, var(--space-9));
   /* The padding in use, which the sticky title row also reads. A bottom sheet uses --sheet-padding. */
@@ -348,6 +379,21 @@
   padding-block: var(--space-3) var(--dialog-end);
   border-block-start: var(--border-thin) solid var(--line);
   background: var(--surface-overlay);
+}
+/* Choices that scroll (`rc-dialog-scroll`) between a title row and a foot that stay put. Only the
+   choices move, so a sheet's title row and its foot neither scroll away nor bounce with them, and
+   the choices keep a little room so a focused one's ring is not cut off (DL-130). */
+.rc-dialog[open]:has(> .rc-dialog-body > .rc-dialog-scroll) { display: flex; flex-direction: column; overflow: hidden; }
+.rc-dialog:has(> .rc-dialog-body > .rc-dialog-scroll) > .rc-dialog-body { flex: 1 1 auto; min-block-size: 0; grid-template-rows: auto minmax(0, 1fr) auto; }
+.rc-dialog-scroll {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-block-size: 0;
+  margin-inline: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 /* The grip shows only where the dialog is a bottom sheet, and there it pulls the sheet away. */
 .rc-dialog-grip { display: none; }
@@ -483,6 +529,37 @@
    more to come and at the list's last card (DL-108). */
 @container (width < 37.5rem) {
   .rc-list-end { display: grid; grid-template-rows: minmax(var(--control-height), auto) var(--control-height); align-items: center; justify-items: start; }
+}
+/* The search field is a control's height, as the Filters, filter and Sort buttons under it are, at
+   every width, and not the taller field an inline form gives it (DL-130). A larger text size
+   still makes it taller. */
+.rc-filter-bar .rc-search > .rc-input { min-block-size: var(--control-height); padding-block: 0; }
+/* Pinned filter row: once a list's filter bar has gone up under the app bar, its controls stay
+   under the bar, with Search, which goes back to the field, first. It spans the window and keeps
+   the page's edges, as the app bar does (DL-130). */
+.rc-filter-pin {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: var(--app-header-height);
+  z-index: var(--layer-sticky);
+  padding-block: var(--space-2);
+  padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
+  border-block-end: var(--border-thin) solid var(--line);
+  background: var(--surface);
+}
+.rc-filter-pin[hidden] { display: none; }
+/* The row stays one row. Until a screen has room for every filter's menu beside Search and Sort, it
+   holds Filters, which opens all of them in the sheet, as a phone's row does (DL-130). */
+@media (width > 37.5rem) and (width < 62.25rem) {
+  .rc-filter-pin > .rc-filter-controls > [data-filter="all"] { display: inline-flex; }
+  .rc-filter-pin > .rc-filter-controls > [data-filter="one"] { display: none; }
+}
+/* In a short window the header scrolls away, so the row pins at the window's top (DL-132). */
+@media (height < 30rem) {
+  .rc-filter-pin { inset-block-start: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rc-filter-pin:not([hidden]) { animation: rc-arrive var(--duration-fast) var(--ease-out); }
 }
 /* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
    it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
@@ -639,6 +716,8 @@
 /* Beside the button on a wide screen and under it on a phone: one line about speech, or the language choice. */
 .rc-voice-aside { display: grid; flex: 1 1 var(--card-min-width); align-content: center; justify-items: start; gap: var(--space-1); min-block-size: calc(2lh + var(--space-1)); }
 .rc-voice-aside > p { margin: 0; }
+/* Discard sits on the recording line's own row, so showing it moves nothing below (DL-138). */
+.rc-voice-aside:has(> [data-voice-discard]) { grid-template-columns: auto auto; justify-content: start; align-items: center; column-gap: var(--space-3); }
 /* While the browser downloads and sets up its speech pack, a Progress bar runs above the line. The
    browser reports no amount, so the bar has none (DL-127). */
 .rc-voice-aside > .rc-progress { inline-size: 100%; max-inline-size: var(--card-min-width); }

@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession } from "@atproto/oauth-client-node";
 import postgres from "postgres";
-import { certifiedProjectOAuthPaths as paths, createCertifiedProjectAuth, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
+import { certifiedProjectOAuthPaths as paths, createCertifiedProjectAuth, grantLifetime, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
 import { createCipher } from "./certified/crypto.ts";
 import { record } from "./account-contract.ts";
 import { projectSdkFixture, sdkMembership } from "../test-fixtures/project-sdk.ts";
@@ -240,6 +240,137 @@ test("callback is browser-bound and one-time; it requires same-session activatio
   f.fake.actor = { did, sessionId: "weave-session" };
   assert.equal((await f.auth.consent(f.cmd({ action: "finish" }, binding(completed)))).status, 403);
   assert.equal(f.fake.calls.length, 0);
+});
+
+test("only the read-only grant lasts the session; every grant that can write still ends within the hour", async () => {
+  const day = 24 * 60 * 60;
+  assert.equal(grantLifetime("membership"), 30 * day);
+  for (const action of ["workspace-members", "create-project", "add-member", "publish-support", "withdraw-support", "unknown"])
+    assert.equal(grantLifetime(action), 3600, action);
+
+  const f = await fixture();
+  const before = Date.now();
+  assert.equal((await f.approve("membership")).status, 200);
+  const read = [...f.rows.entries()].find(([key]) => key.startsWith("grant/"))!;
+  assert.ok(read[1].ttl > 30 * day - 60 && read[1].ttl <= 30 * day, "the read grant is kept for as long as a session can last");
+  const readExpiry = record(read[1].value).expiresAt as number;
+  assert.ok(readExpiry >= before + 30 * day * 1000 - 1000 && readExpiry <= Date.now() + 30 * day * 1000);
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
+  // It belongs to one Weave session: the same person in another session has none.
+  f.fake.actor = { did, sessionId: "another-session" };
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
+  f.fake.actor = { did, sessionId: "weave-session" };
+
+  f.fake.issuedScope = requested(membership, register, create);
+  assert.equal((await f.approve("create-project")).status, 200);
+  const grants = [...f.rows.entries()].filter(([key]) => key.startsWith("grant/"));
+  assert.equal(grants.length, 2);
+  const write = grants.find(([key]) => key !== read[0])!;
+  assert.ok(write[1].ttl > 3540 && write[1].ttl <= 3600, "a grant that can write is asked for again after an hour");
+
+  // A write grant whose record claims a longer life is not honoured, even inside the store's own limit.
+  f.rows.set(write[0], { ...write[1], value: { ...record(write[1].value), expiresAt: Date.now() + 2 * 3600 * 1000 } });
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [register]));
+  // And a read grant past the session's limit is refused the same way.
+  f.rows.set(read[0], { ...read[1], value: { ...record(read[1].value), expiresAt: Date.now() + 31 * day * 1000 } });
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]));
+});
+
+test("time ends a write grant within the hour and leaves the read grant; sign-out ends both", async t => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.UTC(2026, 10, 22) });
+  const f = await fixture();
+  assert.equal((await f.approve("membership")).status, 200);
+  f.fake.issuedScope = requested(membership, register, create);
+  assert.equal((await f.approve("create-project")).status, 200);
+  await f.auth.assertGrant(f.cmd({}), did, [register]);
+  t.mock.timers.tick(61 * 60 * 1000);
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [register]), /project_consent_required/, "61 minutes on, creating a project asks again");
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership, register, create]), /project_consent_required/);
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
+  t.mock.timers.tick(29 * 24 * 60 * 60 * 1000);
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
+  // Signed out, or with a session Weave no longer accepts, nobody is acting: the grant cannot be used.
+  f.fake.actor = null;
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
+  f.fake.actor = { did, sessionId: "weave-session" };
+  t.mock.timers.tick(2 * 24 * 60 * 60 * 1000);
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/, "past 30 days it has ended on its own");
+});
+
+test("signing out deletes that session's grants, and only those; a failure there is passed over", async () => {
+  const f = await fixture();
+  assert.equal((await f.approve("membership")).status, 200);
+  f.fake.issuedScope = requested(membership, register, create);
+  assert.equal((await f.approve("create-project")).status, 200);
+  // The same person, signed in somewhere else, holds a grant of their own.
+  f.fake.actor = { did, sessionId: "another-session" };
+  f.fake.issuedScope = "";
+  assert.equal((await f.approve("membership")).status, 200);
+  const grants = () => [...f.rows.keys()].filter(key => key.startsWith("grant/")).length;
+  assert.equal(grants(), 3);
+
+  f.fake.actor = { did, sessionId: "weave-session" };
+  assert.equal(await f.auth.forget(f.cmd({})), 6, "every action's grant is asked for, since a session's grants cannot be listed");
+  assert.equal(grants(), 1, "the tokens and the key they are bound to are gone from the store");
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
+  await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [register]), /project_consent_required/);
+  f.fake.actor = { did, sessionId: "another-session" };
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
+  assert.equal(await f.auth.forget(f.cmd({})), 6);
+  assert.equal(grants(), 0);
+  assert.equal(await f.auth.forget(f.cmd({})), 6, "forgetting twice is harmless");
+
+  // A consent that came back from Certified but was not finished is a receipt holding the same tokens.
+  // Sign-out removes it first, so a finish from another tab cannot make a grant of it afterwards.
+  f.fake.actor = { did, sessionId: "weave-session" };
+  const returned = await f.auth.callback(f.oauth(binding(await f.start("membership"))));
+  assert.equal(projectStatus(returned), "ready");
+  const receipts = () => [...f.rows.keys()].filter(key => key.startsWith("receipt/")).length;
+  assert.equal(receipts(), 1);
+  assert.equal(await f.auth.forget(f.cmd({}, binding(returned))), 6);
+  assert.equal(receipts(), 0);
+  assert.equal((await f.auth.consent(f.cmd({ action: "finish" }, binding(returned)))).status, 403, "the unfinished consent cannot be finished after sign-out");
+  assert.equal(grants(), 0);
+
+  // Nobody can be verified, or the check itself fails: nothing is touched and nothing is thrown.
+  f.fake.actor = null;
+  assert.equal(await f.auth.forget(f.cmd({})), 0);
+  const broken = await createCertifiedProjectAuth({ origin, cgsOrigin, signingKeys: [key], store: memoryStore().store,
+    allowsDid: () => true, resolveActor: async () => { throw new Error("session check failed"); } });
+  assert.equal(await broken.forget(f.cmd({})), 0);
+  // A removed tester's grants are deleted too: leaving does not depend on still being allowed in.
+  const removedTester = await fixture();
+  assert.equal((await removedTester.approve("membership")).status, 200);
+  removedTester.fake.allowed = false;
+  assert.equal(await removedTester.auth.forget(removedTester.cmd({})), 6);
+  assert.equal([...removedTester.rows.keys()].filter(key => key.startsWith("grant/")).length, 0);
+
+  // A store that fails for some grants, or a time limit that has passed, stops nothing else.
+  const flaky = memoryStore();
+  let locks = 0;
+  const failing = await createCertifiedProjectAuth({ origin, cgsOrigin, signingKeys: [key], allowsDid: () => true,
+    resolveActor: async () => ({ did, sessionId: "weave-session" }),
+    store: { ...flaky.store, withLock: async (id, run, signal) => { if (++locks % 2) throw new Error("database busy"); return flaky.store.withLock(id, run, signal); } } });
+  assert.equal(await failing.forget(f.cmd({})), 3, "the removals that could run did");
+  assert.equal(locks, 6);
+  assert.equal(await failing.forget(f.cmd({}), AbortSignal.abort()), 0, "past its limit it starts nothing");
+});
+
+test("the store itself keeps a grant no longer than its action allows", async () => {
+  // Validation comes before any query, so a store with no database shows which writes it would send.
+  const reached = Error("reached the database");
+  const sql = (() => { throw reached; }) as never;
+  const store = projectOAuthStore(sql, createCipher({ active: "k", keys: { k: randomBytes(32) }, lookup: randomBytes(32) }, origin));
+  const day = 24 * 60 * 60;
+  for (const [kind, payload, ttl] of [
+    ["grant", { action: "create-project" }, 3601], ["grant", { action: "workspace-members" }, day], ["grant", {}, 3601], ["grant", null, 3601],
+    ["grant", { action: "membership" }, 30 * day + 1], ["state", {}, 601], ["receipt", { action: "membership" }, 601], ["grant", { action: "membership" }, 0],
+  ] as const)
+    await assert.rejects(store.put(kind, "id", payload, ttl), /invalid_project_oauth_ttl/, `${kind} ${JSON.stringify(payload)} ${ttl}`);
+  for (const [kind, payload, ttl] of [
+    ["grant", { action: "membership" }, 30 * day], ["grant", { action: "create-project" }, 3600], ["state", {}, 600], ["receipt", { action: "membership" }, 600],
+  ] as const)
+    await assert.rejects(store.put(kind, "id", payload, ttl), (error) => error === reached, `${kind} ${ttl} passes the limit`);
 });
 
 test("a removed tester cannot start or complete an outstanding Certified authorization", async () => {

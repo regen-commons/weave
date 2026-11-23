@@ -1,5 +1,6 @@
 import postgres from "postgres";
 import { createSupabaseAccountProvider } from "./account-provider.ts";
+import { WEAVE_APP_ORIGIN, WEAVE_BRIDGE_ORIGIN } from "./certified/bridge-config.ts";
 import { cipherFromSecret } from "./certified/crypto.ts";
 import { certifiedEmailHints } from "./certified/email-hint.ts";
 import { postgresSignInStore } from "./sign-in-store.ts";
@@ -24,8 +25,41 @@ export function accountConfiguration(env: NodeJS.ProcessEnv) {
   if (!["postgres:", "postgresql:"].includes(database.protocol) || database.searchParams.has("ssl") || database.searchParams.has("sslmode"))
     throw Error("invalid_sign_in_database");
   const cipher = cipherFromSecret(required("WEAVE_SIGN_IN_ENCRYPTION_KEYS"), app.origin);
-  return { origin: app.origin, supabase: supabase.origin, key, database, cipher, databaseCa: env.WEAVE_DATABASE_CA_PEM,
+  // Only production knows its bridge without being told. Another Weave names its own, or wakes none.
+  // Waking is a courtesy with no part in who may sign in, so a value that is not an exact origin wakes
+  // no bridge and leaves accounts as they are; it never switches them off.
+  const named = env.WEAVE_CERTIFIED_BRIDGE_ORIGIN || (app.origin === WEAVE_APP_ORIGIN ? WEAVE_BRIDGE_ORIGIN : undefined);
+  const bridge = named && URL.canParse(named) && permitted(new URL(named)) && new URL(named).origin === named ? named : undefined;
+  return { origin: app.origin, bridge, supabase: supabase.origin, key, database, cipher, databaseCa: env.WEAVE_DATABASE_CA_PEM,
     secureCookies: app.protocol === "https:", emailHints: certifiedEmailHints(env.WEAVE_CERTIFIED_EMAIL_HINT_KEY) };
+}
+/** How long the bridge stays warm enough that waking it again would only add requests. */
+const WAKE_EVERY_MS = 30_000;
+/**
+ * Wakes the identity bridge before a sign-in needs it. Its first request after a quiet spell loads its
+ * libraries, opens its database and reads its keys, which took the first redirect of a sign-in several
+ * seconds. This asks for its public discovery document, which starts all of that. It sends nothing of
+ * the person's, reads nothing back and never fails a sign-in: the bridge works the same without it.
+ * One function instance asks at most once in 30 seconds, however many pages ask it to.
+ */
+export function bridgeWarmer(bridge: string | undefined, request: typeof fetch = fetch, now: () => number = Date.now) {
+  let last = Number.NEGATIVE_INFINITY, pending: Promise<void> | undefined;
+  return (): Promise<void> => {
+    if (!bridge) return Promise.resolve();
+    if (pending) return pending;
+    if (now() - last < WAKE_EVERY_MS) return Promise.resolve();
+    last = now();
+    const wake = (async () => {
+      try {
+        const response = await request(`${bridge}/.well-known/openid-configuration`, {
+          headers: { Accept: "application/json" }, redirect: "manual", credentials: "omit", signal: AbortSignal.timeout(8000),
+        });
+        // The document is not read. Dropping it is not waited for, so it cannot outlast the limit above.
+        void response.body?.cancel().catch(() => {});
+      } catch { /* A bridge that cannot be woken is still asked by the sign-in itself. */ }
+    })().finally(() => { pending = undefined; });
+    return pending = wake;
+  };
 }
 let runtime: ReturnType<typeof createRuntime> | undefined;
 function createRuntime(config: NonNullable<ReturnType<typeof accountConfiguration>>) {
@@ -36,6 +70,7 @@ function createRuntime(config: NonNullable<ReturnType<typeof accountConfiguratio
     connection: { statement_timeout: 10000, idle_in_transaction_session_timeout: 10000 } });
   return { origin: config.origin, secureCookies: config.secureCookies,
     emailHints: config.emailHints,
+    warmBridge: bridgeWarmer(config.bridge),
     provider: createSupabaseAccountProvider(config.supabase, config.key),
     store: postgresSignInStore(sql, config.cipher) };
 }

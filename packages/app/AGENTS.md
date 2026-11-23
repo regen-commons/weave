@@ -7,7 +7,7 @@ framework. It is the root directory of the Weave Vercel project. Read the
 [app dialect](../design-system/dialects/app.md) before changing a screen.
 
 The route table in [src/routes.ts](src/routes.ts) owns pages and their section cues.
-Home, frame, lists, the three-step intake through Your initiative, Your Initiatives,
+Home, frame, lists, the four-step intake through Your initiative, Your Initiatives,
 Funding and opportunity detail are built. Initiative details follow in later steps.
 Settings provides the private account connection. Development fixtures require an
 explicit `?fixture=draft` (or visitor, private, workspace, shared, published,
@@ -17,7 +17,9 @@ initiative examples; `projects=none` gives the example person no Certified proje
 fail it (`fail`), have no speech recognition (`none`, or `keyboard` on a touch screen), or
 have only its own speech service, before the agreement (`browser`), after it (`agreed`) and
 stopping each way it can (`denied`, `no-mic`, `network`, `blocked`, `pause`,
-`unsupported`); `drafts=several` gives the
+`unsupported`), or have no speech recognition with cloud speech on offer, before the
+agreement (`cloud`), after it (`cloud-agreed`) and ending at the day's limit
+(`cloud-limit`) or offline (`cloud-offline`); `drafts=several` gives the
 example browser two more initiatives beside the one on screen; and
 `certified=fail` makes the example Certified refuse to create a project or publish.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
@@ -44,10 +46,10 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development; and the public Certified project list on Initiatives and Home, with the starter sources as its fallback |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |
-| `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads, the theme colours and the theme's first-paint script (`public/theme-boot.js`) that the dev server and the build add to `index.html`, the link previews: one copy of `index.html` for each section, written by the build, and the installed app's manifest with its shortcuts and its install-sheet screenshots (`public/install/screens/`, captured from a build with no example data) |
+| `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads, the theme colours and the theme's first-paint script (`public/theme-boot.js`) that the dev server and the build add to `index.html`, the link previews: one copy of `index.html` for each section and `share/records.json` for the record pages (DL-136), written by the build, and the installed app's manifest with its shortcuts and its install-sheet screenshots (`public/install/screens/`, captured from a build with no example data) |
 | `scripts/share-images/` | Renders the link-preview pictures in `public/share/` and the home-screen icons with a local browser. The pictures are committed; run it after changing a headline or a template |
 | `public/brand/` | Copied from the design system by `scripts/copy-brand.mjs`; ignored by Git |
-| `vercel.json` | The Weave project's build, rewrites, security headers and caching |
+| `vercel.json` | The Weave project's build, rewrites (six endpoints share `api/router.ts` to stay within the Hobby plan's 12 functions, and a fund's and an initiative's address go to it for their link preview, DL-136), security headers and caching |
 
 ## Boundaries
 
@@ -97,11 +99,12 @@ production. Account saving uses the same-origin API and stays unavailable until 
   the plainer words ("we're in", "it's in", "we work in") a place counts only with its
   capital or a country's name, and "we work in" is read only in the person's own words,
   never in a file's. On a wide screen a step's way
-  forward goes in the Step bar through `IntakeStepper`, and in the dock on a phone.
+  forward goes in the Step bar at the foot of the window through `IntakeStepper`, and in the dock on a phone.
   Structuring goes through `src/describe/structure.ts`, which runs on the device; a cloud
-  engine waits for D35 and its own consent. On the three steps nothing opens in the page when
+  engine waits for D35 and its own consent. On the four steps nothing opens in the page when
   pressed: use a Status slot for progress and problems, and a dialog for a choice (DL-113).
-- Needs and offers share the four-card rule and all eight kinds (DL-111). `ASK_LIMIT` is
+- Needs and offers are two steps, each with one list, and share the four-card rule and all eight kinds (DL-111). A
+  recording ends as one line per need or offer (`src/intake/spoken.ts`), so a list said in one go makes a card for each. `ASK_LIMIT` is
   what adding checks; a list stored with five stays valid, and the server keeps the earlier
   stored limits so saved cards still save. Keep and manual correction freeze a card; reading
   words again preserves those choices and removed source chunks. Linking a Certified project adds pencil entries from its description
@@ -114,9 +117,16 @@ production. Account saving uses the same-origin API and stays unavailable until 
   browser-managed pack is a local capability under D32. Where the browser has no
   speech on the device, its own speech service may be used, only after the person
   agrees to a notice that it may send their voice away, and never as a silent
-  fallback (`src/describe/speech-consent.ts`, 19 November 2026). Weave records and
-  uploads no audio, so app-downloaded models and cloud calls stay behind their
-  unavailable adapters until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
+  fallback (`src/describe/speech-consent.ts`, 19 November 2026). Where the browser has
+  no speech recognition at all and the server has cloud speech on, a person who agrees
+  to its own notice can record, and the recording goes once through `/api/transcribe`
+  to the provider the notice names (`src/describe/speech-cloud.ts`, 23 November 2026).
+  That module is the only place the app records or sends audio, and a test fails if
+  another does. No example records or sends anything: an example of cloud speech shows
+  its words and stops there, and `WEAVE_CLOUD_SPEECH_FIXTURE=true` on the dev server
+  answers a real local recording with fixed words. App-downloaded models and cloud
+  structuring of words stay behind their unavailable adapters until D32 and D35 are
+  approved. PDF text runs in a same-origin Worker; unread
   files and pages remain explicitly unread, with original bytes retained.
 - Server code belongs in `@weave/api`. A file in `api/` is a single re-export, and
   the entry test fails on anything else.

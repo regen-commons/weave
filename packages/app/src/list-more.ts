@@ -3,8 +3,6 @@
  * can be tested; `ui/ListEnd.tsx` draws them.
  */
 
-/** How many batches arrive on their own before the list waits for a press, so the footer can be reached. */
-export const AUTO_BATCHES = 3;
 /**
  * How far below the window the list's end is noticed, as an observer's root margin: the next batch
  * is asked for about half a screen before the end comes into view, so it is there on arrival.
@@ -12,17 +10,17 @@ export const AUTO_BATCHES = 3;
 export const AHEAD_MARGIN = "0px 0px 480px 0px";
 
 /**
- * Whether the next batch may arrive without a press. It may not while one is on its way, once the
- * run of automatic batches is used up, or while the keyboard is working through the list: a person
- * tabbing from card to card would otherwise never reach the list's end, or the footer after it.
+ * Whether the next batch may arrive without a press. It keeps arriving for as long as a person
+ * scrolls (DL-130), except while one is on its way or while the keyboard is working through the
+ * list: a person tabbing from card to card would otherwise never reach the list's end, or the
+ * footer after it, so there Show More brings the next batch.
  */
-export function loadsUnasked({ more, busy, autoLeft, keyboardInList }: {
+export function loadsUnasked({ more, busy, keyboardInList }: {
   more: boolean;
   busy: boolean;
-  autoLeft: number;
   keyboardInList: boolean;
 }): boolean {
-  return more && !busy && autoLeft > 0 && !keyboardInList;
+  return more && !busy && !keyboardInList;
 }
 
 const count = (value: number) => new Intl.NumberFormat("en-GB").format(value);

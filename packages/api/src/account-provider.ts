@@ -172,6 +172,9 @@ export function createSupabaseAccountProvider(
       return sessionTokens(data);
     },
     async authorize(token) {
+      // Both checks read only, so they run together. The user's answer is still judged first, and the
+      // database predicate's failure is held until then, so the outcome is the one a sequence gave.
+      const access = rpc("account_access", {}, token).then(value => ({ value }), (error: unknown) => ({ error }));
       const { response, data } = await call("/auth/v1/user", "GET", undefined, token);
       // A rate limit is not a refusal: it must not end, or revoke, a session that can still renew.
       if (!response.ok)
@@ -185,7 +188,9 @@ export function createSupabaseAccountProvider(
       } catch {
         throw new AccountError(503, "account_unavailable");
       }
-      if ((await rpc("account_access", {}, token)) !== true) throw new AccountError(401, "sign_in_required");
+      const allowed = await access;
+      if ("error" in allowed) throw allowed.error;
+      if (allowed.value !== true) throw new AccountError(401, "sign_in_required");
       return user;
     },
     async signOut(token) {

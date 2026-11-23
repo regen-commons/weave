@@ -62,12 +62,14 @@ class FakeViewport extends EventTarget {
 
 const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
 const connected = [];
-function connect({ viewport } = {}) {
+function connect({ viewport, before } = {}) {
   globalThis.HTMLDialogElement = class {};
   globalThis.getComputedStyle = (element) => ({ display: element.sheet ? "block" : "none" });
   globalThis.innerHeight = 780;
   globalThis.visualViewport = viewport;
   const dialog = new FakeDialog();
+  // A page's own listeners, such as React's on the dialog element, are added before the behaviour's.
+  before?.(dialog);
   const sheet = connectSheet(dialog);
   connected.push(sheet);
   return { dialog, sheet, content: new FakeElement(dialog) };
@@ -244,6 +246,21 @@ test("only a keyboard lifts a sheet: not a browser bar, a zoom, a wide dialog or
   dialog.close();
   assert.equal(dialog.properties["--sheet-keyboard"], undefined);
   assert.equal(dialog.properties["--sheet-room"], undefined);
+});
+
+test("Escape closes the sheet, unless the page has refused it while its work is under way", async () => {
+  let busy = true;
+  const { dialog } = connect({
+    before: (element) => element.addEventListener("cancel", (event) => { if (busy) event.preventDefault(); }),
+  });
+  dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+  await settled();
+  assert.equal(dialog.open, true, "a refused close neither plays the leaving motion nor closes");
+  assert.equal(dialog.dataset.closing, undefined);
+  busy = false;
+  dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+  await settled();
+  assert.equal(dialog.open, false);
 });
 
 test("a browser with no visual viewport keeps the sheet at the bottom edge", () => {

@@ -15,11 +15,14 @@ import {
   CapitalFormSchema,
   parseExtraction,
   emptyAskStep,
+  type AskForm,
   type AskStep,
 } from "../src/intake/contracts.ts";
 import {
   activeItems,
   answerStep,
+  askFormProblem,
+  parseAskForm,
   changeStep,
   commitPending,
   decide,
@@ -42,7 +45,6 @@ import {
   ASK_KINDS,
   cardsNote,
   changeKind,
-  continueBoth,
   continueStep,
   entryId,
   kindFocus,
@@ -644,20 +646,20 @@ test("the page says when words still wait for cards", () => {
   assert.equal(cardsNote(changeStep(stale, { mode: "manual" })), "");
 });
 
-test("continue keeps every pencil entry in both lists, or changes neither", () => {
+test("each step's Continue keeps every pencil entry in its list, and an empty list may continue", () => {
   const needs = addEntry(seed(), "A fence for the tree nursery");
   const offers = addEntry(emptyAskStep(), "A workshop on mapping water");
-  const done = continueBoth({ needs, offers });
-  if (!done.ok) throw new Error("Both lists should continue");
-  for (const kind of ASK_KINDS) {
-    assert.ok(done.steps[kind].items.every((item) => item.decision === "kept"));
-    assert.equal(done.steps[kind].reviewedVersion, done.steps[kind].inputVersion);
+  for (const step of [needs, offers]) {
+    const done = continueStep(step);
+    if (!done.ok) throw new Error("The list should continue");
+    assert.ok(done.step.items.every((item) => item.decision === "kept"));
+    assert.equal(done.step.reviewedVersion, done.step.inputVersion);
   }
-  assert.equal(continueBoth({ needs: emptyAskStep(), offers: emptyAskStep() }).ok, true);
-  // Words still in the box stop the page at that list, so nothing typed is left behind unseen.
-  assert.deepEqual(continueBoth({ needs, offers: changeStep(offers, { composer: "Tools" }) }), {
+  assert.equal(continueStep(emptyAskStep()).ok, true);
+  // Words still in the box stop the step, so nothing typed is left behind unseen.
+  assert.deepEqual(continueStep(changeStep(offers, { composer: "Tools" })), {
     ok: false,
-    blocked: { offers: { where: "talk", message: "Add what is in the box to your list, or clear the box, then continue." } },
+    blocker: { where: "talk", message: "Add what is in the box to your list, or clear the box, then continue." },
   });
   const blocker = (step: AskStep) => {
     const result = continueStep(step);
@@ -794,4 +796,37 @@ test("a need's title and description are separate statements for kinds of suppor
   assert.deepEqual(suggestEntryKinds("Seeds", "Methods to store them through winter"), ["living", "intellectual"]);
   assert.deepEqual(suggestEntryKinds("Soil test data", null), ["intellectual"]);
   assert.deepEqual(suggestEntryKinds("We don't need money", "Seeds for the garden"), ["living"]);
+});
+
+test("a failed save in the need and offer editor names the field it is about and says what to do (WCAG 3.3.1)", () => {
+  const base: AskForm = { ...formFromAsk(), title: "Seedlings", exchangeTerms: ["gift"] };
+  const money: AskForm = { ...base, capitalForms: ["financial"] };
+  const problem = (form: AskForm) => {
+    try {
+      parseAskForm(form, "needs");
+    } catch (error) {
+      return askFormProblem(error);
+    }
+    assert.fail("the form should not have parsed");
+  };
+  assert.deepEqual(problem({ ...base, title: " " }), { field: "title", message: "Add a title." });
+  assert.deepEqual(problem({ ...money, amountMin: "1,000", currency: "USD" }), {
+    field: "amountMin",
+    message: "Use numbers with a dot for decimals, without grouping separators.",
+  });
+  assert.deepEqual(problem({ ...money, amountMax: "x", currency: "USD" }).field, "amountMax");
+  assert.deepEqual(problem({ ...money, amountMin: "500", amountMax: "100", currency: "USD" }), {
+    field: "amountMin",
+    message: "Add an amount or range in order.",
+  });
+  assert.deepEqual(problem({ ...money, amountMin: "500", currency: "US" }), {
+    field: "currency",
+    message: "Use a three-letter currency code, such as USD.",
+  });
+  assert.deepEqual(problem({ ...base, exchangeTerms: [] }), { field: "exchangeTerms", message: "Choose at least one term." });
+  assert.deepEqual(problem({ ...base, exchangeTerms: ["open", "gift"] }), {
+    field: "exchangeTerms",
+    message: "Open to anything includes the other terms.",
+  });
+  assert.deepEqual(askFormProblem(new Error("Four is the limit for each kind.")), { field: null, message: "Four is the limit for each kind." });
 });

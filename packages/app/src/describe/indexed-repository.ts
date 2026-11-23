@@ -65,16 +65,35 @@ function seenRecord(value: unknown): Seen {
   return seen;
 }
 
+/**
+ * The time the bound on the released build's database is measured in. Tests pass one they move by
+ * hand, so what they check is the order of events and never how fast the machine is.
+ */
+export interface EarlierClock {
+  now(): number;
+  /** Runs `then` once `milliseconds` have passed, and returns what calls it off. */
+  after(milliseconds: number, then: () => void): () => void;
+}
+const realClock: EarlierClock = {
+  now: () => Date.now(),
+  after(milliseconds, then) {
+    const timer = setTimeout(then, milliseconds);
+    return () => clearTimeout(timer);
+  },
+};
+
 export class IndexedDraftRepository implements DraftRepository {
   private connection: Promise<IDBDatabase> | undefined;
   private readonly removeEarlierCopy: boolean;
   /** How the released build's database is read and changed. Tests pass their own to stand in for a slow or failing one. */
   private readonly earlier: { read: typeof readEarlier; remove: typeof removeFromEarlier };
   private readonly earlierWait: number;
-  constructor(options: { removeEarlierCopy?: boolean; earlier?: { read: typeof readEarlier; remove: typeof removeFromEarlier }; earlierWait?: number } = {}) {
+  private readonly clock: EarlierClock;
+  constructor(options: { removeEarlierCopy?: boolean; earlier?: { read: typeof readEarlier; remove: typeof removeFromEarlier }; earlierWait?: number; clock?: EarlierClock } = {}) {
     this.removeEarlierCopy = options.removeEarlierCopy ?? removalReachesEarlierCopy();
     this.earlier = options.earlier ?? { read: readEarlier, remove: removeFromEarlier };
     this.earlierWait = options.earlierWait ?? EARLIER_WAIT;
+    this.clock = options.clock ?? realClock;
   }
   /**
    * Waits for the released build's database, and no longer than the bound. That database belongs
@@ -82,12 +101,12 @@ export class IndexedDraftRepository implements DraftRepository {
    * on it without limit: a look gives up and is tried again later, and a removal says what it
    * could not do.
    */
-  private answered<T>(work: Promise<T>, deadline = Date.now() + this.earlierWait, late?: () => void): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined;
+  private answered<T>(work: Promise<T>, deadline = this.clock.now() + this.earlierWait, late?: () => void): Promise<T> {
+    let cancel: (() => void) | undefined;
     const over = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => { late?.(); reject(new Unanswered()); }, Math.max(0, deadline - Date.now()));
+      cancel = this.clock.after(Math.max(0, deadline - this.clock.now()), () => { late?.(); reject(new Unanswered()); });
     });
-    return Promise.race([work, over]).finally(() => clearTimeout(timer));
+    return Promise.race([work, over]).finally(() => cancel?.());
   }
   private open(): Promise<IDBDatabase> {
     if (!this.connection)
@@ -333,7 +352,7 @@ export class IndexedDraftRepository implements DraftRepository {
     try {
       if (this.removeEarlierCopy) {
         // One bound for everything the deletion asks of the older storage, not one for each step.
-        const deadline = Date.now() + this.earlierWait;
+        const deadline = this.clock.now() + this.earlierWait;
         // A tab of the released build may have typed since the last look. Its words come across
         // first, so nothing this build has not copied is ever deleted there.
         try {
@@ -371,7 +390,7 @@ export class IndexedDraftRepository implements DraftRepository {
         // those words are untouched where the older tab stored them. The result says they wait.
         if (newer) {
           try {
-            const found = await this.copy(Math.max(deadline, Date.now() + this.earlierWait / 4));
+            const found = await this.copy(Math.max(deadline, this.clock.now() + this.earlierWait / 4));
             older.drafts.push(...found.changed);
             older.backups += found.backups;
           } catch {

@@ -8,7 +8,7 @@
  * speech never falls back to it. The agreement is kept in this browser, like the theme, and
  * Settings withdraws it.
  */
-export interface BrowserSpeechConsent {
+export interface SpeechConsent {
   agreed(): boolean;
   /** Only from the person's own press of the agreement in the notice. */
   agree(): void;
@@ -16,14 +16,21 @@ export interface BrowserSpeechConsent {
   /** Calls back when the agreement changes here or in another tab of this browser. */
   subscribe(listener: () => void): () => void;
 }
+/** The agreement to the browser's own speech service. */
+export type BrowserSpeechConsent = SpeechConsent;
 
 /** Where the agreement is kept. Any other stored value counts as no agreement. */
 export const BROWSER_SPEECH_KEY = "weave-browser-speech";
+/**
+ * Where the agreement to cloud speech is kept: a recording sent through Weave to the provider the
+ * notice names, where the browser cannot turn speech into text at all (the owner's decision of
+ * 23 November 2026). It is a separate agreement. Agreeing to one never agrees to the other.
+ */
+export const CLOUD_SPEECH_KEY = "weave-cloud-speech";
 const AGREED = "agreed";
-const CHANGED = "weave-browser-speech-change";
 
 /** An agreement held in memory only: for examples, for tests, and for a browser that stores nothing. */
-export function memoryConsent(initial = false): BrowserSpeechConsent {
+export function memoryConsent(initial = false): SpeechConsent {
   let agreed = initial;
   const listeners = new Set<() => void>();
   const set = (value: boolean) => {
@@ -56,12 +63,15 @@ export interface ConsentStorage {
 export function storedConsent(
   storage: () => ConsentStorage | undefined = () => globalThis.localStorage,
   events: Pick<EventTarget, "addEventListener" | "removeEventListener" | "dispatchEvent"> | undefined = globalThis.window,
-): BrowserSpeechConsent {
+  key: string = BROWSER_SPEECH_KEY,
+): SpeechConsent {
+  // Each agreement tells its own listeners, so a change to one never looks like a change to the other.
+  const CHANGED = `${key}-change`;
   let visit: boolean | undefined;
   const read = (): boolean => {
     if (visit !== undefined) return visit;
     try {
-      return storage()?.getItem(BROWSER_SPEECH_KEY) === AGREED;
+      return storage()?.getItem(key) === AGREED;
     } catch {
       return false;
     }
@@ -70,8 +80,8 @@ export function storedConsent(
     try {
       const store = storage();
       if (!store) throw new Error("No storage");
-      if (value) store.setItem(BROWSER_SPEECH_KEY, AGREED);
-      else store.removeItem(BROWSER_SPEECH_KEY);
+      if (value) store.setItem(key, AGREED);
+      else store.removeItem(key);
       visit = undefined;
     } catch {
       visit = value;
@@ -85,7 +95,7 @@ export function storedConsent(
     subscribe(listener) {
       if (!events) return () => {};
       const storageChange = (event: Event) => {
-        if (!("key" in event) || event.key === BROWSER_SPEECH_KEY || event.key === null) listener();
+        if (!("key" in event) || event.key === key || event.key === null) listener();
       };
       events.addEventListener(CHANGED, listener);
       events.addEventListener("storage", storageChange);
@@ -97,8 +107,14 @@ export function storedConsent(
   };
 }
 
-let device: BrowserSpeechConsent | undefined;
-/** This browser's agreement, shared by every page and Settings. */
-export function deviceConsent(): BrowserSpeechConsent {
+let device: SpeechConsent | undefined;
+/** This browser's agreement to its own speech service, shared by every page and Settings. */
+export function deviceConsent(): SpeechConsent {
   return (device ??= storedConsent());
+}
+
+let cloud: SpeechConsent | undefined;
+/** This browser's agreement to cloud speech, shared by every page and Settings. */
+export function deviceCloudConsent(): SpeechConsent {
+  return (cloud ??= storedConsent(undefined, undefined, CLOUD_SPEECH_KEY));
 }
