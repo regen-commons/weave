@@ -7,9 +7,9 @@ import { revise } from "../describe/contracts.ts";
 import { deviceExport } from "../data/export.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
-import { deviceConsent } from "../describe/speech-consent.ts";
-import { useBrowserSpeechAgreement } from "../describe/use-speech.ts";
-import { SPEECH_SETTING } from "../describe/speech-setup.ts";
+import { deviceCloudConsent, deviceConsent } from "../describe/speech-consent.ts";
+import { useBrowserSpeechAgreement, useCloudSpeechAgreement, useCloudSpeechUses } from "../describe/use-speech.ts";
+import { cloudSpeechUseLine, SPEECH_SETTING, speechSettingLine } from "../describe/speech-setup.ts";
 import { useTheme } from "../ui/ThemeSwitch.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { COMMONS } from "../links.ts";
@@ -33,6 +33,8 @@ import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 export function Settings() {
   const { theme } = useTheme();
   const browserSpeech = useBrowserSpeechAgreement();
+  const cloudSpeech = useCloudSpeechAgreement();
+  const cloudSpeechUses = cloudSpeechUseLine(useCloudSpeechUses());
   // Withdrawing removes its own button, so the line that says what changed takes the focus.
   const speechLine = useRef<HTMLParagraphElement>(null);
   const [busy, setBusy] = useState(false);
@@ -170,7 +172,7 @@ export function Settings() {
               : "Keyword rules run on this device. No model download is needed."}
         </p>
         <p className="rc-meta">
-          Downloaded and cloud models are not connected. No words are sent to a cloud model.
+          The assistant is not connected to a downloaded or cloud model, and sends no words to one.
         </p>
         <div className="rc-action-bar">
           {draft.assistant === "browser" && (
@@ -195,21 +197,37 @@ export function Settings() {
       </SettingsSection>
       <SettingsSection title="Speech" note="How talking turns into text.">
         <p role="status" ref={speechLine} tabIndex={-1}>
-          {browserSpeech ? SPEECH_SETTING.agreed : SPEECH_SETTING.notAgreed}
+          {speechSettingLine(browserSpeech, cloudSpeech)}
         </p>
-        {browserSpeech && (
+        {cloudSpeechUses && <p className="rc-meta">{cloudSpeechUses}</p>}
+        {(browserSpeech || cloudSpeech) && (
           <div className="rc-action-bar">
-            <button
-              className="rc-button"
-              data-variant="secondary"
-              type="button"
-              onClick={() => {
-                deviceConsent().withdraw();
-                speechLine.current?.focus();
-              }}
-            >
-              {SPEECH_SETTING.withdraw}
-            </button>
+            {browserSpeech && (
+              <button
+                className="rc-button"
+                data-variant="secondary"
+                type="button"
+                onClick={() => {
+                  deviceConsent().withdraw();
+                  speechLine.current?.focus();
+                }}
+              >
+                {SPEECH_SETTING.withdraw}
+              </button>
+            )}
+            {cloudSpeech && (
+              <button
+                className="rc-button"
+                data-variant="secondary"
+                type="button"
+                onClick={() => {
+                  deviceCloudConsent().withdraw();
+                  speechLine.current?.focus();
+                }}
+              >
+                {SPEECH_SETTING.withdrawCloud}
+              </button>
+            )}
           </div>
         )}
       </SettingsSection>

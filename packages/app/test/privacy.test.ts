@@ -1,11 +1,14 @@
 // The words about data are checked against what the code does. A sentence here changes only with
 // the code that makes it true.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { CERTIFIED_FACTS, DATA_POLICY, SIGN_IN, STORAGE_SUMMARY } from "../src/data/privacy.ts";
 import { accountDocument } from "../src/account/document.ts";
+import { CLOUD_SPEECH } from "@weave/api/transcribe-contract";
+import { BROWSER_SPEECH_KEY, CLOUD_SPEECH_KEY } from "../src/describe/speech-consent.ts";
+import { CLOUD_SPEECH_NOTICE, SPEECH_SETTING } from "../src/describe/speech-setup.ts";
 
 const read = (path: string) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), "utf8");
 const summary = new Map(STORAGE_SUMMARY);
@@ -75,7 +78,7 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.match(read("src/account/SignInButton.tsx"), /thenProjects \|\| window\.location\.pathname === pathTo\("your-initiatives"\)/u);
   assert.match(read("src/pages/YourInitiatives.tsx"), /Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in/u);
   assert.match(read("src/describe/cloud.ts"), /throw/u);
-  assert.match(policy, /No words are sent to a cloud model/u);
+  assert.match(policy, /The assistant sends no words to a cloud model/u);
 });
 
 test("what the copy says is saved is what a save sends", () => {
@@ -126,8 +129,9 @@ test("what sign-in and saving do is written once and agrees with the policy", ()
 
 test("what the copy says about talking is what the speech code does", () => {
   const talking = summary.get("Talking and the assistant")!;
-  assert.match(talking, /Weave never receives your voice/u);
-  assert.match(talking, /only after you agree/u);
+  assert.match(talking, /its own speech service only after you agree/u);
+  assert.match(talking, /Weave receives a recording only if you agree to cloud speech, and does not keep it/u);
+  assert.doesNotMatch(everything, /never receives your voice|does not record, keep or send your voice/u, "no longer true where a person agrees to cloud speech");
   assert.match(policy, /Weave asks before the first time, and you can turn it off in Settings/u);
   assert.doesNotMatch(everything, /Google|Apple|Microsoft/u, "Weave cannot know whose speech service a browser uses");
   // The browser's service needs the agreement, and only the device mode asks to stay on the device.
@@ -135,7 +139,53 @@ test("what the copy says about talking is what the speech code does", () => {
   assert.match(speech, /mode === "browser" && !consent\?\.agreed\(\)/u);
   assert.match(speech, /if \(mode === "device"\) session\.processLocally = true/u);
   assert.match(read("src/pages/Settings.tsx"), /deviceConsent\(\)\.withdraw\(\)/u);
-  // Weave itself never touches audio: no capture, recording or upload anywhere in the app.
+  // Outside cloud speech, Weave never touches audio: no capture, recording or upload.
   for (const path of ["src/describe/speech.ts", "src/describe/speech-setup.ts", "src/describe/speech-consent.ts", "src/pages/Describe.tsx", "src/pages/AskStep.tsx", "src/ui/TalkItOut.tsx"])
     assert.doesNotMatch(read(path), /getUserMedia|MediaRecorder|AudioContext|AudioWorklet|fetch\(/u, path);
+});
+
+test("what the copy says about cloud speech is what the recorder and the server do", () => {
+  // The one module that records is the cloud speech session, and nothing else in the app does.
+  const sources = readdirSync(fileURLToPath(new URL("../src", import.meta.url)), { recursive: true, encoding: "utf8" })
+    .filter((name) => /\.tsx?$/u.test(name))
+    .map((name) => `src/${name}`);
+  const recording = sources.filter((path) => /getUserMedia|new recorder\(|MediaRecorder\b/u.test(read(path)));
+  assert.deepEqual(recording, ["src/describe/speech-cloud.ts"]);
+  const cloud = read("src/describe/speech-cloud.ts");
+  // Nothing records before the agreement, and the recording is kept nowhere on the device.
+  assert.match(cloud, /if \(!consent\?\.agreed\(\)\) throw/u);
+  assert.match(cloud, /if \(!consent\.agreed\(\)\) fail\(phase === "sending" \? "withdrawn-sending" : "withdrawn"\)/u);
+  // One request asks whether it is on, one sends the recording, and neither carries a cookie.
+  assert.equal((cloud.match(/await send\(/gu) ?? []).length, 2, "sent once: there is no second try");
+  assert.equal((cloud.match(/credentials: "omit"/gu) ?? []).length, 2);
+  // Only the person's Stop and the limit send. A recorder that stops by itself drops the recording.
+  assert.match(cloud, /if \(phase === "recording"\) fail\("cloud-interrupted"\)/u);
+  assert.doesNotMatch(cloud, /localStorage|sessionStorage|indexedDB|caches\.|createObjectURL|download/u);
+  // It goes to Weave's own server and nowhere else, as the content security policy also holds.
+  assert.equal(CLOUD_SPEECH.path, "/api/transcribe");
+  assert.doesNotMatch(cloud, /https?:\/\//u);
+  assert.match(read("vercel.json"), /connect-src 'self'/u);
+  // The server passes it to the one named provider and writes nothing down.
+  const server = read("../api/src/transcribe.ts") + read("../api/src/transcribe-provider.ts");
+  assert.match(server, /api\.cloudflare\.com\/client\/v4\/accounts/u);
+  assert.equal((server.match(/https?:\/\/[^\s"`]+/gu) ?? []).length, 1, "one outbound address");
+  assert.doesNotMatch(server, /console\.|writeFile|appendFile|insert into|\.query\(|supabase/iu);
+  // The copy names that provider, says what Weave can vouch for and what only the provider can, and no place.
+  const said = [...CLOUD_SPEECH_NOTICE.body, SPEECH_SETTING.cloudAgreed, policy].join(" ");
+  for (const line of [CLOUD_SPEECH_NOTICE.body.join(" "), policy]) {
+    assert.match(line, /Cloudflare Workers AI/u);
+    assert.match(line, /Weave does not keep the recording/u);
+    assert.match(line, /Cloudflare says it does not keep (it|them) or use (it|them) to train models/u);
+    assert.match(line, /may be processed outside your country/u);
+    assert.match(line, /turn (this|it) off in Settings/u);
+    // The time limit sends it too, and both places say so before the person agrees.
+    assert.match(line, /when you press Stop or the recording reaches its limit of (3|three) minutes at most/u);
+  }
+  assert.equal(CLOUD_SPEECH.maxSeconds, 180);
+  assert.equal(CLOUD_SPEECH.provider, "Cloudflare Workers AI");
+  assert.doesNotMatch(said, /Europe|EU\b|United States|never leaves/u, "no region is promised");
+  assert.match(policy, /Where Weave offers cloud speech there, and only if you agree/u, "it is not offered everywhere");
+  // Withdrawing is one press in Settings, and the two agreements are kept apart.
+  assert.match(read("src/pages/Settings.tsx"), /deviceCloudConsent\(\)\.withdraw\(\)/u);
+  assert.notEqual(CLOUD_SPEECH_KEY, BROWSER_SPEECH_KEY);
 });

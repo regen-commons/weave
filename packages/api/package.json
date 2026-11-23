@@ -94,6 +94,16 @@
       "types": "./src/record-page.ts",
       "source": "./src/record-page.ts",
       "default": "./dist/record-page.js"
+    },
+    "./transcribe": {
+      "types": "./src/transcribe.ts",
+      "source": "./src/transcribe.ts",
+      "default": "./dist/transcribe.js"
+    },
+    "./transcribe-contract": {
+      "types": "./src/transcribe-contract.ts",
+      "source": "./src/transcribe-contract.ts",
+      "default": "./dist/transcribe-contract.js"
     }
   },
   "scripts": {
