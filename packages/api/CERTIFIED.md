@@ -581,9 +581,19 @@ A grant is bound to one Weave session and one action. The grant for `membership`
 the signed-in person's own group memberships, lasts 30 days from the consent, which is as long as a
 session can last (`grantLifetime` in `certified-project-auth.ts`; the user's choice, 22 November 2026,
 DL-137). It cannot be used from another session, so it is unusable after sign-out or a revoked session,
-and a new sign-in asks Certified again. Its stored tokens stay encrypted in
-`weave_project_oauth.records` until that expiry: nothing deletes them at sign-out, and expired rows go
-only when the operator's pruning runs (the candidate schema notes the statement and schedules nothing).
+and a new sign-in asks Certified again.
+
+Signing out deletes that session's grants before the session is revoked (`forget` in
+`certified-project-auth.ts`, called from `/api/account`'s `sign_out`, which loads the project runtime
+only then). That removes the stored tokens together with the DPoP key they are bound to, so nobody can
+use them afterwards; Weave does not also call Certified's revocation endpoint. Each removal waits behind
+a token refresh that may be under way, so a rotation cannot write the grant back. The step has five
+seconds and can never stop or fail a sign-out. When it could not run, or a session ended without a
+sign-out because it lapsed or was revoked, the grant stays in `weave_project_oauth.records`, encrypted
+and unusable, until its expiry. Expired rows go when the daily job in
+`supabase/candidates/weave-project-oauth-pruning.sql` runs. That file is a candidate for the database
+owner to apply with pg_cron (the user's choice, 23 November 2026); until it is applied nothing removes
+them.
 Every other grant can write to Certified and still ends within the hour. The store refuses to keep a
 grant longer than its action allows, and a stored grant that claims a longer life is refused when read.
 

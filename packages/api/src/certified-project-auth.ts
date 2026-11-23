@@ -517,6 +517,29 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       state.closing = true;
       while (state.pending.size) await Promise.all([...state.pending]);
     },
+    /**
+     * Deletes every grant of the session that is signing out, so the stored Certified tokens and the
+     * key they are bound to do not outlive it. Called while the session can still be verified, since a
+     * grant can only be found through its session. Each removal waits its turn behind a refresh that
+     * may be under way, so a rotation cannot write the grant back, and a busy or failing one is passed
+     * over: the grant is unusable after sign-out either way and ends at its own expiry. Returns how
+     * many removals ran, for the caller's test, and never throws.
+     */
+    async forget(request: Request, signal: AbortSignal = AbortSignal.timeout(4000)): Promise<number> {
+      let actor: CertifiedProjectActor | null;
+      try { actor = await options.resolveActor(request); } catch { return 0; }
+      if (!actor) return 0;
+      let removed = 0;
+      for (const action of actions) {
+        if (signal.aborted) break;
+        const key = grantKey({ did: actor.did, sessionId: actor.sessionId, action });
+        try {
+          await store.withLock(key, locked => locked.remove("grant", key), signal);
+          removed++;
+        } catch { /* The next sign-in asks Certified again whatever is left here. */ }
+      }
+      return removed;
+    },
     metadata: () => response(publicClient.clientMetadata),
     jwks: () => response(publicClient.jwks),
     async consent(request: Request) {

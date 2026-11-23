@@ -54,7 +54,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     title: "Signing In",
     body: [
       "You sign in with Certified, an account service separate from Weave. Certified handles your email address and the code it sends you.",
-      "Weave receives an identifier for your Certified account and keeps you signed in on this browser with session cookies. You stay signed in for up to 30 days, unless you sign out or do not open Weave for 14 days. Weave does not keep your email address. If you choose to add your email before signing in, Weave passes it to Certified, where it appears in the link and may be saved in browser history or request logs.",
+      "Weave receives an identifier for your Certified account and keeps you signed in on this browser with two cookies. You stay signed in for up to 30 days, unless you sign out or do not open Weave for 14 days. Weave does not keep your email address. If you choose to add your email before signing in, Weave passes it to Certified, where it appears in the link and may be saved in browser history or request logs.",
     ],
   },
   {
@@ -69,8 +69,10 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
-      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in on Your Initiatives goes on to that question, and the page says so first. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in. Weave also uses it to check that you belong to a group before you save to its team workspace or manage its invitations.",
-      "Weave keeps that permission, encrypted, for up to 30 days, and cannot use it after you sign out. Anything that changes Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing, asks Certified again, and that permission lasts up to one hour.",
+      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in on Your Initiatives goes on to that question, and the page says so first. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
+      "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
+      "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its copy.",
+      "Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing.",
     ],
   },
   {
@@ -121,7 +123,7 @@ export const SIGN_IN = {
   effect: "Signing in only says who you are. Nothing is saved, loaded or shared until you choose it.",
   saved:
     "Saving keeps your checked card, needs, offers and kept funding details. Conversations, files, unfinished edits and assistant records stay on this device.",
-  session: "You stay signed in on this browser for up to 30 days, or 14 days without opening Weave.",
+  session: "You stay signed in on this browser for up to 30 days. If you do not open Weave for 14 days, you are signed out sooner.",
 } as const;
 
 /**

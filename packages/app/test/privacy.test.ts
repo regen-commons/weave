@@ -48,11 +48,31 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.match(grants, /const readGrantTtl = SESSION_CAP_SECONDS;/u);
   assert.match(grants, /const readOnlyAction = "membership";/u);
   assert.match(policy, /reads your Certified projects and the groups you belong to for as long as you stay signed in/u);
-  assert.match(policy, /check that you belong to a group before you save to its team workspace or manage its invitations/u);
-  assert.match(policy, /keeps that permission, encrypted, for up to 30 days, and cannot use it after you sign out/u);
-  assert.match(policy, /creating a project, adding a member, or publishing or withdrawing a listing, asks Certified again, and that permission lasts up to one hour/u);
-  // Where the second question comes without a second press, the policy and the page both say so first.
+  // What rides on the long permission is every Weave command that checks current membership, said in the person's terms.
+  assert.match(policy, /check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access/u);
+  assert.match(policy, /If Certified says you have left the group, Weave stops your access to that workspace/u);
+  for (const file of ["workspace-content.ts", "workspace-invites.ts", "project-commands.ts"])
+    assert.match(read(`../api/src/${file}`), /getMembership/u, `${file} still checks membership`);
+  assert.match(read("../api/src/workspace-content.ts"), /if \(!role\) \{\s*await projects\.execute\(actor, "suspend_access"/u);
+  assert.match(policy, /stores that permission encrypted on its server and can use it for up to 30 days\. Signing out ends it: Weave can no longer use it and deletes its copy/u);
+  // Exactly one action is long-lived, and it only reads the person's own memberships. Reading who else
+  // is in a group is its own action, and so is every change to Certified, each under the hour.
+  assert.match(grants, /\n  membership: \[membership\],/u);
+  assert.match(grants, /"workspace-members": \[membership, memberList\],/u);
+  for (const action of ["create-project", "add-member", "publish-support", "withdraw-support"])
+    assert.match(grants, new RegExp(`"${action}": \\[membership, `, "u"), action);
+  assert.match(grants, /return action === readOnlyAction \? readGrantTtl : grantTtl;/u);
+  assert.match(policy, /Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself/u);
+  assert.match(policy, /with two cookies/u);
+  assert.match(read("../api/src/sign-in.ts"), /cookies\.session\(session\.token, session\.expiresIn\),\s*cookies\.renewal\(/u);
+  // Sign-out really does delete it: the account handler runs the project grants' removal before it revokes the session.
+  assert.match(read("../api/src/account.ts"), /onSignOut: forgetProjectGrants/u);
+  assert.match(grants, /async forget\(request: Request/u);
+  assert.match(policy, /such as creating a project, adding a member, or publishing or withdrawing a listing/u);
+  // Where the second question comes without a second press, the policy and the page both say so first,
+  // and the button that leaves for Certified is the one on that page.
   assert.match(policy, /Signing in on Your Initiatives goes on to that question, and the page says so first/u);
+  assert.match(read("src/account/SignInButton.tsx"), /thenProjects \|\| window\.location\.pathname === pathTo\("your-initiatives"\)/u);
   assert.match(read("src/pages/YourInitiatives.tsx"), /Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in/u);
   assert.match(read("src/describe/cloud.ts"), /throw/u);
   assert.match(policy, /No words are sent to a cloud model/u);
@@ -100,7 +120,7 @@ test("what sign-in and saving do is written once and agrees with the policy", ()
   // Saving sends the same things the summary lists, and the session is as long as the policy states.
   for (const kept of ["checked card", "needs", "offers", "funding details"]) assert.match(SIGN_IN.saved, new RegExp(kept, "u"), kept);
   assert.match(SIGN_IN.saved, /Conversations, files, unfinished edits and assistant records stay on this device/u);
-  assert.match(SIGN_IN.session, /up to 30 days, or 14 days without opening Weave/u);
+  assert.match(SIGN_IN.session, /up to 30 days\. If you do not open Weave for 14 days, you are signed out sooner/u);
   assert.match(CERTIFIED_FACTS.map(([, answer]) => answer).join(" "), /separate permission on Certified\. It lasts for as long as you stay signed in/u);
 });
 
