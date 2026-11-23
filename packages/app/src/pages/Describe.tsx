@@ -84,6 +84,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   // Stop pressed before the recognizer has started is kept, and applied once it has.
   const stopWanted = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const addFilesRef = useRef<HTMLButtonElement>(null);
   const view = examples?.describe;
   // A card linked to a Certified project lists its four public details read-only: the project owns them.
   const linked = import.meta.env.DEV && social?.state.identity ? social.state.project : null;
@@ -348,6 +349,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   // Add Files opens the file picker directly. Beside the box its file is read at once.
   const addFilesButton = (
     <button
+      ref={addFilesRef}
       className="rc-button"
       data-variant="secondary"
       type="button"
@@ -368,6 +370,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
         controller.change((current) => revise(current, { attachments: current.attachments.filter((file) => file.id !== id) }, true))
       }
       onRemoveLink={() => {}}
+      afterLast={addFilesRef}
     />
   );
   return (

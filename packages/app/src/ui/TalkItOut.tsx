@@ -172,7 +172,8 @@ export function TalkItOut({
             data-speech={controls.mode ?? undefined}
             data-size="lg"
             type="button"
-            aria-pressed={controls.action === "talk" || controls.action === "stop" ? listening : undefined}
+            // No aria-pressed: the label itself changes from Talk It Out to Stop, and a screen
+            // reader told both would say "Stop, pressed" (WCAG 4.1.2).
             // Under way or held, the button keeps the focus, which a disabled button would drop.
             aria-busy={underWay || undefined}
             aria-disabled={hold === "held" || undefined}
@@ -261,14 +262,20 @@ export function TalkItOut({
           {working ? workingLabel : actionLabel}
         </button>
         {actions}
+        {/*
+          One slot, two live regions that are always there. A screen reader does not reliably
+          follow a role that changes on a live element, so what the action did is said politely in
+          one and a problem at once in the other, and only one of them ever has words. The slot
+          itself takes the focus a page sends to it.
+        */}
         <p
           className={problem ? "rc-error rc-status-slot" : "rc-meta rc-status-slot"}
           data-lines="2"
-          role={problem ? "alert" : "status"}
           id={statusId}
           tabIndex={statusId ? -1 : undefined}
         >
-          {problem || status}
+          <span role="status">{problem ? "" : status}</span>
+          <span role="alert">{problem ?? ""}</span>
         </p>
       </div>
       {/* Asked in a dialog, so choosing a language never pushes the page down. */}

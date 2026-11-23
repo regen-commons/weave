@@ -203,6 +203,7 @@ function AskSection({
   // Stop pressed before the recognizer has started is kept, and applied once it has.
   const stopWanted = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const addFiles = useRef<HTMLButtonElement>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
   const full = activeItems(step).length >= ASK_LIMIT;
@@ -539,9 +540,9 @@ function AskSection({
         <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
           {need ? "Your Needs" : "Your Offers"}
         </h2>
-        <p className="rc-ask-count" aria-live="polite">
-          {sectionCount(step)}
-        </p>
+        {/* Not a live region: each change to the list says what happened in the status line, so the
+            count would be a second announcement of the same change, without its noun (WCAG 4.1.3). */}
+        <p className="rc-ask-count">{sectionCount(step)}</p>
       </div>
       <TalkItOut
         speech={speech}
@@ -604,7 +605,7 @@ function AskSection({
                   perform(() => {
                     focusIntent.current = entryId(item.id, "more");
                     update((current) => decide(current, item.id, "pencil"));
-                    setNotice("");
+                    setNotice("Back on the list.");
                   })
                 }
               />
@@ -623,6 +624,7 @@ function AskSection({
           data-variant="quiet"
           data-size="sm"
           type="button"
+          ref={addFiles}
           disabled={held || full}
           onClick={() => fileInput.current?.click()}
         >
@@ -648,6 +650,7 @@ function AskSection({
         onRemoveLink={(url) =>
           update((current) => changeStep(current, { links: current.links.filter((link) => link !== url) }))
         }
+        afterLast={addFiles}
       />
       {/* A card's details are changed over the page, so the list under it stays where it is. */}
       <TaskDialog
