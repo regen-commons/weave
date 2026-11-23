@@ -8,7 +8,7 @@ import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { DetailSheet, RecordLead, RecordSkeleton, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
 import { sectionTag, type SectionTag } from "../ui/section-level.ts";
-import { useDescribeDoor } from "../ui/describe-door.ts";
+import { DescribeDoor } from "../ui/DescribePrompt.tsx";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { Link } from "../router.tsx";
@@ -142,7 +142,6 @@ function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: Sect
 function ProjectFitPanel({ card }: { card: PublicProjectCard }) {
   const { draft } = useDraft();
   const setAside = useSetAside();
-  const door = useDescribeDoor();
   const own = !setAside && hasDraft(draft);
   const fit = useMemo(
     () =>
@@ -165,9 +164,7 @@ function ProjectFitPanel({ card }: { card: PublicProjectCard }) {
             : "Describe your initiative, with what it needs and offers, to see whether this one could partner with it."}
         </p>
         <div className="rc-action-bar">
-          <ButtonLink href={door.href} variant="secondary">
-            {door.label}
-          </ButtonLink>
+          <DescribeDoor variant="secondary" />
         </div>
       </>
     );

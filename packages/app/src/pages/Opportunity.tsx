@@ -25,7 +25,7 @@ import { fundShare } from "../record-share.ts";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { FitLine } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
-import { useDescribeDoor } from "../ui/describe-door.ts";
+import { DescribeDoor } from "../ui/DescribePrompt.tsx";
 import { recordFirstView } from "../record-first-view.ts";
 
 /**
@@ -61,7 +61,6 @@ export function Opportunity({
     setAside = useSetAside();
   const [retried, setRetried] = useState(false);
   // Continue the card in progress, or start one: this page never reopens a card under a "describe" label.
-  const door = useDescribeDoor();
   const query = new URLSearchParams(search);
   const programId = query.get("program"),
     team = query.get("team");
@@ -154,11 +153,7 @@ export function Opportunity({
         </p>
       )}
       <div className="rc-action-bar">
-        {!described && (
-          <ButtonLink href={door.href} variant="primary">
-            {door.label}
-          </ButtonLink>
-        )}
+        {!described && <DescribeDoor variant="primary" />}
         {url && (
           <ButtonLink href={url} variant={described ? "primary" : "secondary"}>
             Open The Funder's Page
