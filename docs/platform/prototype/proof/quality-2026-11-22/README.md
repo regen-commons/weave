@@ -56,6 +56,27 @@ The two low desktop scores came from blocking time the trace could not attribute
 script (649 ms "Unattributable" on Your Initiatives), which points at the busy machine
 rather than the page.
 
+### Production, 23 November, before #140
+
+Production at main `70897f6` (the UX sessions' work, before this pull request's lazy loading
+and prerendering), Lighthouse 13.6.0 in Chrome 149, median of three runs. Performance on
+mobile, with its largest contentful paint and total blocking time; desktop scored 100 for
+performance on every route. Accessibility and best practices were 100 everywhere. SEO was 91
+or 92 everywhere, failing only `robots-txt`, which this pull request adds.
+
+| Route | Mobile | LCP | TBT | Desktop |
+|---|---|---|---|---|
+| Home | 90 | 3.19 s | 195 ms | 100 |
+| Funding | 88 | 3.18 s | 247 ms | 100 |
+| Fund | 86 | 3.18 s | 288 ms | 100 |
+| Initiatives | 90 | 3.19 s | 207 ms | 100 |
+| Describe | 92 | 3.21 s | 136 ms | 100 |
+| Your Initiatives | 91 | 3.19 s | 170 ms | 100 |
+| Settings | 92 | 3.19 s | 130 ms | 100 |
+
+Every mobile route reached its largest paint at the same 3.2 s, the mark of a page drawn by its
+script. The fund page also shifted its footer as the record loaded (CLS 0.069 on mobile).
+
 ### Local production build
 
 | Route | Mobile | LCP | TBT | CLS | Desktop |
