@@ -13,7 +13,7 @@ export interface Depth {
  * Grows the website's mycelium on a decorative canvas behind a region or a whole page, drawn as
  * the website draws it: one canvas pixel for each CSS pixel, and trails that fade (DL-106). A
  * mouse or a finger grows tufts where it moves; without a mouse one also grows on its own every
- * few seconds. A light resting network lies under the trails, whole in the margins and quieter
+ * few seconds, in the first `OWN_GROWTH_FOR` milliseconds of a page only (WCAG 2.2.2). A light resting network lies under the trails, whole in the margins and quieter
  * under `column`, the element that holds the content, or a function that finds it (the element
  * after the canvas unless given). `depth` is the website's depth, or a function that gives it:
  * 1 on Home and 2 anywhere else. `quiet`, or a function that says so, marks a page with fields to
@@ -94,6 +94,10 @@ export function settle(branches: Branch[], width: number, height: number, random
 export function growsFromPointer(pointerType: string, finePointer: boolean, reducedMotion: boolean): boolean;
 /** With motion allowed, tufts grow on their own, on a phone and on a desk. */
 export function growsOnItsOwn(reducedMotion: boolean): boolean;
+/** How long after a page opens, in milliseconds, a tuft may still grow on its own: five seconds (WCAG 2.2.2). */
+export const OWN_GROWTH_FOR: number;
+/** Whether a tuft may still grow on its own, so many milliseconds after the page opened. */
+export function ownGrowthOpen(sinceOpened: number): boolean;
 /** Whether a mouse last moved long enough ago, in milliseconds, for a tuft to grow on its own. */
 export function mouseAtRest(sinceMove: number): boolean;
 /** How strongly a new tuft of the logo shows at an age in frames. */

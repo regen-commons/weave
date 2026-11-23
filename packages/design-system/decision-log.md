@@ -916,6 +916,8 @@ From Krug: a step map that is always in view, help that is brief and right where
 
 Not verified on a real phone: captured in desktop Chromium with touch and a phone viewport emulated. How the bounce feels after a fast fling on iOS, where the native rubber band is now off for the row, is the part to try. Lighthouse on a production build of Home, before and after, is in the pull request.
 
+**Amended 23 November 2026 (user decision, from the accessibility audit).** A tuft grows on its own only for the first five seconds of a page; a strand still growing then goes at once and a resting network still growing in comes to rest. WCAG 2.2.2 asks that motion which starts by itself stop within five seconds or have a way to pause it on the page, and the system's reduced-motion setting alone does not meet that. A mouse or a finger still grows trails after it, since that motion follows the person. No control was added.
+
 ## DL-129: Funding fit has four levels, the list sorts by it, and anyone can browse without an initiative
 
 **Status:** user decision from manual QA, 22 November 2026: sort funds by fit, strongest first; allow no initiative for someone just browsing; shorten the line under the filters; give fit four levels. Amends DL-017, DL-118 and DL-122, and settles [D34](../../docs/platform/open-decisions.md#for-the-builders).
