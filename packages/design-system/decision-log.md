@@ -918,7 +918,7 @@ From Krug: a step map that is always in view, help that is brief and right where
 
 Not verified on a real phone: captured in desktop Chromium with touch and a phone viewport emulated. How the bounce feels after a fast fling on iOS, where the native rubber band is now off for the row, is the part to try. Lighthouse on a production build of Home, before and after, is in the pull request.
 
-**Amended 23 November 2026 (user decision, from the accessibility audit).** A tuft grows on its own only for the first five seconds of a page; a strand still growing then goes at once and a resting network still growing in comes to rest. WCAG 2.2.2 asks that motion which starts by itself stop within five seconds or have a way to pause it on the page, and the system's reduced-motion setting alone does not meet that. A mouse or a finger still grows trails after it, since that motion follows the person. No control was added.
+**Amended 23 November 2026 (user decision, from the accessibility audit).** A tuft grows on its own only for the first five seconds after the app opens, and never again in that visit: not on another page, the page shown again, a resize or motion turned back on. A strand still growing then goes at once and a resting network still growing in comes to rest. Asked whether each page should get its own five seconds, the user answered "Only once at app open". WCAG 2.2.2 asks that motion which starts by itself stop within five seconds or have a way to pause it on the page, and the system's reduced-motion setting alone does not meet that. A mouse or a finger still grows trails after it, since that motion follows the person. No control was added.
 
 ## DL-129: Funding fit has four levels, the list sorts by it, and anyone can browse without an initiative
 

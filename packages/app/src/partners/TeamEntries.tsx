@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { parseTeamDocument, type AccountDocument, type SavedInitiative, type TeamWorkspaceState } from "@weave/api/account-contract";
 import { AccountFailure } from "../account/client.ts";
-import { formFromAsk, parseAskForm } from "../intake/state.ts";
+import { ASK_FORM_PROBLEM, askFormProblem, formFromAsk, parseAskForm, type AskFormField } from "../intake/state.ts";
 import { AskSuggestionSchema, ASK_LIMIT, STATUS, type AskForm, type AskKind } from "../intake/contracts.ts";
 import { keepFocusOnPage } from "../ui/focus.ts";
 import { AskEditor } from "../ui/AskEditor.tsx";
@@ -23,6 +23,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
   const [edit, setEdit] = useState<Edit | null>(null);
   const [title, setTitle] = useState(workspace.projectTitle ?? "");
   const [error, setError] = useState("");
+  const [errorField, setErrorField] = useState<AskFormField | null>(null);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<TeamSave | null>(null);
@@ -50,8 +51,11 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
       const updated = edit.id ? entries.map((entry) => entry.id === id ? { id, value } : entry) : [...entries, { id, value }];
       const changed: AccountDocument = parseTeamDocument({ ...document, [edit.kind]: updated });
       next = command ?? { expectedRevision: saved?.revision ?? 0, requestId: crypto.randomUUID(), document: changed };
-    } catch {
-      setError("Check the title, terms and any amount, then try saving again.");
+    } catch (cause) {
+      // A problem with one field names it and takes the focus there (WCAG 3.3.1).
+      const problem = askFormProblem(cause);
+      setErrorField(problem.field);
+      setError(problem.message === ASK_FORM_PROBLEM ? "Check the title, terms and any amount, then try saving again." : problem.message);
       return;
     }
     const controller = new AbortController();
@@ -133,7 +137,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
             <input className="rc-input" id="team-title" autoCapitalize="words" autoComplete="organization" value={title} maxLength={200} disabled={frozen}
               onChange={(event) => setTitle(event.target.value)} />
           </div>}
-          <AskEditor kind={edit.kind} value={edit.form} error={error} disabled={frozen || !online}
+          <AskEditor kind={edit.kind} value={edit.form} error={error} errorField={errorField} disabled={frozen || !online}
             saveLabel="Save To Team Privately"
             onChange={(form) => setEdit({ ...edit, form })}
             onSave={() => void save()}

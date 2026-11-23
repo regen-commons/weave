@@ -8,7 +8,8 @@ import { growMycelium } from "@regen-commons/design-system/mycelium";
  * that fade where a mouse or a finger moves, over a light resting network that is quieter under the
  * page's column, the element after the canvas (DL-106). `home` gives it the website's depth for
  * Home; every other page takes the next depth. New growth lingers and fades slowly, and a tuft
- * also grows on its own every few seconds in a page's first five seconds, and not after (DL-128, WCAG 2.2.2). `quiet` marks a step with fields to fill in,
+ * also grows on its own every few seconds in the first five seconds after the app opens, and never
+ * again in that visit (DL-128, WCAG 2.2.2). `quiet` marks a step with fields to fill in,
  * where the threads stay quieter under the column and new growth keeps to the margins (DL-135).
  * It is decorative and takes no pointer. The
  * behaviour stops drawing once the trails have faded, while the page is hidden or off screen, and

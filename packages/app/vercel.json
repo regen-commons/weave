@@ -12,14 +12,20 @@
   "outputDirectory": "dist",
   "functions": {
     "api/project-index-refresh.ts": { "maxDuration": 300 },
-    "api/record-page.ts": { "includeFiles": "dist/{index.html,share/records.json}" }
+    "api/router.ts": { "maxDuration": 60, "includeFiles": "dist/{index.html,share/records.json}" }
   },
   "crons": [
     { "path": "/api/project-index-refresh", "schedule": "0 4 * * *" }
   ],
   "rewrites": [
-    { "source": "/funding/:id", "destination": "/api/record-page?kind=funding&id=:id" },
-    { "source": "/initiatives/:id", "destination": "/api/record-page?kind=initiative&id=:id" },
+    { "source": "/api/health", "destination": "/api/router?__route=health" },
+    { "source": "/api/matching", "destination": "/api/router?__route=matching" },
+    { "source": "/api/projects", "destination": "/api/router?__route=projects" },
+    { "source": "/api/public-projects", "destination": "/api/router?__route=public-projects" },
+    { "source": "/api/record-page", "destination": "/api/router?__route=record-page" },
+    { "source": "/api/transcribe", "destination": "/api/router?__route=transcribe" },
+    { "source": "/funding/:id", "destination": "/api/router?__route=record-page&kind=funding&id=:id" },
+    { "source": "/initiatives/:id", "destination": "/api/router?__route=record-page&kind=initiative&id=:id" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [

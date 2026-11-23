@@ -12,7 +12,7 @@
 // mouse is never blank; it is quieter under the column that holds the content and whole beside it
 // (DL-071), and quieter still on a page with fields to fill in, where new growth keeps to the
 // margins (DL-135). A tuft grows on its own every few seconds, on a phone and wherever a mouse has held
-// still, for the first five seconds of a page and no longer (WCAG 2.2.2). New growth lingers: a tuft lives twice as long as the website's and its trail fades more
+// still, for the first five seconds after the app opens and never again in that visit (WCAG 2.2.2). New growth lingers: a tuft lives twice as long as the website's and its trail fades more
 // slowly, so each strand stays a while after it appears (DL-128). And drawing stops:
 // once the last trail has faded nothing runs until something grows again, and nothing runs while
 // the page is hidden or the canvas is off screen. Under reduced motion the resting network is drawn
@@ -74,9 +74,10 @@ const EASE = 32;
 const OWN_GROWTH_AFTER = 1800;
 const OWN_GROWTH_SPREAD = 1800;
 /**
- * Growth that starts on its own ends this long after a page opens, in milliseconds: a strand it is
- * still growing then goes at once, so nothing moves by itself for more than five seconds (WCAG
- * 2.2.2). A mouse or a finger still grows trails after it, as that motion follows the person.
+ * Growth that starts on its own ends this long after the app opens, in milliseconds, and nothing
+ * starts it again in that visit: not another page, the page shown again, a resize or motion turned
+ * back on. A strand it is still growing then goes at once, so nothing moves by itself for more than
+ * five seconds (WCAG 2.2.2). A mouse or a finger still grows trails, as that motion follows the person.
  */
 export const OWN_GROWTH_FOR = 5000;
 /** A mouse that has moved within this many milliseconds is growing tufts itself, so none grows on its own. */
@@ -196,13 +197,13 @@ export function growsTrails(reducedMotion) {
 
 /**
  * Whether new tufts grow on their own: with motion allowed, on a phone and on a desk alike, for the
- * first five seconds of a page (OWN_GROWTH_FOR). Where a mouse has just moved it grows them instead (DL-128).
+ * first five seconds after the app opens (OWN_GROWTH_FOR). Where a mouse has just moved it grows them instead (DL-128).
  */
 export function growsOnItsOwn(reducedMotion) {
   return !reducedMotion;
 }
 
-/** Whether a tuft may still grow on its own, so many milliseconds after the page opened. */
+/** Whether a tuft may still grow on its own, so many milliseconds after the app opened. */
 export function ownGrowthOpen(sinceOpened) {
   return sinceOpened < OWN_GROWTH_FOR;
 }
@@ -413,9 +414,8 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   let movedAt = -Infinity;
   let ownTimer = 0;
   let resizeTimer = 0;
-  /** When the page now shown opened, and the timer that ends the growth that starts on its own. */
-  let openedAt = Date.now();
-  let openedPath = view.location?.pathname;
+  /** When the app opened, and the timer that ends the growth that starts on its own. */
+  const openedAt = Date.now();
   let endTimer = 0;
 
   const listen = (target, type, listener, options) => {
@@ -568,7 +568,7 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   /**
    * A tuft grows on its own every few seconds, somewhere in the part of the canvas that is in the
    * window, while the page is shown and no mouse or finger has just grown one, for the first five
-   * seconds of a page. It stops under reduced motion (DL-048, DL-128).
+   * seconds after the app opens. It stops under reduced motion (DL-048, DL-128).
    */
   function planOwnGrowth() {
     const open = () => ownGrowthOpen(Date.now() - openedAt);
@@ -590,7 +590,7 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
   }
 
   /**
-   * The page's five seconds of growth on its own are over: a tuft it grew goes, its trail fades out
+   * The app's five seconds of growth on its own are over: a tuft it grew goes, its trail fades out
    * quickly, and a resting network still growing in comes to rest at once (WCAG 2.2.2).
    */
   function endOwnGrowth() {
@@ -607,14 +607,12 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     schedule();
   }
 
-  /** A page opened: its growth on its own starts again, for five seconds. Nothing grows on its own under reduced motion. */
-  function openPage() {
-    openedAt = Date.now();
+  /** Ends the growth that starts on its own when the app's five seconds are up. Under reduced motion none starts. */
+  function endOwnGrowthLater() {
     if (endTimer) view.clearTimeout(endTimer);
     endTimer = 0;
-    if (still.matches) return;
-    endTimer = view.setTimeout(endOwnGrowth, OWN_GROWTH_FOR);
-    planOwnGrowth();
+    const left = OWN_GROWTH_FOR - (Date.now() - openedAt);
+    if (!still.matches && left > 0) endTimer = view.setTimeout(endOwnGrowth, left);
   }
 
   /** A new theme draws the same network in the new colours, and lets go of trails in the old ones. */
@@ -627,23 +625,15 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     show();
   }
 
-  /**
-   * The column that holds the content changed, as it does between pages: the same network, measured
-   * again. A new address is a new page, with its own few seconds of growth on its own.
-   */
+  /** The column that holds the content changed, as it does between pages: the same network, measured again. */
   function measure() {
     if (disposed) return;
     paintRest();
     show();
-    const path = view.location?.pathname;
-    if (path !== openedPath) {
-      openedPath = path;
-      openPage();
-    }
   }
 
   grow();
-  openPage();
+  endOwnGrowthLater();
 
   // The website listens on the window for a mouse and for a finger, and so does this.
   listen(view, "mousemove", (event) => onMove(event.clientX, event.clientY), { passive: true });
@@ -662,14 +652,11 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     }
   });
   // Motion turned off or on: draw it at rest and start again from there.
-  // Turned on within a page's five seconds, growth on its own ends with them, not five seconds later.
+  // Turned on within the app's five seconds, growth on its own ends with them; after them, none starts.
   listen(still, "change", () => {
     stopOwnGrowth();
     grow(true);
-    if (endTimer) view.clearTimeout(endTimer);
-    endTimer = 0;
-    const left = OWN_GROWTH_FOR - (Date.now() - openedAt);
-    if (!still.matches && left > 0) endTimer = view.setTimeout(endOwnGrowth, left);
+    endOwnGrowthLater();
   });
   listen(darkScheme, "change", recolour);
 
