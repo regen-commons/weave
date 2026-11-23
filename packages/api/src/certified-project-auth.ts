@@ -6,6 +6,7 @@ import type postgres from "postgres";
 import { boundedJson } from "./account-http.ts";
 import { record } from "./account-contract.ts";
 import { AccountError } from "./account-provider.ts";
+import { SESSION_CAP_SECONDS } from "./account-session.ts";
 import type { StateCipher } from "./certified/crypto.ts";
 import { CERTIFIED_ISSUER, identitySubject } from "./certified/identity.ts";
 
@@ -34,7 +35,15 @@ export type CertifiedProjectRpc = typeof grantMethods[ConsentAction][number];
 const actions = Object.keys(grantMethods) as ConsentAction[];
 const rpcMethods: readonly CertifiedProjectRpc[] = [...new Set(Object.values(grantMethods).flat())];
 const attemptTtl = 600;
+/** A grant that can write, to Certified or to a group, is asked for again after an hour. */
 const grantTtl = 3600;
+/**
+ * The one grant that only reads, the person's own group memberships, lasts as long as a Weave session
+ * can (the user's choice, 22 November 2026). It is bound to that session's ID, so it cannot outlive a
+ * sign-out or a revoked session, and a new sign-in asks Certified again.
+ */
+const readGrantTtl = SESSION_CAP_SECONDS;
+const readOnlyAction = "membership";
 const cookieName = "__Host-weave_project_consent";
 const nonce = /^[A-Za-z0-9_-]{43}$/u;
 const randomId = () => randomBytes(32).toString("base64url");
@@ -59,7 +68,10 @@ export function projectOAuthStore(sql: postgres.Sql, cipher: StateCipher): Proje
       row && cipher.open(kind, key, row.encrypted_payload);
     return {
       async put(kind, id, payload, ttl) {
-        if (!Number.isInteger(ttl) || ttl < 1 || ttl > grantTtl) throw Error("invalid_project_oauth_ttl");
+        // An attempt's state and receipt are short. A grant lives no longer than its action allows, and a
+        // payload that names no known action gets the short limit. The same limit is checked again on reading.
+        const limit = kind === "grant" ? grantLifetime(String((payload as { action?: unknown } | null)?.action)) : attemptTtl;
+        if (!Number.isInteger(ttl) || ttl < 1 || ttl > limit) throw Error("invalid_project_oauth_ttl");
         const key = hash(kind, id);
         const encrypted = cipher.seal(kind, key, payload);
         await db`insert into weave_project_oauth.records(kind,key_hash,encrypted_payload,expires_at)
@@ -155,6 +167,10 @@ function attempt(value: unknown): Attempt {
     throw Error("invalid_project_consent_state");
   identitySubject(CERTIFIED_ISSUER, v.did, { did: v.did });
   return { did: v.did, sessionId: v.sessionId, action: v.action };
+}
+/** How long a grant for this action may last, in seconds. Only the read-only grant gets the long limit. */
+export function grantLifetime(action: string): number {
+  return action === readOnlyAction ? readGrantTtl : grantTtl;
 }
 function sameActor(a: CertifiedProjectActor, b: CertifiedProjectActor) {
   return a.did === b.did && a.sessionId === b.sessionId;
@@ -335,6 +351,8 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     const value = record(raw);
     const input = attempt(raw);
     if (typeof value.expiresAt !== "number" || !Number.isSafeInteger(value.expiresAt)) throw Error("invalid_project_oauth_grant");
+    // A stored grant is never honoured past its action's own limit, whatever its record says.
+    if (value.expiresAt > Date.now() + grantLifetime(input.action) * 1000) throw Error("invalid_project_oauth_grant");
     const session = value.session as NodeSavedSession;
     checkScope(session, input);
     return { ...input, expiresAt: value.expiresAt, session };
@@ -556,7 +574,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
         if (result.state !== stored.appState || result.session.did !== input.did ||
             result.session.serverMetadata.issuer !== CERTIFIED_ISSUER || !session) return complete("failed");
         const receipt = randomId();
-        await store.put("receipt", receipt, { ...input, session, expiresAt: Date.now() + grantTtl * 1000 }, attemptTtl);
+        await store.put("receipt", receipt, { ...input, session, expiresAt: Date.now() + grantLifetime(input.action) * 1000 }, attemptTtl);
         // SameSite=Strict keeps the Weave session off the cross-site callback. The
         // browser must complete a same-origin POST before the staged token can be used.
         return complete("ready", receipt);
