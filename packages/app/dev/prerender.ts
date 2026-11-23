@@ -15,7 +15,9 @@ import type { Plugin } from "vite";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { withPagePreview } from "@weave/api/page-preview";
 import { ROUTES } from "../src/routes.ts";
+import { LINK_PREVIEWS, pagePreview } from "./link-previews.ts";
 
 /** An address drawn at build time, and the file the server sends it as. */
 export interface FirstView {
@@ -58,6 +60,15 @@ export function scriptsAfterFirstPaint(html: string): string {
   if (scripts.length === 0) return html;
   const rest = html.slice(0, head).replace(SCRIPT_TAGS, "");
   return `${rest.trimEnd()}\n${scripts.map((tag) => `    ${tag.trim()}\n`).join("")}  ${html.slice(head)}`;
+}
+
+/**
+ * The page for an address with no link preview of its own: a person's own page or a step of
+ * describing an initiative. It keeps Home's preview, so a shared link still shows Weave, and asks
+ * search engines to leave it out, naming no canonical page (`indexed: false`).
+ */
+export function unlistedPage(html: string): string {
+  return withPagePreview(html, pagePreview(LINK_PREVIEWS[0]!), { indexed: false });
 }
 
 /** The line the drawing process writes its result on, so nothing else it prints is read as the result. */
@@ -115,7 +126,7 @@ export function prerender(): Plugin {
       for (const { path, file } of FIRST_VIEWS) {
         const existing = bundle[file];
         if (existing?.type === "asset" && typeof existing.source === "string") existing.source = withFirstView(existing.source, path, views[path]!);
-        else this.emitFile({ type: "asset", fileName: file, source: withFirstView(shell, path, views[path]!) });
+        else this.emitFile({ type: "asset", fileName: file, source: withFirstView(unlistedPage(shell), path, views[path]!) });
       }
     },
   };

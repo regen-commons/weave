@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FIRST_VIEWS, RESULT_MARK, readFirstViews, scriptsAfterFirstPaint, withFirstView } from "../dev/prerender.ts";
+import { FIRST_VIEWS, RESULT_MARK, readFirstViews, scriptsAfterFirstPaint, unlistedPage, withFirstView } from "../dev/prerender.ts";
+import { LINK_PREVIEWS, previewFile, withPreview } from "../dev/link-previews.ts";
 import { ROUTES } from "../src/routes.ts";
 
 const PAGE = `<!doctype html>
@@ -47,4 +48,15 @@ test("only the drawing process's result line is read, and every address must hav
   assert.deepEqual(readFirstViews(output, ["/"]), { "/": "<p>Home</p>" });
   assert.throws(() => readFirstViews(output, ["/", "/funding"]), /No first view was drawn for \/funding/u);
   assert.throws(() => readFirstViews("nothing", ["/"]), /were not drawn/u);
+});
+
+test("the addresses with no link preview of their own are a person's pages and the steps, and search engines leave them out", () => {
+  const previewed = new Set(LINK_PREVIEWS.map(previewFile));
+  const unlisted = FIRST_VIEWS.filter((view) => !previewed.has(view.file)).map((view) => view.path).sort();
+  assert.deepEqual(unlisted, ["/partners", "/settings", "/start/needs", "/start/new", "/start/offers", "/your-initiative"]);
+  const home = withPreview(PAGE.replace("<title>Weave</title>", '<title>Weave</title>\n    <meta name="description" content="x">'), LINK_PREVIEWS[0]!);
+  const page = unlistedPage(home);
+  assert.match(page, /<meta name="robots" content="noindex">/u);
+  assert.doesNotMatch(page, /rel="canonical"|application\/ld\+json/u);
+  assert.match(home, /rel="canonical"/u, "Home itself keeps its canonical link");
 });
