@@ -31,9 +31,11 @@ test("the build preloads each face at the address it emitted, under the configur
   assert.deepEqual(builtFontHrefs(emitted, "/"), [
     "/assets/space-grotesk-latin-b2.woff2",
     "/assets/fraunces-latin-c3.woff2",
-    "/assets/fraunces-italic-latin-d4.woff2",
-    "/assets/source-serif-4-latin-e5.woff2",
   ]);
+});
+
+test("only the interface and title faces are preloaded, so reading and italic faces never compete with the script", () => {
+  assert.deepEqual([...FIRST_FACES], ["space-grotesk-latin.woff2", "fraunces-latin.woff2"]);
 });
 
 test("a face the build did not emit stops the build instead of shipping a broken preload", () => {

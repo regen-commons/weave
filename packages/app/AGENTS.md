@@ -49,7 +49,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads, the theme colours and the theme's first-paint script (`public/theme-boot.js`) that the dev server and the build add to `index.html`, the link previews: one copy of `index.html` for each section and `share/records.json` for the record pages (DL-136), written by the build, and the installed app's manifest with its shortcuts and its install-sheet screenshots (`public/install/screens/`, captured from a build with no example data) |
 | `scripts/share-images/` | Renders the link-preview pictures in `public/share/` and the home-screen icons with a local browser. The pictures are committed; run it after changing a headline or a template |
 | `public/brand/` | Copied from the design system by `scripts/copy-brand.mjs`; ignored by Git |
-| `vercel.json` | The Weave project's build, rewrites (six endpoints share `api/router.ts` to stay within the Hobby plan's 12 functions, and a fund's and an initiative's address go to it for their link preview, DL-136), security headers and caching |
+| `vercel.json` | The Weave project's build, rewrites (seven endpoints share `api/router.ts` to stay within the Hobby plan's 12 functions; a fund's and an initiative's address go to it for their link preview and search data, and `/sitemap.xml` for the sitemap, DL-136), security headers and caching |
 
 ## Boundaries
 

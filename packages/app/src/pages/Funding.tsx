@@ -8,15 +8,17 @@ import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } fro
 import {
   emptyFundingFilters,
   filterFunding,
+  fundingListSearch,
   fundingOrder,
   readBrowsing,
   readFundingFilters,
-  writeBrowsing,
-  writeFundingFilters,
   type FundingFilters as Filters,
 } from "../funding/select.ts";
 import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../funding/subject.ts";
 import { detailsLine } from "../funding/details.ts";
+import { FIRST_FUNDS } from "../funding/first-funds-data.ts";
+import { firstPage, isFirstView } from "../funding/first-funds.ts";
+import type { Entry } from "../funding/contracts.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
 import { useSocial } from "../social/context.tsx";
@@ -116,13 +118,35 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const results = new Map(catalog.results?.map((result) => [result.documentId, result]));
   useEffect(() => setLimit(BATCH), [filters]);
   const added = useAddedFocus(Math.min(limit, selected.length));
+  // With an initiative compared, the list's own order is its fit, which the ranking gives.
+  const expectsFit = catalog.subjectKnown && catalog.personalized && !browsing;
+  const awaitingFit =
+    expectsFit && !catalog.results && !catalog.error && fundingOrder(filters.sort, true) === "fit";
+  // Funding's first cards are in its first draw, the same one the build's prerender draws (DL-140):
+  // while the catalog loads, in the list's own first view. With an initiative compared they stay
+  // until its ranking is ready, and the list then moves once, into its fit order.
+  const first = useMemo(() => (example ? [] : firstPage(FIRST_FUNDS, new Date())), [example]);
+  const early = (loading || awaitingFit) && !failed && isFirstView(visibleFilters) && first.length ? first : null;
+  const card = (entry: Entry, index: number) => (
+    <li key={entry.id} {...added.item(index)}>
+      <OpportunityCard
+        entry={entry}
+        search={listSearch}
+        result={results.get(entry.id)}
+        teamLine={
+          import.meta.env.DEV && example
+            ? `${teamFixture(null).length} partner asks, ${teamFixture(null).filter((ask) => ask.candidates.length).length} that people on the list could fill`
+            : undefined
+        }
+      />
+    </li>
+  );
+  // The address for the choices in force, worked out as the page draws. The cards' links are built
+  // from it in the same drawing, so a chip just removed is never still in a card's link.
+  const listSearch = fundingListSearch(routeSearch(), filters, browsing);
   useEffect(() => {
-    const params = new URLSearchParams(routeSearch());
-    writeFundingFilters(filters, params);
-    writeBrowsing(browsing, params);
-    const query = params.toString();
-    replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
-  }, [filters, browsing]);
+    replaceRouteQuietly(`${routePath()}${listSearch ? `?${listSearch}` : ""}`);
+  }, [listSearch]);
   // How many funds, and when their sources were checked: as short as the Initiatives page's line.
   const summary = selected.length === entries.length ? `${entries.length} funds.` : `${selected.length} of ${entries.length} funds.`;
   const note = !catalog.bundle
@@ -253,37 +277,27 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             </p>
           )}
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
-              Until the device draft opens its room is held, unseen, so the list does not move (DL-104). */}
-          {!catalog.subjectKnown ? (
-            <div className="rc-skeleton" data-shape="room" aria-hidden="true">
-              {prompt}
-            </div>
-          ) : (
-            !catalog.personalized && prompt
-          )}
-          {loading ? (
-            // As many shapes as the first batch holds, and the list end's room under them (DL-108).
+              Its words are drawn before the device draft opens, and its action holds its room until
+              then (DescribePrompt), so it reads at once and the list does not move (DL-104). */}
+          {(!catalog.subjectKnown || !catalog.personalized) && prompt}
+          {early ? (
+            // The first cards, built into the app, while the catalog loads. The catalog's own first
+            // cards are these, so it adds cards after them and moves none (DL-139, DL-140).
             <>
-              <CardGridSkeleton kind="funding" count={BATCH} />
+              <CardGrid>{early.map(card)}</CardGrid>
+              <ListEndHold things={THINGS} />
+            </>
+          ) : loading || awaitingFit ? (
+            // As many shapes as the first batch holds, and the list end's room under them (DL-108).
+            // A filtered list that will carry fit lines waits in that shape for the ranking, so its
+            // cards arrive once, in their order.
+            <>
+              <CardGridSkeleton kind="funding" matched={awaitingFit || expectsFit} count={BATCH} />
               <ListEndHold things={THINGS} />
             </>
           ) : selected.length ? (
             <>
-              <CardGrid>
-                {selected.slice(0, limit).map((entry, index) => (
-                  <li key={entry.id} {...added.item(index)}>
-                    <OpportunityCard
-                      entry={entry}
-                      result={results.get(entry.id)}
-                      teamLine={
-                        import.meta.env.DEV && example
-                          ? `${teamFixture(null).length} partner asks, ${teamFixture(null).filter((ask) => ask.candidates.length).length} that people on the list could fill`
-                          : undefined
-                      }
-                    />
-                  </li>
-                ))}
-              </CardGrid>
+              <CardGrid>{selected.slice(0, limit).map(card)}</CardGrid>
               {/* The list fills in as its end comes near; a new search or filter starts its run again (DL-101).
                   Every list with cards has its end, so its room does not come and go (DL-108). */}
               <ListEnd

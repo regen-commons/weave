@@ -22,6 +22,7 @@ import {
   ROUTE_GROUPS,
   filterFunding,
   emptyFundingFilters,
+  fundingListSearch,
   readFundingFilters,
   routeGroupOf,
   timeToClose,
@@ -407,6 +408,25 @@ test("a record opened from a filtered list keeps every filter for the way back",
   assert.deepEqual(query.getAll("region"), ["Africa", "Asia"]);
   assert.equal(query.get("kind"), "grant");
   assert.ok(query.get("program"));
+});
+// Found on production, 23 November 2026: just after a chip was removed, a card's link still carried
+// it (`&access=open`), because cards read the window's address, which the list writes after drawing.
+test("a card's link drops a removed chip in the same drawing, from the choices in force", () => {
+  const entry = entries.find((item) => item.program)!;
+  const before = "?access=open&region=Africa&initiative=none&fixture=shared";
+  const chosen = readFundingFilters(before);
+  const removed = { ...chosen, access: [] };
+  // The window's address still has the chip; the list's own address for its choices does not.
+  const search = fundingListSearch(before, removed, true);
+  const query = new URLSearchParams(opportunityHref(entry, search).split("?")[1]);
+  assert.deepEqual(query.getAll("access"), [], "the removed chip is gone from the card's link");
+  assert.deepEqual(query.getAll("region"), ["Africa"], "the chips still in force stay");
+  assert.equal(query.get("initiative"), "none", "and so does browsing with no initiative");
+  assert.equal(new URLSearchParams(search).get("fixture"), "shared", "the rest of the address stays");
+  assert.equal(fundingListSearch(before, removed, false).includes("initiative"), false);
+  const page = readFileSync(new URL("../src/pages/Funding.tsx", import.meta.url), "utf8");
+  assert.match(page, /const listSearch = fundingListSearch\(routeSearch\(\), filters, browsing\);/u);
+  assert.match(page, /<OpportunityCard\s+entry=\{entry\}\s+search=\{listSearch\}/u, "the list's cards take its address, not the window's");
 });
 
 // Defect 4 of the Funding QA (21 November 2026): at 23:15 Pacific on a closing day a card read

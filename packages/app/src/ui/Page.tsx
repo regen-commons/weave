@@ -1,9 +1,11 @@
 import { InformationContext } from "./information-context.ts";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { breadcrumbTrail, matchRoute, navLabel, type BackTarget, type RouteName } from "../routes.ts";
 import type { SaveStatus } from "../initiative/header-status.ts";
 import { AppHeader } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
+import { replacesFirstView } from "../first-view.ts";
+import { followAppHeader } from "./header-height.ts";
 import { BottomNav } from "./BottomNav.tsx";
 import { DockContext, StepBarContext } from "./dock.ts";
 import { Breadcrumbs } from "./Breadcrumbs.tsx";
@@ -42,12 +44,23 @@ export function Page({
   const [stepBar, setStepBar] = useState<HTMLElement | null>(null);
   const ended = useSessionEndedNotice(pathname);
   const route = matchRoute(pathname);
+  // A step's map and its way forward, drawn into the bar at the window's foot on a wide screen, are
+  // a named region of their own. An empty bar, on every other page, is not one.
+  const [stepsShown, setStepsShown] = useState(false);
+  useEffect(() => setStepsShown(!!stepBar && stepBar.childElementCount > 0), [stepBar, pathname]);
+  // What sticks under the header starts where the stuck header really ends, which wider or taller
+  // text can move.
+  const page = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const header = page.current?.querySelector(".rc-app-head");
+    return header ? followAppHeader(header, document.documentElement) : undefined;
+  }, [pathname, form]);
   return (
     <InformationContext.Provider value={setInformation}>
       <DockContext.Provider value={dock}>
       <StepBarContext.Provider value={stepBar}>
       {/* The section sets its accent: the current tab's bar, the page's eyebrow and step numbers (DL-050). */}
-      <div className="rc-page" data-section={route?.section}>
+      <div className="rc-page" data-section={route?.section} ref={page}>
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
@@ -74,7 +87,11 @@ export function Page({
             the window, where a phone's dock is, and it stays there in a short window too. It comes
             after the page body, so the keyboard reaches the way forward after the step's fields
             (DL-127). */}
-        <div className="rc-step-bar" ref={setStepBar} />
+        <div
+          className="rc-step-bar"
+          ref={setStepBar}
+          {...(stepsShown ? { role: "region", "aria-label": "Steps and next step" } : {})}
+        />
         {/* A route can leave the footer out on a phone, for focus (Route.footer). */}
         <Footer current={current} from={route?.footer} onInformation={setInformation}>
           {after}
@@ -94,9 +111,12 @@ export function Page({
   );
 }
 
-/** The page's content. A page reached with Back or Forward shows as the person left it, without arriving again. */
+/**
+ * The page's content. A page reached with Back or Forward shows as the person left it, without
+ * arriving again, and so does one that replaces the first view the server sent, which already arrived.
+ */
 function Main({ pathname, notice, children }: { pathname: string; notice: ReactNode; children: ReactNode }) {
-  const [returned] = useState(wasReturn);
+  const [returned] = useState(() => wasReturn() || replacesFirstView(pathname));
   const route = matchRoute(pathname);
   const trail = breadcrumbTrail(route);
   return (

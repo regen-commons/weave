@@ -29,12 +29,17 @@ const section = (name: "funding" | "initiatives", title: string): PagePreview =>
 });
 const PREVIEWS: RecordPreviews = parseRecordPreviews({
   sections: { funding: section("funding", "Funding | Weave"), initiatives: section("initiatives", "Initiatives | Weave") },
+  crumbs: { funding: { trail: [{ label: "Funding", href: "/funding" }], current: "Opportunity" }, initiatives: { trail: [{ label: "Initiatives", href: "/initiatives" }], current: "Initiative" } },
+  pages: [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/funding`],
   funds: {
     "local-people-powered": {
       name: "People Powered", description: "Participatory climate policy training with conditional implementation funding.",
-      programs: { "people-powered-cda-2027": "Climate Democracy Accelerator, March 2027 cohort" },
+      programs: [
+        { id: "people-powered-cda-2027", name: "Climate Democracy Accelerator, March 2027 cohort" },
+        { id: "people-powered-hub", name: "Participatory Budgeting Hub" },
+      ],
     },
-    recxmWk9XCOOqAGIH: { name: "A Team Foundation (UK)", description: "", programs: {} },
+    recxmWk9XCOOqAGIH: { name: "A Team Foundation (UK)", description: "", programs: [] },
   },
 });
 const card: PublicProjectCard = {
@@ -79,7 +84,10 @@ test("only an address the app could open names a record, and a program only when
   const ask = (search: string) => recordAsk(new URL(`${PUBLIC_ORIGIN}/api/record-page${search}`));
   assert.deepEqual(ask("?kind=funding&id=local-people-powered&program=people-powered-cda-2027"),
     { kind: "funding", id: "local-people-powered", program: "people-powered-cda-2027" });
-  assert.deepEqual(ask("?kind=funding&id=recxmWk9XCOOqAGIH&program=%3Cx%3E"), { kind: "funding", id: "recxmWk9XCOOqAGIH", program: null });
+  // The program is read as the app reads it, the first one given; one the fund lacks is looked up and not found.
+  assert.deepEqual(ask("?kind=funding&id=recxmWk9XCOOqAGIH&program=%3Cx%3E"), { kind: "funding", id: "recxmWk9XCOOqAGIH", program: "<x>" });
+  assert.deepEqual(ask("?kind=funding&id=local-people-powered&program=a&program=b"), { kind: "funding", id: "local-people-powered", program: "a" });
+  assert.deepEqual(ask("?kind=funding&id=recxmWk9XCOOqAGIH"), { kind: "funding", id: "recxmWk9XCOOqAGIH", program: null });
   assert.deepEqual(ask(`?kind=initiative&id=${SLUG}`), { kind: "initiative", id: SLUG, uri: URI });
   for (const bad of ["", "?kind=funding", "?kind=funding&id=a/b", "?kind=funding&id=..", "?kind=initiative&id=orchard", "?kind=other&id=x"])
     assert.equal(ask(bad), null, bad);
@@ -97,8 +105,20 @@ test("a fund, a program and an initiative each get their own words at their own 
   assert.equal(meta(programPage, "og:image"), `${PUBLIC_ORIGIN}/share/funding.png`);
   assert.ok(programPage.includes('<script type="module" crossorigin src="/assets/index-abc.js"></script>'), "the same app");
 
-  const fund = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH&program=gone")).text();
-  assert.equal(meta(fund, "og:title"), "A Team Foundation (UK) | Weave", "a program this catalog lacks shows its fund");
+  // As in the app: a fund's bare address opens its first program, and a program it lacks opens nothing.
+  const first = await (await get("?kind=funding&id=local-people-powered")).text();
+  assert.equal(meta(first, "og:title"), "Climate Democracy Accelerator, March 2027 cohort | Weave");
+  assert.ok(first.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding/local-people-powered?program=people-powered-cda-2027">`),
+    "both addresses name one canonical");
+  for (const program of ["gone", "", "%3Cx%3E"]) {
+    const gone = await get(`?kind=funding&id=local-people-powered&program=${program}`);
+    assert.equal(gone.status, 404, program);
+    const page = await gone.text();
+    assert.equal(meta(page, "og:title"), "Funding | Weave", program);
+    assert.ok(!page.includes('rel="canonical"') && !page.includes("ld+json"), "a missing record names no page");
+  }
+  const fund = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH")).text();
+  assert.equal(meta(fund, "og:title"), "A Team Foundation (UK) | Weave");
   assert.equal(meta(fund, "og:description"), "Funding for regenerative work from A Team Foundation (UK).");
   assert.equal(meta(fund, "og:url"), `${PUBLIC_ORIGIN}/funding/recxmWk9XCOOqAGIH`);
 
@@ -160,30 +180,87 @@ test("HEAD gets the same answer without a body, and a doubled kind or id names n
 });
 
 test("the build's record previews are read only as the build writes them", () => {
-  const base = { sections: { funding: section("funding", "Funding | Weave"), initiatives: section("initiatives", "Initiatives | Weave") }, funds: {} };
+  const crumbs = { trail: [{ label: "Funding", href: "/funding" }], current: "Opportunity" };
+  const base = {
+    sections: { funding: section("funding", "Funding | Weave"), initiatives: section("initiatives", "Initiatives | Weave") },
+    crumbs: { funding: crumbs, initiatives: crumbs }, pages: [], funds: {},
+  };
   assert.deepEqual(Object.keys(parseRecordPreviews(base).funds), []);
   for (const bad of [
     null, {}, { ...base, funds: null },
-    { ...base, funds: { "a/b": { name: "x", description: "", programs: {} } } },
-    { ...base, funds: { a: { name: "", description: "", programs: {} } } },
-    { ...base, funds: { a: { name: "x", description: "", programs: { "<p>": "y" } } } },
-    { ...base, funds: { a: { name: "x", description: null, programs: {} } } },
+    { ...base, funds: { "a/b": { name: "x", description: "", programs: [] } } },
+    { ...base, funds: { a: { name: "", description: "", programs: [] } } },
+    { ...base, funds: { a: { name: "x", description: "", programs: [{ id: "<p>", name: "y" }] } } },
+    { ...base, funds: { a: { name: "x", description: "", programs: [{ id: "p", name: "y" }, { id: "p", name: "z" }] } } },
+    { ...base, funds: { a: { name: "x", description: null, programs: [] } } },
+    { ...base, pages: [`https://evil.example/`] }, { ...base, pages: null },
     { ...base, sections: { ...base.sections, funding: { ...section("funding", "Funding"), image: "https://evil.example/x.png" } } },
+    // A breadcrumb links only within the site, with words, and the trail is short.
+    { ...base, crumbs: undefined }, { ...base, crumbs: { funding: crumbs } },
+    ...["//evil.example", "https://evil.example/", "javascript:alert(1)", "/a b", ""].map((href) =>
+      ({ ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, trail: [{ label: "Funding", href }] } } })),
+    { ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, trail: [{ label: "", href: "/funding" }] } } },
+    { ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, current: "" } } },
+    { ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, trail: Array(5).fill(crumbs.trail[0]) } } },
   ]) assert.throws(() => parseRecordPreviews(bad), /invalid_record_previews|Invalid URL/u, JSON.stringify(bad));
   // An identifier that names a property every object has is still only a fund the build wrote.
   assert.equal(parseRecordPreviews(base).funds["constructor"], undefined);
 });
 
-test("the function reads its built files from fixed addresses the deployment's file tracer can follow", async () => {
-  const { fileURLToPath } = await import("node:url");
-  const { BUILT_FILES } = await import("./record-page.ts");
-  // From packages/api/src here and packages/api/dist when deployed, the app's build is two folders up.
-  assert.deepEqual(Object.fromEntries(Object.entries(BUILT_FILES).map(([file, url]) => [file, fileURLToPath(url).split("/packages/")[1]])), {
-    "index.html": "app/dist/index.html",
-    "share/records.json": "app/dist/share/records.json",
+test("a record's page names its one address as canonical and says what it is, only from the record", async () => {
+  const ld = (html: string) => JSON.parse(/<script type="application\/ld\+json">(.*)<\/script>/u.exec(html)![1]!) as Record<string, any>;
+  const program = await (await get("?kind=funding&id=local-people-powered&program=people-powered-hub")).text();
+  assert.ok(program.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding/local-people-powered?program=people-powered-hub">`));
+  assert.deepEqual(ld(program), {
+    "@context": "https://schema.org", "@type": "WebPage", url: `${PUBLIC_ORIGIN}/funding/local-people-powered?program=people-powered-hub`,
+    name: "Participatory Budgeting Hub", description: meta(program, "og:description"),
+    isPartOf: { "@type": "WebSite", name: "Weave", url: `${PUBLIC_ORIGIN}/` },
+    about: {
+      // The catalog's words describe the fund, so they are the fund's here, not the program's.
+      "@type": "FundingScheme", name: "Participatory Budgeting Hub",
+      parentOrganization: {
+        "@type": "Organization", name: "People Powered",
+        description: "Participatory climate policy training with conditional implementation funding.",
+      },
+    },
   });
-  // A path built while running makes the tracer take the whole repository, so none may be.
-  const { readFileSync } = await import("node:fs");
-  const source = readFileSync(new URL("./record-page.ts", import.meta.url), "utf8");
-  assert.doesNotMatch(source.replace(/^\s*(\/\/|\*).*$/gmu, ""), /process\.cwd\(\)|join\(/u);
+  assert.doesNotMatch(JSON.stringify(ld(program)), /eligib|apply|award|amount/iu, "nothing about who may apply");
+
+  const initiative = await (await get(`?kind=initiative&id=${SLUG}`)).text();
+  assert.equal(initiative.match(/rel="canonical"/g)?.length, 1);
+  const about = ld(initiative).about;
+  assert.deepEqual(about, { "@type": "Project", name: "Serpentine <Food> Forest", description: "Rewilding degraded farm land into a self sustaining food forest." });
+  assert.ok(!initiative.includes("<Food>"), "the name cannot open markup, in the head or the JSON-LD");
+  assert.ok(initiative.includes("Serpentine \\u003cFood\\u003e Forest"));
+
+  // A shell that already names a canonical, as the main pages may, gives it up for the record's own.
+  const shell = TEMPLATE.replace("<title>", `<link rel="canonical" href="${PUBLIC_ORIGIN}/">\n    <title>`);
+  const own = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH", handler({ template: async () => shell }))).text();
+  assert.equal(own.match(/rel="canonical"/g)?.length, 1);
+  assert.ok(own.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding/recxmWk9XCOOqAGIH">`));
+  // A canonical written another way, or JSON-LD already there, gives way too.
+  const other = TEMPLATE.replace("<title>", `<link href="${PUBLIC_ORIGIN}/" rel='canonical' />\n    <script type='application/ld+json'>{"a":1}</script>\n    <title>`);
+  const replaced = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH", handler({ template: async () => other }))).text();
+  assert.deepEqual([replaced.match(/canonical/g)?.length, replaced.match(/ld\+json/g)?.length, replaced.includes('{"a":1}')], [1, 1, false]);
+  // A record that is not there, or could not be looked up, names no page, not even its section.
+  const missing = await (await get("?kind=funding&id=nope", handler({ template: async () => shell }))).text();
+  assert.ok(!missing.includes('rel="canonical"') && !missing.includes("ld+json"));
+  const down = await (await get(`?kind=initiative&id=${SLUG}`, handler({ project: async () => { throw Error("down"); } }))).text();
+  assert.equal(meta(down, "og:title"), "Initiatives | Weave");
+  assert.ok(!down.includes('rel="canonical"') && !down.includes("ld+json"));
+  // A place its publisher gave becomes the project's location.
+  const placed = await (await get(`?kind=initiative&id=${SLUG}`, handler({ project: async () => ({ ...card, place: "Serpentine, WA" }) }))).text();
+  assert.equal(ld(placed).about.location, "Serpentine, WA");
+});
+
+test("a page search engines should leave out says noindex and names no canonical address", () => {
+  const data = { "@context": "https://schema.org", "@type": "WebPage" };
+  const page = withPagePreview(TEMPLATE.replace("<title>", `<meta name='robots' content='all'>\n    <title>`), home, { indexed: false, structuredData: data });
+  assert.equal(page.match(/name="robots"/g)?.length, 1);
+  assert.ok(page.includes('<meta name="robots" content="noindex">') && !page.includes("content='all'"), "the one robots tag is this module's");
+  assert.ok(!page.includes('rel="canonical"') && !page.includes("ld+json"));
+  assert.equal(meta(page, "og:title"), home.title, "its preview still shows where it is shared");
+  // Indexed is the default, and an indexed page carries no robots tag at all.
+  const indexed = withPagePreview(page, home);
+  assert.ok(!indexed.includes('name="robots"') && indexed.includes('rel="canonical"'));
 });

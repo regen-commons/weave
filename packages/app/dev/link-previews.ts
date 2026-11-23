@@ -1,11 +1,11 @@
 import type { Plugin } from "vite";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { previewTags as pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
+import { pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
 import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
-import { pathTo, type RouteName } from "../src/routes.ts";
+import { breadcrumbTrail, navLabel, pathTo, ROUTES, type RouteName } from "../src/routes.ts";
 
 /**
  * What a shared link shows before anyone opens it (DL-068): a title, a sentence and a picture for
@@ -22,6 +22,11 @@ export interface LinkPreview {
   readonly description: string;
   /** The picture's headline: plain lines, then the line set in italic, as the page's own title is. */
   readonly headline: { readonly lines: readonly string[]; readonly accent: readonly string[] };
+  /**
+   * False for a page search engines should leave out (`noindex`, no canonical): a person's own page, or a
+   * step of describing an initiative. Its preview still shows where it is shared.
+   */
+  readonly indexed?: false;
 }
 
 export const LINK_PREVIEWS: readonly LinkPreview[] = [
@@ -52,6 +57,7 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
     title: "Describe your initiative | Weave",
     description: "Four short fields about your initiative, then what you need and what you can offer. No sign-in to start.",
     headline: { lines: ["Describe your", "initiative"], accent: ["once"] },
+    indexed: false,
   },
   {
     route: "your-initiatives",
@@ -59,6 +65,7 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
     title: "Your Initiatives | Weave",
     description: "Open the initiatives you saved, see the partners that fit them, and choose what you share.",
     headline: { lines: ["Your"], accent: ["Initiatives"] },
+    indexed: false,
   },
 ];
 
@@ -78,12 +85,15 @@ export function pagePreview(preview: LinkPreview, origin = PUBLIC_ORIGIN): PageP
   return { title: preview.title, description: preview.description, url: page, image, imageAlt: previewAlt(preview) };
 }
 
-/** The head tags a section's preview is read from (see `previewTags` in `@weave/api/page-preview`). */
+/**
+ * The head tags a section's copy gets: its preview, then its canonical link, its own address, so no copy
+ * names Home's (see `pageTags` in `@weave/api/page-preview`, which writes every page's).
+ */
 export const previewTags = (preview: LinkPreview, origin = PUBLIC_ORIGIN): string[] => pageTags(pagePreview(preview, origin));
 
 /** The app's HTML with one section's words in its head, in place of any preview it had. */
 export const withPreview = (html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string =>
-  withPagePreview(html, pagePreview(preview, origin));
+  withPagePreview(html, pagePreview(preview, origin), { indexed: preview.indexed !== false });
 
 /** The file a section's copy is written to, beside the app's own index.html. Home is that file itself. */
 export function previewFile(preview: LinkPreview): string {
@@ -102,10 +112,23 @@ export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): Record
   const funds = CatalogSchema.parse(catalog).funds.map((fund) => [fund.id, {
     name: fund.displayName,
     description: fund.description,
-    programs: Object.fromEntries((fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => [id, name]) ?? []),
+    programs: (fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => ({ id, name })) ?? [],
   }] as const);
-  return parseRecordPreviews({ sections: { funding: section("funding"), initiatives: section("initiatives") }, funds: Object.fromEntries(funds) });
+  // The breadcrumbs the app draws above a record's heading, from the record routes' own trail.
+  const crumbs = (name: RouteName) => ({ trail: breadcrumbTrail(ROUTES.find((route) => route.name === name)), current: navLabel(name) });
+  return parseRecordPreviews({
+    sections: { funding: section("funding"), initiatives: section("initiatives") },
+    crumbs: { funding: crumbs("opportunity"), initiatives: crumbs("initiative-detail") },
+    pages: SITEMAP_PAGES.map((route) => origin + pathTo(route)),
+    funds: Object.fromEntries(funds),
+  });
 }
+
+/**
+ * The pages besides the records that the sitemap lists: every page with a preview that search engines may
+ * index. Your Initiatives and the steps of describing an initiative ask not to be, so they are left out.
+ */
+export const SITEMAP_PAGES: readonly RouteName[] = LINK_PREVIEWS.filter(({ indexed }) => indexed !== false).map(({ route }) => route);
 
 /** The catalog the app bundles, from the repository's built data. */
 const CATALOG = "../../dist/data/funders.json";

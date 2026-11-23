@@ -86,6 +86,17 @@ export function writeBrowsing(browsing: boolean, params: URLSearchParams): void 
   else params.delete(BROWSING.key);
 }
 
+/**
+ * The list's address for these choices, keeping the rest of the address it was given. The page works
+ * it out as it draws, so the address and every card's link carry the choices in force, never the last.
+ */
+export function fundingListSearch(search: string, filters: FundingFilters, browsing: boolean): string {
+  const params = new URLSearchParams(search);
+  writeFundingFilters(filters, params);
+  writeBrowsing(browsing, params);
+  return params.toString();
+}
+
 /** The filters an address asks for. A value it could not mean is left out, never guessed at. */
 export function readFundingFilters(search: string): FundingFilters {
   const params = new URLSearchParams(search);

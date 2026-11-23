@@ -9,7 +9,7 @@
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
 }
 /* Jumps and focus stop clear of the sticky app bar and, on phones, the tab bar. */
-:root:has(.rc-app-header) { scroll-padding-block-start: calc(var(--control-height) + var(--space-4)); }
+:root:has(.rc-app-header) { scroll-padding-block-start: calc(var(--app-header-height) - 2 * var(--space-2) - var(--border-thin) + var(--space-4)); }
 :root:has(.rc-bottom-nav) { scroll-padding-block-end: calc(var(--space-8) + var(--border-thin) + env(safe-area-inset-bottom)); }
 /* On a phone a focused step's dock takes the tab bar's place. A field that takes the focus, or a
    problem brought into view, stops a little above it and never against its edge. */
@@ -30,14 +30,16 @@
 }
 /* A list's pinned filter row sits under the app bar, or at the window's top where the bar has
    scrolled away, so jumps and focus stop clear of it too (DL-130). */
-:root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+:root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(var(--app-header-height) + var(--control-height) + var(--space-4)); }
 @media (height < 30rem) {
   :root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
 }
 
 /* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
-   window below it, reads this. */
-.rc-page { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
+   window below it, reads this, and so do the stops that keep jumps and focus clear of it. Wider
+   or taller text can grow the bar or space out the banner above it, so the app measures where the
+   stuck header ends and sets this on the root element (WCAG 1.4.12, A-16). */
+:root { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The site banner's height where a page has one, and nothing where it has none. The page body
    leaves it out of the window it fills, so the footer starts at the fold and not a banner below
    it (DL-102). The banner is the first line of the page's header (DL-132). */

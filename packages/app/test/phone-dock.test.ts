@@ -22,8 +22,11 @@ test("the page shell draws the dock on a focused step and the tab bar on every o
 
 test("the page shell draws a step bar after the page body, and the steps fill it on a wide screen (DL-127)", () => {
   const page = source("ui/Page.tsx");
-  const bar = page.indexOf('<div className="rc-step-bar" ref={setStepBar} />');
+  const bar = page.indexOf('className="rc-step-bar"');
   assert.notEqual(bar, -1, "every page has the bar's place, and an empty one is not drawn");
+  assert.ok(page.includes("ref={setStepBar}"));
+  // Holding a step's map and way forward, the bar is a named region; empty, it is none.
+  assert.ok(page.includes('{...(stepsShown ? { role: "region", "aria-label": "Steps and next step" } : {})}'));
   // After the page body, so the keyboard reaches the way forward after the step's fields; the
   // design system's grid draws it under the app bar.
   assert.ok(bar > page.indexOf("</Main>"), "the step bar comes after the page's content");
@@ -58,7 +61,7 @@ test("each intake step docks its way forward, and shows the same action in the s
 
 test("a docked submit names the form it sends, because the dock is outside the form", () => {
   const describe = source("pages/Describe.tsx");
-  assert.ok(describe.includes('<form className="rc-form" data-width="full" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>'));
+  assert.match(describe, /<form className="rc-form" data-width="full" id=\{FIELDS_ID\} noValidate [^>]*onSubmit=\{next\} onKeyDown=\{moveOnEnter\}>/u);
   assert.match(describe, /type="submit"\s+form=\{FIELDS_ID\}/u);
 });
 

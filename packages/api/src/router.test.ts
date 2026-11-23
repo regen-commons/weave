@@ -17,6 +17,7 @@ test("each shared endpoint keeps the methods its own function exported", () => {
     projects: ["POST"],
     "public-projects": ["GET"],
     "record-page": ["GET", "HEAD"],
+    sitemap: ["GET", "HEAD"],
     transcribe: ["GET", "POST"],
   });
 });
@@ -34,6 +35,7 @@ test("a request reaches its endpoint at its own address, with its query as it ca
   assert.equal(route("/api/health")?.endpoint, "health");
   assert.deepEqual(route(`/api/transcribe?${ROUTE_KEY}=health`), { endpoint: "transcribe", url: new URL("/api/transcribe", ORIGIN) });
   assert.equal(route(`/funding/x?${ROUTE_KEY}=health`)?.endpoint, "record-page");
+  assert.deepEqual(route("/sitemap.xml"), { endpoint: "sitemap", url: new URL("/api/sitemap", ORIGIN) });
   assert.equal(route("/funding/local-people-powered?program=a")?.url.href,
     `${ORIGIN}/api/record-page?program=a&kind=funding&id=local-people-powered`);
   assert.equal(route("/initiatives/c5lypin6swijs33nusbbtxfs-3n2t7jfkyl72j")?.url.searchParams.get("kind"), "initiative");

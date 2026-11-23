@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {discoveryPlan, freshnessPlan} from '../scripts/research-plan.mjs';
+import {nameProblems} from '../scripts/research-validation.mjs';
 
 const read = path => JSON.parse(fs.readFileSync(new URL('../'+path, import.meta.url)));
 const text = path => fs.readFileSync(new URL('../'+path, import.meta.url), 'utf8');
@@ -128,14 +129,15 @@ test('the verification standard states the intervals the planner applies', () =>
   assert.deepEqual(Object.keys(intervals.routeDays).filter(route => route !== 'source-only').sort(), [...read('dist/data/enrichment.schema.json').properties.programs.items.properties.application.properties.route.enum].sort());
 });
 
-test('program and funder names carry no em dash, and every rename keeps its earlier name', () => {
+test('current names follow the naming rule, and every rename keeps its earlier name', () => {
   const catalog = read('dist/data/funders.json');
-  const renames = read('research/maintenance-history/name-normalization-2026-11-22/renames.json');
   const programs = new Map(catalog.funds.flatMap(fund => (fund.enrichment?.programs ?? []).map(program => [fund.id+'::'+program.id, program.name])));
-  for (const fund of catalog.funds) for (const name of [fund.name, fund.displayName, fund.program]) assert.ok(!name.includes('—'), fund.id+' '+name);
-  for (const [key, name] of programs) assert.ok(!name.includes('—'), key+' '+name);
-  for (const row of renames.programs) {
-    assert.ok(row.before.includes('—') && row.before !== row.after, row.programId);
+  for (const fund of catalog.funds) for (const name of [fund.name, fund.displayName, fund.program].filter(Boolean)) assert.deepEqual(nameProblems(name), [], fund.id+' '+name);
+  for (const [key, name] of programs) assert.deepEqual(nameProblems(name), [], key+' '+name);
+  const passes = fs.readdirSync(new URL('../research/maintenance-history/', import.meta.url)).filter(name => name.startsWith('name-normalization-'));
+  assert.ok(passes.length >= 2);
+  for (const pass of passes) for (const row of read('research/maintenance-history/'+pass+'/renames.json').programs) {
+    assert.ok(nameProblems(row.before).length && row.before !== row.after, row.programId);
     assert.ok(programs.has(row.fundId+'::'+row.programId), 'program id kept: '+row.programId);
   }
   // A funder's programs stay distinguishable by name.
@@ -143,4 +145,12 @@ test('program and funder names carry no em dash, and every rename keeps its earl
     const names = (fund.enrichment?.programs ?? []).map(program => program.name);
     assert.equal(new Set(names).size, names.length, fund.id);
   }
+});
+
+test('the naming rule flags dashes and years run into words, and leaves fiscal years alone', () => {
+  assert.deepEqual(nameProblems('Sustaining Grants 2026\u201327'), []);
+  assert.deepEqual(nameProblems('Preselected charitable grants: FY2024 filed policy'), []);
+  assert.deepEqual(nameProblems('LA2050 Grants Challenge: 2026'), []);
+  assert.deepEqual(nameProblems('Sustaining Grants2026\u201327'), ['has no space before a year']);
+  assert.deepEqual(nameProblems('Restack \u2014 first call 2026'), ['has an em dash']);
 });
