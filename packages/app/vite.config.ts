@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import tokens from "@regen-commons/design-system/tokens.json" with { type: "json" };
@@ -72,7 +73,8 @@ export function apiRoutes(): Plugin {
               POST: (request: Request) => fixture.signInFixture(new URL(request.url).origin).POST(request),
             };
           }
-          return server.ssrLoadModule(`/api/${name}.ts`);
+          // A name with no entry file of its own is one vercel.json rewrites to a shared function.
+          return existsSync(join(server.config.root, "api", `${name}.ts`)) ? server.ssrLoadModule(`/api/${name}.ts`) : undefined;
         })),
       );
     },
@@ -81,7 +83,7 @@ export function apiRoutes(): Plugin {
       server.middlewares.use(
         "/api",
         serve(apiDir, isolateFixtureProjectOAuth(process.env.WEAVE_ACCOUNT_FIXTURE === "1",
-          (name) => import(pathToFileURL(join(apiDir, `${name}.ts`)).href))),
+          async (name) => existsSync(join(apiDir, `${name}.ts`)) ? import(pathToFileURL(join(apiDir, `${name}.ts`)).href) : undefined)),
       );
     },
   };

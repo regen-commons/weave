@@ -35,24 +35,29 @@ const RECORD_ADDRESS = /^\/(funding|initiatives)\/([^/]+)$/u;
 
 /**
  * Which endpoint a request is for, and the address its handler should see: `/api/<endpoint>` with the
- * request's own query, less the routing key. The rewrite says which endpoint in `__route`. A request that
- * reaches here without one is read from its path: an endpoint's own address, or a record's, which goes to
- * the record page as its rewrite would send it. A request that names an endpoint twice, or one that does
- * not exist, is for none.
+ * request's own query, less the routing key. At the router's own address the rewrite names the endpoint
+ * in `__route`, once. At an endpoint's or a record's own address (if Vercel hands a rewritten request on
+ * with the address it came to) the path decides and any `__route` a client added is ignored, so no address
+ * can be made to answer as another endpoint. Anything else is for no endpoint.
  */
 export function routeOf(url: URL): { endpoint: Endpoint; url: URL } | null {
-  const named = url.searchParams.getAll(ROUTE_KEY);
-  if (named.length > 1) return null;
   const target = new URL(url);
   target.searchParams.delete(ROUTE_KEY);
-  const record = named.length ? null : RECORD_ADDRESS.exec(url.pathname);
-  if (record) {
+  let endpoint: string | null = null;
+  const record = RECORD_ADDRESS.exec(url.pathname);
+  if (url.pathname === "/api/router") {
+    const named = url.searchParams.getAll(ROUTE_KEY);
+    if (named.length !== 1) return null;
+    endpoint = named[0]!;
+  } else if (record) {
     let id: string;
     try { id = decodeURIComponent(record[2]!); } catch { return null; }
     target.searchParams.set("kind", record[1] === "funding" ? "funding" : "initiative");
     target.searchParams.set("id", id);
+    endpoint = "record-page";
+  } else {
+    endpoint = /^\/api\/([a-z-]+)$/u.exec(url.pathname)?.[1] ?? null;
   }
-  const endpoint = record ? "record-page" : named[0] ?? /^\/api\/([a-z-]+)$/u.exec(url.pathname)?.[1] ?? null;
   if (!isEndpoint(endpoint)) return null;
   target.pathname = `/api/${endpoint}`;
   return { endpoint, url: target };

@@ -28,13 +28,16 @@ test("a request reaches its endpoint at its own address, with its query as it ca
   });
   assert.equal(route(`/api/router?${ROUTE_KEY}=record-page&kind=funding&id=local-people-powered&program=a`)?.url.href,
     `${ORIGIN}/api/record-page?kind=funding&id=local-people-powered&program=a`);
-  // Reaching it without the key, at an endpoint's own address or a record's.
+  // Reaching it without the key, at an endpoint's own address or a record's: the path decides, and a key a
+  // client adds there is ignored and taken off.
   assert.equal(route("/api/health")?.endpoint, "health");
+  assert.deepEqual(route(`/api/transcribe?${ROUTE_KEY}=health`), { endpoint: "transcribe", url: new URL("/api/transcribe", ORIGIN) });
+  assert.equal(route(`/funding/x?${ROUTE_KEY}=health`)?.endpoint, "record-page");
   assert.equal(route("/funding/local-people-powered?program=a")?.url.href,
     `${ORIGIN}/api/record-page?program=a&kind=funding&id=local-people-powered`);
   assert.equal(route("/initiatives/c5lypin6swijs33nusbbtxfs-3n2t7jfkyl72j")?.url.searchParams.get("kind"), "initiative");
   // None for an endpoint that is not shared here, named twice, unknown, or a record path that does not decode.
-  for (const path of [`/api/router?${ROUTE_KEY}=account`, `/api/router?${ROUTE_KEY}=health&${ROUTE_KEY}=transcribe`,
+  for (const path of [`/api/router?${ROUTE_KEY}=account`, `/api/router?${ROUTE_KEY}=health&${ROUTE_KEY}=transcribe`, `/api/router?${ROUTE_KEY}=`,
     `/api/router?${ROUTE_KEY}=__proto__`, `/api/router?${ROUTE_KEY}=constructor`, "/api/router", "/api/account", "/funding/%E0%A4%A"])
     assert.equal(route(path), null, path);
 });
@@ -52,23 +55,34 @@ test("the router answers as each function did: its handler for its methods, 405 
   assert.deepEqual([nowhere.status, await nowhere.text()], [404, ""]);
 });
 
-test("the handler gets the request's own method, headers and body", async () => {
-  // The public list is off without its database settings: its answer shows it read the query it was given.
-  const list = await GET(new Request(`${ORIGIN}/api/router?${ROUTE_KEY}=public-projects&q=water`, { headers: { accept: "application/json" } }));
-  assert.equal(list.status, 200);
-  assert.equal(((await list.json()) as { index: { status: string } }).index.status, "off");
-  // The query is checked by the handler as before: a key the list does not know is still refused.
+test("the handler gets the request's own method, headers, body and query, and its answer comes back as it is", async () => {
+  const echo = async (request: Request) => {
+    const headers = new Headers({ "cache-control": "no-store", "x-seen-method": request.method });
+    headers.append("set-cookie", "a=1; Path=/");
+    headers.append("set-cookie", "b=2; Path=/");
+    return Response.json({ url: request.url, origin: request.headers.get("origin"), type: request.headers.get("content-type"),
+      cookie: request.headers.get("cookie"), body: request.method === "HEAD" ? null : await request.text() }, { status: 201, headers });
+  };
+  const router = createRouter({
+    projects: { methods: ["POST"], load: async () => ({ POST: echo }) },
+    "record-page": { methods: ["GET", "HEAD"], load: async () => ({ GET: echo, HEAD: echo }) },
+  });
+  const posted = await router(new Request(`${ORIGIN}/api/router?${ROUTE_KEY}=projects&x=1`, {
+    method: "POST", body: JSON.stringify({ action: "state" }),
+    headers: { origin: ORIGIN, "content-type": "application/json", cookie: "__Host-weave_account=t" },
+  }));
+  assert.equal(posted.status, 201);
+  assert.equal(posted.headers.get("x-seen-method"), "POST");
+  assert.deepEqual(posted.headers.getSetCookie(), ["a=1; Path=/", "b=2; Path=/"], "every Set-Cookie comes back");
+  assert.deepEqual(await posted.json(), {
+    url: `${ORIGIN}/api/projects?x=1`, origin: ORIGIN, type: "application/json", cookie: "__Host-weave_account=t", body: '{"action":"state"}',
+  });
+  // HEAD on a record's address reaches the record page's own HEAD.
+  const head = await router(new Request(`${ORIGIN}/api/router?${ROUTE_KEY}=record-page&kind=funding&id=x`, { method: "HEAD" }));
+  assert.deepEqual([head.status, head.headers.get("x-seen-method")], [201, "HEAD"]);
+  // The real public list still checks its own query: a key it does not know is refused.
   const refused = await GET(new Request(`${ORIGIN}/api/router?${ROUTE_KEY}=public-projects&other=1`));
   assert.equal(refused.status, 400);
-  // A POST's body and headers arrive: matching refuses a request without a session the same way it did alone.
-  const matching = await POST(new Request(`${ORIGIN}/api/router?${ROUTE_KEY}=matching`, {
-    method: "POST", headers: { "content-type": "application/json", origin: ORIGIN }, body: JSON.stringify({}),
-  }));
-  const direct = await (await import("./matching.ts")).POST(new Request(`${ORIGIN}/api/matching`, {
-    method: "POST", headers: { "content-type": "application/json", origin: ORIGIN }, body: JSON.stringify({}),
-  }));
-  assert.equal(matching.status, direct.status);
-  assert.deepEqual(await matching.json(), await direct.json());
 });
 
 test("a recording reaches cloud speech through the router as it came: streamed, over 64 KB, its headers and origin intact", async () => {

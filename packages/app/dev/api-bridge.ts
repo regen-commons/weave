@@ -7,8 +7,12 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
 
-/** Loads an entry by its name under api/, such as `health` or `catalog/funders`. */
-export type LoadEntry = (name: string) => Promise<Record<string, unknown>>;
+/**
+ * Loads an entry by its name under api/, such as `health` or `catalog/funders`: its file, or a development
+ * stand-in for that name. Undefined when there is neither, so a name vercel.json rewrites can go on to its
+ * function. A failure to load either rejects, and reaches the dev server's error page.
+ */
+export type LoadEntry = (name: string) => Promise<Record<string, unknown> | undefined>;
 
 /** The entry name Vercel runs for a pathname, when its file exists: /api/a/b runs api/a/b.ts. */
 export function entryName(apiDir: string, pathname: string): string | undefined {
@@ -60,7 +64,7 @@ export async function answerApiRequest(
   // has a stand-in for the address's own name (the example account, or production's project list).
   const destination = name ? undefined : apiRewrites(apiDir).get(url.pathname);
   if (destination) {
-    entry = await load(url.pathname.slice("/api/".length)).catch(() => undefined);
+    entry = await load(url.pathname.slice("/api/".length));
     if (!entry) {
       const target = rewritten(url, destination);
       name = entryName(apiDir, target.pathname);

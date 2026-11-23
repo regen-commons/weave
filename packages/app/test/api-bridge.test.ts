@@ -160,16 +160,20 @@ test("an address vercel.json sends to another function is answered by it, unless
   writeFileSync(join(root, "vercel.json"), JSON.stringify({ rewrites: [
     { source: "/api/health", destination: "/api/router?__route=health" },
     { source: "/api/stand-in", destination: "/api/router?__route=stand-in" },
+    { source: "/api/broken", destination: "/api/router?__route=broken" },
     { source: "/funding/:id", destination: "/api/router?__route=record-page" },
   ] }));
-  // As the dev server's loader: a name with a development stand-in answers; a name with no entry file throws.
-  const load = async (name: string): Promise<Record<string, unknown>> => {
+  // As the dev server's loader: a name with a development stand-in answers, one whose stand-in is broken
+  // fails, and a name with neither file nor stand-in has no entry.
+  const load = async (name: string): Promise<Record<string, unknown> | undefined> => {
     if (name === "stand-in") return { GET: () => new Response("stand-in") };
+    if (name === "broken") throw Error("the stand-in failed to load");
     if (name === "router") return { GET: (request: Request) => Response.json({ url: request.url }) };
-    throw Error(`no entry api/${name}.ts`);
+    return undefined;
   };
+  const failures: unknown[] = [];
   const local = createServer((request, response) => {
-    answerApiRequest(request, response, dir, load).catch(() => response.destroy());
+    answerApiRequest(request, response, dir, load).catch((error: unknown) => { failures.push(error); response.statusCode = 500; response.end(); });
   });
   await new Promise<void>((resolve) => local.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${(local.address() as AddressInfo).port}`;
@@ -179,6 +183,9 @@ test("an address vercel.json sends to another function is answered by it, unless
     assert.equal(await (await fetch(`${origin}/api/stand-in`)).text(), "stand-in");
     assert.equal((await fetch(`${origin}/api/health`, { method: "POST" })).status, 405);
     assert.equal((await fetch(`${origin}/api/unknown`)).status, 404);
+    // A stand-in that fails to load is an error to see, never a quiet fall-through to the real function.
+    assert.equal((await fetch(`${origin}/api/broken`)).status, 500);
+    assert.match(String(failures[0]), /the stand-in failed to load/);
   } finally {
     local.close();
     rmSync(root, { recursive: true, force: true });
