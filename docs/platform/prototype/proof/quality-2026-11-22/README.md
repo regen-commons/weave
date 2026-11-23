@@ -77,6 +77,27 @@ or 92 everywhere, failing only `robots-txt`, which this pull request adds.
 Every mobile route reached its largest paint at the same 3.2 s, the mark of a page drawn by its
 script. The fund page also shifted its footer as the record loaded (CLS 0.069 on mobile).
 
+### Local production build of #140, 23 November
+
+Class: local, for comparison only. #140 at `a7c366c`, built and served through a stand-in that
+sends each page's own file and compresses text as Vercel does; Lighthouse 13.6.0 in Chrome 149,
+mobile, median of three runs.
+
+| Route | Mobile | LCP | TBT | Largest paint |
+|---|---|---|---|---|
+| Home | 99 | 0.92 s | 146 ms | the prerendered heading, at first paint |
+| Your Initiatives | 99 | 0.92 s | 122 ms | the prerendered view, at first paint |
+| Settings | 100 | 0.92 s | 55 ms | the prerendered view, at first paint |
+| Describe | 86 | 4.12 s | 116 ms | the step's paragraph, drawn once the device draft opens |
+| Fund | 85 | 4.12 s | 141 ms | the record's description, drawn in the browser only |
+| Funding | 82 | 4.27 s | 223 ms | the first fund card, drawn once the catalog loads |
+| Initiatives | 81 | 4.84 s | 155 ms | a project card, drawn once the public list answers |
+
+Accessibility and best practices were 100 on every route, and SEO 100 except on Settings and
+Your Initiatives (63): they ask not to be indexed, and Lighthouse's `is-crawlable` audit fails
+any page that does. The four slower routes reach their largest paint with content the first
+view cannot hold, because the app fetches it after it starts.
+
 ### Local production build
 
 | Route | Mobile | LCP | TBT | CLS | Desktop |
