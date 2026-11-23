@@ -1,5 +1,15 @@
 /* Organisms: distinct sections of an interface. */
 
+/* Page header (`rc-app-head`): the site banner and the app bar in one header landmark, so the
+   banner is read as part of the page's header (DL-132). It sticks with the banner's height above
+   the window's top, so the banner scrolls away with the page and the bar stays, as when the two
+   were apart. A page with no banner has the app bar alone as its header. */
+.rc-app-head {
+  position: sticky;
+  inset-block-start: calc(var(--site-banner-height) * -1);
+  z-index: var(--layer-sticky);
+}
+.rc-app-head > .rc-app-header { position: static; }
 /* App header: product name top-left returns home on every page. */
 /* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
    under it, and its contents keep the page's edges. */
@@ -95,6 +105,13 @@
 ::view-transition-new(rc-bottom-nav),
 ::view-transition-new(rc-dock),
 ::view-transition-new(rc-step-bar) { animation: none; }
+
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the
+   header scrolls away with the page, so the bars never take most of what there is to read. A
+   step's bar then sticks at the window's top on its own (DL-132). */
+@media (height < 30rem) {
+  .rc-app-head, .rc-app-header { position: static; }
+}
 
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
@@ -215,6 +232,10 @@
   .rc-step-bar > .rc-stepper > li { padding-block-end: 0; }
   /* The way forward sits at the far end and never wraps under the steps. */
   .rc-step-bar > .rc-action-bar { flex: none; flex-wrap: nowrap; margin-inline-start: auto; }
+}
+/* In a short window the app bar scrolls away, so a step's bar sticks at the window's top (DL-132). */
+@media (height < 30rem) and (min-width: 56.25rem) {
+  .rc-step-bar:not(:empty) { inset-block-start: 0; }
 }
 
 /* Guide panel: the conversation for one step. */
@@ -517,8 +538,16 @@
   background: var(--surface);
 }
 .rc-filter-pin[hidden] { display: none; }
-/* What a jump or focus brings into view stops under the pinned row as well as the app bar. */
-:root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+/* The row stays one row. Until a screen has room for every filter's menu beside Search and Sort, it
+   holds Filters, which opens all of them in the sheet, as a phone's row does (DL-130). */
+@media (width > 37.5rem) and (width < 62.25rem) {
+  .rc-filter-pin > .rc-filter-controls > [data-filter="all"] { display: inline-flex; }
+  .rc-filter-pin > .rc-filter-controls > [data-filter="one"] { display: none; }
+}
+/* In a short window the header scrolls away, so the row pins at the window's top (DL-132). */
+@media (height < 30rem) {
+  .rc-filter-pin { inset-block-start: 0; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .rc-filter-pin:not([hidden]) { animation: rc-arrive var(--duration-fast) var(--ease-out); }
 }

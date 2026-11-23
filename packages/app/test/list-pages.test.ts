@@ -207,6 +207,13 @@ test("the filter controls stay in reach deep in a list, and the sheet's title ro
   assert.match(bar, /<div className="rc-filter-pin" ref=\{pin\} role="group" aria-label=\{`Filter \$\{noun\}`\} hidden=\{!pinned\}>/u);
   assert.match(bar, /<Controls place=\{`\$\{id\}-pin`\} onSheet=\{\(\) => openSheet\("pin"\)\} lead=\{searchButton\}/u);
   assert.match(bar, /<Controls place=\{id\} onSheet=\{\(\) => openSheet\("bar"\)\}/u);
+  // Focus comes back to the same control by what it is, not where it sits, since the row can hold
+  // Filters where the bar holds a menu for each filter.
+  assert.match(bar, /data-facet=\{facet\.key\}/u);
+  assert.match(bar, /button\.dataset\.facet \?\? button\.dataset\.filter \?\? "sort"/u);
+  assert.doesNotMatch(bar, /indexOf\(trigger/u);
+  // The row keeps clear of a header that scrolls away in a short window (DL-132).
+  assert.match(bar, /getComputedStyle\(header\)\.position === "sticky"/u);
   // Only the choices scroll; the foot is outside them.
   assert.match(bar, /<div className="rc-dialog-scroll">[\s\S]*?<\/div>\s*<div className="rc-dialog-foot">/u);
   const end = read("ui/ListEnd.tsx");

@@ -50,8 +50,26 @@ test("a preview gives its page and its picture as full addresses on the public s
   assert.match(tags, /<meta property="og:image" content="https:\/\/example\.test\/share\/funding\.png">/);
   assert.match(tags, /<meta property="og:image:width" content="1200">/);
   assert.match(tags, /<meta name="twitter:card" content="summary_large_image">/);
+  assert.match(tags, /<meta property="og:image:type" content="image\/png">/);
   for (const name of ["og:type", "og:site_name", "og:title", "og:description", "og:image:height", "og:image:alt"])
     assert.ok(tags.includes(`property="${name}"`), name);
+  // Readers that only know Twitter cards, as Telegram's falls back to, get the same words and picture.
+  assert.match(tags, /<meta name="twitter:title" content="Funding \| Weave">/);
+  assert.match(tags, /<meta name="twitter:image" content="https:\/\/example\.test\/share\/funding\.png">/);
+  for (const name of ["twitter:description", "twitter:image:alt"]) assert.ok(tags.includes(`name="${name}"`), name);
+});
+
+test("a copy's preview sits straight after its description, ahead of every script, style and font", () => {
+  const funding = LINK_PREVIEWS.find(({ route }) => route === "funding")!;
+  // As the build hands it over: scripts, styles and font preloads already in the head.
+  const built = index.replace("</head>", `  <script type="module" src="/assets/app.js"></script>\n    <link rel="stylesheet" href="/assets/app.css">\n  </head>`);
+  const page = withPreview(built, funding);
+  const head = page.slice(0, page.indexOf("</head>"));
+  const last = Math.max(...previewTags(funding).map((tag) => head.indexOf(tag)));
+  assert.ok(head.indexOf('<meta name="description"') < head.indexOf('property="og:type"'));
+  for (const later of ["<script", "<link rel=\"stylesheet\"", "<link rel=\"icon\""])
+    assert.ok(last < head.indexOf(later), `the preview comes before ${later}`);
+  assert.match(page, /\n {4}<meta property="og:title" content="Funding \| Weave">\n/, "one tag a line, at the head's indent");
 });
 
 test("a section's copy of the app's page changes its title, description and preview, and nothing else", () => {

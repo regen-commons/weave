@@ -1,7 +1,8 @@
 import { useContext, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "../router.tsx";
-import { INTAKE_STEPS, pathTo } from "../routes.ts";
+import { currentVisit, Link, routePath } from "../router.tsx";
+import { backTarget, INTAKE_STEPS, matchRoute, pathTo, splitRoute } from "../routes.ts";
+import { followBack } from "./BackLink.tsx";
 import { StepBarContext } from "./dock.ts";
 
 /**
@@ -18,6 +19,9 @@ export function Stepper({
   /** The copy at the top of a page is a phone's where a wide screen shows the steps in the Step bar. */
   until?: "wide";
 }) {
+  // The step a page's way back goes to is reached the same way from here, so its link, the Back
+  // button and the back gesture agree (DL-113).
+  const back = backTarget(matchRoute(routePath()), currentVisit());
   return (
     <ol className="rc-stepper" aria-label="Steps" data-until={until}>
       {steps.map(({ label, href }, index) => {
@@ -33,7 +37,13 @@ export function Stepper({
         return (
           <li key={label} aria-current={index === current ? "step" : undefined} data-state={done ? "done" : undefined}>
             {done && href ? (
-              <Link href={href} aria-label={`Back to step ${index + 1}, ${label}`}>
+              <Link
+                href={href}
+                aria-label={`Back to step ${index + 1}, ${label}`}
+                onClick={(event) => {
+                  if (back && splitRoute(back.href).pathname === href) followBack(event, back);
+                }}
+              >
                 {body}
               </Link>
             ) : (

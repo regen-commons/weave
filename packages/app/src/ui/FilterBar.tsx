@@ -63,6 +63,7 @@ function FilterMenu({ facet, name, onChange }: { facet: Facet; name: string; onC
         className="rc-button"
         data-variant="secondary"
         data-filter="one"
+        data-facet={facet.key}
         data-active={count > 0}
         type="button"
         ref={trigger}
@@ -157,8 +158,16 @@ function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, 
   );
 }
 
-/** The app bar's height, which whatever sticks to the top of the window keeps clear of. */
-const appBarHeight = () => document.querySelector<HTMLElement>(".rc-app-header")?.offsetHeight ?? 0;
+/**
+ * How far down the window the app bar reaches while the page scrolls, which whatever sticks to the
+ * top keeps clear of. None in a short window, where the page's header scrolls away (DL-132).
+ */
+function appBarHeight(): number {
+  const appBar = document.querySelector<HTMLElement>(".rc-app-header");
+  if (!appBar) return 0;
+  const header = appBar.closest<HTMLElement>(".rc-app-head") ?? appBar;
+  return getComputedStyle(header).position === "sticky" ? appBar.offsetHeight : 0;
+}
 
 /**
  * Brings the bar back up under the app bar, at once: a glide back over a long list would be slow,
@@ -247,6 +256,8 @@ export function FilterBar({
   const [above, setAbove] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [sheetFrom, setSheetFrom] = useState<"bar" | "pin">("bar");
+  // The app bar's reach changes when a phone turns on its side and the header stops sticking.
+  const [header, setHeader] = useState(0);
   const latestChoices = useRef("");
   latestChoices.current = choicesKey(search, facets, sort);
   // The choices as they stood when the pinned row opened a menu or the sheet; null when it opened none.
@@ -256,7 +267,6 @@ export function FilterBar({
   useEffect(() => {
     const target = bar.current?.querySelector(":scope > .rc-filter-controls, :scope > .rc-field");
     if (!target || loading || typeof IntersectionObserver !== "function") return;
-    const header = appBarHeight();
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry) setAbove(!entry.isIntersecting && entry.boundingClientRect.top < (entry.rootBounds?.top ?? header));
@@ -265,7 +275,13 @@ export function FilterBar({
     );
     observer.observe(target);
     return () => observer.disconnect();
-  }, [loading, controls]);
+  }, [loading, controls, header]);
+  useEffect(() => {
+    const measure = () => setHeader(appBarHeight());
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   // A change made from the pinned row starts the list again from its first card, so when the menu
   // or the sheet closes the page goes back to the bar, and focus to the same control in it.
@@ -276,13 +292,15 @@ export function FilterBar({
     const section = bar.current;
     const row = pin.current;
     if (before === null || before === latestChoices.current || !section || !row) return;
-    const inRow = (root: Element) =>
-      [...root.querySelectorAll<HTMLElement>(":scope > .rc-filter-controls > .rc-button:not([data-filter='search'])")].filter(
-        (button) => button.offsetParent !== null,
-      );
-    const index = inRow(row).indexOf(trigger as HTMLElement);
+    // The same control in the bar: the same filter's menu, Filters or Sort. Where the bar has none at
+    // this width, as when the row's Filters stands for the bar's menus, focus goes to its first control.
+    const which = (button: HTMLElement) => button.dataset.facet ?? button.dataset.filter ?? "sort";
+    const shown = [...section.querySelectorAll<HTMLElement>(":scope > .rc-filter-controls > .rc-button")].filter(
+      (button) => button.offsetParent !== null,
+    );
+    const same = trigger instanceof HTMLElement ? shown.find((button) => which(button) === which(trigger)) : undefined;
     toBar(section);
-    inRow(section)[Math.max(index, 0)]?.focus({ preventScroll: true });
+    (same ?? shown[0])?.focus({ preventScroll: true });
   }
   const latestSettle = useRef(settle);
   latestSettle.current = settle;

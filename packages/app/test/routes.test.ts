@@ -136,6 +136,7 @@ test("the back link returns to where the person came from, otherwise one level u
     label: "Describe Your Initiative",
     href: "/start/initiative",
     hops: 0,
+    replace: true,
   });
   // Reached from another page: back to it, by as many entries as the visit counted.
   assert.deepEqual(backTarget(matchRoute("/settings"), { from: "/funding?q=water", hops: 2 }), {
@@ -155,6 +156,44 @@ test("the back link returns to where the person came from, otherwise one level u
     href: "/your-initiative",
     hops: 0,
   });
+});
+test("a later step of describing an initiative goes back to the step before it, whichever page came before", () => {
+  // Reached from the step before: back through history, so the gesture and the link agree.
+  assert.deepEqual(backTarget(matchRoute("/start/needs"), { from: "/start/initiative?fixture=draft", hops: 1 }), {
+    label: "Describe Your Initiative",
+    href: "/start/initiative?fixture=draft",
+    hops: 1,
+  });
+  // Reached from an initiative's page: still the step before, in this page's place, so one more
+  // Back from step 1 returns to that page.
+  for (const from of ["/your-initiative", "/funding/water", "/your-initiatives", "/start/needs"])
+    assert.deepEqual(backTarget(matchRoute("/start/needs"), { from, hops: 1 }), {
+      label: "Describe Your Initiative",
+      href: "/start/initiative",
+      hops: 0,
+      replace: true,
+    }, from);
+  // The offers list is on the same step as needs, so it goes back to the same step.
+  assert.equal(backTarget(matchRoute("/start/offers"), { from: "/your-initiative", hops: 1 })?.href, "/start/initiative");
+  // The first step returns to where the person came from, as before.
+  assert.deepEqual(backTarget(matchRoute("/start/initiative"), { from: "/your-initiative", hops: 1 }), {
+    label: "Your Initiative",
+    href: "/your-initiative",
+    hops: 1,
+  });
+  // It never goes back on into the steps it starts.
+  assert.deepEqual(backTarget(matchRoute("/start/initiative"), { from: "/start/needs", hops: 1 }), {
+    label: "Home",
+    href: "/",
+    hops: 0,
+  });
+  // The last step is also an initiative's own page, so it keeps the way the person came.
+  assert.deepEqual(backTarget(matchRoute("/your-initiative"), { from: "/start/needs", hops: 1 }), {
+    label: "Needs And Offers",
+    href: "/start/needs",
+    hops: 1,
+  });
+  assert.equal(backTarget(matchRoute("/your-initiative"), { from: "/your-initiatives", hops: 1 })?.label, "Your Initiatives");
 });
 test("details resolve validated identifiers, preserve section cues and accept a trailing slash", () => {
   assert.equal(matchRoute("/initiatives/orchard/")?.id, "orchard");
