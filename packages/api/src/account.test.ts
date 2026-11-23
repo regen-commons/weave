@@ -421,3 +421,98 @@ test("the delete RPC uses the person's token and maps only known database reason
     await assert.rejects(provider.deleteInitiative("test.access.token", command), /account_unavailable/);
   }
 });
+
+test("the session's two checks run together, and the user's answer is still judged first", async () => {
+  const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  // Each reply is released by hand, so the order they were asked in is the order the adapter chose.
+  function adapter(replies: { user: () => Response; access: () => Response }) {
+    const asked: string[] = [];
+    const provider = createSupabaseAccountProvider("https://db.example.test", "sb_publishable_synthetic", async url => {
+      const path = new URL(String(url)).pathname;
+      asked.push(path);
+      await new Promise(resolve => setImmediate(resolve));
+      return path === "/auth/v1/user" ? replies.user() : replies.access();
+    });
+    return { provider, asked };
+  }
+  const refused = (status: number, code: string) => (error: unknown) => error instanceof AccountError && error.status === status && error.code === code;
+  const both = adapter({ user: () => json(200, user), access: () => json(200, true) });
+  const pending = both.provider.authorize("test.access.token");
+  assert.deepEqual([...both.asked].sort(), ["/auth/v1/user", "/rest/v1/rpc/account_access"], "neither check waits for the other");
+  assert.deepEqual(await pending, user);
+
+  // The user's answer decides first, whatever the database predicate says.
+  await assert.rejects(adapter({ user: () => json(401, {}), access: () => json(200, true) }).provider.authorize("t.t.t"), refused(401, "sign_in_required"));
+  await assert.rejects(adapter({ user: () => json(429, {}), access: () => json(401, { code: "PT401" }) }).provider.authorize("t.t.t"),
+    refused(429, "rate_limited"), "a rate limit is not turned into a refusal by the other check");
+  await assert.rejects(adapter({ user: () => json(503, {}), access: () => json(200, false) }).provider.authorize("t.t.t"), refused(503, "account_unavailable"));
+  await assert.rejects(adapter({ user: () => json(200, { id: "not-a-user" }), access: () => json(200, true) }).provider.authorize("t.t.t"),
+    refused(503, "account_unavailable"));
+  // Then the database predicate: only an exact true admits.
+  await assert.rejects(adapter({ user: () => json(200, user), access: () => json(200, false) }).provider.authorize("t.t.t"), refused(401, "sign_in_required"));
+  await assert.rejects(adapter({ user: () => json(200, user), access: () => json(200, null) }).provider.authorize("t.t.t"), refused(401, "sign_in_required"));
+  await assert.rejects(adapter({ user: () => json(200, user), access: () => json(401, { code: "PT401" }) }).provider.authorize("t.t.t"), refused(401, "sign_in_required"));
+  await assert.rejects(adapter({ user: () => json(200, user), access: () => json(500, {}) }).provider.authorize("t.t.t"), refused(503, "account_unavailable"));
+  await assert.rejects(adapter({ user: () => json(200, user), access: () => json(429, { code: "PT429" }) }).provider.authorize("t.t.t"), refused(429, "rate_limited"));
+});
+
+test("the list is read beside the authorization, and a refused session never sees it", async () => {
+  const get = (search = "") => new Request(`https://weave.test/api/account${search}`, { headers: { cookie: "__Host-weave_account=test.access.token" } });
+  function handlers(authorize: () => Promise<typeof user>, list: () => Promise<{ id: string; revision: number; name: string; updatedAt: string }[]>) {
+    const order: string[] = [];
+    let revoked = 0;
+    const { provider } = fixture();
+    const made = createAccountHandlers({ provider: { ...provider,
+      authorize: async () => { order.push("authorize"); await new Promise(resolve => setImmediate(resolve)); const result = await authorize(); order.push("authorized"); return result; },
+      list: async () => { order.push("list"); return list(); },
+      signOut: async () => { revoked++; } } });
+    return { made, order, revoked: () => revoked };
+  }
+  const items = [{ id, revision: 1, name: "Synthetic initiative", updatedAt: saved.updatedAt }];
+  const both = handlers(async () => user, async () => items);
+  const ok = await both.made.GET(get());
+  assert.equal(ok.status, 200);
+  assert.deepEqual(both.order, ["list", "authorize", "authorized"], "the list is asked for before the authorization answers");
+  assert.equal(((await ok.json()) as { items: unknown[] }).items.length, 1);
+
+  // A refused session gets the refusal alone, with its cookies cleared, though the list had answered.
+  const refusedSession = handlers(async () => { throw new AccountError(401, "sign_in_required"); }, async () => items);
+  const refused = await refusedSession.made.GET(get());
+  assert.equal(refused.status, 401);
+  assert.deepEqual(await refused.json(), { error: "sign_in_required" });
+  assert.equal(refused.headers.getSetCookie().filter(cookie => /Max-Age=0/u.test(cookie)).length, 2);
+  assert.equal(refusedSession.revoked(), 0, "a browser with no renewal cookie has nothing more to revoke");
+  // One that could still renew is revoked at Supabase too, exactly as when the list waited its turn.
+  const renewable = handlers(async () => { throw new AccountError(401, "sign_in_required"); }, async () => items);
+  const future = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3000 })).toString("base64url");
+  const stillValid = `synthetic.${future}.signature`;
+  const refusedRenewable = await createAccountHandlers({ provider: { ...fixture().provider,
+    authorize: async () => { throw new AccountError(401, "sign_in_required"); }, list: async () => items,
+    signOut: async token => { assert.equal(token, stillValid); renewable.order.push("revoked"); } } })
+    .GET(new Request("https://weave.test/api/account", { headers: {
+      cookie: `__Host-weave_account=${stillValid}; __Host-weave_account_renewal=${Buffer.from("synthetic-refresh").toString("base64url")}` } }));
+  assert.equal(refusedRenewable.status, 401);
+  assert.deepEqual(renewable.order, ["revoked"], "the rejected session is revoked once");
+  // An outage of the authorization is reported as that, even when the list failed too.
+  const outage = handlers(async () => { throw new AccountError(503, "account_unavailable"); }, async () => { throw new AccountError(401, "sign_in_required"); });
+  const unavailable = await outage.made.GET(get());
+  assert.equal(unavailable.status, 503);
+  assert.equal(unavailable.headers.getSetCookie().length, 0, "a list's refusal never clears a session the authorization did not refuse");
+  // The list's own failure is reported once the session is authorized.
+  const broken = await handlers(async () => user, async () => { throw new AccountError(503, "account_unavailable"); }).made.GET(get());
+  assert.equal(broken.status, 503);
+  const throttled = await handlers(async () => user, async () => { throw new AccountError(429, "rate_limited"); }).made.GET(get());
+  assert.deepEqual([throttled.status, await throttled.json()], [429, { error: "rate_limited" }]);
+  // A malformed page is never read, and is refused only after the session is authorized, as before.
+  for (const search of ["?offset=-1", "?offset=1.5", "?offset=10001", "?offset=x"]) {
+    const invalid = handlers(async () => user, async () => items);
+    assert.equal((await invalid.made.GET(get(search))).status, 400, search);
+    assert.deepEqual(invalid.order, ["authorize", "authorized"], search);
+    const signedOut = handlers(async () => { throw new AccountError(401, "sign_in_required"); }, async () => items);
+    assert.equal((await signedOut.made.GET(get(search))).status, 401, search);
+  }
+  // Loading one card is unchanged: it waits for the authorization.
+  const load = handlers(async () => user, async () => items);
+  assert.equal((await load.made.GET(get(`?id=${id}`))).status, 200);
+  assert.deepEqual(load.order, ["authorize", "authorized"]);
+});
