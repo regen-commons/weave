@@ -120,17 +120,21 @@ test("the record page function is deployed with the built files it reads", async
   const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
     functions: Record<string, { includeFiles?: string }>; rewrites: { source: string; destination: string }[];
   };
-  const include = vercel.functions["api/record-page.ts"]?.includeFiles ?? "";
+  // The record page runs in the shared router function (23 November 2026), which bundles the files.
+  const include = vercel.functions["api/router.ts"]?.includeFiles ?? "";
   const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
   assert.deepEqual(files.sort(), [...TEMPLATE_FILES, RECORD_PREVIEWS_FILE].sort(), include);
-  assert.equal(vercel.functions["api/sitemap.ts"]?.includeFiles, `dist/${RECORD_PREVIEWS_FILE}`, "the sitemap reads the funds");
-  // The record addresses and the sitemap go to their functions, ahead of the rewrite that serves the app.
-  assert.deepEqual(vercel.rewrites.map(({ source, destination }) => [source, destination.split("?")[0]]), [
-    ["/funding/:id", "/api/record-page"],
-    ["/initiatives/:id", "/api/record-page"],
-    ["/sitemap.xml", "/api/sitemap"],
-    ["/((?!api/).*)", "/index.html"],
-  ]);
+  // The record addresses and the sitemap go to the router, ahead of the rewrite that serves the app.
+  const sources = vercel.rewrites.map(({ source }) => source);
+  const catchAll = sources.indexOf("/((?!api/).*)");
+  for (const [source, destination] of [
+    ["/funding/:id", "/api/router?__route=record-page&kind=funding&id=:id"],
+    ["/initiatives/:id", "/api/router?__route=record-page&kind=initiative&id=:id"],
+    ["/sitemap.xml", "/api/router?__route=sitemap"],
+  ] as const) {
+    assert.equal(vercel.rewrites.find((candidate) => candidate.source === source)?.destination, destination);
+    assert.ok(sources.indexOf(source) < catchAll, `${source} before the catch-all`);
+  }
 });
 
 test("the build gives each fund's words and the two sections' previews to the record pages", () => {

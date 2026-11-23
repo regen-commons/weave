@@ -45,16 +45,17 @@ export function connectSheet(dialog, { lightDismiss = false } = {}) {
     });
   }
   on(dialog, "close", reset);
-  // Escape, and a tap outside where the browser handles one.
+  // Escape, and a tap outside where the browser handles one. A listener added before this one, such
+  // as a page's own while its work is under way, may already have refused the close; then it stays.
   on(dialog, "cancel", (event) => {
-    if (!event.cancelable) return;
+    if (!event.cancelable || event.defaultPrevented) return;
     event.preventDefault();
     close();
   });
   // Events from a dialog opened inside this one bubble through it and are that dialog's own.
   const own = (event) => event.target.closest?.("dialog") === dialog;
   on(dialog, "submit", (event) => {
-    if (!own(event) || event.target.getAttribute("method") !== "dialog") return;
+    if (!own(event) || event.defaultPrevented || event.target.getAttribute("method") !== "dialog") return;
     event.preventDefault();
     close();
   });
@@ -199,6 +200,32 @@ export function connectSheet(dialog, { lightDismiss = false } = {}) {
   on(dialog, "transitionend", (event) => {
     if (event.target === dialog && "settling" in dialog.dataset) reset();
   });
+
+  // The title row and a foot stay put over content that scrolls under them, so a control the
+  // keyboard reaches is scrolled clear of them: the dialog's scroll padding takes the room each
+  // covers, and a little for the focus ring (WCAG 2.4.11). They are measured as the dialog opens or
+  // changes size, and again as focus moves, for a foot that came later.
+  /** How far into the dialog a stuck part reaches from its edge: its offset counts from inside the dialog's padding. */
+  function covered(part, edge) {
+    if (!part) return 0;
+    const style = getComputedStyle(part);
+    if (style.position !== "sticky") return 0;
+    const padding = getComputedStyle(dialog)[edge === "top" ? "paddingTop" : "paddingBottom"];
+    return Math.max(0, part.offsetHeight + (parseFloat(style[edge]) || 0) + (parseFloat(padding) || 0));
+  }
+  function clear() {
+    if (!dialog.open) return;
+    const head = dialog.querySelector(":scope > .rc-dialog-body > .rc-dialog-head");
+    const foot = [...dialog.querySelectorAll(".rc-dialog-foot")].find((part) => part.closest("dialog") === dialog);
+    dialog.style.setProperty("--dialog-head-clear", `calc(${covered(head, "top")}px + var(--space-2))`);
+    dialog.style.setProperty("--dialog-foot-clear", `calc(${covered(foot, "bottom")}px + var(--space-2))`);
+  }
+  if (typeof ResizeObserver === "function") {
+    const sizes = new ResizeObserver(clear);
+    sizes.observe(dialog);
+    dispose.push(() => sizes.disconnect());
+    on(dialog, "focusin", clear);
+  }
   return {
     close,
     dispose: () => {

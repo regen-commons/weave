@@ -1,3 +1,4 @@
+import { busyProps } from "./busy.ts";
 import { forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
@@ -48,6 +49,7 @@ export function AccountSection({
   const { controller, draft, ready, storage } = useDraft();
   const setAside = useSetAside();
   const [busy, setBusy] = useState(false);
+  const [acting, setActing] = useState<string | null>(null);
   const [message, setMessage] = useState(() => notice || signInReturnMessage(returnResult));
   const [failed, setFailed] = useState(() => !!notice || signInReturnFailed(returnResult));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
@@ -82,8 +84,18 @@ export function AccountSection({
       setFailed(!!settled.message);
     } finally {
       setBusy(false);
+      setActing(null);
     }
   }
+  /** Starts work from the button named `name`, which keeps the focus while it runs (`busy.ts`). */
+  function start(name: string, action: () => Promise<void>) {
+    if (busy) return;
+    setActing(name);
+    void run(action);
+  }
+  /** The attributes of the button named `name`; `blocked` is any other reason it cannot be used. */
+  const pressed = (name: string, blocked = false) => busyProps(busy && acting === name, busy || blocked);
+  const spinner = (name: string) => busy && acting === name && <span className="rc-spinner" aria-hidden="true" />;
   async function save() {
     const user = state?.user;
     if (!user) throw new Error("Sign in before saving.");
@@ -123,14 +135,15 @@ export function AccountSection({
             className="rc-button"
             data-variant="secondary"
             type="button"
-            disabled={busy}
+            {...pressed("check")}
             onClick={() =>
-              void run(async () => {
+              start("check", async () => {
                 await refresh();
               })
             }
           >
-            Check Account Access
+            <span>Check Account Access</span>
+            {spinner("check")}
           </button>
         </>
       ) : !state.available ? (
@@ -146,14 +159,15 @@ export function AccountSection({
             onSignInStart?.();
             // This sign-in says nothing about project access, so none follows it (DL-137).
             forgetProjectAccess(() => window.sessionStorage);
-            void run(() => continueToCertified(controller, window.location.pathname,
+            start("sign-in", () => continueToCertified(controller, window.location.pathname,
               (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
               (target) => window.location.assign(target)));
           }}>
             <div className="rc-action-bar">
-              <button className="rc-button" data-variant="primary" type="submit" disabled={busy || !ready}
+              <button className="rc-button" data-variant="primary" type="submit" {...pressed("sign-in", !ready)}
                 data-task-focus={autoFocus || undefined}>
-                Sign In With Certified
+                <span>Sign In With Certified</span>
+                {spinner("sign-in")}
               </button>
               {onNotNow && (
                 <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onNotNow}>
@@ -182,7 +196,7 @@ export function AccountSection({
                     Your email appears in the link to Certified and may be saved in browser history or request logs.
                   </p>
                   <input className="rc-input" id={`${id}-email`} name="email" type="email" autoComplete="email" maxLength={254}
-                    aria-describedby={`${id}-email-help`} disabled={busy || !ready} />
+                    aria-describedby={`${id}-email-help`} readOnly={busy} disabled={!ready} />
                 </div>
               </details>
             )}
@@ -218,10 +232,11 @@ export function AccountSection({
                 className="rc-button"
                 data-variant="primary"
                 type="button"
-                disabled={busy || !ready || !key || storage !== "saved"}
-                onClick={() => void run(save)}
+                {...pressed("save", !ready || !key || storage !== "saved")}
+                onClick={() => start("save", save)}
               >
-                Save Privately
+                <span>Save Privately</span>
+                {spinner("save")}
               </button>
             )}
             {showLeave && (
@@ -243,12 +258,14 @@ export function AccountSection({
             In Weave
           </h3>
           <div className="rc-action-bar">
-            <button className="rc-button" data-variant="quiet" type="button" disabled={busy || !ready}
+            <button className="rc-button" data-variant="quiet" type="button" {...pressed("begin", !ready)}
               onClick={() => {
+                if (busy) return;
                 setSelection(null);
-                void run(beginCard);
+                start("begin", beginCard);
               }}>
-              Start A New Initiative
+              <span>Start A New Initiative</span>
+              {spinner("begin")}
             </button>
           </div>
           {!state.items.length && !extra.length ? (
@@ -282,9 +299,9 @@ export function AccountSection({
               className="rc-button"
               data-variant="secondary"
               type="button"
-              disabled={busy}
+              {...pressed("more")}
               onClick={() =>
-                void run(async () => {
+                start("more", async () => {
                   const result = await accountRequest(`?offset=${state.items.length + extra.length}`);
                   assertAccount(result, state.user!.id);
                   const items = parseSummaries(result.items), owner = state.user!.id;
@@ -297,16 +314,17 @@ export function AccountSection({
                 })
               }
             >
-              More Saved Cards
+              <span>More Saved Cards</span>
+              {spinner("more")}
             </button>
           )}
           <button
             className="rc-button"
             data-variant="quiet"
             type="button"
-            disabled={busy}
+            {...pressed("refresh")}
             onClick={() =>
-              void run(async () => {
+              start("refresh", async () => {
                 await refresh();
                 setPage(null);
                 setMore(true);
@@ -314,7 +332,8 @@ export function AccountSection({
               })
             }
           >
-            Refresh Saved Cards
+            <span>Refresh Saved Cards</span>
+            {spinner("refresh")}
           </button>
         </>
       )}
@@ -328,12 +347,13 @@ export function AccountSection({
           </p>
           {failed && message && <p className="rc-notice" data-tone="warning" role="alert">{message}</p>}
           <div className="rc-action-bar">
-            <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-task-focus
-              onClick={() => void run(load)}>
-              Load Saved Card
+            <button className="rc-button" data-variant="primary" type="button" {...pressed("load")} data-task-focus
+              onClick={() => start("load", load)}>
+              <span>Load Saved Card</span>
+              {spinner("load")}
             </button>
-            <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => setSelection(null)}>
+            <button className="rc-button" data-variant="quiet" type="button" aria-disabled={busy || undefined}
+              onClick={() => { if (!busy) setSelection(null); }}>
               Cancel
             </button>
           </div>

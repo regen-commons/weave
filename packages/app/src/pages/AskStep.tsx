@@ -26,6 +26,7 @@ import { spokenList } from "../intake/spoken.ts";
 import {
   activeItems,
   addStepFiles,
+  askFormProblem,
   changeStep,
   commitPending,
   decide,
@@ -35,6 +36,7 @@ import {
   reconcile,
   returnWords,
   settleEarlierInput,
+  type AskFormField,
 } from "../intake/state.ts";
 import { currentVisit, navigate, routePath, routeSearch } from "../router.tsx";
 import { backTarget, fixtureHref, matchRoute, pathTo } from "../routes.ts";
@@ -186,6 +188,7 @@ function AskSection({
   const part = (name: string) => `ask-${kind}-${name}`;
   const [notice, setNotice] = useState("");
   const [editorError, setEditorError] = useState("");
+  const [editorField, setEditorField] = useState<AskFormField | null>(null);
   const [busy, setBusy] = useState(false);
   const [language, setLanguage] = useState(navigator.language || "en-US");
   const speech = useSpeechSetup(language, speechStore, consent);
@@ -203,6 +206,7 @@ function AskSection({
   // Stop pressed before the recognizer has started is kept, and applied once it has.
   const stopWanted = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const addFiles = useRef<HTMLButtonElement>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
   const full = activeItems(step).length >= ASK_LIMIT;
@@ -521,11 +525,9 @@ function AskSection({
       setEditorError("");
       setNotice(`${one} details kept.`);
     } catch (error) {
-      setEditorError(
-        error instanceof Error && !error.message.startsWith("[")
-          ? error.message
-          : "Add a title. Check amounts, currency and terms. Your unfinished values are still here.",
-      );
+      const problem = askFormProblem(error);
+      setEditorError(problem.message);
+      setEditorField(problem.field);
     }
   }
   function cancelEditor() {
@@ -539,9 +541,9 @@ function AskSection({
         <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
           {need ? "Your Needs" : "Your Offers"}
         </h2>
-        <p className="rc-ask-count" aria-live="polite">
-          {sectionCount(step)}
-        </p>
+        {/* Not a live region: each change to the list says what happened in the status line, so the
+            count would be a second announcement of the same change, without its noun (WCAG 4.1.3). */}
+        <p className="rc-ask-count">{sectionCount(step)}</p>
       </div>
       <TalkItOut
         speech={speech}
@@ -604,7 +606,7 @@ function AskSection({
                   perform(() => {
                     focusIntent.current = entryId(item.id, "more");
                     update((current) => decide(current, item.id, "pencil"));
-                    setNotice("");
+                    setNotice("Back on the list.");
                   })
                 }
               />
@@ -623,6 +625,7 @@ function AskSection({
           data-variant="quiet"
           data-size="sm"
           type="button"
+          ref={addFiles}
           disabled={held || full}
           onClick={() => fileInput.current?.click()}
         >
@@ -648,6 +651,7 @@ function AskSection({
         onRemoveLink={(url) =>
           update((current) => changeStep(current, { links: current.links.filter((link) => link !== url) }))
         }
+        afterLast={addFiles}
       />
       {/* A card's details are changed over the page, so the list under it stays where it is. */}
       <TaskDialog
@@ -661,6 +665,7 @@ function AskSection({
             kind={kind}
             value={step.editor.form}
             error={editorError}
+            errorField={editorField}
             onChange={(form) => update((current) => changeStep(current, { editor: { ...current.editor!, form } }))}
             onSave={saveEditor}
             onCancel={cancelEditor}

@@ -17,6 +17,8 @@ import {
   QUIET_UNDER,
   mouseAtRest,
   movedEnough,
+  OWN_GROWTH_FOR,
+  ownGrowthOpen,
   restDensity,
   restShare,
   restStops,
@@ -210,6 +212,8 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     "(prefers-color-scheme: dark)": false,
   };
   const listeners = new Map();
+  /** One answer per media query, as a browser keeps, so a test can change it. */
+  const queries = {};
   const listening = (target) => ({
     addEventListener(type, listener) { listeners.set(listener, `${target}:${type}`); },
     removeEventListener(type, listener) { listeners.delete(listener); },
@@ -231,13 +235,19 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     timers: [],
     observers: 0,
     ...listening("window"),
-    matchMedia: (query) => ({ matches: media[query] ?? false, ...listening(query) }),
+    matchMedia: (query) => (queries[query] ??= { matches: media[query] ?? false, ...listening(query) }),
     getComputedStyle: () => ({ getPropertyValue: () => "#345", color: "#000" }),
     requestAnimationFrame(callback) { view.frame = callback; return 1; },
     cancelAnimationFrame() { view.frame = null; },
     setTimeout(callback) { view.timers.push(callback); return view.timers.length; },
     clearTimeout(id) { view.timers[id - 1] = null; },
-    MutationObserver: class { observe() { view.observers += 1; } disconnect() { view.observers -= 1; } },
+    /** What each observer would be told: called by a test as a page's content changes. */
+    mutations: [],
+    MutationObserver: class {
+      constructor(callback) { view.mutations.push(callback); }
+      observe() { view.observers += 1; }
+      disconnect() { view.observers -= 1; }
+    },
   };
   const box = { left: 0, top: 0, right: width, bottom: height, width, height };
   const element = () => ({ width: 0, height: 0, getContext: context, getBoundingClientRect: () => box });
@@ -255,7 +265,9 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     return frames;
   };
   const send = (type, event) => { for (const [listener, key] of listeners) if (key === `window:${type}`) listener(event); };
-  return { canvas, view, painted, listeners, run, send };
+  /** Says a media query's answer changed, or the page was shown or hidden, to whoever listens. */
+  const notify = (key) => { for (const [listener, at] of listeners) if (at === key) listener(); };
+  return { canvas, view, painted, listeners, queries, run, send, notify };
 }
 
 test("the canvas holds one canvas pixel for each CSS pixel, however sharp the screen (DL-106)", () => {
@@ -339,6 +351,87 @@ test("a tuft grows on its own on a desk too, but not while the mouse is growing 
   grows();
   assert.ok(phone.view.frame, "and then grows it");
   onPhone.dispose();
+});
+
+test("growth on its own ends five seconds after a page opens, and a mouse still grows trails (WCAG 2.2.2)", () => {
+  assert.equal(OWN_GROWTH_FOR, 5000);
+  assert.equal(ownGrowthOpen(4999), true);
+  assert.equal(ownGrowthOpen(5000), false, "nothing starts on its own once five seconds have passed");
+
+  const { canvas, view, run, send } = stage();
+  const growth = growMycelium(canvas);
+  run();
+  const [own, end] = view.timers.filter(Boolean);
+  own();
+  assert.ok(view.frame, "a tuft grows on its own in the first seconds");
+  end();
+  const after = run();
+  assert.ok(after < 100, `what grew on its own goes quickly once the time is up: ${after} frames`);
+  assert.equal(view.frame, null, "and then nothing moves");
+  const waiting = view.timers.filter((timer) => timer && timer !== own && timer !== end);
+  assert.equal(waiting.length, 0, "and nothing is set to grow on its own again");
+  send("mousemove", { clientX: 300, clientY: 300 });
+  assert.ok(view.frame, "a mouse still leaves its trail");
+  growth.dispose();
+
+  const early = stage();
+  const growing = growMycelium(early.canvas);
+  const [, stopAt] = early.view.timers.filter(Boolean);
+  stopAt();
+  assert.ok(early.run() <= 2, "a resting network still growing in comes to rest at once");
+  growing.dispose();
+});
+
+test("growth on its own runs once, when the app opens: a new page neither starts it again nor moves its end", () => {
+  const { canvas, view, run } = stage();
+  view.location = { pathname: "/" };
+  const growth = growMycelium(canvas);
+  const first = view.timers.filter(Boolean).length;
+  assert.equal(first, 2, "growth on its own and its end are set as the app opens");
+  view.location.pathname = "/funding";
+  for (const changed of view.mutations) changed([]);
+  assert.equal(view.timers.filter(Boolean).length, first, "a page opened within the five seconds sets nothing new");
+  const [, end] = view.timers.filter(Boolean);
+  end();
+  run();
+  const realNow = Date.now;
+  Date.now = () => realNow() + OWN_GROWTH_FOR;
+  try {
+    const before = view.timers.length;
+    view.location.pathname = "/initiatives";
+    for (const changed of view.mutations) changed([]);
+    assert.equal(view.timers.slice(before).filter(Boolean).length, 0, "and one opened after them grows nothing on its own");
+    assert.equal(view.frame, null, "so nothing moves");
+  } finally {
+    Date.now = realNow;
+  }
+  growth.dispose();
+});
+
+test("motion turned on within the app's five seconds ends with them, and nothing grows on its own after them", () => {
+  const reduce = "(prefers-reduced-motion: reduce)";
+  const { canvas, view, queries, notify } = stage({ reducedMotion: true });
+  const growth = growMycelium(canvas);
+  assert.equal(view.timers.filter(Boolean).length, 0, "nothing grows on its own under reduced motion");
+  queries[reduce].matches = false;
+  notify(`${reduce}:change`);
+  const [own, end] = view.timers.filter(Boolean);
+  assert.ok(own && end, "growth on its own starts, and so does its end, within the page's five seconds");
+  end();
+  const realNow = Date.now;
+  Date.now = () => realNow() + OWN_GROWTH_FOR;
+  try {
+    const before = view.timers.length;
+    notify("document:visibilitychange");
+    queries[reduce].matches = true;
+    notify(`${reduce}:change`);
+    queries[reduce].matches = false;
+    notify(`${reduce}:change`);
+    assert.equal(view.timers.slice(before).filter(Boolean).length, 0, "a page shown again or motion turned back on plans nothing");
+  } finally {
+    Date.now = realNow;
+  }
+  growth.dispose();
 });
 
 test("disposing stops drawing and leaves no listener, observer or timer behind", () => {

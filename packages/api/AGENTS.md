@@ -23,6 +23,15 @@ file fails to load once deployed. `bun run build` writes `dist/`, and the Weave
 project builds this package before the app. `src/exports.test.ts` checks every entry.
 In development, the app's Vite server answers `/api/*` from the same entry files.
 
+Vercel's Hobby plan deploys at most 12 functions, so most endpoints share one,
+`packages/app/api/router.ts` (`src/router.ts`). Only an endpoint that needs an address,
+a duration or a cron of its own gets its own entry file: the account, sign-in, the four
+Certified addresses and the daily index refresh. To add an endpoint to the router, give
+it a line in `ENDPOINTS` in `src/router.ts` with exactly the methods it exports, and a
+rewrite in `packages/app/vercel.json` from `/api/<name>` to
+`/api/router?__route=<name>`, ahead of the catch-all. The router hands the request on
+untouched (streamed body, headers, origin) and returns the handler's response as it is.
+
 ## Boundaries
 
 - TypeScript follows the [TypeScript rules](../../.claude/rules/typescript.md).

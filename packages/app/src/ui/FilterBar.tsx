@@ -264,6 +264,47 @@ export function FilterBar({
   const openedWith = useRef<string | null>(null);
   const pinned = !loading && (above || pinOpen);
 
+  // The count line under the bar is behind the open sheet, where a screen reader no longer hears it,
+  // so the sheet says the count itself once a choice in it has changed the list (WCAG 4.1.3).
+  const countLine = summary ?? `${count} of ${total} ${things}${note ? "." : ""}`;
+  const [sheetSays, setSheetSays] = useState("");
+  const choicesNow = latestChoices.current;
+  const choicesAtOpen = useRef(choicesNow);
+  const changedInSheet = useRef(false);
+  useEffect(() => {
+    if (!sheet) {
+      choicesAtOpen.current = choicesNow;
+      changedInSheet.current = false;
+      setSheetSays("");
+      return;
+    }
+    if (choicesNow !== choicesAtOpen.current) changedInSheet.current = true;
+    if (changedInSheet.current) setSheetSays(countLine);
+  }, [sheet, countLine, choicesNow]);
+
+  // A chosen filter's chip, Clear Filters, or an empty list's Clear Filters takes itself away when
+  // pressed, and the browser drops the focus on the page. It goes to the chip that took the pressed
+  // one's place, or to the search field once no chip is left (WCAG 2.4.3).
+  const chipPressed = useRef<number | null>(null);
+  const cleared = !query && choices.length === 0 && !ordered;
+  const choicesBefore = useRef(choicesNow);
+  useEffect(() => {
+    const at = chipPressed.current;
+    const changed = choicesBefore.current !== choicesNow;
+    chipPressed.current = null;
+    choicesBefore.current = choicesNow;
+    const section = bar.current;
+    if (!section || !changed || (at === null && !cleared)) return;
+    if (document.activeElement && document.activeElement !== document.body) return;
+    const chips = [...section.querySelectorAll<HTMLElement>(":scope > .rc-active-filters > .rc-chip")];
+    const next = at === null ? undefined : chips[Math.min(at, chips.length - 1)];
+    (next ?? section.querySelector<HTMLInputElement>("input[type='search']"))?.focus();
+  }, [choicesNow, cleared]);
+  const pressChip = (at: number, remove: () => void) => () => {
+    chipPressed.current = at;
+    remove();
+  };
+
   useEffect(() => {
     const target = bar.current?.querySelector(":scope > .rc-filter-controls, :scope > .rc-field");
     if (!target || loading || typeof IntersectionObserver !== "function") return;
@@ -386,17 +427,17 @@ export function FilterBar({
       {(query || choices.length > 0 || ordered) && (
         <div className="rc-active-filters" role="group" aria-label="Chosen filters">
           {query && (
-            <button className="rc-chip" type="button" onClick={() => onSearch("")} aria-label={`Remove search: ${query}`}>
+            <button className="rc-chip" type="button" onClick={pressChip(0, () => onSearch(""))} aria-label={`Remove search: ${query}`}>
               Search: {query}
               <Icon name="close" size="sm" />
             </button>
           )}
-          {choices.map((choice) => (
+          {choices.map((choice, index) => (
             <button
               key={`${choice.facet.key} ${choice.value}`}
               className="rc-chip"
               type="button"
-              onClick={() => onFacet(choice.facet.key, withoutChoice(choice))}
+              onClick={pressChip((query ? 1 : 0) + index, () => onFacet(choice.facet.key, withoutChoice(choice)))}
               aria-label={`Remove ${choice.label}`}
             >
               {choice.label}
@@ -404,7 +445,12 @@ export function FilterBar({
             </button>
           ))}
           {sort && onSort && ordered && (
-            <button className="rc-chip" type="button" onClick={() => onSort(defaultSort(sort))} aria-label={`Remove Sort: ${ordered.label}`}>
+            <button
+              className="rc-chip"
+              type="button"
+              onClick={pressChip((query ? 1 : 0) + choices.length, () => onSort(defaultSort(sort)))}
+              aria-label={`Remove Sort: ${ordered.label}`}
+            >
               Sort: {ordered.label}
               <Icon name="close" size="sm" />
             </button>
@@ -419,7 +465,7 @@ export function FilterBar({
           words are for assistive technology and the eye gets the lines' shapes. */}
       <p className="rc-meta">
         <span role="status" aria-atomic="true" className={loading ? "rc-visually-hidden" : undefined}>
-          {loading ? `Loading ${noun}` : summary ?? `${count} of ${total} ${things}${note ? "." : ""}`}
+          {loading ? `Loading ${noun}` : countLine}
         </span>
         {loading && (
           <span aria-hidden="true">
@@ -478,6 +524,9 @@ export function FilterBar({
           ))}
         </div>
         <div className="rc-dialog-foot">
+          <p className="rc-visually-hidden" role="status" aria-atomic="true">
+            {sheetSays}
+          </p>
           <button
             className="rc-button"
             data-variant="secondary"

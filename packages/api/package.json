@@ -109,6 +109,11 @@
       "types": "./src/transcribe-contract.ts",
       "source": "./src/transcribe-contract.ts",
       "default": "./dist/transcribe-contract.js"
+    },
+    "./router": {
+      "types": "./src/router.ts",
+      "source": "./src/router.ts",
+      "default": "./dist/router.js"
     }
   },
   "scripts": {

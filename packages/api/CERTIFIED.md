@@ -595,9 +595,13 @@ next project request asks Certified again. With the project database unreachable
 those five seconds. When it could not run, or a session ended without a
 sign-out because it lapsed or was revoked, the grant stays in `weave_project_oauth.records`, encrypted
 and unusable, until its expiry. Expired rows go when the daily job in
-`supabase/candidates/weave-project-oauth-pruning.sql` runs. That file is a candidate for the database
-owner to apply with pg_cron (the user's choice, 23 November 2026); until it is applied nothing removes
-them.
+`supabase/candidates/weave-project-oauth-pruning.sql` runs. The user chose pg_cron for this on
+23 November 2026, and the job was applied to the shared Platform project (`ztygpuzldujfsqrubxic`) the
+same day, at the user's request, by the session coordinating this work: pg_cron 1.6.4, job
+`weave-project-oauth-prune`, daily at 03:17 UTC, scheduled as `postgres`, which owns the table and so is
+not held back by its row-level security. It was run as plain SQL and is not yet recorded in the
+website's migration folder, which owns Platform's migration history. Any other database, the isolated
+Weave Preview project included, has no such job until the candidate is applied there.
 Every other grant can write to Certified and still ends within the hour. The store refuses to keep a
 grant longer than its action allows, and a stored grant that claims a longer life is refused when read.
 
