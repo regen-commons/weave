@@ -12,8 +12,8 @@ export interface Depth {
 /**
  * Grows the website's mycelium on a decorative canvas behind a region or a whole page, drawn as
  * the website draws it: one canvas pixel for each CSS pixel, and trails that fade (DL-106). A
- * mouse or a finger grows tufts where it moves; without a mouse one also grows on its own every
- * few seconds. A light resting network lies under the trails, whole in the margins and quieter
+ * mouse or a finger grows tufts where it moves; for the first five seconds one also grows on its
+ * own every few seconds, and then never again (DL-128). A light resting network lies under the trails, whole in the margins and quieter
  * under `column`, the element that holds the content, or a function that finds it (the element
  * after the canvas unless given). `depth` is the website's depth, or a function that gives it:
  * 1 on Home and 2 anywhere else. `quiet`, or a function that says so, marks a page with fields to
@@ -30,6 +30,8 @@ export function growMycelium(
     column?: Element | (() => Element | null);
     depth?: number | (() => number);
     quiet?: boolean | (() => boolean);
+    /** The clock, in milliseconds; tests pass their own. */
+    now?: () => number;
   },
 ): Mycelium;
 
@@ -92,7 +94,11 @@ export function advance(branches: Branch[], width: number, height: number, rando
 export function settle(branches: Branch[], width: number, height: number, random: () => number, density: Density): Branch[];
 /** Only a mouse on a fine pointer, with motion allowed, grows the logo. */
 export function growsFromPointer(pointerType: string, finePointer: boolean, reducedMotion: boolean): boolean;
-/** With motion allowed, tufts grow on their own, on a phone and on a desk. */
+/** Growth nobody asked for ends this many milliseconds after the canvas starts (WCAG 2.2.2, DL-128). */
+export const OWN_GROWTH_FOR: number;
+/** Whether growth nobody asked for may still happen, so many milliseconds after the canvas started. */
+export function ownGrowthOpen(sinceStart: number): boolean;
+/** With motion allowed, tufts grow on their own, on a phone and on a desk, for the first five seconds. */
 export function growsOnItsOwn(reducedMotion: boolean): boolean;
 /** Whether a mouse last moved long enough ago, in milliseconds, for a tuft to grow on its own. */
 export function mouseAtRest(sinceMove: number): boolean;

@@ -16,6 +16,8 @@ import {
   QUIET_MARGIN,
   QUIET_UNDER,
   mouseAtRest,
+  OWN_GROWTH_FOR,
+  ownGrowthOpen,
   movedEnough,
   restDensity,
   restShare,
@@ -401,4 +403,53 @@ test("on a quiet page a mouse over the fields grows nothing, and one in the marg
   grows();
   assert.equal(phone.view.frame, null, "a phone's form step grows nothing on its own");
   onPhone.dispose();
+});
+
+test("growth nobody asked for ends five seconds after the app opens, and nothing starts it again (WCAG 2.2.2, DL-128)", () => {
+  assert.equal(OWN_GROWTH_FOR, 5000);
+  assert.equal(ownGrowthOpen(0), true);
+  assert.equal(ownGrowthOpen(4999), true);
+  assert.equal(ownGrowthOpen(5000), false);
+
+  let clock = 0;
+  const phone = stage({ width: 390, height: 844, finePointer: false });
+  const growth = growMycelium(phone.canvas, { now: () => clock });
+  // The resting network grows in, and a tuft is planned on its own.
+  assert.ok(phone.view.frame, "the resting network grows in at first");
+  const planned = phone.view.timers.filter(Boolean);
+  assert.equal(planned.length, 1, "a tuft is planned");
+  // Five seconds pass before the network has rested: the next frame settles it and ends the growth.
+  clock = 5000;
+  phone.view.frame();
+  phone.run();
+  assert.equal(phone.view.frame, null, "nothing is drawn after the next frame");
+  planned[0]();
+  assert.equal(phone.view.frame, null, "the tuft planned before the end does not grow");
+  assert.equal(phone.view.timers.filter(Boolean).length, 0, "and no other is planned");
+  // Nothing plans one again: the page shown again, a new reduced-motion setting, or a resize.
+  for (const [listener, key] of phone.listeners) if (key === "document:visibilitychange") listener();
+  for (const [listener, key] of phone.listeners) if (key === "(prefers-reduced-motion: reduce):change") listener();
+  assert.equal(phone.view.timers.filter(Boolean).length, 0, "shown again or a new setting plans nothing");
+  // A finger is a person's own doing, so its trail still grows.
+  phone.send("touchmove", { touches: [{ clientX: 120, clientY: 500 }] });
+  assert.ok(phone.view.frame, "a finger still leaves a trail");
+  growth.dispose();
+});
+
+test("a tuft that grew on its own is let go at five seconds, and its trail fades and clears", () => {
+  let clock = 0;
+  const phone = stage({ width: 390, height: 844, finePointer: false });
+  const growth = growMycelium(phone.canvas, { now: () => clock });
+  phone.run();
+  clock = 3000;
+  const [grows] = phone.view.timers.filter(Boolean);
+  grows();
+  assert.ok(phone.view.frame, "it grows within the first five seconds");
+  phone.run(30);
+  clock = 5000;
+  const frames = phone.run();
+  // Without the end, a tuft lives for hundreds of frames; let go, its trail is gone in about one second.
+  assert.ok(frames > 0 && frames < 80, `the trail is gone in ${frames} frames`);
+  assert.equal(phone.view.frame, null);
+  growth.dispose();
 });
