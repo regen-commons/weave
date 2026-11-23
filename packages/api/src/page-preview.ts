@@ -65,13 +65,47 @@ const PREVIEW_LINE = new RegExp(`^[ \\t]*<meta (?:${WRITTEN.join("|")}) content=
  * the built page with Home's preview in it. The page must have exactly one title and one description,
  * or it is not the page this was written for, and it is refused rather than half changed.
  */
-export function withPagePreview(html: string, preview: PagePreview): string {
-  const page = html.replace(PREVIEW_LINE, "");
+export function withPagePreview(html: string, preview: PagePreview, record?: RecordHead): string {
+  // A record's page names its own address and says what it is, in place of any the shell carries.
+  const page = record ? html.replace(PREVIEW_LINE, "").replace(CANONICAL_LINE, "").replace(STRUCTURED_LINE, "") : html.replace(PREVIEW_LINE, "");
   const titled = replaceOnce(page, /<title>[^<]*<\/title>/g, () => `<title>${escapeHtml(preview.title)}</title>`);
+  const lines = [
+    `<meta name="description" content="${escapeHtml(preview.description)}">`,
+    ...previewTags(preview),
+    ...(record ? recordTags(record) : []),
+  ];
   return replaceOnce(titled, /^([ \t]*)<meta name="description" content="[^"]*">$/gm, (indent) =>
-    [`<meta name="description" content="${escapeHtml(preview.description)}">`, ...previewTags(preview)]
-      .map((tag) => indent + tag)
-      .join("\n"));
+    lines.map((tag) => indent + tag).join("\n"));
+}
+
+/**
+ * What a fund's or an initiative's own page adds for search engines (22 November 2026): its one address
+ * as the canonical link, and what the record is as schema.org JSON-LD, built only from what the record
+ * itself says and never implying that anyone is eligible.
+ */
+export interface RecordHead {
+  readonly canonical: string;
+  readonly structuredData: Readonly<Record<string, unknown>>;
+}
+
+const CANONICAL_LINE = /^[ \t]*<link rel="canonical" href="[^"]*">[ \t]*\r?\n/gmu;
+const STRUCTURED_LINE = /^[ \t]*<script type="application\/ld\+json">.*<\/script>[ \t]*\r?\n/gmu;
+
+/**
+ * JSON that is safe inside a script element: no character can close it or start markup, and the two
+ * line separators JavaScript reads as line ends are escaped too.
+ */
+export const scriptJson = (value: unknown): string =>
+  JSON.stringify(value)
+    .replaceAll("<", "\\u003c").replaceAll(">", "\\u003e").replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028").replaceAll("\u2029", "\\u2029");
+
+/** The canonical link and the JSON-LD a record's page carries, one line each. */
+export function recordTags(record: RecordHead): string[] {
+  return [
+    `<link rel="canonical" href="${escapeHtml(record.canonical)}">`,
+    `<script type="application/ld+json">${scriptJson(record.structuredData)}</script>`,
+  ];
 }
 
 /** Replaces the one match of `pattern`, given its first group, or refuses a page with none or several. */

@@ -2,55 +2,13 @@
 // Vercel rewrites /funding/:id and /initiatives/:id here (packages/app/vercel.json), and bundles the
 // build's index.html and share/records.json with the function, which reads them from the deployment's
 // own files. A deployment without them reads its own static copies instead.
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { builtFile, builtPreviews, builtSource, once } from "./built-files.ts";
 import { PUBLIC_ORIGIN } from "./page-preview.ts";
 import { GET as publicProjects } from "./public-projects.ts";
 import { parsePublicProjectPage, type PublicProjectCard } from "./public-projects-contract.ts";
-import { createRecordPageHandler, parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "./record-page-http.ts";
-
-const TIMEOUT_MS = 3000;
-
-/**
- * Where the bundled build may sit in the function: under the app's own folder when the function runs
- * from it, or under its path in the repository when the bundle keeps the repository's layout. Both are
- * tried before the deployment is asked for its copy.
- */
-export const BUILT_FOLDERS = ["dist", "packages/app/dist"] as const;
-
-/** Which copy served the last read, for the `X-Weave-Record-Source` header a check can read. */
-let source: "bundle" | "deployment" = "bundle";
-
-/** One of the build's files: from the function's bundle, or else from the deployment it belongs to. */
-async function builtFile(file: string, request: Request): Promise<string> {
-  for (const folder of BUILT_FOLDERS) {
-    try {
-      const text = await readFile(join(process.cwd(), folder, file), "utf8");
-      source = "bundle";
-      return text;
-    } catch {
-      // Not in this layout; try the next one.
-    }
-  }
-  const response = await fetch(new URL(`/${file}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
-  if (!response.ok) throw Error("record_page_unavailable");
-  source = "deployment";
-  return response.text();
-}
-
-/** Kept for the life of the function instance once read: a deployment's build never changes. */
-function once<T>(read: (request: Request) => Promise<T>): (request: Request) => Promise<T> {
-  let kept: Promise<T> | undefined;
-  return (request) => {
-    const current = kept ??= read(request);
-    // A failed read is tried again by the next request instead of being kept.
-    current.catch(() => { if (kept === current) kept = undefined; });
-    return current;
-  };
-}
+import { createRecordPageHandler } from "./record-page-http.ts";
 
 const template = once((request) => builtFile("index.html", request));
-const previews = once(async (request): Promise<RecordPreviews> => parseRecordPreviews(JSON.parse(await builtFile(RECORD_PREVIEWS_FILE, request))));
 
 /** One project from the public list, through its own handler, so it is the card the list shows. */
 async function project(uri: string): Promise<PublicProjectCard | null> {
@@ -60,12 +18,12 @@ async function project(uri: string): Promise<PublicProjectCard | null> {
   return page.projects.find((card) => card.uri === uri) ?? null;
 }
 
-const serve = createRecordPageHandler({ template, previews, project });
+const serve = createRecordPageHandler({ template, previews: builtPreviews, project });
 
 /** The page, saying which copy of the build it came from, so a check after a deploy can tell. */
 export async function GET(request: Request): Promise<Response> {
   const response = await serve(request);
-  response.headers.set("X-Weave-Record-Source", source);
+  response.headers.set("X-Weave-Record-Source", builtSource());
   return response;
 }
 export const HEAD = GET;

@@ -94,6 +94,11 @@
       "types": "./src/record-page.ts",
       "source": "./src/record-page.ts",
       "default": "./dist/record-page.js"
+    },
+    "./sitemap": {
+      "types": "./src/sitemap.ts",
+      "source": "./src/sitemap.ts",
+      "default": "./dist/sitemap.js"
     }
   },
   "scripts": {

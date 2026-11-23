@@ -12,7 +12,8 @@
   "outputDirectory": "dist",
   "functions": {
     "api/project-index-refresh.ts": { "maxDuration": 300 },
-    "api/record-page.ts": { "includeFiles": "dist/{index.html,share/records.json}" }
+    "api/record-page.ts": { "includeFiles": "dist/{index.html,share/records.json}" },
+    "api/sitemap.ts": { "includeFiles": "dist/share/records.json" }
   },
   "crons": [
     { "path": "/api/project-index-refresh", "schedule": "0 4 * * *" }
@@ -20,6 +21,7 @@
   "rewrites": [
     { "source": "/funding/:id", "destination": "/api/record-page?kind=funding&id=:id" },
     { "source": "/initiatives/:id", "destination": "/api/record-page?kind=initiative&id=:id" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [

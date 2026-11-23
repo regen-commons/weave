@@ -102,10 +102,20 @@ export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): Record
   const funds = CatalogSchema.parse(catalog).funds.map((fund) => [fund.id, {
     name: fund.displayName,
     description: fund.description,
-    programs: Object.fromEntries((fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => [id, name]) ?? []),
+    programs: (fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => ({ id, name })) ?? [],
   }] as const);
-  return parseRecordPreviews({ sections: { funding: section("funding"), initiatives: section("initiatives") }, funds: Object.fromEntries(funds) });
+  return parseRecordPreviews({
+    sections: { funding: section("funding"), initiatives: section("initiatives") },
+    pages: SITEMAP_PAGES.map((route) => origin + pathTo(route)),
+    funds: Object.fromEntries(funds),
+  });
 }
+
+/**
+ * The pages besides the records that the sitemap lists: the public sections and the start of describing an
+ * initiative. Your Initiatives is the person's own and is left out.
+ */
+export const SITEMAP_PAGES: readonly RouteName[] = ["home", "initiatives", "funding", "initiative"];
 
 /** The catalog the app bundles, from the repository's built data. */
 const CATALOG = "../../dist/data/funders.json";

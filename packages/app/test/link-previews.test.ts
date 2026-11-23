@@ -108,10 +108,14 @@ test("the record page function is deployed with the two built files it reads", a
   const include = vercel.functions["api/record-page.ts"]?.includeFiles ?? "";
   const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
   assert.deepEqual(files.sort(), ["index.html", RECORD_PREVIEWS_FILE].sort(), include);
-  // The two record addresses go to it, ahead of the rewrite that serves the app for everything else.
-  const order = vercel.rewrites.map(({ source }) => source);
-  assert.deepEqual(order.slice(0, 2), ["/funding/:id", "/initiatives/:id"]);
-  assert.ok(vercel.rewrites.slice(0, 2).every(({ destination }) => destination.startsWith("/api/record-page?kind=")));
+  assert.equal(vercel.functions["api/sitemap.ts"]?.includeFiles, `dist/${RECORD_PREVIEWS_FILE}`, "the sitemap reads the funds");
+  // The record addresses and the sitemap go to their functions, ahead of the rewrite that serves the app.
+  assert.deepEqual(vercel.rewrites.map(({ source, destination }) => [source, destination.split("?")[0]]), [
+    ["/funding/:id", "/api/record-page"],
+    ["/initiatives/:id", "/api/record-page"],
+    ["/sitemap.xml", "/api/sitemap"],
+    ["/((?!api/).*)", "/index.html"],
+  ]);
 });
 
 test("the build gives each fund's words and the two sections' previews to the record pages", () => {
@@ -121,7 +125,9 @@ test("the build gives each fund's words and the two sections' previews to the re
   assert.equal(previews.sections.funding.image, `${PUBLIC_ORIGIN}/share/funding.png`);
   assert.equal(previews.sections.initiatives.url, `${PUBLIC_ORIGIN}/initiatives`);
   const people = previews.funds["local-people-powered"];
-  assert.ok(people && people.name && Object.keys(people.programs).length > 0, "a fund with its programs");
+  assert.ok(people && people.name && people.programs.length > 0, "a fund with its programs, in the catalog's order");
+  assert.deepEqual(previews.pages, [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/initiatives`, `${PUBLIC_ORIGIN}/funding`, `${PUBLIC_ORIGIN}/start/initiative`],
+    "the sitemap's pages: the public sections and describing an initiative, not the person's own");
   assert.ok(JSON.stringify(previews).length < 600_000, "small enough to read on every cold start");
 });
 
