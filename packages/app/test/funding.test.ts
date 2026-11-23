@@ -353,7 +353,11 @@ test("Funding's filters come in a fixed order, keep a value an address chose and
   assert.ok(linked[2]!.options.some((option) => option.value === "Atlantis"));
   assert.ok(linked[4]!.options.some((option) => option.value === "Open source"));
   assert.deepEqual(fundingSorts(false).map((sort) => sort.label), ["Closing soon", "Name A to Z", "Recently checked"]);
-  assert.equal(fundingSorts(true).at(-1)?.label, "Research priority", "a rank is not eligibility, so it is not called best fit");
+  assert.deepEqual(
+    fundingSorts(true).map((sort) => sort.label),
+    ["Strongest fit", "Closing soon", "Name A to Z", "Recently checked"],
+    "with an initiative compared, the list can be ordered by fit, which is about topics and never eligibility (DL-129)",
+  );
 });
 test("changing one filter leaves the others alone", () => {
   const start = { ...emptyFundingFilters, search: "water", region: ["Africa"], closing: "30" };
@@ -382,7 +386,7 @@ test("an address carries every chosen value, and one it could not mean is left o
   assert.deepEqual(params.getAll("access"), ["open", "invitation"], "the old value is replaced, never added to");
   assert.deepEqual(readFundingFilters(params.toString()), filters);
   writeFundingFilters(emptyFundingFilters, params);
-  assert.equal(params.toString(), "fixture=shared&program=p1&sort=fit");
+  assert.equal(params.toString(), "fixture=shared&program=p1", "the list's own order is not written");
   assert.deepEqual(readFundingFilters(""), emptyFundingFilters);
   const odd = readFundingFilters("access=rolling&access=nonsense&access=open&kind=unknown&kind=prize&closing=soon&group=nope&sort=price&region=&region=Asia&region=Asia");
   assert.deepEqual(odd.access, ["open"], "an older address names one route, which opens its group once");
@@ -390,7 +394,7 @@ test("an address carries every chosen value, and one it could not mean is left o
   assert.deepEqual(odd.region, ["Asia"]);
   assert.equal(odd.closing, "");
   assert.equal(odd.group, "");
-  assert.equal(odd.sort, "fit");
+  assert.equal(odd.sort, "", "an order it cannot mean leaves the list's own");
   assert.equal(readFundingFilters("closing=30&sort=closing").closing, "30", "Home's link to funds closing soon");
 });
 test("a record opened from a filtered list keeps every filter for the way back", () => {
@@ -446,4 +450,15 @@ test("a call ends at one moment for its access sign, deadline tag, Closing filte
     if (before === undefined) delete process.env.TZ;
     else process.env.TZ = before;
   }
+});
+test("Closing soon lists calls still open by their closing day, and ones whose day has passed at the end", () => {
+  const listed = filterFunding(entries, { ...emptyFundingFilters, sort: "closing" }, null, at);
+  const open = listed.filter((entry) => timeToClose(entry, at) >= 0);
+  assert.ok(open.length > 10, "the catalog has calls still open on the test day");
+  assert.deepEqual(listed.slice(0, open.length).map((entry) => entry.id), open.map((entry) => entry.id), "every open call comes first");
+  const days = open.map((entry) => closingDay(entry.program!.application.closesOn!, entry.program!.application.deadlineInstant));
+  assert.deepEqual(days, [...days].sort(), "soonest first");
+  const ended = entries.find((entry) => entry.program?.application.closesOn && timeToClose(entry, at) < 0 && effectiveAccess(programFund(entry.fund, entry.program), at) !== "closed");
+  assert.ok(ended, "the catalog has a call whose day has passed but whose intake is not confirmed closed");
+  assert.ok(listed.indexOf(ended) >= open.length, "it is not listed among the calls closing soon");
 });

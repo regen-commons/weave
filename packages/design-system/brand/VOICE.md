@@ -54,7 +54,7 @@ The left column is the domain language used in data, code and documents. The mid
 | recipe | partnership | Roles we need, what it is for |
 | pulse | weekly update | |
 | match | Partners for you, Funding that fits | |
-| score | Strong fit, Good fit, Possible fit | Never a number |
+| score | Strong fit, Good fit, Possible fit, and on funding Low fit | Never a number. Fit is about shared topics, never eligibility (DL-129) |
 | say hello | Ask for an introduction | State what is sent and what follows |
 | private, network, public | Only you, People signed in, Anyone | If the access tier narrows, the middle label becomes Regen Commons members |
 | Murmurations, knowledge commons | Share with other directories | Link to what this means |
