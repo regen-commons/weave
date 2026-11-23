@@ -587,8 +587,12 @@ Signing out deletes that session's grants before the session is revoked (`forget
 `certified-project-auth.ts`, called from `/api/account`'s `sign_out`, which loads the project runtime
 only then). That removes the stored tokens together with the DPoP key they are bound to, so nobody can
 use them afterwards; Weave does not also call Certified's revocation endpoint. Each removal waits behind
-a token refresh that may be under way, so a rotation cannot write the grant back. The step has five
-seconds and can never stop or fail a sign-out. When it could not run, or a session ended without a
+a token refresh that may be under way, so a rotation cannot write the grant back. An unfinished consent receipt named by
+the browser's consent cookie is removed first, so it cannot become a grant meanwhile. The step has five
+seconds and can never stop or fail a sign-out. It runs before the revocation, so a sign-out that Supabase
+could not confirm (`sign_out_unconfirmed`) leaves the person signed in without project access, and the
+next project request asks Certified again. With the project database unreachable, a sign-out waits out
+those five seconds. When it could not run, or a session ended without a
 sign-out because it lapsed or was revoked, the grant stays in `weave_project_oauth.records`, encrypted
 and unusable, until its expiry. Expired rows go when the daily job in
 `supabase/candidates/weave-project-oauth-pruning.sql` runs. That file is a candidate for the database

@@ -518,8 +518,8 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       while (state.pending.size) await Promise.all([...state.pending]);
     },
     /**
-     * Deletes every grant of the session that is signing out, so the stored Certified tokens and the
-     * key they are bound to do not outlive it. Called while the session can still be verified, since a
+     * Deletes every grant of the session that is signing out, and the unfinished receipt this browser
+     * holds, so the stored Certified tokens and the key they are bound to do not outlive it. Called while the session can still be verified, since a
      * grant can only be found through its session. Each removal waits its turn behind a refresh that
      * may be under way, so a rotation cannot write the grant back, and a busy or failing one is passed
      * over: the grant is unusable after sign-out either way and ends at its own expiry. Returns how
@@ -529,6 +529,10 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       let actor: CertifiedProjectActor | null;
       try { actor = await options.resolveActor(request); } catch { return 0; }
       if (!actor) return 0;
+      // A consent that came back but was not finished holds the same tokens as a receipt. It goes first,
+      // so a finish from another tab cannot turn it into a grant while the grants are being removed.
+      const receipt = cookie(request);
+      if (receipt) await store.remove("receipt", receipt).catch(() => {});
       let removed = 0;
       for (const action of actions) {
         if (signal.aborted) break;

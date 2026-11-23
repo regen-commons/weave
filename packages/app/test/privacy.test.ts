@@ -54,7 +54,7 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   for (const file of ["workspace-content.ts", "workspace-invites.ts", "project-commands.ts"])
     assert.match(read(`../api/src/${file}`), /getMembership/u, `${file} still checks membership`);
   assert.match(read("../api/src/workspace-content.ts"), /if \(!role\) \{\s*await projects\.execute\(actor, "suspend_access"/u);
-  assert.match(policy, /stores that permission encrypted on its server and can use it for up to 30 days\. Signing out ends it: Weave can no longer use it and deletes its copy/u);
+  assert.match(policy, /stores that permission encrypted on its server and can use it for up to 30 days\. Signing out ends it: Weave can no longer use it and deletes its stored copy\. If that deletion fails, the copy stays encrypted and unusable until it expires/u);
   // Exactly one action is long-lived, and it only reads the person's own memberships. Reading who else
   // is in a group is its own action, and so is every change to Certified, each under the hour.
   assert.match(grants, /\n  membership: \[membership\],/u);

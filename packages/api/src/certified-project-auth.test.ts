@@ -320,6 +320,18 @@ test("signing out deletes that session's grants, and only those; a failure there
   assert.equal(grants(), 0);
   assert.equal(await f.auth.forget(f.cmd({})), 6, "forgetting twice is harmless");
 
+  // A consent that came back from Certified but was not finished is a receipt holding the same tokens.
+  // Sign-out removes it first, so a finish from another tab cannot make a grant of it afterwards.
+  f.fake.actor = { did, sessionId: "weave-session" };
+  const returned = await f.auth.callback(f.oauth(binding(await f.start("membership"))));
+  assert.equal(projectStatus(returned), "ready");
+  const receipts = () => [...f.rows.keys()].filter(key => key.startsWith("receipt/")).length;
+  assert.equal(receipts(), 1);
+  assert.equal(await f.auth.forget(f.cmd({}, binding(returned))), 6);
+  assert.equal(receipts(), 0);
+  assert.equal((await f.auth.consent(f.cmd({ action: "finish" }, binding(returned)))).status, 403, "the unfinished consent cannot be finished after sign-out");
+  assert.equal(grants(), 0);
+
   // Nobody can be verified, or the check itself fails: nothing is touched and nothing is thrown.
   f.fake.actor = null;
   assert.equal(await f.auth.forget(f.cmd({})), 0);

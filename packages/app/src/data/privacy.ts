@@ -71,7 +71,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
       "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in on Your Initiatives goes on to that question, and the page says so first. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
       "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
-      "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its copy.",
+      "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its stored copy. If that deletion fails, the copy stays encrypted and unusable until it expires.",
       "Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing.",
     ],
   },

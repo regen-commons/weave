@@ -7,8 +7,10 @@
 -- else removes expired rows. This job deletes them once a day, so an expired grant's tokens do not
 -- stay in the database.
 --
--- The job runs as the role that schedules it, so schedule it as the database owner. It needs no new
--- grant for weave_project_oauth_runtime, and it touches no other table.
+-- The job runs as the role that schedules it. The table has row-level security with a policy for the
+-- runtime role only, so schedule it as the table's owner (or a role that bypasses row-level security):
+-- any other role deletes nothing and reports no error. It needs no new grant for
+-- weave_project_oauth_runtime, and it touches no other table.
 begin;
 create extension if not exists pg_cron;
 select cron.schedule(
@@ -17,5 +19,7 @@ select cron.schedule(
   $$delete from weave_project_oauth.records where expires_at <= now()$$
 );
 commit;
--- To check: select jobname, schedule, active from cron.job where jobname = 'weave-project-oauth-prune';
+-- To check that it is scheduled: select jobname, schedule, active from cron.job where jobname = 'weave-project-oauth-prune';
+-- To check that it ran and deleted rows: select status, return_message, start_time from cron.job_run_details
+--   where jobid = (select jobid from cron.job where jobname = 'weave-project-oauth-prune') order by start_time desc limit 5;
 -- To remove: select cron.unschedule('weave-project-oauth-prune');
