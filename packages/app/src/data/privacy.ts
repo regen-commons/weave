@@ -9,10 +9,17 @@
  *   else (`src/account/document.ts`). Saved copies are not encrypted in the database.
  * - Team workspaces, sharing for matching and publishing are separate choices with their own
  *   readers (`src/social/LiveExposure.tsx`).
- * - No words go to a cloud model, and the app loads no analytics (`vercel.json`, `src/describe`).
- * - Weave never receives audio. Talking uses speech on the device where the browser has it; elsewhere
- *   the browser's own speech service, only after the person agrees (`src/describe/speech.ts`,
+ * - The assistant sends no words to a cloud model, and the app loads no analytics (`vercel.json`,
+ *   `src/describe`).
+ * - Talking uses speech on the device where the browser has it; elsewhere the browser's own speech
+ *   service, only after the person agrees (`src/describe/speech.ts`,
  *   `src/describe/speech-consent.ts`). That service is the browser's, and it may send the audio away.
+ * - Weave receives audio in one case only: a browser with no speech recognition at all, the server
+ *   has cloud speech on, and the person agreed to its notice. The page then records and sends the
+ *   recording once to `/api/transcribe`, which passes it to Cloudflare Workers AI and stores and
+ *   logs nothing (`src/describe/speech-cloud.ts`, `@weave/api` transcribe). The device keeps the
+ *   time and length of each recording sent, and nothing of its content
+ *   (`src/describe/speech-cloud-log.ts`).
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
@@ -34,7 +41,7 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "Talking and the assistant",
-    "Weave never receives your voice. If this device cannot turn speech into text, your browser's speech service does, only after you agree. The assistant reads words on this device, not in a cloud model.",
+    "Your browser turns your voice into text, with its own speech service only after you agree. Weave receives a recording only if you agree to cloud speech, and does not keep it. The assistant reads words on this device.",
   ],
   [
     "Leaving",
@@ -75,15 +82,16 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "Talking",
     body: [
-      "Weave does not record, keep or send your voice. When you talk, your browser turns it into text and gives Weave only the words.",
+      "When you talk, your browser turns your voice into text wherever it can, and gives Weave only the words.",
       "Where your browser can do that on this device, the audio stays here. Where it cannot, your browser can send your voice to its own speech service instead. Weave asks before the first time, and you can turn it off in Settings. That service belongs to your browser, so its own terms apply.",
+      "Some browsers cannot turn speech into text at all. Where Weave offers cloud speech there, and only if you agree, Weave records what you say and, when you press Stop, sends the recording through its own server to Cloudflare Workers AI, which turns it into text. Weave does not keep the recording or the words on its server. Cloudflare says it does not keep them or use them to train models. The recording may be processed outside your country. This device notes when a recording was sent and how long it was, and Settings shows how many. Weave asks before the first time, and you can turn it off in Settings.",
       "On a phone, your keyboard's microphone key is part of the phone, not Weave.",
     ],
   },
   {
     title: "The Assistant",
     body: [
-      "The assistant reads your words on this device, with keyword rules or a model already built into your browser, and only after you choose it. No words are sent to a cloud model.",
+      "The assistant reads your words on this device, with keyword rules or a model already built into your browser, and only after you choose it. The assistant sends no words to a cloud model.",
       "Places are kept as you wrote them, with no map lookup.",
     ],
   },

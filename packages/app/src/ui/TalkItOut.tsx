@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { STOP_WAIT_MS } from "../describe/speech.ts";
-import { BROWSER_SPEECH_NOTICE, talkControls, talkHold } from "../describe/speech-setup.ts";
+import { CLOUD_FINISH_MS, recordingClock } from "../describe/speech-cloud.ts";
+import { BROWSER_SPEECH_NOTICE, CLOUD_SPEECH_NOTICE, recordingLabel, talkControls, talkHold } from "../describe/speech-setup.ts";
 import type { SpeechSetup } from "../describe/use-speech.ts";
 import { Icon } from "./Icon.tsx";
 import { TaskDialog } from "./TaskDialog.tsx";
@@ -14,8 +15,9 @@ const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN"
  * the recognizer has handed over its last words (DL-133). A person who cannot or will not speak
  * types into the same box. The action then structures the words, and its result is said in the line under it, which keeps
  * its height. Nothing on the page moves when any of them is pressed. Where talking goes through
- * the browser's own speech service, the first press on a device asks the person to agree in a
- * dialog, and listening starts only from their agreement. While the browser downloads and sets
+ * the browser's own speech service, or a recording is sent to be turned into text, the first
+ * press on a device asks the person to agree in a dialog that says where their voice goes, and
+ * listening starts only from their agreement. While the browser downloads and sets
  * up its speech pack, the button shows a Spinner and a Progress bar runs beside it; the browser
  * reports no amount, so neither does the bar (DL-127).
  */
@@ -94,13 +96,29 @@ export function TalkItOut({
   const [stopPressed, setStopPressed] = useState(false);
   if (stopPressed && !listening) setStopPressed(false);
   const stopping = listening && stopPressed;
-  // A session ends inside STOP_WAIT_MS of its Stop. If the page is still listening after that,
-  // the press did not reach a session, so Stop comes back and can be pressed again.
+  // A session ends inside STOP_WAIT_MS of its Stop, or inside CLOUD_FINISH_MS where a recording
+  // is sent. If the page is still listening after that, the press did not reach a session, so
+  // Stop comes back and can be pressed again.
+  const cloud = speech.state === "cloud";
   useEffect(() => {
     if (!stopPressed) return;
-    const timer = setTimeout(() => setStopPressed(false), STOP_WAIT_MS + 500);
+    const timer = setTimeout(() => setStopPressed(false), (cloud ? CLOUD_FINISH_MS : STOP_WAIT_MS) + 500);
     return () => clearTimeout(timer);
-  }, [stopPressed]);
+  }, [stopPressed, cloud]);
+  // Cloud speech shows no words while it records, so the box's label counts the time instead.
+  const recordingSince = useSyncExternalStore(recordingClock.subscribe, recordingClock.since);
+  const [elapsed, setElapsed] = useState<number | null>(null);
+  const timing = cloud && listening && !stopping && recordingSince !== null;
+  useEffect(() => {
+    if (!timing) {
+      setElapsed(null);
+      return;
+    }
+    const tick = () => setElapsed((Date.now() - recordingSince) / 1000);
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [timing, recordingSince]);
   const box = useRef<HTMLTextAreaElement>(null);
   // While listening, the newest words stay in view inside the box.
   useEffect(() => {
@@ -109,6 +127,7 @@ export function TalkItOut({
   const controls = talkControls(speech.state, {
     listening,
     stopping,
+    starting: cloud && recordingSince === null,
     setUpHere: speech.setUpHere,
     asking: speech.asking,
     secondary,
@@ -119,6 +138,8 @@ export function TalkItOut({
   const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
   const hold = talkHold(controls.action, { working, disabled, focused });
   const talk = controls.agreement ? () => setAgreeing(true) : onStart;
+  // Each way of talking that leaves the device has its own notice, and its own agreement behind it.
+  const notice = cloud ? CLOUD_SPEECH_NOTICE : BROWSER_SPEECH_NOTICE;
   const stop = () => {
     setStopPressed(true);
     onStop();
@@ -173,7 +194,9 @@ export function TalkItOut({
         </div>
       </div>
       <div className="rc-field">
-        <label htmlFor={`${id}-box`}>{listening && !stopping ? "Listening" : boxLabel}</label>
+        <label htmlFor={`${id}-box`}>
+          {!listening || stopping ? boxLabel : cloud ? recordingLabel(recordingSince === null ? null : (elapsed ?? 0)) : "Listening"}
+        </label>
         {hint && (
           <p className="rc-hint" id={`${id}-hint`}>
             {hint}
@@ -222,9 +245,11 @@ export function TalkItOut({
           <div className="rc-field">
             <label htmlFor={`${id}-language`}>The language you will speak in</label>
             <p className="rc-hint" id={`${id}-language-hint`}>
-              {controls.mode === "browser"
-                ? "Your browser's speech service listens for one language at a time."
-                : "Speech is recognized on this device, one language at a time."}
+              {controls.mode === "cloud"
+                ? "The recording is turned into text in the language you choose."
+                : controls.mode === "browser"
+                  ? "Your browser's speech service listens for one language at a time."
+                  : "Speech is recognized on this device, one language at a time."}
             </p>
             <select
               className="rc-input"
@@ -249,9 +274,9 @@ export function TalkItOut({
         </div>
       </TaskDialog>
       {/* Asked before the first use on a device. Nothing listens until the person agrees. */}
-      <TaskDialog title={BROWSER_SPEECH_NOTICE.title} open={agreeing} onClose={() => setAgreeing(false)}>
+      <TaskDialog title={notice.title} open={agreeing} onClose={() => setAgreeing(false)}>
         <div className="rc-stack">
-          {BROWSER_SPEECH_NOTICE.body.map((line) => (
+          {notice.body.map((line) => (
             <p key={line}>{line}</p>
           ))}
           <div className="rc-action-bar">
@@ -265,10 +290,10 @@ export function TalkItOut({
                 onStart();
               }}
             >
-              {BROWSER_SPEECH_NOTICE.agree}
+              {notice.agree}
             </button>
             <button className="rc-button" data-variant="quiet" type="button" onClick={() => setAgreeing(false)}>
-              {BROWSER_SPEECH_NOTICE.decline}
+              {notice.decline}
             </button>
           </div>
         </div>

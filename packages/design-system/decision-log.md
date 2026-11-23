@@ -981,3 +981,20 @@ Kept as it was: the words still appear in the box while the person talks. Showin
 Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
+
+## DL-138: Where a browser cannot turn speech into text, a recording can be sent, after the person agrees
+
+**Status:** user decision, 23 November 2026 ("Yes, build it"), from a proposal with the providers compared. Extends DL-110 and DL-115. The decision and what is not built are in [open decisions](../../docs/platform/open-decisions.md#cloud-speech-23-november-2026).
+
+A browser with no speech recognition, such as Firefox, got one line saying it could not turn speech into text. Now, where the server has cloud speech on, Talk It Out is there too. It records in the page and, on Stop, sends the recording through Weave to Cloudflare Workers AI, which turns it into text.
+
+- **It asks first, and names who.** The line beside the button says "Weave can turn a recording of your voice into text with Cloudflare. It asks first." The first press opens a notice, Send Your Recording To Be Turned Into Text?, which names Cloudflare Workers AI and the Whisper model, says Weave does not keep the recording, gives what only the provider can know as what Cloudflare says, and says the recording may be processed outside the person's country. Agree And Record starts it. Not Now, Close and Escape start nothing and store nothing.
+- **Its own agreement.** Agreeing to the browser's speech service is not agreeing to this, and the other way round. Settings has Stop Using Cloud Speech, and says how many recordings this device has sent.
+- **No words while it records.** The words come back only after Stop, so the box's label counts instead: "Recording 0:42 of 3:00". Until the browser has opened the microphone, the label and the line say "Waiting for the microphone", because nothing is recorded yet.
+- **The line says when it leaves.** While recording: "Recording on this device. Nothing is sent until you press Stop." After Stop the button reads Finishing, as in DL-133, and the line says "Sending your recording to Cloudflare to be turned into text."
+- **Three minutes.** A recording stops by itself at three minutes, or sooner if it would outgrow what the server takes, and is sent as if Stop had been pressed.
+- **Every way it stops says the recording was not kept,** and that typing still works: offline, not sent, the provider busy, the day's limit reached, cloud speech switched off, too long, unreadable.
+
+Given up: on these browsers a person sees no words until they stop, and must trust the count. A recording that fails to arrive twice is dropped, not held for another try, because holding it would mean keeping it.
+
+From Krug: say where things go before the press that sends them. From Dirksen: say what is happening while the person waits.
