@@ -5,20 +5,18 @@ import type { HtmlTagDescriptor, IndexHtmlTransformContext, Plugin } from "vite"
 export type BuildBundle = NonNullable<IndexHtmlTransformContext["bundle"]>;
 
 /**
- * The faces a first visit draws: Space Grotesk for the interface, Fraunces for titles, its italic
- * for the word Home's hero sets in italic, and Source Serif 4 for reading. The design system
- * declares each with `font-display: optional` and a metric-matched fallback, so text never swaps
- * once it is drawn. Without a preload, a first visit asks for a face only after the page has laid
- * out its text, too late for it to be used, and the fallback stays for that page. Preloading lets
- * the first paint use them (DL-057). The service worker caches every font file on that visit
- * anyway, so the italic costs no extra bytes on pages without it.
+ * The faces a first visit draws in its own face: Space Grotesk for the interface and Fraunces for
+ * titles. The design system declares every face with `font-display: optional` and a metric-matched
+ * fallback, so text never swaps once it is drawn. Without a preload, a first visit asks for a face
+ * only after the page has laid out its text, too late for it to be used, and the fallback stays for
+ * that page. Preloading lets the first paint use them (DL-057).
+ *
+ * The Fraunces italic and Source Serif 4 are not preloaded (DL-057, amended 22 November 2026): on a
+ * slow phone their 93 kB held up the page's script and its first large paint by about 0.7 s. A first
+ * visit draws Home's italic word and reading text in their fallbacks, at the same size, and the
+ * service worker caches both files on that visit, so every later visit draws them in their own face.
  */
-export const FIRST_FACES = [
-  "space-grotesk-latin.woff2",
-  "fraunces-latin.woff2",
-  "fraunces-italic-latin.woff2",
-  "source-serif-4-latin.woff2",
-] as const;
+export const FIRST_FACES = ["space-grotesk-latin.woff2", "fraunces-latin.woff2"] as const;
 
 /** One preload link per face. Fonts are fetched in CORS mode, so the link must say so to be reused. */
 export function fontPreloadTags(hrefs: readonly string[]): HtmlTagDescriptor[] {

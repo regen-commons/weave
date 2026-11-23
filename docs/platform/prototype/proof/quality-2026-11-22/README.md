@@ -96,13 +96,20 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   `pages/` 65 kB. Owner: unassigned (`App.tsx`); proposed for quality in phase 2, after
   the UX sessions land. Fix: load the intake, describe, workspace and record pages with
   `React.lazy`, and keep Home and the lists in the first script.
-- [ ] **Q-03. Four font preloads compete with the script on slow phones.** Routes:
-  all. The page preloads four faces (180 kB). With only Space Grotesk and Fraunces
+- [x] **Q-03. Four font preloads compete with the script on slow phones.** Routes:
+  all. The page preloaded four faces (180 kB). With only Space Grotesk and Fraunces
   preloaded, simulated mobile LCP on Settings fell from 4.0 s to 3.3 s and the score rose
-  from 86 to 90, the same gain as removing all four. Owner: quality, decision for the
-  user. The faces use `font-display: optional` (DL-057), so a face that is not preloaded
-  is not used on a first visit: the hero's italic word and reading text would show the
-  metric-matched Georgia fallback until the second visit, without any layout shift.
+  from 86 to 90, the same gain as removing all four. The faces use
+  `font-display: optional`, so a face that is not preloaded is not used on a first visit:
+  the hero's italic word and reading text show the metric-matched Georgia fallback until
+  the second visit, without any layout shift. The user chose to keep the two preloads
+  (DL-057, amended 22 November 2026); fixed in `dev/font-preloads.ts`. After the change,
+  three mobile runs on Settings scored 53, 91 and 91 (the 53 had 3.2 s of blocking time
+  from machine load), with LCP 3.3 s. Captures from a fresh browser profile on fast 4G:
+  [first visit at 360, light](local-chrome149-home-first-visit-360-light.jpg),
+  [first visit at 1280, dark](local-chrome149-home-first-visit-1280-dark.jpg) and
+  [the second visit](local-chrome149-home-second-visit-1280-dark.jpg), where the italic
+  word is Fraunces and the lines sit where they did.
 - [x] **Q-04. The service worker's register script blocked the first paint.** Routes:
   all. `registerSW.js` loaded as a plain script in the head. Fixed in `vite.config.ts`
   with `injectRegister: "script-defer"`; Lighthouse's render-blocking estimate on Home
@@ -118,8 +125,9 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   run. Settings, which fetches nothing large, scored 86 to 93 with a simulated LCP of
   3.0 to 4.0 s. A mobile 100 needs roughly 1.5 s, which means sending each route's first
   view as HTML (prerendered at build time and hydrated). The build already writes one
-  `index.html` per section for link previews. Owner: user decision for phase 2, then
-  quality with home-shell.
+  `index.html` per section for link previews. The user chose to prerender the main
+  routes on 22 November 2026; quality builds it in phase 2, after the UX sessions land,
+  with drafts and accounts kept client-only.
 - [ ] **Q-07. The first visit downloads 7.1 MB for offline use.** Routes: all. The
   service worker precaches 38 files, 7.1 MB before compression, including the catalog
   (3.6 MB) and the PDF reader (1.7 MB with its worker). This does not affect Lighthouse,
