@@ -957,3 +957,21 @@ Three options were rendered on the real catalog: the details as filters (Where y
 - **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar sticks at the window's top on its own, and the record beside the work sticks under it.
 
 Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. Not tried with a real browser's zoom on a real phone.
+
+## DL-133: Stop answers at once, and the wait for the last words has an end
+
+**Status:** user feedback from manual QA, 22 November 2026 ("Changing state after clicking stop was slow"; "The speech flow is slow while it works"), measured before anything changed. Extends DL-110.
+
+After Stop, a recognizer finishes the audio it has heard and only then ends. The page waited for that end before it changed anything, so for as long as the recognizer took, the button still said Stop and the line still said it was listening. With a recognizer that took 600 ms the page showed the press 620 to 632 ms later, at desktop speed and with the processor slowed four and six times alike. A recognizer that never ended left the page listening for good.
+
+- **Finishing.** Stop answers the press itself. The button reads Finishing with a Spinner in the microphone's place, the line beside it says "Finishing your words.", and the box takes its own label back. The button keeps the focus and its place, and a second press does nothing. When the recognizer ends, the button is Talk It Out again and the fields fill as before.
+- **A deadline.** A recognizer has 2.5 seconds after Stop to hand over its last words. One that has not ended by then is let go, and the page goes on with the words it already has, which include the phrase the recognizer had not settled yet. Stop therefore always finishes.
+- **Timings a device can report.** Each session leaves two entries in the browser's own performance record, from the start to the first words and from Stop to the recognizer's end. They stay in the browser, and `performance.getEntriesByType("measure")` reads them on any device.
+
+Measured on 22 November 2026 with a local production build in HeadlessChrome 159 and a replayed recognizer, which stands in for the browser's and says nothing about a real one: the page now shows the press 2 to 11 ms after it, and a recognizer that never ends is let go at 2.51 s. The words in the box were the same 84 before and after, and a session cut off at the deadline kept all 51 words heard so far. The records and what is not proven are in the [proof](../../docs/platform/prototype/proof/speech-speed/README.md).
+
+Kept as it was: the words still appear in the box while the person talks. Showing them costs 6% of the main thread at desktop speed and 28% slowed six times, with no frame held long enough to notice, and they are the only sign that Weave hears the person. Hiding them would not shorten the wait after Stop, which is the recognizer finishing and then the fill.
+
+Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
+
+From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
