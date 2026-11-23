@@ -17,8 +17,7 @@ function field(file: string, id: string): string {
 }
 const has = (tag: string, attribute: string) => tag.split(/\s+/u).includes(attribute);
 
-test("a search field labels Enter as Search, on Home as on a list", () => {
-  assert.ok(has(field("pages/Home.tsx", 'id="home-search"'), 'enterKeyHint="search"'));
+test("a search field labels Enter as Search", () => {
   assert.ok(has(field("ui/FilterBar.tsx", "id={`${id}-search`}"), 'enterKeyHint="search"'));
 });
 

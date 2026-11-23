@@ -21,6 +21,10 @@
     "./mycelium": {
       "types": "./behaviors/mycelium.d.ts",
       "default": "./behaviors/mycelium.js"
+    },
+    "./carousel": {
+      "types": "./behaviors/carousel.d.ts",
+      "default": "./behaviors/carousel.js"
     }
   },
   "scripts": {

@@ -74,6 +74,9 @@ import { growLogoMark, growMycelium } from "../behaviors/mycelium.js";
 // Home takes the website's depth 1, every other page depth 2, as the app does.
 for (const canvas of document.querySelectorAll("canvas.rc-mycelium")) growMycelium(canvas, { depth: location.pathname.endsWith("/home.html") ? 1 : 2 });
 for (const canvas of document.querySelectorAll("canvas.rc-logo-mark")) growLogoMark(canvas);
+// A preview row that swipes sideways on a phone bounces at its ends, as the app's does (DL-128).
+import { bounceAtEdges } from "../behaviors/carousel.js";
+for (const list of document.querySelectorAll(".rc-card-grid[data-preview]:not([aria-hidden])")) bounceAtEdges(list);
 for (const dialog of document.querySelectorAll("dialog.rc-dialog[data-presentation]")) {
   connectSheet(dialog, { lightDismiss: dialog.dataset.presentation !== "task" });
 }

@@ -243,12 +243,21 @@
 .rc-main:has(> .rc-doorway, > .rc-home-hero) > .rc-notice:first-child { margin-block-start: var(--space-5); }
 .rc-main:has(> .rc-notice:first-child + .rc-doorway) { grid-template-rows: auto minmax(0, 1fr); }
 
+/* Home's hero fills the window under the app bar, and above the tab bar on a phone, with its words
+   in the middle, so the page opens on it alone (DL-128). The window's height is the dynamic one,
+   so a phone's address bar never cuts it off. */
+.rc-main:has(.rc-home-hero) { padding-block-start: 0; }
 .rc-home-hero {
   display: grid;
   justify-items: center;
+  align-content: center;
   gap: var(--space-3);
-  padding-block: var(--space-3) var(--space-6);
+  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height));
+  padding-block: var(--space-5) var(--space-6);
   text-align: center;
+}
+@media (width < 56.25rem) {
+  .rc-page:has(> .rc-bottom-nav) .rc-home-hero { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
 }
 .rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
 /* The website's hero accent: the italic word in the section's colour, with a faint copper ghost
@@ -257,10 +266,14 @@
   color: var(--section-accent-text, var(--text-accent));
   text-shadow: 0.04em -0.03em 0 var(--print-ghost);
 }
+/* The two words the page leads to take the colours of their sections: partners Initiatives' teal
+   and funding Funding's gold (DL-128). The words say what they are; the colour only echoes the
+   tabs. */
+.rc-home-hero .rc-heading [data-accent="initiatives"] { color: var(--text-initiatives); }
+.rc-home-hero .rc-heading [data-accent="funding"] { color: var(--text-funding); }
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
-.rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
-/* Signs of life under the search: shared initiatives and funding closing soon. One per line on a
+/* Signs of life under the actions: shared initiatives and funding closing soon. One per line on a
    phone, where the two already fill the row and one more digit would wrap them unevenly, and side
    by side when wide (DL-063). Each count arrives when its own list has loaded, so the hero keeps
    room for both from the start, two lines on a phone and one when wide, and nothing under it
@@ -380,14 +393,23 @@
     padding: var(--space-2) var(--gutter);
     overflow-x: auto;
     /* A swipe that reaches either end stays in the row and does not start the browser's way back.
-       Only this axis, so the page still scrolls up and down from a finger that starts on a card. */
-    overscroll-behavior-x: contain;
+       Only this axis, so the page still scrolls up and down from a finger that starts on a card.
+       The row has no native stretch or rubber band of its own either: the bounce below is the
+       one every phone plays (DL-128). */
+    overscroll-behavior-x: none;
     scroll-snap-type: inline mandatory;
     scroll-padding-inline: var(--gutter);
   }
   .rc-card-grid[data-preview] > li { scroll-snap-align: start; }
   /* One card alone takes the row. */
   .rc-card-grid[data-preview]:has(> li:only-child) { grid-auto-columns: 100%; }
+  /* Reaching the row's start or its end, or pushing on past it, the cards bounce: they run on a
+     little way past the end and spring back, as a native list does. behaviors/carousel.js says
+     which end (`data-bounce`) and clears it once the bounce has played (DL-128). */
+  @media (prefers-reduced-motion: no-preference) {
+    .rc-card-grid[data-preview][data-bounce] > li > * { animation: rc-bounce-start calc(var(--duration-slow) * 1.5) var(--ease-out); }
+    .rc-card-grid[data-preview][data-bounce="end"] > li > * { animation-name: rc-bounce-end; }
+  }
   /* The loading shapes hold the row's place and do not move. */
   .rc-card-grid[data-preview][aria-hidden="true"] { overflow-x: hidden; }
   /* A finger needs no scrollbar. A mouse keeps it, as its way along the row. */
@@ -435,6 +457,9 @@
   .rc-main[data-move="return"] .rc-card-grid > li { animation: none; }
 }
 @keyframes rc-arrive { from { opacity: 0; } to { opacity: 1; } }
+/* The carousel's bounce: past the end it reached, then back to rest. */
+@keyframes rc-bounce-start { 35% { translate: var(--space-4) 0; } }
+@keyframes rc-bounce-end { 35% { translate: calc(var(--space-4) * -1) 0; } }
 
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root),

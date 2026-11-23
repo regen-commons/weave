@@ -541,6 +541,12 @@
 @media (width < 56.25rem) {
   .rc-page:has(> .rc-bottom-nav) .rc-footer-grid > [data-repeats="tabs"] { display: none; }
 }
+/* A page that should feel like an app on a phone, such as describing an initiative or the Your
+   Initiatives tab, leaves the footer out there, so the step or the tab is all there is
+   (`data-from="wide"`, DL-128). A wide screen keeps it on every page. */
+@media (width < 56.25rem) {
+  .rc-footer[data-from="wide"] { display: none; }
+}
 .rc-footer ul { padding: 0; list-style: none; }
 /* A footer row that is a button wraps from its start edge, like the links around it. */
 .rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-align: start; text-decoration: underline; cursor: pointer; }
