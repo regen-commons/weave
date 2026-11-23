@@ -15,7 +15,7 @@
     "numericAward": 187,
     "currentNumericAward": 86,
     "datedDeadline": 195,
-    "upcomingDatedDeadline": 18,
+    "upcomingDatedDeadline": 17,
     "applicationRoute": 555
   },
   "sourceWarningCount": 5,
@@ -3685,7 +3685,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -9261,7 +9261,7 @@
       "name": "Haymarket People’s Fund",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-15",
-      "sourceCount": 3,
+      "sourceCount": 4,
       "programCount": 1,
       "fields": {
         "focus": true,
@@ -9274,6 +9274,7 @@
       },
       "sources": [
         "https://www.haymarket.org/",
+        "https://www.haymarket.org/grants-1",
         "https://www.haymarket.org/grants-1",
         "https://www.haymarket.org/grants-1"
       ],
@@ -23545,7 +23546,7 @@
     }
   ],
   "notes": "All original and supplemental records have a research disposition. Source overviews, program terms and failed/unresolved checks are distinct. Unknown terms remain unknown. Retrieval entries describe collection, not a claim that terms were verified. Original30 pilot reviews were retained from October14; expanded research was checked October15.",
-  "compiledAt": "2026-11-17T00:31:25.824582+00:00",
+  "compiledAt": "2026-11-23T08:31:21.171930+00:00",
   "fieldDefinitions": {
     "currentNumericAward": "A numeric amount in published program terms, even if that intake is closed; not a promise of current availability.",
     "datedDeadline": "At least one source closing date, including historical or closed calls.",

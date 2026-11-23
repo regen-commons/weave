@@ -3,22 +3,30 @@
 // rewrites /funding/:id and /initiatives/:id here; every other address is served as before. The page is
 // the app's own index.html, so a person who follows the link gets the app as from any other address.
 import { parseProjectUri } from "./project-uri.ts";
-import { DESCRIPTION_MAX, previewLine, PUBLIC_ORIGIN, withPagePreview, type PagePreview } from "./page-preview.ts";
+import { DESCRIPTION_MAX, previewLine, PUBLIC_ORIGIN, withoutPageHead, withPagePreview, type PagePreview, type StructuredData } from "./page-preview.ts";
 import { projectPassages, projectUriOf, type PublicProjectCard } from "./public-projects-contract.ts";
 
 /** What the build writes beside index.html for this handler: the two sections' previews and each fund's words. */
 export interface RecordPreviews {
   readonly sections: { readonly funding: PagePreview; readonly initiatives: PagePreview };
+  /** The public pages a sitemap lists besides the records, as full addresses. */
+  readonly pages: readonly string[];
   readonly funds: Readonly<Record<string, FundWords>>;
 }
 export interface FundWords {
   readonly name: string;
   readonly description: string;
-  /** Each program's name, by its identifier. */
-  readonly programs: Readonly<Record<string, string>>;
+  /** The fund's programs in the catalog's order: a fund's address without one opens the first, as the app does. */
+  readonly programs: readonly { readonly id: string; readonly name: string }[];
 }
 
 export const RECORD_PREVIEWS_FILE = "share/records.json";
+
+/**
+ * The page a record's page is made from, the first the build has: the app's empty shell where the build
+ * writes one (quality's prerendering, so a record never carries Home's markup), otherwise its index.html.
+ */
+export const TEMPLATE_FILES = ["shell.html", "index.html"] as const;
 
 const FUND_ID = /^[A-Za-z0-9_-]{1,100}$/u;
 const PROGRAM_ID = /^[A-Za-z0-9_-]{1,160}$/u;
@@ -28,13 +36,15 @@ const TEXT_MAX = 4000;
 const fail = (): never => { throw Error("invalid_record_previews"); };
 const text = (value: unknown, max: number): string =>
   typeof value === "string" && value.trim() && value.length <= max && !/[\u0000-\u001f\u007f]/u.test(value.replace(/[\n\t]/gu, " ")) ? value : fail();
+/** A full address on Weave's public site, or a refusal. */
+function address(field: unknown): string {
+  let url: URL;
+  try { url = new URL(text(field, 2048)); } catch { return fail(); }
+  return url.origin === PUBLIC_ORIGIN && !url.username && !url.password ? url.href : fail();
+}
 function pagePreview(value: unknown): PagePreview {
   if (!value || typeof value !== "object") return fail();
   const o = value as Record<string, unknown>;
-  const address = (field: unknown) => {
-    const url = new URL(text(field, 2048));
-    return url.origin === PUBLIC_ORIGIN ? url.href : fail();
-  };
   return {
     title: text(o.title, NAME_MAX), description: text(o.description, TEXT_MAX),
     url: address(o.url), image: address(o.image), imageAlt: text(o.imageAlt, NAME_MAX),
@@ -51,15 +61,19 @@ export function parseRecordPreviews(value: unknown): RecordPreviews {
   for (const [id, fund] of Object.entries(o.funds as Record<string, unknown>)) {
     if (!FUND_ID.test(id) || !fund || typeof fund !== "object") return fail();
     const f = fund as Record<string, unknown>;
-    const programs: Record<string, string> = Object.create(null);
-    if (!f.programs || typeof f.programs !== "object") return fail();
-    for (const [program, name] of Object.entries(f.programs as Record<string, unknown>))
-      programs[PROGRAM_ID.test(program) ? program : fail()] = text(name, NAME_MAX);
+    if (!Array.isArray(f.programs)) return fail();
+    const programs = f.programs.map((program: unknown) => {
+      const o = program && typeof program === "object" ? program as Record<string, unknown> : fail();
+      return { id: typeof o.id === "string" && PROGRAM_ID.test(o.id) ? o.id : fail(), name: text(o.name, NAME_MAX) };
+    });
+    if (new Set(programs.map(({ id }) => id)).size !== programs.length) return fail();
     // A fund may have no description yet, but what it has must be words.
     const description = typeof f.description === "string" ? f.description.slice(0, TEXT_MAX) : fail();
     funds[id] = { name: text(f.name, NAME_MAX), description, programs };
   }
-  return { sections: { funding: pagePreview(sections.funding), initiatives: pagePreview(sections.initiatives) }, funds };
+  if (!Array.isArray(o.pages)) return fail();
+  const pages = o.pages.map((page: unknown) => address(page));
+  return { sections: { funding: pagePreview(sections.funding), initiatives: pagePreview(sections.initiatives) }, pages, funds };
 }
 
 /** The record an address asks for, or null where the address names none the app could open. */
@@ -73,8 +87,9 @@ export function recordAsk(url: URL): RecordAsk | null {
   if (url.searchParams.getAll("kind").length !== 1 || url.searchParams.getAll("id").length !== 1) return null;
   const kind = url.searchParams.get("kind"), id = url.searchParams.get("id") ?? "";
   if (kind === "funding" && FUND_ID.test(id)) {
-    const program = url.searchParams.get("program");
-    return { kind, id, program: program !== null && PROGRAM_ID.test(program) ? program : null };
+    // The program is read as the app reads it, the first one given. One the fund does not have, empty
+    // or malformed included, is no record there, and none here: it is only ever looked up, never written.
+    return { kind, id, program: url.searchParams.get("program") };
   }
   if (kind === "initiative") {
     const uri = projectUriOf(id);
@@ -85,29 +100,78 @@ export function recordAsk(url: URL): RecordAsk | null {
 
 const title = (name: string) => `${name.replace(/\s+/gu, " ").trim()} | Weave`;
 
-/** A fund's preview, or one program's: its name, then its own words, at its public address. */
-export function fundPreview(previews: RecordPreviews, ask: Extract<RecordAsk, { kind: "funding" }>): PagePreview | null {
-  const fund = previews.funds[ask.id];
-  if (!fund) return null;
-  const program = ask.program ? fund.programs[ask.program] : undefined;
-  const words = fund.description.trim() || `Funding for regenerative work from ${fund.name}.`;
-  const section = previews.sections.funding;
+/** A fund's or one program's one address on the public site. */
+export const fundAddress = (fund: string, program: string | null): string =>
+  `${PUBLIC_ORIGIN}/funding/${fund}${program ? `?program=${encodeURIComponent(program)}` : ""}`;
+
+/** An initiative's one address on the public site. */
+export const initiativeAddress = (slug: string): string => `${PUBLIC_ORIGIN}/initiatives/${slug}`;
+
+/** A record's page: its preview (whose address is its canonical link) and what it is, as JSON-LD. */
+export interface RecordPage {
+  readonly preview: PagePreview;
+  readonly structuredData: StructuredData;
+}
+
+/** The longest description the JSON-LD carries, cut at a word. */
+const ABOUT_MAX = 500;
+const WEBSITE = { "@type": "WebSite", name: "Weave", url: `${PUBLIC_ORIGIN}/` } as const;
+
+/** The page that is about one thing, with its own address: the frame every record's JSON-LD shares. */
+function webPage(name: string, preview: PagePreview, about: Record<string, unknown>): StructuredData {
   return {
-    ...section,
-    title: title(program ?? fund.name),
-    description: previewLine(program && program !== fund.name ? `${fund.name}: ${words}` : words, DESCRIPTION_MAX),
-    url: `${PUBLIC_ORIGIN}/funding/${ask.id}${program ? `?program=${encodeURIComponent(ask.program!)}` : ""}`,
+    "@context": "https://schema.org", "@type": "WebPage", url: preview.url, name, description: preview.description,
+    isPartOf: WEBSITE, about,
   };
 }
 
-/** A public initiative's preview: its name, its own words said once, and who shared it. */
-export function initiativePreview(previews: RecordPreviews, ask: Extract<RecordAsk, { kind: "initiative" }>, card: PublicProjectCard): PagePreview {
-  const words = projectPassages(card).join(" ") || (card.publisher ? `Shared on Certified by ${card.publisher}.` : "Shared on Certified.");
+/**
+ * A fund's page, or one program's: its name, then its own words, at its public address. Its JSON-LD names
+ * the fund or the program as a FundingScheme, with the fund as the program's organization, and nothing
+ * about who may apply.
+ */
+export function fundPage(previews: RecordPreviews, ask: Extract<RecordAsk, { kind: "funding" }>): RecordPage | null {
+  const fund = previews.funds[ask.id];
+  if (!fund) return null;
+  // As the app: a named program must be one of the fund's, and no program means the fund's first.
+  const entry = ask.program !== null ? fund.programs.find(({ id }) => id === ask.program) : fund.programs[0];
+  if (ask.program !== null && !entry) return null;
+  const program = entry?.name;
+  const name = (program ?? fund.name).replace(/\s+/gu, " ").trim();
+  const words = fund.description.trim() || `Funding for regenerative work from ${fund.name}.`;
+  const preview: PagePreview = {
+    ...previews.sections.funding,
+    title: title(name),
+    description: previewLine(program && program !== fund.name ? `${fund.name}: ${words}` : words, DESCRIPTION_MAX),
+    url: fundAddress(ask.id, entry?.id ?? null),
+  };
+  // The catalog's words describe the fund, so a program's JSON-LD gives them to the fund, not the program.
+  const fundWords = fund.description.trim() ? { description: previewLine(fund.description, ABOUT_MAX) } : {};
   return {
+    preview,
+    structuredData: webPage(name, preview, program && program !== fund.name
+      ? { "@type": "FundingScheme", name, parentOrganization: { "@type": "Organization", name: fund.name, ...fundWords } }
+      : { "@type": "FundingScheme", name, ...fundWords }),
+  };
+}
+
+/** A public initiative's page: its name, its own words said once, and, where its publisher gave one, its place. */
+export function initiativePage(previews: RecordPreviews, ask: Extract<RecordAsk, { kind: "initiative" }>, card: PublicProjectCard): RecordPage {
+  const name = card.name.replace(/\s+/gu, " ").trim();
+  const passages = projectPassages(card).join(" ");
+  const preview: PagePreview = {
     ...previews.sections.initiatives,
-    title: title(card.name),
-    description: previewLine(words, DESCRIPTION_MAX),
-    url: `${PUBLIC_ORIGIN}/initiatives/${ask.id}`,
+    title: title(name),
+    description: previewLine(passages || (card.publisher ? `Shared on Certified by ${card.publisher}.` : "Shared on Certified."), DESCRIPTION_MAX),
+    url: initiativeAddress(ask.id),
+  };
+  return {
+    preview,
+    structuredData: webPage(name, preview, {
+      "@type": "Project", name,
+      ...(passages ? { description: previewLine(passages, ABOUT_MAX) } : {}),
+      ...(card.place ? { location: card.place } : {}),
+    }),
   };
 }
 
@@ -119,10 +183,18 @@ function page(status: number, html: string, cache: Record<string, string>): Resp
   return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8", "X-Content-Type-Options": "nosniff", ...cache } });
 }
 
-/** The page with a preview in its head, or as it came, uncached, when its head is not the one expected. */
-function withPreview(status: number, html: string, preview: PagePreview, cache: Record<string, string>): Response {
-  try { return page(status, withPagePreview(html, preview), cache); }
-  catch { return page(status, html, NOT_CACHED); }
+/**
+ * A record's page with its preview, canonical link and JSON-LD in its head. When the record is not
+ * there, or could not be looked up, the page gets its section's words and picture but no canonical link
+ * and no JSON-LD: it is not the section's page, and naming one would fold the record into it. A page whose
+ * head is not the one expected goes as it came, without those, uncached.
+ */
+function withPreview(status: number, html: string, preview: PagePreview, cache: Record<string, string>, record?: RecordPage): Response {
+  try {
+    return page(status, record ? withPagePreview(html, record.preview, { structuredData: record.structuredData }) : withoutPageHead(withPagePreview(html, preview)), cache);
+  } catch {
+    return page(status, withoutPageHead(html), NOT_CACHED);
+  }
 }
 
 /** How long a project's lookup may take before the page goes out with its section's preview. */
@@ -162,17 +234,18 @@ export function createRecordPageHandler(options: {
     catch { return new Response(null, { status: 307, headers: { Location: ask?.kind === "initiative" ? "/initiatives" : "/funding", ...NOT_CACHED } }); }
     let previews: RecordPreviews;
     try { previews = await options.previews(request); }
-    catch { return page(ask ? 200 : 404, html, NOT_CACHED); }
-    if (!ask) return page(404, html, CACHED);
+    catch { return page(ask ? 200 : 404, withoutPageHead(html), NOT_CACHED); }
+    if (!ask) return page(404, withoutPageHead(html), CACHED);
     if (ask.kind === "funding") {
-      const preview = fundPreview(previews, ask);
-      return preview ? withPreview(200, html, preview, CACHED) : withPreview(404, html, previews.sections.funding, CACHED);
+      const record = fundPage(previews, ask);
+      return record ? withPreview(200, html, record.preview, CACHED, record) : withPreview(404, html, previews.sections.funding, CACHED);
     }
     let card: PublicProjectCard | null;
     try { card = await withDeadline(options.project(ask.uri), lookupTimeoutMs); }
     catch { return withPreview(200, html, previews.sections.initiatives, NOT_CACHED); }
-    return card
-      ? withPreview(200, html, initiativePreview(previews, ask, card), CACHED)
+    const record = card && initiativePage(previews, ask, card);
+    return record
+      ? withPreview(200, html, record.preview, CACHED, record)
       : withPreview(404, html, previews.sections.initiatives, CACHED);
   }
   return async (request: Request): Promise<Response> => {

@@ -21,6 +21,7 @@ export const ENDPOINTS = {
   projects: { methods: ["POST"], load: () => import("./projects.ts") },
   "public-projects": { methods: ["GET"], load: () => import("./public-projects.ts") },
   "record-page": { methods: ["GET", "HEAD"], load: () => import("./record-page.ts") },
+  sitemap: { methods: ["GET", "HEAD"], load: () => import("./sitemap.ts") },
   transcribe: { methods: ["GET", "POST"], load: () => import("./transcribe.ts") },
 } as const satisfies Endpoints;
 export type Endpoint = keyof typeof ENDPOINTS;
@@ -36,8 +37,8 @@ const RECORD_ADDRESS = /^\/(funding|initiatives)\/([^/]+)$/u;
 /**
  * Which endpoint a request is for, and the address its handler should see: `/api/<endpoint>` with the
  * request's own query, less the routing key. At the router's own address the rewrite names the endpoint
- * in `__route`, once. At an endpoint's or a record's own address (if Vercel hands a rewritten request on
- * with the address it came to) the path decides and any `__route` a client added is ignored, so no address
+ * in `__route`, once. At an endpoint's, a record's or the sitemap's own address (if Vercel hands a
+ * rewritten request on with the address it came to) the path decides and any `__route` a client added is ignored, so no address
  * can be made to answer as another endpoint. Anything else is for no endpoint.
  */
 export function routeOf(url: URL): { endpoint: Endpoint; url: URL } | null {
@@ -49,6 +50,8 @@ export function routeOf(url: URL): { endpoint: Endpoint; url: URL } | null {
     const named = url.searchParams.getAll(ROUTE_KEY);
     if (named.length !== 1) return null;
     endpoint = named[0]!;
+  } else if (url.pathname === "/sitemap.xml") {
+    endpoint = "sitemap";
   } else if (record) {
     let id: string;
     try { id = decodeURIComponent(record[2]!); } catch { return null; }

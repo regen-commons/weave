@@ -95,6 +95,11 @@
       "source": "./src/record-page.ts",
       "default": "./dist/record-page.js"
     },
+    "./sitemap": {
+      "types": "./src/sitemap.ts",
+      "source": "./src/sitemap.ts",
+      "default": "./dist/sitemap.js"
+    },
     "./transcribe": {
       "types": "./src/transcribe.ts",
       "source": "./src/transcribe.ts",

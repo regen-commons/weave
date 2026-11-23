@@ -6,8 +6,7 @@ import { cardName } from "../initiative/status.ts";
 import { initiativeShare } from "../record-share.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
-import { DetailSheet, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, RecordSkeleton, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
 import { sectionTag, type SectionTag } from "../ui/section-level.ts";
 import { useDescribeDoor } from "../ui/describe-door.ts";
 import { Fit } from "../ui/Fit.tsx";
@@ -59,7 +58,7 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
   return (
     <DetailSheet title={title} state={sheet} presentation={presentation}>
       {loaded.status === "loading" ? (
-        <LinesSkeleton label="Loading initiative" panel />
+        <RecordSkeleton label="Loading initiative" />
       ) : loaded.status === "failed" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
