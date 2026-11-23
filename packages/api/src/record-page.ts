@@ -6,9 +6,9 @@ import { builtFile, builtPreviews, builtSource, once } from "./built-files.ts";
 import { PUBLIC_ORIGIN } from "./page-preview.ts";
 import { GET as publicProjects } from "./public-projects.ts";
 import { parsePublicProjectPage, type PublicProjectCard } from "./public-projects-contract.ts";
-import { createRecordPageHandler } from "./record-page-http.ts";
+import { createRecordPageHandler, TEMPLATE_FILES } from "./record-page-http.ts";
 
-const template = once((request) => builtFile("index.html", request));
+const template = once((request) => builtFile(TEMPLATE_FILES, request));
 
 /** One project from the public list, through its own handler, so it is the card the list shows. */
 async function project(uri: string): Promise<PublicProjectCard | null> {

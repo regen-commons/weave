@@ -67,13 +67,15 @@ const PREVIEW_LINE = new RegExp(`^[ \\t]*<meta (?:${WRITTEN.join("|")}) content=
  * must have exactly one title and one description, or it is not the page this was written for, and it is
  * refused rather than half changed.
  */
-export function withPagePreview(html: string, preview: PagePreview, structuredData?: StructuredData): string {
-  const page = withoutPageHead(html).replace(PREVIEW_LINE, "");
+export function withPagePreview(html: string, preview: PagePreview, options: PageHeadOptions = {}): string {
+  const { structuredData, indexed = true } = options;
+  const page = withoutPageHead(html).replace(PREVIEW_LINE, "").replace(ROBOTS_LINE, "");
   const titled = replaceOnce(page, /<title>[^<]*<\/title>/g, () => `<title>${escapeHtml(preview.title)}</title>`);
   const lines = [
     `<meta name="description" content="${escapeHtml(preview.description)}">`,
-    ...pageTags(preview),
-    ...(structuredData ? [`<script type="application/ld+json">${scriptJson(structuredData)}</script>`] : []),
+    // A page search engines should leave out says so, and names no canonical address to index instead.
+    ...(indexed ? pageTags(preview) : [...previewTags(preview), '<meta name="robots" content="noindex">']),
+    ...(indexed && structuredData ? [`<script type="application/ld+json">${scriptJson(structuredData)}</script>`] : []),
   ];
   return replaceOnce(titled, /^([ \t]*)<meta name="description" content="[^"]*">$/gm, (indent) =>
     lines.map((tag) => indent + tag).join("\n"));
@@ -89,6 +91,21 @@ export function pageTags(preview: PagePreview): string[] {
  * record itself says and never implying that anyone is eligible.
  */
 export type StructuredData = Readonly<Record<string, unknown>>;
+
+/** What else a page's head says besides its preview. */
+export interface PageHeadOptions {
+  /** A record's JSON-LD. */
+  readonly structuredData?: StructuredData;
+  /**
+   * False for a page search engines should leave out: a person's own pages (Settings, Your Initiative,
+   * Your Initiatives), the steps of describing an initiative, and the not-found page. It gets
+   * `noindex` and no canonical link or JSON-LD. Pages are indexed unless they say otherwise.
+   */
+  readonly indexed?: boolean;
+}
+
+/** A robots meta tag, however it is written; this module writes the only one a page carries. */
+const ROBOTS_LINE = /^[ \t]*<meta\b[^>]*\bname\s*=\s*["']?robots["']?[^>]*>[ \t]*\r?\n/gimu;
 
 /** A canonical link, however it is written: attributes in any order or quoting, closed with `>` or `/>`. */
 const CANONICAL_LINE = /^[ \t]*<link\b[^>]*\brel\s*=\s*["']?canonical["']?[^>]*>[ \t]*\r?\n/gimu;

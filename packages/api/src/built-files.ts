@@ -18,18 +18,24 @@ export const BUILT_FOLDERS = ["dist", "packages/app/dist"] as const;
 let source: "bundle" | "deployment" = "bundle";
 export const builtSource = (): "bundle" | "deployment" => source;
 
-/** One of the build's files: from the function's bundle, or else from the deployment it belongs to. */
-export async function builtFile(file: string, request: Request): Promise<string> {
-  for (const folder of BUILT_FOLDERS) {
-    try {
-      const text = await readFile(join(process.cwd(), folder, file), "utf8");
-      source = "bundle";
-      return text;
-    } catch {
-      // Not in this layout; try the next one.
+/**
+ * The first of the build's files that exists, from the function's bundle, or else the first from the
+ * deployment it belongs to. Over the network a missing file would come back as the app's page, so only
+ * the first is asked for there.
+ */
+export async function builtFile(files: string | readonly string[], request: Request): Promise<string> {
+  const names = typeof files === "string" ? [files] : files;
+  for (const file of names)
+    for (const folder of BUILT_FOLDERS) {
+      try {
+        const text = await readFile(join(process.cwd(), folder, file), "utf8");
+        source = "bundle";
+        return text;
+      } catch {
+        // Not this file, or not in this layout; try the next one.
+      }
     }
-  }
-  const response = await fetch(new URL(`/${file}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
+  const response = await fetch(new URL(`/${names[0]}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
   if (!response.ok) throw Error("built_file_unavailable");
   source = "deployment";
   return response.text();

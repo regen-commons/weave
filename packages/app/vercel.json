@@ -12,7 +12,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/project-index-refresh.ts": { "maxDuration": 300 },
-    "api/record-page.ts": { "includeFiles": "dist/{index.html,share/records.json}" },
+    "api/record-page.ts": { "includeFiles": "dist/{shell.html,index.html,share/records.json}" },
     "api/sitemap.ts": { "includeFiles": "dist/share/records.json" }
   },
   "crons": [

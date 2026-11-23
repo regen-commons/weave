@@ -240,3 +240,15 @@ test("a record's page names its one address as canonical and says what it is, on
   const placed = await (await get(`?kind=initiative&id=${SLUG}`, handler({ project: async () => ({ ...card, place: "Serpentine, WA" }) }))).text();
   assert.equal(ld(placed).about.location, "Serpentine, WA");
 });
+
+test("a page search engines should leave out says noindex and names no canonical address", () => {
+  const data = { "@context": "https://schema.org", "@type": "WebPage" };
+  const page = withPagePreview(TEMPLATE.replace("<title>", `<meta name='robots' content='all'>\n    <title>`), home, { indexed: false, structuredData: data });
+  assert.equal(page.match(/name="robots"/g)?.length, 1);
+  assert.ok(page.includes('<meta name="robots" content="noindex">') && !page.includes("content='all'"), "the one robots tag is this module's");
+  assert.ok(!page.includes('rel="canonical"') && !page.includes("ld+json"));
+  assert.equal(meta(page, "og:title"), home.title, "its preview still shows where it is shared");
+  // Indexed is the default, and an indexed page carries no robots tag at all.
+  const indexed = withPagePreview(page, home);
+  assert.ok(!indexed.includes('name="robots"') && indexed.includes('rel="canonical"'));
+});

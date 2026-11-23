@@ -105,14 +105,24 @@ test("a section's copy is made from the built page, Home's preview and all, what
   assert.ok(copy.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding">`));
 });
 
-test("the record page function is deployed with the two built files it reads", async () => {
-  const { RECORD_PREVIEWS_FILE } = await import("@weave/api/record-page-http");
+test("a person's own page is left out of search: noindex and no canonical, but still a preview", () => {
+  const own = LINK_PREVIEWS.find(({ route }) => route === "your-initiatives")!;
+  const page = withPreview(index, own);
+  assert.ok(page.includes('<meta name="robots" content="noindex">'));
+  assert.ok(!page.includes('rel="canonical"'));
+  assert.match(page, /<meta property="og:title" content="Your Initiatives \| Weave">/);
+  for (const preview of LINK_PREVIEWS.filter(({ indexed }) => indexed !== false))
+    assert.ok(!withPreview(index, preview).includes('name="robots"'), `${preview.route} is indexed`);
+});
+
+test("the record page function is deployed with the built files it reads", async () => {
+  const { RECORD_PREVIEWS_FILE, TEMPLATE_FILES } = await import("@weave/api/record-page-http");
   const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
     functions: Record<string, { includeFiles?: string }>; rewrites: { source: string; destination: string }[];
   };
   const include = vercel.functions["api/record-page.ts"]?.includeFiles ?? "";
   const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
-  assert.deepEqual(files.sort(), ["index.html", RECORD_PREVIEWS_FILE].sort(), include);
+  assert.deepEqual(files.sort(), [...TEMPLATE_FILES, RECORD_PREVIEWS_FILE].sort(), include);
   assert.equal(vercel.functions["api/sitemap.ts"]?.includeFiles, `dist/${RECORD_PREVIEWS_FILE}`, "the sitemap reads the funds");
   // The record addresses and the sitemap go to their functions, ahead of the rewrite that serves the app.
   assert.deepEqual(vercel.rewrites.map(({ source, destination }) => [source, destination.split("?")[0]]), [

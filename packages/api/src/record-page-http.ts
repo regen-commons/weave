@@ -22,6 +22,12 @@ export interface FundWords {
 
 export const RECORD_PREVIEWS_FILE = "share/records.json";
 
+/**
+ * The page a record's page is made from, the first the build has: the app's empty shell where the build
+ * writes one (quality's prerendering, so a record never carries Home's markup), otherwise its index.html.
+ */
+export const TEMPLATE_FILES = ["shell.html", "index.html"] as const;
+
 const FUND_ID = /^[A-Za-z0-9_-]{1,100}$/u;
 const PROGRAM_ID = /^[A-Za-z0-9_-]{1,160}$/u;
 const NAME_MAX = 300;
@@ -185,7 +191,7 @@ function page(status: number, html: string, cache: Record<string, string>): Resp
  */
 function withPreview(status: number, html: string, preview: PagePreview, cache: Record<string, string>, record?: RecordPage): Response {
   try {
-    return page(status, record ? withPagePreview(html, record.preview, record.structuredData) : withoutPageHead(withPagePreview(html, preview)), cache);
+    return page(status, record ? withPagePreview(html, record.preview, { structuredData: record.structuredData }) : withoutPageHead(withPagePreview(html, preview)), cache);
   } catch {
     return page(status, withoutPageHead(html), NOT_CACHED);
   }

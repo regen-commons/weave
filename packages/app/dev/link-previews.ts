@@ -22,6 +22,8 @@ export interface LinkPreview {
   readonly description: string;
   /** The picture's headline: plain lines, then the line set in italic, as the page's own title is. */
   readonly headline: { readonly lines: readonly string[]; readonly accent: readonly string[] };
+  /** False for a person's own page, which search engines should leave out (`noindex`, no canonical). */
+  readonly indexed?: false;
 }
 
 export const LINK_PREVIEWS: readonly LinkPreview[] = [
@@ -59,6 +61,7 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
     title: "Your Initiatives | Weave",
     description: "Open the initiatives you saved, see the partners that fit them, and choose what you share.",
     headline: { lines: ["Your"], accent: ["Initiatives"] },
+    indexed: false,
   },
 ];
 
@@ -86,7 +89,7 @@ export const previewTags = (preview: LinkPreview, origin = PUBLIC_ORIGIN): strin
 
 /** The app's HTML with one section's words in its head, in place of any preview it had. */
 export const withPreview = (html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string =>
-  withPagePreview(html, pagePreview(preview, origin));
+  withPagePreview(html, pagePreview(preview, origin), { indexed: preview.indexed !== false });
 
 /** The file a section's copy is written to, beside the app's own index.html. Home is that file itself. */
 export function previewFile(preview: LinkPreview): string {
