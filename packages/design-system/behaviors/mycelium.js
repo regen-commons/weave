@@ -662,13 +662,14 @@ export function growMycelium(canvas, { seed = 7, within = canvas.parentElement ?
     }
   });
   // Motion turned off or on: draw it at rest and start again from there.
+  // Turned on within a page's five seconds, growth on its own ends with them, not five seconds later.
   listen(still, "change", () => {
     stopOwnGrowth();
     grow(true);
-    if (still.matches && endTimer) {
-      view.clearTimeout(endTimer);
-      endTimer = 0;
-    }
+    if (endTimer) view.clearTimeout(endTimer);
+    endTimer = 0;
+    const left = OWN_GROWTH_FOR - (Date.now() - openedAt);
+    if (!still.matches && left > 0) endTimer = view.setTimeout(endOwnGrowth, left);
   });
   listen(darkScheme, "change", recolour);
 

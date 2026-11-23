@@ -212,6 +212,8 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     "(prefers-color-scheme: dark)": false,
   };
   const listeners = new Map();
+  /** One answer per media query, as a browser keeps, so a test can change it. */
+  const queries = {};
   const listening = (target) => ({
     addEventListener(type, listener) { listeners.set(listener, `${target}:${type}`); },
     removeEventListener(type, listener) { listeners.delete(listener); },
@@ -233,7 +235,7 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     timers: [],
     observers: 0,
     ...listening("window"),
-    matchMedia: (query) => ({ matches: media[query] ?? false, ...listening(query) }),
+    matchMedia: (query) => (queries[query] ??= { matches: media[query] ?? false, ...listening(query) }),
     getComputedStyle: () => ({ getPropertyValue: () => "#345", color: "#000" }),
     requestAnimationFrame(callback) { view.frame = callback; return 1; },
     cancelAnimationFrame() { view.frame = null; },
@@ -257,7 +259,9 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
     return frames;
   };
   const send = (type, event) => { for (const [listener, key] of listeners) if (key === `window:${type}`) listener(event); };
-  return { canvas, view, painted, listeners, run, send };
+  /** Says a media query's answer changed, or the page was shown or hidden, to whoever listens. */
+  const notify = (key) => { for (const [listener, at] of listeners) if (at === key) listener(); };
+  return { canvas, view, painted, listeners, queries, run, send, notify };
 }
 
 test("the canvas holds one canvas pixel for each CSS pixel, however sharp the screen (DL-106)", () => {
@@ -370,6 +374,32 @@ test("growth on its own ends five seconds after a page opens, and a mouse still 
   stopAt();
   assert.ok(early.run() <= 2, "a resting network still growing in comes to rest at once");
   growing.dispose();
+});
+
+test("motion turned on within a page's five seconds ends with them, and nothing grows on its own after them", () => {
+  const reduce = "(prefers-reduced-motion: reduce)";
+  const { canvas, view, queries, notify } = stage({ reducedMotion: true });
+  const growth = growMycelium(canvas);
+  assert.equal(view.timers.filter(Boolean).length, 0, "nothing grows on its own under reduced motion");
+  queries[reduce].matches = false;
+  notify(`${reduce}:change`);
+  const [own, end] = view.timers.filter(Boolean);
+  assert.ok(own && end, "growth on its own starts, and so does its end, within the page's five seconds");
+  end();
+  const realNow = Date.now;
+  Date.now = () => realNow() + OWN_GROWTH_FOR;
+  try {
+    const before = view.timers.length;
+    notify("document:visibilitychange");
+    queries[reduce].matches = true;
+    notify(`${reduce}:change`);
+    queries[reduce].matches = false;
+    notify(`${reduce}:change`);
+    assert.equal(view.timers.slice(before).filter(Boolean).length, 0, "a page shown again or motion turned back on plans nothing");
+  } finally {
+    Date.now = realNow;
+  }
+  growth.dispose();
 });
 
 test("disposing stops drawing and leaves no listener, observer or timer behind", () => {
