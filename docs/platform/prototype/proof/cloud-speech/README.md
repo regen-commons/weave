@@ -14,8 +14,8 @@ No screenshots are committed; the captures were looked at during the check.
   `WEAVE_CLOUD_SPEECH_FIXTURE=true`, so `/api/transcribe` answered with fixed words and called
   nothing. No audio left the computer.
 - **Unit tests**, for every refusal and failure.
-- **Not run: a real call to Cloudflare.** There is no account or token yet, so nothing here shows
-  a real recording becoming real words.
+- **Production, built-in browser (Chromium), 23 November 2026.** One real call, after the owner
+  set the three settings in Production: see [the first real call](#the-first-real-call).
 
 An independent review of the first version found seven defects in the recording session and in
 what the page said at the time limit, during the microphone question and after a withdrawal, and
@@ -98,28 +98,48 @@ Anywhere else, Weave asks before your voice leaves this device.", and left the c
   `speech-cloud.ts` records, if that module stores anything, or if the server gains a second
   outbound address or a log line.
 
+## The first real call
+
+Production, `https://weave.regencommons.com`, built-in browser (Chromium), 23 November 2026, from
+a script on the app's own page, sent the way the app sends a recording.
+
+- `GET /api/transcribe` answered `{"enabled":true,"maxSeconds":180,"maxBytes":3000000}`.
+- A 2.6-second clip of a synthetic voice saying one invented sentence, 3,115 bytes of WebM with
+  Opus, was posted with `Content-Type: audio/webm`, `x-weave-speech-agreement: cloud`,
+  `x-weave-speech-language: en-US` and no cookie. The answer came in 1.49 seconds: status 200,
+  `{"text":"We are River Keepers, based in Nairobi."}`, which is the sentence word for word, with
+  its capitals and punctuation. `Cache-Control: no-store`, and no cookie was set.
+- Without the agreement header the same address answered 403 `agreement_required`, and with JSON
+  in place of audio 415 `audio_required`. Neither reaches Cloudflare.
+
+What this shows: the deployed function, the settings, Cloudflare's Whisper and WebM with Opus
+work together for a short English clip. What it does not show is below. That nothing is kept
+rests on the code, which stores and logs nothing and is held to that by a test, and on
+Cloudflare's own statement; nobody looked at Vercel's or Cloudflare's logs. Vercel's request log
+records that a request was made, its address, status and duration, as for any request.
+
 ## Not proven
 
-- **Cloudflare itself.** No request has reached it. Its model page documents `audio` as a base64
-  string and names no audio format, so whether it takes WebM with Opus from Chrome and Firefox and
-  MP4 with AAC from Safari must be tried with the account.
-- **Quality.** How well Whisper turns each language into text, Swahili above all. Cloudflare
+- **The real Talk It Out flow in a browser without speech recognition.** The call above was a
+  script, because the built-in browser has speech recognition and is never offered cloud speech.
+  Firefox on a computer and on Android is the check to make by hand, with the steps below.
+- **Other formats and lengths.** MP4 with AAC and Ogg with Opus were not sent, nor a recording of
+  minutes.
+- **Quality.** One short English sentence in a clear synthetic voice came back exactly. Other
+  languages, Swahili above all, real voices, accents and noise were not tried. Cloudflare
   publishes no figure for any language.
-- **A real phone, Firefox and Safari.** Only headless Chrome with its speech recognition removed
-  was run.
-- **A deployed function.** `/api/transcribe` has not answered from a Vercel preview with the
-  secrets set. Vercel's 4.5 MB request limit is why one recording is capped at 3 MB.
+- **A real phone and Safari.** Only headless Chrome with its speech recognition removed ran the
+  page's own flow, against the stand-in.
 - **A screen reader's speech.**
 
 ## Switching it on
 
 One request takes up to 50 seconds on the server (20 for the recording to arrive, 30 for the
-provider). Since 23 November 2026 `/api/transcribe` runs in the shared `api/router.ts` function,
-which `vercel.json` gives `"maxDuration": 60`, so no setting is needed here. A shorter limit would
-make a long recording fail with a true message and nothing worse.
+provider). `/api/transcribe` is served by the app's one router function, whose time limit in
+`vercel.json` is 60 seconds.
 
-A Vercel preview behind deployment protection is likely to refuse the page's own requests to
-`/api/transcribe`, which carry no cookie, so try it on a deployment without protection.
+A deployment behind Vercel's deployment protection is likely to refuse the page's own requests to
+`/api/transcribe`, which carry no cookie, so try it on one without protection.
 
 Three settings in the Weave Vercel project, and nothing else:
 
