@@ -932,3 +932,17 @@ A program the rubric cannot assess still says Fit not assessed. Each floor sits 
 **The line under the filters.** "771 funds." over "Checked on 16 November 2026.", as short as Initiatives' own line; filtered, "42 of 771 funds." It no longer counts funders or says that fit is worked out from keywords, which the fit line explains where it is used.
 
 Not done: the maker asked why Change Funding Details, at the foot of the page, is not a set of filters. Three options are with the maker, and the section stays as it is until they choose.
+
+## DL-131: Funding details sit beside the initiative and open in a dialog
+
+**Status:** user decision, 22 November 2026, from three rendered options. The maker asked why Change Funding Details, at the foot of Funding, was not a set of filters. Amends DL-118 and DL-129.
+
+The section sat after the whole list, and the list now fills in as its end comes near, so in practice nobody reached it. The catalog also cannot back these as filters: on 22 November 2026, 31% of the 730 programs stated an award, 20% listed the countries they fund work in, and applicant types were free text, with 135 rules the matcher can check. A filter on any of them would hide funds for what they do not say, which is an eligibility decision the app does not make.
+
+Three options were rendered on the real catalog: the details as filters (Where you work, Who is applying, Amount), each hiding only funds whose own terms rule the person out; the details beside the initiative with a dialog to edit them; and the details moved to Your Initiative, with a link from Funding. The maker chose the second.
+
+- Under "Showing what fits **Seed Commons Valley**." one line sums up the details, such as "Works in Kenya and Uganda. Based in Kenya. Nonprofit. Looking for USD 10,000 to 50,000.", or "No details for funding yet." Edit Details sits beside Change Initiative and opens Details For Funding, the system's task dialog. It is there only while a checked initiative is compared, so not while browsing with No initiative.
+- The dialog asks in plain words: Where you work, Where the people you serve live, Where you are based, Where you are registered, Who is applying (chips), and the amount looked for, From, Up to and Currency. Countries are written by name, with the browser's list of names to pick from, and codes still work; the card keeps codes as before. The two US state questions appear only once the United States is among the countries.
+- The details never hide a fund. They tell the matcher which funds may not take the initiative and order equal fits, as before. The dialog says so.
+- Save Details checks the details and closes; Close leaves them as they were. A problem is written in the hint's line of the field it is about, as an alert, and that field takes the focus (DL-127). The words being changed stay in the dialog, not on the card, because the card's form holds codes and the dialog holds names.
+- Funding types you would consider is gone: Kind of funding already filters by type. A card that stored a choice keeps it, but the matcher no longer reads it, since nothing on screen shows or changes it.

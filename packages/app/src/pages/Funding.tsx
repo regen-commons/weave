@@ -16,6 +16,7 @@ import {
   type FundingFilters as Filters,
 } from "../funding/select.ts";
 import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../funding/subject.ts";
+import { detailsLine } from "../funding/details.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
 import { useSocial } from "../social/context.tsx";
@@ -55,6 +56,9 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const subject = fundingSubject(draft, useListedDrafts());
   const comparing = catalog.subjectKnown ? subjectLine(subject, browsing) : null;
   const subjectChoices = subjectOptions(subject);
+  // The initiative's details for funding sit beside its name and open in a dialog (DL-131).
+  const detailed = !browsing && !!subject.current?.checked && !!draft.confirmed;
+  const [editing, setEditing] = useState(false);
   const openInTab = useOpenDraft();
   const social = useSocial();
   // The initiative last picked in Change Initiative, while it opens. The menu marks it at once, as the
@@ -199,30 +203,50 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             reserve="Checked on 00 November 0000."
             onClear={() => setFilters(emptyFundingFilters)}
           />
-          {/* Which initiative the fit is for, said right above the cards it orders. The menu changes to
-              another initiative at once, and the details at the foot of the page follow, or to No
-              initiative, for browsing without fit (DL-129). */}
+          {/* Which initiative the fit is for, said right above the cards it orders, with its details for
+              funding under its name. The menu changes to another initiative at once, and the details
+              follow, or to No initiative, for browsing without fit (DL-129, DL-131). */}
           {comparing && (
             <StatusLine
               actions={
-                subjectChoices.length > 0 && (
-                  <RadioMenu
-                    label={subject.current && !browsing ? "Change Initiative" : "Choose Initiative"}
-                    legend="Show what fits"
-                    size="sm"
-                    align="end"
-                    options={subjectChoices}
-                    value={browsing ? NO_INITIATIVE : (chosen ?? subject.current?.id)}
-                    onChange={choose}
-                  />
-                )
+                <>
+                  {subjectChoices.length > 0 && (
+                    <RadioMenu
+                      label={subject.current && !browsing ? "Change Initiative" : "Choose Initiative"}
+                      legend="Show what fits"
+                      size="sm"
+                      align="end"
+                      options={subjectChoices}
+                      value={browsing ? NO_INITIATIVE : (chosen ?? subject.current?.id)}
+                      onChange={choose}
+                    />
+                  )}
+                  {detailed && (
+                    <button
+                      className="rc-button"
+                      data-variant="secondary"
+                      data-size="sm"
+                      type="button"
+                      onClick={() => setEditing(true)}
+                    >
+                      Edit Details
+                    </button>
+                  )}
+                </>
               }
             >
               {comparing.before}
               {comparing.name && <strong>{comparing.name}</strong>}
               {comparing.after}
+              {detailed && (
+                <>
+                  <br />
+                  <span className="rc-meta">{detailsLine(draft.funding.form) ?? "No details for funding yet."}</span>
+                </>
+              )}
             </StatusLine>
           )}
+          {detailed && <FundingProfile open={editing} onClose={() => setEditing(false)} />}
           {changeProblem && (
             <p className="rc-notice" data-tone="warning" role="alert">
               {changeProblem}
@@ -292,7 +316,6 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           {import.meta.env.DEV && example && !loading && <SuggestFund />}
         </>
       )}
-      {!browsing && <FundingProfile />}
     </ListLayout>
   );
 }
