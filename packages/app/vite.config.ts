@@ -13,6 +13,7 @@ import {
 import { VitePWA } from "vite-plugin-pwa";
 import { previewSecurityHeaders } from "./dev/security-headers.ts";
 import { answerApiRequest, type LoadEntry } from "./dev/api-bridge.ts";
+import { firstPage } from "./dev/first-page.ts";
 import { fontPreloads } from "./dev/font-preloads.ts";
 import { linkPreviews } from "./dev/link-previews.ts";
 import { firstFunds } from "./dev/first-funds.ts";
@@ -114,8 +115,9 @@ export default defineConfig(({ mode }) => {
       apiRoutes(),
       // Funding's first cards, built in from the catalog so they show with the page.
       firstFunds(),
-      // After the preloads and the theme colours, so each section's copy of index.html carries them too.
-      ...(prototype ? [] : [fontPreloads(), themeColor(), linkPreviews()]),
+      // After the preloads, the theme colours and the first-page script, so each section's copy of
+      // index.html carries them too.
+      ...(prototype ? [] : [fontPreloads(), themeColor(), firstPage(), linkPreviews()]),
       ...(prototype ? [] : [VitePWA({
         registerType: "autoUpdate",
         injectRegister: "script",
