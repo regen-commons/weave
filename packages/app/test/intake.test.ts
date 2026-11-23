@@ -352,11 +352,11 @@ test("comma-separated asks preserve numeric punctuation and explicit offers neve
   const mixed = chunksFrom("We offer tools; We need seedlings; A workshop", crypto.randomUUID());
   assert.deepEqual(
     keywordExtraction(mixed, "needs").items.map((item) => item.value.title),
-    ["We need seedlings", "A workshop"],
+    ["Seedlings", "A workshop"],
   );
   assert.deepEqual(
     keywordExtraction(mixed, "offers").items.map((item) => item.value.title),
-    ["We offer tools", "A workshop"],
+    ["Tools", "A workshop"],
   );
 });
 test("model extraction rejects invented or repeated sources and excessive counts", () => {

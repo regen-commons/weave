@@ -7,6 +7,7 @@ import {
   type AskKind,
   type AskStep,
 } from "./contracts.ts";
+import { cardTitle } from "./spoken.ts";
 import { fingerprint, keptOnRebuild } from "./state.ts";
 /** `\w` in any script: a letter, mark, digit or underscore. JavaScript's `\w` and `\b` know only ASCII ones. */
 const WORD = String.raw`[\p{L}\p{M}\p{Nd}_]`;
@@ -114,13 +115,15 @@ export function keywordExtraction(chunks: AskChunk[], kind: AskKind): AskExtract
   const items = matching.slice(0, ASK_LIMIT).map((chunk) => {
     const text = chunk.text;
     const capitalForms = suggestKinds(text);
+    // A card starts with a capital, as a label does, and leaves out the "we need" the list's
+    // heading already says. The rest is the person's words; a long card keeps more in its description.
+    const words = cardTitle(text);
     return {
       sourceKey: chunk.key,
       value: {
         ...EMPTY_ASK,
-        // A card's title starts with a capital, as a label does. The rest is the person's words.
-        title: text.slice(0, 140).replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase()),
-        description: text.slice(0, ASK_DESCRIPTION_LIMIT),
+        title: words.slice(0, 140),
+        description: words.slice(0, ASK_DESCRIPTION_LIMIT),
         capitalForms,
         placeScope: /\b(anywhere|online|remote|em qualquer lugar)\b/iu.test(text)
           ? ("anywhere" as const)
