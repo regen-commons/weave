@@ -8,8 +8,8 @@ import type { Information } from "./InformationDialog.tsx";
 const PAGES: readonly { name: RouteName; label: string }[] = [
   // Always a new card: the one in progress is reached from Your Initiatives.
   { name: "new-initiative", label: "Start An Initiative" },
-  { name: "initiatives", label: "Initiatives" },
   { name: "funding", label: "Funding" },
+  { name: "initiatives", label: "Initiatives" },
   { name: "your-initiatives", label: "Your Initiatives" },
 ];
 const INFORMATION: readonly { kind: Information; label: string }[] = [
@@ -27,20 +27,23 @@ const COMMONS_LINKS = [
 /**
  * Footer organism (`rc-footer`): the same on every page, without the link to the page the person is
  * on. Its list of Weave's pages repeats a phone's tab bar, so it is marked as that and not drawn
- * where the tab bar shows (DL-093).
+ * where the tab bar shows (DL-093). `from="wide"` leaves the whole footer out on a phone, where a
+ * page asks to feel like an app.
  */
 export function Footer({
   current,
+  from,
   onInformation,
   children,
 }: {
   current?: RouteName;
+  from?: "wide";
   onInformation: (value: Information) => void;
   /** Sits under the links, such as the example world's label in development. */
   children?: ReactNode;
 }) {
   return (
-    <footer className="rc-footer">
+    <footer className="rc-footer" data-from={from}>
       <div className="rc-footer-grid">
         <section data-repeats="tabs">
           <h2 className="rc-footer-title">Weave</h2>

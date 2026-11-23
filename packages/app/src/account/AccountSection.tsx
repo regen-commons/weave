@@ -1,3 +1,4 @@
+import { forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
@@ -143,6 +144,8 @@ export function AccountSection({
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();
             onSignInStart?.();
+            // This sign-in says nothing about project access, so none follows it (DL-137).
+            forgetProjectAccess(() => window.sessionStorage);
             void run(() => continueToCertified(controller, window.location.pathname,
               (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
               (target) => window.location.assign(target)));

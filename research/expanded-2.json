@@ -15,7 +15,7 @@
     "programs": [
       {
         "id": "federation-and-selected-charity-grantmaking-2024-policy",
-        "name": "Federation and selected-charity grantmaking — 2024 policy",
+        "name": "Federation and selected-charity grantmaking: 2024 policy",
         "instrument": "grant",
         "focus": [
           "Women and girls",
@@ -233,7 +233,7 @@
     "programs": [
       {
         "id": "abcmouse-english-free-learning-access",
-        "name": "ABCmouse English — free learning access (non-cash)",
+        "name": "ABCmouse English: free learning access (non-cash)",
         "instrument": "unknown",
         "focus": [
           "early childhood English learning",
@@ -582,7 +582,7 @@
     "programs": [
       {
         "id": "us-based-organization-grant-due-diligence-fy2024-reported-policy",
-        "name": "US-based organization grant due diligence — FY2024 reported policy",
+        "name": "US-based organization grant due diligence: FY2024 reported policy",
         "instrument": "grant",
         "focus": [
           "Human rights",
@@ -690,7 +690,7 @@
     "programs": [
       {
         "id": "vor-ort-vereint-2026-call-for-2027-projects",
-        "name": "Vor Ort vereint — 2026 call for 2027 projects",
+        "name": "Vor Ort vereint: 2026 call for 2027 projects",
         "instrument": "grant",
         "focus": [
           "community cohesion",
@@ -804,7 +804,7 @@
     "programs": [
       {
         "id": "great-apes-and-gibbons-grant-procedures-in2024-return",
-        "name": "Great Apes and Gibbons — grant procedures in 2024 return",
+        "name": "Great Apes and Gibbons: grant procedures in 2024 return",
         "instrument": "grant",
         "focus": [
           "ape conservation",
@@ -867,7 +867,7 @@
       },
       {
         "id": "social-justice-grant-procedures-in2024-return",
-        "name": "Social Justice — grant procedures in 2024 return",
+        "name": "Social Justice: grant procedures in 2024 return",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -1286,7 +1286,7 @@
     "programs": [
       {
         "id": "sdg-accelerator-fund-2024-cohort",
-        "name": "SDG Accelerator Fund — 2024 cohort",
+        "name": "SDG Accelerator Fund: 2024 cohort",
         "instrument": "grant",
         "focus": [
           "SDG innovation",
@@ -1395,7 +1395,7 @@
     "programs": [
       {
         "id": "battery-powered-information-paradox-fall-2025",
-        "name": "Battery Powered — Information Paradox, Fall 2025",
+        "name": "Battery Powered: Information Paradox, Fall 2025",
         "instrument": "grant",
         "focus": [
           "reliable information",
@@ -1779,7 +1779,7 @@
     "programs": [
       {
         "id": "respond-accelerator-energy-non-cash-2026-support-model",
-        "name": "RESPOND Accelerator Energy — non-cash 2026 support model",
+        "name": "RESPOND Accelerator Energy: non-cash 2026 support model",
         "instrument": "unknown",
         "focus": [
           "clean energy",
@@ -1976,7 +1976,7 @@
     "programs": [
       {
         "id": "bea-fund-2024-general-operating-cohort",
-        "name": "BEA Fund — 2024 general operating cohort",
+        "name": "BEA Fund: 2024 general operating cohort",
         "instrument": "grant",
         "focus": [
           "environmental justice",
@@ -2085,7 +2085,7 @@
     "programs": [
       {
         "id": "building-resilience-freshwater-ecosystems-2026",
-        "name": "Building Resilience — Freshwater Ecosystems 2026",
+        "name": "Building Resilience: Freshwater Ecosystems 2026",
         "instrument": "grant",
         "focus": [
           "freshwater ecosystems",
@@ -2297,7 +2297,7 @@
     "programs": [
       {
         "id": "leigh-day-llb-scholarship-2027-study-cohort",
-        "name": "Leigh Day LLB Scholarship — 2027 study cohort",
+        "name": "Leigh Day LLB Scholarship: 2027 study cohort",
         "instrument": "scholarship",
         "focus": [
           "law",
@@ -2532,7 +2532,7 @@
     "programs": [
       {
         "id": "paradigm-grant-co-founder-funding-network",
-        "name": "Paradigm Grant — co-founder funding network",
+        "name": "Paradigm Grant: co-founder funding network",
         "instrument": "grant",
         "focus": [
           "systems change",
@@ -2738,7 +2738,7 @@
     "programs": [
       {
         "id": "chw-partner-project-grants-fy2024-reported-policy",
-        "name": "CHW partner-project grants — FY2024 reported policy",
+        "name": "CHW partner-project grants: FY2024 reported policy",
         "instrument": "grant",
         "focus": [
           "children’s education",
@@ -2860,7 +2860,7 @@
     "programs": [
       {
         "id": "partner-funding-unsolicited-applications-paused",
-        "name": "Partner funding — unsolicited applications paused",
+        "name": "Partner funding",
         "instrument": "grant",
         "focus": [
           "refugee support",
@@ -3071,7 +3071,7 @@
     "programs": [
       {
         "id": "connected-grid-initiative-invitation-only-strategic-grants",
-        "name": "Connected Grid Initiative — invitation-only strategic grants",
+        "name": "Connected Grid Initiative: invitation-only strategic grants",
         "instrument": "grant",
         "focus": [
           "electricity transmission",
@@ -3639,7 +3639,7 @@
     "programs": [
       {
         "id": "community-fund-england-groundwork-administered-2026-27-closed",
-        "name": "Community Fund England — Groundwork administered 2026-27, closed",
+        "name": "Community Fund England: Groundwork administered 2026-27",
         "instrument": "grant",
         "focus": [
           "basic needs",
@@ -3723,7 +3723,7 @@
       },
       {
         "id": "a-place-to-belong-service-delivery-2026-closed",
-        "name": "A Place to Belong — Service Delivery 2026, closed",
+        "name": "A Place to Belong: Service Delivery 2026",
         "instrument": "grant",
         "focus": [
           "youth homelessness",
@@ -3809,7 +3809,7 @@
       },
       {
         "id": "a-place-to-belong-systemic-change-2026-closed",
-        "name": "A Place to Belong — Systemic Change 2026, closed",
+        "name": "A Place to Belong: Systemic Change 2026",
         "instrument": "grant",
         "focus": [
           "racial justice",
@@ -3881,7 +3881,7 @@
       },
       {
         "id": "community-justice-fund-2024-call-closed",
-        "name": "Community Justice Fund — 2024 call, closed",
+        "name": "Community Justice Fund: 2024 call",
         "instrument": "grant",
         "focus": [
           "racial justice",
@@ -3952,7 +3952,7 @@
       },
       {
         "id": "gender-justice-fund-sierra-leone-direct-2024-closed",
-        "name": "Gender Justice Fund — Sierra Leone Direct 2024, closed",
+        "name": "Gender Justice Fund: Sierra Leone Direct 2024",
         "instrument": "grant",
         "focus": [
           "gender justice",
@@ -4029,7 +4029,7 @@
       },
       {
         "id": "gender-justice-fund-sierra-leone-intermediary-2024-closed",
-        "name": "Gender Justice Fund — Sierra Leone Intermediary 2024, closed",
+        "name": "Gender Justice Fund: Sierra Leone Intermediary 2024",
         "instrument": "grant",
         "focus": [
           "gender justice",
@@ -4193,7 +4193,7 @@
     "programs": [
       {
         "id": "benito-mass-scholarships-2026",
-        "name": "Benito Massó Scholarships — 2026",
+        "name": "Benito Massó Scholarships: 2026",
         "instrument": "scholarship",
         "focus": [
           "Afrodescendant education",
@@ -4300,7 +4300,7 @@
     "programs": [
       {
         "id": "free-to-play-first-national-round-2026",
-        "name": "Free to Play — first national round 2026",
+        "name": "Free to Play: first national round 2026",
         "instrument": "grant",
         "focus": [
           "children’s outdoor play",
@@ -4424,7 +4424,7 @@
     "programs": [
       {
         "id": "cmi-2-0-member-administered-funding-types-2021-25",
-        "name": "CMI! 2.0 — member-administered funding types, 2021–25",
+        "name": "CMI! 2.0: member-administered funding types, 2021–25",
         "instrument": "grant",
         "focus": [
           "gender justice",
@@ -4552,7 +4552,7 @@
     "programs": [
       {
         "id": "dalan-fund-resource-distribution-intake",
-        "name": "Dalan Fund — resource distribution intake",
+        "name": "Dalan Fund: resource distribution intake",
         "instrument": "grant",
         "focus": [
           "feminist organizing",
@@ -4650,7 +4650,7 @@
     "programs": [
       {
         "id": "rebuild-india-fund-recommended-grassroots-ngos",
-        "name": "Rebuild India Fund — recommended grassroots NGOs",
+        "name": "Rebuild India Fund: recommended grassroots NGOs",
         "instrument": "grant",
         "focus": [
           "grassroots leadership",
@@ -4765,7 +4765,7 @@
     "programs": [
       {
         "id": "youth-mental-health-fund-2026-2027-invited-rfps",
-        "name": "Youth Mental Health Fund — 2026–2027 invited RFPs",
+        "name": "Youth Mental Health Fund: 2026–2027 invited RFPs",
         "instrument": "grant",
         "focus": [
           "culturally responsive mental health",
@@ -4831,7 +4831,7 @@
       },
       {
         "id": "national-truth-and-healing-fund-not-yet-launched",
-        "name": "National Truth and Healing Fund — not yet launched",
+        "name": "National Truth and Healing Fund",
         "instrument": "grant",
         "focus": [
           "Native American boarding-school truth",
@@ -4896,7 +4896,7 @@
       },
       {
         "id": "california-tribal-land-return-applications-closed",
-        "name": "California Tribal Land Return — applications closed",
+        "name": "California Tribal Land Return",
         "instrument": "grant",
         "focus": [
           "Tribal land rematriation",
@@ -5718,7 +5718,7 @@
     "programs": [
       {
         "id": "public-options-initiatives-2023-rfp-for-2024-work",
-        "name": "Public Options Initiatives — 2023 RFP for 2024 work",
+        "name": "Public Options Initiatives: 2023 RFP for 2024 work",
         "instrument": "grant",
         "focus": [
           "public options",
@@ -6117,7 +6117,7 @@
     "programs": [
       {
         "id": "migros-pioneer-fund-scouted-project-partnerships",
-        "name": "Migros Pioneer Fund — scouted project partnerships",
+        "name": "Migros Pioneer Fund: scouted project partnerships",
         "instrument": "grant",
         "focus": [
           "social innovation",
@@ -6333,7 +6333,7 @@
     "programs": [
       {
         "id": "equation-campaign-frontline-fossil-fuel-resistance-grants",
-        "name": "Equation Campaign — frontline fossil-fuel resistance grants",
+        "name": "Equation Campaign: frontline fossil-fuel resistance grants",
         "instrument": "grant",
         "focus": [
           "climate justice",
@@ -6574,7 +6574,7 @@
     "programs": [
       {
         "id": "culture-helps-solidarity-collaboration-grants-first-2026-call",
-        "name": "Culture Helps Solidarity collaboration grants — first 2026 call",
+        "name": "Culture Helps Solidarity collaboration grants: first 2026 call",
         "instrument": "grant",
         "focus": [
           "Cultural access",
@@ -6790,7 +6790,7 @@
     "programs": [
       {
         "id": "agroecology-collaborative-grants-invitation-and-network-policy",
-        "name": "Agroecology collaborative grants — invitation and network policy",
+        "name": "Agroecology collaborative grants: invitation and network policy",
         "instrument": "grant",
         "focus": [
           "agroecology",
@@ -6909,7 +6909,7 @@
     "programs": [
       {
         "id": "healing-illinois-2026-2027-cycle",
-        "name": "Healing Illinois — 2026–2027 cycle",
+        "name": "Healing Illinois: 2026–2027 cycle",
         "instrument": "grant",
         "focus": [
           "racial healing",
@@ -7354,7 +7354,7 @@
     "programs": [
       {
         "id": "beni-confiscati-alle-mafie-2026-initiative",
-        "name": "Beni confiscati alle mafie — 2026 initiative",
+        "name": "Beni confiscati alle mafie: 2026 initiative",
         "instrument": "grant",
         "focus": [
           "community assets",
@@ -7463,7 +7463,7 @@
     "programs": [
       {
         "id": "programa-de-apoyos-directos-pad-2026",
-        "name": "Programa de Apoyos Directos — PAD 2026",
+        "name": "Programa de Apoyos Directos: PAD 2026",
         "instrument": "grant",
         "focus": [
           "Indigenous collective rights",
@@ -7705,7 +7705,7 @@
     "programs": [
       {
         "id": "foundation-grants-preselected-only-policy-in2024-return",
-        "name": "Foundation grants — preselected-only policy in 2024 return",
+        "name": "Foundation grants: preselected-only policy in 2024 return",
         "instrument": "grant",
         "focus": [
           "youth development",
@@ -7917,7 +7917,7 @@
     "programs": [
       {
         "id": "frida-eighth-call-2022-historical-policy",
-        "name": "FRIDA eighth call — 2022 historical policy",
+        "name": "FRIDA eighth call: 2022 historical policy",
         "instrument": "grant",
         "focus": [
           "young feminist organizing",
@@ -8085,7 +8085,7 @@
     "programs": [
       {
         "id": "regi-n-plateada-co-funded-2024-acceleration-financing-round",
-        "name": "Región Plateada — co-funded 2024 acceleration/financing round",
+        "name": "Región Plateada: co-funded 2024 acceleration/financing round",
         "instrument": "grant",
         "focus": [
           "older-adult care innovation",
@@ -8209,7 +8209,7 @@
     "programs": [
       {
         "id": "fondo-oriri-co-founded-fund-cohortiv2026-closed",
-        "name": "Fondo Oriri — co-founded fund Cohort IV 2026, closed",
+        "name": "Fondo Oriri: co-founded fund Cohort IV 2026",
         "instrument": "mixed",
         "focus": [
           "education",
@@ -8448,7 +8448,7 @@
     "programs": [
       {
         "id": "chamada-simplificada-apoio-direto-a-iniciativas-comunit-rias-2026",
-        "name": "Chamada Simplificada — Apoio Direto a Iniciativas Comunitárias 2026",
+        "name": "Chamada Simplificada: Apoio Direto a Iniciativas Comunitárias 2026",
         "instrument": "grant",
         "focus": [
           "community-led environmental solutions",
@@ -8557,7 +8557,7 @@
     "programs": [
       {
         "id": "alliance-resourcing-access-through-partner-funds",
-        "name": "Alliance resourcing — access through partner funds",
+        "name": "Alliance resourcing: access through partner funds",
         "instrument": "grant",
         "focus": [
           "gender-just climate action",
@@ -9048,7 +9048,7 @@
     "programs": [
       {
         "id": "clima-collaboration-grassroots-international-relationship-funding",
-        "name": "CLIMA collaboration — Grassroots International relationship funding",
+        "name": "CLIMA collaboration: Grassroots International relationship funding",
         "instrument": "grant",
         "focus": [
           "grassroots climate justice",
@@ -9265,7 +9265,7 @@
     "programs": [
       {
         "id": "impact-on-urban-health-partnership-conversation",
-        "name": "Impact on Urban Health — partnership conversation",
+        "name": "Impact on Urban Health: partnership conversation",
         "instrument": "grant",
         "focus": [
           "children’s health",
@@ -9328,7 +9328,7 @@
       },
       {
         "id": "black-maternal-health-inequalities-2026-grant-cycle",
-        "name": "Black maternal health inequalities — 2026 grant cycle",
+        "name": "Black maternal health inequalities: 2026 grant cycle",
         "instrument": "grant",
         "focus": [
           "Black maternal health",
@@ -9553,7 +9553,7 @@
     "programs": [
       {
         "id": "justice-liberation-fund-2025-round",
-        "name": "Justice & Liberation Fund — 2025 round",
+        "name": "Justice & Liberation Fund: 2025 round",
         "instrument": "grant",
         "focus": [
           "Black movement building",
@@ -9968,7 +9968,7 @@
     "programs": [
       {
         "id": "nopalito-verde-fund-2024-2025-inaugural-cohort",
-        "name": "Nopalito Verde Fund — 2024–2025 inaugural cohort",
+        "name": "Nopalito Verde Fund: 2024–2025 inaugural cohort",
         "instrument": "grant",
         "focus": [
           "Latine environmental justice",
@@ -10380,7 +10380,7 @@
     "programs": [
       {
         "id": "impact-shakers-accelerator-late-2024-application-terms",
-        "name": "Impact Shakers Accelerator — late 2024 application terms",
+        "name": "Impact Shakers Accelerator: late 2024 application terms",
         "instrument": "investment",
         "focus": [
           "impact entrepreneurship"
@@ -10485,7 +10485,7 @@
     "programs": [
       {
         "id": "inclusiv-ccia-green-lending-historical-framework-funding-uncertain",
-        "name": "Inclusiv CCIA green lending — historical framework, funding uncertain",
+        "name": "Inclusiv CCIA green lending: historical framework",
         "instrument": "grant",
         "focus": [
           "community clean-energy lending",
@@ -10604,7 +10604,7 @@
     "programs": [
       {
         "id": "community-renewable-energy-support-mexican-cso2026-call-closed",
-        "name": "Community renewable energy support — Mexican CSO 2026 call, closed",
+        "name": "Community renewable energy support: Mexican CSO 2026 call",
         "instrument": "grant",
         "focus": [
           "community renewable energy",
@@ -10719,7 +10719,7 @@
     "programs": [
       {
         "id": "general-project-grants-year-round-letter-of-intent",
-        "name": "General project grants — year-round letter of intent",
+        "name": "General project grants: year-round letter of intent",
         "instrument": "grant",
         "focus": [
           "climate action",
@@ -10806,7 +10806,7 @@
       },
       {
         "id": "community-based-climate-adaptation-2026-call-closed",
-        "name": "Community-based climate adaptation — 2026 call, closed",
+        "name": "Community-based climate adaptation: 2026 call",
         "instrument": "grant",
         "focus": [
           "community-based adaptation",
@@ -10894,7 +10894,7 @@
       },
       {
         "id": "climate-and-economy-applied-research-2026-call-closed",
-        "name": "Climate and economy applied research — 2026 call, closed",
+        "name": "Climate and economy applied research: 2026 call",
         "instrument": "grant",
         "focus": [
           "applied climate-economics research",
@@ -11030,7 +11030,7 @@
     "programs": [
       {
         "id": "inter-pares-peter-gillespie-prize-2020",
-        "name": "Peter Gillespie Social Justice Award — 2020 non-cash prize (closed)",
+        "name": "Peter Gillespie Social Justice Award: 2020 non-cash prize",
         "instrument": "prize",
         "focus": [
           "social justice",
@@ -11175,7 +11175,7 @@
     "programs": [
       {
         "id": "independent-media-ukraine-moldova-and-armenia-2026",
-        "name": "Independent media — Ukraine, Moldova and Armenia 2026",
+        "name": "Independent media: Ukraine, Moldova and Armenia 2026",
         "instrument": "grant",
         "focus": [
           "independent journalism",
@@ -11286,7 +11286,7 @@
     "programs": [
       {
         "id": "seed-grants-2026-cycle",
-        "name": "SEED grants — 2026 cycle",
+        "name": "SEED grants: 2026 cycle",
         "instrument": "grant",
         "focus": [
           "Trans rights",
@@ -11403,7 +11403,7 @@
       },
       {
         "id": "thrive-grants-2026-cycle",
-        "name": "THRIVE grants — 2026 cycle",
+        "name": "THRIVE grants: 2026 cycle",
         "instrument": "grant",
         "focus": [
           "Trans rights",
@@ -11652,7 +11652,7 @@
     "programs": [
       {
         "id": "jdf-startup-accelerator-support-with-discretionary-funding",
-        "name": "JDF Startup Accelerator — support with discretionary funding",
+        "name": "JDF Startup Accelerator: support with discretionary funding",
         "instrument": "unknown",
         "focus": [
           "social entrepreneurship",
@@ -11933,7 +11933,7 @@
     "programs": [
       {
         "id": "joyce-foundation-general-grant-inquiries",
-        "name": "Joyce Foundation — general grant inquiries",
+        "name": "Joyce Foundation: general grant inquiries",
         "instrument": "grant",
         "focus": [
           "racial equity",
@@ -12054,7 +12054,7 @@
     "programs": [
       {
         "id": "katapult-ocean-seed-to-series-b-impact-investment",
-        "name": "Katapult Ocean — seed to Series B impact investment",
+        "name": "Katapult Ocean: seed to Series B impact investment",
         "instrument": "investment",
         "focus": [
           "ocean innovation",
@@ -12163,7 +12163,7 @@
     "programs": [
       {
         "id": "indigenous-women-s-flow-fund-selection-policy-described-in-2023",
-        "name": "Indigenous Women’s Flow Fund — selection policy described in 2023",
+        "name": "Indigenous Women’s Flow Fund: selection policy described in 2023",
         "instrument": "grant",
         "focus": [
           "Indigenous community self-determination",
@@ -12399,7 +12399,7 @@
     "programs": [
       {
         "id": "lkct-ethnic-women-leadership-access",
-        "name": "Ethnic Women’s Leadership — non-cash course access (availability unconfirmed)",
+        "name": "Ethnic Women’s Leadership: non-cash course access",
         "instrument": "unknown",
         "focus": [
           "ethnic women leadership",
@@ -12591,7 +12591,7 @@
     "programs": [
       {
         "id": "indigenous-women-s-fellowship-2027-cohort-v",
-        "name": "Indigenous Women’s Fellowship — 2027 Cohort V",
+        "name": "Indigenous Women’s Fellowship: 2027 Cohort V",
         "instrument": "fellowship",
         "focus": [
           "Indigenous women’s rights",
@@ -12905,7 +12905,7 @@
     "programs": [
       {
         "id": "core-grantmaking-2027-cycle-closed-2028-exploration",
-        "name": "Core Grantmaking — 2027 cycle closed, 2028 exploration",
+        "name": "Core Grantmaking: 2027 cycle",
         "instrument": "grant",
         "focus": [
           "US reparations movement",
@@ -12991,7 +12991,7 @@
       },
       {
         "id": "rapid-response-grantmaking-ongoing-exploration",
-        "name": "Rapid Response Grantmaking — ongoing exploration",
+        "name": "Rapid Response Grantmaking: ongoing exploration",
         "instrument": "grant",
         "focus": [
           "US reparations movement",
@@ -13122,7 +13122,7 @@
     "programs": [
       {
         "id": "good-place-to-live-new-beginnings-fund-2026",
-        "name": "Good Place to Live — New Beginnings Fund 2026",
+        "name": "Good Place to Live: New Beginnings Fund 2026",
         "instrument": "grant",
         "focus": [
           "homelessness prevention",
@@ -13231,7 +13231,7 @@
     "programs": [
       {
         "id": "charity-pot-uk-irish-published-guidelines-reopening-announced",
-        "name": "Charity Pot — UK/Irish published guidelines, reopening announced",
+        "name": "Charity Pot: UK/Irish published guidelines",
         "instrument": "grant",
         "focus": [
           "human rights",
@@ -13307,7 +13307,7 @@
       },
       {
         "id": "australia-charity-pot-applications-paused",
-        "name": "Australia Charity Pot — applications paused",
+        "name": "Australia Charity Pot",
         "instrument": "grant",
         "focus": [
           "human rights",
@@ -13745,7 +13745,7 @@
     "programs": [
       {
         "id": "masana-general-support-grants-2025-funding-model-description",
-        "name": "Masana general support grants — 2025 funding-model description",
+        "name": "Masana general support grants: 2025 funding-model description",
         "instrument": "grant",
         "focus": [
           "children’s wellbeing",
@@ -14093,7 +14093,7 @@
     "programs": [
       {
         "id": "minderoo-artist-fund-individual-artist-opportunities",
-        "name": "Minderoo Artist Fund — individual artist opportunities",
+        "name": "Minderoo Artist Fund: individual artist opportunities",
         "instrument": "grant",
         "focus": [
           "artistic practice",
@@ -14300,7 +14300,7 @@
     "programs": [
       {
         "id": "new-agents-2026-cohort",
-        "name": "New Agents — 2026 cohort",
+        "name": "New Agents: 2026 cohort",
         "instrument": "fellowship",
         "focus": [
           "arts practice",
@@ -14408,7 +14408,7 @@
     "programs": [
       {
         "id": "mosaic-2026-movement-infrastructure-grants",
-        "name": "Mosaic — 2026 movement infrastructure grants",
+        "name": "Mosaic: 2026 movement infrastructure grants",
         "instrument": "grant",
         "focus": [
           "environmental infrastructure",
@@ -14624,7 +14624,7 @@
     "programs": [
       {
         "id": "lego-play-box-development-2026-national-partner-recruitment",
-        "name": "LEGO play-box development — 2026 national partner recruitment",
+        "name": "LEGO play-box development: 2026 national partner recruitment",
         "instrument": "grant",
         "focus": [
           "children’s play",
@@ -14835,7 +14835,7 @@
     "programs": [
       {
         "id": "nebula-funded-iamo-audiovisual-residency-2025-closed",
-        "name": "Nebula-funded iAMO audiovisual residency — 2025, closed",
+        "name": "Nebula-funded iAMO audiovisual residency: 2025",
         "instrument": "fellowship",
         "focus": [
           "audiovisual script development",
@@ -15112,7 +15112,7 @@
       },
       {
         "id": "final-local-essex-county-funding-round-2027",
-        "name": "Final local Essex County funding round — 2027",
+        "name": "Final local Essex County funding round: 2027",
         "instrument": "grant",
         "focus": [
           "Community conservation",
@@ -15223,7 +15223,7 @@
     "programs": [
       {
         "id": "indigenous-guardianship-flexible-partnership-grant-policy",
-        "name": "Indigenous guardianship — flexible partnership grant policy",
+        "name": "Indigenous guardianship: flexible partnership grant policy",
         "instrument": "grant",
         "focus": [
           "Indigenous guardianship",
@@ -15532,7 +15532,7 @@
     "programs": [
       {
         "id": "seed-grant-2026",
-        "name": "Seed Grant — 2026",
+        "name": "Seed Grant: 2026",
         "instrument": "grant",
         "focus": [
           "organizational planning",
@@ -15642,7 +15642,7 @@
     "programs": [
       {
         "id": "osaf-grant-approval-and-reporting-fy2024-filed-policy",
-        "name": "OSAF grant approval and reporting — FY2024 filed policy",
+        "name": "OSAF grant approval and reporting: FY2024 filed policy",
         "instrument": "grant",
         "focus": [],
         "beneficiaries": [],
@@ -15753,7 +15753,7 @@
     "programs": [
       {
         "id": "grantmaking-relationship-based-access",
-        "name": "Grantmaking — relationship-based access",
+        "name": "Grantmaking: relationship-based access",
         "instrument": "grant",
         "focus": [
           "Water sanitation and hygiene",
@@ -15969,7 +15969,7 @@
     "programs": [
       {
         "id": "retail-partnerships-toronto-store",
-        "name": "Retail Partnerships — Toronto store",
+        "name": "Retail Partnerships: Toronto store",
         "instrument": "grant",
         "focus": [
           "local environmental action",
@@ -16571,7 +16571,7 @@
     "programs": [
       {
         "id": "porticus-partnership-grants-vienna-regional-record",
-        "name": "Porticus partnership grants — Vienna regional record",
+        "name": "Porticus partnership grants: Vienna regional record",
         "instrument": "grant",
         "focus": [
           "systems change"
@@ -16674,7 +16674,7 @@
     "programs": [
       {
         "id": "prolongar-garabatos-resource-access-2021",
-        "name": "Garabatos — free learning-resource access (2021; current access unconfirmed)",
+        "name": "Garabatos: free learning-resource access (2021)",
         "instrument": "unknown",
         "focus": [
           "arts-based learning",
@@ -16824,7 +16824,7 @@
     "programs": [
       {
         "id": "pinf-covid-19-emergency-fund-historical-policy",
-        "name": "PINF COVID-19 Emergency Fund — historical policy",
+        "name": "PINF COVID-19 Emergency Fund: historical policy",
         "instrument": "grant",
         "focus": [
           "independent local journalism"
@@ -16929,7 +16929,7 @@
     "programs": [
       {
         "id": "alborada-ventures-2025-migrant-integration-financing",
-        "name": "Alborada Ventures — 2025 migrant-integration financing",
+        "name": "Alborada Ventures: 2025 migrant-integration financing",
         "instrument": "mixed",
         "focus": [
           "migrant economic inclusion",
@@ -17040,7 +17040,7 @@
     "programs": [
       {
         "id": "rawa-general-grants-2025-2026-pilot",
-        "name": "Rawa General Grants — 2025–2026 pilot",
+        "name": "Rawa General Grants: 2025–2026 pilot",
         "instrument": "grant",
         "focus": [
           "Palestinian community initiatives"
@@ -17103,7 +17103,7 @@
       },
       {
         "id": "rawa-gaza-emergency-grants-2025-2026-pilot",
-        "name": "Rawa Gaza Emergency Grants — 2025–2026 pilot",
+        "name": "Rawa Gaza Emergency Grants: 2025–2026 pilot",
         "instrument": "grant",
         "focus": [
           "Gaza community relief"
@@ -17208,7 +17208,7 @@
     "programs": [
       {
         "id": "blossom-nominated-regenerative-hubs",
-        "name": "Blossom — nominated regenerative hubs",
+        "name": "Blossom: nominated regenerative hubs",
         "instrument": "grant",
         "focus": [
           "regenerative practices",
@@ -17534,7 +17534,7 @@
     "programs": [
       {
         "id": "roddenberry-grant-programs-availability",
-        "name": "Roddenberry grant programs — availability",
+        "name": "Roddenberry grant programs",
         "instrument": "grant",
         "focus": [
           "Bold social ideas"
@@ -17637,7 +17637,7 @@
     "programs": [
       {
         "id": "southeast-us-farmer-grants-infrastructure-2026",
-        "name": "Southeast US Farmer Grants — Infrastructure 2026",
+        "name": "Southeast US Farmer Grants: Infrastructure 2026",
         "instrument": "grant",
         "focus": [
           "farm infrastructure",
@@ -18179,7 +18179,7 @@
     "programs": [
       {
         "id": "liberia-feminist-agroecology-and-community-forests-2026",
-        "name": "Liberia — Feminist Agroecology and Community Forests 2026",
+        "name": "Liberia: Feminist Agroecology and Community Forests 2026",
         "instrument": "grant",
         "focus": [
           "feminist agroecology",
@@ -18307,7 +18307,7 @@
     "programs": [
       {
         "id": "kim-jackson-scholarship-anu-administered-2025-application",
-        "name": "Kim Jackson Scholarship — ANU-administered, 2025 application",
+        "name": "Kim Jackson Scholarship: ANU-administered, 2025 application",
         "instrument": "scholarship",
         "focus": [
           "engineering education",
@@ -18416,7 +18416,7 @@
     "programs": [
       {
         "id": "women-s-urgent-support-fund-round-2-2024",
-        "name": "Women’s Urgent Support Fund — Round 2, 2024",
+        "name": "Women’s Urgent Support Fund: Round 2, 2024",
         "instrument": "grant",
         "focus": [
           "gendered poverty",
@@ -18666,7 +18666,7 @@
     "programs": [
       {
         "id": "sat-cfp1-2008-agricultural-small-grants",
-        "name": "CFP1/2008 agricultural small grants — closed 8 December 2008",
+        "name": "CFP1/2008 agricultural small grants: closed 8 December 2008",
         "instrument": "grant",
         "focus": [
           "food production",
@@ -18812,7 +18812,7 @@
     "programs": [
       {
         "id": "solidarity-fund-2025-response",
-        "name": "Solidarity Fund — 2025 response",
+        "name": "Solidarity Fund: 2025 response",
         "instrument": "grant",
         "focus": [
           "Humanitarian continuity"
@@ -19302,7 +19302,7 @@
     "programs": [
       {
         "id": "tiet-merit-cum-means-normal-scholarship-2026-27",
-        "name": "TIET Merit-cum-Means Normal scholarship — 2026–27",
+        "name": "TIET Merit-cum-Means Normal scholarship: 2026–27",
         "instrument": "scholarship",
         "focus": [
           "higher education",
@@ -19723,7 +19723,7 @@
     "programs": [
       {
         "id": "scale-up-impact-ngo-partner-expansion-support",
-        "name": "Scale Up Impact — NGO partner expansion support",
+        "name": "Scale Up Impact: NGO partner expansion support",
         "instrument": "grant",
         "focus": [
           "early childhood development",
@@ -19957,7 +19957,7 @@
       },
       {
         "id": "seabury-community-grants-chicago",
-        "name": "Seabury Community Grants — Chicago",
+        "name": "Seabury Community Grants: Chicago",
         "instrument": "grant",
         "focus": [
           "education",
@@ -20021,7 +20021,7 @@
       },
       {
         "id": "seabury-community-grants-benzie-county",
-        "name": "Seabury Community Grants — Benzie County",
+        "name": "Seabury Community Grants: Benzie County",
         "instrument": "grant",
         "focus": [
           "education",
@@ -20320,7 +20320,7 @@
     "programs": [
       {
         "id": "tci-fellowship-host-organization-grants",
-        "name": "TCI Fellowship — host-organization grants",
+        "name": "TCI Fellowship: host-organization grants",
         "instrument": "fellowship",
         "focus": [
           "environmental rights",
@@ -20428,7 +20428,7 @@
     "programs": [
       {
         "id": "obsaa-fund-round-1-2026",
-        "name": "OBSAA Fund — Round 1, 2026",
+        "name": "OBSAA Fund: Round 1, 2026",
         "instrument": "grant",
         "focus": [
           "LGBTIQ+ rights",
@@ -20551,7 +20551,7 @@
     "programs": [
       {
         "id": "youth-climate-fund-for-zero-waste-2024-call",
-        "name": "Youth Climate Fund for Zero Waste — 2024 call",
+        "name": "Youth Climate Fund for Zero Waste: 2024 call",
         "instrument": "grant",
         "focus": [
           "environmental justice",
@@ -21962,7 +21962,7 @@
     "programs": [
       {
         "id": "wela-giving-circle-2026-round",
-        "name": "WELA Giving Circle — 2026 round",
+        "name": "WELA Giving Circle: 2026 round",
         "instrument": "grant",
         "focus": [
           "women and gender-diverse environmental leadership",

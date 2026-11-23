@@ -39,13 +39,34 @@ export function choiceLabel(option: SubjectChoice): string {
   return option.checked ? option.name : `${option.name}, not checked yet`;
 }
 
+/** The menu's value for looking at funding without comparing any initiative with it. */
+export const NO_INITIATIVE = "none";
+
+/**
+ * What Change Initiative offers: every initiative to pick from and, while a checked one can be
+ * compared, No initiative, for someone who only wants to browse. Empty where there is no menu.
+ */
+export function subjectOptions(subject: FundingSubject): { value: string; label: string }[] {
+  const { current, choices } = subject;
+  const initiatives = choices.length ? choices : current ? [current] : [];
+  const options = initiatives.map((option) => ({ value: option.id, label: choiceLabel(option) }));
+  if (!current?.checked) return choices.length ? options : [];
+  return [...options, { value: NO_INITIATIVE, label: "No initiative" }];
+}
+
 /**
  * The sentence above the list, in three parts so the page can set the name apart. Null when there
  * is nothing to say: no initiative here and none to choose, or one unchecked initiative, which the
- * page's own prompt already asks the person to finish.
+ * page's own prompt already asks the person to finish. While someone browses without an
+ * initiative it says that fit is left out.
  */
-export function subjectLine(subject: FundingSubject): { before: string; name: string; after: string } | null {
+export function subjectLine(
+  subject: FundingSubject,
+  browsing = false,
+): { before: string; name: string; after: string } | null {
   const { current, choices } = subject;
+  if (browsing && current?.checked)
+    return { before: "No initiative chosen, so fit is not shown or sorted on.", name: "", after: "" };
   if (!current) return choices.length ? { before: "Choose an initiative to see what fits it.", name: "", after: "" } : null;
   if (current.checked) return { before: "Showing what fits ", name: current.name, after: "." };
   return choices.length ? { before: "", name: current.name, after: " is not checked yet, so funding is not ranked for it." } : null;

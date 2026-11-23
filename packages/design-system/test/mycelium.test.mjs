@@ -3,13 +3,19 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
   DEPTHS,
+  LINGER,
   TRAIL_FADE,
   depthFor,
   growMycelium,
   growsFromPointer,
   growsOnItsOwn,
   growsTrails,
+  inColumn,
   logoNetwork,
+  marginSpot,
+  QUIET_MARGIN,
+  QUIET_UNDER,
+  mouseAtRest,
   movedEnough,
   restDensity,
   restShare,
@@ -35,7 +41,9 @@ test("growth uses the website's depth 1 on Home and depth 2 everywhere else (DL-
   assert.deepEqual(DEPTHS[2], { reach: 60, forkRate: 0.015, opacity: 0.25, fadeRate: 0.0012 });
   assert.equal(depthFor(1), DEPTHS[1], "Home");
   for (const other of [2, 3, 0, undefined]) assert.equal(depthFor(other), DEPTHS[2], "every other page, whatever is asked for");
-  assert.equal(TRAIL_FADE, 0.035, "the website's fade fill");
+  // The website rubs out 0.035 a frame. The app's strands linger: a slower fade, a longer life (DL-128).
+  assert.ok(TRAIL_FADE > 0.015 && TRAIL_FADE < 0.035, `trails fade more slowly than the website's, not ${TRAIL_FADE}`);
+  assert.equal(LINGER, 2, "a tuft lives twice as long as the website's");
 });
 
 test("the resting network settles into the same light network for the same window", () => {
@@ -55,7 +63,9 @@ test("the resting network settles into the same light network for the same windo
 test("the resting network is light: a seed for each stretch of the window, reaching and forking as the website's do", () => {
   const wide = restDensity(1280, 800, DEPTHS[1]);
   const phone = restDensity(390, 844, DEPTHS[1]);
-  assert.ok(wide.seeds >= 16 && wide.seeds <= 26, `a desk's window holds about twenty seeds, not ${wide.seeds}`);
+  // A desk's window is as full as a phone's, not sparser (DL-128).
+  assert.ok(wide.seeds >= 32 && wide.seeds <= 42, `a desk's window holds about thirty-five seeds, not ${wide.seeds}`);
+  assert.ok(wide.seeds / (1280 * 800) >= phone.seeds / (390 * 844), "at least as close together as on a phone");
   assert.ok(phone.seeds >= 8 && phone.seeds <= 13, `a phone's holds about ten, so it is never blank, not ${phone.seeds}`);
   assert.equal(restDensity(120, 120).seeds, 4, "a small region still has a few");
   // Twice the window, twice the seeds: the window decides, not how long the page under it is.
@@ -132,31 +142,33 @@ test("a mouse or a finger leaves trails every 45 px, and never under reduced mot
   assert.equal(movedEnough({ x: 0, y: 0 }, { x: 27, y: 36 }), true, "in any direction");
 });
 
-test("without a mouse, tufts also grow on their own, never under reduced motion; with one, only moving grows them", () => {
-  assert.equal(growsOnItsOwn(false, false), true, "a phone grows tufts on its own");
-  assert.equal(growsOnItsOwn(false, true), false, "reduced motion keeps it at rest");
-  assert.equal(growsOnItsOwn(true, false), false, "a mouse grows them instead");
+test("tufts grow on their own on a phone and a desk, never under reduced motion, and wait while a mouse is moving", () => {
+  assert.equal(growsOnItsOwn(false), true, "a phone and a desk grow tufts on their own");
+  assert.equal(growsOnItsOwn(true), false, "reduced motion keeps it at rest");
+  assert.equal(mouseAtRest(Infinity), true, "no mouse has moved");
+  assert.equal(mouseAtRest(500), false, "a mouse that just moved grows them instead");
+  assert.equal(mouseAtRest(5000), true, "and once it rests they grow again");
 });
 
-test("a tuft is drawn at the website's strength and loses the website's share of it each frame", () => {
+test("a tuft is drawn at the website's strength and loses the website's share of it more slowly, so it lingers", () => {
   for (const depth of [DEPTHS[1], DEPTHS[2]]) {
     assert.equal(tuftStrength(0, depth), depth.opacity);
-    assert.ok(Math.abs(tuftStrength(10, depth) - (depth.opacity - 10 * depth.fadeRate)) < 1e-12);
-    const life = Math.ceil(depth.opacity / depth.fadeRate);
+    assert.ok(Math.abs(tuftStrength(10, depth) - (depth.opacity - (10 * depth.fadeRate) / LINGER)) < 1e-12);
+    const life = Math.ceil((depth.opacity / depth.fadeRate) * LINGER);
     assert.ok(tuftStrength(life - 2, depth) > 0);
     assert.equal(tuftStrength(life + 1, depth), 0);
     assert.equal(tuftStrength(life * 3, depth), 0, "and stays gone");
-    assert.ok(life > 120 && life < 240, "it lives two to four seconds");
+    assert.ok(life > 300 && life < 480, `it lives five to eight seconds, not ${life} frames`);
   }
 });
 
-test("trails fade by the website's share while anything grows, then faster, and are cleared so drawing can stop", () => {
+test("trails fade slowly while anything grows and for a while after, then faster, and are cleared so drawing can stop", () => {
   assert.equal(trailFade(0), TRAIL_FADE);
-  assert.equal(trailFade(60), TRAIL_FADE, "for a while after the last tuft, as on the website");
-  assert.ok(trailFade(120) > TRAIL_FADE * 3, "then the last of them goes faster, so no ghost stays");
-  assert.equal(trailsGone(60), false);
+  assert.equal(trailFade(120), TRAIL_FADE, "for a while after the last tuft, so a strand fades out slowly");
+  assert.ok(trailFade(160) > TRAIL_FADE * 3, "then the last of them goes faster, so no ghost stays");
   assert.equal(trailsGone(120), false);
-  assert.equal(trailsGone(200), true);
+  assert.equal(trailsGone(200), false);
+  assert.equal(trailsGone(260), true);
   // By the time they are cleared the quick fade has left under one part in 255 of them.
   let left = 1;
   for (let frame = 1; !trailsGone(frame); frame++) left *= 1 - trailFade(frame);
@@ -191,7 +203,7 @@ test("the logo grows threads from its centre in several colours, and rests the s
 });
 
 // A stand-in for a window, a document and a canvas: enough to run the growth a frame at a time.
-function stage({ width = 1280, height = 800, reducedMotion = false, finePointer = true, pixelRatio = 3 } = {}) {
+function stage({ width = 1280, height = 800, reducedMotion = false, finePointer = true, pixelRatio = 3, inset = 128 } = {}) {
   const media = {
     "(prefers-reduced-motion: reduce)": reducedMotion,
     "(hover: hover) and (pointer: fine)": finePointer,
@@ -230,7 +242,7 @@ function stage({ width = 1280, height = 800, reducedMotion = false, finePointer 
   const box = { left: 0, top: 0, right: width, bottom: height, width, height };
   const element = () => ({ width: 0, height: 0, getContext: context, getBoundingClientRect: () => box });
   const document = { defaultView: view, documentElement: {}, hidden: false, createElement: element, ...listening("document") };
-  const canvas = { ...element(), ownerDocument: document, parentElement: { getBoundingClientRect: () => box }, nextElementSibling: { getBoundingClientRect: () => ({ ...box, left: 128, right: width - 128 }) } };
+  const canvas = { ...element(), ownerDocument: document, parentElement: { getBoundingClientRect: () => box }, nextElementSibling: { getBoundingClientRect: () => ({ ...box, left: inset, right: width - inset }) } };
   /** Runs frames until none is asked for, and says how many ran. */
   const run = (limit = 2000) => {
     let frames = 0;
@@ -266,8 +278,8 @@ test("a mouse leaves a trail that is faded, never cleared and restored, and draw
   send("mousemove", { clientX: 300, clientY: 300 });
   assert.ok(view.frame, "a move over the page starts drawing");
   const life = run();
-  const longest = Math.ceil(DEPTHS[2].opacity / DEPTHS[2].fadeRate);
-  assert.ok(life > longest && life < longest + 200, `the tuft lives, its trail fades, and drawing stops: ${life} frames`);
+  const longest = Math.ceil((DEPTHS[2].opacity / DEPTHS[2].fadeRate) * LINGER);
+  assert.ok(life > longest && life < longest + 260, `the tuft lives, its trail fades, and drawing stops: ${life} frames`);
   assert.equal(view.frame, null, "nothing runs once the trail has gone");
   assert.ok(painted.operations.includes("destination-out"), "the trail was rubbed out a little each frame");
 
@@ -303,11 +315,20 @@ test("under reduced motion the resting network is drawn at once and nothing ever
   growth.dispose();
 });
 
-test("only where there is no mouse does a tuft grow on its own", () => {
+test("a tuft grows on its own on a desk too, but not while the mouse is growing them", () => {
   const desk = stage({ finePointer: true });
   const onDesk = growMycelium(desk.canvas);
   desk.run();
-  assert.equal(desk.view.timers.filter(Boolean).length, 0, "with a mouse nothing grows unasked");
+  const [waits] = desk.view.timers.filter(Boolean);
+  assert.ok(waits, "a desk waits to grow one, so a still window is not bare (DL-128)");
+  waits();
+  assert.ok(desk.view.frame, "and then grows it");
+  desk.run();
+  desk.send("mousemove", { clientX: 300, clientY: 300 });
+  desk.run();
+  const next = desk.view.timers.filter(Boolean).at(-1);
+  next();
+  assert.equal(desk.view.frame, null, "a mouse that has just moved grows them instead");
   onDesk.dispose();
 
   const phone = stage({ width: 390, height: 844, finePointer: false });
@@ -337,4 +358,47 @@ test("the page's growth never reads the screen's pixel ratio or keeps a picture 
   const [page, logo] = source.split("export function growLogoMark");
   assert.doesNotMatch(page.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ""), /devicePixelRatio|createImageBitmap|scrollY/);
   assert.match(logo, /devicePixelRatio/, "a brand mark this small is drawn sharp");
+});
+
+test("on a quiet page the resting network is quieter under the column, and new growth keeps to wide margins (DL-135)", () => {
+  const column = { left: 80, right: 1200 };
+  assert.ok(QUIET_UNDER < 0.45, "quieter than a page with nothing to fill in");
+  assert.equal(restShare(640, column, QUIET_UNDER), QUIET_UNDER);
+  assert.equal(restShare(40, column, QUIET_UNDER), 1, "whole in the margins");
+  assert.deepEqual(restStops(column, 1280, QUIET_UNDER).map(([, share]) => share), [1, QUIET_UNDER, QUIET_UNDER, 1]);
+  assert.equal(inColumn(640, column), true);
+  assert.equal(inColumn(40, column), false);
+  // A desk's margins hold a tuft; a phone's column runs to its edges and holds none.
+  for (const pick of [0, 0.25, 0.5, 0.75, 0.999]) {
+    const x = marginSpot(column, 1280, pick);
+    assert.ok(x !== null && !inColumn(x, column), `${pick} lands in a margin, at ${x}`);
+  }
+  assert.equal(marginSpot({ left: 0, right: 360 }, 360, 0.5), null, "a phone grows nothing new over its fields");
+  assert.equal(marginSpot({ left: QUIET_MARGIN - 1, right: 360 - QUIET_MARGIN + 1 }, 360, 0.5), null, "nor in a margin too narrow");
+  // A tuft's branches stop at the column's edge.
+  const branches = [];
+  const random = seededRandom(3);
+  const density = { reach: 60, forkRate: 0.015, limit: 24, avoid: column };
+  for (let i = 0; i < 6; i++) branches.push({ points: [76, 300 + i * 20], angle: 0, step: 1, width: 1, length: 80, generation: 0, colour: 0, growing: true });
+  settle(branches, 1280, 800, random, density);
+  for (const branch of branches) for (let i = 0; i < branch.points.length; i += 2) assert.ok(!inColumn(branch.points[i], column), "no point inside the column");
+});
+
+test("on a quiet page a mouse over the fields grows nothing, and one in the margin does", () => {
+  const { canvas, view, run, send } = stage({ inset: 80 });
+  const growth = growMycelium(canvas, { quiet: true });
+  run();
+  send("mousemove", { clientX: 640, clientY: 300 });
+  assert.equal(view.frame, null, "over the column");
+  send("mousemove", { clientX: 30, clientY: 300 });
+  assert.ok(view.frame, "in the margin");
+  growth.dispose();
+
+  const phone = stage({ width: 360, height: 780, finePointer: false, inset: 0 });
+  const onPhone = growMycelium(phone.canvas, { quiet: () => true });
+  phone.run();
+  const [grows] = phone.view.timers.filter(Boolean);
+  grows();
+  assert.equal(phone.view.frame, null, "a phone's form step grows nothing on its own");
+  onPhone.dispose();
 });

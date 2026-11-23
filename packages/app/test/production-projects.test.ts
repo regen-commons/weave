@@ -34,6 +34,14 @@ test("the request that leaves goes to the production list with the list's own pa
   assert.equal(productionProjectsUrl(new URL("http://localhost:5173/api/public-projects")).href, `${PUBLIC_ORIGIN}/api/public-projects`);
 });
 
+test("a record page's one-project lookup reaches production with its project address and nothing else", () => {
+  const uri = "at://did:plc:example/org.hypercerts.claim.collection/3k2abc";
+  const target = productionProjectsUrl(new URL(
+    `http://localhost:5173/api/public-projects?uri=${encodeURIComponent(uri)}&fixture=draft`));
+  assert.equal(target.pathname, "/api/public-projects");
+  assert.deepEqual([...target.searchParams.entries()], [["uri", uri]]);
+});
+
 test("no cookie, authorization or header of the browser's goes with it, and a redirect is not followed", async () => {
   const sent: { url: string; init: RequestInit | undefined }[] = [];
   const upstream: typeof fetch = async (input, init) => {

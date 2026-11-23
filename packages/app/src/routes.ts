@@ -17,7 +17,7 @@ export type RouteName =
   | "settings"
   | "team-workspace";
 /** The four tabs. A page inside one keeps that tab marked. */
-export type Section = "home" | "initiatives" | "funding" | "your-initiatives";
+export type Section = "home" | "funding" | "initiatives" | "your-initiatives";
 export interface Route {
   readonly name: RouteName;
   readonly path: string;
@@ -25,10 +25,19 @@ export interface Route {
   /** The short name navigation uses where the title is a sentence. */
   readonly label?: string;
   readonly form: boolean;
+  /**
+   * Where the footer shows. `"wide"` leaves it out on a phone, for a page that should feel like an
+   * app there: the steps of describing an initiative and the Your Initiatives tab. A wide screen
+   * keeps it on every page.
+   */
+  readonly footer?: "wide";
   readonly section?: Section;
   /** The page one level up, where the back link goes when the app does not know where the person came from. Tabs have none. */
   readonly parent?: RouteName;
-  /** Opens over the page the person is on: a sheet on phones, a dialog on wide screens. */
+  /**
+   * A record: opened from inside the app, it comes up over the page the person is on, a sheet on
+   * phones and a dialog on wide screens. Opened from a link, it is a page of its own (22 November 2026).
+   */
   readonly sheet?: boolean;
   readonly id?: string;
 }
@@ -47,6 +56,7 @@ export const ROUTES: readonly Route[] = [
     path: "/start/new",
     title: "Start An Initiative",
     form: true,
+    footer: "wide",
     parent: "home",
   },
   {
@@ -55,10 +65,11 @@ export const ROUTES: readonly Route[] = [
     title: "Tell Us About Your Initiative",
     label: "Describe Your Initiative",
     form: true,
+    footer: "wide",
     parent: "home",
   },
-  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, parent: "initiative" },
-  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, parent: "needs" },
+  { name: "needs", path: "/start/needs", title: "What You Need", form: true, footer: "wide", parent: "initiative" },
+  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, footer: "wide", parent: "needs" },
   {
     name: "your-initiative",
     path: "/your-initiative",
@@ -72,6 +83,7 @@ export const ROUTES: readonly Route[] = [
     path: "/your-initiatives",
     title: "Your Initiatives",
     form: false,
+    footer: "wide",
     section: "your-initiatives",
   },
   {
@@ -121,8 +133,9 @@ export const ROUTES: readonly Route[] = [
 ];
 export const INTAKE_STEPS = [
   { route: "initiative", label: "Initiative" },
-  { route: "needs", label: "Needs And Offers" },
-  { route: "your-initiative", label: "Funding And Partners" },
+  { route: "needs", label: "Needs" },
+  { route: "offers", label: "Offers" },
+  { route: "your-initiative", label: "Matches" },
 ] as const satisfies readonly { route: RouteName; label: string }[];
 /**
  * How a move between two pages is drawn on a phone (DL-094). A page deeper in is pushed on, the
@@ -225,27 +238,53 @@ export function nextVisit(here: string, visit: Visit | null, to: string, replace
   const stays = !!visit && !!current && !!next && (current.name === next.name || (!!current.sheet && !!next.sheet));
   return stays ? { from: visit.from, hops: visit.hops + 1 } : { from: here, hops: 1 };
 }
-/** The page under a sheet: the one it opened over, or its list when the sheet was opened from a link. */
-export function sheetBackground(route: Route, visit: Visit | null): { route: string; hops: number } {
+/**
+ * The page a record comes up over: the one it was opened from inside the app. A record opened from a
+ * link, a new tab or another record's own page has no page under it and is shown as a page itself
+ * (null), so a shared link reads as the record's own page, with a back link to its list.
+ */
+export function sheetBackground(_route: Route, visit: Visit | null): { route: string; hops: number } | null {
   const from = visit ? routeAt(visit.from) : undefined;
-  return visit && from && !from.sheet
-    ? { route: visit.from, hops: visit.hops }
-    : { route: pathTo(route.parent ?? "home"), hops: 0 };
+  return visit && from && !from.sheet ? { route: visit.from, hops: visit.hops } : null;
 }
 export interface BackTarget {
   readonly label: string;
   readonly href: string;
   /** History entries to step back, so the link and the back gesture agree. Zero opens `href` as a new page. */
   readonly hops: number;
+  /**
+   * With `hops` at zero, `href` takes this page's place in history instead of adding a page, so a
+   * step's way back never leaves the step it left one Back away.
+   */
+  readonly replace?: boolean;
+}
+/**
+ * The step before a step of describing an initiative, which is where its way back goes. None for
+ * the first step, and none for a page that is not one of the step pages.
+ */
+export function previousStep(route: Route): RouteName | null {
+  if (!route.form) return null;
+  const step = stepOf(route);
+  return step > 0 ? INTAKE_STEPS[step - 1]!.route : null;
 }
 /**
  * Where a page's back link goes: the page the person came from, otherwise one level up.
- * Tabs have no back link, and a sheet closes instead.
+ * Tabs have no back link. A record shown over a page closes instead, and that page keeps its own
+ * link, so a record reaches this only when it is shown as a page. The steps of describing an
+ * initiative follow one another, so a later step goes back to the step before it, whichever page
+ * the person came from: back through history when that step is the page before, otherwise in this
+ * page's place. The first step goes back to where the person came from, never on into the steps.
  */
 export function backTarget(route: Route | undefined, visit: Visit | null): BackTarget | null {
-  if (!route?.parent || route.sheet) return null;
+  if (!route?.parent) return null;
   const from = visit ? routeAt(visit.from) : undefined;
-  if (visit && from && from.name !== route.name) {
+  const before = previousStep(route);
+  if (before)
+    return visit && from?.name === before
+      ? { label: navLabel(before), href: visit.from, hops: visit.hops }
+      : { label: navLabel(before), href: pathTo(before), hops: 0, replace: true };
+  const later = route.form && !!from?.form && stepOf(from) > stepOf(route);
+  if (visit && from && from.name !== route.name && !later) {
     // Going back to a sheet lands on the page under it, so the link names that page.
     return { label: navLabel(from.sheet && from.parent ? from.parent : from.name), href: visit.from, hops: visit.hops };
   }
@@ -258,12 +297,13 @@ export interface Crumb {
 /**
  * The pages above a page, outermost first, for the breadcrumb trail a wide screen shows in place
  * of the app bar's back link (DL-080). It follows the route table, not the way the person came,
- * so the trail is the same on every visit. Tabs and sheets have none. Nor do the steps of
+ * so the trail is the same on every visit. Tabs have none, and a record has one only when it is a
+ * page of its own: over a page it is a dialog, and the trail is the page's. Nor do the steps of
  * describing an initiative: they follow one another, they are not pages inside one another, and the
  * step bar above their titles already says where the person is.
  */
 export function breadcrumbTrail(route: Route | undefined): Crumb[] {
-  if (!route?.parent || route.sheet || route.form) return [];
+  if (!route?.parent || route.form) return [];
   const trail: Crumb[] = [];
   const seen = new Set<RouteName>([route.name]);
   for (let name: RouteName | undefined = route.parent; name && !seen.has(name); ) {

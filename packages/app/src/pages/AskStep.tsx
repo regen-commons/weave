@@ -8,22 +8,21 @@ import type { BrowserSpeechConsent } from "../describe/speech-consent.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
 import { speechMode, speechNotStarted, speechPaused, speechProblem } from "../describe/speech-setup.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { draftText } from "../describe/view.ts";
+import { draftText, previewFields } from "../describe/view.ts";
 import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext, type SpeechExample } from "../fixtures.ts";
 import {
-  ASK_KINDS,
   cardsNote,
   changeKind,
-  continueBoth,
+  continueStep,
   entryId,
   kindFocus,
   pencilHint,
   sectionCount,
-  speechSetupList,
   type Blocker,
 } from "../intake/ask-page.ts";
 import { ASK_LIMIT, ASK_LIMIT_HELP, type AskItem, type AskKind, type AskStep as Step } from "../intake/contracts.ts";
-import { extractAsks } from "../intake/extract-client.ts";
+import { closeAskReader, extractAsks, warmAskReader } from "../intake/extract-client.ts";
+import { spokenList } from "../intake/spoken.ts";
 import {
   activeItems,
   addStepFiles,
@@ -37,74 +36,68 @@ import {
   returnWords,
   settleEarlierInput,
 } from "../intake/state.ts";
-import { navigate, routeSearch } from "../router.tsx";
-import { fixtureHref, pathTo } from "../routes.ts";
+import { currentVisit, navigate, routePath, routeSearch } from "../router.tsx";
+import { backTarget, fixtureHref, matchRoute, pathTo } from "../routes.ts";
 import { AskCard } from "../ui/AskCard.tsx";
 import { AskEditor } from "../ui/AskEditor.tsx";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
-import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { BackButton } from "../ui/BackLink.tsx";
 import { Dock } from "../ui/Dock.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
-import { Stack } from "../ui/layouts.tsx";
+import { Stack, StepLayout } from "../ui/layouts.tsx";
+import { RecordPreview } from "../ui/RecordPreview.tsx";
 import { IntakeStepper } from "../ui/Stepper.tsx";
 import { TalkItOut } from "../ui/TalkItOut.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
-type Blocked = Partial<Record<AskKind, Blocker>>;
-
-/** Clears one list's blocker once the person has changed that list. */
-function unblock(kind: AskKind) {
-  return (current: Blocked): Blocked => {
-    if (!current[kind]) return current;
-    const rest = { ...current };
-    delete rest[kind];
-    return rest;
-  };
-}
+/** What each of the two steps asks, in the order the steps come. */
+const ASK_STEPS = {
+  needs: {
+    title: "What You Need",
+    intro: "Say or type everything that would help, in one go if you like. Weave makes a card for each need, up to four.",
+    next: "offers",
+  },
+  offers: {
+    title: "What You Can Offer",
+    intro: "Say or type what you can share with others, in one go if you like. Weave makes a card for each offer, up to four.",
+    next: "your-initiative",
+  },
+} as const;
 
 /**
- * Needs and offers on one page: two lists, each with one Talk it out box, and one Continue that
- * keeps every suggestion still showing (DL-110, DL-111). Both routes open this page; the offers
- * route starts at the offers list. Nothing opens in the page when pressed: a card's details
- * are changed in a dialog, and progress and problems are written in places that are always there.
+ * Needs, then offers: two steps, each with one list and one Talk It Out box, and a Continue
+ * that keeps every suggestion still showing (DL-111). Nothing opens in the page when pressed: a
+ * card's details are changed in a dialog, and progress and problems are written in places that
+ * are always there (DL-113).
  */
 export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: FixtureContext }) {
   const { draft, controller, ready, error: storageError } = useDraft();
-  const [blocked, setBlocked] = useState<Blocked>({});
-  const [working, setWorking] = useState<Record<AskKind, boolean>>({ needs: false, offers: false });
-  const waiting = working.needs || working.offers;
+  const page = ASK_STEPS[kind];
+  const [blocked, setBlocked] = useState<Blocker | undefined>();
+  const [waiting, setWaiting] = useState(false);
   const speech = import.meta.env.DEV && example ? exampleSpeech(example.speech) : undefined;
   const consent = import.meta.env.DEV && example ? exampleConsent(example.speech) : undefined;
-  const setupList = speechSetupList(kind, draft);
-  useEffect(() => setBlocked(unblock("needs")), [draft.needs]);
-  useEffect(() => setBlocked(unblock("offers")), [draft.offers]);
-  useEffect(() => {
-    if (!ready || kind !== "offers") return;
-    // The app focuses the page heading after this effect, so the offers list waits one frame.
-    const frame = requestAnimationFrame(() => {
-      const title = document.getElementById("ask-offers-title");
-      title?.scrollIntoView({ block: "center" });
-      title?.focus({ preventScroll: true });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [ready, kind]);
+  // Changing the list clears why Continue stopped at it.
+  useEffect(() => setBlocked(undefined), [draft[kind]]);
+  // The worker that reads words into cards is kept while the step is open, and ends when the person leaves it.
+  useEffect(() => closeAskReader, []);
   function next() {
-    const current = controller.getSnapshot().draft;
-    const result = continueBoth({ needs: current.needs, offers: current.offers });
+    const result = continueStep(controller.getSnapshot().draft[kind]);
     if (result.ok) {
-      controller.change((latest) => revise(latest, result.steps));
-      navigate(fixtureHref(pathTo("your-initiative"), routeSearch(), import.meta.env.DEV));
+      controller.change((latest) => revise(latest, { [kind]: result.step }));
+      navigate(fixtureHref(pathTo(page.next), routeSearch(), import.meta.env.DEV));
       return;
     }
-    // Rendered now, so the first list that stopped the page can take the focus.
-    flushSync(() => setBlocked(result.blocked));
-    const first = ASK_KINDS.find((entry) => result.blocked[entry]);
-    if (first) document.getElementById(`ask-${first}-blocker`)?.focus();
+    // Rendered now, so the line that says why can take the focus.
+    flushSync(() => setBlocked(result.blocker));
+    document.getElementById(`ask-${kind}-blocker`)?.focus();
   }
-  /** The step's way forward: in its place on a wide screen, in the dock on a phone (DL-089). */
+  // The way back is the step before, whichever page the person came from, as the app bar's is.
+  const back = backTarget(matchRoute(routePath()), currentVisit());
+  /** The step's way forward: in the Step bar on a wide screen, in the dock on a phone (DL-089). */
   const forward = (from?: "wide") => (
     <button
       className="rc-button"
@@ -121,60 +114,48 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   return (
     <Stack>
       {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-127). */}
-      <IntakeStepper current={1}>
-        <ButtonLink href={pathTo("initiative")} variant="quiet">
-          Back
-        </ButtonLink>
+      <IntakeStepper>
+        {back && <BackButton target={back}>Back</BackButton>}
         {forward("wide")}
       </IntakeStepper>
       <Heading level={1} size="page">
-        Needs And Offers
+        {page.title}
       </Heading>
-      <p>Say or type what would help and what you can share. A few words each is enough, up to four of each.</p>
+      <p>{page.intro}</p>
       {kind === "needs" && <DuplicateNotice />}
       <DraftNotice error={storageError} text={draftText(draft)} onRetry={() => controller.retry()} />
       {!ready ? (
         <DraftSkeleton />
       ) : (
-        <>
+        // One list in the step's column, with the card beside it on a wide screen, as on step 1.
+        <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
           {(example?.state === "offline" || example?.intake === "offline" || !navigator.onLine) && (
             <p className="rc-notice" data-tone="info">
               You are offline. Your words and cards stay on this device.
             </p>
           )}
-          {/* The two lists share the row on a wide screen. */}
-          <div className="rc-card-grid" data-layout="pair">
-            {ASK_KINDS.map((entry) => (
-              <AskSection
-                key={entry}
-                kind={entry}
-                example={entry === kind ? example : undefined}
-                blocker={blocked[entry]}
-                speech={speech}
-                consent={consent}
-                speechExample={example?.speech}
-                // One list offers the speech setup and says when the browser has no speech; the other stays quiet.
-                hostsSetup={entry === (setupList ?? kind)}
-                onWorking={(value) =>
-                  setWorking((current) => (current[entry] === value ? current : { ...current, [entry]: value }))
-                }
-              />
-            ))}
-          </div>
+          <AskSection
+            key={kind}
+            kind={kind}
+            example={example}
+            blocker={blocked}
+            speech={speech}
+            consent={consent}
+            speechExample={example?.speech}
+            onWorking={setWaiting}
+          />
           {/* A phone keeps the way back at the end of the step, above the docked way forward. */}
           <div className="rc-action-bar" data-until="wide">
-            <ButtonLink href={pathTo("initiative")} variant="quiet">
-              Back
-            </ButtonLink>
+            {back && <BackButton target={back}>Back</BackButton>}
           </div>
           <Dock>{forward()}</Dock>
-        </>
+        </StepLayout>
       )}
     </Stack>
   );
 }
 
-/** One of the page's two lists, with everything that adds to it or changes it. */
+/** The step's list, with everything that adds to it or changes it. */
 function AskSection({
   kind,
   example,
@@ -182,7 +163,6 @@ function AskSection({
   speech: speechStore,
   consent,
   speechExample = "ready",
-  hostsSetup,
   onWorking,
 }: {
   kind: AskKind;
@@ -196,8 +176,6 @@ function AskSection({
   consent?: BrowserSpeechConsent;
   /** Which example browser the page shows, so an example session can fail the way it would. */
   speechExample?: SpeechExample;
-  /** This list is the one that offers to set up speech for the page. */
-  hostsSetup: boolean;
   /** True while this list is making cards or listening, so the page holds Continue. */
   onWorking(value: boolean): void;
 }) {
@@ -216,6 +194,14 @@ function AskSection({
   const mic = useRef<{ stop(): void; dispose(): void } | null>(null);
   const micTask = useRef<AbortController | null>(null);
   const focusIntent = useRef<string | null>(null);
+  /** What the box held when listening began, so only what was said after it is split into lines. */
+  const heardAfter = useRef("");
+  // Words the recognizer may still change. They show in the box and reach the draft only once
+  // settled, or when listening ends, so a phone does not store the draft five times a second.
+  const [heard, setHeard] = useState("");
+  const unsettled = useRef("");
+  // Stop pressed before the recognizer has started is kept, and applied once it has.
+  const stopWanted = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
@@ -293,6 +279,7 @@ function AskSection({
       return;
     }
     const added = source.turns.find((turn) => !before.has(turn.id))?.id;
+    const known = new Set(source.items.map((item) => item.sourceKey));
     const abort = new AbortController();
     task.current?.abort();
     task.current = abort;
@@ -330,13 +317,15 @@ function AskSection({
       })[kind];
       if (task.current === abort) {
         const unread = result.lastBuild.unreadFiles;
+        // Says how many, so a list said in one go can be checked against what was said.
+        const fresh = read.items.filter((item) => item.decision === "pencil" && !known.has(item.sourceKey)).length;
         setNotice(
           [
             !result.extraction.heard
               ? "No new cards were found in those words. Your list is unchanged."
               : read.omitted > 0
                 ? "The list holds four, so not everything fit. Remove one and add again to bring in another."
-                : "Added. Dashed cards and kinds are suggestions. Remove any that are wrong.",
+                : `${fresh ? `${fresh} ${one.toLowerCase()}${fresh === 1 ? "" : "s"} added.` : "Added."} Dashed cards and kinds are suggestions. Remove any that are wrong.`,
             result.lastBuild.fallback ? "The browser model could not finish, so these are keyword cards." : "",
             unread ? `${unread} ${unread === 1 ? "file was" : "files were"} kept but not read.` : "",
           ]
@@ -377,14 +366,37 @@ function AskSection({
       if (task.current === abort) {
         task.current = null;
         setBusy(false);
+        // Add To List is held once the box is empty, so the press can leave nothing holding the
+        // focus. The line that says what happened takes it then, and a keyboard goes on from there (DL-032).
+        requestAnimationFrame(() => {
+          if (document.activeElement === document.body) document.getElementById(part("blocker"))?.focus();
+        });
       }
     }
+  }
+  /**
+   * What was just said goes into the box one need or offer a line, after what was there before,
+   * so a list said in one go is read into a card for each thing in it. False when nothing but
+   * sounds of thinking was said, which leaves the box as it was before.
+   */
+  function listSaid(base: string): boolean {
+    const box = controller.getSnapshot().draft[kind].composer;
+    // Words changed in the box while it listened are read with the rest.
+    const before = box.startsWith(base) ? base.trimEnd() : "";
+    const lines = spokenList(box.startsWith(base) ? box.slice(base.length) : box);
+    try {
+      update((current) => changeStep(current, { composer: [before, lines].filter(Boolean).join("\n") }));
+    } catch {
+      // A box that cannot take the lines keeps the words as they were said.
+    }
+    return !!lines;
   }
   async function talk() {
     setNotice("");
     const mode = speechMode(speech.state);
     if (!mode) return;
     const base = controller.getSnapshot().draft[kind].composer;
+    heardAfter.current = base;
     // An example pretends to listen, in a development-only branch that production drops.
     if (import.meta.env.DEV && fixture) {
       const outcome = exampleOutcome(speechExample);
@@ -397,16 +409,30 @@ function AskSection({
         return;
       }
       setListening(true);
+      // A list said in one go, as a recognizer without punctuation writes it.
       const said = need
-        ? "We need tools and volunteers for community planting."
-        : "We can offer a workshop and a method for mapping water.";
+        ? "um we need native seedlings and a water pump and we also need volunteers for planting day"
+        : "we can offer a workshop on water mapping uh and we can lend tools for planting";
       update((current) => changeStep(current, { composer: [base, said].filter(Boolean).join(" ") }));
       return;
     }
+    warmAskReader();
+    mic.current?.dispose();
+    mic.current = null;
+    stopWanted.current = false;
     const abort = new AbortController();
     micTask.current = abort;
     setListening(true);
     let failed = false;
+    let settled = "";
+    /** Puts the words still unsettled into the box after the settled ones, when they fit. */
+    const keepUnsettled = () => {
+      const words = unsettled.current;
+      unsettled.current = "";
+      setHeard("");
+      const text = [base, settled, words].filter(Boolean).join(" ");
+      if (words && text.length <= 20000) update((current) => changeStep(current, { composer: text }));
+    };
     try {
       mic.current = await startSpeech(
         mode,
@@ -417,28 +443,42 @@ function AskSection({
             const text = [base, final, interim].filter(Boolean).join(" ");
             if (text.length > 20000) {
               failed = true;
+              keepUnsettled();
               abort.abort();
               setListening(false);
               setNotice("That is as much as the box holds. Add it to the list before saying more.");
               return;
             }
-            update((current) => changeStep(current, { composer: text }));
+            unsettled.current = interim;
+            setHeard(interim);
+            if (final !== settled) {
+              settled = final;
+              update((current) => changeStep(current, { composer: [base, final].filter(Boolean).join(" ") }));
+            }
           },
           error: (code) => {
             failed = true;
             setNotice(speechProblem(code, mode, speech.touch));
           },
           end: (requested) => {
+            // A session cut off at Stop's deadline ends with its last words unsettled; they are kept.
+            if (!abort.signal.aborted) keepUnsettled();
             setListening(false);
             if (failed || abort.signal.aborted) return;
-            // Stop adds what was said. A recognizer that ended by itself leaves any words in the box.
-            const said = controller.getSnapshot().draft[kind].composer.trim();
-            if (!requested) setNotice(speechPaused(Boolean(said)));
-            else if (said) void addToList("voice");
+            // Stop adds what was said, one card for each thing in it. A recognizer that ended by
+            // itself leaves the words in the box, a line for each thing, to go on or add.
+            const heard = listSaid(base);
+            if (!requested) setNotice(speechPaused(!!controller.getSnapshot().draft[kind].composer.trim()));
+            else if (!heard) setNotice(speechProblem("no-speech", mode, speech.touch));
+            else void addToList("voice");
           },
         },
         { consent: speech.consent, signal: abort.signal },
       );
+      if (stopWanted.current) {
+        stopWanted.current = false;
+        mic.current.stop();
+      }
     } catch {
       setListening(false);
       if (!abort.signal.aborted) setNotice(speechNotStarted(mode));
@@ -448,8 +488,9 @@ function AskSection({
   function stop() {
     if (import.meta.env.DEV && fixture) {
       setListening(false);
-      void addToList("voice");
-    } else mic.current?.stop();
+      if (listSaid(heardAfter.current)) void addToList("voice");
+    } else if (mic.current) mic.current.stop();
+    else stopWanted.current = true;
   }
   function files(input: HTMLInputElement) {
     const selected = [...(input.files ?? [])];
@@ -496,7 +537,7 @@ function AskSection({
     <section className="rc-panel" aria-labelledby={part("title")}>
       <div className="rc-ask-head">
         <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
-          {need ? "What You Need" : "What You Can Offer"}
+          {need ? "Your Needs" : "Your Offers"}
         </h2>
         <p className="rc-ask-count" aria-live="polite">
           {sectionCount(step)}
@@ -504,14 +545,19 @@ function AskSection({
       </div>
       <TalkItOut
         speech={speech}
-        secondary={!hostsSetup}
         listening={listening}
         language={language}
         onLanguage={setLanguage}
         onStart={() => void talk()}
         onStop={stop}
-        value={step.composer}
-        onChange={(text) => update((current) => changeStep(current, { composer: text }))}
+        value={heard ? [step.composer, heard].filter(Boolean).join(" ") : step.composer}
+        onChange={(text) => {
+          warmAskReader();
+          // A change typed while listening already holds the unsettled words it was shown.
+          unsettled.current = "";
+          setHeard("");
+          update((current) => changeStep(current, { composer: text }));
+        }}
         boxLabel={need ? "What you need, said or typed" : "What you can offer, said or typed"}
         hint={
           need

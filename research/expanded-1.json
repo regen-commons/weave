@@ -18,7 +18,7 @@
     "programs": [
       {
         "id": "disability-justice-fund-for-women-small-grants",
-        "name": "Disability Justice Fund for Women — Small Grants",
+        "name": "Disability Justice Fund for Women: Small Grants",
         "instrument": "grant",
         "focus": [
           "disability justice",
@@ -101,7 +101,7 @@
       },
       {
         "id": "disability-justice-fund-for-women-large-grants",
-        "name": "Disability Justice Fund for Women — Large Grants",
+        "name": "Disability Justice Fund for Women: Large Grants",
         "instrument": "grant",
         "focus": [
           "disability justice",
@@ -233,7 +233,7 @@
     "programs": [
       {
         "id": "advanced-fellowship-2024-programme-leadership-cycle",
-        "name": "AdvancED Fellowship — 2024 programme leadership cycle",
+        "name": "AdvancED Fellowship: 2024 programme leadership cycle",
         "instrument": "fellowship",
         "focus": [
           "PreK-12 education",
@@ -350,7 +350,7 @@
     "programs": [
       {
         "id": "impact-malunga-2026-institutional-strengthening",
-        "name": "Impactô Malunga — 2026 institutional strengthening",
+        "name": "Impactô Malunga: 2026 institutional strengthening",
         "instrument": "grant",
         "focus": [
           "Black women leadership",
@@ -589,7 +589,7 @@
     "programs": [
       {
         "id": "df-boi-msme-loan-2023-policy",
-        "name": "DF–BOI MSME Fund — 2023 loan policy",
+        "name": "DF–BOI MSME Fund: 2023 loan policy",
         "instrument": "investment",
         "focus": [
           "MSME finance",
@@ -952,7 +952,7 @@
     "programs": [
       {
         "id": "resilient-futures2026-ideation-grants",
-        "name": "Resilient Futures2026 — Ideation Grants",
+        "name": "Resilient Futures2026: Ideation Grants",
         "instrument": "grant",
         "focus": [
           "political leadership",
@@ -1021,7 +1021,7 @@
       },
       {
         "id": "resilient-futures2026-incubation-grants",
-        "name": "Resilient Futures2026 — Incubation Grants",
+        "name": "Resilient Futures2026: Incubation Grants",
         "instrument": "grant",
         "focus": [
           "political leadership",
@@ -1264,7 +1264,7 @@
     "programs": [
       {
         "id": "intersex-human-rights-fund-archived-policy",
-        "name": "Intersex Human Rights Fund — archived policy",
+        "name": "Intersex Human Rights Fund: archived policy",
         "instrument": "grant",
         "focus": [
           "intersex human rights",
@@ -1380,7 +1380,7 @@
     "programs": [
       {
         "id": "ayni2026-small-grants",
-        "name": "AYNI2026 — Small Grants",
+        "name": "AYNI2026: Small Grants",
         "instrument": "grant",
         "focus": [
           "Indigenous women",
@@ -1468,7 +1468,7 @@
       },
       {
         "id": "ayni2026-medium-grants",
-        "name": "AYNI2026 — Medium Grants",
+        "name": "AYNI2026: Medium Grants",
         "instrument": "grant",
         "focus": [
           "Indigenous women",
@@ -1771,7 +1771,7 @@
     "programs": [
       {
         "id": "grantmaking-applicant-disclosure-2024-filing",
-        "name": "Grantmaking applicant disclosure — 2024 filing",
+        "name": "Grantmaking applicant disclosure: 2024 filing",
         "instrument": "grant",
         "focus": [],
         "beneficiaries": [],
@@ -2824,7 +2824,7 @@
     "programs": [
       {
         "id": "education-partnerships-current-funding-access",
-        "name": "Education partnerships — current funding access",
+        "name": "Education partnerships: current funding access",
         "instrument": "grant",
         "focus": [
           "foundational literacy and numeracy",
@@ -3044,7 +3044,7 @@
     "programs": [
       {
         "id": "fy27-youth-environmental-education-track1",
-        "name": "FY27 Youth Environmental Education — Track1",
+        "name": "FY27 Youth Environmental Education: Track1",
         "instrument": "grant",
         "focus": [
           "environmental restoration",
@@ -3123,7 +3123,7 @@
       },
       {
         "id": "fy27-youth-environmental-education-track2",
-        "name": "FY27 Youth Environmental Education — Track2",
+        "name": "FY27 Youth Environmental Education: Track2",
         "instrument": "grant",
         "focus": [
           "environmental restoration",
@@ -3202,7 +3202,7 @@
       },
       {
         "id": "fy27-youth-environmental-education-track3",
-        "name": "FY27 Youth Environmental Education — Track3",
+        "name": "FY27 Youth Environmental Education: Track3",
         "instrument": "grant",
         "focus": [
           "environmental restoration",
@@ -3281,7 +3281,7 @@
       },
       {
         "id": "fy27-youth-environmental-education-track4",
-        "name": "FY27 Youth Environmental Education — Track4",
+        "name": "FY27 Youth Environmental Education: Track4",
         "instrument": "grant",
         "focus": [
           "environmental restoration",
@@ -3523,7 +3523,7 @@
     "programs": [
       {
         "id": "community-action-fund-published-earlier-round",
-        "name": "Community Action Fund — published earlier round",
+        "name": "Community Action Fund: published earlier round",
         "instrument": "grant",
         "focus": [
           "community organizing",
@@ -3642,7 +3642,7 @@
     "programs": [
       {
         "id": "black-carbon-research-gaps-2024-eoi",
-        "name": "Black carbon research gaps —2024 EOI",
+        "name": "Black carbon research gaps: 2024 EOI",
         "instrument": "grant",
         "focus": [
           "clean air",
@@ -3892,7 +3892,7 @@
     "programs": [
       {
         "id": "i2z-sie-morocco-des-2022",
-        "name": "CECG-backed I2Z/SIE Morocco clean-energy demonstration — 2022",
+        "name": "CECG-backed I2Z/SIE Morocco clean-energy demonstration: 2022",
         "instrument": "grant",
         "focus": [
           "distributed clean energy",
@@ -4441,7 +4441,7 @@
     "programs": [
       {
         "id": "cjsf-nvf-administered-support-2022",
-        "name": "CJSF support — historical NVF-administered grant procedures",
+        "name": "CJSF support: historical NVF-administered grant procedures",
         "instrument": "grant",
         "focus": [
           "education justice",
@@ -5272,7 +5272,7 @@
     "programs": [
       {
         "id": "democracy-at-work-fund-2025-call",
-        "name": "Democracy at Work Fund —2025 call",
+        "name": "Democracy at Work Fund: 2025 call",
         "instrument": "grant",
         "focus": [
           "workers’ rights",
@@ -5405,7 +5405,7 @@
     "programs": [
       {
         "id": "ddi-sub-saharanafrica-fund-cohort2-tier1",
-        "name": "DDI Sub-Saharan Africa Fund — Cohort 2 Tier 1",
+        "name": "DDI Sub-Saharan Africa Fund: Cohort 2 Tier 1",
         "instrument": "grant",
         "focus": [
           "digital democracy",
@@ -5473,7 +5473,7 @@
       },
       {
         "id": "ddi-sub-saharanafrica-fund-cohort2-tier2",
-        "name": "DDI Sub-Saharan Africa Fund — Cohort 2 Tier 2",
+        "name": "DDI Sub-Saharan Africa Fund: Cohort 2 Tier 2",
         "instrument": "grant",
         "focus": [
           "digital democracy",
@@ -7023,7 +7023,7 @@
     "programs": [
       {
         "id": "companion-fund-2024-25-closed-programme",
-        "name": "Companion Fund — 2024–25 closed programme",
+        "name": "Companion Fund: 2024–25 programme",
         "instrument": "grant",
         "focus": [
           "food systems",
@@ -7364,7 +7364,7 @@
     "programs": [
       {
         "id": "fpcc-administered-cultural-programmes-referral",
-        "name": "Foundation-backed cultural programmes — Council-administered referral",
+        "name": "Foundation-backed cultural programmes: Council-administered referral",
         "instrument": "grant",
         "focus": [
           "First Nations languages",
@@ -7506,7 +7506,7 @@
     "programs": [
       {
         "id": "uk-foundation-grantmaking-policy-2023",
-        "name": "Fondation CHANEL UK — 2023 grantmaking policy",
+        "name": "Fondation CHANEL UK: 2023 grantmaking policy",
         "instrument": "grant",
         "focus": [
           "women and adolescent girls",
@@ -7625,7 +7625,7 @@
     "programs": [
       {
         "id": "actions-urgentes-2022-policy",
-        "name": "Actions Urgentes — 2022 published policy",
+        "name": "Actions Urgentes: 2022 published policy",
         "instrument": "grant",
         "focus": [
           "grassroots social movements",
@@ -8031,7 +8031,7 @@
     "programs": [
       {
         "id": "democracy-at-work-fund-consortium2025-call",
-        "name": "Democracy at Work Fund — consortium2025 call",
+        "name": "Democracy at Work Fund: consortium2025 call",
         "instrument": "grant",
         "focus": [
           "workers’ rights",
@@ -8253,7 +8253,7 @@
     "programs": [
       {
         "id": "survivor-leadership-fund-nepal2026",
-        "name": "Survivor Leadership Fund — Nepal2026",
+        "name": "Survivor Leadership Fund: Nepal2026",
         "instrument": "grant",
         "focus": [
           "modern slavery",
@@ -8505,7 +8505,7 @@
     "programs": [
       {
         "id": "educationintegral-in-lower-secondary-schools-2025-call",
-        "name": "Integral education in lower-secondary schools — 2025 call",
+        "name": "Integral education in lower-secondary schools: 2025 call",
         "instrument": "grant",
         "focus": [
           "public education",
@@ -8629,7 +8629,7 @@
     "programs": [
       {
         "id": "benitomass-scholarship-2026-annual-award",
-        "name": "Benito Massó scholarship — 2026 annual award",
+        "name": "Benito Massó scholarship: 2026 annual award",
         "instrument": "grant",
         "focus": [
           "Afrodescendant students",
@@ -9222,7 +9222,7 @@
     "programs": [
       {
         "id": "educationoutloud-civil-society-advocacy-grants",
-        "name": "Education Out Loud — civil-society advocacy grants",
+        "name": "Education Out Loud: civil-society advocacy grants",
         "instrument": "grant",
         "focus": [
           "education advocacy",
@@ -10034,7 +10034,7 @@
     "programs": [
       {
         "id": "balkans-unrestricted-grants-ended-2022",
-        "name": "Balkans unrestricted grants — funding ended 2022",
+        "name": "Balkans unrestricted grants: funding ended 2022",
         "instrument": "grant",
         "focus": [
           "women and LGBTQI peace initiatives"
@@ -10646,7 +10646,7 @@
     "programs": [
       {
         "id": "hua-lobbying-grants-2024-policy",
-        "name": "Humanity United Action — 2024 grantmaking policy",
+        "name": "Humanity United Action: 2024 grantmaking policy",
         "instrument": "grant",
         "focus": [
           "policy advocacy",
@@ -11117,7 +11117,7 @@
     "programs": [
       {
         "id": "pensi-beja-black-researcher-postdoctoral-fellowship-2026",
-        "name": "Pensi–Beja Black researcher postdoctoral fellowship — 2026",
+        "name": "Pensi–Beja Black researcher postdoctoral fellowship: 2026",
         "instrument": "fellowship",
         "focus": [
           "racial equity",
@@ -11245,7 +11245,7 @@
     "programs": [
       {
         "id": "bndes-periferias-fortes-norte2026-small",
-        "name": "BNDES Periferias Fortes Norte2026 — Small",
+        "name": "BNDES Periferias Fortes Norte2026: Small",
         "instrument": "grant",
         "focus": [
           "civil society",
@@ -11318,7 +11318,7 @@
       },
       {
         "id": "bndes-periferias-fortes-norte2026-medium",
-        "name": "BNDES Periferias Fortes Norte2026 — Medium",
+        "name": "BNDES Periferias Fortes Norte2026: Medium",
         "instrument": "grant",
         "focus": [
           "civil society",
@@ -11544,7 +11544,7 @@
     "programs": [
       {
         "id": "indigenous-womens-leadership-award-2026",
-        "name": "Indigenous Women’s Leadership Award 2026 — sport and well-being",
+        "name": "Indigenous Women’s Leadership Award 2026: sport and well-being",
         "instrument": "prize",
         "focus": [
           "Indigenous women’s leadership",
@@ -11675,7 +11675,7 @@
     "programs": [
       {
         "id": "9th-regional-call2026-tier1",
-        "name": "9th Regional Call2026 — Tier1",
+        "name": "9th Regional Call2026: Tier1",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -11765,7 +11765,7 @@
       },
       {
         "id": "9th-regional-call2026-tier2",
-        "name": "9th Regional Call2026 — Tier2",
+        "name": "9th Regional Call2026: Tier2",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -11854,7 +11854,7 @@
       },
       {
         "id": "9th-regional-call2026-tier3",
-        "name": "9th Regional Call2026 — Tier3",
+        "name": "9th Regional Call2026: Tier3",
         "instrument": "grant",
         "focus": [
           "LGBTQ rights",
@@ -14071,7 +14071,7 @@
     "programs": [
       {
         "id": "see-change2024-medwf-call",
-        "name": "SEE CHANGE2024 — MedWF call",
+        "name": "SEE CHANGE2024: MedWF call",
         "instrument": "grant",
         "focus": [
           "feminist movements",
@@ -14768,7 +14768,7 @@
     "programs": [
       {
         "id": "youth-speak-social-enterprise-pitch-2018",
-        "name": "Youth Speak Summit social-enterprise pitch-fest — 2018",
+        "name": "Youth Speak Summit social-enterprise pitch-fest: 2018",
         "instrument": "grant",
         "focus": [
           "youth social entrepreneurship",
@@ -14895,7 +14895,7 @@
     "programs": [
       {
         "id": "creation-fund-phasei",
-        "name": "Creation Fund — PhaseI",
+        "name": "Creation Fund: PhaseI",
         "instrument": "grant",
         "focus": [
           "racial and cultural justice",
@@ -14973,7 +14973,7 @@
       },
       {
         "id": "development-fund-phaseii",
-        "name": "Development Fund — PhaseII",
+        "name": "Development Fund: PhaseII",
         "instrument": "grant",
         "focus": [
           "artistic development",
@@ -16247,7 +16247,7 @@
     "programs": [
       {
         "id": "fulbright-palix-distinguished-chairs-2016-17",
-        "name": "Fulbright Canada–Palix Distinguished Visiting Research Chairs —2016–17",
+        "name": "Fulbright Canada–Palix Distinguished Visiting Research Chairs: 2016–17",
         "instrument": "fellowship",
         "focus": [
           "brain science",
@@ -16486,7 +16486,7 @@
     "programs": [
       {
         "id": "data-and-society-accelerator-2023-data-governance-cohort",
-        "name": "Data and Society Accelerator —2023 Data Governance Cohort",
+        "name": "Data and Society Accelerator: 2023 Data Governance Cohort",
         "instrument": "grant",
         "focus": [
           "nonprofit data governance",
@@ -18349,7 +18349,7 @@
     "programs": [
       {
         "id": "protecting-thesacred-historical2018-call",
-        "name": "Protecting the Sacred — historical 2018 call",
+        "name": "Protecting the Sacred: historical 2018 call",
         "instrument": "grant",
         "focus": [
           "Indigenous ancestral wisdom",
@@ -19380,7 +19380,7 @@
     "programs": [
       {
         "id": "rewilding-europe-land-fund",
-        "name": "Rewilding Europe — Land Fund (documented Sub3 support)",
+        "name": "Rewilding Europe: Land Fund (documented Sub3 support)",
         "instrument": "grant",
         "focus": [
           "rewilding",
@@ -20921,7 +20921,7 @@
     "programs": [
       {
         "id": "romahealth-scholarship-final2023-24-cycle",
-        "name": "Roma Health scholarship — final 2023–24 cycle",
+        "name": "Roma Health scholarship: final 2023–24 cycle",
         "instrument": "grant",
         "focus": [
           "Roma students",
@@ -21552,7 +21552,7 @@
     "programs": [
       {
         "id": "transforming-systems-grants-influence2026",
-        "name": "Transforming Systems Grants — Influence2026",
+        "name": "Transforming Systems Grants: Influence2026",
         "instrument": "grant",
         "focus": [
           "community-led systems change",
@@ -21824,7 +21824,7 @@
     "programs": [
       {
         "id": "grantmaking-policy-2024-own-filing",
-        "name": "Grantmaking policy — 2024 own filing",
+        "name": "Grantmaking policy: 2024 own filing",
         "instrument": "grant",
         "focus": [
           "education equity",
@@ -22638,7 +22638,7 @@
     "programs": [
       {
         "id": "resiliencefund-forwomen-inglobalvaluechains-2026-round",
-        "name": "Resilience Fund for Women in Global Value Chains — 2026 round",
+        "name": "Resilience Fund for Women in Global Value Chains: 2026 round",
         "instrument": "grant",
         "focus": [
           "women and nonbinary leadership",
@@ -22779,7 +22779,7 @@
     "programs": [
       {
         "id": "operational-core-support-historical",
-        "name": "Operational Grants / Core Support — historical WFG model",
+        "name": "Operational Grants / Core Support: historical WFG model",
         "instrument": "grant",
         "focus": [
           "feminist movement building",

@@ -16,22 +16,33 @@
 @media (width < 56.25rem) {
   :root:has(.rc-dock:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
 }
-/* On a wide screen a step's bar sticks under the app bar, so jumps and focus stop clear of both (DL-127). */
+/* On a wide screen a step's bar is fixed to the foot of the window, as the dock is on a phone, so
+   a field that takes the focus stops a little above it (DL-127). */
 @media (min-width: 56.25rem) {
-  :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+  :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
+}
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the app
+   bar scrolls away with the page instead of sticking, so the bars never take most of what there
+   is to read. A step's bar stays at the foot of the window, as a phone's dock does, because it
+   holds the way forward (DL-132, DL-127). */
+@media (height < 30rem) {
+  :root:has(.rc-app-header) { scroll-padding-block-start: var(--space-4); }
+}
+/* A list's pinned filter row sits under the app bar, or at the window's top where the bar has
+   scrolled away, so jumps and focus stop clear of it too (DL-130). */
+:root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+@media (height < 30rem) {
+  :root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
 }
 
-.rc-page:has(> .rc-site-banner) {
-  grid-template-rows: auto auto 1fr auto auto;
-}
 /* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
    window below it, reads this. */
 .rc-page { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The site banner's height where a page has one, and nothing where it has none. The page body
    leaves it out of the window it fills, so the footer starts at the fold and not a banner below
-   it (DL-102). */
+   it (DL-102). The banner is the first line of the page's header (DL-132). */
 .rc-page { --site-banner-height: 0rem; }
-.rc-page:has(> .rc-site-banner) { --site-banner-height: var(--space-7); }
+.rc-page:has(.rc-site-banner) { --site-banner-height: var(--space-7); }
 /* The tab bar's height on a phone: a tab and the bar's top edge. The bar is fixed to the bottom
    of the window, so the page keeps that much room under its footer, and the room the phone's
    home indicator takes, and the footer's last line is never under the bar (DL-086). */
@@ -40,18 +51,15 @@
    The page keeps the same room for it as for the tab bar it stands in for (DL-089). */
 .rc-page { --dock-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The step bar's height on a wide screen where a step fills it, and nothing anywhere else: a
-   control, the bar's padding and its edge, as the app bar is. Whatever sticks under the two bars,
-   or fills the window below them, adds it to the app bar's height (DL-127). */
+   control, the bar's padding and its edge, as the dock is. The bar is fixed to the foot of the
+   window, so the page keeps that much room under its footer, and whatever fills the window, or
+   stays whole in it, leaves it out (DL-127). */
 .rc-page { --step-bar-height: 0rem; }
 @media (min-width: 56.25rem) {
   .rc-page:has(> .rc-step-bar:not(:empty)) {
     --step-bar-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin));
-    grid-template-rows: auto auto 1fr auto auto;
+    padding-block-end: calc(var(--step-bar-height) + env(safe-area-inset-bottom));
   }
-  .rc-page:has(> .rc-site-banner):has(> .rc-step-bar:not(:empty)) { grid-template-rows: auto auto auto 1fr auto auto; }
-  /* The bar comes after the page body in the markup and is drawn in the row under the app bar. */
-  .rc-page > .rc-step-bar { grid-row: 2; }
-  .rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }
 }
 @media (width < 56.25rem) {
   .rc-page:has(> .rc-bottom-nav) { padding-block-end: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); }
@@ -78,7 +86,8 @@
   min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--step-bar-height));
 }
 
-/* One line of words in a bar of a known height, which the page body reads (--site-banner-height). */
+/* One line of words in a bar of a known height, which the page body and the header's sticky
+   offset read (--site-banner-height). */
 .rc-site-banner {
   display: grid;
   place-items: center;
@@ -168,13 +177,13 @@
   }
   .rc-step-layout > * { grid-column: 1; }
   .rc-step-aside[data-from="wide"] { display: grid; }
-  /* The record beside the work stays whole under the app bar, and under a step's bar where there
+  /* The record beside the work stays whole under the app bar, and above a step's bar where there
      is one, while the page scrolls. One taller
      than the window scrolls inside itself, so its last row is always in reach, and the wheel moves
      the page again once the panel has nothing left to scroll. */
   .rc-step-layout > .rc-step-aside {
     position: sticky;
-    inset-block-start: calc(var(--app-header-height) + var(--step-bar-height) + var(--space-5));
+    inset-block-start: calc(var(--app-header-height) + var(--space-5));
     grid-column: 2;
     grid-row: 1 / span 6;
     max-block-size: calc(100dvh - var(--app-header-height) - var(--step-bar-height) - 2 * var(--space-5));
@@ -185,6 +194,14 @@
   /* Work that carries on below the panel on a phone sits under the first column here, and the
      panel stays beside both for the length of the page. */
   .rc-step-layout:has(> .rc-step-main ~ .rc-step-main) > .rc-step-aside { grid-row: 1 / span 2; }
+}
+/* In a short window the app bar scrolls away, so the record beside the work sticks a step from
+   the window's top, clear of the step's bar at its foot (DL-132, DL-127). */
+@media (height < 30rem) and (min-width: 56.25rem) {
+  .rc-step-layout > .rc-step-aside {
+    inset-block-start: var(--space-5);
+    max-block-size: calc(100dvh - var(--step-bar-height) - 2 * var(--space-5));
+  }
 }
 @media (min-width: 100rem) {
   .rc-step-layout[data-main="wide"] { row-gap: var(--space-9); }
@@ -245,12 +262,21 @@
 .rc-main:has(> .rc-doorway, > .rc-home-hero) > .rc-notice:first-child { margin-block-start: var(--space-5); }
 .rc-main:has(> .rc-notice:first-child + .rc-doorway) { grid-template-rows: auto minmax(0, 1fr); }
 
+/* Home's hero fills the window under the app bar, and above the tab bar on a phone, with its words
+   in the middle, so the page opens on it alone (DL-128). The window's height is the dynamic one,
+   so a phone's address bar never cuts it off. */
+.rc-main:has(.rc-home-hero) { padding-block-start: 0; }
 .rc-home-hero {
   display: grid;
   justify-items: center;
+  align-content: center;
   gap: var(--space-3);
-  padding-block: var(--space-3) var(--space-6);
+  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height));
+  padding-block: var(--space-5) var(--space-6);
   text-align: center;
+}
+@media (width < 56.25rem) {
+  .rc-page:has(> .rc-bottom-nav) .rc-home-hero { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
 }
 .rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
 /* The website's hero accent: the italic word in the section's colour, with a faint copper ghost
@@ -259,10 +285,14 @@
   color: var(--section-accent-text, var(--text-accent));
   text-shadow: 0.04em -0.03em 0 var(--print-ghost);
 }
+/* The two words the page leads to take the colours of their sections: partners Initiatives' teal
+   and funding Funding's gold (DL-128). The words say what they are; the colour only echoes the
+   tabs. */
+.rc-home-hero .rc-heading [data-accent="initiatives"] { color: var(--text-initiatives); }
+.rc-home-hero .rc-heading [data-accent="funding"] { color: var(--text-funding); }
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
-.rc-home-hero > .rc-field { inline-size: 100%; text-align: start; }
 .rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
-/* Signs of life under the search: shared initiatives and funding closing soon. One per line on a
+/* Signs of life under the actions: shared initiatives and funding closing soon. One per line on a
    phone, where the two already fill the row and one more digit would wrap them unevenly, and side
    by side when wide (DL-063). Each count arrives when its own list has loaded, so the hero keeps
    room for both from the start, two lines on a phone and one when wide, and nothing under it
@@ -382,14 +412,23 @@
     padding: var(--space-2) var(--gutter);
     overflow-x: auto;
     /* A swipe that reaches either end stays in the row and does not start the browser's way back.
-       Only this axis, so the page still scrolls up and down from a finger that starts on a card. */
-    overscroll-behavior-x: contain;
+       Only this axis, so the page still scrolls up and down from a finger that starts on a card.
+       The row has no native stretch or rubber band of its own either: the bounce below is the
+       one every phone plays (DL-128). */
+    overscroll-behavior-x: none;
     scroll-snap-type: inline mandatory;
     scroll-padding-inline: var(--gutter);
   }
   .rc-card-grid[data-preview] > li { scroll-snap-align: start; }
   /* One card alone takes the row. */
   .rc-card-grid[data-preview]:has(> li:only-child) { grid-auto-columns: 100%; }
+  /* Reaching the row's start or its end, or pushing on past it, the cards bounce: they run on a
+     little way past the end and spring back, as a native list does. behaviors/carousel.js says
+     which end (`data-bounce`) and clears it once the bounce has played (DL-128). */
+  @media (prefers-reduced-motion: no-preference) {
+    .rc-card-grid[data-preview][data-bounce] > li > * { animation: rc-bounce-start calc(var(--duration-slow) * 1.5) var(--ease-out); }
+    .rc-card-grid[data-preview][data-bounce="end"] > li > * { animation-name: rc-bounce-end; }
+  }
   /* The loading shapes hold the row's place and do not move. */
   .rc-card-grid[data-preview][aria-hidden="true"] { overflow-x: hidden; }
   /* A finger needs no scrollbar. A mouse keeps it, as its way along the row. */
@@ -437,6 +476,9 @@
   .rc-main[data-move="return"] .rc-card-grid > li { animation: none; }
 }
 @keyframes rc-arrive { from { opacity: 0; } to { opacity: 1; } }
+/* The carousel's bounce: past the end it reached, then back to rest. */
+@keyframes rc-bounce-start { 35% { translate: var(--space-4) 0; } }
+@keyframes rc-bounce-end { 35% { translate: calc(var(--space-4) * -1) 0; } }
 
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root),

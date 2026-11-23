@@ -132,12 +132,15 @@ export function applyFundingFacet(
   }
 }
 
-/** "Research priority" stays Funding's word for its ranking: a rank is not eligibility. */
-export function fundingSorts(personalized: boolean): FacetOption[] {
+/**
+ * The orders Funding offers. With an initiative to compare, the strongest fit comes first: fit is
+ * about shared topics, never eligibility, and research priority settles ties (DL-129).
+ */
+export function fundingSorts(compared: boolean): FacetOption[] {
   return [
+    ...(compared ? [{ value: "fit", label: "Strongest fit" }] : []),
     { value: "closing", label: "Closing soon" },
     { value: "name", label: "Name A to Z" },
     { value: "recent", label: "Recently checked" },
-    ...(personalized ? [{ value: "fit", label: "Research priority" }] : []),
   ];
 }

@@ -1,10 +1,13 @@
-import { useState, type ReactNode, type Ref } from "react";
+import { useEffect, useState, type ReactNode, type Ref } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { useSocialFixture } from "../social/context.tsx";
 import { accountMessage, accountRequest } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { useAccountDoor } from "./door.tsx";
 import { continueToCertified } from "./sign-in.ts";
+import { warmSignIn } from "./warm.ts";
+import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
+import { pathTo } from "../routes.ts";
 
 /**
  * Sign in with one press, from the header or from a page that has already said why: it goes to
@@ -15,12 +18,20 @@ import { continueToCertified } from "./sign-in.ts";
  * While the press is carried out the button keeps its label and its width and shows a spinner in the
  * label's place, so nothing beside it moves. A failure is said under the button, or handed to
  * `onProblem` where there is no room under it, as in the header.
+ *
+ * While the session has not been checked and an account is expected, the button is not drawn: a
+ * person who is signed in is not offered sign-in for the moment the check takes. It appears as soon
+ * as the check says nobody is signed in, or cannot be made.
+ *
+ * Shown to someone signed out, it readies sign-in on the server (`warm.ts`), and again when the
+ * pointer or the keyboard reaches it after a long wait, so the press does not meet a cold start.
  */
 export function SignInButton({
   variant = "primary",
   size,
   ref,
   onProblem,
+  thenProjects = false,
   children = "Sign In With Certified",
 }: {
   variant?: "primary" | "secondary";
@@ -28,20 +39,38 @@ export function SignInButton({
   ref?: Ref<HTMLButtonElement>;
   /** Takes the failure in place of the line under the button. */
   onProblem?: (message: string) => void;
+  /**
+   * The person is signing in to reach their Certified projects, and the page has said that Certified
+   * will ask for project access next. A finished sign-in then goes on to that permission by itself
+   * (`initiative/consent-chain.ts`). Without it, signing in only identifies the person (DL-032).
+   */
+  thenProjects?: boolean;
   children?: ReactNode;
 }) {
-  const { state } = useAccount();
+  const { state, expectsAccount } = useAccount();
   const { controller, ready } = useDraft();
   const example = useSocialFixture();
   const openDoor = useAccountDoor();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
+  // Only where a press would go to Certified: accounts on, nobody signed in, and not the example world.
+  const offered = !!state?.available && !state.user && !(import.meta.env.DEV && example);
+  useEffect(() => {
+    if (offered) warmSignIn();
+  }, [offered]);
+  const warm = offered ? warmSignIn : undefined;
   async function signIn() {
     if (busy) return;
     if (import.meta.env.DEV && example) return openDoor("certified");
     if (!state?.available) return openDoor("sign-in");
     setBusy(true);
     setProblem("");
+    const tab = () => window.sessionStorage;
+    // Your Initiatives says what follows before any Sign In on it is pressed, the header's included.
+    // A sign-in from anywhere else clears an earlier note, so it can never be followed by project access.
+    const chained = thenProjects || window.location.pathname === pathTo("your-initiatives");
+    if (chained) expectProjectAccess(tab);
+    else forgetProjectAccess(tab);
     try {
       await continueToCertified(
         controller,
@@ -50,12 +79,14 @@ export function SignInButton({
         (target) => window.location.assign(target),
       );
     } catch (error) {
+      forgetProjectAccess(tab);
       const message = accountMessage(error);
       if (onProblem) onProblem(message);
       else setProblem(message);
       setBusy(false);
     }
   }
+  if (expectsAccount && !(import.meta.env.DEV && example)) return null;
   return (
     <>
       {/* Busy, it stays enabled to the eye and declines a second press, so it does not grey out mid-press. */}
@@ -69,6 +100,8 @@ export function SignInButton({
         aria-busy={busy || undefined}
         aria-disabled={busy || undefined}
         disabled={!ready}
+        onPointerEnter={warm}
+        onFocus={warm}
         onClick={() => void signIn()}
       >
         <span>{children}</span>

@@ -4,6 +4,11 @@ import { record } from "./account-contract.ts";
 
 export interface SignInAttempt { verifier: string; state: string; returnTo: string }
 export interface SignInStore {
+  /**
+   * Opens the connection and checks the role, so the first sign-in after a quiet spell does not wait
+   * for either. It reads and writes no attempt. A store with nothing to open has none.
+   */
+  ready?(): Promise<void>;
   put(id: string, attempt: SignInAttempt): Promise<void>;
   take(id: string): Promise<SignInAttempt | undefined>;
 }
@@ -23,6 +28,7 @@ export function postgresSignInStore(sql: postgres.Sql, cipher: StateCipher): Sig
       throw Error("restricted_sign_in_role_required");
   })().catch(error => { checked = undefined; throw error; });
   return {
+    ready: restricted,
     async put(id, attempt) {
       await restricted();
       const hash = cipher.index(namespace, id);

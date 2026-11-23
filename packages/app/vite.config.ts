@@ -126,7 +126,9 @@ export default defineConfig(({ mode }) => {
           // Only the imported public catalog release and screening assets, never device drafts.
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           navigateFallback: "/index.html",
-          navigateFallbackDenylist: [/^\/api\//],
+          // A file such as /llms.txt or /robots.txt is fetched from the network, not answered
+          // with the app; no page address ends in a file extension.
+          navigateFallbackDenylist: [/^\/api\//, /^\/[^?]*\.[a-z0-9]+$/i],
         },
       })]),
     ],

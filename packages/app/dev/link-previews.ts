@@ -1,4 +1,9 @@
 import type { Plugin } from "vite";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { previewTags as pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
+import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
+import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
 import { pathTo, type RouteName } from "../src/routes.ts";
 
@@ -57,9 +62,6 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
   },
 ];
 
-const escape = (text: string) =>
-  text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
-
 /** Where a preview's page and picture live, as full addresses: a preview is read far from the site. */
 export function previewAddresses(preview: LinkPreview, origin = PUBLIC_ORIGIN): { page: string; image: string } {
   return { page: origin + pathTo(preview.route), image: `${origin}/share/${preview.image}.png` };
@@ -70,53 +72,18 @@ export function previewAlt(preview: LinkPreview): string {
   return `${[...preview.headline.lines, ...preview.headline.accent].join(" ")}. Weave, part of Regen Commons.`;
 }
 
-/** The head tags a preview is read from. */
-export function previewTags(preview: LinkPreview, origin = PUBLIC_ORIGIN): string[] {
+/** A section's preview with its page and picture as full addresses, as the head and the API take it. */
+export function pagePreview(preview: LinkPreview, origin = PUBLIC_ORIGIN): PagePreview {
   const { page, image } = previewAddresses(preview, origin);
-  const meta = (key: "property" | "name", name: string, content: string) =>
-    `<meta ${key}="${name}" content="${escape(content)}">`;
-  return [
-    meta("property", "og:type", "website"),
-    meta("property", "og:site_name", "Weave"),
-    meta("property", "og:title", preview.title),
-    meta("property", "og:description", preview.description),
-    meta("property", "og:url", page),
-    meta("property", "og:image", image),
-    meta("property", "og:image:width", "1200"),
-    meta("property", "og:image:height", "630"),
-    meta("property", "og:image:alt", previewAlt(preview)),
-    meta("name", "twitter:card", "summary_large_image"),
-  ];
+  return { title: preview.title, description: preview.description, url: page, image, imageAlt: previewAlt(preview) };
 }
 
-/**
- * The app's HTML with one section's words in its head: the title and description a browser tab and
- * a search result show, and the preview tags. The page must have exactly one title, one description
- * and one head to change, or the file is not the one this was written for.
- */
-export function withPreview(html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string {
-  const swaps: [RegExp, string][] = [
-    [/<title>[^<]*<\/title>/g, `<title>${escape(preview.title)}</title>`],
-    [/<meta name="description" content="[^"]*">/g, `<meta name="description" content="${escape(preview.description)}">`],
-    [/<\/head>/g, `  ${previewTags(preview, origin).join("\n    ")}\n  </head>`],
-  ];
-  return swaps.reduce((page, [pattern, replacement]) => {
-    const found = page.match(pattern)?.length ?? 0;
-    if (found !== 1) throw new Error(`Expected one match for ${pattern} in index.html, found ${found}.`);
-    return page.replace(pattern, () => replacement);
-  }, html);
-}
+/** The head tags a section's preview is read from (see `previewTags` in `@weave/api/page-preview`). */
+export const previewTags = (preview: LinkPreview, origin = PUBLIC_ORIGIN): string[] => pageTags(pagePreview(preview, origin));
 
-/**
- * A page with one section's preview taken out of its head again, ready for another's. Each tag must
- * be there exactly as it was written.
- */
-export function withoutPreview(html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string {
-  return previewTags(preview, origin).reduce((page, tag) => {
-    if (page.split(tag).length !== 2) throw new Error(`Expected one ${tag} in index.html.`);
-    return page.replace(tag, "").replace(/\n[ \t]*\n/g, "\n");
-  }, html);
-}
+/** The app's HTML with one section's words in its head, in place of any preview it had. */
+export const withPreview = (html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string =>
+  withPagePreview(html, pagePreview(preview, origin));
 
 /** The file a section's copy is written to, beside the app's own index.html. Home is that file itself. */
 export function previewFile(preview: LinkPreview): string {
@@ -125,25 +92,49 @@ export function previewFile(preview: LinkPreview): string {
 }
 
 /**
- * Gives index.html Home's preview, and in a build writes each other section's copy of it. A copy is
- * made from the finished index.html, whatever other plugins put in it and in whatever order, so a
- * person who lands on a section gets the same scripts, styles and service worker as one who lands
- * on Home.
+ * What GET /api/record-page needs to give a fund or an initiative its own preview (22 November 2026): the
+ * Funding and Initiatives previews it starts from, and each fund's name, description and program names
+ * from the catalog this build bundles. Read back through the API's own parser, so a file it would refuse
+ * fails the build instead of every record's preview.
+ */
+export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): RecordPreviews {
+  const section = (route: RouteName) => pagePreview(LINK_PREVIEWS.find((preview) => preview.route === route)!, origin);
+  const funds = CatalogSchema.parse(catalog).funds.map((fund) => [fund.id, {
+    name: fund.displayName,
+    description: fund.description,
+    programs: Object.fromEntries((fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => [id, name]) ?? []),
+  }] as const);
+  return parseRecordPreviews({ sections: { funding: section("funding"), initiatives: section("initiatives") }, funds: Object.fromEntries(funds) });
+}
+
+/** The catalog the app bundles, from the repository's built data. */
+const CATALOG = "../../dist/data/funders.json";
+
+/**
+ * Gives index.html Home's preview, and in a build writes each other section's copy of it, and the
+ * record previews GET /api/record-page reads. A copy is made from the finished index.html, whatever
+ * other plugins put in it and in whatever order, so a person who lands on a section gets the same
+ * scripts, styles and service worker as one who lands on Home.
  */
 export function linkPreviews(origin = PUBLIC_ORIGIN): Plugin {
   const [home, ...sections] = LINK_PREVIEWS;
   if (!home || previewFile(home) !== "index.html") throw new Error("The first link preview must be Home's.");
+  let root = process.cwd();
   return {
     name: "weave-link-previews",
     enforce: "post",
+    configResolved(config) {
+      root = config.root;
+    },
     transformIndexHtml: { order: "post", handler: (html) => withPreview(html, home, origin) },
     generateBundle(_options, bundle) {
       const built = bundle["index.html"];
       if (built?.type !== "asset" || typeof built.source !== "string")
         throw new Error("index.html was not built before its link previews.");
-      const base = withoutPreview(built.source, home, origin);
       for (const preview of sections)
-        this.emitFile({ type: "asset", fileName: previewFile(preview), source: withPreview(base, preview, origin) });
+        this.emitFile({ type: "asset", fileName: previewFile(preview), source: withPreview(built.source, preview, origin) });
+      const catalog: unknown = JSON.parse(readFileSync(join(root, CATALOG), "utf8"));
+      this.emitFile({ type: "asset", fileName: RECORD_PREVIEWS_FILE, source: JSON.stringify(recordPreviews(catalog, origin)) });
     },
   };
 }

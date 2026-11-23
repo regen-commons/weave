@@ -40,17 +40,19 @@
   <body>
     <div class="rc-page" data-section="home">
       <a class="rc-skip-link" href="#main">Skip to content</a>
-      <p class="rc-site-banner">Still in development will be live soon</p>
-      <header class="rc-app-header">
+      <header class="rc-app-head">
+      <p class="rc-site-banner">Still in development. Live soon.</p>
+      <div class="rc-app-header">
         <div class="rc-app-header-lead"><a class="rc-logo" href="home.html" aria-current="page"
           ><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a
         >
         <nav class="rc-app-nav" aria-label="Main">
-          <a href="initiatives.html">Initiatives</a>
           <a href="funding.html">Funding</a>
+          <a href="initiatives.html">Initiatives</a>
           <a href="your-initiatives.html">Your Initiatives</a>
         </nav></div>
         <div class="rc-app-header-state"><button class="rc-button" data-variant="secondary" data-size="sm" type="button">Sign In</button></div>
+      </div>
       </header>
       <div class="rc-page-body">
       <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
@@ -58,25 +60,13 @@
         <div class="rc-stack" data-gap="wide">
           <section class="rc-home-hero" aria-labelledby="home-title">
             <h1 class="rc-heading" data-size="hero" id="home-title">
-              Find Partners And Funding For <em>Regenerative Work</em>
+              Find <span data-accent="initiatives">Partners</span> And <span data-accent="funding">Funding</span> For <em>Regenerative Work</em>
             </h1>
             <p class="rc-prose">Describe your initiative once to find support.</p>
             <div class="rc-home-actions">
               <a class="rc-button" data-variant="primary" data-size="lg" href="describe.html">Start An Initiative</a>
               <a class="rc-button" data-variant="secondary" data-size="lg" href="your-initiatives.html">Open Your Saved Initiative</a>
             </div>
-            <form class="rc-field" action="initiatives.html" role="search">
-              <label for="home-search">Search initiatives</label>
-              <div class="rc-search rc-inline-field">
-                <input class="rc-input" type="search" id="home-search" name="q" /><button
-                  class="rc-button"
-                  data-variant="secondary"
-                  type="submit"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
             <div class="rc-home-live">
               <a class="rc-button" data-variant="quiet" data-size="sm" href="initiatives.html"
                 >6 Initiatives Shared</a>
@@ -359,8 +349,8 @@
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
-              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
               <li><a class="rc-footer-link" href="funding.html">Funding</a></li>
+              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
               <li><a class="rc-footer-link" href="your-initiatives.html">Your Initiatives</a></li>
             </ul>
           </section>
@@ -423,8 +413,8 @@
       </dialog>
       <nav class="rc-bottom-nav" aria-label="Main">
         <a href="home.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home" /></svg>Home</a>
-        <a href="initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
         <a href="funding.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>Funding</a>
+        <a href="initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
         <a href="your-initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>You</a>
       </nav>
     </div>

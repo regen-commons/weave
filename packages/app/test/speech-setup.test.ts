@@ -22,9 +22,6 @@ import {
   type SpeechSetupState,
   type Wait,
 } from "../src/describe/speech-setup.ts";
-import { speechSetupList } from "../src/intake/ask-page.ts";
-import { emptyAskStep } from "../src/intake/contracts.ts";
-import { addEntry } from "../src/intake/entries.ts";
 
 /** Lets every answer the stub browser has already given arrive. */
 const settle = () => new Promise((resolve) => setImmediate(resolve));
@@ -328,7 +325,7 @@ test("languages are set up one by one, and a known state stays while the browser
 test("Talk it out says plainly where speech stands, and where it cannot work it says so in one line (DL-110)", () => {
   const states: SpeechSetupState[] = ["checking", "none", "browser", "offer", "installing", "slow", "failed", "ready"];
   for (const state of states)
-    for (const options of [{}, { touch: true }, { agreed: true }, { listening: true }]) {
+    for (const options of [{}, { touch: true }, { agreed: true }, { listening: true }, { listening: true, stopping: true }]) {
       const controls = talkControls(state, options);
       assert.doesNotMatch(controls.note + controls.label, /[\u2014\u2192\u00b7]/, `${state} breaks the voice rules`);
       if (controls.note) assert.match(controls.note, /^[A-Z][^]*\.$/, `${state} is a plain sentence`);
@@ -367,6 +364,14 @@ test("Talk it out says plainly where speech stands, and where it cannot work it 
     ["stop", "Stop"],
   );
   assert.match(talkControls("ready", { listening: true }).note, /^Listening on this device/);
+  // Stop answers the press at once, before the recognizer has handed over its last words (DL-133).
+  for (const state of ["ready", "browser"] as const) {
+    const finishing = talkControls(state, { listening: true, stopping: true, agreed: true });
+    assert.deepEqual([finishing.action, finishing.label, finishing.note], ["finishing", "Finishing", "Finishing your words."]);
+    assert.equal(finishing.language, false, "one line beside the button, as while listening");
+    assert.equal(finishing.mode, speechMode(state), "it is still the same session");
+  }
+  assert.equal(talkControls("ready", { stopping: true }).action, "talk", "nothing is finishing unless something listens");
   for (const state of ["offer", "ready", "browser"] as const)
     assert.equal(talkControls(state, { asking: true }).action, null, `no button while a new language is asked about, in ${state}'s place`);
   assert.deepEqual(
@@ -487,16 +492,6 @@ test("a failed session leaves Talk It Out in place, so the page does not move an
   assert.doesNotMatch(speechProblem("not-allowed", "browser", true), /keyboard/, "a refused microphone would refuse the keyboard too");
 });
 
-test("the needs and offers page offers setup once, in the list the route opened unless it is full", () => {
-  let full = emptyAskStep();
-  for (const words of ["Seedlings", "Fencing", "A truck", "A map"]) full = addEntry(full, words);
-  const empty = emptyAskStep();
-  assert.equal(speechSetupList("needs", { needs: empty, offers: empty }), "needs");
-  assert.equal(speechSetupList("offers", { needs: empty, offers: empty }), "offers");
-  assert.equal(speechSetupList("needs", { needs: full, offers: empty }), "offers");
-  assert.equal(speechSetupList("offers", { needs: full, offers: full }), undefined);
-});
-
 test("a second Talk it out on a page stays quiet until talking works, so setup and the missing-speech line show once", () => {
   for (const state of ["checking", "none", "offer", "installing", "slow", "failed"] as const)
     assert.deepEqual(
@@ -520,6 +515,6 @@ test("Talk It Out keeps the keyboard focus while it is held", () => {
   assert.equal(talkHold("talk", { working: false, disabled: true, focused: false }), "disabled");
   assert.equal(talkHold("talk", { working: false, disabled: false, focused: true }), "free");
   // Stopping always works, and the setup holds itself with aria-busy.
-  for (const action of ["stop", "set-up", "setting-up"] as const)
+  for (const action of ["stop", "finishing", "set-up", "setting-up"] as const)
     assert.equal(talkHold(action, { working: true, disabled: true, focused: true }), "free", `${action} is never held here`);
 });

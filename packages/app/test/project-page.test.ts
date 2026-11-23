@@ -13,7 +13,15 @@ import {
   withProjectSuggestions,
 } from "../src/initiative/import.ts";
 import { cardRoute, chosenEntries, publicCard, publicKey, shareable } from "../src/initiative/status.ts";
-import { continueBoth, suggestedEntry, suggestionSource } from "../src/intake/ask-page.ts";
+import { continueStep, suggestedEntry, suggestionSource } from "../src/intake/ask-page.ts";
+import type { AskStep } from "../src/intake/contracts.ts";
+
+/** Continue on the needs step and then the offers step, as a person goes through them. */
+function continueBoth(steps: { needs: AskStep; offers: AskStep }) {
+  const needs = continueStep(steps.needs);
+  const offers = continueStep(steps.offers);
+  return needs.ok && offers.ok ? { ok: true as const, steps: { needs: needs.step, offers: offers.step } } : { ok: false as const };
+}
 import { addEntry } from "../src/intake/entries.ts";
 import { intakeComplete } from "../src/intake/finish.ts";
 import { candidateChunks, chunksFrom, keywordExtraction } from "../src/intake/keywords.ts";

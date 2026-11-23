@@ -398,7 +398,7 @@ test("on a phone a focused step docks its way forward where the tab bar would be
   }
 });
 
-test("on a wide screen a step's map and its way forward share one bar under the app bar (DL-127)", () => {
+test("on a wide screen a step's map and its way forward share one bar at the foot of the window (DL-127)", () => {
   const organisms = stripComments(read("packages/design-system/css/organisms.css"));
   const templates = stripComments(read("packages/design-system/css/templates.css"));
   const molecules = stripComments(read("packages/design-system/css/molecules.css"));
@@ -406,16 +406,21 @@ test("on a wide screen a step's map and its way forward share one bar under the 
   // Not drawn on a phone, nor when it holds nothing.
   assert.match(organisms, /\n\.rc-step-bar \{ display: none; \}/);
   const bar = /\.rc-step-bar:not\(:empty\) \{([^}]*)\}/.exec(wide(organisms))?.[1] ?? "";
-  for (const declaration of ["position: sticky;", "inset-block-start: var(--app-header-height);", "z-index: var(--layer-sticky);", "background: var(--surface);"])
+  for (const declaration of ["position: fixed;", "inset-block-end: 0;", "inset-inline: 0;", "z-index: var(--layer-sticky);", "background: var(--surface);", "border-block-start: var(--border-thin) solid var(--control-line);"])
     assert.ok(bar.includes(declaration), `the step bar has ${declaration}`);
-  // The page gives it a row under the app bar, though it comes after the page body in the markup,
-  // and whatever sticks under the bars or fills the window below them counts its height.
+  // It sits where the phone's dock does, so it takes no row of the page's grid: the page keeps
+  // room for it under the footer, and whatever fills or stays whole in the window leaves it out.
+  assert.doesNotMatch(templates, /\.rc-step-bar \{ grid-row/);
   assert.match(templates, /\.rc-page \{ --step-bar-height: 0rem; \}/);
-  assert.ok(wide(templates).includes(".rc-page > .rc-step-bar { grid-row: 2; }"));
-  assert.ok(wide(templates).includes(".rc-page:has(> .rc-site-banner) > .rc-step-bar { grid-row: 3; }"));
-  assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--step-bar-height\) \+ var\(--space-5\)\);/);
+  assert.ok(wide(templates).includes("padding-block-end: calc(var(--step-bar-height) + env(safe-area-inset-bottom));"));
+  // The site banner is inside the page header, so a page with one has the same rows (DL-132).
+  assert.doesNotMatch(templates, /:has\(> \.rc-site-banner\)/);
+  assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--space-5\)\);/);
+  assert.match(templates, /max-block-size: calc\(100dvh - var\(--app-header-height\) - var\(--step-bar-height\) - 2 \* var\(--space-5\)\);/);
   assert.match(templates, /min-block-size: calc\(100dvh - var\(--site-banner-height\) - var\(--app-header-height\) - var\(--step-bar-height\)\);/);
-  assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-start:"));
+  assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-end:"));
+  // Each step's edge lies on the bar's top line, where it meets the page.
+  assert.ok(wide(organisms).includes('.rc-step-bar > .rc-stepper > li[aria-current="step"] { border-block-start-color: var(--action); }'));
   // The steps and the end-of-step actions a wide screen shows in the bar are a phone's on the page.
   assert.ok(wide(molecules).includes('.rc-stepper[data-until="wide"] { display: none; }'));
   assert.ok(wide(molecules).includes('.rc-action-bar[data-until="wide"] { display: none; }'));
@@ -456,8 +461,11 @@ test("on a phone a preview is a row that swipes, and a list card holds only what
   assert.match(row, /margin: calc\(var\(--space-2\) \* -1\) calc\(var\(--gutter\) \* -1\)/);
   assert.match(row, /padding: var\(--space-2\) var\(--gutter\)/);
   assert.match(row, /scroll-padding-inline: var\(--gutter\)/);
-  // Only the row's own axis is held, so a finger that starts on a card still scrolls the page.
-  assert.match(row, /overscroll-behavior-x: contain/);
+  // Only the row's own axis is held, so a finger that starts on a card still scrolls the page. The
+  // row has no native stretch of its own: the cards' bounce is the one every phone plays (DL-128).
+  assert.match(row, /overscroll-behavior-x: none/);
+  assert.match(phone, /@media \(prefers-reduced-motion: no-preference\) \{\s*\.rc-card-grid\[data-preview\]\[data-bounce\] > li > \* \{ animation: rc-bounce-start /);
+  assert.match(phone, /\.rc-card-grid\[data-preview\]\[data-bounce="end"\] > li > \* \{ animation-name: rc-bounce-end; \}/);
   assert.doesNotMatch(row, /overscroll-behavior:|touch-action/);
   // A row has no short last row, so it hides no card. Its loading shapes do not move.
   assert.doesNotMatch(phone, /display: none/);
@@ -667,4 +675,23 @@ test("the count line and the list end keep set room, and no section is a band (D
 test("on a phone a fixed-row card keeps two summary lines, kept and cut alike (DL-109)", () => {
   const molecules = stripComments(read("packages/design-system/css/molecules.css"));
   assert.match(molecules, /@container \(width < 37\.5rem\) \{\s*\.rc-card\[data-rows="fixed"\] > \.rc-card-summary \{ min-block-size: 2lh; -webkit-line-clamp: 2; line-clamp: 2; \}\s*\}/);
+});
+
+test("the site banner is the first line of the page header, which lets it scroll away, and a short window lets the whole header go (DL-132)", () => {
+  const organisms = stripComments(read("packages/design-system/css/organisms.css"));
+  const templates = stripComments(read("packages/design-system/css/templates.css"));
+  const head = /\n\.rc-app-head \{([^}]*)\}/.exec(organisms)?.[1] ?? "";
+  assert.match(head, /position: sticky;/);
+  assert.match(head, /inset-block-start: calc\(var\(--site-banner-height\) \* -1\);/, "the banner's height above the window's top");
+  assert.match(organisms, /\.rc-app-head > \.rc-app-header \{ position: static; \}/);
+  assert.match(templates, /\.rc-page:has\(\.rc-site-banner\) \{ --site-banner-height: var\(--space-7\); \}/);
+  // Under 30rem tall nothing at the top sticks, and focus stops a step from the window's top. A
+  // step's bar stays at the foot of the window, as a phone's dock does (DL-127).
+  assert.match(organisms, /@media \(height < 30rem\) \{\s*\.rc-app-head, \.rc-app-header \{ position: static; \}\s*\}/);
+  assert.doesNotMatch(organisms, /@media \(height < 30rem\) and \(min-width: 56\.25rem\) \{\s*\.rc-step-bar/);
+  assert.match(templates, /@media \(height < 30rem\) \{\s*:root:has\(\.rc-app-header\) \{ scroll-padding-block-start: var\(--space-4\); \}\s*\}/);
+  // The library's Home has the banner inside its header, in two sentences.
+  const home = PAGES.home;
+  const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
+  assert.match(header, /^<header class="rc-app-head">\s*<p class="rc-site-banner">[^<]*\.\s[^<]*\.<\/p>\s*<div class="rc-app-header">/);
 });
