@@ -1,0 +1,886 @@
+{
+ "prod-home-mobile": {
+  "url": "https://weave.regencommons.com/",
+  "fetchTime": "2026-11-23T03:24:45.502Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 74,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 934.216,
+   "largest-contentful-paint": 6034.216,
+   "total-blocking-time": 228,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1529.902
+  },
+  "failing": [
+   "ard-schema",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-home-desktop": {
+  "url": "https://weave.regencommons.com/",
+  "fetchTime": "2026-11-23T03:25:04.734Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 98,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 275.321,
+   "largest-contentful-paint": 1115.321,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0.001,
+   "speed-index": 570.89
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-initiatives-mobile": {
+  "url": "https://weave.regencommons.com/initiatives",
+  "fetchTime": "2026-11-23T03:25:23.918Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 91,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 956.449,
+   "largest-contentful-paint": 3056.449,
+   "total-blocking-time": 196,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1523.377
+  },
+  "failing": [
+   "ard-schema",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-initiatives-desktop": {
+  "url": "https://weave.regencommons.com/initiatives",
+  "fetchTime": "2026-11-23T03:25:40.916Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 100,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 295.827,
+   "largest-contentful-paint": 655.827,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 502.657
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-funding-mobile": {
+  "url": "https://weave.regencommons.com/funding?sort=fit",
+  "fetchTime": "2026-11-23T03:25:57.318Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 66,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 943.345,
+   "largest-contentful-paint": 6043.345,
+   "total-blocking-time": 502,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1711.581
+  },
+  "failing": [
+   "ard-schema",
+   "forced-reflow-insight",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "mainthread-work-breakdown",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-funding-desktop": {
+  "url": "https://weave.regencommons.com/funding?sort=fit",
+  "fetchTime": "2026-11-23T03:26:20.258Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 98,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 469.697,
+   "largest-contentful-paint": 1100.697,
+   "total-blocking-time": 11,
+   "cumulative-layout-shift": 0,
+   "speed-index": 870.909
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-fund-mobile": {
+  "url": "https://weave.regencommons.com/funding/local-nlnet?sort=fit",
+  "fetchTime": "2026-11-23T03:26:51.718Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 50,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 90,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 963.356,
+   "largest-contentful-paint": 6063.355,
+   "total-blocking-time": 1983,
+   "cumulative-layout-shift": 0,
+   "speed-index": 2419.683
+  },
+  "failing": [
+   "ard-schema",
+   "bootup-time",
+   "forced-reflow-insight",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "mainthread-work-breakdown",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-fund-desktop": {
+  "url": "https://weave.regencommons.com/funding/local-nlnet?sort=fit",
+  "fetchTime": "2026-11-23T03:27:14.998Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 97,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 90,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 296.685,
+   "largest-contentful-paint": 1136.686,
+   "total-blocking-time": 30,
+   "cumulative-layout-shift": 0.059,
+   "speed-index": 1008.731
+  },
+  "failing": [
+   "ard-schema",
+   "forced-reflow-insight",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-describe-mobile": {
+  "url": "https://weave.regencommons.com/start/initiative",
+  "fetchTime": "2026-11-23T03:27:47.581Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 92,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 924.341,
+   "largest-contentful-paint": 3024.341,
+   "total-blocking-time": 176,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1657.189
+  },
+  "failing": [
+   "ard-schema",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-describe-desktop": {
+  "url": "https://weave.regencommons.com/start/initiative",
+  "fetchTime": "2026-11-23T03:28:13.410Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 85,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 301.585,
+   "largest-contentful-paint": 661.585,
+   "total-blocking-time": 340,
+   "cumulative-layout-shift": 0,
+   "speed-index": 908.678
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-your-initiatives-mobile": {
+  "url": "https://weave.regencommons.com/your-initiatives",
+  "fetchTime": "2026-11-23T03:28:35.258Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 92,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 947.604,
+   "largest-contentful-paint": 3047.604,
+   "total-blocking-time": 151,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1845.817
+  },
+  "failing": [
+   "ard-schema",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-your-initiatives-desktop": {
+  "url": "https://weave.regencommons.com/your-initiatives",
+  "fetchTime": "2026-11-23T03:29:05.889Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 76,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 454.906,
+   "largest-contentful-paint": 814.906,
+   "total-blocking-time": 517,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1401.099
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "speed-index",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-settings-mobile": {
+  "url": "https://weave.regencommons.com/settings",
+  "fetchTime": "2026-11-23T03:29:23.369Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 93,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 962.002,
+   "largest-contentful-paint": 3062.002,
+   "total-blocking-time": 130,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1832.966
+  },
+  "failing": [
+   "ard-schema",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "prod-settings-desktop": {
+  "url": "https://weave.regencommons.com/settings",
+  "fetchTime": "2026-11-23T03:29:40.151Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 100,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 92,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 299.799,
+   "largest-contentful-paint": 659.799,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 765.216
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-home-mobile": {
+  "url": "http://localhost:4188/",
+  "fetchTime": "2026-11-23T03:18:58.498Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 71,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 913.069,
+   "largest-contentful-paint": 7185.603,
+   "total-blocking-time": 253,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1997.899
+  },
+  "failing": [
+   "ard-schema",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-home-desktop": {
+  "url": "http://localhost:4188/",
+  "fetchTime": "2026-11-23T03:19:15.999Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 99,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 269.002,
+   "largest-contentful-paint": 914.503,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 620.524
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-initiatives-mobile": {
+  "url": "http://localhost:4188/initiatives",
+  "fetchTime": "2026-11-23T03:19:39.229Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 68,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 911.614,
+   "largest-contentful-paint": 4002.421,
+   "total-blocking-time": 783.193,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1943.385
+  },
+  "failing": [
+   "ard-schema",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-initiatives-desktop": {
+  "url": "http://localhost:4188/initiatives",
+  "fetchTime": "2026-11-23T03:19:57.863Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 99,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 259.897,
+   "largest-contentful-paint": 815.845,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 805.75
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-funding-mobile": {
+  "url": "http://localhost:4188/funding?sort=fit",
+  "fetchTime": "2026-11-23T03:20:18.691Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 63,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 935.139,
+   "largest-contentful-paint": 7091.708,
+   "total-blocking-time": 516.0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 2318.266
+  },
+  "failing": [
+   "ard-schema",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "mainthread-work-breakdown",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-funding-desktop": {
+  "url": "http://localhost:4188/funding?sort=fit",
+  "fetchTime": "2026-11-23T03:20:39.539Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 99,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 260.075,
+   "largest-contentful-paint": 857.112,
+   "total-blocking-time": 6,
+   "cumulative-layout-shift": 0,
+   "speed-index": 641.056
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-fund-mobile": {
+  "url": "http://localhost:4188/funding/local-nlnet?sort=fit",
+  "fetchTime": "2026-11-23T03:20:58.589Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 49,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 90,
+   "agentic-browsing": 46
+  },
+  "metrics": {
+   "first-contentful-paint": 914.999,
+   "largest-contentful-paint": 7219.498,
+   "total-blocking-time": 1151.501,
+   "cumulative-layout-shift": 0.122,
+   "speed-index": 2577.872
+  },
+  "failing": [
+   "ard-schema",
+   "cls-culprits-insight",
+   "cumulative-layout-shift",
+   "forced-reflow-insight",
+   "interactive",
+   "largest-contentful-paint",
+   "layout-shifts",
+   "llms-txt",
+   "mainthread-work-breakdown",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-fund-desktop": {
+  "url": "http://localhost:4188/funding/local-nlnet?sort=fit",
+  "fetchTime": "2026-11-23T03:21:16.434Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 96,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 90,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 258.519,
+   "largest-contentful-paint": 1342.778,
+   "total-blocking-time": 12,
+   "cumulative-layout-shift": 0,
+   "speed-index": 977.762
+  },
+  "failing": [
+   "ard-schema",
+   "forced-reflow-insight",
+   "largest-contentful-paint",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-describe-mobile": {
+  "url": "http://localhost:4188/start/initiative",
+  "fetchTime": "2026-11-23T03:21:50.725Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 85,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 916.617,
+   "largest-contentful-paint": 3998.925,
+   "total-blocking-time": 172,
+   "cumulative-layout-shift": 0,
+   "speed-index": 2143.299
+  },
+  "failing": [
+   "ard-schema",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-describe-desktop": {
+  "url": "http://localhost:4188/start/initiative",
+  "fetchTime": "2026-11-23T03:22:21.295Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 87,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 609.856,
+   "largest-contentful-paint": 948.213,
+   "total-blocking-time": 236.072,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1768.142
+  },
+  "failing": [
+   "ard-schema",
+   "forced-reflow-insight",
+   "lcp-breakdown-insight",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "speed-index",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-your-initiatives-mobile": {
+  "url": "http://localhost:4188/your-initiatives",
+  "fetchTime": "2026-11-23T03:23:24.461Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 81,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 1221.889,
+   "largest-contentful-paint": 3855.777,
+   "total-blocking-time": 312,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1892.85
+  },
+  "failing": [
+   "ard-schema",
+   "forced-reflow-insight",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "mainthread-work-breakdown",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "total-blocking-time",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-your-initiatives-desktop": {
+  "url": "http://localhost:4188/your-initiatives",
+  "fetchTime": "2026-11-23T03:23:48.230Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 100,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 257.501,
+   "largest-contentful-paint": 805.251,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 635.568
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-settings-mobile": {
+  "url": "http://localhost:4188/settings",
+  "fetchTime": "2026-11-23T03:24:05.683Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 86,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 918.527,
+   "largest-contentful-paint": 4009.791,
+   "total-blocking-time": 149.132,
+   "cumulative-layout-shift": 0,
+   "speed-index": 1723.774
+  },
+  "failing": [
+   "ard-schema",
+   "interactive",
+   "largest-contentful-paint",
+   "llms-txt",
+   "max-potential-fid",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ },
+ "local-settings-desktop": {
+  "url": "http://localhost:4188/settings",
+  "fetchTime": "2026-11-23T03:24:29.285Z",
+  "lighthouse": "13.6.0",
+  "userAgent": ") HeadlessChrome/149.0.0.0 Safari/537.36",
+  "scores": {
+   "performance": 100,
+   "accessibility": 100,
+   "best-practices": 100,
+   "seo": 91,
+   "agentic-browsing": 50
+  },
+  "metrics": {
+   "first-contentful-paint": 251.047,
+   "largest-contentful-paint": 795.571,
+   "total-blocking-time": 0,
+   "cumulative-layout-shift": 0,
+   "speed-index": 580.934
+  },
+  "failing": [
+   "ard-schema",
+   "llms-txt",
+   "network-dependency-tree-insight",
+   "render-blocking-insight",
+   "robots-txt",
+   "unused-javascript",
+   "valid-source-maps"
+  ]
+ }
+}

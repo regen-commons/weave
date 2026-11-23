@@ -17,6 +17,7 @@ import { firstPage } from "./dev/first-page.ts";
 import { fontPreloads } from "./dev/font-preloads.ts";
 import { linkPreviews } from "./dev/link-previews.ts";
 import { firstFunds } from "./dev/first-funds.ts";
+import { prerender } from "./dev/prerender.ts";
 import { appManifest } from "./dev/manifest.ts";
 import { themeColor } from "./dev/theme-color.ts";
 import { isolateFixtureProjectOAuth } from "./dev/fixture-oauth-isolation.ts";
@@ -116,11 +117,14 @@ export default defineConfig(({ mode }) => {
       // Funding's first cards, built in from the catalog so they show with the page.
       firstFunds(),
       // After the preloads, the theme colours and the first-page script, so each section's copy of
-      // index.html carries them too.
-      ...(prototype ? [] : [fontPreloads(), themeColor(), firstPage(), linkPreviews()]),
+      // index.html carries them too. The first views go into each copy once the link previews have
+      // made it (dev/prerender.ts).
+      ...(prototype ? [] : [fontPreloads(), themeColor(), firstPage(), linkPreviews(), prerender()]),
       ...(prototype ? [] : [VitePWA({
         registerType: "autoUpdate",
-        injectRegister: "script",
+        // Deferred, so the register script never holds up the first paint. It registers the
+        // worker on the window's load event either way.
+        injectRegister: "script-defer",
         manifest: appManifest(tokens.themes.light.surface),
         workbox: {
           // The plugin turns these on for autoUpdate only when it injects the register
