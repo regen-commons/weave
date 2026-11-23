@@ -185,6 +185,13 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   on short windows, for example below 30rem tall, let the header and banner scroll with
   the page and keep `scroll-padding` in step. Capture:
   [Describe at 400%](local-chrome149-describe-400pct-light.jpg).
+  Related, fixed in phase 2 (A-16 on the accessibility list, WCAG 1.4.12): with text
+  spacing raised, the banner's paragraph gained space under it and the stuck header ended
+  28 px lower than `--app-header-height` assumed, so it covered the top of Funding's pinned
+  Search and Filters row. The app now measures where the stuck header ends
+  (`ui/header-height.ts`) and sets that height, which the pinned row and `scroll-padding`
+  read. Capture, fixture data in a local production build:
+  [Funding at 320 by 568 with text spacing](local-chrome149-funding-320-text-spacing-pin.jpg).
 - [ ] **Q-11. The banner reads as one run-on phrase, outside any landmark.** Routes:
   all. "Still in development will be live soon" has no break between its two
   statements, and it sits before the header, so a screen reader moving by landmark

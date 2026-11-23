@@ -21,6 +21,8 @@ else watchInstallOffer();
 // that fails still draws the app, whose page then waits for its code under a Suspense boundary.
 await preloadPage(currentRoute()).catch(() => {});
 retireFirstView(root, routePath());
+// The app has started, so the note for a page whose script never ran is not needed.
+document.querySelector("[data-app-fallback]")?.remove();
 
 createRoot(root).render(
   <StrictMode>

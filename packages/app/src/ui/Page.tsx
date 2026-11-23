@@ -1,10 +1,11 @@
 import { InformationContext } from "./information-context.ts";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { breadcrumbTrail, matchRoute, navLabel, type BackTarget, type RouteName } from "../routes.ts";
 import type { SaveStatus } from "../initiative/header-status.ts";
 import { AppHeader } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
 import { firstViewReplaced, replacesFirstView } from "../first-view.ts";
+import { followAppHeader } from "./header-height.ts";
 import { BottomNav } from "./BottomNav.tsx";
 import { DockContext, StepBarContext } from "./dock.ts";
 import { Breadcrumbs } from "./Breadcrumbs.tsx";
@@ -43,12 +44,19 @@ export function Page({
   const [stepBar, setStepBar] = useState<HTMLElement | null>(null);
   const ended = useSessionEndedNotice(pathname);
   const route = matchRoute(pathname);
+  // What sticks under the header starts where the stuck header really ends, which wider or taller
+  // text can move.
+  const page = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const header = page.current?.querySelector(".rc-app-head");
+    return header ? followAppHeader(header, document.documentElement) : undefined;
+  }, [pathname, form]);
   return (
     <InformationContext.Provider value={setInformation}>
       <DockContext.Provider value={dock}>
       <StepBarContext.Provider value={stepBar}>
       {/* The section sets its accent: the current tab's bar, the page's eyebrow and step numbers (DL-050). */}
-      <div className="rc-page" data-section={route?.section}>
+      <div className="rc-page" data-section={route?.section} ref={page}>
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
