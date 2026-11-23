@@ -374,6 +374,21 @@
   border-block-start: var(--border-thin) solid var(--line);
   background: var(--surface-overlay);
 }
+/* Choices that scroll (`rc-dialog-scroll`) between a title row and a foot that stay put. Only the
+   choices move, so a sheet's title row and its foot neither scroll away nor bounce with them, and
+   the choices keep a little room so a focused one's ring is not cut off (DL-130). */
+.rc-dialog[open]:has(> .rc-dialog-body > .rc-dialog-scroll) { display: flex; flex-direction: column; overflow: hidden; }
+.rc-dialog:has(> .rc-dialog-body > .rc-dialog-scroll) > .rc-dialog-body { flex: 1 1 auto; min-block-size: 0; grid-template-rows: auto minmax(0, 1fr) auto; }
+.rc-dialog-scroll {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-block-size: 0;
+  margin-inline: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 /* The grip shows only where the dialog is a bottom sheet, and there it pulls the sheet away. */
 .rc-dialog-grip { display: none; }
 @media (forced-colors: active) {
@@ -508,6 +523,37 @@
    more to come and at the list's last card (DL-108). */
 @container (width < 37.5rem) {
   .rc-list-end { display: grid; grid-template-rows: minmax(var(--control-height), auto) var(--control-height); align-items: center; justify-items: start; }
+}
+/* The search field is a control's height, as the Filters, filter and Sort buttons under it are, at
+   every width, and not the taller field an inline form gives it (DL-130). A larger text size
+   still makes it taller. */
+.rc-filter-bar .rc-search > .rc-input { min-block-size: var(--control-height); padding-block: 0; }
+/* Pinned filter row: once a list's filter bar has gone up under the app bar, its controls stay
+   under the bar, with Search, which goes back to the field, first. It spans the window and keeps
+   the page's edges, as the app bar does (DL-130). */
+.rc-filter-pin {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: var(--app-header-height);
+  z-index: var(--layer-sticky);
+  padding-block: var(--space-2);
+  padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
+  border-block-end: var(--border-thin) solid var(--line);
+  background: var(--surface);
+}
+.rc-filter-pin[hidden] { display: none; }
+/* The row stays one row. Until a screen has room for every filter's menu beside Search and Sort, it
+   holds Filters, which opens all of them in the sheet, as a phone's row does (DL-130). */
+@media (width > 37.5rem) and (width < 62.25rem) {
+  .rc-filter-pin > .rc-filter-controls > [data-filter="all"] { display: inline-flex; }
+  .rc-filter-pin > .rc-filter-controls > [data-filter="one"] { display: none; }
+}
+/* In a short window the header scrolls away, so the row pins at the window's top (DL-132). */
+@media (height < 30rem) {
+  .rc-filter-pin { inset-block-start: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rc-filter-pin:not([hidden]) { animation: rc-arrive var(--duration-fast) var(--ease-out); }
 }
 /* A menu of places to go and things to do, as the account's is (DL-070): a line that says whose
    it is, then a link or a button a row. A row set apart, such as Sign out, has a line above it. */
