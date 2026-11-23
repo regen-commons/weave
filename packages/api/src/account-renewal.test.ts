@@ -409,3 +409,29 @@ test("the cap applies to matching and project calls, and concurrent renewals rev
   assert.equal(handled, 0);
   assert.equal(revocations, 1);
 });
+
+test("a sign-out that had to renew first cleans up with the renewed token, and an ended session cleans up nothing", async () => {
+  // Only the renewal cookie is left: the session is renewed so it can be found and revoked.
+  const { provider, calls } = fixture();
+  let seen: string | null = null;
+  const handlers = createAccountHandlers({ provider, now: () => now,
+    onSignOut: async request => { calls.push("cleanup"); seen = request.headers.get("cookie"); } });
+  const response = await handlers.POST(post({ action: "sign_out" }, cookie(undefined, "first-refresh")));
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls, ["renew:first-refresh", "cleanup", "signOut:fresh"]);
+  assert.match(seen!, new RegExp(`__Host-weave_account=${fresh}`, "u"), "the grants are looked up with the token that is valid now");
+  assert.doesNotMatch(seen!, new RegExp(jwt(-10)), "and never with one that has lapsed");
+  // An expired access cookie beside the renewal cookie is replaced, not sent alongside.
+  const stale = fixture();
+  let cleanupCookie = "";
+  const replacing = createAccountHandlers({ provider: stale.provider, now: () => now,
+    onSignOut: async request => { cleanupCookie = request.headers.get("cookie") ?? ""; } });
+  await replacing.POST(post({ action: "sign_out" }, cookie(jwt(-10), "first-refresh")));
+  assert.equal(cleanupCookie.split("__Host-weave_account=").length - 1, 1, "one access cookie, the renewed one");
+  assert.ok(cleanupCookie.includes(`__Host-weave_account=${fresh}`));
+  // A session Supabase already refuses has ended: nothing can be found, so nothing is asked.
+  const ended = fixture(async () => { throw new AccountError(401, "sign_in_required"); });
+  const none = createAccountHandlers({ provider: ended.provider, now: () => now, onSignOut: async () => { ended.calls.push("cleanup"); } });
+  assert.equal((await none.POST(post({ action: "sign_out" }, cookie(jwt(-5), "reused-refresh")))).status, 200);
+  assert.deepEqual(ended.calls, ["renew:reused-refresh"]);
+});
