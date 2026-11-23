@@ -151,3 +151,36 @@ test("a failing response source still reaches the dev error handler", async () =
     assert.equal(await observed.promise, failure);
   } finally { local.closeAllConnections(); local.close(); }
 });
+
+test("an address vercel.json sends to another function is answered by it, unless development stands in for the address", async () => {
+  const root = mkdtempSync(join(tmpdir(), "api-bridge-rewrites-"));
+  const dir = join(root, "api");
+  mkdirSync(dir);
+  writeFileSync(join(dir, "router.ts"), "");
+  writeFileSync(join(root, "vercel.json"), JSON.stringify({ rewrites: [
+    { source: "/api/health", destination: "/api/router?__route=health" },
+    { source: "/api/stand-in", destination: "/api/router?__route=stand-in" },
+    { source: "/funding/:id", destination: "/api/router?__route=record-page" },
+  ] }));
+  // As the dev server's loader: a name with a development stand-in answers; a name with no entry file throws.
+  const load = async (name: string): Promise<Record<string, unknown>> => {
+    if (name === "stand-in") return { GET: () => new Response("stand-in") };
+    if (name === "router") return { GET: (request: Request) => Response.json({ url: request.url }) };
+    throw Error(`no entry api/${name}.ts`);
+  };
+  const local = createServer((request, response) => {
+    answerApiRequest(request, response, dir, load).catch(() => response.destroy());
+  });
+  await new Promise<void>((resolve) => local.listen(0, "127.0.0.1", resolve));
+  const origin = `http://127.0.0.1:${(local.address() as AddressInfo).port}`;
+  try {
+    const routed = await fetch(`${origin}/api/health?q=1`);
+    assert.deepEqual(await routed.json(), { url: `${origin}/api/router?__route=health&q=1` }, "the router, with the address's own query after its route");
+    assert.equal(await (await fetch(`${origin}/api/stand-in`)).text(), "stand-in");
+    assert.equal((await fetch(`${origin}/api/health`, { method: "POST" })).status, 405);
+    assert.equal((await fetch(`${origin}/api/unknown`)).status, 404);
+  } finally {
+    local.close();
+    rmSync(root, { recursive: true, force: true });
+  }
+});

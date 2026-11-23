@@ -105,13 +105,18 @@ test("the record page function is deployed with the two built files it reads", a
   const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
     functions: Record<string, { includeFiles?: string }>; rewrites: { source: string; destination: string }[];
   };
-  const include = vercel.functions["api/record-page.ts"]?.includeFiles ?? "";
+  // The record page runs in the shared router function (23 November 2026), which bundles the files.
+  const include = vercel.functions["api/router.ts"]?.includeFiles ?? "";
   const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
   assert.deepEqual(files.sort(), ["index.html", RECORD_PREVIEWS_FILE].sort(), include);
   // The two record addresses go to it, ahead of the rewrite that serves the app for everything else.
-  const order = vercel.rewrites.map(({ source }) => source);
-  assert.deepEqual(order.slice(0, 2), ["/funding/:id", "/initiatives/:id"]);
-  assert.ok(vercel.rewrites.slice(0, 2).every(({ destination }) => destination.startsWith("/api/record-page?kind=")));
+  const sources = vercel.rewrites.map(({ source }) => source);
+  const catchAll = sources.indexOf("/((?!api/).*)");
+  for (const [source, kind] of [["/funding/:id", "funding"], ["/initiatives/:id", "initiative"]] as const) {
+    const rewrite = vercel.rewrites.find((candidate) => candidate.source === source);
+    assert.equal(rewrite?.destination, `/api/router?__route=record-page&kind=${kind}&id=:id`);
+    assert.ok(sources.indexOf(source) < catchAll, `${source} before the catch-all`);
+  }
 });
 
 test("the build gives each fund's words and the two sections' previews to the record pages", () => {
