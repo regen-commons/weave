@@ -146,6 +146,19 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
 - [ ] **Q-09. No source maps for the main script.** Routes: all. Lighthouse lists it, but
   it carries no weight and best practices stays at 100. No action: publishing source
   maps would only help debugging in production.
+- [ ] **Q-16. Private and personal pages can be indexed.** Routes: Your Initiatives,
+  Your Initiative, Settings, Team Workspace and the describe steps (`/start/*`). Fix in
+  phase 2: a `robots` meta tag set to `noindex` in each route's prerendered HTML. An
+  `X-Robots-Tag` header would need a `vercel.json` change and the user's OK.
+- [ ] **Q-17. The main pages name no canonical address.** Routes: Home, Funding,
+  Initiatives. Each already has its own title and description in its section copy
+  (`dev/link-previews.ts`). Fix in phase 2: add a `rel="canonical"` link from the same
+  source, and keep the title and description in each prerendered page. Detail-sheet-sharing
+  owns the record pages' canonicals, their JSON-LD and the sitemap.
+- [ ] **Q-18. `robots.txt` names no sitemap.** Routes: all. Add a `Sitemap:` line once
+  detail-sheet-sharing publishes the sitemap's address. Search Console verification
+  needs the user's own account; ask the user before adding a verification tag or file,
+  and leave DNS alone.
 
 ### Accessibility
 
