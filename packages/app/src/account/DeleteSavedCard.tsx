@@ -1,3 +1,4 @@
+import { busyProps } from "./busy.ts";
 import { useEffect, useRef, useState } from "react";
 import { fullDate } from "../home.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
@@ -51,6 +52,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
     }
   }
   async function reload() {
+    if (busy) return;
     setBusy(true);
     try {
       await onReload();
@@ -80,16 +82,19 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
             {busy && <p role="status">Deleting</p>}
             <div className="rc-action-bar">
               {problem?.reload ? (
-                <button className="rc-button" data-variant="primary" type="button" disabled={busy} data-reload onClick={() => void reload()}>
-                  Reload Saved Cards
+                <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy)} data-reload onClick={() => void reload()}>
+                  <span>Reload Saved Cards</span>
+                  {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
               ) : (
-                <button className="rc-button" data-variant="danger" type="button" disabled={busy} onClick={() => void confirm()}>
-                  Delete From Your Account
+                <button className="rc-button" data-variant="danger" type="button" {...busyProps(busy)} onClick={() => void confirm()}>
+                  <span>Delete From Your Account</span>
+                  {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
               )}
-              <button className="rc-button" data-variant="quiet" type="button" disabled={busy} data-confirm-cancel
-                onClick={() => { returnTo.current = chosen.card.id; setChosen(null); setProblem(null); }}>
+              {/* Not greyed out either: a failed delete moves focus here, and it must be able to hold it. */}
+              <button className="rc-button" data-variant="quiet" type="button" aria-disabled={busy || undefined} data-confirm-cancel
+                onClick={() => { if (busy) return; returnTo.current = chosen.card.id; setChosen(null); setProblem(null); }}>
                 Cancel
               </button>
             </div>
