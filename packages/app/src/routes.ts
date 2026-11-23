@@ -34,7 +34,10 @@ export interface Route {
   readonly section?: Section;
   /** The page one level up, where the back link goes when the app does not know where the person came from. Tabs have none. */
   readonly parent?: RouteName;
-  /** Opens over the page the person is on: a sheet on phones, a dialog on wide screens. */
+  /**
+   * A record: opened from inside the app, it comes up over the page the person is on, a sheet on
+   * phones and a dialog on wide screens. Opened from a link, it is a page of its own (22 November 2026).
+   */
   readonly sheet?: boolean;
   readonly id?: string;
 }
@@ -235,12 +238,14 @@ export function nextVisit(here: string, visit: Visit | null, to: string, replace
   const stays = !!visit && !!current && !!next && (current.name === next.name || (!!current.sheet && !!next.sheet));
   return stays ? { from: visit.from, hops: visit.hops + 1 } : { from: here, hops: 1 };
 }
-/** The page under a sheet: the one it opened over, or its list when the sheet was opened from a link. */
-export function sheetBackground(route: Route, visit: Visit | null): { route: string; hops: number } {
+/**
+ * The page a record comes up over: the one it was opened from inside the app. A record opened from a
+ * link, a new tab or another record's own page has no page under it and is shown as a page itself
+ * (null), so a shared link reads as the record's own page, with a back link to its list.
+ */
+export function sheetBackground(_route: Route, visit: Visit | null): { route: string; hops: number } | null {
   const from = visit ? routeAt(visit.from) : undefined;
-  return visit && from && !from.sheet
-    ? { route: visit.from, hops: visit.hops }
-    : { route: pathTo(route.parent ?? "home"), hops: 0 };
+  return visit && from && !from.sheet ? { route: visit.from, hops: visit.hops } : null;
 }
 export interface BackTarget {
   readonly label: string;
@@ -264,13 +269,14 @@ export function previousStep(route: Route): RouteName | null {
 }
 /**
  * Where a page's back link goes: the page the person came from, otherwise one level up.
- * Tabs have no back link, and a sheet closes instead. The steps of describing an initiative
- * follow one another, so a later step goes back to the step before it, whichever page the
- * person came from: back through history when that step is the page before, otherwise in this
+ * Tabs have no back link. A record shown over a page closes instead, and that page keeps its own
+ * link, so a record reaches this only when it is shown as a page. The steps of describing an
+ * initiative follow one another, so a later step goes back to the step before it, whichever page
+ * the person came from: back through history when that step is the page before, otherwise in this
  * page's place. The first step goes back to where the person came from, never on into the steps.
  */
 export function backTarget(route: Route | undefined, visit: Visit | null): BackTarget | null {
-  if (!route?.parent || route.sheet) return null;
+  if (!route?.parent) return null;
   const from = visit ? routeAt(visit.from) : undefined;
   const before = previousStep(route);
   if (before)
@@ -291,12 +297,13 @@ export interface Crumb {
 /**
  * The pages above a page, outermost first, for the breadcrumb trail a wide screen shows in place
  * of the app bar's back link (DL-080). It follows the route table, not the way the person came,
- * so the trail is the same on every visit. Tabs and sheets have none. Nor do the steps of
+ * so the trail is the same on every visit. Tabs have none, and a record has one only when it is a
+ * page of its own: over a page it is a dialog, and the trail is the page's. Nor do the steps of
  * describing an initiative: they follow one another, they are not pages inside one another, and the
  * step bar above their titles already says where the person is.
  */
 export function breadcrumbTrail(route: Route | undefined): Crumb[] {
-  if (!route?.parent || route.sheet || route.form) return [];
+  if (!route?.parent || route.form) return [];
   const trail: Crumb[] = [];
   const seen = new Set<RouteName>([route.name]);
   for (let name: RouteName | undefined = route.parent; name && !seen.has(name); ) {
