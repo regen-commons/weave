@@ -102,9 +102,13 @@ def rewind_journal(root):
     (root / 'dist/data/funders.json').write_text(json.dumps(catalog, ensure_ascii=False, separators=(',', ':')))
     subprocess.run(['python3', 'scripts/import-data.py'], cwd=root, check=True, capture_output=True)
     funds = {f['id']: f for f in read(root, 'dist/data/funders.json')['funds']}
+    # A funder revised more than once rewinds to the record before its first revision.
+    earliest = {}
     for revision in history:
-        if funds[revision['fundId']] != revision['priorFundRecord']:
-            raise AssertionError('Rewound record differs from its archive: ' + revision['fundId'])
+        earliest.setdefault(revision['fundId'], revision['priorFundRecord'])
+    for fund_id, prior in earliest.items():
+        if funds[fund_id] != prior:
+            raise AssertionError('Rewound record differs from its archive: ' + fund_id)
 
 
 class Revisions(unittest.TestCase):
