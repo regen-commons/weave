@@ -126,7 +126,8 @@ test("Stop always finishes: a recognizer that does not end in time is ended with
       entry.stopped = true;
     };
   };
-  // Safari has been seen to keep a session open after stop(), so the page waited without end.
+  // A recognizer that never ends after stop() left the page waiting without end. Continuous mode
+  // on iOS is reported to leave the microphone open (docs/platform/research/local-ai-and-stack.md).
   const hung = recognizer();
   const stuck = page();
   const handle = await startSpeech("browser", "en-US", stuck.callbacks, { speech: hung.speech, consent: memoryConsent(true), later });
