@@ -3,10 +3,9 @@ import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { fundingFixture, type FixtureContext } from "../fixtures.ts";
-import { catalogEntries } from "../funding/catalog.ts";
-import { useCatalogBundle } from "../funding/use-catalog.ts";
+import { useClosingSoon } from "../funding/use-catalog.ts";
 import {
-  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel,
+  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, homeDoors, homePreviews, openLabel, resumeLabel,
 } from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
@@ -48,17 +47,15 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const publishedReady = published.status === "ready" ? published : null;
   const recent = fixture ? previews.recent : [];
   const sharedCount = fixture ? previews.sharedCount : publishedReady?.page.index.total ?? 0;
-  // The live funding catalog, read once the page is idle and shared with Funding. The example
-  // world brings its own, as Funding's does.
+  // The funding catalog, read once the page is idle. The example world brings its own, as
+  // Funding's does.
   const fundingExample = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
   );
-  const catalog = useCatalogBundle(fundingExample, { idle: true });
-  const { upcoming, closingSoon } = useMemo(
-    () => fundingPreviews(catalog.bundle ? catalogEntries(catalog.bundle) : [], new Date()),
-    [catalog.bundle],
-  );
+  // Only the strip's cards and count come back: the catalog is read and checked off the page (Q-01).
+  const catalog = useClosingSoon(fundingExample, { idle: true });
+  const { upcoming, closingSoon } = catalog;
   const loading = fixture?.state === "loading";
   const failed = fixture?.state === "error";
   const fundingLoading = loading || catalog.loading;

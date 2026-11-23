@@ -62,9 +62,10 @@ export function Stepper({
  * screen shows them in the Step bar at the foot of the window, with the step's way forward
  * (`children`) at the bar's far end, so both stay in view while the page scrolls (DL-127). The
  * steps are in the markup twice and on screen once. A page that is one of the steps shows its own
- * place; `current` is for an address that stands for a step, as /start/new does for step 1.
+ * place, so it passes no `current`; `current` is for an address that stands for a step, as
+ * /start/new does for step 1.
  */
-export function IntakeStepper({ current, children }: { current: number; children?: ReactNode }) {
+export function IntakeStepper({ current = 0, children }: { current?: number; children?: ReactNode }) {
   const bar = useContext(StepBarContext);
   const steps = INTAKE_STEPS.map((step) => ({ label: step.label, href: pathTo(step.route) }));
   const own = INTAKE_STEPS.findIndex((step) => step.route === matchRoute(routePath())?.name);
