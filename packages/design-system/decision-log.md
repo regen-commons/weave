@@ -1076,3 +1076,13 @@ Funding's cards used to wait for the whole catalog, 3.6 MB that a phone on a slo
 With an initiative compared, the list's own order is its fit. Before, its cards arrived in closing order and moved when the ranking finished. Now the list keeps its cards' shape, at the height of a card with a fit line, until the ranking is ready, and the cards arrive once, in their order. A ranking that fails shows the list unranked, with its notice, as before.
 
 Measured locally (machine under load, so directional): on a phone emulation with slow 4G and 4x CPU, the first card appeared about 0.1 s after the first paint where it had waited for the catalog, layout shift stayed 0, and Lighthouse's mobile LCP stayed about 4.4 to 4.6 s. On a phone the first card starts below the fold, so the largest paint there is the prompt's note, which waits for the device draft to open (DL-104). That wait is the next thing to shorten.
+
+## DL-140: Funding's first cards are in its first draw
+
+**Status:** build change from quality's Lighthouse work, 23 November 2026, with the maker's standing approval for merges into `develop`. Amends DL-139.
+
+DL-139 showed the built-in first cards once the page knew no initiative was compared, which waits for the device draft to open. The build's prerender (quality's #140) draws the app as a visitor with nothing stored, before any draft is read, so it drew the loading shapes and not the cards, and the largest paint still waited for the scripts and the draft. The first cards now come in Funding's first draw, in the list's own first view, the same cards the prerender draws. The describe prompt keeps its held room above them (DL-104), so nothing moves when it appears.
+
+With an initiative compared, the first cards stay until the ranking is ready, and the list then moves once into its fit order. DL-139 had swapped them for loading shapes while the ranking ran, which would have been cards, then shapes, then cards. A filtered list still waits in the shape of a card with a fit line.
+
+The first draw and the prerender pick the same cards for the same day: the soonest-closing calls still open. On a later day than the build, a call among them that has closed since is left out, so the page's first draw can drop a card the prerendered page still showed. A fresh build each day keeps the two the same.

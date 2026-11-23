@@ -102,10 +102,12 @@ test("the build serves the first cards as a module the page imports", () => {
   assert.ok(watched.some((file) => file.endsWith("funders.json")), "a catalog change rebuilds it in development");
 });
 
-test("Funding shows the first cards while the catalog loads, and holds a fit list's shape for its ranking", () => {
+test("Funding draws the first cards in its first render and keeps them until the catalog or the ranking is ready", () => {
   const page = readFileSync(new URL("../src/pages/Funding.tsx", import.meta.url), "utf8");
   assert.match(page, /\{early \? \(\s*(?:\/\/[^\n]*\n\s*)*<>\s*<CardGrid>\{early\.map\(card\)\}<\/CardGrid>\s*<ListEndHold things=\{THINGS\} \/>/u);
   assert.match(page, /<CardGrid>\{selected\.slice\(0, limit\)\.map\(card\)\}<\/CardGrid>/u, "the same grid and cards once the catalog is here");
   assert.match(page, /<CardGridSkeleton kind="funding" matched=\{awaitingFit \|\| expectsFit\} count=\{BATCH\} \/>/u);
-  assert.match(page, /loading && catalog\.subjectKnown && !expectsFit && !failed && isFirstView\(visibleFilters\)/u);
+  // In the first draw, before the device draft is read, so the build's prerender draws them too (DL-140).
+  assert.match(page, /const early = \(loading \|\| awaitingFit\) && !failed && isFirstView\(visibleFilters\) && first\.length \? first : null;/u);
+  assert.doesNotMatch(page.slice(page.indexOf("const early"), page.indexOf("const card")), /subjectKnown/u);
 });

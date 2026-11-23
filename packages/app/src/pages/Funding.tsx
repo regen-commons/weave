@@ -122,13 +122,11 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const expectsFit = catalog.subjectKnown && catalog.personalized && !browsing;
   const awaitingFit =
     expectsFit && !catalog.results && !catalog.error && fundingOrder(filters.sort, true) === "fit";
-  // Funding's first cards come with the page (Q-01, first paint): while the catalog loads, once the
-  // page knows no initiative is compared, in the list's own first view.
+  // Funding's first cards are in its first draw, the same one the build's prerender draws (DL-140):
+  // while the catalog loads, in the list's own first view. With an initiative compared they stay
+  // until its ranking is ready, and the list then moves once, into its fit order.
   const first = useMemo(() => (example ? [] : firstPage(FIRST_FUNDS, new Date())), [example]);
-  const early =
-    loading && catalog.subjectKnown && !expectsFit && !failed && isFirstView(visibleFilters) && first.length
-      ? first
-      : null;
+  const early = (loading || awaitingFit) && !failed && isFirstView(visibleFilters) && first.length ? first : null;
   const card = (entry: Entry, index: number) => (
     <li key={entry.id} {...added.item(index)}>
       <OpportunityCard
@@ -289,15 +287,15 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           )}
           {early ? (
             // The first cards, built into the app, while the catalog loads. The catalog's own first
-            // cards are these, so it adds cards after them and moves none.
+            // cards are these, so it adds cards after them and moves none (DL-139, DL-140).
             <>
               <CardGrid>{early.map(card)}</CardGrid>
               <ListEndHold things={THINGS} />
             </>
           ) : loading || awaitingFit ? (
             // As many shapes as the first batch holds, and the list end's room under them (DL-108).
-            // Cards that will carry a fit line wait in that shape for the ranking, so they arrive
-            // once, in their order, instead of in another order first.
+            // A filtered list that will carry fit lines waits in that shape for the ranking, so its
+            // cards arrive once, in their order.
             <>
               <CardGridSkeleton kind="funding" matched={awaitingFit || expectsFit} count={BATCH} />
               <ListEndHold things={THINGS} />
