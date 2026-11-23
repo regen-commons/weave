@@ -11,15 +11,31 @@ import { createRecordPageHandler, parseRecordPreviews, RECORD_PREVIEWS_FILE, typ
 
 const TIMEOUT_MS = 3000;
 
+/**
+ * Where the bundled build may sit in the function: under the app's own folder when the function runs
+ * from it, or under its path in the repository when the bundle keeps the repository's layout. Both are
+ * tried before the deployment is asked for its copy.
+ */
+export const BUILT_FOLDERS = ["dist", "packages/app/dist"] as const;
+
+/** Which copy served the last read, for the `X-Weave-Record-Source` header a check can read. */
+let source: "bundle" | "deployment" = "bundle";
+
 /** One of the build's files: from the function's bundle, or else from the deployment it belongs to. */
 async function builtFile(file: string, request: Request): Promise<string> {
-  try {
-    return await readFile(join(process.cwd(), "dist", file), "utf8");
-  } catch {
-    const response = await fetch(new URL(`/${file}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
-    if (!response.ok) throw Error("record_page_unavailable");
-    return response.text();
+  for (const folder of BUILT_FOLDERS) {
+    try {
+      const text = await readFile(join(process.cwd(), folder, file), "utf8");
+      source = "bundle";
+      return text;
+    } catch {
+      // Not in this layout; try the next one.
+    }
   }
+  const response = await fetch(new URL(`/${file}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
+  if (!response.ok) throw Error("record_page_unavailable");
+  source = "deployment";
+  return response.text();
 }
 
 /** Kept for the life of the function instance once read: a deployment's build never changes. */
@@ -44,4 +60,12 @@ async function project(uri: string): Promise<PublicProjectCard | null> {
   return page.projects.find((card) => card.uri === uri) ?? null;
 }
 
-export const GET = createRecordPageHandler({ template, previews, project });
+const serve = createRecordPageHandler({ template, previews, project });
+
+/** The page, saying which copy of the build it came from, so a check after a deploy can tell. */
+export async function GET(request: Request): Promise<Response> {
+  const response = await serve(request);
+  response.headers.set("X-Weave-Record-Source", source);
+  return response;
+}
+export const HEAD = GET;

@@ -55,7 +55,9 @@ export function parseRecordPreviews(value: unknown): RecordPreviews {
     if (!f.programs || typeof f.programs !== "object") return fail();
     for (const [program, name] of Object.entries(f.programs as Record<string, unknown>))
       programs[PROGRAM_ID.test(program) ? program : fail()] = text(name, NAME_MAX);
-    funds[id] = { name: text(f.name, NAME_MAX), description: typeof f.description === "string" ? f.description.slice(0, TEXT_MAX) : "", programs };
+    // A fund may have no description yet, but what it has must be words.
+    const description = typeof f.description === "string" ? f.description.slice(0, TEXT_MAX) : fail();
+    funds[id] = { name: text(f.name, NAME_MAX), description, programs };
   }
   return { sections: { funding: pagePreview(sections.funding), initiatives: pagePreview(sections.initiatives) }, funds };
 }
@@ -66,6 +68,9 @@ export type RecordAsk =
   | { kind: "initiative"; id: string; uri: string };
 
 export function recordAsk(url: URL): RecordAsk | null {
+  // The rewrite adds `kind` and `id` to the address's own query. One given twice could make the preview
+  // show another record than the app opens, so it names none.
+  if (url.searchParams.getAll("kind").length !== 1 || url.searchParams.getAll("id").length !== 1) return null;
   const kind = url.searchParams.get("kind"), id = url.searchParams.get("id") ?? "";
   if (kind === "funding" && FUND_ID.test(id)) {
     const program = url.searchParams.get("program");
@@ -120,12 +125,23 @@ function withPreview(status: number, html: string, preview: PagePreview, cache: 
   catch { return page(status, html, NOT_CACHED); }
 }
 
+/** How long a project's lookup may take before the page goes out with its section's preview. */
+export const LOOKUP_TIMEOUT_MS = 2000;
+
+/** A lookup that has not answered by the deadline is treated as failed; the page does not wait on it. */
+function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error("lookup_timeout")), ms); });
+  return Promise.race([work, late]).finally(() => clearTimeout(timer));
+}
+
 /**
- * Serves one record's page. A record found gets its own preview. An address that names no record the app
- * could open, a fund not in this build's catalog, or a project the list does not show (withdrawn, never
- * listed, the list off) gets its section's preview with 404, and the app says it is not available. A
- * failure to look the project up gets the section's preview with 200, uncached, so the next request tries
- * again. A deployment whose index.html cannot be read sends the person to the record's list.
+ * Serves one record's page, to GET and to HEAD, which some link checkers send first. A record found gets
+ * its own preview. An address that names no record the app could open, a fund not in this build's
+ * catalog, or a project the list does not show (withdrawn, never listed, the list off) gets its section's
+ * preview with 404, and the app says it is not available. A lookup that fails or takes longer than
+ * `LOOKUP_TIMEOUT_MS` gets the section's preview with 200, uncached, so the next request tries again. A
+ * deployment whose index.html cannot be read sends the person to the record's list.
  */
 export function createRecordPageHandler(options: {
   /** The app's built index.html. */
@@ -134,9 +150,10 @@ export function createRecordPageHandler(options: {
   previews(request: Request): Promise<RecordPreviews>;
   /** A public project's card, null when the list does not show it. Rejects when the list cannot be read. */
   project(uri: string): Promise<PublicProjectCard | null>;
+  lookupTimeoutMs?: number;
 }) {
-  return async (request: Request): Promise<Response> => {
-    if (request.method !== "GET") return new Response(null, { status: 405, headers: { Allow: "GET", ...NOT_CACHED } });
+  const lookupTimeoutMs = options.lookupTimeoutMs ?? LOOKUP_TIMEOUT_MS;
+  async function respond(request: Request): Promise<Response> {
     const ask = recordAsk(new URL(request.url));
     let html: string;
     try { html = await options.template(request); }
@@ -152,10 +169,16 @@ export function createRecordPageHandler(options: {
       return preview ? withPreview(200, html, preview, CACHED) : withPreview(404, html, previews.sections.funding, CACHED);
     }
     let card: PublicProjectCard | null;
-    try { card = await options.project(ask.uri); }
+    try { card = await withDeadline(options.project(ask.uri), lookupTimeoutMs); }
     catch { return withPreview(200, html, previews.sections.initiatives, NOT_CACHED); }
     return card
       ? withPreview(200, html, initiativePreview(previews, ask, card), CACHED)
       : withPreview(404, html, previews.sections.initiatives, CACHED);
+  }
+  return async (request: Request): Promise<Response> => {
+    if (request.method !== "GET" && request.method !== "HEAD")
+      return new Response(null, { status: 405, headers: { Allow: "GET, HEAD", ...NOT_CACHED } });
+    const response = await respond(request);
+    return request.method === "HEAD" ? new Response(null, { status: response.status, headers: response.headers }) : response;
   };
 }

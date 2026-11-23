@@ -1,1 +1,1 @@
-export { GET } from "@weave/api/record-page";
+export { GET, HEAD } from "@weave/api/record-page";

@@ -6,7 +6,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const API = new URL("../api/", import.meta.url);
-const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+const METHODS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"];
 const entries = readdirSync(API).filter((name) => name.endsWith(".ts"));
 
 test("the app deploys the health check", () => {

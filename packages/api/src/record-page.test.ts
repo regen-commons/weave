@@ -59,6 +59,9 @@ test("a page's preview replaces the one it had, ahead of the assets, with every 
   assert.ok(page.indexOf('property="og:image"') < page.indexOf("<script"), "the preview comes before the scripts");
   assert.equal(previewTags(home).length, 15);
   assert.throws(() => withPagePreview("<html><head></head></html>", home), /Expected one match/);
+  // Only the tags a preview writes are replaced; one written into the page by hand stays.
+  const own = withPagePreview(TEMPLATE.replace("<title>", `<meta property="og:locale" content="en_GB">\n    <title>`), home);
+  assert.ok(own.includes('<meta property="og:locale" content="en_GB">'));
   assert.equal(previewLine("  a   b "), "a b");
   assert.ok(previewLine("word ".repeat(80)).endsWith("…") && previewLine("word ".repeat(80)).length <= 160);
 });
@@ -132,7 +135,28 @@ test("a record that is not there gets its section's preview with 404, and a fail
   const noPageInitiative = await get(`?kind=initiative&id=${SLUG}`, handler({ template: async () => { throw Error("missing"); } }));
   assert.equal(noPageInitiative.headers.get("location"), "/initiatives", "the list the person was going to see");
   const post = await handler()(new Request(`${PUBLIC_ORIGIN}/api/record-page?kind=funding&id=x`, { method: "POST" }));
-  assert.deepEqual([post.status, post.headers.get("allow")], [405, "GET"]);
+  assert.deepEqual([post.status, post.headers.get("allow")], [405, "GET, HEAD"]);
+});
+
+test("a project lookup that hangs does not hold the page: it goes out with the section's preview", async () => {
+  const started = Date.now();
+  const stuck = await get(`?kind=initiative&id=${SLUG}`, handler({ project: () => new Promise(() => {}), lookupTimeoutMs: 50 }));
+  assert.ok(Date.now() - started < 1000, "answered at the deadline, not after the function's limit");
+  assert.deepEqual([stuck.status, stuck.headers.get("cache-control")], [200, "no-store"]);
+  assert.equal(meta(await stuck.text(), "og:title"), "Initiatives | Weave");
+});
+
+test("HEAD gets the same answer without a body, and a doubled kind or id names no record", async () => {
+  const head = await handler()(new Request(`${PUBLIC_ORIGIN}/api/record-page?kind=funding&id=local-people-powered`, { method: "HEAD" }));
+  assert.deepEqual([head.status, head.headers.get("content-type"), head.headers.get("cdn-cache-control"), await head.text()],
+    [200, "text/html; charset=utf-8", "public, max-age=300, stale-while-revalidate=600", ""]);
+  // Vercel adds kind and id to the address's own query, so an address carrying its own could otherwise
+  // preview one record while the app opens another.
+  const ask = (search: string) => recordAsk(new URL(`${PUBLIC_ORIGIN}/api/record-page${search}`));
+  assert.equal(ask("?kind=funding&id=local-people-powered&id=recxmWk9XCOOqAGIH"), null);
+  assert.equal(ask(`?kind=funding&id=local-people-powered&kind=initiative`), null);
+  const doubled = await get("?id=recxmWk9XCOOqAGIH&kind=funding&id=local-people-powered");
+  assert.equal(doubled.status, 404);
 });
 
 test("the build's record previews are read only as the build writes them", () => {
@@ -143,6 +167,7 @@ test("the build's record previews are read only as the build writes them", () =>
     { ...base, funds: { "a/b": { name: "x", description: "", programs: {} } } },
     { ...base, funds: { a: { name: "", description: "", programs: {} } } },
     { ...base, funds: { a: { name: "x", description: "", programs: { "<p>": "y" } } } },
+    { ...base, funds: { a: { name: "x", description: null, programs: {} } } },
     { ...base, sections: { ...base.sections, funding: { ...section("funding", "Funding"), image: "https://evil.example/x.png" } } },
   ]) assert.throws(() => parseRecordPreviews(bad), /invalid_record_previews|Invalid URL/u, JSON.stringify(bad));
   // An identifier that names a property every object has is still only a fund the build wrote.

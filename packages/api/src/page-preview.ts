@@ -51,8 +51,11 @@ export function previewTags(preview: PagePreview): string[] {
   ];
 }
 
-/** A line of the head that is a preview tag, whichever page's it is. */
-const PREVIEW_LINE = /^[ \t]*<meta (?:property="og:[a-z_:]+"|name="twitter:[a-z_:]+") content="[^"]*">[ \t]*\r?\n/gmu;
+/** The tags `previewTags` writes, by their attribute and name, and nothing else a page might carry. */
+const WRITTEN = previewTags({ title: "", description: "", url: "", image: "", imageAlt: "" })
+  .map((tag) => /^<meta ((?:property|name)="[^"]+")/u.exec(tag)![1]!);
+/** A line of the head that is one of those tags, whichever page's preview it carries. */
+const PREVIEW_LINE = new RegExp(`^[ \\t]*<meta (?:${WRITTEN.join("|")}) content="[^"]*">[ \\t]*\\r?\\n`, "gmu");
 
 /**
  * The app's HTML with one page's words in its head: the title and description a browser tab and a search

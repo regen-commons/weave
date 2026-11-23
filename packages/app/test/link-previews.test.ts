@@ -100,6 +100,20 @@ test("a section's copy is made from the built page, Home's preview and all, what
   assert.ok(!copy.includes(home.description), "none of Home's words are left");
 });
 
+test("the record page function is deployed with the two built files it reads", async () => {
+  const { RECORD_PREVIEWS_FILE } = await import("@weave/api/record-page-http");
+  const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")) as {
+    functions: Record<string, { includeFiles?: string }>; rewrites: { source: string; destination: string }[];
+  };
+  const include = vercel.functions["api/record-page.ts"]?.includeFiles ?? "";
+  const files = /^dist\/\{(.+)\}$/u.exec(include)?.[1]?.split(",") ?? [];
+  assert.deepEqual(files.sort(), ["index.html", RECORD_PREVIEWS_FILE].sort(), include);
+  // The two record addresses go to it, ahead of the rewrite that serves the app for everything else.
+  const order = vercel.rewrites.map(({ source }) => source);
+  assert.deepEqual(order.slice(0, 2), ["/funding/:id", "/initiatives/:id"]);
+  assert.ok(vercel.rewrites.slice(0, 2).every(({ destination }) => destination.startsWith("/api/record-page?kind=")));
+});
+
 test("the build gives each fund's words and the two sections' previews to the record pages", () => {
   const catalog = JSON.parse(readFileSync(new URL("../../../dist/data/funders.json", import.meta.url), "utf8")) as { funds: { id: string }[] };
   const previews = recordPreviews(catalog);
