@@ -40,3 +40,8 @@ test("the site banner says two sentences inside the page's header landmark (DL-1
   assert.equal(words.split(". ").length, 2, `two sentences, not "${words}"`);
   assert.match(words, /\.$/u);
 });
+
+test("a form step keeps the mycelium off its words (DL-135)", () => {
+  assert.match(read("../src/ui/Page.tsx"), /<Mycelium extent="page" home=\{route\?\.name === "home"\} quiet=\{form\} \/>/u);
+  assert.match(read("../src/ui/Mycelium.tsx"), /growMycelium\(canvas, \{ depth: \(\) => depth\.current, quiet: \(\) => still\.current \}\)/u);
+});
