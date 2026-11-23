@@ -1,9 +1,9 @@
-// A long list fills in as a person reaches its end, without trapping the keyboard or hiding the footer (DL-101).
+// A long list fills in as a person reaches its end, for as long as there is more, without trapping the keyboard (DL-101, DL-130).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { AHEAD_MARGIN, AUTO_BATCHES, loadsUnasked, shownLine } from "../src/list-more.ts";
+import { AHEAD_MARGIN, loadsUnasked, shownLine } from "../src/list-more.ts";
 
-const scrolling = { more: true, busy: false, autoLeft: AUTO_BATCHES, keyboardInList: false };
+const scrolling = { more: true, busy: false, keyboardInList: false };
 
 test("the next batch arrives on its own while a person scrolls with more to come", () => {
   assert.equal(loadsUnasked(scrolling), true);
@@ -15,16 +15,12 @@ test("the keyboard is never run past the list's end: tabbing through cards bring
   assert.equal(loadsUnasked({ ...scrolling, keyboardInList: true }), false);
 });
 
-test("after a few batches the list waits for a press, so the footer can be reached", () => {
-  assert.ok(AUTO_BATCHES >= 1 && AUTO_BATCHES <= 5);
-  let autoLeft = AUTO_BATCHES;
-  let loaded = 0;
-  while (loadsUnasked({ ...scrolling, autoLeft })) {
-    autoLeft -= 1;
-    loaded += 1;
-  }
-  assert.equal(loaded, AUTO_BATCHES);
-  assert.equal(loadsUnasked({ ...scrolling, autoLeft: 0 }), false);
+test("scrolling never meets a step: batch after batch arrives until the list is whole (DL-130)", () => {
+  const total = 771;
+  const batch = 24;
+  let shown = batch;
+  while (loadsUnasked({ ...scrolling, more: shown < total })) shown = Math.min(total, shown + batch);
+  assert.equal(shown, total);
 });
 
 test("the end is noticed below the window only, and by a fixed distance", () => {
