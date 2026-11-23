@@ -173,3 +173,17 @@ test("the build's record previews are read only as the build writes them", () =>
   // An identifier that names a property every object has is still only a fund the build wrote.
   assert.equal(parseRecordPreviews(base).funds["constructor"], undefined);
 });
+
+test("the function reads its built files from fixed addresses the deployment's file tracer can follow", async () => {
+  const { fileURLToPath } = await import("node:url");
+  const { BUILT_FILES } = await import("./record-page.ts");
+  // From packages/api/src here and packages/api/dist when deployed, the app's build is two folders up.
+  assert.deepEqual(Object.fromEntries(Object.entries(BUILT_FILES).map(([file, url]) => [file, fileURLToPath(url).split("/packages/")[1]])), {
+    "index.html": "app/dist/index.html",
+    "share/records.json": "app/dist/share/records.json",
+  });
+  // A path built while running makes the tracer take the whole repository, so none may be.
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("./record-page.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source.replace(/^\s*(\/\/|\*).*$/gmu, ""), /process\.cwd\(\)|join\(/u);
+});

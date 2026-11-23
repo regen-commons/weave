@@ -1,4 +1,6 @@
+import { CLOUD_SPEECH } from "@weave/api/transcribe-contract";
 import { speechConstructor, speechStatus, wait, type SpeechConstructor, type SpeechMode, type SpeechProblem, type Wait } from "./speech.ts";
+import { cloudSpeechAvailable } from "./speech-cloud.ts";
 export type { Wait } from "./speech.ts";
 
 /**
@@ -6,13 +8,20 @@ export type { Wait } from "./speech.ts";
  * speech on this device first, including the browser's own speech pack set up after a tap (D32);
  * otherwise the browser's own speech service, after the person agrees, because that service may
  * send the audio to the browser vendor; otherwise no talking, and on a touch screen a line about
- * the keyboard's own microphone key. Weave downloads no model and records or uploads no audio.
+ * the keyboard's own microphone key. Weave downloads no model.
+ *
+ * Since 23 November 2026 there is one more step before "no talking": where the browser has no
+ * speech recognition at all and the server has cloud speech switched on, a person who agrees can
+ * record what they say and have the recording turned into text by the provider the notice names
+ * (`speech-cloud.ts`). That is the only case in which Weave records or sends audio.
  */
 export type SpeechSetupState =
   /** The browser has not answered yet, so nothing about speech shows. */
   | "checking"
-  /** This browser has no speech recognition at all, as in Firefox on Android. */
+  /** This browser has no speech recognition at all, as in Firefox, and cloud speech is not on offer. */
   | "none"
+  /** No speech recognition at all, but the page can record and cloud speech is on. Talking asks first. */
+  | "cloud"
   /** No speech on this device for this language, but the browser has its own speech service. Talking asks first. */
   | "browser"
   /** The browser can set up speech for this language after a tap. */
@@ -31,7 +40,7 @@ export const talksHere = (state: SpeechSetupState): boolean => state !== "none";
 
 /** Which recognizer Talk It Out would use in this state, or null where it cannot be offered. */
 export const speechMode = (state: SpeechSetupState): SpeechMode | null =>
-  state === "ready" ? "device" : state === "browser" ? "browser" : null;
+  state === "ready" ? "device" : state === "browser" ? "browser" : state === "cloud" ? "cloud" : null;
 
 /** Setting up speech is on offer or under way, so the setup takes Speak's place. */
 export const offersSetup = (state: SpeechSetupState): boolean =>
@@ -102,12 +111,19 @@ export function speechSetupStore({
   slowAfter = SLOW_SETUP_MS,
   later = wait,
   touch = touchPrimary(),
+  cloud = cloudSpeechAvailable,
 }: {
   /** null: a browser with no speech recognition at all. */
   speech?: SpeechConstructor | null;
   slowAfter?: number;
   later?: Wait;
   touch?: boolean;
+  /**
+   * Whether cloud speech can be offered: the browser can record and the server has it on. Asked
+   * only where the browser has no speech recognition at all, so no other browser calls the
+   * server. A failure to answer counts as no.
+   */
+  cloud?: () => Promise<boolean>;
 } = {}): SpeechSetupStore {
   const states = new Map<string, SpeechSetupState>();
   const asking = new Set<string>();
@@ -129,10 +145,12 @@ export function speechSetupStore({
     check(language) {
       if (asking.has(language) || underWay(language)) return;
       asking.add(language);
-      void speechSupport(language, speech).then((support) => {
-        asking.delete(language);
-        if (!underWay(language)) publish(language, support);
-      });
+      void speechSupport(language, speech)
+        .then(async (support) => (support === "none" && (await cloud().catch(() => false)) ? "cloud" : support))
+        .then((support) => {
+          asking.delete(language);
+          if (!underWay(language)) publish(language, support);
+        });
     },
     setUp(language) {
       const current = state(language);
@@ -198,14 +216,87 @@ export const BROWSER_SPEECH_NOTICE = {
   decline: "Not Now",
 } as const;
 
-/** What Settings says about the agreement, and the one action that withdraws it. */
+/**
+ * Said beside Talk It Out before the person agrees to cloud speech. Unlike the browser's service,
+ * Weave knows who turns the recording into text, so the line names the company.
+ */
+export const CLOUD_SPEECH_NOTE = `Weave can turn a recording of your voice into text with ${CLOUD_SPEECH.company}. It asks first.`;
+
+/**
+ * The notice before the first recording on a device. Each sentence is what the code does or what
+ * the provider states: the page records and sends the recording once, on Stop or at the time
+ * limit, through Weave's own server
+ * (`speech-cloud.ts`, `@weave/api/transcribe`), Weave stores neither the recording nor the words
+ * there, and the two things only the provider can know are given as what it says. Cloudflare can
+ * run a request in any of its regions, so the notice does not name a place.
+ */
+export const CLOUD_SPEECH_NOTICE = {
+  title: "Send Your Recording To Be Turned Into Text?",
+  body: [
+    `This browser cannot turn speech into text on this device. Weave can record what you say and, when you press Stop or the recording reaches its limit of ${CLOUD_SPEECH.maxSeconds / 60} minutes at most, send it to ${CLOUD_SPEECH.provider}, which turns it into text with the ${CLOUD_SPEECH.model} model.`,
+    `Weave does not keep the recording. ${CLOUD_SPEECH.company} says it does not keep it or use it to train models. It may be processed outside your country.`,
+    "Only the recording and the language you chose are sent. Typing always works instead. You can turn this off in Settings.",
+  ],
+  agree: "Agree And Record",
+  decline: "Not Now",
+} as const;
+
+/** What Settings says about each agreement, and the one action that withdraws it. */
 export const SPEECH_SETTING = {
   agreed:
     "Where speech on this device is not available, your browser's speech service turns your voice into text. Weave does not receive the audio.",
   notAgreed:
-    "Talking uses speech on this device where your browser offers it. Anywhere else, Weave asks before using your browser's speech service.",
+    "Talking uses speech on this device where your browser offers it. Anywhere else, Weave asks before your voice leaves this device.",
   withdraw: "Stop Using Browser Speech",
+  cloudAgreed: `Where this browser cannot turn speech into text, Weave sends your recording to ${CLOUD_SPEECH.provider} to turn it into text. Weave does not keep it.`,
+  withdrawCloud: "Stop Using Cloud Speech",
 } as const;
+
+/**
+ * The one line Settings says about speech: each agreement in force, or that Weave asks first.
+ * It is one status line, so withdrawing an agreement is heard as the line it leaves behind.
+ */
+export const speechSettingLine = (browser: boolean, cloud: boolean): string =>
+  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed].filter(Boolean).join(" ") || SPEECH_SETTING.notAgreed;
+
+/**
+ * What Settings says about the recordings this device has sent, from the device's own record
+ * (`speech-cloud-log.ts`). Empty where none was sent. It stays after the agreement is withdrawn:
+ * the recordings were still sent.
+ */
+export function cloudSpeechUseLine(uses: readonly { at: string }[]): string {
+  const last = uses.at(-1);
+  if (!last) return "";
+  const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(last.at));
+  return uses.length === 1
+    ? `This device has sent 1 recording to be turned into text, on ${day}.`
+    : `This device has sent ${uses.length} recordings to be turned into text, the last on ${day}.`;
+}
+
+/** The longest one recording runs, as Talk It Out shows it: "3:00". */
+export const recordingTime = (seconds: number): string => {
+  const whole = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+};
+/**
+ * The box's label while cloud speech records: the time used and the time one recording may take.
+ * Until the browser has opened the microphone, which can wait on its own question to the person,
+ * nothing is being recorded yet, and the label says so. An example, which records nothing, has
+ * no time to count and says only Recording.
+ */
+export const recordingLabel = (
+  phase: "starting" | "recording" | "example",
+  elapsedSeconds = 0,
+  maxSeconds: number = CLOUD_SPEECH.maxSeconds,
+): string =>
+  phase === "starting"
+    ? "Waiting for the microphone"
+    : phase === "example"
+      ? "Recording"
+      : `Recording ${recordingTime(Math.min(elapsedSeconds, maxSeconds))} of ${recordingTime(maxSeconds)}`;
+
+/** Drops the recording being made, unsent. Shown beside the line only while cloud speech records. */
+export const DISCARD_RECORDING = "Discard";
 
 const SILENT: TalkControls = { action: null, label: "", note: "", language: false, mode: null, agreement: false };
 
@@ -225,6 +316,7 @@ export function talkControls(
   {
     listening = false,
     stopping = false,
+    starting = false,
     setUpHere = false,
     asking = false,
     secondary = false,
@@ -234,6 +326,8 @@ export function talkControls(
     listening?: boolean;
     /** Stop was pressed and the recognizer has not ended yet. Only read while listening. */
     stopping?: boolean;
+    /** Cloud speech only: the browser has not opened the microphone yet, so nothing is being recorded. */
+    starting?: boolean;
     setUpHere?: boolean;
     asking?: boolean;
     /**
@@ -249,16 +343,28 @@ export function talkControls(
 ): TalkControls {
   const mode = speechMode(state);
   if (listening && stopping)
-    return { ...SILENT, action: "finishing", label: "Finishing", note: "Finishing your words.", mode };
+    return {
+      ...SILENT,
+      action: "finishing",
+      label: "Finishing",
+      // The recording leaves the device only now, and the line says where it goes.
+      note: mode === "cloud" ? `Sending your recording to ${CLOUD_SPEECH.company} to be turned into text.` : "Finishing your words.",
+      mode,
+    };
   if (listening)
     return {
       ...SILENT,
       action: "stop",
       label: "Stop",
       note:
-        mode === "browser"
-          ? "Listening. Your browser's speech service turns your voice into text."
-          : "Listening on this device. Audio is not sent to a server.",
+        mode === "cloud"
+          ? starting
+            ? "Waiting for the microphone. Nothing is recorded yet."
+            : // Short, so Discard fits beside it in the room the line always keeps.
+              "Recording. Nothing is sent yet."
+          : mode === "browser"
+            ? "Listening. Your browser's speech service turns your voice into text."
+            : "Listening on this device. Audio is not sent to a server.",
       mode,
     };
   if (secondary && (asking || !mode)) return SILENT;
@@ -295,6 +401,10 @@ export function talkControls(
       return agreed
         ? { ...SILENT, action: "talk", label: "Talk It Out", language: true, mode }
         : { ...SILENT, action: "talk", label: "Talk It Out", note: BROWSER_SPEECH_NOTE, mode, agreement: true };
+    case "cloud":
+      return agreed
+        ? { ...SILENT, action: "talk", label: "Talk It Out", language: true, mode }
+        : { ...SILENT, action: "talk", label: "Talk It Out", note: CLOUD_SPEECH_NOTE, mode, agreement: true };
     case "ready":
       return { ...SILENT, action: "talk", label: "Talk It Out", note: setUpHere ? "Speech is ready. Audio stays on this device." : "", language: !setUpHere, mode };
   }
@@ -344,7 +454,34 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
     case "language-not-supported":
       return "Speech for this language is not available. Choose another language, or type in the box.";
     case "withdrawn":
-      return "Browser speech was turned off in Settings. Your words are still here, and you can type in the box.";
+      return mode === "cloud"
+        ? "Cloud speech was turned off in Settings. Nothing was sent, and you can type in the box."
+        : "Browser speech was turned off in Settings. Your words are still here, and you can type in the box.";
+    // Turned off while the recording was on its way. It was cancelled, but may already have arrived.
+    case "withdrawn-sending":
+      return "Cloud speech was turned off in Settings while the recording was being sent. No words were added, and you can type in the box.";
+    case "discarded":
+      return "The recording was discarded. Nothing was sent. Press Talk It Out to try again, or type in the box.";
+    // The microphone went away mid-recording. The person did not press Stop, so nothing is sent.
+    case "cloud-interrupted":
+      return "The microphone stopped, so the recording was dropped. Nothing was sent. Press Talk It Out to try again, or type in the box.";
+    // Cloud speech (`speech-cloud.ts`). The recording is dropped in every one of these.
+    case "cloud-offline":
+      return "You are offline, so the recording could not be sent. It was not kept. You can type in the box.";
+    case "cloud-unreachable":
+      return "The recording could not be sent. It was not kept. Try again, or type in the box.";
+    case "cloud-busy":
+      return `${CLOUD_SPEECH.company} is busy right now, so the recording was not turned into text. It was not kept. Try again in a moment, or type in the box.`;
+    case "cloud-limit":
+      return "Cloud speech has reached its limit for today. The recording was not kept. You can type in the box.";
+    case "cloud-off":
+      return "Cloud speech is not available right now. The recording was not kept. You can type in the box.";
+    case "cloud-too-long":
+      return "That recording was too long to send. It was not kept. Say it in shorter parts, or type in the box.";
+    case "cloud-unreadable":
+      return "The recording could not be read. It was not kept. Try again, or type in the box.";
+    case "cloud-failed":
+      return "The recording could not be turned into text. It was not kept. Try again, or type in the box.";
     default:
       return "The microphone could not continue. Your words are still here, and you can type in the box.";
   }
@@ -364,4 +501,6 @@ export const speechPaused = (words: boolean): string =>
 export const speechNotStarted = (mode: SpeechMode): string =>
   mode === "device"
     ? "Speech is not ready on this device. You can type in the box."
-    : "Your browser's speech service did not start. You can type in the box.";
+    : mode === "cloud"
+      ? "Recording did not start. Nothing was sent, and you can type in the box."
+      : "Your browser's speech service did not start. You can type in the box.";

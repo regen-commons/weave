@@ -2,7 +2,7 @@ import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
 import { parseDocument, uuid } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
-import { RENEW_BEFORE_SECONDS, resolveSession, type Session } from "./account-session.ts";
+import { RENEW_BEFORE_SECONDS, resolveSession, withAccessToken, type Session } from "./account-session.ts";
 export { RENEW_BEFORE_SECONDS, secondsLeft } from "./account-session.ts";
 interface Options {
   provider: AccountProvider | null;
@@ -11,6 +11,14 @@ interface Options {
   emailHintAvailable?: boolean;
   /** Milliseconds since the epoch; tests move the clock. */
   now?: () => number;
+  /**
+   * What else ends with the session, given a request that still carries its valid access token: the
+   * Certified project grants. It runs before the session is revoked, because only a live session can
+   * find them, and it can never stop or fail a sign-out.
+   */
+  onSignOut?: (request: Request) => Promise<unknown>;
+  /** How long a sign-out waits for `onSignOut`, in milliseconds. */
+  signOutWait?: number;
 }
 /**
  * When the app should ask again: just inside the renewal window when a renewal cookie exists, otherwise
@@ -26,6 +34,8 @@ export function createAccountHandlers({
   fixture = false,
   emailHintAvailable = false,
   now = Date.now,
+  onSignOut,
+  signOutWait = 5000,
 }: Options) {
   const cookies = sessionCookies(secureCookies);
   const response = (status: number, body: unknown, setCookies: string[] = []) => {
@@ -117,6 +127,17 @@ export function createAccountHandlers({
             if (!(error instanceof AccountError && error.status === 401))
               throw new AccountError(503, "sign_out_unconfirmed");
           }
+          if (current?.access && onSignOut) {
+            // Bounded and swallowed: whatever happens here, the session is revoked next.
+            const cleanup = new Request(request.url, { headers: { cookie: request.headers.get("cookie") ?? "" } });
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            try {
+              await Promise.race([
+                Promise.resolve().then(() => onSignOut(withAccessToken(cleanup, cookies, current!.access!))).catch(() => {}),
+                new Promise<void>(resolve => { timer = setTimeout(resolve, signOutWait); }),
+              ]);
+            } finally { clearTimeout(timer); }
+          }
           if (current?.access) await provider.signOut(current.access);
           return response(200, { signedOut: true }, [...cookies.ended(), cookies.pending()]);
         }
@@ -184,10 +205,18 @@ export function createAccountHandlers({
     },
   };
 }
+/**
+ * The project runtime is loaded only here, at sign-out, so every other account request stays as light
+ * as it was. Where projects are switched off there is nothing to forget.
+ */
+async function forgetProjectGrants(request: Request) {
+  const { projectRuntime } = await import("./project-runtime.ts");
+  return (await projectRuntime())?.auth.forget(request);
+}
 function configuredHandlers() {
   const runtime = accountRuntime();
   return createAccountHandlers({ provider: runtime?.provider ?? null, secureCookies: runtime?.secureCookies ?? true,
-    emailHintAvailable: !!runtime?.emailHints });
+    emailHintAvailable: !!runtime?.emailHints, onSignOut: forgetProjectGrants });
 }
 export const GET = (request: Request) => configuredHandlers().GET(request);
 export const POST = (request: Request) => configuredHandlers().POST(request);

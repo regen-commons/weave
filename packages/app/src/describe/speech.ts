@@ -1,4 +1,5 @@
-import type { BrowserSpeechConsent } from "./speech-consent.ts";
+import { startCloudSpeech } from "./speech-cloud.ts";
+import type { SpeechConsent } from "./speech-consent.ts";
 
 export interface SpeechEvent {
   results: ArrayLike<{ isFinal: boolean; [index: number]: { transcript: string } | undefined }>;
@@ -70,13 +71,17 @@ export async function availableSpeech(
  * - `device`: the browser recognizes speech on this device (`processLocally = true`). Audio stays here.
  * - `browser`: the browser's own speech service, which may send the audio to the browser vendor.
  *   Only with the person's agreement (`speech-consent.ts`).
+ * - `cloud`: where the browser cannot turn speech into text at all, a recording made in the page
+ *   and sent once, on Stop, through Weave to the provider its notice names (`speech-cloud.ts`).
+ *   Only with the person's own, separate agreement. No words come back until Stop.
  */
-export type SpeechMode = "device" | "browser";
+export type SpeechMode = "device" | "browser" | "cloud";
 
 /**
- * Why a session stopped early: the Web Speech API's error codes as the browser gives them, and
- * `withdrawn` when the person turned browser speech off while it listened. Read as data, so an
- * unknown code is kept and said plainly as a microphone that could not continue.
+ * Why a session stopped early: the Web Speech API's error codes as the browser gives them,
+ * `withdrawn` when the person turned that way of talking off while it listened, and the
+ * `cloud-` codes of `speech-cloud.ts`. Read as data, so an unknown code is kept and said plainly
+ * as a microphone that could not continue.
  */
 export type SpeechProblem = string;
 
@@ -130,14 +135,16 @@ export async function startSpeech(
     later = wait,
   }: {
     speech?: SpeechConstructor | null;
-    /** Required for `browser`: a session starts only while it says the person agreed. */
-    consent?: BrowserSpeechConsent;
+    /** Required for `browser` and `cloud`: a session starts only while it says the person agreed to that mode. */
+    consent?: SpeechConsent;
     signal?: AbortSignal;
     /** How long the recognizer may take to end after Stop before the session is ended for it. */
     stopWait?: number;
     later?: Wait;
   } = {},
 ): Promise<{ stop(): void; dispose(): void }> {
+  // Cloud speech records in the page and has its own session: nothing below runs for it.
+  if (mode === "cloud") return startCloudSpeech(language, callbacks, { consent, signal });
   if (!speech) throw new Error("This browser has no speech recognition.");
   if (mode === "device" && !(await availableSpeech(language, speech)))
     throw new Error("Local speech is not ready. You can type below.");
