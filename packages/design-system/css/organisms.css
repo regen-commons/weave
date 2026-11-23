@@ -10,6 +10,9 @@
   z-index: var(--layer-sticky);
 }
 .rc-app-head > .rc-app-header { position: static; }
+/* A record's first view, sent as HTML before the app runs, draws the app bar empty at its height, so
+   the heading under it stays put until the app's own bar replaces it (DL-136). */
+.rc-app-header:empty { min-block-size: var(--app-header-height); }
 /* App header: product name top-left returns home on every page. */
 /* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
    under it, and its contents keep the page's edges. */
@@ -616,6 +619,10 @@
 @media (width < 56.25rem) {
   .rc-footer[data-from="wide"] { display: none; }
 }
+/* A record opening as a page holds its footer back until the record is in. The record's skeleton is
+   a phone's screen tall, but a record that is shorter, or not there, would pull the footer up into
+   view as it arrives (`data-loading="record"`, DL-136). */
+.rc-page:has(> .rc-page-body [data-loading="record"]) > .rc-footer { display: none; }
 .rc-footer ul { padding: 0; list-style: none; }
 /* A footer row that is a button wraps from its start edge, like the links around it. */
 .rc-footer-link { display: inline-flex; align-items: center; min-block-size: var(--control-sm-height); padding: 0; border: 0; background: none; color: var(--link); font: var(--type-body-md); text-align: start; text-decoration: underline; cursor: pointer; }
