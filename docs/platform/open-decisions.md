@@ -123,6 +123,20 @@ The prototype's attached PDF deck is shown as read on the device. The maker appr
 
 Step 3 verifies a two-page synthetic PDF under the unchanged production CSP, including one page without text, retained source bytes and offline rebuilding from the service-worker cache. This is fixture evidence in HeadlessChrome 149, not the real-user local-AI evidence due on 20 November. D32 still needs exact model manifests, approved hosting and device participants. D35 still needs provider, region, retention and consent decisions before cloud calls can open.
 
+## Agent access
+
+From the [agent access proposal](10-agent-access.md), 22 November 2026. These are questions for the user, who owns the product decisions in this build. None is approved, and D39 and D42 also need the council because they change what Weave's server sees or who can act for a person.
+
+| ID | Question | Recommendation | Owner | Needed by | Status |
+|---|---|---|---|---|---|
+| D37 | Does Weave offer a public, read-only MCP endpoint at `/api/mcp` with `search_funds`, `get_fund`, `search_projects` and `get_project`? | Yes. Build it in `packages/api`, off until `WEAVE_MCP_ENABLED` is set, with no sign-in and nothing stored. | User | Before the slice is built | Open |
+| D38 | Is the MCP handler hand-written, or does it use the official server package? | Hand-written, with no new dependency: a tools-only stateless server is about six methods. Revisit if a protocol revision makes upkeep costly; the alternative is `@modelcontextprotocol/server` 2.x with zod 4. | User | Before the slice is built | Open |
+| D39 | May a tool rank funds for a description on Weave's server, when the app does that ranking on the device? | Yes, as a second slice: rank in memory, store and log nothing, and say so in the tool's description. If the answer is no, the description tool exists only in WebMCP, where it runs in the page. | User, then council | Before slice 2 | Open |
+| D40 | Who adds the Vercel Firewall rate limit rule for `/api/mcp` and turns the switch on? | The user, after a preview deployment answers the route. Hobby includes one rule, set in the dashboard. | User | Before production use | Open |
+| D41 | When does the app register WebMCP tools, and does Weave join Chrome's origin trial? | Register the same tools behind feature detection after the MCP slice lands, through the sessions that own the app shell. Do not join the trial until an assistant people use is known to call the tools. | User | After slice 1 | Open |
+| D42 | Do assistants get signed-in tools (a person's initiatives, partner matches, saving a lead)? | Not yet. Wait for real use of the public tools, then write a separate proposal covering OAuth through Certified and how a person grants and withdraws an assistant's access. | User, then council | After slice 1 shows use | Open |
+| D43 | When is Weave listed in the MCP registry and in assistants' connector directories? | After the public endpoint has run in production for two weeks without incident. Listing is publishing, so it needs its own yes. | User | After D40 | Open |
+
 ## Waiting on people
 
 | ID | Question | Recommendation and how it gets checked | Owner | Status |
