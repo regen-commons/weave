@@ -264,8 +264,10 @@ Before redirecting, the browser waits for device persistence and checks for edit
 made while the request was in flight. A storage failure leaves the tab open.
 
 The callback exchanges the code server-side, checks the authoritative access rule,
-and sets a host-only Secure HttpOnly SameSite=Strict session cookie for at most one
-hour. It never stores refresh tokens or writes/loads a draft. The temporary state
+and sets two host-only Secure HttpOnly SameSite=Strict cookies: the access token, for at most one
+hour, and Supabase's refresh token, which lets `/api/account` renew the access token. A browser stays
+signed in for up to 30 days from sign-in (`SESSION_CAP_SECONDS`) and no longer than 14 days without use
+(`RENEWAL_SECONDS`); past the cap Weave revokes the session. The callback never writes or loads a draft. The temporary state
 cookie uses SameSite=Lax so it can return from Certified. Invalid, missing, expired
 or replayed state cannot establish a session. Failures return fixed messages without
 provider details. Supabase receives only the publishable key and the person's JWT

@@ -37,9 +37,23 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.match(policy, /Weave does not keep your email address/u);
   assert.match(policy, /Sharing for matching shows the needs and offers you pick/u);
   assert.match(policy, /Publishing on Certified creates a public record/u);
-  // The session really is an hour at most, and the app really sends nothing to a cloud model.
-  assert.match(read("../api/src/account-provider.ts") + read("../api/src/account-http.ts"), /3600/u);
-  assert.match(policy, /session cookie for up to one hour/u);
+  // The session really renews for up to 30 days and ends after 14 idle ones, as the policy says.
+  assert.match(read("../api/src/account-session.ts"), /SESSION_CAP_SECONDS = 30 \* 24 \* 60 \* 60;/u);
+  assert.match(read("../api/src/account-http.ts"), /RENEWAL_SECONDS = 14 \* 24 \* 60 \* 60;/u);
+  assert.match(policy, /You stay signed in for up to 30 days, unless you sign out or do not open Weave for 14 days/u);
+  assert.doesNotMatch(policy + " " + Object.values(SIGN_IN).join(" "), /session cookie for up to one hour|This session lasts up to one hour/u);
+  // The project permission is what the server grants: reading for the session, changes to Certified for an hour.
+  const grants = read("../api/src/certified-project-auth.ts");
+  assert.match(grants, /const grantTtl = 3600;/u);
+  assert.match(grants, /const readGrantTtl = SESSION_CAP_SECONDS;/u);
+  assert.match(grants, /const readOnlyAction = "membership";/u);
+  assert.match(policy, /reads your Certified projects and the groups you belong to for as long as you stay signed in/u);
+  assert.match(policy, /check that you belong to a group before you save to its team workspace or manage its invitations/u);
+  assert.match(policy, /keeps that permission, encrypted, for up to 30 days, and cannot use it after you sign out/u);
+  assert.match(policy, /creating a project, adding a member, or publishing or withdrawing a listing, asks Certified again, and that permission lasts up to one hour/u);
+  // Where the second question comes without a second press, the policy and the page both say so first.
+  assert.match(policy, /Signing in on Your Initiatives goes on to that question, and the page says so first/u);
+  assert.match(read("src/pages/YourInitiatives.tsx"), /Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in/u);
   assert.match(read("src/describe/cloud.ts"), /throw/u);
   assert.match(policy, /No words are sent to a cloud model/u);
 });
@@ -72,7 +86,7 @@ test("what sign-in and saving do is written once and agrees with the policy", ()
     const source = read(file);
     assert.doesNotMatch(source, /only says who you are/u, file);
     assert.doesNotMatch(source, /stays private in Weave/u, file);
-    assert.doesNotMatch(source, /lasts up to one hour/u, file);
+    assert.doesNotMatch(source, /session lasts up to|stay signed in on this browser for up to/u, file);
   }
   for (const file of ["src/account/AccountSection.tsx", "src/social/Door.tsx", "src/pages/YourInitiatives.tsx"])
     assert.match(read(file), /SIGN_IN\./u, file);
@@ -83,10 +97,11 @@ test("what sign-in and saving do is written once and agrees with the policy", ()
   // Signing in moves nothing: the step that starts it saves no card and sends no document.
   assert.doesNotMatch(read("src/account/sign-in.ts"), /accountDocument|saveAccountCard/u);
   assert.match(SIGN_IN.effect, /Nothing is saved, loaded or shared until you choose it/u);
-  // Saving sends the same things the summary lists, and the session is the same hour the policy states.
+  // Saving sends the same things the summary lists, and the session is as long as the policy states.
   for (const kept of ["checked card", "needs", "offers", "funding details"]) assert.match(SIGN_IN.saved, new RegExp(kept, "u"), kept);
   assert.match(SIGN_IN.saved, /Conversations, files, unfinished edits and assistant records stay on this device/u);
-  assert.match(SIGN_IN.session, /up to one hour/u);
+  assert.match(SIGN_IN.session, /up to 30 days, or 14 days without opening Weave/u);
+  assert.match(CERTIFIED_FACTS.map(([, answer]) => answer).join(" "), /separate permission on Certified\. It lasts for as long as you stay signed in/u);
 });
 
 test("what the copy says about talking is what the speech code does", () => {
