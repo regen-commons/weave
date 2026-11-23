@@ -66,6 +66,7 @@ test("the fixture guard covers future project OAuth entries while preserving unr
   const module = { GET: () => Response.json({ fixture: true }) };
   const load = isolateFixtureProjectOAuth(true, async name => { calls.push(name); return module; });
   const oauth = await load("certified-project-future-action");
+  assert.ok(oauth, "the guard always answers for a project OAuth entry");
   assert.equal(typeof oauth.POST, "function");
   assert.equal((await (oauth.POST as () => Response)()).status, 503);
   for (const entry of ["account", "sign-in", "matching", "projects", "health"])

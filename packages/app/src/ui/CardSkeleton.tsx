@@ -63,14 +63,19 @@ function SkeletonCard({ kind, matched }: { kind: SkeletonKind; matched?: boolean
         </p>
       </div>
     );
-  // One of a person's own initiatives or Certified projects in Your Initiatives: a name and a
-  // line or two about where it is kept. It is far shorter than a funding card.
+  // One of a person's own initiatives or Certified projects in Your Initiatives: a name, the tag
+  // that says what it is (DL-134) and a line about it. It is far shorter than a funding card.
   if (kind === "own")
     return (
       <div className="rc-card" data-layout="listing">
         <p className="rc-card-title">
           <Hold>Name of a project</Hold>
         </p>
+        <div className="rc-tag-list">
+          <span className="rc-tag">
+            <Hold>Group project</Hold>
+          </span>
+        </div>
         <p className="rc-card-meta">
           <Hold>You are a member of the group that runs it. It has no team workspace in Weave yet.</Hold>
         </p>

@@ -1,3 +1,4 @@
+import { useEffect, useRef, type RefObject } from "react";
 import type { Attachment, DeviceDraft } from "../describe/contracts.ts";
 import { fileNote } from "../describe/file-note.ts";
 import { Link } from "../router.tsx";
@@ -10,6 +11,7 @@ export function AttachmentList({
   links,
   onRemoveFile,
   onRemoveLink,
+  afterLast,
 }: {
   files: readonly Attachment[];
   readOnBuild?: boolean;
@@ -20,11 +22,25 @@ export function AttachmentList({
   links: readonly string[];
   onRemoveFile(id: string): void;
   onRemoveLink(url: string): void;
+  /** Where the focus goes once the last file or link is removed, such as Add Files. */
+  afterLast?: RefObject<HTMLElement | null>;
 }) {
-  if (!files.length && !links.length) return null;
+  // Remove takes its own row away, and the browser would drop the focus on the page. It goes to the
+  // Remove that took the row's place, or the one before it, or past the list once it is empty (WCAG 2.4.3).
+  const list = useRef<HTMLUListElement>(null);
+  const removedAt = useRef<number | null>(null);
+  const count = files.length + links.length;
+  useEffect(() => {
+    const at = removedAt.current;
+    removedAt.current = null;
+    if (at === null) return;
+    const left = list.current ? [...list.current.querySelectorAll<HTMLElement>(":scope > li > button")] : [];
+    (left[Math.min(at, left.length - 1)] ?? afterLast?.current)?.focus();
+  }, [count]);
+  if (!count) return null;
   return (
-    <ul className="rc-attachment-list" aria-label="Files and links">
-      {files.map((file) => (
+    <ul className="rc-attachment-list" aria-label="Files and links" ref={list}>
+      {files.map((file, index) => (
         <li className="rc-attachment" key={file.id}>
           <div>
             <strong>{file.name}</strong>
@@ -44,13 +60,16 @@ export function AttachmentList({
             data-variant="quiet"
             type="button"
             aria-label={`Remove ${file.name}`}
-            onClick={() => onRemoveFile(file.id)}
+            onClick={() => {
+              removedAt.current = index;
+              onRemoveFile(file.id);
+            }}
           >
             Remove
           </button>
         </li>
       ))}
-      {links.map((link) => (
+      {links.map((link, index) => (
         <li className="rc-attachment" key={link}>
           <div>
             {/* A kept link is whatever was typed, so it opens apart from this page even where it is not a full address. */}
@@ -64,7 +83,10 @@ export function AttachmentList({
             data-variant="quiet"
             type="button"
             aria-label={`Remove ${link}`}
-            onClick={() => onRemoveLink(link)}
+            onClick={() => {
+              removedAt.current = files.length + index;
+              onRemoveLink(link);
+            }}
           >
             Remove
           </button>

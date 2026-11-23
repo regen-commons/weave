@@ -45,8 +45,8 @@
           ><canvas class="rc-logo-mark" aria-hidden="true"></canvas>Weave</a
         >
         <nav class="rc-app-nav" aria-label="Main">
-          <a href="initiatives.html">Initiatives</a>
           <a href="funding.html">Funding</a>
+          <a href="initiatives.html">Initiatives</a>
           <a href="your-initiatives.html" aria-current="page">Your Initiatives</a>
         </nav></div>
         <div class="rc-app-header-state"><button class="rc-icon-button" data-variant="secondary" data-size="sm" type="button" aria-label="Account" popovertarget="account-menu" data-popup="account-menu" data-from="wide"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person"/></svg></button><div class="rc-menu" id="account-menu" data-align="end" popover><p class="rc-menu-head">Signed in as orchard.certified.one</p><a class="rc-menu-item" href="your-initiatives.html" aria-current="page" data-close-popover>Your Initiatives</a><a class="rc-menu-item" href="settings.html" data-close-popover>Settings</a><button class="rc-menu-item" type="button" data-divide data-close-popover>Sign Out</button></div></div>
@@ -58,20 +58,25 @@
           <h1 class="rc-heading" data-size="page">Your Initiatives</h1>
           <section class="rc-section" aria-labelledby="initiatives-weave">
             <div class="rc-section-head">
-              <h2 class="rc-heading" data-size="section" id="initiatives-weave">In Weave</h2>
+              <h2 class="rc-heading" data-size="section" id="initiatives-weave">Drafts And Private Saves</h2>
             </div>
             <ul class="rc-card-grid">
               <li>
                 <article class="rc-card" data-layout="listing">
-                  <h3 class="rc-card-title"><button type="button">Orchard learning circle</button></h3>
-                  <p class="rc-card-meta">Saved privately in Weave. Only you can see it.</p>
-                  <p class="rc-card-meta">Linked to your project on Certified.</p>
+                  <h3 class="rc-card-title"><button type="button">Spring water notes</button></h3>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#device" /></svg>Not saved yet</span></div>
+                  <p class="rc-card-meta">Looks like Spring water notes, your project on Certified.</p>
+                  <div class="rc-action-bar">
+                    <button class="rc-button" data-variant="secondary" data-size="sm" type="button">Use That Project</button>
+                    <button class="rc-button" data-variant="quiet" data-size="sm" type="button">It's A Different Initiative</button>
+                  </div>
                 </article>
               </li>
               <li>
                 <article class="rc-card" data-layout="listing">
                   <h3 class="rc-card-title"><button type="button">Valley pruning days</button></h3>
-                  <p class="rc-card-meta">Saved privately in Weave on 28 October 2026.</p>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#lock" /></svg>Saved privately</span></div>
+                  <p class="rc-card-meta">Saved on 28 October 2026.</p>
                 </article>
               </li>
             </ul>
@@ -83,14 +88,23 @@
             <ul class="rc-card-grid">
               <li>
                 <article class="rc-card" data-layout="listing">
+                  <h3 class="rc-card-title"><button type="button">Orchard learning circle</button></h3>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Team workspace</span></div>
+                  <p class="rc-card-meta">You can edit.</p>
+                </article>
+              </li>
+              <li>
+                <article class="rc-card" data-layout="listing">
                   <h3 class="rc-card-title"><button type="button">Seed library of the upper valley</button></h3>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Group project</span></div>
                   <p class="rc-card-meta">You are a member of the group Valley seed keepers. It has no team workspace in Weave yet.</p>
                 </article>
               </li>
               <li>
                 <article class="rc-card" data-layout="listing">
                   <h3 class="rc-card-title"><button type="button">Spring water notes</button></h3>
-                  <p class="rc-card-meta">A personal project. Only you work on it.</p>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>Personal project</span></div>
+                  <p class="rc-card-meta">Only you work on it.</p>
                 </article>
               </li>
             </ul>
@@ -105,14 +119,33 @@
               <h2 class="rc-heading" data-size="section" id="initiatives-settings">Settings</h2>
               <a class="rc-button" data-variant="quiet" data-size="sm" href="settings.html">All settings</a>
             </div>
-            <fieldset>
-              <legend>Theme</legend>
-              <div class="rc-chip-group">
-                <label class="rc-chip"><input class="rc-check" type="radio" name="theme" checked>System</label>
-                <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Light</label>
-                <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Dark</label>
-              </div>
-            </fieldset>
+            <div class="rc-stack">
+              <section class="rc-card rc-settings-group" aria-labelledby="initiatives-appearance">
+                <div class="rc-settings-head">
+                  <h3 class="rc-heading" data-size="section" id="initiatives-appearance">Appearance</h3>
+                  <p class="rc-meta">Light, dark, or the same as this device.</p>
+                </div>
+                <div class="rc-settings-body">
+                <fieldset>
+                  <legend>Theme</legend>
+                  <div class="rc-chip-group">
+                    <label class="rc-chip"><input class="rc-check" type="radio" name="theme" checked>System</label>
+                    <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Light</label>
+                    <label class="rc-chip"><input class="rc-check" type="radio" name="theme">Dark</label>
+                  </div>
+                </fieldset>
+                </div>
+              </section>
+              <section class="rc-card rc-settings-group" aria-labelledby="initiatives-install">
+                <div class="rc-settings-head">
+                  <h3 class="rc-heading" data-size="section" id="initiatives-install">Install Weave On Your Phone</h3>
+                  <p class="rc-meta">It opens like an app, full screen.</p>
+                </div>
+                <div class="rc-settings-body">
+                  <p>Add Weave to your home screen and it opens like an app, full screen.</p>
+                </div>
+              </section>
+            </div>
           </section>
           <div class="rc-action-bar">
             <p class="rc-meta">Signed in as orchard.certified.one.</p>
@@ -121,14 +154,14 @@
         </div>
       </main>
 </div>
-      <footer class="rc-footer">
+      <footer class="rc-footer" data-from="wide">
         <div class="rc-footer-grid">
           <section data-repeats="tabs">
             <h2 class="rc-footer-title">Weave</h2>
             <ul>
               <li><a class="rc-footer-link" href="describe.html">Describe Your Initiative</a></li>
-              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
               <li><a class="rc-footer-link" href="funding.html">Funding</a></li>
+              <li><a class="rc-footer-link" href="initiatives.html">Initiatives</a></li>
             </ul>
           </section>
           <section>
@@ -154,8 +187,8 @@
       </footer>
       <nav class="rc-bottom-nav" aria-label="Main">
         <a href="home.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#home" /></svg>Home</a>
-        <a href="initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
         <a href="funding.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#funding" /></svg>Funding</a>
+        <a href="initiatives.html"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#people" /></svg>Initiatives</a>
         <a href="your-initiatives.html" aria-current="page"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#person" /></svg>You</a>
       </nav>
       <dialog class="rc-dialog" data-presentation="information" id="example-data" aria-labelledby="example-data-title">

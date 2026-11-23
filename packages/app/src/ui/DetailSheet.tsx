@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { Dialog } from "./Dialog.tsx";
+import { Heading } from "./Heading.tsx";
+import { NarrowLayout } from "./layouts.tsx";
 import { keepFocusOnPage } from "./focus.ts";
+import { SectionLevelContext, type SectionLevel } from "./section-level.ts";
 
 /** Whether a record's sheet is on screen, and what follows once it has left. */
 export interface SheetState {
@@ -9,10 +12,39 @@ export interface SheetState {
 }
 
 /**
- * A record opened over its list. The list stays as it was underneath, so closing returns to the
- * same filters and the same place on the page.
+ * How a record is shown: over the page it was opened from inside the app, or as a page of its own
+ * when it was opened from a link (22 November 2026).
  */
-export function DetailSheet({ title, state, children }: { title: string; state: SheetState; children: ReactNode }) {
+export type Presentation = "sheet" | "page";
+
+/** The level a record's sections start at as it is shown: under a sheet's title or a page's heading. */
+export const recordSectionLevel = (presentation: Presentation): SectionLevel => (presentation === "page" ? 2 : 3);
+
+/**
+ * A record opened over its list. The list stays as it was underneath, so closing returns to the
+ * same filters and the same place on the page. Opened from a link, the same record is the page,
+ * under its own heading, and the app bar's back link goes to its list.
+ */
+export function DetailSheet({
+  title,
+  state,
+  presentation = "sheet",
+  children,
+}: {
+  title: string;
+  state: SheetState;
+  presentation?: Presentation;
+  children: ReactNode;
+}) {
+  if (presentation === "page")
+    return (
+      <NarrowLayout>
+        <Heading level={1} size="page">
+          {title}
+        </Heading>
+        <SectionLevelContext value={2}>{children}</SectionLevelContext>
+      </NarrowLayout>
+    );
   return (
     <Dialog
       presentation="detail"
@@ -24,7 +56,7 @@ export function DetailSheet({ title, state, children }: { title: string; state: 
         state.onClose();
       }}
     >
-      {children}
+      <SectionLevelContext value={3}>{children}</SectionLevelContext>
     </Dialog>
   );
 }

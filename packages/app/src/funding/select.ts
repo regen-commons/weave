@@ -2,6 +2,7 @@ import { effectiveAccess } from "../../../../dist/domain.mjs";
 import { MATCH_GROUPS, programFund } from "../../../../dist/matching.mjs";
 import type { Entry, Evaluation } from "./contracts.ts";
 import { closingDay, closingDayEnds } from "./deadline.ts";
+import { compareFit } from "./fit.ts";
 
 /**
  * How to apply, as a visitor chooses it (DL-062). The catalog records twelve states and several are
@@ -34,6 +35,15 @@ export const FUNDING_KINDS: Readonly<Record<string, string>> = {
 };
 const SORTS = ["closing", "name", "recent", "fit"];
 
+/**
+ * The list's own order, where no other is chosen: strongest fit first while an initiative is
+ * compared with the catalog, otherwise the soonest closing. Fit means nothing without one.
+ */
+export function fundingOrder(sort: string, compared: boolean): string {
+  if (!sort || (sort === "fit" && !compared)) return compared ? "fit" : "closing";
+  return sort;
+}
+
 export interface FundingFilters {
   readonly search: string;
   /** How to apply: any of the chosen route groups. */
@@ -45,6 +55,7 @@ export interface FundingFilters {
   /** Closing within this many days, or any date. */
   readonly closing: string;
   readonly group: string;
+  /** An order a person chose, or empty for the list's own (`fundingOrder`). */
   readonly sort: string;
 }
 export const emptyFundingFilters: FundingFilters = {
@@ -55,7 +66,7 @@ export const emptyFundingFilters: FundingFilters = {
   kind: [],
   closing: "",
   group: "",
-  sort: "fit",
+  sort: "",
 };
 
 /** The filters as an address carries them: one value each, or one entry per chosen value. */
@@ -63,6 +74,17 @@ export const FUNDING_QUERY = {
   one: ["q", "closing", "group", "sort"],
   many: ["access", "region", "theme", "kind"],
 } as const;
+
+/**
+ * The address's mark for browsing funding with no initiative compared, so a person who chose it
+ * keeps it on the way to a fund and back. It is not a filter: Clear Filters leaves it alone.
+ */
+export const BROWSING = { key: "initiative", value: "none" } as const;
+export const readBrowsing = (search: string) => new URLSearchParams(search).get(BROWSING.key) === BROWSING.value;
+export function writeBrowsing(browsing: boolean, params: URLSearchParams): void {
+  if (browsing) params.set(BROWSING.key, BROWSING.value);
+  else params.delete(BROWSING.key);
+}
 
 /** The filters an address asks for. A value it could not mean is left out, never guessed at. */
 export function readFundingFilters(search: string): FundingFilters {
@@ -122,25 +144,14 @@ export function timeToClose(entry: Entry, now = new Date()): number {
 
 const intersects = (chosen: readonly string[], values: readonly string[]) =>
   chosen.some((value) => values.includes(value));
+const within = (remaining: number, limit: number) => remaining >= 0 && remaining <= limit;
 
-/** Any of the chosen values within one filter, and every filter at once. Filtering never computes a fit. */
-export function filterFunding(
-  entries: Entry[],
-  filters: FundingFilters,
-  results: Evaluation[] | null,
-  now = new Date(),
-): Entry[] {
-  const ranks = new Map(results?.map((result, index) => [result.documentId, { result, index }]));
-  const query = filters.search
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean);
-  const selected = entries.filter((entry) => {
-    const access = effectiveAccess(programFund(entry.fund, entry.program), now);
-    const text = [
+/** A fund's words as search reads them: accents aside and in lower case. Worked out once per entry. */
+const folded = new WeakMap<Entry, string>();
+function searchText(entry: Entry): string {
+  let text = folded.get(entry);
+  if (text === undefined) {
+    text = [
       entry.fund.displayName,
       entry.fund.description,
       ...entry.fund.sectors,
@@ -152,30 +163,65 @@ export function filterFunding(
       .normalize("NFD")
       .replace(/\p{M}/gu, "")
       .toLowerCase();
-    const remaining = timeToClose(entry, now);
-    return (
-      query.every((word) => text.includes(word)) &&
-      (!filters.access.length || filters.access.includes(routeGroupOf(access) ?? "")) &&
+    folded.set(entry, text);
+  }
+  return text;
+}
+
+/**
+ * Any of the chosen values within one filter, and every filter at once. Filtering never computes a
+ * fit. `results` come in research priority's order, which breaks ties when the list is ordered by fit.
+ */
+export function filterFunding(
+  entries: Entry[],
+  filters: FundingFilters,
+  results: Evaluation[] | null,
+  now = new Date(),
+): Entry[] {
+  const ranks = new Map(results?.map((result, index) => [result.documentId, { result, index }]));
+  const place = (entry: Entry) => {
+    const rank = ranks.get(entry.id);
+    return rank && { score: rank.result.thematicFit.score, priority: rank.index };
+  };
+  const query = filters.search
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean);
+  // Each check runs only for a filter in use, and each fund's words are folded for search once.
+  const selected = entries.filter(
+    (entry) =>
+      query.every((word) => searchText(entry).includes(word)) &&
+      (!filters.access.length ||
+        filters.access.includes(routeGroupOf(effectiveAccess(programFund(entry.fund, entry.program), now)) ?? "")) &&
       (!filters.region.length || intersects(filters.region, entry.fund.regions)) &&
       (!filters.theme.length || intersects(filters.theme, entry.fund.sectors)) &&
       // An overview record names no program, so it has no kind to match.
       (!filters.kind.length || (!!entry.program && filters.kind.includes(entry.program.instrument))) &&
       (!filters.group || ranks.get(entry.id)?.result.group === filters.group) &&
-      (!filters.closing || (remaining >= 0 && remaining <= Number(filters.closing) * 86400000))
-    );
-  });
+      (!filters.closing || within(timeToClose(entry, now), Number(filters.closing) * 86400000)),
+  );
+  // The closing order counts only calls still open to their closing day. One whose date has passed
+  // goes to the end with the undated, even where its intake is not confirmed closed.
+  const deadlines = new Map(
+    filters.sort === "closing"
+      ? selected.map((entry) => {
+          const application = entry.program?.application;
+          return [
+            entry.id,
+            application?.closesOn && timeToClose(entry, now) >= 0
+              ? closingDay(application.closesOn, application.deadlineInstant)
+              : "9999",
+          ];
+        })
+      : [],
+  );
   return selected.sort((a, b) => {
-    const rank =
-      filters.sort === "fit" && results
-        ? (ranks.get(a.id)?.index ?? Infinity) - (ranks.get(b.id)?.index ?? Infinity)
-        : 0;
-    const nextDeadline = (entry: Entry) => {
-      const date = entry.program?.application.closesOn;
-      return date && effectiveAccess(programFund(entry.fund, entry.program), now) !== "closed"
-        ? date
-        : "9999";
-    };
-    const closing = filters.sort === "closing" ? nextDeadline(a).localeCompare(nextDeadline(b)) : 0;
+    const rank = filters.sort === "fit" && results ? compareFit(place(a), place(b)) : 0;
+    const closing =
+      filters.sort === "closing" ? (deadlines.get(a.id) ?? "9999").localeCompare(deadlines.get(b.id) ?? "9999") : 0;
     const recent =
       filters.sort === "recent" ? (b.fund.verifiedOn ?? "").localeCompare(a.fund.verifiedOn ?? "") : 0;
     return (
@@ -187,9 +233,3 @@ export function filterFunding(
     );
   });
 }
-export const fitLevel = (result: Evaluation) =>
-  result.thematicFit.band === "strong"
-    ? "strong"
-    : result.thematicFit.band === "relevant"
-      ? "good"
-      : "possible";

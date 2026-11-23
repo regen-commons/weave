@@ -62,9 +62,12 @@ repository.
 Several sessions and the catalog routines work in this repository. Inspect
 `git status` before editing and leave changes you did not make untouched. Stage only
 your task's paths; never `git add -A` or `git add .`. Do not stash, revert, switch
-branches or force-push in a shared checkout; ask for a separate worktree instead. Do
-not start a second server on a port another session owns, or stop one you did not
-start.
+branches or force-push in a shared checkout; ask for a separate worktree instead.
+Make it inside this repository, with
+`git worktree add .claude/worktrees/<name> -b <branch> origin/develop`, or in the
+Codex app's own worktree folder. Never put a worktree or clone of this repository in
+`/tmp` or `/private/tmp`, because macOS deletes old files there. Do not start a
+second server on a port another session owns, or stop one you did not start.
 
 ## Domain language
 

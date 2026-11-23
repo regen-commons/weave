@@ -1,17 +1,16 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo } from "react";
 import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { fundingFixture, type FixtureContext } from "../fixtures.ts";
-import { catalogEntries } from "../funding/catalog.ts";
-import { useCatalogBundle } from "../funding/use-catalog.ts";
+import { useClosingSoon } from "../funding/use-catalog.ts";
 import {
-  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel, resumeLabel,
+  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, homeDoors, homePreviews, openLabel, resumeLabel,
 } from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
-import { currentRoute, Link, navigate, routeSearch } from "../router.tsx";
-import { fixtureHref, pathTo, routeWith } from "../routes.ts";
+import { currentRoute, Link, navigate } from "../router.tsx";
+import { pathTo, routeWith } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
 import { useSetAside } from "../account/set-aside.ts";
@@ -37,7 +36,6 @@ import { sharedLabel } from "../partners/public-projects.ts";
  * to resume it, so the page keeps one solid primary.
  */
 export function Home({ fixture }: { fixture?: FixtureContext }) {
-  const [search, setSearch] = useState("");
   const { draft } = useDraft();
   const status = useCardStatus();
   const account = useAccount();
@@ -49,17 +47,15 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   const publishedReady = published.status === "ready" ? published : null;
   const recent = fixture ? previews.recent : [];
   const sharedCount = fixture ? previews.sharedCount : publishedReady?.page.index.total ?? 0;
-  // The live funding catalog, read once the page is idle and shared with Funding. The example
-  // world brings its own, as Funding's does.
+  // The funding catalog, read once the page is idle. The example world brings its own, as
+  // Funding's does.
   const fundingExample = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
   );
-  const catalog = useCatalogBundle(fundingExample, { idle: true });
-  const { upcoming, closingSoon } = useMemo(
-    () => fundingPreviews(catalog.bundle ? catalogEntries(catalog.bundle) : [], new Date()),
-    [catalog.bundle],
-  );
+  // Only the strip's cards and count come back: the catalog is read and checked off the page (Q-01).
+  const catalog = useClosingSoon(fundingExample, { idle: true });
+  const { upcoming, closingSoon } = catalog;
   const loading = fixture?.state === "loading";
   const failed = fixture?.state === "error";
   const fundingLoading = loading || catalog.loading;
@@ -80,11 +76,6 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   // Another account's card on this device is not one to resume here (DL-055).
   const setAside = useSetAside();
   const doors = homeDoors((status.state !== "none" && !setAside) || !!resume, elsewhere);
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const query = new URLSearchParams({ q: search.trim() });
-    navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, routeSearch(), import.meta.env.DEV));
-  }
   function retry() {
     if (catalog.failed) catalog.retry();
     if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
@@ -121,25 +112,6 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             )}
           </>
         }
-        search={
-          <form className="rc-field" role="search" onSubmit={submit} action={pathTo("initiatives")}>
-            <label htmlFor="home-search">Search initiatives</label>
-            <div className="rc-search rc-inline-field">
-              <input
-                className="rc-input"
-                type="search"
-                id="home-search"
-                name="q"
-                enterKeyHint="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-              <button className="rc-button" data-variant="secondary" type="submit">
-                Search
-              </button>
-            </div>
-          </form>
-        }
         live={
           loading || failed ? (
             <p className="rc-meta">{loading ? "Loading what is new" : "The latest did not load"}</p>
@@ -171,7 +143,10 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             </span>
           ) : (
             <>
-              Find Partners And Funding For <em>Regenerative Work</em>
+              {/* Partners in the colour of Initiatives and Funding in its own, the two sections the
+                  page leads to; the italic words keep Home's (DL-128). */}
+              Find <span data-accent="initiatives">Partners</span> And{" "}
+              <span data-accent="funding">Funding</span> For <em>Regenerative Work</em>
             </>
           )}
         </Heading>

@@ -9,10 +9,17 @@
  *   else (`src/account/document.ts`). Saved copies are not encrypted in the database.
  * - Team workspaces, sharing for matching and publishing are separate choices with their own
  *   readers (`src/social/LiveExposure.tsx`).
- * - No words go to a cloud model, and the app loads no analytics (`vercel.json`, `src/describe`).
- * - Weave never receives audio. Talking uses speech on the device where the browser has it; elsewhere
- *   the browser's own speech service, only after the person agrees (`src/describe/speech.ts`,
+ * - The assistant sends no words to a cloud model, and the app loads no analytics (`vercel.json`,
+ *   `src/describe`).
+ * - Talking uses speech on the device where the browser has it; elsewhere the browser's own speech
+ *   service, only after the person agrees (`src/describe/speech.ts`,
  *   `src/describe/speech-consent.ts`). That service is the browser's, and it may send the audio away.
+ * - Weave receives audio in one case only: a browser with no speech recognition at all, the server
+ *   has cloud speech on, and the person agreed to its notice. The page then records and sends the
+ *   recording once to `/api/transcribe`, which passes it to Cloudflare Workers AI and stores and
+ *   logs nothing (`src/describe/speech-cloud.ts`, `@weave/api` transcribe). The device keeps the
+ *   time and length of each recording sent, and nothing of its content
+ *   (`src/describe/speech-cloud-log.ts`).
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
@@ -34,7 +41,7 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "Talking and the assistant",
-    "Weave never receives your voice. If this device cannot turn speech into text, your browser's speech service does, only after you agree. The assistant reads words on this device, not in a cloud model.",
+    "Your browser turns your voice into text, with its own speech service only after you agree. Weave receives a recording only if you agree to cloud speech, and does not keep it. The assistant reads words on this device.",
   ],
   [
     "Leaving",
@@ -54,7 +61,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     title: "Signing In",
     body: [
       "You sign in with Certified, an account service separate from Weave. Certified handles your email address and the code it sends you.",
-      "Weave receives an identifier for your Certified account and keeps a session cookie for up to one hour. Weave does not keep your email address. If you choose to add your email before signing in, Weave passes it to Certified, where it appears in the link and may be saved in browser history or request logs.",
+      "Weave receives an identifier for your Certified account and keeps you signed in on this browser with two cookies. You stay signed in for up to 30 days, unless you sign out or do not open Weave for 14 days. Weave does not keep your email address. If you choose to add your email before signing in, Weave passes it to Certified, where it appears in the link and may be saved in browser history or request logs.",
     ],
   },
   {
@@ -69,21 +76,25 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
-      "Opening or linking your Certified projects needs a separate permission. With it, Weave reads your Certified projects and the groups you belong to.",
+      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in on Your Initiatives goes on to that question, and the page says so first. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
+      "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
+      "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its stored copy. If that deletion fails, the copy stays encrypted and unusable until it expires.",
+      "Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing.",
     ],
   },
   {
     title: "Talking",
     body: [
-      "Weave does not record, keep or send your voice. When you talk, your browser turns it into text and gives Weave only the words.",
+      "When you talk, your browser turns your voice into text wherever it can, and gives Weave only the words.",
       "Where your browser can do that on this device, the audio stays here. Where it cannot, your browser can send your voice to its own speech service instead. Weave asks before the first time, and you can turn it off in Settings. That service belongs to your browser, so its own terms apply.",
+      "Some browsers cannot turn speech into text at all. Where Weave offers cloud speech there, and only if you agree, Weave records what you say and, when you press Stop or the recording reaches its limit of three minutes at most, sends it once through its own server to Cloudflare Workers AI, which turns it into text. Discard drops it unsent. Weave does not keep the recording or the words on its server. Cloudflare says it does not keep them or use them to train models. The recording may be processed outside your country. This device notes when a recording was sent and how long it was, and Settings shows how many. Weave asks before the first time, and you can turn it off in Settings.",
       "On a phone, your keyboard's microphone key is part of the phone, not Weave.",
     ],
   },
   {
     title: "The Assistant",
     body: [
-      "The assistant reads your words on this device, with keyword rules or a model already built into your browser, and only after you choose it. No words are sent to a cloud model.",
+      "The assistant reads your words on this device, with keyword rules or a model already built into your browser, and only after you choose it. The assistant sends no words to a cloud model.",
       "Places are kept as you wrote them, with no map lookup.",
     ],
   },
@@ -112,14 +123,15 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
  * What signing in and saving do, said the same way wherever they are offered: the account dialog,
  * the example door, Your Initiatives and Settings. Signing in establishes who the person is and
  * moves nothing (`src/account/sign-in.ts`). Saving is a separate press and sends what
- * `accountDocument` holds. The session is a cookie of an hour at most (`@weave/api`).
+ * `accountDocument` holds. The session renews for up to 30 days, and ends after 14 days without
+ * use (`SESSION_CAP_SECONDS` and `RENEWAL_SECONDS` in `@weave/api`).
  */
 export const SIGN_IN = {
   offer: "Sign in with Certified to save your work and open it on another device. In Weave, only you can open what you save.",
   effect: "Signing in only says who you are. Nothing is saved, loaded or shared until you choose it.",
   saved:
     "Saving keeps your checked card, needs, offers and kept funding details. Conversations, files, unfinished edits and assistant records stay on this device.",
-  session: "This session lasts up to one hour. Sign in again when it ends.",
+  session: "You stay signed in on this browser for up to 30 days. If you do not open Weave for 14 days, you are signed out sooner.",
 } as const;
 
 /**
@@ -145,6 +157,6 @@ export const CERTIFIED_FACTS = [
   ],
   [
     "Your projects",
-    "Weave reads your Certified projects and groups only after you give a separate permission on Certified.",
+    "Weave reads your Certified projects and groups only after you give a separate permission on Certified. It lasts for as long as you stay signed in.",
   ],
 ] as const;

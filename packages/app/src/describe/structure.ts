@@ -58,7 +58,11 @@ export async function structureWords(
   }: {
     /** The keyword rules, which the page runs in a worker so a long text never freezes it. */
     keywords(source: DeviceDraft, signal: AbortSignal): Promise<KeywordResult>;
-    engines?: readonly StructureEngine[];
+    /**
+     * The engines to try after the keyword rules. A page may pass the question still being asked,
+     * so the browser answers it while the keyword rules run; a question that fails tries none.
+     */
+    engines?: readonly StructureEngine[] | Promise<readonly StructureEngine[]>;
     now?(): number;
   },
 ): Promise<Structured> {
@@ -66,6 +70,7 @@ export async function structureWords(
   // can be longer than the box takes. Length alone never stops a fill: the rules read as much as
   // a draft's words field holds.
   const source: DeviceDraft = { ...draft, composer: saidText(draft).slice(0, STORED_SAID_LIMIT), turns: [], answerEdits: {}, pendingLink: "" };
+  const ready = Promise.resolve(engines).catch((): readonly StructureEngine[] => []);
   const started = now();
   const result = await keywords(source, signal);
   signal.throwIfAborted();
@@ -75,7 +80,7 @@ export async function structureWords(
   let suggestion = result.suggestion;
   let engine: NonNullable<DeviceDraft["lastBuild"]>["engine"] = "keywords";
   let fallback = false;
-  for (const candidate of engines) {
+  for (const candidate of await ready) {
     const from = now();
     try {
       const refined = await candidate.refine(result.text, signal);

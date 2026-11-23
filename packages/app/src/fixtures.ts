@@ -79,7 +79,10 @@ export const DESCRIBE_VIEWS: readonly DescribeView[] = [
  * the person agrees (`browser`) and after (`agreed`), and agreed sessions that stop with the
  * microphone refused (`denied`), no microphone (`no-mic`), no connection (`network`), a service
  * that will not work here (`blocked`), a pause (`pause`) or a language it does not take
- * (`unsupported`).
+ * (`unsupported`). No speech recognition, with cloud speech on offer: before the person agrees
+ * (`cloud`) and after (`cloud-agreed`), and agreed recordings that end with the day's limit
+ * reached (`cloud-limit`) or with no connection (`cloud-offline`). No example records or sends
+ * anything.
  */
 export type SpeechExample = (typeof SPEECH_EXAMPLES)[number];
 export const SPEECH_EXAMPLES = [
@@ -97,7 +100,18 @@ export const SPEECH_EXAMPLES = [
   "blocked",
   "pause",
   "unsupported",
+  "cloud",
+  "cloud-agreed",
+  "cloud-limit",
+  "cloud-offline",
 ] as const;
+/** The examples where the browser has no speech recognition and cloud speech is on offer, and how an agreed recording ends. */
+const CLOUD_EXAMPLES: Partial<Record<SpeechExample, string | null>> = {
+  cloud: null,
+  "cloud-agreed": null,
+  "cloud-limit": "cloud-limit",
+  "cloud-offline": "cloud-offline",
+};
 /** The examples where the browser has only its own speech service, and how an agreed session ends. */
 const BROWSER_EXAMPLES: Partial<Record<SpeechExample, string | null>> = {
   browser: null,
@@ -445,7 +459,7 @@ const EXAMPLE_SETUP_MS = 3000;
 
 /** An invented browser recognizer that answers like Chrome's on-device speech, for one example. */
 function exampleRecognizer(example: SpeechExample): SpeechConstructor | null {
-  if (example === "none" || example === "keyboard") return null;
+  if (example === "none" || example === "keyboard" || example in CLOUD_EXAMPLES) return null;
   const installed = new Set<string>(example === "ready" ? EXAMPLE_SPEECH_LANGUAGES : []);
   const installing = new Set<string>();
   const known = (language: string) => EXAMPLE_SPEECH_LANGUAGES.includes(language);
@@ -495,18 +509,23 @@ export function exampleSpeech(example: SpeechExample): SpeechSetupStore {
   return (exampleSpeechStores[example] ??= speechSetupStore({
     speech: exampleRecognizer(example),
     slowAfter: 5000,
+    // The example world answers for cloud speech itself, so no example ever asks the real server.
+    cloud: async () => example in CLOUD_EXAMPLES,
     ...(example === "keyboard" ? { touch: true } : {}),
   }));
 }
 
 const exampleConsents: Partial<Record<SpeechExample, BrowserSpeechConsent>> = {};
 /**
- * The example world's agreement to the browser's speech service, held in memory so an example
- * never changes this browser's real agreement. `browser` starts without it, so the notice shows;
- * the other browser examples start agreed, so one press shows how the session ends.
+ * The example world's agreement to the browser's speech service or to cloud speech, whichever its
+ * browser has, held in memory so an example never changes this browser's real agreements.
+ * `browser` and `cloud` start without it, so the notice shows; the others start agreed, so one
+ * press shows how the session ends.
  */
 export function exampleConsent(example: SpeechExample): BrowserSpeechConsent {
-  return (exampleConsents[example] ??= memoryConsent(example in BROWSER_EXAMPLES && example !== "browser"));
+  return (exampleConsents[example] ??= memoryConsent(
+    (example in BROWSER_EXAMPLES && example !== "browser") || (example in CLOUD_EXAMPLES && example !== "cloud"),
+  ));
 }
 
 /**
@@ -514,7 +533,7 @@ export function exampleConsent(example: SpeechExample): BrowserSpeechConsent {
  * a pause, or null when it listens and hears the example words.
  */
 export function exampleOutcome(example: SpeechExample): string | null {
-  return BROWSER_EXAMPLES[example] ?? null;
+  return BROWSER_EXAMPLES[example] ?? CLOUD_EXAMPLES[example] ?? null;
 }
 
 /**

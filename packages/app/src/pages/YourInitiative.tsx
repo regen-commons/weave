@@ -11,7 +11,7 @@ import { useDraft } from "../describe/use-draft.ts";
 import { draftText, hasDraft } from "../describe/view.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { waitingSuggestions } from "../initiative/import.ts";
-import { projectLinkLine } from "../initiative/list.ts";
+import { strongestFirst, projectLinkLine } from "../initiative/list.ts";
 import { useProjectLink } from "../initiative/use-project-link.ts";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
 import { cardName, cardRoute, openSteps } from "../initiative/status.ts";
@@ -62,7 +62,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const loading = view === "loading" && !retrying;
   const failed = view === "error" && !retrying;
   const empty = view === "empty";
-  const funds = examples && !empty ? fixture.funding.slice(0, 2) : [];
+  // The example funding reads strongest fit first, as the live list does.
+  const funds = examples && !empty ? strongestFirst(fixture.funding).slice(0, 2) : [];
   const project = example?.identity ? example.project : liveSocial?.mode === "live" ? liveSocial.state.project : null;
   const active = activeInitiative(draft.account.saved, account.state?.user?.id);
   const save = status.save;
@@ -154,9 +155,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
     <Stack wide>
       <Stack>
         {inFlow && (
-          <IntakeStepper current={2}>
-            <ButtonLink href={pathTo("needs")} variant="quiet">
-              Back To Needs And Offers
+          <IntakeStepper>
+            <ButtonLink href={pathTo("offers")} variant="quiet">
+              Back To Offers
             </ButtonLink>
           </IntakeStepper>
         )}
@@ -177,8 +178,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
         />
         {inFlow && (
           <div className="rc-action-bar" data-until="wide">
-            <ButtonLink href={pathTo("needs")} variant="quiet">
-              Back To Needs And Offers
+            <ButtonLink href={pathTo("offers")} variant="quiet">
+              Back To Offers
             </ButtonLink>
           </div>
         )}

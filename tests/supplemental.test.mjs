@@ -78,7 +78,7 @@ test('additional tracks share funder identities without replacing prior program 
  }
  const get=id=>data.funds.find(f=>f.id===id).enrichment.programs;
  const isoc=get('recOExYwWRXF9whgo');
- assert(isoc.some(p=>p.name==='Research Grant Program — institutional track'));
+ assert(isoc.some(p=>p.name==='Research Grant Program: institutional track'));
  assert.equal(isoc.find(p=>p.id==='isoc-ccc-catalyst').award.max,50000);
  assert.equal(isoc.find(p=>p.id==='isoc-ccc-scaling').award.max,200000);
  assert.equal(get('local-mozilla').length,2);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AHEAD_MARGIN, AUTO_BATCHES, loadsUnasked, shownLine } from "../list-more.ts";
+import { AHEAD_MARGIN, loadsUnasked, shownLine } from "../list-more.ts";
 
 /**
  * Keeps a keyboard user's place when they ask for more: focus moves to the first item the press
@@ -31,12 +31,12 @@ export function ListEndHold({ things }: { things: string }) {
 }
 
 /**
- * List end (`rc-list-end`): the foot of a long list. It says how much of the list is on the page
- * and brings the next batch as a person scrolls near it (DL-101). Show More stays for the
- * keyboard and for when the list has stopped filling in on its own, which it does after a few
- * batches so the footer can be reached. Every list that has cards ends in one, with or
- * without more to come, so its room never comes and goes (DL-108). Give it a `key` that changes with the search and filters,
- * so a new list starts its run again.
+ * List end (`rc-list-end`): the foot of a long list. It says how much of the list is on the page,
+ * reads out how far each new batch brought it, and brings the next batch as a person scrolls near it, for as long as there is more (DL-101,
+ * DL-130). Show More stays for the keyboard, which brings nothing unasked, and for a batch that did
+ * not arrive. Every list that has cards ends in one, with or without more to come, so its room
+ * never comes and goes (DL-108). Give it a `key` that changes with the search and filters, so a
+ * new list starts from its first batch.
  */
 export function ListEnd({ shown, total, things, more, busy = false, failed = false, onMore, onPress }: {
   shown: number;
@@ -54,13 +54,18 @@ export function ListEnd({ shown, total, things, more, busy = false, failed = fal
   onPress?(): void;
 }) {
   const end = useRef<HTMLDivElement>(null);
-  const [autoLeft, setAutoLeft] = useState(AUTO_BATCHES);
+  // What the last batch brought the list to, said politely; nothing for the first batch.
+  const firstShown = useRef(shown);
+  const [arrived, setArrived] = useState("");
+  useEffect(() => {
+    if (shown > firstShown.current) setArrived(shownLine(shown, total, things));
+  }, [shown, total, things]);
   // The page's own function changes with every render; the watcher only needs the latest one.
   const latest = useRef(onMore);
   latest.current = onMore;
   useEffect(() => {
     const element = end.current;
-    if (!element || !more || busy || failed || autoLeft <= 0 || typeof IntersectionObserver !== "function") return;
+    if (!element || !more || busy || failed || typeof IntersectionObserver !== "function") return;
     // Watching starts again after every batch, so a window tall enough to show the end twice asks twice.
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -68,25 +73,25 @@ export function ListEnd({ shown, total, things, more, busy = false, failed = fal
         const focused = document.activeElement;
         const keyboardInList =
           !!focused?.matches(":focus-visible") && !!focused.closest(".rc-card-grid, .rc-list-end");
-        if (!loadsUnasked({ more, busy, autoLeft, keyboardInList })) return;
-        setAutoLeft((left) => left - 1);
-        latest.current();
+        if (loadsUnasked({ more, busy, keyboardInList })) latest.current();
       },
       { rootMargin: AHEAD_MARGIN },
     );
     observer.observe(element);
     return () => observer.disconnect();
-  }, [shown, more, busy, failed, autoLeft]);
+  }, [shown, more, busy, failed]);
   function press() {
     if (busy) return;
-    setAutoLeft(AUTO_BATCHES);
     onPress?.();
     onMore();
   }
   return (
     <div className="rc-list-end" ref={end}>
-      <p className="rc-meta" role="status">
-        {shownLine(shown, total, things)}
+      <p className="rc-meta">{shownLine(shown, total, things)}</p>
+      {/* The filter bar's count is the list's status as it opens. This one stays empty until a batch
+          arrives, so the page never opens with two counts to read out (DL-130). */}
+      <p className="rc-visually-hidden" role="status">
+        {arrived}
       </p>
       {more && (
         // aria-disabled, not disabled, so the button keeps keyboard focus while the next batch loads.

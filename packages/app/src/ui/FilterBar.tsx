@@ -1,13 +1,15 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { connectPopover } from "@regen-commons/design-system/overlays";
 import {
   activeChoices,
+  choicesKey,
   chosenSort,
   defaultSort,
   narrowing,
   pickedValue,
   pressOption,
   sortChoice,
+  underAppBar,
   withoutChoice,
   type Facet,
   type SortChoice,
@@ -61,6 +63,7 @@ function FilterMenu({ facet, name, onChange }: { facet: Facet; name: string; onC
         className="rc-button"
         data-variant="secondary"
         data-filter="one"
+        data-facet={facet.key}
         data-active={count > 0}
         type="button"
         ref={trigger}
@@ -113,6 +116,67 @@ function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSo
       active={!!chosenSort(sort)}
     />
   );
+}
+
+/**
+ * The row of controls: on a phone one Filters button that opens the sheet, and on a wide screen a
+ * menu for each filter and Sort. The bar draws it under the search, and the pinned row draws it
+ * again while the bar is out of view, so each copy names its radios for its own place.
+ */
+function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, ordered, onSheet, lead }: {
+  place: string;
+  facets: readonly Facet[];
+  onFacet: ChangeFacet;
+  sort?: SortChoice;
+  onSort?(value: string): void;
+  sheetLabel: string;
+  narrowed: number;
+  ordered: boolean;
+  onSheet(): void;
+  /** What comes first in the row, such as the pinned row's way back to the search. */
+  lead?: ReactNode;
+}) {
+  return (
+    <div className="rc-filter-controls">
+      {lead}
+      <button
+        className="rc-button"
+        data-variant="secondary"
+        data-filter="all"
+        data-active={narrowed > 0 || ordered}
+        type="button"
+        onClick={onSheet}
+      >
+        <Icon name="filter" size="sm" />
+        {sheetLabel}{narrowed > 0 ? ` (${narrowed})` : ""}
+      </button>
+      {facets.map((facet) => (
+        <FilterMenu key={facet.key} facet={facet} name={`${place}-${facet.key}-menu`} onChange={onFacet} />
+      ))}
+      {sort && onSort && <SortMenu sort={sort} name={`${place}-sort`} onSort={onSort} />}
+    </div>
+  );
+}
+
+/**
+ * How far down the window the app bar reaches while the page scrolls, which whatever sticks to the
+ * top keeps clear of. None in a short window, where the page's header scrolls away (DL-132).
+ */
+function appBarHeight(): number {
+  const appBar = document.querySelector<HTMLElement>(".rc-app-header");
+  if (!appBar) return 0;
+  const header = appBar.closest<HTMLElement>(".rc-app-head") ?? appBar;
+  return getComputedStyle(header).position === "sticky" ? appBar.offsetHeight : 0;
+}
+
+/**
+ * Brings the bar back up under the app bar, at once: a glide back over a long list would be slow,
+ * and one that starts as focus moves can stop where it began.
+ */
+function toBar(section: HTMLElement) {
+  const gap = Number.parseFloat(getComputedStyle(section).rowGap) || 0;
+  const top = section.getBoundingClientRect().top + window.scrollY - appBarHeight() - gap;
+  window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
 }
 
 /**
@@ -182,8 +246,147 @@ export function FilterBar({
   const sheetLabel = facets.length > 0 ? "Filters" : "Sort";
   // The fact under the count: the list's own once it is here, and a sentence about as long until then.
   const noted = loading ? reserve : note;
+
+  // The pinned row (DL-130). Once the bar's controls have gone up under the app bar, the same
+  // controls stay at the top of the window, so a person deep in the list changes the search, a
+  // filter or the order without scrolling back. While a menu or the sheet it opened is open it
+  // stays, even where the list has shrunk and brought the bar back into view.
+  const bar = useRef<HTMLElement>(null);
+  const pin = useRef<HTMLDivElement>(null);
+  const [above, setAbove] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
+  const [sheetFrom, setSheetFrom] = useState<"bar" | "pin">("bar");
+  // The app bar's reach changes when a phone turns on its side and the header stops sticking.
+  const [header, setHeader] = useState(0);
+  const latestChoices = useRef("");
+  latestChoices.current = choicesKey(search, facets, sort);
+  // The choices as they stood when the pinned row opened a menu or the sheet; null when it opened none.
+  const openedWith = useRef<string | null>(null);
+  const pinned = !loading && (above || pinOpen);
+
+  // The count line under the bar is behind the open sheet, where a screen reader no longer hears it,
+  // so the sheet says the count itself once a choice in it has changed the list (WCAG 4.1.3).
+  const countLine = summary ?? `${count} of ${total} ${things}${note ? "." : ""}`;
+  const [sheetSays, setSheetSays] = useState("");
+  const choicesNow = latestChoices.current;
+  const choicesAtOpen = useRef(choicesNow);
+  const changedInSheet = useRef(false);
+  useEffect(() => {
+    if (!sheet) {
+      choicesAtOpen.current = choicesNow;
+      changedInSheet.current = false;
+      setSheetSays("");
+      return;
+    }
+    if (choicesNow !== choicesAtOpen.current) changedInSheet.current = true;
+    if (changedInSheet.current) setSheetSays(countLine);
+  }, [sheet, countLine, choicesNow]);
+
+  // A chosen filter's chip, Clear Filters, or an empty list's Clear Filters takes itself away when
+  // pressed, and the browser drops the focus on the page. It goes to the chip that took the pressed
+  // one's place, or to the search field once no chip is left (WCAG 2.4.3).
+  const chipPressed = useRef<number | null>(null);
+  const cleared = !query && choices.length === 0 && !ordered;
+  const choicesBefore = useRef(choicesNow);
+  useEffect(() => {
+    const at = chipPressed.current;
+    const changed = choicesBefore.current !== choicesNow;
+    chipPressed.current = null;
+    choicesBefore.current = choicesNow;
+    const section = bar.current;
+    if (!section || !changed || (at === null && !cleared)) return;
+    if (document.activeElement && document.activeElement !== document.body) return;
+    const chips = [...section.querySelectorAll<HTMLElement>(":scope > .rc-active-filters > .rc-chip")];
+    const next = at === null ? undefined : chips[Math.min(at, chips.length - 1)];
+    (next ?? section.querySelector<HTMLInputElement>("input[type='search']"))?.focus();
+  }, [choicesNow, cleared]);
+  const pressChip = (at: number, remove: () => void) => () => {
+    chipPressed.current = at;
+    remove();
+  };
+
+  useEffect(() => {
+    const target = bar.current?.querySelector(":scope > .rc-filter-controls, :scope > .rc-field");
+    if (!target || loading || typeof IntersectionObserver !== "function") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) setAbove(!entry.isIntersecting && entry.boundingClientRect.top < (entry.rootBounds?.top ?? header));
+      },
+      { rootMargin: underAppBar(header) },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [loading, controls, header]);
+  useEffect(() => {
+    const measure = () => setHeader(appBarHeight());
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // A change made from the pinned row starts the list again from its first card, so when the menu
+  // or the sheet closes the page goes back to the bar, and focus to the same control in it.
+  function settle(trigger: Element | null) {
+    const before = openedWith.current;
+    openedWith.current = null;
+    setPinOpen(false);
+    const section = bar.current;
+    const row = pin.current;
+    if (before === null || before === latestChoices.current || !section || !row) return;
+    // The same control in the bar: the same filter's menu, Filters or Sort. Where the bar has none at
+    // this width, as when the row's Filters stands for the bar's menus, focus goes to its first control.
+    const which = (button: HTMLElement) => button.dataset.facet ?? button.dataset.filter ?? "sort";
+    const shown = [...section.querySelectorAll<HTMLElement>(":scope > .rc-filter-controls > .rc-button")].filter(
+      (button) => button.offsetParent !== null,
+    );
+    const same = trigger instanceof HTMLElement ? shown.find((button) => which(button) === which(trigger)) : undefined;
+    toBar(section);
+    (same ?? shown[0])?.focus({ preventScroll: true });
+  }
+  const latestSettle = useRef(settle);
+  latestSettle.current = settle;
+  // A menu's toggle does not bubble, so the row listens as it passes down to the menu.
+  useEffect(() => {
+    const row = pin.current;
+    if (!row) return;
+    const toggled = (event: Event) => {
+      if (!(event instanceof ToggleEvent) || !(event.target instanceof HTMLElement)) return;
+      if (event.newState === "open") {
+        openedWith.current = latestChoices.current;
+        setPinOpen(true);
+      } else latestSettle.current(row.querySelector(`[aria-controls="${CSS.escape(event.target.id)}"]`));
+    };
+    row.addEventListener("toggle", toggled, true);
+    return () => row.removeEventListener("toggle", toggled, true);
+  }, []);
+  function openSheet(from: "bar" | "pin") {
+    if (from === "pin") {
+      openedWith.current = latestChoices.current;
+      setPinOpen(true);
+    }
+    setSheetFrom(from);
+    setSheet(true);
+  }
+  function closeSheet() {
+    setSheet(false);
+    if (sheetFrom === "pin") settle(pin.current?.querySelector("[data-filter='all']") ?? null);
+  }
+  // The pinned row's Search goes back to the field, which is where a search is typed and read.
+  function toSearch() {
+    const section = bar.current;
+    if (!section) return;
+    toBar(section);
+    section.querySelector<HTMLInputElement>("input[type='search']")?.focus({ preventScroll: true });
+  }
+  const searchButton = (
+    <button className="rc-button" data-variant="secondary" data-filter="search" data-active={!!query} type="button" onClick={toSearch}>
+      <Icon name="search" size="sm" />
+      Search
+    </button>
+  );
+  const controlProps = { facets, onFacet, sort, onSort, sheetLabel, narrowed, ordered: !!ordered };
   return (
-    <section className="rc-filter-bar" aria-label={`Filter ${noun}`} aria-busy={loading || undefined}>
+    <section className="rc-filter-bar" ref={bar} aria-label={`Filter ${noun}`} aria-busy={loading || undefined}>
       {/* The list follows each letter; Enter has nothing left to send. */}
       <form className="rc-field" role="search" onSubmit={(event) => event.preventDefault()}>
         <label htmlFor={`${id}-search`}>Search {noun}</label>
@@ -219,38 +422,22 @@ export function FilterBar({
           )}
         </div>
       ) : controls ? (
-        <div className="rc-filter-controls">
-          <button
-            className="rc-button"
-            data-variant="secondary"
-            data-filter="all"
-            data-active={narrowed > 0 || !!ordered}
-            type="button"
-            onClick={() => setSheet(true)}
-          >
-            <Icon name="filter" size="sm" />
-            {sheetLabel}{narrowed > 0 ? ` (${narrowed})` : ""}
-          </button>
-          {facets.map((facet) => (
-            <FilterMenu key={facet.key} facet={facet} name={`${id}-${facet.key}-menu`} onChange={onFacet} />
-          ))}
-          {sort && onSort && <SortMenu sort={sort} name={`${id}-sort`} onSort={onSort} />}
-        </div>
+        <Controls place={id} onSheet={() => openSheet("bar")} {...controlProps} />
       ) : null}
       {(query || choices.length > 0 || ordered) && (
         <div className="rc-active-filters" role="group" aria-label="Chosen filters">
           {query && (
-            <button className="rc-chip" type="button" onClick={() => onSearch("")} aria-label={`Remove search: ${query}`}>
+            <button className="rc-chip" type="button" onClick={pressChip(0, () => onSearch(""))} aria-label={`Remove search: ${query}`}>
               Search: {query}
               <Icon name="close" size="sm" />
             </button>
           )}
-          {choices.map((choice) => (
+          {choices.map((choice, index) => (
             <button
               key={`${choice.facet.key} ${choice.value}`}
               className="rc-chip"
               type="button"
-              onClick={() => onFacet(choice.facet.key, withoutChoice(choice))}
+              onClick={pressChip((query ? 1 : 0) + index, () => onFacet(choice.facet.key, withoutChoice(choice)))}
               aria-label={`Remove ${choice.label}`}
             >
               {choice.label}
@@ -258,7 +445,12 @@ export function FilterBar({
             </button>
           ))}
           {sort && onSort && ordered && (
-            <button className="rc-chip" type="button" onClick={() => onSort(defaultSort(sort))} aria-label={`Remove Sort: ${ordered.label}`}>
+            <button
+              className="rc-chip"
+              type="button"
+              onClick={pressChip((query ? 1 : 0) + choices.length, () => onSort(defaultSort(sort)))}
+              aria-label={`Remove Sort: ${ordered.label}`}
+            >
               Sort: {ordered.label}
               <Icon name="close" size="sm" />
             </button>
@@ -273,7 +465,7 @@ export function FilterBar({
           words are for assistive technology and the eye gets the lines' shapes. */}
       <p className="rc-meta">
         <span role="status" aria-atomic="true" className={loading ? "rc-visually-hidden" : undefined}>
-          {loading ? `Loading ${noun}` : summary ?? `${count} of ${total} ${things}${note ? "." : ""}`}
+          {loading ? `Loading ${noun}` : countLine}
         </span>
         {loading && (
           <span aria-hidden="true">
@@ -286,43 +478,55 @@ export function FilterBar({
           </span>
         )}
       </p>
-      <Dialog presentation="information" title={sheetLabel} open={sheet} leaves onClose={() => setSheet(false)}>
-        {sort && onSort && (
-          <fieldset>
-            <legend>Sort</legend>
-            <div className="rc-chip-group">
-              {sort.options.map((option) => (
-                <label className="rc-chip" key={option.value}>
-                  <input
-                    className="rc-check"
-                    type="radio"
-                    name={`${id}-sort-sheet`}
-                    checked={sortChoice(sort)?.value === option.value}
-                    onChange={() => onSort(option.value)}
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+      <div className="rc-filter-pin" ref={pin} role="group" aria-label={`Filter ${noun}`} hidden={!pinned}>
+        {controls ? (
+          <Controls place={`${id}-pin`} onSheet={() => openSheet("pin")} lead={searchButton} {...controlProps} />
+        ) : (
+          <div className="rc-filter-controls">{searchButton}</div>
         )}
-        {facets.map((facet) => (
-          <fieldset key={facet.key}>
-            <legend>{facet.label}</legend>
-            <div className="rc-chip-group">
-              <Options facet={facet} name={`${id}-${facet.key}-sheet`} chips onChange={onFacet} />
-            </div>
-            {facet.scope && (
-              <fieldset>
-                <legend>{facet.scope.label}</legend>
-                <div className="rc-chip-group">
-                  <Options facet={facet.scope} name={`${id}-${facet.scope.key}-sheet`} chips onChange={onFacet} />
-                </div>
-              </fieldset>
-            )}
-          </fieldset>
-        ))}
+      </div>
+      <Dialog presentation="information" title={sheetLabel} open={sheet} leaves onClose={closeSheet}>
+        <div className="rc-dialog-scroll">
+          {sort && onSort && (
+            <fieldset>
+              <legend>Sort</legend>
+              <div className="rc-chip-group">
+                {sort.options.map((option) => (
+                  <label className="rc-chip" key={option.value}>
+                    <input
+                      className="rc-check"
+                      type="radio"
+                      name={`${id}-sort-sheet`}
+                      checked={sortChoice(sort)?.value === option.value}
+                      onChange={() => onSort(option.value)}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {facets.map((facet) => (
+            <fieldset key={facet.key}>
+              <legend>{facet.label}</legend>
+              <div className="rc-chip-group">
+                <Options facet={facet} name={`${id}-${facet.key}-sheet`} chips onChange={onFacet} />
+              </div>
+              {facet.scope && (
+                <fieldset>
+                  <legend>{facet.scope.label}</legend>
+                  <div className="rc-chip-group">
+                    <Options facet={facet.scope} name={`${id}-${facet.scope.key}-sheet`} chips onChange={onFacet} />
+                  </div>
+                </fieldset>
+              )}
+            </fieldset>
+          ))}
+        </div>
         <div className="rc-dialog-foot">
+          <p className="rc-visually-hidden" role="status" aria-atomic="true">
+            {sheetSays}
+          </p>
           <button
             className="rc-button"
             data-variant="secondary"
