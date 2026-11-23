@@ -882,3 +882,28 @@ At 1280 wide the first step is now 1,970 px, and its Continue is on screen from 
 Given up: a new card no longer picks a stage, a type of work or themes on this step, so Funding has no themes to read from it until a later step asks. The continue action is at the top of a wide screen and not at the end of the form, which is less usual for a form; it is always in view, and Enter in the last field still sends the form.
 
 From Krug: a step map that is always in view, help that is brief and right where the hard question is, and an error beside the field it is about. From Refactoring UI: one primary action a region, elements only as wide as their column, and more space around a group than inside it, which the empty rows broke. From Dirksen: say what is happening while the person waits.
+
+## DL-129: Funding fit has four levels, the list sorts by it, and anyone can browse without an initiative
+
+**Status:** user decision from manual QA, 22 November 2026: sort funds by fit, strongest first; allow no initiative for someone just browsing; shorten the line under the filters; give fit four levels. Amends DL-017, DL-118 and DL-122, and settles [D34](../../docs/platform/open-decisions.md#for-the-builders).
+
+**Four levels.** The app reads the shared rubric's thematic fit, a score from 0 to 100, unchanged ([technical spec](../../docs/platform/05-technical-spec.md), R13). The app matches on keywords alone, and there the score grades how many distinct specific topics a program and the initiative share: 0 for none, 30 for one, 50 for two, 65 for three, then 75, 80 and 85. Measured on 22 November 2026 with the 119 English descriptions in the partner-real-v1 corpus against all 771 programs (91,749 pairs): 86.8% scored 0, 7.9% scored 30, 1.0% scored 50, 0.15% scored 65 or more, and 4.2% could not be assessed because the program states no focus. The engine's own strong band, 80 and up, was empty for 115 of the 119 projects, so Strong fit almost never showed and nearly every card read Possible fit, whatever it shared.
+
+| Level | Score | With keywords | Share of pairs |
+|---|---|---|---|
+| Strong fit | 60 and up | Three or more shared topics | 0.15% |
+| Good fit | 40 to 59 | Two | 1.0% |
+| Possible fit | 20 to 39 | One | 7.9% |
+| Low fit | Under 20 | None | 86.8% |
+
+A program the rubric cannot assess still says Fit not assessed. Each floor sits between two of the rubric's grades, and 40 and 60 are the engine's own thresholds for partial and relevant themes, so the levels still read sensibly if the on-device model returns. The words describe overlap in topics and nothing else: a fit line's explanation names the shared topics, says it was worked out on the device from keywords, and says fit is not eligibility. The rule is one tested module, `funding/fit.ts`; if the rubric's grades move, its test fails and the floors are measured again. The live Funding Commons site keeps its own bands.
+
+**One bar.** The fit bar has four steps everywhere, and a word always fills the same number: Strong four, Good three, Possible two, Low one. Partner cards keep their three levels from DL-064 and never say Low; their Possible fit now fills two of four steps where it filled one of three.
+
+**Order.** With an initiative compared, Funding's own order is Strongest fit: the highest score first, programs that could not be assessed after them, and research priority settling ties. The sort used to be called Research priority and followed it. Research priority now orders equal fits, and its Priority group filter stays. Without an initiative the list's own order is Closing soon, and a call whose closing day has passed goes to the end even when its intake is not confirmed closed; before, those ended calls led the list. The list's own order is no longer written into the address. Your Initiative's Funding That Fits takes its two research leads in the same order.
+
+**No initiative.** Change Initiative also offers No initiative, and it is offered when there is one initiative too. The line above the cards then reads "No initiative chosen, so fit is not shown or sorted on." Nothing is ranked, Strongest fit and Priority group leave, and Details For Funding is hidden. The choice is kept in the address as `initiative=none`, so it goes with a fund that is opened and comes back, and Clear Filters leaves it alone because it is not a filter. A fund opened that way says fit is not shown. A visitor with no initiative still gets the prompt to describe one, which now says that until then fit is not shown or sorted on.
+
+**The line under the filters.** "771 funds." over "Checked on 16 November 2026.", as short as Initiatives' own line; filtered, "42 of 771 funds." It no longer counts funders or says that fit is worked out from keywords, which the fit line explains where it is used.
+
+Not done: the maker asked why Change Funding Details, at the foot of the page, is not a set of filters. Three options are with the maker, and the section stays as it is until they choose.

@@ -114,7 +114,7 @@ test("Sort opens the same menu the filters open, says only Sort, and lives in a 
   assert.match(menu, /type="radio"/u);
   assert.match(menu, /data-close-popover/u, "a menu of controls has a visible way to close it");
   const funding = read("pages/Funding.tsx");
-  assert.match(funding, /<StatusLine\s+actions=\{\s*subject\.choices\.length > 0 && \(\s*<RadioMenu/u, "the choice of initiative is offered only when there is another");
+  assert.match(funding, /<StatusLine\s+actions=\{\s*subjectChoices\.length > 0 && \(\s*<RadioMenu/u, "the choice of initiative is offered only when there is something to choose (DL-129)");
   assert.match(bar, /data-variant="secondary"\s+type="button"\s+disabled=\{!query && choices\.length === 0 && !ordered\}\s+onClick=\{onClear\}/u);
 });
 
@@ -187,7 +187,7 @@ test("a funding list compared with a person's card holds the fit and readiness l
   // these two lines is 339.
   const card = read("ui/OpportunityCard.tsx");
   assert.match(card, /\{result && <p className="rc-meta">\{result\.readiness\.label\}<\/p>\}/u, "the loaded card's readiness line");
-  assert.match(card, /<Fit\b/u, "and its fit line");
+  assert.match(card, /<FitLine\b/u, "and its fit line");
   const skeleton = read("ui/CardSkeleton.tsx");
   const funding = skeleton.slice(skeleton.indexOf('if (kind === "funding")'), skeleton.indexOf('if (kind === "own")'));
   assert.match(funding, /\{matched && \(\s*<span className="rc-tooltip-wrap">\s*<span className="rc-tooltip-trigger">\s*<span className="rc-fit">/u);

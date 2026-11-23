@@ -8,11 +8,14 @@ import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } fro
 import {
   emptyFundingFilters,
   filterFunding,
+  fundingOrder,
+  readBrowsing,
   readFundingFilters,
+  writeBrowsing,
   writeFundingFilters,
   type FundingFilters as Filters,
 } from "../funding/select.ts";
-import { choiceLabel, fundingSubject, subjectLine } from "../funding/subject.ts";
+import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../funding/subject.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { useListedDrafts, useOpenDraft } from "../initiative/use-drafts.ts";
 import { useSocial } from "../social/context.tsx";
@@ -35,20 +38,23 @@ import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { FUNDING_COMMONS } from "../links.ts";
 /** How many cards the list holds at first, and how many each further batch adds. */
 const BATCH = 24;
-/** What the list counts. */
-const THINGS = "programs and overview records";
+/** What the list counts: each program, and each funder whose programs are not researched yet. */
+const THINGS = "funds";
 
 export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
   );
-  const catalog = useCatalog(example);
+  // Someone with an initiative can still browse without one, and then nothing is ranked (DL-129).
+  const [browsing, setBrowsing] = useState(() => readBrowsing(routeSearch()));
+  const catalog = useCatalog(example, undefined, { compare: !browsing });
   // The fit is for one initiative, the one this tab is on. A browser can hold several (DL-112), so
   // the page names it above the list and offers the others to compare with instead (DL-118).
   const { draft } = useDraft();
   const subject = fundingSubject(draft, useListedDrafts());
-  const comparing = catalog.subjectKnown ? subjectLine(subject) : null;
+  const comparing = catalog.subjectKnown ? subjectLine(subject, browsing) : null;
+  const subjectChoices = subjectOptions(subject);
   const openInTab = useOpenDraft();
   const social = useSocial();
   // The initiative last picked in Change Initiative, while it opens. The menu marks it at once, as the
@@ -72,8 +78,10 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
     ),
   );
   function choose(id: string) {
-    setChosen(id);
     setChangeProblem("");
+    setBrowsing(id === NO_INITIATIVE);
+    if (id === NO_INITIATIVE || id === subject.current?.id) return;
+    setChosen(id);
     compareWith(id);
   }
   const [filters, setFilters] = useState<Filters>(() => readFundingFilters(routeSearch()));
@@ -92,9 +100,11 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const vocabulary = useMemo(() => fundingVocabulary(entries), [entries]);
   // Ranking needs a card to compare with; without one its group and its sort order mean nothing.
   const personalized = !!catalog.results;
-  const visibleFilters = personalized
-    ? filters
-    : { ...filters, group: "", sort: filters.sort === "fit" ? "closing" : filters.sort };
+  const visibleFilters = {
+    ...filters,
+    group: personalized ? filters.group : "",
+    sort: fundingOrder(filters.sort, personalized),
+  };
   const selected = useMemo(
     () => filterFunding(entries, visibleFilters, catalog.results),
     [entries, filters, catalog.results],
@@ -105,20 +115,22 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   useEffect(() => {
     const params = new URLSearchParams(routeSearch());
     writeFundingFilters(filters, params);
+    writeBrowsing(browsing, params);
     const query = params.toString();
     replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
-  }, [filters]);
-  // What the count line adds about the whole catalog, so nothing above the list comes and goes.
+  }, [filters, browsing]);
+  // How many funds, and when their sources were checked: as short as the Initiatives page's line.
+  const summary = selected.length === entries.length ? `${entries.length} funds.` : `${selected.length} of ${entries.length} funds.`;
   const note = !catalog.bundle
     ? undefined
     : catalog.ranking
-      ? "Comparing your card with the catalog on this device."
-      : `From ${catalog.bundle.catalog.funds.length} funders. ${
-          researchDate ? `Sources last checked ${fullDate(researchDate)}.` : "Source check date unknown."
-        }${personalized ? " Fit is worked out on this device from keywords." : ""}`;
+      ? "Comparing on this device."
+      : researchDate
+        ? `Checked on ${fullDate(researchDate)}.`
+        : "Source check date unknown.";
   const prompt = (
     <DescribePrompt>
-      For now every fund is listed without ranking. Check eligibility with the funder before applying.
+      Until then, fit is not shown or sorted on. Check eligibility with the funder before applying.
     </DescribePrompt>
   );
   return (
@@ -177,28 +189,30 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             onSearch={(search) => setFilters((current) => ({ ...current, search }))}
             facets={fundingFacets(vocabulary, visibleFilters, personalized)}
             onFacet={(key, chosen) => setFilters((current) => applyFundingFacet(current, key, chosen))}
-            sort={{ value: visibleFilters.sort, options: fundingSorts(personalized), defaultValue: personalized ? "fit" : "closing" }}
+            sort={{ value: visibleFilters.sort, options: fundingSorts(personalized), defaultValue: fundingOrder("", personalized) }}
             onSort={(sort) => setFilters((current) => ({ ...current, sort }))}
             count={selected.length}
             total={entries.length}
+            summary={summary}
             note={note}
             loading={loading}
-            reserve="From 000 funders. Sources last checked 00 November 0000."
+            reserve="Checked on 00 November 0000."
             onClear={() => setFilters(emptyFundingFilters)}
           />
-          {/* Which initiative the fit is for, said right above the cards it orders. With others in this
-              browser, the menu changes to one of them at once, and the details at the foot of the page follow. */}
+          {/* Which initiative the fit is for, said right above the cards it orders. The menu changes to
+              another initiative at once, and the details at the foot of the page follow, or to No
+              initiative, for browsing without fit (DL-129). */}
           {comparing && (
             <StatusLine
               actions={
-                subject.choices.length > 0 && (
+                subjectChoices.length > 0 && (
                   <RadioMenu
-                    label={subject.current ? "Change Initiative" : "Choose Initiative"}
+                    label={subject.current && !browsing ? "Change Initiative" : "Choose Initiative"}
                     legend="Show what fits"
                     size="sm"
                     align="end"
-                    options={subject.choices.map((option) => ({ value: option.id, label: choiceLabel(option) }))}
-                    value={chosen ?? subject.current?.id}
+                    options={subjectChoices}
+                    value={browsing ? NO_INITIATIVE : (chosen ?? subject.current?.id)}
                     onChange={choose}
                   />
                 )
@@ -278,7 +292,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           {import.meta.env.DEV && example && !loading && <SuggestFund />}
         </>
       )}
-      <FundingProfile />
+      {!browsing && <FundingProfile />}
     </ListLayout>
   );
 }
