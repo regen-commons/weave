@@ -11,7 +11,7 @@ import {
   withPreview,
 } from "../dev/link-previews.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
-import { ROUTES } from "../src/routes.ts";
+import { breadcrumbTrail, matchRoute, navLabel, ROUTES } from "../src/routes.ts";
 
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
@@ -148,6 +148,12 @@ test("the build gives each fund's words and the two sections' previews to the re
   assert.deepEqual(previews.pages, [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/initiatives`, `${PUBLIC_ORIGIN}/funding`, `${PUBLIC_ORIGIN}/start/initiative`],
     "the sitemap's pages: the public sections and describing an initiative, not the person's own");
   assert.ok(JSON.stringify(previews).length < 600_000, "small enough to read on every cold start");
+  // A record's first view draws the breadcrumbs the app draws above its heading, from the routes' own trail.
+  assert.deepEqual(previews.crumbs, {
+    funding: { trail: breadcrumbTrail(matchRoute("/funding/some-fund")), current: navLabel("opportunity") },
+    initiatives: { trail: breadcrumbTrail(matchRoute(`/initiatives/${"a".repeat(24)}-${"a".repeat(13)}`)), current: navLabel("initiative-detail") },
+  });
+  assert.deepEqual(previews.crumbs.funding.trail, [{ label: "Funding", href: "/funding" }]);
 });
 
 test("words with marks that HTML reads are written safely", () => {

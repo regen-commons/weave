@@ -64,11 +64,12 @@ export function DetailSheet({
 /**
  * A record opening: the shape of its first screen (a line about it, its words, its actions and a
  * section), as tall as a phone's screen. A record's page and its sheet open at about their final height,
- * so nothing below the record shows and then moves when it arrives (quality finding Q-05).
+ * so nothing below the record shows and then moves when it arrives (quality finding Q-05). A page
+ * holds its footer back until the record is in (`data-loading="record"`).
  */
 export function RecordSkeleton({ label }: { label: string }) {
   return (
-    <div className="rc-stack" aria-busy="true">
+    <div className="rc-stack" aria-busy="true" data-loading="record">
       <p className="rc-visually-hidden" role="status">
         {label}
       </p>

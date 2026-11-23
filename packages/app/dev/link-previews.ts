@@ -5,7 +5,7 @@ import { pageTags, withPagePreview, type PagePreview } from "@weave/api/page-pre
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
 import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
-import { pathTo, type RouteName } from "../src/routes.ts";
+import { breadcrumbTrail, navLabel, pathTo, ROUTES, type RouteName } from "../src/routes.ts";
 
 /**
  * What a shared link shows before anyone opens it (DL-068): a title, a sentence and a picture for
@@ -110,8 +110,11 @@ export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): Record
     description: fund.description,
     programs: (fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => ({ id, name })) ?? [],
   }] as const);
+  // The breadcrumbs the app draws above a record's heading, from the record routes' own trail.
+  const crumbs = (name: RouteName) => ({ trail: breadcrumbTrail(ROUTES.find((route) => route.name === name)), current: navLabel(name) });
   return parseRecordPreviews({
     sections: { funding: section("funding"), initiatives: section("initiatives") },
+    crumbs: { funding: crumbs("opportunity"), initiatives: crumbs("initiative-detail") },
     pages: SITEMAP_PAGES.map((route) => origin + pathTo(route)),
     funds: Object.fromEntries(funds),
   });

@@ -5,10 +5,15 @@
 import { parseProjectUri } from "./project-uri.ts";
 import { DESCRIPTION_MAX, previewLine, PUBLIC_ORIGIN, withoutPageHead, withPagePreview, type PagePreview, type StructuredData } from "./page-preview.ts";
 import { projectPassages, projectUriOf, type PublicProjectCard } from "./public-projects-contract.ts";
+import { withRecordFirstView, type RecordCrumbs, type RecordFirstView } from "./record-first-view.ts";
 
-/** What the build writes beside index.html for this handler: the two sections' previews and each fund's words. */
+/**
+ * What the build writes beside index.html for this handler: the two sections' previews, the breadcrumbs
+ * the app draws above a record's heading, and each fund's words.
+ */
 export interface RecordPreviews {
   readonly sections: { readonly funding: PagePreview; readonly initiatives: PagePreview };
+  readonly crumbs: { readonly funding: RecordCrumbs; readonly initiatives: RecordCrumbs };
   /** The public pages a sitemap lists besides the records, as full addresses. */
   readonly pages: readonly string[];
   readonly funds: Readonly<Record<string, FundWords>>;
@@ -51,11 +56,26 @@ function pagePreview(value: unknown): PagePreview {
   };
 }
 
+/** A path on the site itself, such as /funding. */
+const sitePath = (value: unknown): string =>
+  typeof value === "string" && /^\/[A-Za-z0-9/_-]{0,200}$/u.test(value) && !value.startsWith("//") ? value : fail();
+function recordCrumbs(value: unknown): RecordCrumbs {
+  if (!value || typeof value !== "object") return fail();
+  const o = value as Record<string, unknown>;
+  if (!Array.isArray(o.trail) || o.trail.length > 4) return fail();
+  const trail = o.trail.map((crumb: unknown) => {
+    const c = crumb && typeof crumb === "object" ? crumb as Record<string, unknown> : fail();
+    return { label: text(c.label, 100), href: sitePath(c.href) };
+  });
+  return { trail, current: text(o.current, 100) };
+}
+
 /** Reads the build's file, refusing anything not exactly as the build writes it. */
 export function parseRecordPreviews(value: unknown): RecordPreviews {
   if (!value || typeof value !== "object") return fail();
   const o = value as Record<string, unknown>;
   const sections = o.sections && typeof o.sections === "object" ? o.sections as Record<string, unknown> : fail();
+  const crumbs = o.crumbs && typeof o.crumbs === "object" ? o.crumbs as Record<string, unknown> : fail();
   const funds: Record<string, FundWords> = Object.create(null);
   if (!o.funds || typeof o.funds !== "object") return fail();
   for (const [id, fund] of Object.entries(o.funds as Record<string, unknown>)) {
@@ -73,7 +93,11 @@ export function parseRecordPreviews(value: unknown): RecordPreviews {
   }
   if (!Array.isArray(o.pages)) return fail();
   const pages = o.pages.map((page: unknown) => address(page));
-  return { sections: { funding: pagePreview(sections.funding), initiatives: pagePreview(sections.initiatives) }, pages, funds };
+  return {
+    sections: { funding: pagePreview(sections.funding), initiatives: pagePreview(sections.initiatives) },
+    crumbs: { funding: recordCrumbs(crumbs.funding), initiatives: recordCrumbs(crumbs.initiatives) },
+    pages, funds,
+  };
 }
 
 /** The record an address asks for, or null where the address names none the app could open. */
@@ -107,10 +131,14 @@ export const fundAddress = (fund: string, program: string | null): string =>
 /** An initiative's one address on the public site. */
 export const initiativeAddress = (slug: string): string => `${PUBLIC_ORIGIN}/initiatives/${slug}`;
 
-/** A record's page: its preview (whose address is its canonical link) and what it is, as JSON-LD. */
+/**
+ * A record's page: its preview (whose address is its canonical link), what it is, as JSON-LD, and its
+ * heading and summary drawn as the page's first view.
+ */
 export interface RecordPage {
   readonly preview: PagePreview;
   readonly structuredData: StructuredData;
+  readonly firstView: RecordFirstView;
 }
 
 /** The longest description the JSON-LD carries, cut at a word. */
@@ -149,6 +177,10 @@ export function fundPage(previews: RecordPreviews, ask: Extract<RecordAsk, { kin
   const fundWords = fund.description.trim() ? { description: previewLine(fund.description, ABOUT_MAX) } : {};
   return {
     preview,
+    firstView: {
+      section: "funding", crumbs: previews.crumbs.funding,
+      path: `/funding/${ask.id}`, program: ask.program, title: name, summary: fund.description,
+    },
     structuredData: webPage(name, preview, program && program !== fund.name
       ? { "@type": "FundingScheme", name, parentOrganization: { "@type": "Organization", name: fund.name, ...fundWords } }
       : { "@type": "FundingScheme", name, ...fundWords }),
@@ -167,6 +199,11 @@ export function initiativePage(previews: RecordPreviews, ask: Extract<RecordAsk,
   };
   return {
     preview,
+    // The first passage, as the app shows it first.
+    firstView: {
+      section: "initiatives", crumbs: previews.crumbs.initiatives,
+      path: `/initiatives/${ask.id}`, program: null, title: name, summary: projectPassages(card)[0] ?? "",
+    },
     structuredData: webPage(name, preview, {
       "@type": "Project", name,
       ...(passages ? { description: previewLine(passages, ABOUT_MAX) } : {}),
@@ -184,14 +221,17 @@ function page(status: number, html: string, cache: Record<string, string>): Resp
 }
 
 /**
- * A record's page with its preview, canonical link and JSON-LD in its head. When the record is not
- * there, or could not be looked up, the page gets its section's words and picture but no canonical link
- * and no JSON-LD: it is not the section's page, and naming one would fold the record into it. A page whose
- * head is not the one expected goes as it came, without those, uncached.
+ * A record's page with its preview, canonical link and JSON-LD in its head, and its heading and summary
+ * as its first view. When the record is not there, or could not be looked up, the page gets its section's
+ * words and picture but no canonical link, no JSON-LD and no first view: it is not the section's page,
+ * and naming one would fold the record into it. A page whose head is not the one expected goes as it
+ * came, without those, uncached.
  */
 function withPreview(status: number, html: string, preview: PagePreview, cache: Record<string, string>, record?: RecordPage): Response {
   try {
-    return page(status, record ? withPagePreview(html, record.preview, { structuredData: record.structuredData }) : withoutPageHead(withPagePreview(html, preview)), cache);
+    return page(status, record
+      ? withRecordFirstView(withPagePreview(html, record.preview, { structuredData: record.structuredData }), record.firstView)
+      : withoutPageHead(withPagePreview(html, preview)), cache);
   } catch {
     return page(status, withoutPageHead(html), NOT_CACHED);
   }

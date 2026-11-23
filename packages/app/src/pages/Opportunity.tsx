@@ -26,6 +26,7 @@ import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { FitLine } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { useDescribeDoor } from "../ui/describe-door.ts";
+import { recordFirstView } from "../record-first-view.ts";
 
 /**
  * One funding opportunity, opened over the page the person was on. `search` is the query it was
@@ -65,8 +66,10 @@ export function Opportunity({
   const programId = query.get("program"),
     team = query.get("team");
   const entry = catalog.bundle ? findEntry(catalogEntries(catalog.bundle), fundId, programId) : undefined;
+  // Opened from a link, the page came with the fund's heading and summary, which stay while it loads.
+  const firstView = presentation === "page" ? recordFirstView(`/funding/${fundId}`, programId) : undefined;
   const title = catalog.loading
-    ? "Opening Opportunity"
+    ? (firstView?.title ?? "Opening Opportunity")
     : (entry?.program?.name ?? entry?.fund.displayName ?? "Opportunity Not Available");
   useEffect(() => {
     if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
@@ -78,7 +81,10 @@ export function Opportunity({
     return (
       <DetailSheet title={title} state={sheet} presentation={presentation}>
         {catalog.loading ? (
-          <RecordSkeleton label="Opening the catalog copy" />
+          <>
+            {firstView?.summary && <p className="rc-prose">{firstView.summary}</p>}
+            <RecordSkeleton label="Opening the catalog copy" />
+          </>
         ) : (
           <>
             <p>
