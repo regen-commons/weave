@@ -7,7 +7,8 @@
  * hydrate it, so drafts, accounts and everything kept on the device stay in the browser.
  *
  * The view is inert until the app replaces it, so nothing typed into a field drawn at build time is
- * lost. index.html carries Home's view and is also sent for addresses with no file of their own; the
+ * lost. If the app's code never arrives, public/theme-boot.js lifts that after eight seconds so its
+ * links work as plain links, and the page offers a reload. index.html carries Home's view and is also sent for addresses with no file of their own; the
  * page shows that view only at Home (public/theme-boot.js and the design system's base.css).
  */
 import type { Plugin } from "vite";

@@ -26,11 +26,11 @@ export function retireFirstView(root: FirstViewRoot, pathname: string): void {
 
 /**
  * Whether the page at this address replaces its own first view, which has already arrived on
- * screen. The app's first draw then does not arrive a second time (ui/Page.tsx).
+ * screen, so the app's draw of it does not arrive a second time (ui/Page.tsx). It stays so however
+ * often that page is drawn, until a page at another address is: after a move, a page arrives again.
  */
-export const replacesFirstView = (pathname: string): boolean => kept !== undefined && kept === trimmed(pathname);
-
-/** The first draw is on screen; a later visit to the same address arrives as usual. */
-export function firstViewReplaced(): void {
+export function replacesFirstView(pathname: string): boolean {
+  if (kept === trimmed(pathname)) return true;
   kept = undefined;
+  return false;
 }

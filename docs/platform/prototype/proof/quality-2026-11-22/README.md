@@ -136,11 +136,13 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   with drafts and accounts kept client-only.
   Built on 23 November (`dev/prerender.ts`): every static address's HTML carries its first
   view as a visitor sees it, inert until the app replaces it, and the app's scripts now come
-  after the stylesheet, fonts and theme script in the head. Not yet shown to help. In a
-  local run with the CPU slowed 4x on Slow 4G, a copy of Settings without scripts painted
-  text at 2.1 s (LCP 2.35 s), but the real page's first text paint waited for the app, at
-  5.5 s. The cause is not found yet, and a load average of 130 to 300 on this machine made
-  further local timing meaningless. Next: measure on a Vercel preview.
+  after the stylesheet, fonts and theme script in the head. In a local production build with
+  the CPU slowed 4x on Slow 4G (Chrome 149, fixture data), Home's largest paint came at
+  2.1 s and Settings' at 2.2 s, from the prerendered view, while the app's scripts finished
+  at 7.1 s and 5.1 s; the app's own draw added no later largest paint and did not fade in
+  again. The same run before prerendering put Settings' largest paint at about 5.7 s.
+  Test locally with a trailing slash (`/settings/`): Vite's preview server sends index.html
+  for `/settings`, which Vercel does not. Lighthouse scores wait for a deployment.
 - [ ] **Q-07. The first visit downloads 7.1 MB for offline use.** Routes: all. The
   service worker precaches 38 files, 7.1 MB before compression, including the catalog
   (3.6 MB) and the PDF reader (1.7 MB with its worker). This does not affect Lighthouse,

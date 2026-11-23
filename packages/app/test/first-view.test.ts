@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { firstViewReplaced, replacesFirstView, retireFirstView } from "../src/first-view.ts";
+import { replacesFirstView, retireFirstView } from "../src/first-view.ts";
 
 function root(firstView?: string) {
   const attributes = new Map<string, string>(firstView === undefined ? [] : [["data-first-view", firstView], ["inert", ""]]);
@@ -39,12 +39,12 @@ test("a page with no first view, as in development, is left alone", () => {
   assert.deepEqual(page.state, { cleared: false, attributes: [] });
 });
 
-test("the first draw over its own first view does not arrive again, and a later visit does", () => {
+test("the app's draws over its own first view do not arrive again, until a move to another page", () => {
   retireFirstView(root("/funding"), "/funding/");
   assert.equal(replacesFirstView("/funding"), true);
-  assert.equal(replacesFirstView("/settings"), false);
-  firstViewReplaced();
-  assert.equal(replacesFirstView("/funding"), false);
+  assert.equal(replacesFirstView("/funding"), true, "drawn again at the same address");
+  assert.equal(replacesFirstView("/settings"), false, "a move");
+  assert.equal(replacesFirstView("/funding"), false, "back at the first page later, it arrives");
   // Home's view cleared from another address leaves that address's first draw to arrive.
   retireFirstView(root("/"), "/settings");
   assert.equal(replacesFirstView("/settings"), false);

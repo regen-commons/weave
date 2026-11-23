@@ -11,6 +11,15 @@
 (function () {
   if (location.pathname === "/") document.documentElement.setAttribute("data-home", "");
 })();
+// The first view is inert until the app replaces it. If the app's code never arrives, as on a first
+// visit that loses its connection, the view would stay dead to clicks, taps and screen readers, so
+// after a while its links work as plain links. The app takes the mark off as it starts.
+(function () {
+  setTimeout(function () {
+    var root = document.getElementById("root");
+    if (root && root.hasAttribute("data-first-view")) root.removeAttribute("inert");
+  }, 8000);
+})();
 (function () {
   try {
     var theme = localStorage.getItem("rc-theme");

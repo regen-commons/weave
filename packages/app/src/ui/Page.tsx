@@ -4,7 +4,7 @@ import { breadcrumbTrail, matchRoute, navLabel, type BackTarget, type RouteName 
 import type { SaveStatus } from "../initiative/header-status.ts";
 import { AppHeader } from "./AppHeader.tsx";
 import { wasReturn } from "../router.tsx";
-import { firstViewReplaced, replacesFirstView } from "../first-view.ts";
+import { replacesFirstView } from "../first-view.ts";
 import { followAppHeader } from "./header-height.ts";
 import { BottomNav } from "./BottomNav.tsx";
 import { DockContext, StepBarContext } from "./dock.ts";
@@ -109,7 +109,6 @@ export function Page({
  */
 function Main({ pathname, notice, children }: { pathname: string; notice: ReactNode; children: ReactNode }) {
   const [returned] = useState(() => wasReturn() || replacesFirstView(pathname));
-  useEffect(firstViewReplaced, []);
   const route = matchRoute(pathname);
   const trail = breadcrumbTrail(route);
   return (
