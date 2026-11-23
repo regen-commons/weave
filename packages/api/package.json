@@ -90,6 +90,11 @@
       "source": "./src/page-preview.ts",
       "default": "./dist/page-preview.js"
     },
+    "./list-first-view": {
+      "types": "./src/list-first-view.ts",
+      "source": "./src/list-first-view.ts",
+      "default": "./dist/list-first-view.js"
+    },
     "./record-first-view": {
       "types": "./src/record-first-view.ts",
       "source": "./src/record-first-view.ts",

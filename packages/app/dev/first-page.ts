@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Plugin } from "vite";
+import { LIST_FIRST_PAGE_ID } from "@weave/api/list-first-view";
 import {
   FIRST_PAGE_GLOBAL, INDEX_OFF_KEY, PUBLIC_PROJECTS_REQUEST, publicProjectsPath,
 } from "../src/partners/public-projects.ts";
@@ -23,6 +24,8 @@ export function firstPageScript(): string {
   return `"use strict";
 // Starts the Initiatives page's first request as the page arrives (packages/app/dev/first-page.ts).
 (() => {
+  // A page the server sent with its first page already drawn carries it in its head; nothing to ask for.
+  if (document.getElementById(${JSON.stringify(LIST_FIRST_PAGE_ID)})) return;
   let off = false;
   try { off = localStorage.getItem(${JSON.stringify(INDEX_OFF_KEY)}) === "1"; } catch { /* The list is asked for. */ }
   if (off || location.search || location.pathname.replace(/\\/+$/, "") !== ${page}) return;

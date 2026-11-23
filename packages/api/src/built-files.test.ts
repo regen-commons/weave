@@ -11,9 +11,10 @@ test("the functions read the app's build from fixed addresses the deployment's f
     "shell.html": "app/dist/shell.html",
     "index.html": "app/dist/index.html",
     [RECORD_PREVIEWS_FILE]: "app/dist/share/records.json",
+    "share/initiatives.html": "app/dist/share/initiatives.html",
   });
   // A path built while running makes the tracer take the whole repository (#171), so none may be.
-  for (const file of ["./built-files.ts", "./record-page.ts", "./sitemap.ts"]) {
+  for (const file of ["./built-files.ts", "./record-page.ts", "./sitemap.ts", "./initiatives-page.ts"]) {
     const code = readFileSync(new URL(file, import.meta.url), "utf8").replace(/^\s*(\/\/|\*).*$/gmu, "");
     assert.doesNotMatch(code, /process\.cwd\(\)|\bjoin\(/u, file);
   }

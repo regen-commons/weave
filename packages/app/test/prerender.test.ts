@@ -24,6 +24,8 @@ const PAGE = `<!doctype html>
 test("every address with a page of its own and no changing part is drawn, each into the file the server sends for it", () => {
   assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/"), { path: "/", file: "index.html" });
   assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/funding"), { path: "/funding", file: "funding/index.html" });
+  // GET /initiatives draws the first cards into the list's page, so it is not at the list's address.
+  assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/initiatives"), { path: "/initiatives", file: "share/initiatives.html" });
   assert.deepEqual(FIRST_VIEWS.find((view) => view.path === "/start/needs"), { path: "/start/needs", file: "start/needs/index.html" });
   assert.equal(FIRST_VIEWS.some((view) => view.path.includes(":")), false, "records and workspaces are drawn in the browser");
   assert.equal(FIRST_VIEWS.length, ROUTES.filter((route) => !route.path.includes(":")).length);

@@ -256,7 +256,7 @@ function withPreview(status: number, html: string, preview: PagePreview, cache: 
 export const LOOKUP_TIMEOUT_MS = 2000;
 
 /** A lookup that has not answered by the deadline is treated as failed; the page does not wait on it. */
-function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
+export function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error("lookup_timeout")), ms); });
   return Promise.race([work, late]).finally(() => clearTimeout(timer));

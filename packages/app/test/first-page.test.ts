@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import type { PublicProjectPage } from "@weave/api/public-projects-contract";
+import { LIST_FIRST_PAGE_ID } from "@weave/api/list-first-view";
 import { firstPage, firstPageFile, firstPageScript } from "../dev/first-page.ts";
 import {
-  FIRST_PAGE_GLOBAL, INDEX_OFF_KEY, publicProjectsPath, requestPublicProjects, takeFirstPage, takeReadFirstPage,
+  FIRST_PAGE_GLOBAL, INDEX_OFF_KEY, keepServedFirstPage, publicProjectsPath, requestPublicProjects, takeFirstPage, takeReadFirstPage,
 } from "../src/partners/public-projects.ts";
 
 const uri = (n: number) => `at://did:plc:${"a".repeat(23)}${String.fromCharCode(97 + n)}/org.hypercerts.collection/project${n}`;
@@ -19,11 +20,12 @@ const page = (n: number): PublicProjectPage => ({
 });
 
 /** Runs the first-page script as a browser would, at one address with one storage. */
-function load(pathname: string, { search = "", stored = null as string | null, storageFails = false } = {}) {
+function load(pathname: string, { search = "", stored = null as string | null, storageFails = false, served = false } = {}) {
   const asked: { path: string; init: RequestInit }[] = [];
   const window: Record<string, unknown> = {};
   runInNewContext(firstPageScript(), {
     window,
+    document: { getElementById: (id: string) => (served && id === LIST_FIRST_PAGE_ID ? {} : null) },
     location: { pathname, search },
     localStorage: { getItem: (key: string) => {
       if (storageFails) throw new Error("refused");
@@ -58,7 +60,7 @@ test("the HTML reads the page as soon as it arrives, and leaves a refused one un
   assert.equal((await (await early!.response).json()).projects.length, 1);
   const refused: Record<string, unknown> = {};
   runInNewContext(firstPageScript(), {
-    window: refused, location: { pathname: "/initiatives", search: "" }, localStorage: { getItem: () => null },
+    window: refused, document: { getElementById: () => null }, location: { pathname: "/initiatives", search: "" }, localStorage: { getItem: () => null },
     fetch: () => Promise.resolve(Response.json({ error: "public_projects_unavailable" }, { status: 503 })),
   });
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -82,6 +84,7 @@ test("the HTML leaves every other first page to the app", () => {
   for (const search of ["?q=river", "?organizationType=ngo", "?sort=name"])
     assert.equal(load("/initiatives", { search }).asked.length, 0, `${search} is the app's to ask for`);
   assert.equal(load("/initiatives", { stored: "1" }).asked.length, 0, "a list last heard off shows the starter list");
+  assert.equal(load("/initiatives", { served: true }).asked.length, 0, "a page the server sent with its cards asks for none");
   assert.equal(load("/funding").asked.length, 0);
   assert.equal(load("/initiatives/at%3A%2F%2Fx").asked.length, 0, "an initiative's own page is not the list");
 });
@@ -132,4 +135,22 @@ test("a head start that answers is the list's first page; one that fails costs n
   leaving.abort();
   await assert.rejects(pending);
   assert.equal(asked, 2);
+});
+
+test("a page the server sent with its first cards is the list's first page, read before the app draws", () => {
+  const served = (text: string | null) => ({ getElementById: (id: string) => (id === LIST_FIRST_PAGE_ID ? { textContent: text } : null) });
+  const holder: Record<string, unknown> = {};
+  keepServedFirstPage(served(JSON.stringify({ path: "/api/public-projects", page: page(3) })), holder);
+  assert.equal(takeReadFirstPage(publicProjectsPath(""), holder)?.projects.length, 3, "the list starts with the server's cards");
+  assert.equal(FIRST_PAGE_GLOBAL in holder, false, "and takes them once");
+  // Anything that is not the list's own first page, valid as the list reads one, is left alone.
+  for (const text of [null, "", "not json", JSON.stringify({ path: "/api/public-projects?q=x", page: page(1) }),
+    JSON.stringify({ path: "/api/public-projects", page: { projects: "no" } }), JSON.stringify(null)]) {
+    const empty: Record<string, unknown> = {};
+    keepServedFirstPage(served(text), empty);
+    assert.equal(FIRST_PAGE_GLOBAL in empty, false, String(text));
+  }
+  const none: Record<string, unknown> = {};
+  keepServedFirstPage({ getElementById: () => null }, none);
+  assert.equal(FIRST_PAGE_GLOBAL in none, false);
 });

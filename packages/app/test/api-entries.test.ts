@@ -21,9 +21,11 @@ test("the app deploys at most 12 functions, and each shared endpoint's address r
   const sources = vercel.rewrites.map(({ source }) => source);
   // Cloud speech can take 50 s (a 20 s upload and 30 s at the provider), so the shared function has 60.
   assert.ok((vercel.functions["api/router.ts"]?.maxDuration ?? 0) >= 60);
+  // A page the router draws is reached at the page's own address, not one under /api.
+  const pageAddresses: Readonly<Record<string, string>> = { "initiatives-page": "/initiatives" };
   for (const endpoint of Object.keys(ENDPOINTS)) {
     assert.ok(!entries.includes(`${endpoint}.ts`), `a function of its own would take ${endpoint}'s address from the router`);
-    const index = sources.indexOf(`/api/${endpoint}`);
+    const index = sources.indexOf(pageAddresses[endpoint] ?? `/api/${endpoint}`);
     assert.equal(vercel.rewrites[index]?.destination, `/api/router?__route=${endpoint}`, endpoint);
   }
 });

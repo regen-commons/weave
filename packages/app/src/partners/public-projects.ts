@@ -2,6 +2,7 @@ import {
   isOrganizationType, isPublicProjectSort, isWorkScope, organizationTypeOf, parsePublicProjectPage, PUBLIC_PROJECT_PAGE_SIZE,
   type PublicProjectCard, type PublicProjectPage, type PublicProjectSort,
 } from "@weave/api/public-projects-contract";
+import { LIST_FIRST_PAGE_ID, LIST_FIRST_PAGE_REQUEST } from "@weave/api/list-first-view";
 import type { Facet, FacetOption } from "../filters.ts";
 
 export type { PublicProjectCard, PublicProjectPage, PublicProjectSort };
@@ -108,6 +109,29 @@ export function takeReadFirstPage(path: string, holder: Record<string, unknown> 
     return parsePublicProjectPage(early.page);
   } catch {
     return undefined;
+  }
+}
+
+/** The part of the document the served first page is read from. */
+export interface ServedFirstPageDocument {
+  getElementById(id: string): { readonly textContent: string | null } | null;
+}
+
+/**
+ * Keeps the first page GET /initiatives drew into the page (@weave/api/list-first-view), before the app's
+ * first draw, where the list will take it as one the HTML has read (`takeReadFirstPage`). Its first draw
+ * then has the same cards the server drew, and it sends no request for them. Anything that is not exactly
+ * the list's own first page, valid as the list reads one, is left, and the list asks as it always has.
+ */
+export function keepServedFirstPage(document: ServedFirstPageDocument, holder: Record<string, unknown> = holderOf()): void {
+  const text = document.getElementById(LIST_FIRST_PAGE_ID)?.textContent;
+  if (!text) return;
+  try {
+    const served = JSON.parse(text) as { path?: unknown; page?: unknown };
+    if (served.path !== LIST_FIRST_PAGE_REQUEST || served.path !== publicProjectsPath("")) return;
+    holder[FIRST_PAGE_GLOBAL] = { path: served.path, page: parsePublicProjectPage(served.page) };
+  } catch {
+    // Not the server's JSON: the list asks for its page.
   }
 }
 
