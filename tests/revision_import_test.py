@@ -21,12 +21,14 @@ cli = module_from_spec(spec)
 spec.loader.exec_module(cli)
 
 
-RENAMES = 'research/maintenance-history/name-normalization-2026-11-22/renames.json'
+def rename_archives(root):
+    """Name normalization archives, newest first."""
+    paths = sorted((root / 'research/maintenance-history').glob('name-normalization-*/renames.json'), reverse=True)
+    return [json.loads(path.read_text()) for path in paths]
 
 
-def rewind_names(root, catalog):
-    """Set back the names the November 22 normalization changed, in the inputs and the catalog."""
-    archive = read(root, RENAMES)
+def rewind_names(root, catalog, archive):
+    """Set back the names one normalization pass changed, in the inputs and the catalog."""
     funders = {row['after']: row['before'] for row in archive['funders']}
     programs = {(row['fundId'], row['programId']): row for row in archive['programs']}
 
@@ -67,7 +69,6 @@ def rewind_names(root, catalog):
                 fund['program'] = row['before']
         for program in (fund.get('enrichment') or {}).get('programs', []):
             program_name(fund['id'], program)
-    return archive['journalLengthAtRename']
 
 
 def rewind_journal(root):
@@ -81,11 +82,12 @@ def rewind_journal(root):
     if not history:
         return
     catalog = read(root, 'dist/data/funders.json')
-    renamed_after = read(root, RENAMES)['journalLengthAtRename']
+    archives = rename_archives(root)
     for position, revision in reversed(list(enumerate(history))):
-        # The renames came after the first revisions, so they are undone before those are.
-        if position == renamed_after - 1:
-            rewind_names(root, catalog)
+        # A rename pass is undone just before the last revision that preceded it.
+        for archive in archives:
+            if position == archive['journalLengthAtRename'] - 1:
+                rewind_names(root, catalog, archive)
         for edit in reversed(revision['edits']):
             document = read(root, edit['path'])
             replace(document, edit['keys'], edit['before'])
