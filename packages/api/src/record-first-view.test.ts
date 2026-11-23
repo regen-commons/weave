@@ -82,6 +82,8 @@ test("a fund's page arrives with its heading and summary where the app draws the
   });
   // On a wide screen the app's breadcrumbs sit above the heading, so the view draws them too, as links.
   assert.ok(html.includes('<main class="rc-main"><nav class="rc-breadcrumbs" aria-label="Breadcrumb" data-from="wide"><ol><li><a href="/funding">Funding</a></li><li aria-current="page">Opportunity</li></ol></nav><div class="rc-narrow"><h1'));
+  // The line a loaded fund shows under its heading keeps its room, unseen and unread, so the summary does not move.
+  assert.match(html, /<\/h1><p class="rc-card-meta" aria-hidden="true"><span class="rc-skeleton" data-shape="hold">[^<]+<\/span><\/p><p class="rc-prose">/);
   // The program the address asked for is the one the words are for: none asked, none named.
   const first = root(await (await get("?kind=funding&id=local-people-powered")).text());
   assert.equal((first.words as { program: unknown }).program, null);

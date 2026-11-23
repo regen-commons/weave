@@ -18,7 +18,7 @@ import { revise } from "../describe/contracts.ts";
 import { fullDate } from "../home.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { DetailSheet, RecordSkeleton, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, RecordLead, RecordSkeleton, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
 import { sectionTag } from "../ui/section-level.ts";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
 import { fundShare } from "../record-share.ts";
@@ -82,7 +82,7 @@ export function Opportunity({
       <DetailSheet title={title} state={sheet} presentation={presentation}>
         {catalog.loading ? (
           <>
-            {firstView?.summary && <p className="rc-prose">{firstView.summary}</p>}
+            {firstView && <RecordLead summary={firstView.summary} />}
             <RecordSkeleton label="Opening the catalog copy" />
           </>
         ) : (

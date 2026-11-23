@@ -35,6 +35,13 @@ export const RECORD_FIRST_VIEW_ID = "record-first-view";
 /** A record page's path: a fund's or an initiative's. */
 export const RECORD_FIRST_VIEW_PATH = /^\/(?:funding|initiatives)\/[A-Za-z0-9_-]{1,200}$/u;
 
+/**
+ * The unseen words that hold the room of the line a loaded record shows between its heading and its
+ * summary: who shares it, or which fund it is and how to apply. The view and the app's loading state
+ * hold it the same way, so the summary sits where the loaded record puts it.
+ */
+export const RECORD_META_HOLD = "Who it is from, and how to reach it";
+
 /** The longest heading and summary drawn; the app refuses longer ones. */
 export const FIRST_VIEW_TITLE_MAX = 300;
 export const FIRST_VIEW_SUMMARY_MAX = 4000;
@@ -61,6 +68,7 @@ export function recordFirstViewHtml(view: RecordFirstView): string {
     `<div class="rc-app-head"><div class="rc-site-banner"></div><div class="rc-app-header"></div></div>` +
     `<div class="rc-page-body"><main class="rc-main">${view.crumbs.trail.length ? breadcrumbs(view.crumbs) : ""}<div class="rc-narrow">` +
     `<h1 class="rc-heading" data-size="page">${escapeHtml(title)}</h1>` +
+    `<p class="rc-card-meta" aria-hidden="true"><span class="rc-skeleton" data-shape="hold">${RECORD_META_HOLD}</span></p>` +
     (summary ? `<p class="rc-prose">${escapeHtml(summary)}</p>` : "") +
     `</div></main></div></div>` +
     `<script type="application/json" id="${RECORD_FIRST_VIEW_ID}">${scriptJson(words)}</script>`

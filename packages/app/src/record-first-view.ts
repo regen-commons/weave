@@ -11,6 +11,8 @@ import {
   type RecordFirstViewWords,
 } from "@weave/api/record-first-view";
 
+export { RECORD_META_HOLD } from "@weave/api/record-first-view";
+
 /** The words GET /api/record-page drew for one record's page. */
 export type RecordFirstView = RecordFirstViewWords;
 

@@ -4,6 +4,7 @@ import { Heading } from "./Heading.tsx";
 import { NarrowLayout } from "./layouts.tsx";
 import { keepFocusOnPage } from "./focus.ts";
 import { SectionLevelContext, type SectionLevel } from "./section-level.ts";
+import { RECORD_META_HOLD } from "../record-first-view.ts";
 
 /** Whether a record's sheet is on screen, and what follows once it has left. */
 export interface SheetState {
@@ -58,6 +59,24 @@ export function DetailSheet({
     >
       <SectionLevelContext value={3}>{children}</SectionLevelContext>
     </Dialog>
+  );
+}
+
+/**
+ * The first lines of a record that came with its page (GET /api/record-page): the room of the line the
+ * loaded record shows under its heading, then its summary, as the server drew them, so neither moves
+ * when the app takes over or when the record arrives.
+ */
+export function RecordLead({ summary }: { summary: string }) {
+  return (
+    <>
+      <p className="rc-card-meta" aria-hidden="true">
+        <span className="rc-skeleton" data-shape="hold">
+          {RECORD_META_HOLD}
+        </span>
+      </p>
+      {summary && <p className="rc-prose">{summary}</p>}
+    </>
   );
 }
 

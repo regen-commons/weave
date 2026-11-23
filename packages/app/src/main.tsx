@@ -19,7 +19,8 @@ if (__WEAVE_PROTOTYPE__) connectReviewPage();
 else watchInstallOffer();
 
 // A record's page from a link arrives with its heading and summary drawn by the server. The record
-// shows the same words while it loads, and the app's first draw takes the view's place.
+// shows the same words while it loads, and the app's first draw takes the view's place. The words are
+// kept first: retiring a view drawn for another address clears the root, the words with it.
 keepRecordFirstView(root);
 retireFirstView(root, routePath());
 
