@@ -49,6 +49,11 @@ Start the app's dev server with the switch on, on a port no other session uses, 
 `http://localhost:<port>/api/mcp`. The fund tools answer from the committed catalog. The project tools
 answer `projects_unavailable` unless the local server has the project index configured.
 
+## How it is deployed
+
+`/api/mcp` has no function of its own. `packages/app/vercel.json` rewrites it to the shared router
+(`src/router.ts`), which hands the request to `src/mcp.ts` unchanged.
+
 ## Protocol
 
 Stateless Streamable HTTP: one JSON-RPC request per POST and one JSON response, with no session and no

@@ -13,6 +13,7 @@ test("each shared endpoint keeps the methods its own function exported", () => {
   assert.deepEqual(Object.fromEntries(Object.entries(ENDPOINTS).map(([name, { methods }]) => [name, [...methods]])), {
     health: ["GET"],
     matching: ["POST"],
+    mcp: ["GET", "POST", "DELETE"],
     projects: ["POST"],
     "public-projects": ["GET"],
     "record-page": ["GET", "HEAD"],

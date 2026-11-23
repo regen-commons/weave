@@ -63,7 +63,7 @@ This is critical-tier work that touches sessions, consent and sharing. An assist
 
 ## Hosting and transport
 
-- **Where.** A handler at `packages/api/src/mcp.ts` with a one-line entry at `packages/app/api/mcp.ts`, as the [API guide](../../packages/api/AGENTS.md#how-a-handler-is-deployed) requires. It needs no new Vercel project and no change to `packages/app/vercel.json`. A separate service was considered and rejected: the data and its readers live here, and a second deployment would need its own copy of both.
+- **Where.** A handler at `packages/api/src/mcp.ts`, reached through the shared router function, as the [API guide](../../packages/api/AGENTS.md#how-a-handler-is-deployed) describes. The first plan was a function of its own, but Vercel's Hobby plan deploys at most 12 functions and Weave was at the limit, so `/api/mcp` is one line in the router's endpoint list and one rewrite in `packages/app/vercel.json`. It needs no new Vercel project. A separate service was considered and rejected: the data and its readers live here, and a second deployment would need its own copy of both.
 - **Shared tool definitions.** Names, descriptions, input schemas and result shapes live in one contract module in `packages/api`, exported the way the other contracts are. The MCP handler and the later WebMCP registration both read it, each supplying its own data source.
 - **Transport.** Streamable HTTP, stateless, answering each POST with one JSON response. No sessions, no server-sent stream, nothing held between requests, which suits a Vercel function.
 - **Protocol versions.** The current MCP revision is 2026-07-28 (checked 22 November 2026 against the [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)). It removed `initialize`, sessions and the GET stream, and a tools-only server answers `server/discover`, `tools/list` and `tools/call`. Clients on the 2025 revisions still open with `initialize`, so the endpoint answers both: about six methods and a few header checks.
@@ -128,7 +128,7 @@ The recommendation is to build this after the MCP slice, behind feature detectio
 ## First slice
 
 1. The tool contract, with `search_funds`, `get_fund`, `search_projects` and `get_project`.
-2. The handler and its entry file, behind `WEAVE_MCP_ENABLED`, answering both protocol eras.
+2. The handler, routed through the shared router function, behind `WEAVE_MCP_ENABLED`, answering both protocol eras.
 3. Tests for each tool, each refusal (method, origin, size, unknown tool, bad arguments, switch off) and both handshakes, using fixtures.
 4. A local demo: Claude Code added with `claude mcp add --transport http weave http://localhost:5190/api/mcp`, listing and calling each tool. Labeled `fixture`.
 5. A short "Add Weave to your assistant" section in the API package's documents. A public page in the app waits for the owning sessions.

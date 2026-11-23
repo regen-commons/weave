@@ -20,6 +20,7 @@
   "rewrites": [
     { "source": "/api/health", "destination": "/api/router?__route=health" },
     { "source": "/api/matching", "destination": "/api/router?__route=matching" },
+    { "source": "/api/mcp", "destination": "/api/router?__route=mcp" },
     { "source": "/api/projects", "destination": "/api/router?__route=projects" },
     { "source": "/api/public-projects", "destination": "/api/router?__route=public-projects" },
     { "source": "/api/record-page", "destination": "/api/router?__route=record-page" },

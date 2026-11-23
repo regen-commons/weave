@@ -365,6 +365,15 @@ test("the shipped catalog answers through the configured handler", async () => {
     const result = (await read(response)).result as { structuredContent: { total: number; catalog: { funds: number }; funds: { weaveUrl: string }[] } };
     assert.ok(result.structuredContent.catalog.funds > 600 && result.structuredContent.total > 0);
     assert.match(result.structuredContent.funds[0]!.weaveUrl, /^https:\/\/weave\.regencommons\.com\/funding\/[A-Za-z0-9_-]+$/u);
+    // Deployed, the address is rewritten to the shared router function, which hands the request on unchanged.
+    const { POST: route, GET: routeGet } = await import("./router.ts");
+    const routed = modern("tools/list");
+    const viaRouter = await route(new Request("https://weave.example/api/router?__route=mcp", { method: "POST", headers: routed.headers, body: await routed.text() }));
+    assert.equal(((await read(viaRouter)).result?.tools as unknown[]).length, AGENT_TOOLS.length);
+    const refused = await routeGet(new Request("https://weave.example/api/router?__route=mcp"));
+    assert.deepEqual([refused.status, refused.headers.get("allow")], [405, "POST"]);
+    process.env.WEAVE_MCP_ENABLED = "false";
+    assert.equal((await route(new Request("https://weave.example/api/router?__route=mcp", { method: "POST", headers: routed.headers, body: "{}" }))).status, 404);
   } finally {
     if (before === undefined) delete process.env.WEAVE_MCP_ENABLED; else process.env.WEAVE_MCP_ENABLED = before;
   }

@@ -25,11 +25,6 @@
       "source": "./src/health.ts",
       "default": "./dist/health.js"
     },
-    "./mcp": {
-      "types": "./src/mcp.ts",
-      "source": "./src/mcp.ts",
-      "default": "./dist/mcp.js"
-    },
     "./agent-tools-contract": {
       "types": "./src/agent-tools-contract.ts",
       "source": "./src/agent-tools-contract.ts",
