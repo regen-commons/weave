@@ -15,6 +15,7 @@ import {
   CapitalFormSchema,
   parseExtraction,
   emptyAskStep,
+  type AskForm,
   type AskStep,
 } from "../src/intake/contracts.ts";
 import {
@@ -798,9 +799,9 @@ test("a need's title and description are separate statements for kinds of suppor
 });
 
 test("a failed save in the need and offer editor names the field it is about and says what to do (WCAG 3.3.1)", () => {
-  const base = { ...formFromAsk(), title: "Seedlings", exchangeTerms: ["gift" as const] };
-  const money = { ...base, capitalForms: ["financial" as const] };
-  const problem = (form: typeof base) => {
+  const base: AskForm = { ...formFromAsk(), title: "Seedlings", exchangeTerms: ["gift"] };
+  const money: AskForm = { ...base, capitalForms: ["financial"] };
+  const problem = (form: AskForm) => {
     try {
       parseAskForm(form, "needs");
     } catch (error) {
