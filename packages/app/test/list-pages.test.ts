@@ -156,7 +156,7 @@ test("a list card keeps set rows, so a card and its skeleton are one height by c
 
 test("a skeleton holds as many cards as the view loads, and the list end has its room from the start (DL-108)", () => {
   const funding = read("pages/Funding.tsx");
-  assert.match(funding, /<CardGridSkeleton kind="funding" count=\{BATCH\} \/>\s*<ListEndHold things=\{THINGS\} \/>/u);
+  assert.match(funding, /<CardGridSkeleton kind="funding" matched=\{awaitingFit \|\| expectsFit\} count=\{BATCH\} \/>\s*<ListEndHold things=\{THINGS\} \/>/u);
   assert.match(funding, /useState\(BATCH\)/u, "the first batch is what the skeleton counted");
   assert.doesNotMatch(funding, /selected\.length > BATCH &&/u, "a list with cards always has its end");
   const projects = read("partners/PublicProjects.tsx");

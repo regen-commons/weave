@@ -16,6 +16,7 @@ import { answerApiRequest, type LoadEntry } from "./dev/api-bridge.ts";
 import { firstPage } from "./dev/first-page.ts";
 import { fontPreloads } from "./dev/font-preloads.ts";
 import { linkPreviews } from "./dev/link-previews.ts";
+import { firstFunds } from "./dev/first-funds.ts";
 import { appManifest } from "./dev/manifest.ts";
 import { themeColor } from "./dev/theme-color.ts";
 import { isolateFixtureProjectOAuth } from "./dev/fixture-oauth-isolation.ts";
@@ -112,6 +113,8 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       apiRoutes(),
+      // Funding's first cards, built in from the catalog so they show with the page.
+      firstFunds(),
       // After the preloads, the theme colours and the first-page script, so each section's copy of
       // index.html carries them too.
       ...(prototype ? [] : [fontPreloads(), themeColor(), firstPage(), linkPreviews()]),
