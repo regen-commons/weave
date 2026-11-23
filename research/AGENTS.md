@@ -3,9 +3,10 @@
 Use the [root guide](../AGENTS.md) for shared workflow. This guide covers the funder
 catalog (`research/`, the catalog scripts in `scripts/`, `tests/`) and the live
 static site (`dist/`, `serve.mjs`, `src/embedding-runtime.js`). The Monday discovery
-and Thursday freshness workflow is in [docs/maintenance.md](../docs/maintenance.md),
-reached through the [catalog-research skill](../.claude/skills/catalog-research/SKILL.md);
-read it before any catalog change. The current matching rubric is in
+and Thursday freshness workflow is the
+[catalog-research skill](../.claude/skills/catalog-research/SKILL.md), with its search
+playbook and verification standard; read it before any catalog change. How the
+routines are scheduled is in [docs/maintenance.md](../docs/maintenance.md). The current matching rubric is in
 [docs/matching-screening.md](../docs/matching-screening.md).
 
 ## What is generated
@@ -19,6 +20,19 @@ The rest of `dist/data/` is generated. Change the inputs, then rerun the script.
 | `dist/data/funders.json`, `research-coverage.json`, `research-followup*.json` | `scripts/import-data.py` | `bun run research:import` |
 | `dist/data/program-conditions.json`, `eligibility-rules.json`, `model-assets.json` | `scripts/build-ai.mjs` | `bun run build` |
 | `dist/data/fund-vectors.*`, `dist/assets/`, `dist/models/` (ignored by Git) | `scripts/build-ai.mjs` | `bun run build` |
+
+## Research records
+
+These are written by hand or by a routine, and read by `node scripts/research-plan.mjs`,
+which prints what a run should cover next.
+
+| File | Holds |
+|---|---|
+| `research/discovery-sources.json` | The source registry: funding databases, portals and lists, with access, query notes and last use |
+| `research/search-coverage.json` | When discovery last searched each theme-by-place cell |
+| `research/review-intervals.json` | How long each kind of record stays fresh |
+| `research/maintenance-review-log.json` | Every run, with its sources, searches, attempts and verifications. Append only |
+| `research/history-intake.json` | Leads and their dispositions |
 
 ## Rules
 
