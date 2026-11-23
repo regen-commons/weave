@@ -3,7 +3,7 @@
 // leaves typing open (the owner's decision of 19 November 2026).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { startSpeech, type LocalSpeechSession, type SpeechConstructor, type SpeechEvent } from "../src/describe/speech.ts";
+import { startSpeech, STOP_WAIT_MS, type LocalSpeechSession, type SpeechConstructor, type SpeechEvent, type Wait } from "../src/describe/speech.ts";
 import { BROWSER_SPEECH_KEY, memoryConsent, storedConsent, type ConsentStorage } from "../src/describe/speech-consent.ts";
 
 /** A recognizer like Safari's or Chrome's on Android: a constructor, no on-device question. */
@@ -114,6 +114,60 @@ test("a recognizer that ends by itself after a pause is told apart from the pers
   assert.deepEqual(stopped.heard.ends, [true]);
   handle.stop();
   assert.equal(sessions[1]?.stopped, 1, "a finished session is not stopped again");
+});
+
+test("Stop always finishes: a recognizer that does not end in time is ended with the words it gave (DL-133)", async () => {
+  // A clock the test moves by hand, so no test waits for real time.
+  const waits: { run(): void; stopped: boolean; milliseconds: number }[] = [];
+  const later: Wait = (run, milliseconds) => {
+    const entry = { run, stopped: false, milliseconds };
+    waits.push(entry);
+    return () => {
+      entry.stopped = true;
+    };
+  };
+  // Safari has been seen to keep a session open after stop(), so the page waited without end.
+  const hung = recognizer();
+  const stuck = page();
+  const handle = await startSpeech("browser", "en-US", stuck.callbacks, { speech: hung.speech, consent: memoryConsent(true), later });
+  hung.sessions[0]?.say("We grow seedlings");
+  hung.sessions[0]?.say("for the school", false);
+  handle.stop();
+  assert.deepEqual(waits.map((entry) => entry.milliseconds), [STOP_WAIT_MS], "one deadline, set by the person's Stop");
+  assert.deepEqual(stuck.heard.ends, [], "the recognizer still has its time to hand over the last words");
+  handle.stop();
+  assert.equal(hung.sessions[0]?.stopped, 1, "a second press asks nothing more of the recognizer");
+  assert.equal(waits.length, 1, "and starts no second deadline");
+  waits[0]?.run();
+  assert.deepEqual(stuck.heard.ends, [true], "ended as the person's Stop, so the page goes on with the words");
+  assert.deepEqual(stuck.heard.results.at(-1), "for the school", "the words not yet final were already with the page");
+  assert.equal(hung.sessions[0]?.aborted, 1, "the recognizer is let go");
+  hung.sessions[0]?.say("too late");
+  hung.sessions[0]?.onend?.();
+  assert.deepEqual(stuck.heard.ends, [true], "a late end is not a second one");
+  assert.equal(stuck.heard.results.includes("too late"), false, "and nothing is heard after the end");
+
+  // The usual case: the recognizer ends by itself first, and the deadline is called off.
+  const prompt = recognizer();
+  const quick = page();
+  const second = await startSpeech("browser", "en-US", quick.callbacks, { speech: prompt.speech, consent: memoryConsent(true), later });
+  second.stop();
+  prompt.sessions[0]?.say("We grow seedlings");
+  prompt.sessions[0]?.onend?.();
+  assert.deepEqual(quick.heard.results, ["We grow seedlings"], "the last words arrive after Stop and are kept");
+  assert.deepEqual(quick.heard.ends, [true]);
+  assert.equal(waits[1]?.stopped, true);
+  waits[1]?.run();
+  assert.deepEqual(quick.heard.ends, [true], "a deadline that still ran would change nothing");
+
+  // A session that fails or is dropped after Stop does not end a second time either.
+  const failing = recognizer();
+  const failed = page();
+  const third = await startSpeech("browser", "en-US", failed.callbacks, { speech: failing.speech, consent: memoryConsent(true), later });
+  third.stop();
+  failing.sessions[0]?.onerror?.({ error: "network" });
+  assert.deepEqual(failed.heard.ends, [false]);
+  assert.equal(waits[2]?.stopped, true);
 });
 
 test("withdrawing the agreement stops a session of the browser's speech service at once", async () => {

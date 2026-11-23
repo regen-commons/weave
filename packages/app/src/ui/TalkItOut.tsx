@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { STOP_WAIT_MS } from "../describe/speech.ts";
 import { BROWSER_SPEECH_NOTICE, talkControls, talkHold } from "../describe/speech-setup.ts";
 import type { SpeechSetup } from "../describe/use-speech.ts";
 import { Icon } from "./Icon.tsx";
@@ -9,7 +10,8 @@ const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN"
 /**
  * Talk it out (`rc-voice-input`, DL-110): one button, one box and one action. The button turns
  * into Stop in place while the browser listens, and the words appear in the box,
- * whose space is always there. A person who cannot or will not speak types into the same box.
+ * whose space is always there. Stop answers the press at once: the button reads Finishing until
+ * the recognizer has handed over its last words (DL-133). A person who cannot or will not speak types into the same box.
  * The action then structures the words, and its result is said in the line under it, which keeps
  * its height. Nothing on the page moves when any of them is pressed. Where talking goes through
  * the browser's own speech service, the first press on a device asks the person to agree in a
@@ -87,6 +89,18 @@ export function TalkItOut({
   const [choosing, setChoosing] = useState(false);
   const [agreeing, setAgreeing] = useState(false);
   const [focused, setFocused] = useState(false);
+  // Stop was pressed here. The page ends listening only when the recognizer has handed over its
+  // last words, which can take a moment, so the button says Finishing from the press itself.
+  const [stopPressed, setStopPressed] = useState(false);
+  if (stopPressed && !listening) setStopPressed(false);
+  const stopping = listening && stopPressed;
+  // A session ends inside STOP_WAIT_MS of its Stop. If the page is still listening after that,
+  // the press did not reach a session, so Stop comes back and can be pressed again.
+  useEffect(() => {
+    if (!stopPressed) return;
+    const timer = setTimeout(() => setStopPressed(false), STOP_WAIT_MS + 500);
+    return () => clearTimeout(timer);
+  }, [stopPressed]);
   const box = useRef<HTMLTextAreaElement>(null);
   // While listening, the newest words stay in view inside the box.
   useEffect(() => {
@@ -94,6 +108,7 @@ export function TalkItOut({
   }, [listening, value]);
   const controls = talkControls(speech.state, {
     listening,
+    stopping,
     setUpHere: speech.setUpHere,
     asking: speech.asking,
     secondary,
@@ -104,10 +119,16 @@ export function TalkItOut({
   const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
   const hold = talkHold(controls.action, { working, disabled, focused });
   const talk = controls.agreement ? () => setAgreeing(true) : onStart;
+  const stop = () => {
+    setStopPressed(true);
+    onStop();
+  };
   const press =
     hold !== "free"
       ? undefined
-      : controls.action === "stop" ? onStop : controls.action === "talk" ? talk : controls.action === "set-up" ? speech.setUp : undefined;
+      : controls.action === "stop" ? stop : controls.action === "talk" ? talk : controls.action === "set-up" ? speech.setUp : undefined;
+  // Under way: setting up speech, or finishing the words after Stop. The button waits in place.
+  const underWay = controls.action === "setting-up" || controls.action === "finishing";
   return (
     <div className="rc-voice-input">
       <div className="rc-voice-slot">
@@ -121,7 +142,7 @@ export function TalkItOut({
             type="button"
             aria-pressed={controls.action === "talk" || controls.action === "stop" ? listening : undefined}
             // Under way or held, the button keeps the focus, which a disabled button would drop.
-            aria-busy={controls.action === "setting-up" || undefined}
+            aria-busy={underWay || undefined}
             aria-disabled={hold === "held" || undefined}
             disabled={hold === "disabled"}
             onFocus={() => setFocused(true)}
@@ -129,7 +150,7 @@ export function TalkItOut({
             onClick={press}
           >
             {/* Under way, a Spinner takes the microphone's place, so the button's width holds. */}
-            {controls.action === "setting-up" ? <span className="rc-spinner" aria-hidden="true" /> : <Icon name="mic" />}
+            {underWay ? <span className="rc-spinner" aria-hidden="true" /> : <Icon name="mic" />}
             {controls.label}
           </button>
         )}
@@ -152,7 +173,7 @@ export function TalkItOut({
         </div>
       </div>
       <div className="rc-field">
-        <label htmlFor={`${id}-box`}>{listening ? "Listening" : boxLabel}</label>
+        <label htmlFor={`${id}-box`}>{listening && !stopping ? "Listening" : boxLabel}</label>
         {hint && (
           <p className="rc-hint" id={`${id}-hint`}>
             {hint}

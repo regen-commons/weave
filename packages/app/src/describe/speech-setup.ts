@@ -1,4 +1,5 @@
-import { speechConstructor, speechStatus, type SpeechConstructor, type SpeechMode, type SpeechProblem } from "./speech.ts";
+import { speechConstructor, speechStatus, wait, type SpeechConstructor, type SpeechMode, type SpeechProblem, type Wait } from "./speech.ts";
+export type { Wait } from "./speech.ts";
 
 /**
  * Where speech stands for one language, in the owner's order of preference (19 November 2026):
@@ -70,13 +71,6 @@ export function installSpeech(language: string, speech: SpeechConstructor): Prom
 
 /** How long setting up may run before the page says it is taking a while. */
 export const SLOW_SETUP_MS = 2 * 60 * 1000;
-
-/** Waits, then runs; the answer stops the wait. */
-export type Wait = (then: () => void, milliseconds: number) => () => void;
-const wait: Wait = (then, milliseconds) => {
-  const timer = setTimeout(then, milliseconds);
-  return () => clearTimeout(timer);
-};
 
 /** Speech on this device for each language a page asks about, shared by the pages of one visit. */
 export interface SpeechSetupStore {
@@ -161,7 +155,7 @@ export function speechSetupStore({
 /** What Talk it out shows in its button's place and in the one line under it (DL-110). */
 export interface TalkControls {
   /** The one button, or null where a plain line or nothing stands in its place. */
-  readonly action: "talk" | "stop" | "set-up" | "setting-up" | null;
+  readonly action: "talk" | "stop" | "finishing" | "set-up" | "setting-up" | null;
   readonly label: string;
   /** One plain sentence in the reserved line under the button. Empty when there is nothing to say. */
   readonly note: string;
@@ -217,7 +211,9 @@ const SILENT: TalkControls = { action: null, label: "", note: "", language: fals
 
 /**
  * The button and the line for each state of speech. The button keeps its place from Set up to
- * Talk it out to Stop, so pressing it never moves the page. Set Up Speech and Setting Up Speech
+ * Talk it out to Stop, so pressing it never moves the page. Stop answers the press at once: the
+ * button reads Finishing, with a Spinner, while the recognizer hands over its last words, which
+ * can take a moment and showed nothing before (DL-133). Set Up Speech and Setting Up Speech
  * are close in width for the same reason: a longer label sent the line under the button on a wide
  * screen, and the box jumped when the setup began (DL-127). Where the browser cannot turn speech
  * into text, a plain line says so in the button's place, or on a touch screen points to the
@@ -228,6 +224,7 @@ export function talkControls(
   state: SpeechSetupState,
   {
     listening = false,
+    stopping = false,
     setUpHere = false,
     asking = false,
     secondary = false,
@@ -235,6 +232,8 @@ export function talkControls(
     touch = false,
   }: {
     listening?: boolean;
+    /** Stop was pressed and the recognizer has not ended yet. Only read while listening. */
+    stopping?: boolean;
     setUpHere?: boolean;
     asking?: boolean;
     /**
@@ -249,6 +248,8 @@ export function talkControls(
   } = {},
 ): TalkControls {
   const mode = speechMode(state);
+  if (listening && stopping)
+    return { ...SILENT, action: "finishing", label: "Finishing", note: "Finishing your words.", mode };
   if (listening)
     return {
       ...SILENT,
