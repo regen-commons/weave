@@ -1,7 +1,6 @@
-import { amountText } from "./presentation.ts";
-import { CAPITALS } from "../capitals.ts";
+import { askText } from "./presentation.ts";
 import type { DeviceDraft } from "../describe/contracts.ts";
-import { SCOPES, STATUS, TERMS, type AskFields, type AskKind } from "./contracts.ts";
+import type { AskFields, AskKind } from "./contracts.ts";
 import { reviewStep } from "./state.ts";
 export function intakeComplete(draft: DeviceDraft): boolean {
   try {
@@ -40,25 +39,7 @@ export function cardText(draft: DeviceDraft): string {
   const section = (kind: AskKind) =>
     [
       kind === "needs" ? "Needs" : "Offers",
-      ...keptAsks(draft, kind).map((value) =>
-        [
-          value.title,
-          value.description,
-          CAPITALS.filter((capital) => value.capitalForms.includes(capital.key))
-            .map((capital) => capital.title)
-            .join(", "),
-          amountText(value.amount),
-          value.timeframe,
-          value.capacity,
-          value.purpose,
-          value.audience,
-          SCOPES[value.placeScope],
-          value.exchangeTerms.map((term) => TERMS[term]).join(" or "),
-          STATUS[value.status],
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      ),
+      ...keptAsks(draft, kind).map(askText),
     ].join("\n\n");
   return [
     card.name,

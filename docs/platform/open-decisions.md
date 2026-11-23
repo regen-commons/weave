@@ -113,9 +113,37 @@ What the code holds to (`packages/app/src/describe/speech.ts`, `speech-setup.ts`
 - Each way a browser session stops says only what the browser reported, in the status line under the box, and typing stays open: microphone refused (`not-allowed`), no microphone (`audio-capture`), no connection (`network`), a service that will not work here (`service-not-allowed`), a language it does not take (`language-not-supported`), no speech heard, and a recognizer that ended by itself after a pause. On a touch screen, a service that cannot be reached or will not work here also points to the keyboard's microphone key. Talk It Out keeps its place after every error, so the page does not move and pressing it again tries again. Chrome on Android ignores `continuous`, so a pause ends its sessions often; Weave keeps the words and does not restart listening by itself.
 - Weave records, stores and uploads no audio, downloads no model, and adds no dependency, CSP change or header. The browser, not the page, talks to its speech service.
 
-Still not approved: a speech model that Weave downloads (D32) and recording audio for transcription on a server (D35).
+Still not approved: a speech model that Weave downloads (D32). Recording audio for transcription on a server was not approved here; it was approved on 23 November 2026 for one case, below.
 
 Which browsers this reaches, from [MDN's compatibility data](https://github.com/mdn/browser-compat-data/blob/main/api/SpeechRecognition.json) and not yet checked on devices: Safari on macOS and iOS (`webkitSpeechRecognition` since 14.1, no on-device question), Chrome on Android and Samsung Internet (a recognizer without on-device recognition), Edge, which [sends the audio to a Microsoft service](https://learn.microsoft.com/en-us/legal/microsoft-edge/privacy), and Chrome on a computer for a language it has no speech pack for. Firefox on Android has no speech recognition and gets the keyboard line. Brave exposes a recognizer but has no speech service ([brave-browser#3725](https://github.com/brave/brave-browser/issues/3725)), so its session fails and says so. Proof and what remains for real devices: [browser speech proof](prototype/proof/browser-speech/README.md).
+
+### Cloud speech, 23 November 2026
+
+On 23 November 2026 the owner approved a cloud option for talking ("Yes, build it"), after a [comparison of providers](prototype/proof/cloud-speech/README.md#providers-compared). It adds one step before "no talking" and changes nothing above it. It settles D35 for transcription only: cloud structuring of words is still not approved.
+
+4. **Cloud speech.** Where the browser has no speech recognition at all, as in Firefox, and the server has cloud speech switched on, Talk It Out records in the page and, on Stop or after three minutes, sends the recording once through Weave's own `/api/transcribe` to Cloudflare Workers AI, which turns it into text with Whisper. A browser with its own speech service keeps it and is never offered this.
+
+What the owner chose:
+
+- **Provider:** Cloudflare Workers AI, `@cf/openai/whisper-large-v3-turbo`. Its [data-usage page](https://developers.cloudflare.com/workers-ai/platform/data-usage/) says it keeps no inputs or outputs after a request and trains on none, by default and without a setting. Vercel's AI Gateway was considered and set aside, because its transcription models are not covered by its zero data retention.
+- **Where it shows:** only where the browser cannot turn speech into text at all.
+- **The agreement:** asked once on a device, in a notice that names the provider and the model and says what is sent, kept apart from the agreement to the browser's speech service, and withdrawn in Settings.
+- **Who can use it:** anyone, signed in or not, because describing comes before sign-in.
+
+What the code holds to (`packages/app/src/describe/speech-cloud.ts`, `speech-consent.ts`, `packages/api/src/transcribe.ts`):
+
+- Nothing records before the agreement. Withdrawing it stops a recording at once and sends nothing.
+- The recording stays in the tab's memory until Stop or the three-minute limit, goes once to Weave's own server with the chosen language, no cookies and nothing else, and is dropped whether or not words come back. It is never tried a second time. Only Stop and the limit send it: Discard drops it unsent, and so does a recorder that stops by itself, as when the microphone is unplugged. The server stores and logs nothing about it. The device notes the time and length of each recording that left it, and Settings shows how many.
+- The notice says what Weave can vouch for ("Weave does not keep the recording") and gives the rest as the provider's own statement ("Cloudflare says"). Cloudflare can run a request in any of its regions, so the notice says the recording may be processed outside the person's country and promises no place.
+- One recording is three minutes and 3 MB at most. It is off until `WEAVE_CLOUD_SPEECH_ENABLED=true` with the Cloudflare account and token set, and the page offers it only while the server says it is on. The production CSP is unchanged, because the page calls only its own origin. No dependency was added.
+
+Not built, and for the owner to decide:
+
+- **A limit for each visitor.** The endpoint needs no sign-in and keeps no count. What bounds it is the size of one recording and Cloudflare's daily allowance: on the Workers Free plan a used-up day fails closed, at no cost, and the page says cloud speech has reached its limit. A person who wanted to could use up the day for everyone. A rate limit on `/api/transcribe` in Vercel's firewall would close that, and is a Vercel setting.
+- **A server record of consent and calls.** R10 asks for a consent and call ledger the person can view and export. The device's record is viewable in Settings; it is not in the downloaded copy of the device's data, and the server has none.
+- **Brave.** It has a speech recognizer whose service does not work, so it is offered the browser's service, not this. What it reports was not established.
+
+Not proven: a real call to Cloudflare, which needs the account; which recording formats Cloudflare accepts (its page documents base64 audio and names no format); how well Whisper does in each language, Swahili above all; and any phone. See the [proof](prototype/proof/cloud-speech/README.md).
 
 ### Step 3 PDF deck parser proposal
 

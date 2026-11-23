@@ -516,3 +516,44 @@ test("the list is read beside the authorization, and a refused session never see
   assert.equal((await load.made.GET(get(`?id=${id}`))).status, 200);
   assert.deepEqual(load.order, ["authorize", "authorized"]);
 });
+
+test("sign-out lets go of what ends with the session first, and nothing there can stop or fail it", async () => {
+  const signOutRequest = (cookie = "__Host-weave_account=test.access.token") => post({ action: "sign_out" }, { cookie });
+  function handlers(onSignOut: (request: Request) => Promise<unknown>, signOut: () => Promise<void> = async () => {}) {
+    const order: string[] = [];
+    const made = createAccountHandlers({ provider: { ...fixture().provider, signOut: async () => { order.push("revoked"); await signOut(); } },
+      onSignOut: async request => { order.push("cleanup"); return onSignOut(request); }, signOutWait: 30 });
+    return { made, order };
+  }
+  // It runs before the session is revoked, on a request that carries the session and nothing of the sign-out's body.
+  let seen: Request | undefined;
+  const ok = handlers(async request => { seen = request; });
+  const done = await ok.made.POST(signOutRequest());
+  assert.deepEqual([done.status, await done.json()], [200, { signedOut: true }]);
+  assert.deepEqual(ok.order, ["cleanup", "revoked"]);
+  assert.equal(seen!.method, "GET");
+  assert.equal(seen!.headers.get("cookie"), "__Host-weave_account=test.access.token");
+  assert.equal(done.headers.getSetCookie().filter(cookie => /Max-Age=0/u.test(cookie)).length, 3, "every session cookie is cleared");
+
+  // It throws, rejects or never answers: the session is revoked and the person is signed out all the same.
+  for (const cleanup of [async () => { throw new Error("project store unreachable"); }, () => Promise.reject(new AccountError(503, "project_workspace_unavailable")),
+    () => new Promise<never>(() => {}), () => { throw new Error("broke before it began"); }] as (() => Promise<unknown>)[]) {
+    const failing = handlers(cleanup);
+    const result = await failing.made.POST(signOutRequest());
+    assert.deepEqual([result.status, await result.json()], [200, { signedOut: true }]);
+    assert.deepEqual(failing.order, ["cleanup", "revoked"]);
+  }
+  // Nobody is signed in, or the session has already ended: there is nothing to find, so nothing is asked.
+  const signedOut = handlers(async () => {});
+  assert.equal((await signedOut.made.POST(post({ action: "sign_out" }, { cookie: "" }))).status, 200);
+  assert.deepEqual(signedOut.order, []);
+  // A sign-out Supabase could not confirm is still reported as unconfirmed.
+  const unconfirmed = handlers(async () => {}, async () => { throw new AccountError(503, "sign_out_unconfirmed"); });
+  const kept = await unconfirmed.made.POST(signOutRequest());
+  assert.deepEqual([kept.status, await kept.json()], [503, { error: "sign_out_unconfirmed" }]);
+  assert.deepEqual(unconfirmed.order, ["cleanup", "revoked"]);
+  // Save and delete never run it.
+  const other = handlers(async () => {});
+  await other.made.POST(post({ action: "delete", id, expectedRevision: 1, requestId }));
+  assert.deepEqual(other.order, []);
+});

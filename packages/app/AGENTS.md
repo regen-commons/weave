@@ -17,7 +17,9 @@ initiative examples; `projects=none` gives the example person no Certified proje
 fail it (`fail`), have no speech recognition (`none`, or `keyboard` on a touch screen), or
 have only its own speech service, before the agreement (`browser`), after it (`agreed`) and
 stopping each way it can (`denied`, `no-mic`, `network`, `blocked`, `pause`,
-`unsupported`); `drafts=several` gives the
+`unsupported`), or have no speech recognition with cloud speech on offer, before the
+agreement (`cloud`), after it (`cloud-agreed`) and ending at the day's limit
+(`cloud-limit`) or offline (`cloud-offline`); `drafts=several` gives the
 example browser two more initiatives beside the one on screen; and
 `certified=fail` makes the example Certified refuse to create a project or publish.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
@@ -115,9 +117,16 @@ production. Account saving uses the same-origin API and stays unavailable until 
   browser-managed pack is a local capability under D32. Where the browser has no
   speech on the device, its own speech service may be used, only after the person
   agrees to a notice that it may send their voice away, and never as a silent
-  fallback (`src/describe/speech-consent.ts`, 19 November 2026). Weave records and
-  uploads no audio, so app-downloaded models and cloud calls stay behind their
-  unavailable adapters until D32 and D35 are approved. PDF text runs in a same-origin Worker; unread
+  fallback (`src/describe/speech-consent.ts`, 19 November 2026). Where the browser has
+  no speech recognition at all and the server has cloud speech on, a person who agrees
+  to its own notice can record, and the recording goes once through `/api/transcribe`
+  to the provider the notice names (`src/describe/speech-cloud.ts`, 23 November 2026).
+  That module is the only place the app records or sends audio, and a test fails if
+  another does. No example records or sends anything: an example of cloud speech shows
+  its words and stops there, and `WEAVE_CLOUD_SPEECH_FIXTURE=true` on the dev server
+  answers a real local recording with fixed words. App-downloaded models and cloud
+  structuring of words stay behind their unavailable adapters until D32 and D35 are
+  approved. PDF text runs in a same-origin Worker; unread
   files and pages remain explicitly unread, with original bytes retained.
 - Server code belongs in `@weave/api`. A file in `api/` is a single re-export, and
   the entry test fails on anything else.

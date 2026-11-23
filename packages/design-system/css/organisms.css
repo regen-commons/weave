@@ -327,6 +327,12 @@
      still in view. behaviors/sheet.js writes both while a keyboard is up. */
   --sheet-keyboard: 0;
   --sheet-room: 100dvh;
+  /* How far the title row and a foot that stay put reach over the content, with room for the focus
+     ring, so the keyboard's focus is scrolled clear of them (WCAG 2.4.11). behaviors/sheet.js
+     measures them as the dialog opens and changes size. */
+  --dialog-head-clear: var(--space-2);
+  --dialog-foot-clear: var(--space-2);
+  scroll-padding-block: var(--dialog-head-clear) var(--dialog-foot-clear);
   /* Room above and below a centred dialog: 8 percent of the window's height, from 24 to 80 px. */
   --dialog-inset: clamp(var(--space-5), 8dvh, var(--space-9));
   /* The padding in use, which the sticky title row also reads. A bottom sheet uses --sheet-padding. */
@@ -710,6 +716,8 @@
 /* Beside the button on a wide screen and under it on a phone: one line about speech, or the language choice. */
 .rc-voice-aside { display: grid; flex: 1 1 var(--card-min-width); align-content: center; justify-items: start; gap: var(--space-1); min-block-size: calc(2lh + var(--space-1)); }
 .rc-voice-aside > p { margin: 0; }
+/* Discard sits on the recording line's own row, so showing it moves nothing below (DL-138). */
+.rc-voice-aside:has(> [data-voice-discard]) { grid-template-columns: auto auto; justify-content: start; align-items: center; column-gap: var(--space-3); }
 /* While the browser downloads and sets up its speech pack, a Progress bar runs above the line. The
    browser reports no amount, so the bar has none (DL-127). */
 .rc-voice-aside > .rc-progress { inline-size: 100%; max-inline-size: var(--card-min-width); }

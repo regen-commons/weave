@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { deviceConsent, type BrowserSpeechConsent } from "./speech-consent.ts";
+import { deviceCloudSpeechLog, type CloudSpeechLog, type CloudSpeechUse } from "./speech-cloud-log.ts";
+import { deviceCloudConsent, deviceConsent, type SpeechConsent } from "./speech-consent.ts";
 import { speechSetupStore, type SpeechSetupState, type SpeechSetupStore } from "./speech-setup.ts";
 
 let device: SpeechSetupStore | undefined;
@@ -17,12 +18,15 @@ export interface SpeechSetup {
   readonly asking: boolean;
   /** This page asked for the setup of this language, so it is the one to say when speech is ready. */
   readonly setUpHere: boolean;
-  /** The person agreed, on this device, to the browser's own speech service. */
+  /**
+   * The person agreed, on this device, to the way of talking this state offers: the browser's own
+   * speech service, or cloud speech where the state is `cloud`. The two are separate agreements.
+   */
   readonly agreed: boolean;
   /** The device is used mainly by touch. */
   readonly touch: boolean;
-  /** The agreement the browser's speech service needs, for `startSpeech`. */
-  readonly consent: BrowserSpeechConsent;
+  /** The agreement that way of talking needs, for `startSpeech`. */
+  readonly consent: SpeechConsent;
   /** Call from the tap, which the browser requires before it downloads anything. */
   setUp(): void;
   /** Asks the browser again, as after Speak found speech not ready after all. */
@@ -30,30 +34,47 @@ export interface SpeechSetup {
 }
 
 /** Whether the person agreed to the browser's speech service, kept current across tabs. */
-export function useBrowserSpeechAgreement(consent: BrowserSpeechConsent = deviceConsent()): boolean {
+export function useBrowserSpeechAgreement(consent: SpeechConsent = deviceConsent()): boolean {
   return useSyncExternalStore(consent.subscribe, consent.agreed);
+}
+
+/** Whether the person agreed to cloud speech, kept current across tabs. */
+export function useCloudSpeechAgreement(consent: SpeechConsent = deviceCloudConsent()): boolean {
+  return useSyncExternalStore(consent.subscribe, consent.agreed);
+}
+
+/** The device's record of the recordings it has sent for cloud speech, kept current across tabs. */
+export function useCloudSpeechUses(log: CloudSpeechLog = deviceCloudSpeechLog()): readonly CloudSpeechUse[] {
+  return useSyncExternalStore(log.subscribe, log.list);
 }
 
 /** Where speech stands for the language a page listens in, asked as the page opens and when the language changes. */
 export function useSpeechSetup(
   language: string,
   store: SpeechSetupStore = deviceSpeech(),
-  consent: BrowserSpeechConsent = deviceConsent(),
+  /** An example world's one agreement, which stands for whichever way of talking its browser has. */
+  example?: SpeechConsent,
 ): SpeechSetup {
   const current = useSyncExternalStore(store.subscribe, () => store.state(language));
-  const agreed = useBrowserSpeechAgreement(consent);
+  const browserConsent = example ?? deviceConsent();
+  const cloudConsent = example ?? deviceCloudConsent();
+  const browserAgreed = useBrowserSpeechAgreement(browserConsent);
+  const cloudAgreed = useCloudSpeechAgreement(cloudConsent);
   const [settled, setSettled] = useState(current);
   if (current !== "checking" && current !== settled) setSettled(current);
   const asking = current === "checking" && settled !== "checking";
   const [started, setStarted] = useState<string | null>(null);
   useEffect(() => store.check(language), [store, language]);
+  const state = asking ? settled : current;
+  // Each way of talking has its own agreement: agreeing to one never agrees to the other.
+  const cloud = state === "cloud";
   return {
-    state: asking ? settled : current,
+    state,
     asking,
     setUpHere: started === language,
-    agreed,
+    agreed: cloud ? cloudAgreed : browserAgreed,
     touch: store.touch,
-    consent,
+    consent: cloud ? cloudConsent : browserConsent,
     setUp() {
       store.setUp(language);
       setStarted(language);

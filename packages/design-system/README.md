@@ -119,7 +119,7 @@ The tests check that generated files are current, the linter is clean, website v
 - Replace the Home hero's woven backdrop with the website's mycelium and paper grain
   (`rc-mycelium` and the `./mycelium` behaviour), at rest under reduced motion
   (DL-046). It matches the website's six thread colours, tuft size and grain strength;
-  new tufts start bright and fade, and on phones one grows on its own every few seconds
+  new tufts start bright and fade, and on phones one grows on its own every few seconds in a page's first five seconds
   from the top corners (DL-048).
 - App header: Home leaves the header, because the logo goes home; sections take their
   own widths with equal spacing, and the header no longer cross-fades between pages.

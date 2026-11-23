@@ -639,8 +639,10 @@ a.rc-save-status:active { color: var(--on-surface); }
 .rc-card[data-rows="fixed"] > .rc-card-title { min-block-size: 2lh; }
 .rc-card[data-rows="fixed"] > .rc-card-summary { min-block-size: 3lh; }
 .rc-card[data-rows="fixed"] > :is(.rc-eyebrow, .rc-card-meta, .rc-time) { flex-wrap: nowrap; max-inline-size: 100%; min-block-size: 1lh; max-block-size: 1lh; overflow: hidden; white-space: nowrap; }
-/* A name cut at its line's end says so with an ellipsis. */
-.rc-card[data-rows="fixed"] > .rc-card-meta { display: block; text-overflow: ellipsis; }
+/* A line cut at its end says so with an ellipsis: a name, and an award or a date, which would
+   otherwise read as a smaller number or another day when larger text or wider spacing cuts it. */
+.rc-card[data-rows="fixed"] > :is(.rc-card-meta, .rc-eyebrow, .rc-time) { display: block; text-overflow: ellipsis; }
+.rc-card[data-rows="fixed"] > :is(.rc-eyebrow, .rc-time) > .rc-icon { margin-inline-end: var(--space-1); vertical-align: text-bottom; }
 /* An icon in that line marks a second fact, such as a public project's place after who shared it. It
    sits on the words' line, a step after the fact before it and a small gap before its own words. */
 .rc-card[data-rows="fixed"] > .rc-card-meta > .rc-icon { margin-inline-end: var(--space-1); vertical-align: text-bottom; }
