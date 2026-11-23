@@ -1,0 +1,834 @@
+{
+  "version": 1,
+  "id": "2026-11-23-haymarket-name-spacing",
+  "fundId": "recTQMgGnvmEseTmT",
+  "programId": "sustaining-grants2026-27",
+  "expectedFundSha256": "9c260bc8495f301c0febbd9074e34e3189d64d8ff565ec0a63db619959d42834",
+  "reviewedOn": "2026-11-23",
+  "reason": "The program name was missing the space before its cycle years and read \"Grants2026\". The funder's page heads the program \"Sustaining Grants\" and names the cycle \"2026-2027\". Only the name changes; route, dates, notes and unknowns are as the November 16 revision left them.",
+  "afterProgram": {
+    "id": "sustaining-grants2026-27",
+    "name": "Sustaining Grants 2026–27",
+    "instrument": "grant",
+    "focus": [
+      "racial justice",
+      "grassroots organizing",
+      "environmental justice"
+    ],
+    "beneficiaries": [],
+    "geography": {
+      "workCountries": [
+        "US"
+      ],
+      "applicantCountries": [],
+      "scope": "Six New England states; US subnational criteria require manual checking.",
+      "exclusions": []
+    },
+    "applicants": {
+      "types": [
+        "grassroots social-change groups"
+      ],
+      "fiscalSponsorship": "unknown",
+      "requirements": [
+        "Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+        "New/recently unfunded groups must discuss fit with staff before receiving an application.",
+        "Charitable/educational activities; IRS status or a fiscal sponsor is not mandatory."
+      ],
+      "exclusions": []
+    },
+    "award": {
+      "currency": "USD",
+      "min": null,
+      "max": 20000,
+      "durationMonths": null,
+      "basis": "current_offer",
+      "note": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules."
+    },
+    "application": {
+      "route": "unconfirmed",
+      "url": "https://www.haymarket.org/grants-1",
+      "opensOn": null,
+      "closesOn": "2026-12-02",
+      "deadlineInstant": null,
+      "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
+    },
+    "costs": {
+      "supported": [
+        "General operations",
+        "Project organizing"
+      ],
+      "excluded": []
+    },
+    "evidence": [
+      {
+        "fields": [
+          "programs.0.focus",
+          "programs.0.geography",
+          "programs.0.applicants",
+          "programs.0.award",
+          "programs.0.application",
+          "programs.0.costs"
+        ],
+        "url": "https://www.haymarket.org/grants-1",
+        "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "fields": [
+          "application",
+          "unknowns"
+        ],
+        "url": "https://www.haymarket.org/grants-1",
+        "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+        "checkedOn": "2026-11-16"
+      },
+      {
+        "fields": [
+          "name"
+        ],
+        "url": "https://www.haymarket.org/grants-1",
+        "note": "Read the grants page for the program's name: the section is headed \"Sustaining Grants\" and the page says \"The 2026-2027 Sustaining Grant deadline is Wednesday, December 2, 2026.\" No other term was reviewed in this check.",
+        "checkedOn": "2026-11-23"
+      }
+    ],
+    "unknowns": [
+      "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+      "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+      "Grant duration and complete funding criteria need confirmation."
+    ]
+  },
+  "sources": [
+    {
+      "url": "https://www.haymarket.org/grants-1",
+      "title": "Haymarket People’s Fund grants page, name check",
+      "checkedOn": "2026-11-23"
+    }
+  ],
+  "screening": {
+    "conditions": [],
+    "rules": []
+  },
+  "beforeProgram": {
+    "id": "sustaining-grants2026-27",
+    "name": "Sustaining Grants2026–27",
+    "instrument": "grant",
+    "focus": [
+      "racial justice",
+      "grassroots organizing",
+      "environmental justice"
+    ],
+    "beneficiaries": [],
+    "geography": {
+      "workCountries": [
+        "US"
+      ],
+      "applicantCountries": [],
+      "scope": "Six New England states; US subnational criteria require manual checking.",
+      "exclusions": []
+    },
+    "applicants": {
+      "types": [
+        "grassroots social-change groups"
+      ],
+      "fiscalSponsorship": "unknown",
+      "requirements": [
+        "Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+        "New/recently unfunded groups must discuss fit with staff before receiving an application.",
+        "Charitable/educational activities; IRS status or a fiscal sponsor is not mandatory."
+      ],
+      "exclusions": []
+    },
+    "award": {
+      "currency": "USD",
+      "min": null,
+      "max": 20000,
+      "durationMonths": null,
+      "basis": "current_offer",
+      "note": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules."
+    },
+    "application": {
+      "route": "unconfirmed",
+      "url": "https://www.haymarket.org/grants-1",
+      "opensOn": null,
+      "closesOn": "2026-12-02",
+      "deadlineInstant": null,
+      "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
+    },
+    "costs": {
+      "supported": [
+        "General operations",
+        "Project organizing"
+      ],
+      "excluded": []
+    },
+    "evidence": [
+      {
+        "fields": [
+          "programs.0.focus",
+          "programs.0.geography",
+          "programs.0.applicants",
+          "programs.0.award",
+          "programs.0.application",
+          "programs.0.costs"
+        ],
+        "url": "https://www.haymarket.org/grants-1",
+        "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "fields": [
+          "application",
+          "unknowns"
+        ],
+        "url": "https://www.haymarket.org/grants-1",
+        "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+        "checkedOn": "2026-11-16"
+      }
+    ],
+    "unknowns": [
+      "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+      "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+      "Grant duration and complete funding criteria need confirmation."
+    ]
+  },
+  "priorFundRecord": {
+    "id": "recTQMgGnvmEseTmT",
+    "name": "Haymarket People’s Fund",
+    "displayName": "Haymarket People’s Fund",
+    "program": "Sustaining Grants2026–27",
+    "description": "Supports grassroots organizing for racial, social, economic and environmental justice in New England through participatory grantmaking.",
+    "descriptionBasis": "primary",
+    "sectors": [],
+    "regions": [],
+    "approaches": [],
+    "grantBands": [],
+    "website": "https://www.haymarket.org/",
+    "evidenceUrl": "https://www.haymarket.org/",
+    "additionalSources": [
+      "https://www.haymarket.org/grants-1",
+      "https://www.haymarket.org/grants-1"
+    ],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "unconfirmed",
+    "accessDetail": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed.",
+    "amount": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules.",
+    "timing": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed.",
+    "deadlineDate": "2026-12-02",
+    "deadlineInstant": null,
+    "verifiedOn": "2026-10-15",
+    "qualityFlags": [
+      "Website blank",
+      "Application information blank",
+      "Sparse record"
+    ],
+    "fieldsFilled": 1,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recTQMgGnvmEseTmT",
+      "researchedOn": "2026-10-15",
+      "name": "Haymarket People’s Fund",
+      "summary": "Supports grassroots organizing for racial, social, economic and environmental justice in New England through participatory grantmaking.",
+      "themes": [],
+      "regions": [],
+      "focus": [
+        "racial justice",
+        "grassroots organizing",
+        "environmental justice"
+      ],
+      "reviewStatus": "program_reviewed",
+      "programs": [
+        {
+          "id": "sustaining-grants2026-27",
+          "name": "Sustaining Grants2026–27",
+          "instrument": "grant",
+          "focus": [
+            "racial justice",
+            "grassroots organizing",
+            "environmental justice"
+          ],
+          "beneficiaries": [],
+          "geography": {
+            "workCountries": [
+              "US"
+            ],
+            "applicantCountries": [],
+            "scope": "Six New England states; US subnational criteria require manual checking.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "grassroots social-change groups"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+              "New/recently unfunded groups must discuss fit with staff before receiving an application.",
+              "Charitable/educational activities; IRS status or a fiscal sponsor is not mandatory."
+            ],
+            "exclusions": []
+          },
+          "award": {
+            "currency": "USD",
+            "min": null,
+            "max": 20000,
+            "durationMonths": null,
+            "basis": "current_offer",
+            "note": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules."
+          },
+          "application": {
+            "route": "unconfirmed",
+            "url": "https://www.haymarket.org/grants-1",
+            "opensOn": null,
+            "closesOn": "2026-12-02",
+            "deadlineInstant": null,
+            "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
+          },
+          "costs": {
+            "supported": [
+              "General operations",
+              "Project organizing"
+            ],
+            "excluded": []
+          },
+          "evidence": [
+            {
+              "fields": [
+                "programs.0.focus",
+                "programs.0.geography",
+                "programs.0.applicants",
+                "programs.0.award",
+                "programs.0.application",
+                "programs.0.costs"
+              ],
+              "url": "https://www.haymarket.org/grants-1",
+              "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "fields": [
+                "application",
+                "unknowns"
+              ],
+              "url": "https://www.haymarket.org/grants-1",
+              "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+              "checkedOn": "2026-11-16"
+            }
+          ],
+          "unknowns": [
+            "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+            "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+            "Grant duration and complete funding criteria need confirmation."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.haymarket.org/",
+          "title": "Home | Haymarket 2024",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Sustaining Grants 2026–27 — official program guidance",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
+          "checkedOn": "2026-11-16"
+        }
+      ],
+      "evidence": [
+        {
+          "fields": [
+            "summary",
+            "focus"
+          ],
+          "url": "https://www.haymarket.org/",
+          "note": "Supports grassroots organizing for racial, social, economic and environmental justice in New England through participatory grantmaking.",
+          "checkedOn": "2026-10-15"
+        }
+      ],
+      "researchNotes": "2025–26 sustaining-cycle deadline has passed. Urgent Response grants follow a separate staff-contact process and funding availability. Policy follow-up: Read the complete grants page and urgent-response restrictions. Added the Sustaining ceiling, geographic scope, tax-status flexibility and required introductory contact. Marked intake unconfirmed because the site’s past-tense deadline conflicts with its future calendar date."
+    },
+    "sourceWarnings": [],
+    "isPilot": false,
+    "displayProgramId": "sustaining-grants2026-27",
+    "followUp": {
+      "checkedOn": "2026-10-15",
+      "sourceRecordId": "recTQMgGnvmEseTmT",
+      "previousStatus": "source_reviewed",
+      "outcome": "program_terms_added",
+      "sources": [
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Sustaining Grants 2026–27 — official program guidance",
+          "outcome": "policy"
+        }
+      ],
+      "notes": "Read the complete grants page and urgent-response restrictions. Added the Sustaining ceiling, geographic scope, tax-status flexibility and required introductory contact. Marked intake unconfirmed because the site’s past-tense deadline conflicts with its future calendar date.",
+      "remainingGaps": [
+        "eligibility",
+        "deadline"
+      ]
+    }
+  },
+  "retainedSources": [
+    {
+      "url": "https://www.haymarket.org/",
+      "title": "Home | Haymarket 2024",
+      "checkedOn": "2026-10-15"
+    },
+    {
+      "url": "https://www.haymarket.org/grants-1",
+      "title": "Sustaining Grants 2026–27 — official program guidance",
+      "checkedOn": "2026-10-15"
+    },
+    {
+      "url": "https://www.haymarket.org/grants-1",
+      "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
+      "checkedOn": "2026-11-16"
+    },
+    {
+      "url": "https://www.haymarket.org/grants-1",
+      "title": "Haymarket People’s Fund grants page, name check",
+      "checkedOn": "2026-11-23"
+    }
+  ],
+  "changedFields": [
+    "name",
+    "evidence"
+  ],
+  "changedPaths": [
+    "name"
+  ],
+  "edits": [
+    {
+      "path": "research/expanded-1.json",
+      "keys": [
+        80,
+        "programs",
+        0
+      ],
+      "before": {
+        "id": "sustaining-grants2026-27",
+        "name": "Sustaining Grants2026–27",
+        "instrument": "grant",
+        "focus": [
+          "racial justice",
+          "grassroots organizing",
+          "environmental justice"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [
+            "US"
+          ],
+          "applicantCountries": [],
+          "scope": "Six New England states; US subnational criteria require manual checking.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "grassroots social-change groups"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+            "New/recently unfunded groups must discuss fit with staff before receiving an application.",
+            "Charitable/educational activities; IRS status or a fiscal sponsor is not mandatory."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": "USD",
+          "min": null,
+          "max": 20000,
+          "durationMonths": null,
+          "basis": "current_offer",
+          "note": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules."
+        },
+        "application": {
+          "route": "unconfirmed",
+          "url": "https://www.haymarket.org/grants-1",
+          "opensOn": null,
+          "closesOn": "2026-12-02",
+          "deadlineInstant": null,
+          "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
+        },
+        "costs": {
+          "supported": [
+            "General operations",
+            "Project organizing"
+          ],
+          "excluded": []
+        },
+        "evidence": [
+          {
+            "fields": [
+              "programs.0.focus",
+              "programs.0.geography",
+              "programs.0.applicants",
+              "programs.0.award",
+              "programs.0.application",
+              "programs.0.costs"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+            "checkedOn": "2026-10-15"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+            "checkedOn": "2026-11-16"
+          }
+        ],
+        "unknowns": [
+          "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+          "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+          "Grant duration and complete funding criteria need confirmation."
+        ]
+      },
+      "after": {
+        "id": "sustaining-grants2026-27",
+        "name": "Sustaining Grants 2026–27",
+        "instrument": "grant",
+        "focus": [
+          "racial justice",
+          "grassroots organizing",
+          "environmental justice"
+        ],
+        "beneficiaries": [],
+        "geography": {
+          "workCountries": [
+            "US"
+          ],
+          "applicantCountries": [],
+          "scope": "Six New England states; US subnational criteria require manual checking.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "grassroots social-change groups"
+          ],
+          "fiscalSponsorship": "unknown",
+          "requirements": [
+            "Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+            "New/recently unfunded groups must discuss fit with staff before receiving an application.",
+            "Charitable/educational activities; IRS status or a fiscal sponsor is not mandatory."
+          ],
+          "exclusions": []
+        },
+        "award": {
+          "currency": "USD",
+          "min": null,
+          "max": 20000,
+          "durationMonths": null,
+          "basis": "current_offer",
+          "note": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules."
+        },
+        "application": {
+          "route": "unconfirmed",
+          "url": "https://www.haymarket.org/grants-1",
+          "opensOn": null,
+          "closesOn": "2026-12-02",
+          "deadlineInstant": null,
+          "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
+        },
+        "costs": {
+          "supported": [
+            "General operations",
+            "Project organizing"
+          ],
+          "excluded": []
+        },
+        "evidence": [
+          {
+            "fields": [
+              "programs.0.focus",
+              "programs.0.geography",
+              "programs.0.applicants",
+              "programs.0.award",
+              "programs.0.application",
+              "programs.0.costs"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+            "checkedOn": "2026-10-15"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+            "checkedOn": "2026-11-16"
+          },
+          {
+            "fields": [
+              "name"
+            ],
+            "url": "https://www.haymarket.org/grants-1",
+            "note": "Read the grants page for the program's name: the section is headed \"Sustaining Grants\" and the page says \"The 2026-2027 Sustaining Grant deadline is Wednesday, December 2, 2026.\" No other term was reviewed in this check.",
+            "checkedOn": "2026-11-23"
+          }
+        ],
+        "unknowns": [
+          "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+          "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+          "Grant duration and complete funding criteria need confirmation."
+        ]
+      }
+    },
+    {
+      "path": "research/expanded-1.json",
+      "keys": [
+        80,
+        "sources"
+      ],
+      "before": [
+        {
+          "url": "https://www.haymarket.org/",
+          "title": "Home | Haymarket 2024",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Sustaining Grants 2026–27 — official program guidance",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
+          "checkedOn": "2026-11-16"
+        }
+      ],
+      "after": [
+        {
+          "url": "https://www.haymarket.org/",
+          "title": "Home | Haymarket 2024",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Sustaining Grants 2026–27 — official program guidance",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
+          "checkedOn": "2026-11-16"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Haymarket People’s Fund grants page, name check",
+          "checkedOn": "2026-11-23"
+        }
+      ]
+    }
+  ],
+  "beforeFileSha256": {
+    "research/expanded-1.json": "956384e02c986d8901273670bf223be1e9326c2ec872f3289c00b4491f4f1cd6"
+  },
+  "resultFundRecord": {
+    "id": "recTQMgGnvmEseTmT",
+    "name": "Haymarket People’s Fund",
+    "displayName": "Haymarket People’s Fund",
+    "program": "Sustaining Grants 2026–27",
+    "description": "Supports grassroots organizing for racial, social, economic and environmental justice in New England through participatory grantmaking.",
+    "descriptionBasis": "primary",
+    "sectors": [],
+    "regions": [],
+    "approaches": [],
+    "grantBands": [],
+    "website": "https://www.haymarket.org/",
+    "evidenceUrl": "https://www.haymarket.org/",
+    "additionalSources": [
+      "https://www.haymarket.org/grants-1",
+      "https://www.haymarket.org/grants-1",
+      "https://www.haymarket.org/grants-1"
+    ],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "unconfirmed",
+    "accessDetail": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed.",
+    "amount": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules.",
+    "timing": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed.",
+    "deadlineDate": "2026-12-02",
+    "deadlineInstant": null,
+    "verifiedOn": "2026-10-15",
+    "qualityFlags": [
+      "Website blank",
+      "Application information blank",
+      "Sparse record"
+    ],
+    "fieldsFilled": 1,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recTQMgGnvmEseTmT",
+      "researchedOn": "2026-10-15",
+      "name": "Haymarket People’s Fund",
+      "summary": "Supports grassroots organizing for racial, social, economic and environmental justice in New England through participatory grantmaking.",
+      "themes": [],
+      "regions": [],
+      "focus": [
+        "racial justice",
+        "grassroots organizing",
+        "environmental justice"
+      ],
+      "reviewStatus": "program_reviewed",
+      "programs": [
+        {
+          "id": "sustaining-grants2026-27",
+          "name": "Sustaining Grants 2026–27",
+          "instrument": "grant",
+          "focus": [
+            "racial justice",
+            "grassroots organizing",
+            "environmental justice"
+          ],
+          "beneficiaries": [],
+          "geography": {
+            "workCountries": [
+              "US"
+            ],
+            "applicantCountries": [],
+            "scope": "Six New England states; US subnational criteria require manual checking.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "grassroots social-change groups"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+              "New/recently unfunded groups must discuss fit with staff before receiving an application.",
+              "Charitable/educational activities; IRS status or a fiscal sponsor is not mandatory."
+            ],
+            "exclusions": []
+          },
+          "award": {
+            "currency": "USD",
+            "min": null,
+            "max": 20000,
+            "durationMonths": null,
+            "basis": "current_offer",
+            "note": "Sustaining Grants ceiling; separate Urgent Response grants up toUS$5,000 have different crisis/budget rules."
+          },
+          "application": {
+            "route": "unconfirmed",
+            "url": "https://www.haymarket.org/grants-1",
+            "opensOn": null,
+            "closesOn": "2026-12-02",
+            "deadlineInstant": null,
+            "note": "Page says the 2026–27 Sustaining Grant deadline is December 2, 2026 and application requests are considered until November 30, 2026. It still says groups funded in the past three years will be emailed an application package in October 2025, which conflicts with this cycle, so live access stays unconfirmed."
+          },
+          "costs": {
+            "supported": [
+              "General operations",
+              "Project organizing"
+            ],
+            "excluded": []
+          },
+          "evidence": [
+            {
+              "fields": [
+                "programs.0.focus",
+                "programs.0.geography",
+                "programs.0.applicants",
+                "programs.0.award",
+                "programs.0.application",
+                "programs.0.costs"
+              ],
+              "url": "https://www.haymarket.org/grants-1",
+              "note": "Reviewed Sustaining Grants 2026–27: Page lists December 2, 2026 deadline and November 30 new-applicant contact cutoff, yet uses past tense “was”; confirm live access because wording conflicts with the research date. Organizing in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island or Vermont.",
+              "checkedOn": "2026-10-15"
+            },
+            {
+              "fields": [
+                "application",
+                "unknowns"
+              ],
+              "url": "https://www.haymarket.org/grants-1",
+              "note": "Rechecked Sustaining Grants 2026–27: the deadline is stated in the present tense, December 2, 2026, and application requests are considered until November 30, 2026. The page still refers to an October 2025 application package and to the 2024–2025 Grant Cycle for Urgent Response grants.",
+              "checkedOn": "2026-11-16"
+            },
+            {
+              "fields": [
+                "name"
+              ],
+              "url": "https://www.haymarket.org/grants-1",
+              "note": "Read the grants page for the program's name: the section is headed \"Sustaining Grants\" and the page says \"The 2026-2027 Sustaining Grant deadline is Wednesday, December 2, 2026.\" No other term was reviewed in this check.",
+              "checkedOn": "2026-11-23"
+            }
+          ],
+          "unknowns": [
+            "The page still says groups funded in the past three years will be emailed an application package in October 2025; it does not say whether or when the 2026–27 package was sent.",
+            "The Urgent Response section still refers to the 2024–2025 Grant Cycle, so the page mixes cycle years.",
+            "Grant duration and complete funding criteria need confirmation."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.haymarket.org/",
+          "title": "Home | Haymarket 2024",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Sustaining Grants 2026–27 — official program guidance",
+          "checkedOn": "2026-10-15"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Grants: 2026–27 Sustaining Grant deadline and application requests",
+          "checkedOn": "2026-11-16"
+        },
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Haymarket People’s Fund grants page, name check",
+          "checkedOn": "2026-11-23"
+        }
+      ],
+      "evidence": [
+        {
+          "fields": [
+            "summary",
+            "focus"
+          ],
+          "url": "https://www.haymarket.org/",
+          "note": "Supports grassroots organizing for racial, social, economic and environmental justice in New England through participatory grantmaking.",
+          "checkedOn": "2026-10-15"
+        }
+      ],
+      "researchNotes": "2025–26 sustaining-cycle deadline has passed. Urgent Response grants follow a separate staff-contact process and funding availability. Policy follow-up: Read the complete grants page and urgent-response restrictions. Added the Sustaining ceiling, geographic scope, tax-status flexibility and required introductory contact. Marked intake unconfirmed because the site’s past-tense deadline conflicts with its future calendar date."
+    },
+    "sourceWarnings": [],
+    "isPilot": false,
+    "displayProgramId": "sustaining-grants2026-27",
+    "followUp": {
+      "checkedOn": "2026-10-15",
+      "sourceRecordId": "recTQMgGnvmEseTmT",
+      "previousStatus": "source_reviewed",
+      "outcome": "program_terms_added",
+      "sources": [
+        {
+          "url": "https://www.haymarket.org/grants-1",
+          "title": "Sustaining Grants 2026–27 — official program guidance",
+          "outcome": "policy"
+        }
+      ],
+      "notes": "Read the complete grants page and urgent-response restrictions. Added the Sustaining ceiling, geographic scope, tax-status flexibility and required introductory contact. Marked intake unconfirmed because the site’s past-tense deadline conflicts with its future calendar date.",
+      "remainingGaps": [
+        "eligibility",
+        "deadline"
+      ]
+    }
+  }
+}

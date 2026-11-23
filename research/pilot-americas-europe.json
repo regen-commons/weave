@@ -114,7 +114,7 @@
     "programs": [
       {
         "id": "acento-fondo-raiz-2026",
-        "name": "Fondo Raíz — 2026 pilot",
+        "name": "Fondo Raíz: 2026 pilot",
         "instrument": "grant",
         "focus": [
           "local social justice movements",
@@ -232,7 +232,7 @@
     "programs": [
       {
         "id": "calala-radix-call-2-2026",
-        "name": "Fondo Radix — second call 2026",
+        "name": "Fondo Radix: second call 2026",
         "instrument": "grant",
         "focus": [
           "feminist organizing",
@@ -576,7 +576,7 @@
     "programs": [
       {
         "id": "wff-sustainability-2026",
-        "name": "Sustainability Grants — 2026 cycle",
+        "name": "Sustainability Grants: 2026 cycle",
         "instrument": "grant",
         "focus": [
           "gender equality",
@@ -1058,7 +1058,7 @@
           "opensOn": null,
           "closesOn": null,
           "deadlineInstant": null,
-          "note": "Page says now closed and normally accepts twice yearly; no next deadline confirmed."
+          "note": "Not accepting new applications. No new competitions for this program between January and June 2027; future schedules are expected in June 2027, which is not a dated reopening. The general page text still says applications are accepted twice a year."
         },
         "costs": {
           "supported": [
@@ -1086,10 +1086,19 @@
             "url": "https://www.spencer.org/grant_types/small-research-grant/",
             "note": "Guidance specifies international research eligibility, doctoral leadership, institutional administration, award/supplement, exclusions and closed status.",
             "checkedOn": "2026-10-14"
+          },
+          {
+            "fields": [
+              "application",
+              "unknowns"
+            ],
+            "url": "https://www.spencer.org/grant_types/small-research-grant/",
+            "note": "Program update: now closed; no new competitions January to June 2027; refreshed approach and schedules expected June 2027.",
+            "checkedOn": "2026-11-15"
           }
         ],
         "unknowns": [
-          "Next application date",
+          "Next application date: future schedules are expected in June 2027.",
           "Fiscal sponsor arrangements beyond administering-institution requirement"
         ]
       }
@@ -1099,6 +1108,11 @@
         "url": "https://www.spencer.org/grant_types/small-research-grant/",
         "title": "Small Research Grants on Education",
         "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.spencer.org/grant_types/small-research-grant/",
+        "title": "Small Research Grants on Education: 2027 program update",
+        "checkedOn": "2026-11-15"
       }
     ],
     "researchNotes": "Pilot covers this program only; other funder programs may differ."
@@ -1362,7 +1376,7 @@
     "programs": [
       {
         "id": "red-umbrella-core-2026",
-        "name": "Core Grants — 2026 call",
+        "name": "Core Grants: 2026 call",
         "instrument": "grant",
         "focus": [
           "sex workers’ rights",
@@ -1489,7 +1503,7 @@
     "programs": [
       {
         "id": "rwjf-msi-research-capacity-2026",
-        "name": "Seeding Research, Networking, and Capacity Building at Minority-Serving Institutions — 2026",
+        "name": "Seeding Research, Networking, and Capacity Building at Minority-Serving Institutions: 2026",
         "instrument": "grant",
         "focus": [
           "health equity research",
@@ -1725,7 +1739,7 @@
     "programs": [
       {
         "id": "gulbenkian-humanity-prize-2026",
-        "name": "Gulbenkian Prize for Humanity — 2026",
+        "name": "Gulbenkian Prize for Humanity: 2026",
         "instrument": "prize",
         "focus": [
           "climate action",

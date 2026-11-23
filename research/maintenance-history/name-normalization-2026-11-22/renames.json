@@ -1,0 +1,2096 @@
+{
+  "version": 1,
+  "id": "name-normalization-2026-11-22",
+  "appliedOn": "2026-11-22",
+  "rule": ".claude/skills/catalog-research/verification-standard.md#program-names",
+  "method": "Each rename replaces the name value of one program, found by funder and program id, in the listed input file; the two funder renames replace every string equal to the old name in research/supplemental-funders.json. Ids are unchanged. Setting each value back restores the earlier files byte for byte, which tests/helpers/name-normalization-2026-11-22.mjs does for the historical audits.",
+  "programs": [
+    {
+      "path": "research/pilot-africa-asia.json",
+      "fundId": "rec0vsf0SAH62AhbO",
+      "programId": "awdf-inua-2025",
+      "before": "Inua Grants — 2025 cycle",
+      "after": "Inua Grants: 2025 cycle"
+    },
+    {
+      "path": "research/pilot-africa-asia.json",
+      "fundId": "recFpK7qVHetGUWhU",
+      "programId": "akf-juntos-mozambique",
+      "before": "JUNTOS! Mozambique — community innovation grants",
+      "after": "JUNTOS! Mozambique: community innovation grants"
+    },
+    {
+      "path": "research/pilot-africa-asia.json",
+      "fundId": "rec5HkWMAyGk3tsQw",
+      "programId": "xoese-cycle-5",
+      "before": "Fifth grant cycle — 2022 call",
+      "after": "Fifth grant cycle: 2022 call"
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "fundId": "rec0y2s5zy4X70JtJ",
+      "programId": "acento-fondo-raiz-2026",
+      "before": "Fondo Raíz — 2026 pilot",
+      "after": "Fondo Raíz: 2026 pilot"
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "fundId": "rec1oGozP3IFZCnEP",
+      "programId": "calala-radix-call-2-2026",
+      "before": "Fondo Radix — second call 2026",
+      "after": "Fondo Radix: second call 2026"
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "fundId": "recOUk0NdykPghost",
+      "programId": "wff-sustainability-2026",
+      "before": "Sustainability Grants — 2026 cycle",
+      "after": "Sustainability Grants: 2026 cycle"
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "fundId": "recxJkRCEYB5QkEQ5",
+      "programId": "red-umbrella-core-2026",
+      "before": "Core Grants — 2026 call",
+      "after": "Core Grants: 2026 call"
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "fundId": "recFLzbBT3g2KKbee",
+      "programId": "rwjf-msi-research-capacity-2026",
+      "before": "Seeding Research, Networking, and Capacity Building at Minority-Serving Institutions — 2026",
+      "after": "Seeding Research, Networking, and Capacity Building at Minority-Serving Institutions: 2026"
+    },
+    {
+      "path": "research/pilot-americas-europe.json",
+      "fundId": "recDvQXMuF1bQoAwg",
+      "programId": "gulbenkian-humanity-prize-2026",
+      "before": "Gulbenkian Prize for Humanity — 2026",
+      "after": "Gulbenkian Prize for Humanity: 2026"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recjfhUtdzz9K1BIj",
+      "programId": "mission-possible-2022-cycle",
+      "before": "Mission: Possible —2022 cycle",
+      "after": "Mission: Possible, 2022 cycle"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "rec8s51eDugwS5OMe",
+      "programId": "tejiendo-caminos-para-la-vida2024-network-alliance-option",
+      "before": "Tejiendo caminos para la vida 2024 —network/alliance option",
+      "after": "Tejiendo caminos para la vida 2024: network/alliance option"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recfQwwYTLNMOifbp",
+      "programId": "peer-to-peer-travel-grants-ninth-public-call2026",
+      "before": "Peer-to-Peer Travel Grants — ninth public call 2026",
+      "after": "Peer-to-Peer Travel Grants: ninth public call 2026"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recZ7TWKoGKBHxQj9",
+      "programId": "epsrc-standard-research-grant-responsive-mode",
+      "before": "EPSRC Standard Research Grant —responsive mode",
+      "after": "EPSRC Standard Research Grant: responsive mode"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recVwPnKWPji9B5EE",
+      "programId": "pogotowie-feministyczne-urgent-feminist-grants",
+      "before": "Pogotowie Feministyczne —urgent feminist grants",
+      "after": "Pogotowie Feministyczne: urgent feminist grants"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "rec4bFOIjbz5MgTDa",
+      "programId": "rise-feminist-grants-in-germany",
+      "before": "RISE — feminist grants in Germany",
+      "after": "RISE: feminist grants in Germany"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recTAX9Z1Xp9oo274",
+      "programId": "solidarity-fund-2026-intake",
+      "before": "Solidarity Fund —2026 intake",
+      "after": "Solidarity Fund: 2026 intake"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recUDRnAtIoFfjJXl",
+      "programId": "fund-for-shared-insight-archive",
+      "before": "Fund for Shared Insight — archive",
+      "after": "Fund for Shared Insight: archive"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "reckDQNvE1b8YWAhe",
+      "programId": "siestudio-historical-tuition-finance",
+      "before": "SíEstudio tuition finance — published 2023 cycle",
+      "after": "SíEstudio tuition finance: published 2023 cycle"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recKZhrajN6s5GjOs",
+      "programId": "fho-collaborative-grantmaking-2018",
+      "before": "FHO collaborative grantmaking — 2018 access policy",
+      "after": "FHO collaborative grantmaking: 2018 access policy"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recjYEFuNiQ7m9TcP",
+      "programId": "creation-community-grants-2026-streams",
+      "before": "Creation Community Grants —2026 streams",
+      "after": "Creation Community Grants: 2026 streams"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recbSiWF7Vc0octx4",
+      "programId": "sharelab-prevention-2018",
+      "before": "ShareLab Fund — 2018 prevention call",
+      "after": "ShareLab Fund: 2018 prevention call"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "rectDLlkmWbjtTWPY",
+      "programId": "humanitas360-us-grant-policy-2024",
+      "before": "Humanitas360 Institute — FY2024 US grant policy",
+      "after": "Humanitas360 Institute: FY2024 US grant policy"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "rec7HniiPMgAE26b4",
+      "programId": "grassroots-grantmaking-model-2022",
+      "before": "Grassroots grantmaking model — published January 2022",
+      "after": "Grassroots grantmaking model: published January 2022"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recOExYwWRXF9whgo",
+      "programId": "research-grant-program-institutional-track",
+      "before": "Research Grant Program — institutional track",
+      "after": "Research Grant Program: institutional track"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recNsdVZZQsMb1heO",
+      "programId": "gate-existing-transatlantic-vocational-school-partnerships",
+      "before": "GATE —existing transatlantic vocational-school partnerships",
+      "after": "GATE: existing transatlantic vocational-school partnerships"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "rec3mpT8ju7FliY7E",
+      "programId": "annual-challenge-2022",
+      "before": "Annual Challenge 2022 — formerly AdvancingCities",
+      "after": "Annual Challenge 2022: formerly AdvancingCities"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recGbteXNWzGQp5eT",
+      "programId": "belgian-heart-fund2026-multicentre-randomised-clinical-trials",
+      "before": "Belgian Heart Fund 2026 —multicentre randomised clinical trials",
+      "after": "Belgian Heart Fund 2026: multicentre randomised clinical trials"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recgRsCtVcoJ3Of7h",
+      "programId": "charity-pot-english-language2026-guidelines",
+      "before": "Charity Pot — English-language 2026 guidelines",
+      "after": "Charity Pot: English-language 2026 guidelines"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recQ54kHFwgrKXARr",
+      "programId": "resilient-futures2026-ideation-grants",
+      "before": "Resilient Futures 2026 — Ideation Grants",
+      "after": "Resilient Futures 2026: Ideation Grants"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recbjZ6tq5NKxHXgX",
+      "programId": "preselected-charitable-grants-2024",
+      "before": "Preselected charitable grants — FY2024 filed policy",
+      "after": "Preselected charitable grants: FY2024 filed policy"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recgIrQmPUweFACza",
+      "programId": "with-and-for-girls-fund-published2018-2022-model",
+      "before": "With and For Girls Fund —published 2018–2022 model",
+      "after": "With and For Girls Fund: published 2018–2022 model"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recpXeZbCDN9XFMid",
+      "programId": "preselected-charitable-contributions-2024",
+      "before": "Preselected charitable contributions — FY2024 filed policy",
+      "after": "Preselected charitable contributions: FY2024 filed policy"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "reclYfoGjYuF1YXqF",
+      "programId": "stul-statutory-item2-distributions",
+      "before": "Stul distributions — statutory Item 2 recipient baseline",
+      "after": "Stul distributions: statutory Item 2 recipient baseline"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recBb6ZlGZ2h3zUiM",
+      "programId": "gender-mainstreaming-in-recovery-analytical-research-2026",
+      "before": "Gender Mainstreaming in Recovery — Analytical Research 2026",
+      "after": "Gender Mainstreaming in Recovery: Analytical Research 2026"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recKwMngX9BIYzaPl",
+      "programId": "global-movements-partner-travel-support-2023",
+      "before": "Global Movements partner travel support — published 2023 policy",
+      "after": "Global Movements partner travel support: published 2023 policy"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "rec3S8Tc5hTOOXWRY",
+      "programId": "grants-for-girls-ready-to-bring-about-change-2024",
+      "before": "Grants for Girls Ready to Bring About Change —2024",
+      "after": "Grants for Girls Ready to Bring About Change: 2024"
+    },
+    {
+      "path": "research/expanded-0.json",
+      "fundId": "recnfO3RkjQc3ZSCN",
+      "programId": "hg-relief-project-partner-assistance",
+      "before": "HG Relief Project — partner-administered patient assistance",
+      "after": "HG Relief Project: partner-administered patient assistance"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recARZwlX7o6zaou1",
+      "programId": "disability-justice-fund-for-women-small-grants",
+      "before": "Disability Justice Fund for Women — Small Grants",
+      "after": "Disability Justice Fund for Women: Small Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recARZwlX7o6zaou1",
+      "programId": "disability-justice-fund-for-women-large-grants",
+      "before": "Disability Justice Fund for Women — Large Grants",
+      "after": "Disability Justice Fund for Women: Large Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recZKp7be3871eN8O",
+      "programId": "advanced-fellowship-2024-programme-leadership-cycle",
+      "before": "AdvancED Fellowship — 2024 programme leadership cycle",
+      "after": "AdvancED Fellowship: 2024 programme leadership cycle"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recz76e8ztw4zbR1M",
+      "programId": "impact-malunga-2026-institutional-strengthening",
+      "before": "Impactô Malunga — 2026 institutional strengthening",
+      "after": "Impactô Malunga: 2026 institutional strengthening"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recHCa40qAYJmSO8W",
+      "programId": "df-boi-msme-loan-2023-policy",
+      "before": "DF–BOI MSME Fund — 2023 loan policy",
+      "after": "DF–BOI MSME Fund: 2023 loan policy"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recAHSAEltnDtrOEW",
+      "programId": "resilient-futures2026-ideation-grants",
+      "before": "Resilient Futures2026 — Ideation Grants",
+      "after": "Resilient Futures2026: Ideation Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recAHSAEltnDtrOEW",
+      "programId": "resilient-futures2026-incubation-grants",
+      "before": "Resilient Futures2026 — Incubation Grants",
+      "after": "Resilient Futures2026: Incubation Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recxZYVJPOdM3UwU2",
+      "programId": "intersex-human-rights-fund-archived-policy",
+      "before": "Intersex Human Rights Fund — archived policy",
+      "after": "Intersex Human Rights Fund: archived policy"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwTWZ68fvzg0U8S",
+      "programId": "ayni2026-small-grants",
+      "before": "AYNI2026 — Small Grants",
+      "after": "AYNI2026: Small Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwTWZ68fvzg0U8S",
+      "programId": "ayni2026-medium-grants",
+      "before": "AYNI2026 — Medium Grants",
+      "after": "AYNI2026: Medium Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recq4bLMEKU9SmZpk",
+      "programId": "grantmaking-applicant-disclosure-2024-filing",
+      "before": "Grantmaking applicant disclosure — 2024 filing",
+      "after": "Grantmaking applicant disclosure: 2024 filing"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recdHjcFXirt4pSTZ",
+      "programId": "education-partnerships-current-funding-access",
+      "before": "Education partnerships — current funding access",
+      "after": "Education partnerships: current funding access"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recW0qENgVtZUExIs",
+      "programId": "fy27-youth-environmental-education-track1",
+      "before": "FY27 Youth Environmental Education — Track1",
+      "after": "FY27 Youth Environmental Education: Track1"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recW0qENgVtZUExIs",
+      "programId": "fy27-youth-environmental-education-track2",
+      "before": "FY27 Youth Environmental Education — Track2",
+      "after": "FY27 Youth Environmental Education: Track2"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recW0qENgVtZUExIs",
+      "programId": "fy27-youth-environmental-education-track3",
+      "before": "FY27 Youth Environmental Education — Track3",
+      "after": "FY27 Youth Environmental Education: Track3"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recW0qENgVtZUExIs",
+      "programId": "fy27-youth-environmental-education-track4",
+      "before": "FY27 Youth Environmental Education — Track4",
+      "after": "FY27 Youth Environmental Education: Track4"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec5mSbOsSqIQZUGM",
+      "programId": "community-action-fund-published-earlier-round",
+      "before": "Community Action Fund — published earlier round",
+      "after": "Community Action Fund: published earlier round"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recRJaVyfhjQxpWE8",
+      "programId": "black-carbon-research-gaps-2024-eoi",
+      "before": "Black carbon research gaps —2024 EOI",
+      "after": "Black carbon research gaps: 2024 EOI"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recRkK6BPYYaqg1zk",
+      "programId": "i2z-sie-morocco-des-2022",
+      "before": "CECG-backed I2Z/SIE Morocco clean-energy demonstration — 2022",
+      "after": "CECG-backed I2Z/SIE Morocco clean-energy demonstration: 2022"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recM69Qg1wcBAqxjm",
+      "programId": "cjsf-nvf-administered-support-2022",
+      "before": "CJSF support — historical NVF-administered grant procedures",
+      "after": "CJSF support: historical NVF-administered grant procedures"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec6nx0i8gFRmDwwi",
+      "programId": "democracy-at-work-fund-2025-call",
+      "before": "Democracy at Work Fund —2025 call",
+      "after": "Democracy at Work Fund: 2025 call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec8bd5zrl7m9ybig",
+      "programId": "ddi-sub-saharanafrica-fund-cohort2-tier1",
+      "before": "DDI Sub-Saharan Africa Fund — Cohort 2 Tier 1",
+      "after": "DDI Sub-Saharan Africa Fund: Cohort 2 Tier 1"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec8bd5zrl7m9ybig",
+      "programId": "ddi-sub-saharanafrica-fund-cohort2-tier2",
+      "before": "DDI Sub-Saharan Africa Fund — Cohort 2 Tier 2",
+      "after": "DDI Sub-Saharan Africa Fund: Cohort 2 Tier 2"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recHPHuPLuH6Stpfp",
+      "programId": "companion-fund-2024-25-closed-programme",
+      "before": "Companion Fund — 2024–25 closed programme",
+      "after": "Companion Fund: 2024–25 programme"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recFjSezAxn56QQwU",
+      "programId": "fpcc-administered-cultural-programmes-referral",
+      "before": "Foundation-backed cultural programmes — Council-administered referral",
+      "after": "Foundation-backed cultural programmes: Council-administered referral"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recseP4TxJPB55Q7Q",
+      "programId": "uk-foundation-grantmaking-policy-2023",
+      "before": "Fondation CHANEL UK — 2023 grantmaking policy",
+      "after": "Fondation CHANEL UK: 2023 grantmaking policy"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec2MVN4Je5LrrDAa",
+      "programId": "actions-urgentes-2022-policy",
+      "before": "Actions Urgentes — 2022 published policy",
+      "after": "Actions Urgentes: 2022 published policy"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recmwR7BcJVVFp7r8",
+      "programId": "democracy-at-work-fund-consortium2025-call",
+      "before": "Democracy at Work Fund — consortium2025 call",
+      "after": "Democracy at Work Fund: consortium2025 call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recIHYWXmBakUeMjs",
+      "programId": "survivor-leadership-fund-nepal2026",
+      "before": "Survivor Leadership Fund — Nepal2026",
+      "after": "Survivor Leadership Fund: Nepal2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recqHYivhVD9D2l76",
+      "programId": "educationintegral-in-lower-secondary-schools-2025-call",
+      "before": "Integral education in lower-secondary schools — 2025 call",
+      "after": "Integral education in lower-secondary schools: 2025 call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recOXHELOLzKeWy1h",
+      "programId": "benitomass-scholarship-2026-annual-award",
+      "before": "Benito Massó scholarship — 2026 annual award",
+      "after": "Benito Massó scholarship: 2026 annual award"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recqu9yc9tuVE50uR",
+      "programId": "educationoutloud-civil-society-advocacy-grants",
+      "before": "Education Out Loud — civil-society advocacy grants",
+      "after": "Education Out Loud: civil-society advocacy grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec5BEuZjgcUrxqXF",
+      "programId": "balkans-unrestricted-grants-ended-2022",
+      "before": "Balkans unrestricted grants — funding ended 2022",
+      "after": "Balkans unrestricted grants: funding ended 2022"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recOe21OyTPeJYd9y",
+      "programId": "hua-lobbying-grants-2024-policy",
+      "before": "Humanity United Action — 2024 grantmaking policy",
+      "after": "Humanity United Action: 2024 grantmaking policy"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recV7EADgAIUPUwZi",
+      "programId": "pensi-beja-black-researcher-postdoctoral-fellowship-2026",
+      "before": "Pensi–Beja Black researcher postdoctoral fellowship — 2026",
+      "after": "Pensi–Beja Black researcher postdoctoral fellowship: 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recPVAEu1r0uXhmzS",
+      "programId": "bndes-periferias-fortes-norte2026-small",
+      "before": "BNDES Periferias Fortes Norte2026 — Small",
+      "after": "BNDES Periferias Fortes Norte2026: Small"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recPVAEu1r0uXhmzS",
+      "programId": "bndes-periferias-fortes-norte2026-medium",
+      "before": "BNDES Periferias Fortes Norte2026 — Medium",
+      "after": "BNDES Periferias Fortes Norte2026: Medium"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec1RNkblcRl57q0t",
+      "programId": "indigenous-womens-leadership-award-2026",
+      "before": "Indigenous Women’s Leadership Award 2026 — sport and well-being",
+      "after": "Indigenous Women’s Leadership Award 2026: sport and well-being"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recQwDLcdM4kJUZDp",
+      "programId": "9th-regional-call2026-tier1",
+      "before": "9th Regional Call2026 — Tier1",
+      "after": "9th Regional Call2026: Tier1"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recQwDLcdM4kJUZDp",
+      "programId": "9th-regional-call2026-tier2",
+      "before": "9th Regional Call2026 — Tier2",
+      "after": "9th Regional Call2026: Tier2"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recQwDLcdM4kJUZDp",
+      "programId": "9th-regional-call2026-tier3",
+      "before": "9th Regional Call2026 — Tier3",
+      "after": "9th Regional Call2026: Tier3"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwmLeZDUINrVPsx",
+      "programId": "see-change2024-medwf-call",
+      "before": "SEE CHANGE2024 — MedWF call",
+      "after": "SEE CHANGE2024: MedWF call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "reckI55X3sxYzuzeb",
+      "programId": "youth-speak-social-enterprise-pitch-2018",
+      "before": "Youth Speak Summit social-enterprise pitch-fest — 2018",
+      "after": "Youth Speak Summit social-enterprise pitch-fest: 2018"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwNYbgyirnLcv6X",
+      "programId": "creation-fund-phasei",
+      "before": "Creation Fund — PhaseI",
+      "after": "Creation Fund: PhaseI"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwNYbgyirnLcv6X",
+      "programId": "development-fund-phaseii",
+      "before": "Development Fund — PhaseII",
+      "after": "Development Fund: PhaseII"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recLkRuPZ8L193ZQS",
+      "programId": "fulbright-palix-distinguished-chairs-2016-17",
+      "before": "Fulbright Canada–Palix Distinguished Visiting Research Chairs —2016–17",
+      "after": "Fulbright Canada–Palix Distinguished Visiting Research Chairs: 2016–17"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recqVvuFd9WlduZyV",
+      "programId": "data-and-society-accelerator-2023-data-governance-cohort",
+      "before": "Data and Society Accelerator —2023 Data Governance Cohort",
+      "after": "Data and Society Accelerator: 2023 Data Governance Cohort"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recJz756lSH51oLOG",
+      "programId": "protecting-thesacred-historical2018-call",
+      "before": "Protecting the Sacred — historical 2018 call",
+      "after": "Protecting the Sacred: historical 2018 call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recpqvD8c272JI57d",
+      "programId": "rewilding-europe-land-fund",
+      "before": "Rewilding Europe — Land Fund (documented Sub3 support)",
+      "after": "Rewilding Europe: Land Fund (documented Sub3 support)"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recWFD4nISK2rVZ9k",
+      "programId": "romahealth-scholarship-final2023-24-cycle",
+      "before": "Roma Health scholarship — final 2023–24 cycle",
+      "after": "Roma Health scholarship: final 2023–24 cycle"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recSOtFxphmA2IwmG",
+      "programId": "transforming-systems-grants-influence2026",
+      "before": "Transforming Systems Grants — Influence2026",
+      "after": "Transforming Systems Grants: Influence2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recDvpyWIZWZdJx7u",
+      "programId": "grantmaking-policy-2024-own-filing",
+      "before": "Grantmaking policy — 2024 own filing",
+      "after": "Grantmaking policy: 2024 own filing"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rectpu5AusFN6GlTS",
+      "programId": "resiliencefund-forwomen-inglobalvaluechains-2026-round",
+      "before": "Resilience Fund for Women in Global Value Chains — 2026 round",
+      "after": "Resilience Fund for Women in Global Value Chains: 2026 round"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec6kmJhaMxKVs8FI",
+      "programId": "operational-core-support-historical",
+      "before": "Operational Grants / Core Support — historical WFG model",
+      "after": "Operational Grants / Core Support: historical WFG model"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recJ3S06fpUNyPy7T",
+      "programId": "federation-and-selected-charity-grantmaking-2024-policy",
+      "before": "Federation and selected-charity grantmaking — 2024 policy",
+      "after": "Federation and selected-charity grantmaking: 2024 policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec8CwtJukTyEZM3N",
+      "programId": "abcmouse-english-free-learning-access",
+      "before": "ABCmouse English — free learning access (non-cash)",
+      "after": "ABCmouse English: free learning access (non-cash)"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recGm9J59gbSNB9XT",
+      "programId": "us-based-organization-grant-due-diligence-fy2024-reported-policy",
+      "before": "US-based organization grant due diligence — FY2024 reported policy",
+      "after": "US-based organization grant due diligence: FY2024 reported policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recZmpFmpmBQkUxHa",
+      "programId": "vor-ort-vereint-2026-call-for-2027-projects",
+      "before": "Vor Ort vereint — 2026 call for 2027 projects",
+      "after": "Vor Ort vereint: 2026 call for 2027 projects"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rechmUs1r9hitZknx",
+      "programId": "great-apes-and-gibbons-grant-procedures-in2024-return",
+      "before": "Great Apes and Gibbons — grant procedures in 2024 return",
+      "after": "Great Apes and Gibbons: grant procedures in 2024 return"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rechmUs1r9hitZknx",
+      "programId": "social-justice-grant-procedures-in2024-return",
+      "before": "Social Justice — grant procedures in 2024 return",
+      "after": "Social Justice: grant procedures in 2024 return"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec8Ye60uPb9TbWSN",
+      "programId": "sdg-accelerator-fund-2024-cohort",
+      "before": "SDG Accelerator Fund — 2024 cohort",
+      "after": "SDG Accelerator Fund: 2024 cohort"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rectuYzEGH4GA6Nbb",
+      "programId": "battery-powered-information-paradox-fall-2025",
+      "before": "Battery Powered — Information Paradox, Fall 2025",
+      "after": "Battery Powered: Information Paradox, Fall 2025"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recZAbBpPxy0jZNtG",
+      "programId": "respond-accelerator-energy-non-cash-2026-support-model",
+      "before": "RESPOND Accelerator Energy — non-cash 2026 support model",
+      "after": "RESPOND Accelerator Energy: non-cash 2026 support model"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recinPMnEsiQOh7CK",
+      "programId": "bea-fund-2024-general-operating-cohort",
+      "before": "BEA Fund — 2024 general operating cohort",
+      "after": "BEA Fund: 2024 general operating cohort"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recQp7J6fWMKJu5Vu",
+      "programId": "building-resilience-freshwater-ecosystems-2026",
+      "before": "Building Resilience — Freshwater Ecosystems 2026",
+      "after": "Building Resilience: Freshwater Ecosystems 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recQ00XgPGwea4S87",
+      "programId": "leigh-day-llb-scholarship-2027-study-cohort",
+      "before": "Leigh Day LLB Scholarship — 2027 study cohort",
+      "after": "Leigh Day LLB Scholarship: 2027 study cohort"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recv8szPwma10nIbL",
+      "programId": "paradigm-grant-co-founder-funding-network",
+      "before": "Paradigm Grant — co-founder funding network",
+      "after": "Paradigm Grant: co-founder funding network"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recdtH2oqZYE8SM0X",
+      "programId": "chw-partner-project-grants-fy2024-reported-policy",
+      "before": "CHW partner-project grants — FY2024 reported policy",
+      "after": "CHW partner-project grants: FY2024 reported policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recc9jXHojdJIm6Qu",
+      "programId": "partner-funding-unsolicited-applications-paused",
+      "before": "Partner funding — unsolicited applications paused",
+      "after": "Partner funding"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recUlPGswNITQKNej",
+      "programId": "connected-grid-initiative-invitation-only-strategic-grants",
+      "before": "Connected Grid Initiative — invitation-only strategic grants",
+      "after": "Connected Grid Initiative: invitation-only strategic grants"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recBJwa3iIMNuGDnH",
+      "programId": "community-fund-england-groundwork-administered-2026-27-closed",
+      "before": "Community Fund England — Groundwork administered 2026-27, closed",
+      "after": "Community Fund England: Groundwork administered 2026-27"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recBJwa3iIMNuGDnH",
+      "programId": "a-place-to-belong-service-delivery-2026-closed",
+      "before": "A Place to Belong — Service Delivery 2026, closed",
+      "after": "A Place to Belong: Service Delivery 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recBJwa3iIMNuGDnH",
+      "programId": "a-place-to-belong-systemic-change-2026-closed",
+      "before": "A Place to Belong — Systemic Change 2026, closed",
+      "after": "A Place to Belong: Systemic Change 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recBJwa3iIMNuGDnH",
+      "programId": "community-justice-fund-2024-call-closed",
+      "before": "Community Justice Fund — 2024 call, closed",
+      "after": "Community Justice Fund: 2024 call"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recBJwa3iIMNuGDnH",
+      "programId": "gender-justice-fund-sierra-leone-direct-2024-closed",
+      "before": "Gender Justice Fund — Sierra Leone Direct 2024, closed",
+      "after": "Gender Justice Fund: Sierra Leone Direct 2024"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recBJwa3iIMNuGDnH",
+      "programId": "gender-justice-fund-sierra-leone-intermediary-2024-closed",
+      "before": "Gender Justice Fund — Sierra Leone Intermediary 2024, closed",
+      "after": "Gender Justice Fund: Sierra Leone Intermediary 2024"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recJnEGA1LiDXHdOp",
+      "programId": "benito-mass-scholarships-2026",
+      "before": "Benito Massó Scholarships — 2026",
+      "after": "Benito Massó Scholarships: 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recpMD9fss1s2KqeR",
+      "programId": "free-to-play-first-national-round-2026",
+      "before": "Free to Play — first national round 2026",
+      "after": "Free to Play: first national round 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recdsbQZbg3HXlss5",
+      "programId": "cmi-2-0-member-administered-funding-types-2021-25",
+      "before": "CMI! 2.0 — member-administered funding types, 2021–25",
+      "after": "CMI! 2.0: member-administered funding types, 2021–25"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recH1YArui8VncpfF",
+      "programId": "dalan-fund-resource-distribution-intake",
+      "before": "Dalan Fund — resource distribution intake",
+      "after": "Dalan Fund: resource distribution intake"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recpQfyOPO2aE85P9",
+      "programId": "rebuild-india-fund-recommended-grassroots-ngos",
+      "before": "Rebuild India Fund — recommended grassroots NGOs",
+      "after": "Rebuild India Fund: recommended grassroots NGOs"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recin7AuNqQ3YfQIA",
+      "programId": "youth-mental-health-fund-2026-2027-invited-rfps",
+      "before": "Youth Mental Health Fund — 2026–2027 invited RFPs",
+      "after": "Youth Mental Health Fund: 2026–2027 invited RFPs"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recin7AuNqQ3YfQIA",
+      "programId": "national-truth-and-healing-fund-not-yet-launched",
+      "before": "National Truth and Healing Fund — not yet launched",
+      "after": "National Truth and Healing Fund"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recin7AuNqQ3YfQIA",
+      "programId": "california-tribal-land-return-applications-closed",
+      "before": "California Tribal Land Return — applications closed",
+      "after": "California Tribal Land Return"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec7YnVUY6Nb9w7BP",
+      "programId": "public-options-initiatives-2023-rfp-for-2024-work",
+      "before": "Public Options Initiatives — 2023 RFP for 2024 work",
+      "after": "Public Options Initiatives: 2023 RFP for 2024 work"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recrtbXegE9kq398h",
+      "programId": "migros-pioneer-fund-scouted-project-partnerships",
+      "before": "Migros Pioneer Fund — scouted project partnerships",
+      "after": "Migros Pioneer Fund: scouted project partnerships"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recXHNWKL9D6zhDwT",
+      "programId": "equation-campaign-frontline-fossil-fuel-resistance-grants",
+      "before": "Equation Campaign — frontline fossil-fuel resistance grants",
+      "after": "Equation Campaign: frontline fossil-fuel resistance grants"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec7fBGvrsOhqG6Ra",
+      "programId": "culture-helps-solidarity-collaboration-grants-first-2026-call",
+      "before": "Culture Helps Solidarity collaboration grants — first 2026 call",
+      "after": "Culture Helps Solidarity collaboration grants: first 2026 call"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recDBqvlbBAMYxaLH",
+      "programId": "agroecology-collaborative-grants-invitation-and-network-policy",
+      "before": "Agroecology collaborative grants — invitation and network policy",
+      "after": "Agroecology collaborative grants: invitation and network policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec5egj5N3v0F2iIV",
+      "programId": "healing-illinois-2026-2027-cycle",
+      "before": "Healing Illinois — 2026–2027 cycle",
+      "after": "Healing Illinois: 2026–2027 cycle"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recSZN9ckNi2cuE1y",
+      "programId": "beni-confiscati-alle-mafie-2026-initiative",
+      "before": "Beni confiscati alle mafie — 2026 initiative",
+      "after": "Beni confiscati alle mafie: 2026 initiative"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec7wmNrxhCiCX6nZ",
+      "programId": "programa-de-apoyos-directos-pad-2026",
+      "before": "Programa de Apoyos Directos — PAD 2026",
+      "after": "Programa de Apoyos Directos: PAD 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recVJETVpwhMkTzXz",
+      "programId": "foundation-grants-preselected-only-policy-in2024-return",
+      "before": "Foundation grants — preselected-only policy in 2024 return",
+      "after": "Foundation grants: preselected-only policy in 2024 return"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recquTrKjWRFlxLAm",
+      "programId": "frida-eighth-call-2022-historical-policy",
+      "before": "FRIDA eighth call — 2022 historical policy",
+      "after": "FRIDA eighth call: 2022 historical policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recgrpGdjVDL52eBe",
+      "programId": "regi-n-plateada-co-funded-2024-acceleration-financing-round",
+      "before": "Región Plateada — co-funded 2024 acceleration/financing round",
+      "after": "Región Plateada: co-funded 2024 acceleration/financing round"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rectrU4ynL289RM15",
+      "programId": "fondo-oriri-co-founded-fund-cohortiv2026-closed",
+      "before": "Fondo Oriri — co-founded fund Cohort IV 2026, closed",
+      "after": "Fondo Oriri: co-founded fund Cohort IV 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recTQD6Q18JaLesU1",
+      "programId": "chamada-simplificada-apoio-direto-a-iniciativas-comunit-rias-2026",
+      "before": "Chamada Simplificada — Apoio Direto a Iniciativas Comunitárias 2026",
+      "after": "Chamada Simplificada: Apoio Direto a Iniciativas Comunitárias 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recKmzBcIIxwyrCOL",
+      "programId": "alliance-resourcing-access-through-partner-funds",
+      "before": "Alliance resourcing — access through partner funds",
+      "after": "Alliance resourcing: access through partner funds"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recdWhe081YvXsPiM",
+      "programId": "clima-collaboration-grassroots-international-relationship-funding",
+      "before": "CLIMA collaboration — Grassroots International relationship funding",
+      "after": "CLIMA collaboration: Grassroots International relationship funding"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec01JcunIGky0zBC",
+      "programId": "impact-on-urban-health-partnership-conversation",
+      "before": "Impact on Urban Health — partnership conversation",
+      "after": "Impact on Urban Health: partnership conversation"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec01JcunIGky0zBC",
+      "programId": "black-maternal-health-inequalities-2026-grant-cycle",
+      "before": "Black maternal health inequalities — 2026 grant cycle",
+      "after": "Black maternal health inequalities: 2026 grant cycle"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recsBGf729Y4Or1gW",
+      "programId": "justice-liberation-fund-2025-round",
+      "before": "Justice & Liberation Fund — 2025 round",
+      "after": "Justice & Liberation Fund: 2025 round"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recWk2bZm7WUrRgtE",
+      "programId": "nopalito-verde-fund-2024-2025-inaugural-cohort",
+      "before": "Nopalito Verde Fund — 2024–2025 inaugural cohort",
+      "after": "Nopalito Verde Fund: 2024–2025 inaugural cohort"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recFZWtWAAmsxmaP6",
+      "programId": "impact-shakers-accelerator-late-2024-application-terms",
+      "before": "Impact Shakers Accelerator — late 2024 application terms",
+      "after": "Impact Shakers Accelerator: late 2024 application terms"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recUy4fdj34Ss8gGK",
+      "programId": "inclusiv-ccia-green-lending-historical-framework-funding-uncertain",
+      "before": "Inclusiv CCIA green lending — historical framework, funding uncertain",
+      "after": "Inclusiv CCIA green lending: historical framework"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recRiwn3ak6Hrp4Zi",
+      "programId": "community-renewable-energy-support-mexican-cso2026-call-closed",
+      "before": "Community renewable energy support — Mexican CSO 2026 call, closed",
+      "after": "Community renewable energy support: Mexican CSO 2026 call"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recKkrUEyYu4JTxvZ",
+      "programId": "general-project-grants-year-round-letter-of-intent",
+      "before": "General project grants — year-round letter of intent",
+      "after": "General project grants: year-round letter of intent"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recKkrUEyYu4JTxvZ",
+      "programId": "community-based-climate-adaptation-2026-call-closed",
+      "before": "Community-based climate adaptation — 2026 call, closed",
+      "after": "Community-based climate adaptation: 2026 call"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recKkrUEyYu4JTxvZ",
+      "programId": "climate-and-economy-applied-research-2026-call-closed",
+      "before": "Climate and economy applied research — 2026 call, closed",
+      "after": "Climate and economy applied research: 2026 call"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recgnI6ctYih5FQw5",
+      "programId": "inter-pares-peter-gillespie-prize-2020",
+      "before": "Peter Gillespie Social Justice Award — 2020 non-cash prize (closed)",
+      "after": "Peter Gillespie Social Justice Award: 2020 non-cash prize"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recANd5viqznYvF7c",
+      "programId": "independent-media-ukraine-moldova-and-armenia-2026",
+      "before": "Independent media — Ukraine, Moldova and Armenia 2026",
+      "after": "Independent media: Ukraine, Moldova and Armenia 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec7BaQRplxUJvmmS",
+      "programId": "seed-grants-2026-cycle",
+      "before": "SEED grants — 2026 cycle",
+      "after": "SEED grants: 2026 cycle"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec7BaQRplxUJvmmS",
+      "programId": "thrive-grants-2026-cycle",
+      "before": "THRIVE grants — 2026 cycle",
+      "after": "THRIVE grants: 2026 cycle"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recqnLGfTjw9rRHJu",
+      "programId": "jdf-startup-accelerator-support-with-discretionary-funding",
+      "before": "JDF Startup Accelerator — support with discretionary funding",
+      "after": "JDF Startup Accelerator: support with discretionary funding"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rect3g6oRKQywiExa",
+      "programId": "joyce-foundation-general-grant-inquiries",
+      "before": "Joyce Foundation — general grant inquiries",
+      "after": "Joyce Foundation: general grant inquiries"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recngyJvK8E46evcP",
+      "programId": "katapult-ocean-seed-to-series-b-impact-investment",
+      "before": "Katapult Ocean — seed to Series B impact investment",
+      "after": "Katapult Ocean: seed to Series B impact investment"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recMs7it8z2uXJ8Kb",
+      "programId": "indigenous-women-s-flow-fund-selection-policy-described-in-2023",
+      "before": "Indigenous Women’s Flow Fund — selection policy described in 2023",
+      "after": "Indigenous Women’s Flow Fund: selection policy described in 2023"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec6uJtW06yzJWpRJ",
+      "programId": "lkct-ethnic-women-leadership-access",
+      "before": "Ethnic Women’s Leadership — non-cash course access (availability unconfirmed)",
+      "after": "Ethnic Women’s Leadership: non-cash course access"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recP77PICchzZgHAL",
+      "programId": "indigenous-women-s-fellowship-2027-cohort-v",
+      "before": "Indigenous Women’s Fellowship — 2027 Cohort V",
+      "after": "Indigenous Women’s Fellowship: 2027 Cohort V"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recGtJ8c8bS1jBMEQ",
+      "programId": "core-grantmaking-2027-cycle-closed-2028-exploration",
+      "before": "Core Grantmaking — 2027 cycle closed, 2028 exploration",
+      "after": "Core Grantmaking: 2027 cycle"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recGtJ8c8bS1jBMEQ",
+      "programId": "rapid-response-grantmaking-ongoing-exploration",
+      "before": "Rapid Response Grantmaking — ongoing exploration",
+      "after": "Rapid Response Grantmaking: ongoing exploration"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recjSgdM8PQPCz3uy",
+      "programId": "good-place-to-live-new-beginnings-fund-2026",
+      "before": "Good Place to Live — New Beginnings Fund 2026",
+      "after": "Good Place to Live: New Beginnings Fund 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "receg3yh4GJwaETa6",
+      "programId": "charity-pot-uk-irish-published-guidelines-reopening-announced",
+      "before": "Charity Pot — UK/Irish published guidelines, reopening announced",
+      "after": "Charity Pot: UK/Irish published guidelines"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "receg3yh4GJwaETa6",
+      "programId": "australia-charity-pot-applications-paused",
+      "before": "Australia Charity Pot — applications paused",
+      "after": "Australia Charity Pot"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recmg3HFVYXZYVHR2",
+      "programId": "masana-general-support-grants-2025-funding-model-description",
+      "before": "Masana general support grants — 2025 funding-model description",
+      "after": "Masana general support grants: 2025 funding-model description"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recc3mESQS78GnwWa",
+      "programId": "minderoo-artist-fund-individual-artist-opportunities",
+      "before": "Minderoo Artist Fund — individual artist opportunities",
+      "after": "Minderoo Artist Fund: individual artist opportunities"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recpMJ4xRLSrngCvL",
+      "programId": "new-agents-2026-cohort",
+      "before": "New Agents — 2026 cohort",
+      "after": "New Agents: 2026 cohort"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec9vetDUG6A6D9dh",
+      "programId": "mosaic-2026-movement-infrastructure-grants",
+      "before": "Mosaic — 2026 movement infrastructure grants",
+      "after": "Mosaic: 2026 movement infrastructure grants"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recCRpfHqUDHunxvL",
+      "programId": "lego-play-box-development-2026-national-partner-recruitment",
+      "before": "LEGO play-box development — 2026 national partner recruitment",
+      "after": "LEGO play-box development: 2026 national partner recruitment"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recG2ruGcG5wjn1n0",
+      "programId": "nebula-funded-iamo-audiovisual-residency-2025-closed",
+      "before": "Nebula-funded iAMO audiovisual residency — 2025, closed",
+      "after": "Nebula-funded iAMO audiovisual residency: 2025"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recaoWDJ9bgmtXQAM",
+      "programId": "final-local-essex-county-funding-round-2027",
+      "before": "Final local Essex County funding round — 2027",
+      "after": "Final local Essex County funding round: 2027"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec79METBdoEAA8Hd",
+      "programId": "indigenous-guardianship-flexible-partnership-grant-policy",
+      "before": "Indigenous guardianship — flexible partnership grant policy",
+      "after": "Indigenous guardianship: flexible partnership grant policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recLIjYdGZRCL2XgL",
+      "programId": "seed-grant-2026",
+      "before": "Seed Grant — 2026",
+      "after": "Seed Grant: 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recZuvOEtFb7i6rQX",
+      "programId": "osaf-grant-approval-and-reporting-fy2024-filed-policy",
+      "before": "OSAF grant approval and reporting — FY2024 filed policy",
+      "after": "OSAF grant approval and reporting: FY2024 filed policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recbTByb8o6YnD9Dm",
+      "programId": "grantmaking-relationship-based-access",
+      "before": "Grantmaking — relationship-based access",
+      "after": "Grantmaking: relationship-based access"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recYHfKPb1Q3r5nPt",
+      "programId": "retail-partnerships-toronto-store",
+      "before": "Retail Partnerships — Toronto store",
+      "after": "Retail Partnerships: Toronto store"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recW1LVe5iD9Gc7MJ",
+      "programId": "porticus-partnership-grants-vienna-regional-record",
+      "before": "Porticus partnership grants — Vienna regional record",
+      "after": "Porticus partnership grants: Vienna regional record"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recpw4qdfUAaI8McW",
+      "programId": "prolongar-garabatos-resource-access-2021",
+      "before": "Garabatos — free learning-resource access (2021; current access unconfirmed)",
+      "after": "Garabatos: free learning-resource access (2021)"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recox10Nq2ukm64d9",
+      "programId": "pinf-covid-19-emergency-fund-historical-policy",
+      "before": "PINF COVID-19 Emergency Fund — historical policy",
+      "after": "PINF COVID-19 Emergency Fund: historical policy"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recaOrO8KmDZzmLEZ",
+      "programId": "alborada-ventures-2025-migrant-integration-financing",
+      "before": "Alborada Ventures — 2025 migrant-integration financing",
+      "after": "Alborada Ventures: 2025 migrant-integration financing"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec4rWfSQfnf3a55c",
+      "programId": "rawa-general-grants-2025-2026-pilot",
+      "before": "Rawa General Grants — 2025–2026 pilot",
+      "after": "Rawa General Grants: 2025–2026 pilot"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec4rWfSQfnf3a55c",
+      "programId": "rawa-gaza-emergency-grants-2025-2026-pilot",
+      "before": "Rawa Gaza Emergency Grants — 2025–2026 pilot",
+      "after": "Rawa Gaza Emergency Grants: 2025–2026 pilot"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recDQ6DABaJ4Ig8ar",
+      "programId": "blossom-nominated-regenerative-hubs",
+      "before": "Blossom — nominated regenerative hubs",
+      "after": "Blossom: nominated regenerative hubs"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec7PyCvxycVgfMDo",
+      "programId": "roddenberry-grant-programs-availability",
+      "before": "Roddenberry grant programs — availability",
+      "after": "Roddenberry grant programs"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recvqhtZQjgtzw3kZ",
+      "programId": "southeast-us-farmer-grants-infrastructure-2026",
+      "before": "Southeast US Farmer Grants — Infrastructure 2026",
+      "after": "Southeast US Farmer Grants: Infrastructure 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec9ZobZCM5SshLLF",
+      "programId": "liberia-feminist-agroecology-and-community-forests-2026",
+      "before": "Liberia — Feminist Agroecology and Community Forests 2026",
+      "after": "Liberia: Feminist Agroecology and Community Forests 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rec0YgrcdqtENIIeS",
+      "programId": "kim-jackson-scholarship-anu-administered-2025-application",
+      "before": "Kim Jackson Scholarship — ANU-administered, 2025 application",
+      "after": "Kim Jackson Scholarship: ANU-administered, 2025 application"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recrGWvqZUQHZb9c9",
+      "programId": "women-s-urgent-support-fund-round-2-2024",
+      "before": "Women’s Urgent Support Fund — Round 2, 2024",
+      "after": "Women’s Urgent Support Fund: Round 2, 2024"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recb5VpXOFbqvyiJD",
+      "programId": "sat-cfp1-2008-agricultural-small-grants",
+      "before": "CFP1/2008 agricultural small grants — closed 8 December 2008",
+      "after": "CFP1/2008 agricultural small grants: closed 8 December 2008"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recUTpnUhEGdI7Of3",
+      "programId": "solidarity-fund-2025-response",
+      "before": "Solidarity Fund — 2025 response",
+      "after": "Solidarity Fund: 2025 response"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recOjeVNMLIO5hBT4",
+      "programId": "tiet-merit-cum-means-normal-scholarship-2026-27",
+      "before": "TIET Merit-cum-Means Normal scholarship — 2026–27",
+      "after": "TIET Merit-cum-Means Normal scholarship: 2026–27"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "reclxJBQLIVk2XfgO",
+      "programId": "scale-up-impact-ngo-partner-expansion-support",
+      "before": "Scale Up Impact — NGO partner expansion support",
+      "after": "Scale Up Impact: NGO partner expansion support"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recqd3f6mBVBdH2ID",
+      "programId": "seabury-community-grants-chicago",
+      "before": "Seabury Community Grants — Chicago",
+      "after": "Seabury Community Grants: Chicago"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recqd3f6mBVBdH2ID",
+      "programId": "seabury-community-grants-benzie-county",
+      "before": "Seabury Community Grants — Benzie County",
+      "after": "Seabury Community Grants: Benzie County"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recRsnZBC1oRtZLpz",
+      "programId": "tci-fellowship-host-organization-grants",
+      "before": "TCI Fellowship — host-organization grants",
+      "after": "TCI Fellowship: host-organization grants"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recdpTXcAQrgnbljB",
+      "programId": "obsaa-fund-round-1-2026",
+      "before": "OBSAA Fund — Round 1, 2026",
+      "after": "OBSAA Fund: Round 1, 2026"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "recT5XdmTXbMjMS78",
+      "programId": "youth-climate-fund-for-zero-waste-2024-call",
+      "before": "Youth Climate Fund for Zero Waste — 2024 call",
+      "after": "Youth Climate Fund for Zero Waste: 2024 call"
+    },
+    {
+      "path": "research/expanded-2.json",
+      "fundId": "rect3sCKMQ5h8pO33",
+      "programId": "wela-giving-circle-2026-round",
+      "before": "WELA Giving Circle — 2026 round",
+      "after": "WELA Giving Circle: 2026 round"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-nlnet",
+      "programId": "nlnet-restack",
+      "before": "Restack — first call 2026",
+      "after": "Restack: first call 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-nlnet",
+      "programId": "nlnet-fediversity-final",
+      "before": "NGI Fediversity — final call closed",
+      "after": "NGI Fediversity: final call"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-nlnet",
+      "programId": "nlnet-taler-final",
+      "before": "NGI TALER — final call closed",
+      "after": "NGI TALER: final call"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-nlnet",
+      "programId": "nlnet-commons-final",
+      "before": "NGI Zero Commons Fund — final call closed",
+      "after": "NGI Zero Commons Fund: final call"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-cisco",
+      "programId": "cisco-global-impact",
+      "before": "Global Impact Cash Grants — nonprofit route",
+      "after": "Global Impact Cash Grants: nonprofit route"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-d-prize",
+      "programId": "d-prize-2026",
+      "before": "D-Prize — Fall 2026 competition",
+      "after": "D-Prize: Fall 2026 competition"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-acta",
+      "programId": "acta-living-cultures-org",
+      "before": "Living Cultures — organization track 2026–27",
+      "after": "Living Cultures: organization track 2026–27"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-acta",
+      "programId": "acta-apprenticeship-2026",
+      "before": "Apprenticeship Program — 2026 cohort",
+      "after": "Apprenticeship Program: 2026 cohort"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-iki",
+      "programId": "iki-small-grants-2027",
+      "before": "IKI Small Grants — eighth call 2027",
+      "after": "IKI Small Grants: eighth call 2027"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-ekoenergy",
+      "programId": "ekoenergy-climate-fund",
+      "before": "Climate Fund — first-partner small projects",
+      "after": "Climate Fund: first-partner small projects"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-ieee",
+      "programId": "ieee-epics-oct2026",
+      "before": "EPICS in IEEE — October 2026 call",
+      "after": "EPICS in IEEE: October 2026 call"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-comcast",
+      "programId": "comcast-innovation",
+      "before": "Innovation Fund — 2026 grants",
+      "after": "Innovation Fund: 2026 grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-icann",
+      "programId": "icann-grants",
+      "before": "ICANN Grant Program — first cycle",
+      "after": "ICANN Grant Program: first cycle"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-table-mountain",
+      "programId": "table-mountain-small",
+      "before": "Pride and Care — small grants",
+      "after": "Pride and Care: small grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-cepf",
+      "programId": "cepf-cerrado-small-2026",
+      "before": "Cerrado — third small-project call 2026",
+      "after": "Cerrado: third small-project call 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-undp-gef",
+      "programId": "undp-nigeria-icca-regular",
+      "before": "ICCA-GSI Phase 2 — regular local grants",
+      "after": "ICCA-GSI Phase 2: regular local grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-unesco",
+      "programId": "unesco-ifcd-2026",
+      "before": "International Fund for Cultural Diversity — 2026 call",
+      "after": "International Fund for Cultural Diversity: 2026 call"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-interledger",
+      "programId": "interledger",
+      "before": "Fellowship — 2026 closed cycle",
+      "after": "Fellowship: 2026 cycle"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-interledger",
+      "programId": "interledger-campus-2026",
+      "before": "Interledger on Campus — 2026, closed",
+      "after": "Interledger on Campus: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-zero-foodprint",
+      "programId": "zero-foodprint",
+      "before": "Restore Grants — October 2026",
+      "after": "Restore Grants: October 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-obol",
+      "programId": "obol",
+      "before": "Grants Program — paused",
+      "after": "Grants Program"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-gooddollar",
+      "programId": "gooddollar",
+      "before": "GoodBuilders — future round unconfirmed",
+      "after": "GoodBuilders"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-gitcoin",
+      "programId": "gitcoin-gg24",
+      "before": "Gitcoin Grants 24 — ended",
+      "after": "Gitcoin Grants 24"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-giveth",
+      "programId": "giveth-qf",
+      "before": "Quadratic funding — intake unconfirmed",
+      "after": "Quadratic funding"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-octant",
+      "programId": "octant-epoch-13",
+      "before": "Epoch 13 — privacy, closed",
+      "after": "Epoch 13: privacy"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-prezenti",
+      "programId": "prezenti-anchor-2026",
+      "before": "Anchor Pool — 2026",
+      "after": "Anchor Pool: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-prezenti",
+      "programId": "prezenti-frontier-2026",
+      "before": "Frontier Pool — 2026",
+      "after": "Frontier Pool: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-celo",
+      "programId": "celo-builders-fund",
+      "before": "Celo Builders Fund — investment",
+      "after": "Celo Builders Fund: investment"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-arbitrum-foundation",
+      "programId": "arbifuel",
+      "before": "ArbiFuel — gas sponsorship",
+      "after": "ArbiFuel: gas sponsorship"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-arbitrum-foundation",
+      "programId": "arbitrum-open-house-singapore-2026",
+      "before": "Open House Singapore — 2026, closed",
+      "after": "Open House Singapore: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-arbitrum-dao",
+      "programId": "arbitrum-dao-domain-grants",
+      "before": "DAO domain allocator grants — completed",
+      "after": "DAO domain allocator grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-artizen",
+      "programId": "artizen-seasons-paused",
+      "before": "Artizen seasons — operations paused",
+      "after": "Artizen seasons"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-fast-forward",
+      "programId": "fast-forward-2027",
+      "before": "Tech Nonprofit Accelerator — 2027 cohort, closed",
+      "after": "Tech Nonprofit Accelerator: 2027 cohort"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-climate-collective",
+      "programId": "green-accountability-2024",
+      "before": "Green Accountability Cohort — 2024, closed",
+      "after": "Green Accountability Cohort: 2024"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-gnosis",
+      "programId": "gnosis-events",
+      "before": "Gnosis World community event support — conditional",
+      "after": "Gnosis World community event support"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-osv",
+      "programId": "osv-fellowship-2026",
+      "before": "O'Shaughnessy Fellowships — 2026, closed",
+      "after": "O'Shaughnessy Fellowships: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-survival-flourishing",
+      "programId": "sff-climate-2026",
+      "before": "Climate Change theme round — 2026, closed",
+      "after": "Climate Change theme round: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-ens",
+      "programId": "ens-small-grants-archive",
+      "before": "ENS Small Grants — discontinued",
+      "after": "ENS Small Grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-filecoin",
+      "programId": "filecoin-propgf-batch3",
+      "before": "ProPGF Batch 3 — closed",
+      "after": "ProPGF Batch 3"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-ethereum-foundation",
+      "programId": "ethereum-esp",
+      "before": "Ecosystem Support Program — Wishlist and RFPs",
+      "after": "Ecosystem Support Program: Wishlist and RFPs"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-usda-nrcs",
+      "programId": "nrcs-cig-classic",
+      "before": "Conservation Innovation Grants — Classic",
+      "after": "Conservation Innovation Grants: Classic"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-darwin",
+      "programId": "darwin-main-r32-stage2",
+      "before": "Darwin Main Round 32 — invited stage 2",
+      "after": "Darwin Main Round 32: invited stage 2"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-darwin",
+      "programId": "darwin-extra-r32-stage2",
+      "before": "Darwin Extra Round 32 — invited stage 2",
+      "after": "Darwin Extra Round 32: invited stage 2"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-gef-cso-challenge",
+      "programId": "gef-cso-africa-lac-asia-2026",
+      "before": "CSO Challenge — Africa, LAC and Asia-Pacific 2026, closed",
+      "after": "CSO Challenge: Africa, LAC and Asia-Pacific 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-california-dwr",
+      "programId": "ca-urban-streams-2026",
+      "before": "Urban Streams Restoration Program — 2026 solicitation",
+      "after": "Urban Streams Restoration Program: 2026 solicitation"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-neef",
+      "programId": "neef-greening-stem-2026",
+      "before": "LyondellBasell Greening STEM — 2026–27, closed",
+      "after": "LyondellBasell Greening STEM: 2026–27"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-western-sare",
+      "programId": "western-sare-professional-producer",
+      "before": "Professional + Producer — closed",
+      "after": "Professional + Producer"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-halcyon",
+      "programId": "halcyon-africa-ag-2027",
+      "before": "Africa Agriculture and Food Security Accelerator — invited stage",
+      "after": "Africa Agriculture and Food Security Accelerator: invited stage"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-climate-curve",
+      "programId": "keeling-curve-prize",
+      "before": "Keeling Curve Prize — between rounds",
+      "after": "Keeling Curve Prize"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-seeding-future",
+      "programId": "seeding-future-2027",
+      "before": "Global Food System Challenge — 2027",
+      "after": "Global Food System Challenge: 2027"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-honnold",
+      "programId": "honnold-core-2026",
+      "before": "Core Fund — 2026, closed",
+      "after": "Core Fund: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-zayed-prize",
+      "programId": "zayed-2027",
+      "before": "Zayed Sustainability Prize — 2027 cycle, closed",
+      "after": "Zayed Sustainability Prize: 2027 cycle"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-milken-motsepe",
+      "programId": "milken-circular-2026",
+      "before": "Milken-Motsepe Circular Economy Prize — 2026, closed",
+      "after": "Milken-Motsepe Circular Economy Prize: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-african-union",
+      "programId": "au-education-2026",
+      "before": "Innovating Education in Africa — 2026, closed",
+      "after": "Innovating Education in Africa: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-youth4climate",
+      "programId": "youth4climate-2026",
+      "before": "Call for Solutions — 2026, closed",
+      "after": "Call for Solutions: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-gca-youthadapt",
+      "programId": "youthadapt",
+      "before": "YouthADAPT Challenge — current intake unconfirmed",
+      "after": "YouthADAPT Challenge"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-raeng",
+      "programId": "africa-prize-2027",
+      "before": "Africa Prize for Engineering Innovation — 2027, closed",
+      "after": "Africa Prize for Engineering Innovation: 2027"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-f5",
+      "programId": "f5-stem-ai-2026",
+      "before": "STEM & AI Education Grants — 2026, closed",
+      "after": "STEM & AI Education Grants: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-ma-earth",
+      "programId": "ma-earth-round4",
+      "before": "Ma Earth Round 4 — future",
+      "after": "Ma Earth Round 4"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-rea",
+      "programId": "rea-dares",
+      "before": "DARES grants — intake conflict",
+      "after": "DARES grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-rea",
+      "programId": "solar-power-naija",
+      "before": "Solar Power Naija — credit facility, closed",
+      "after": "Solar Power Naija: credit facility"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-all-on",
+      "programId": "all-on-challenge-2026",
+      "before": "Off-Grid Energy Challenge — 2026, closed",
+      "after": "Off-Grid Energy Challenge: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-tony-elumelu",
+      "programId": "tef-entrepreneurship-2026",
+      "before": "Entrepreneurship Programme — 2026, closed",
+      "after": "Entrepreneurship Programme: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-eep-africa",
+      "programId": "eep-africa-2026",
+      "before": "EEP Africa Call for Proposals — 2026, closed",
+      "after": "EEP Africa Call for Proposals: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-california-arts-council",
+      "programId": "cac-general-operations-2026",
+      "before": "General Operating Support — 2026, closed",
+      "after": "General Operating Support: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-california-arts-council",
+      "programId": "cac-arts-youth-2026",
+      "before": "Arts and Youth — 2026, closed",
+      "after": "Arts and Youth: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-california-arts-council",
+      "programId": "cac-impact-projects-2026",
+      "before": "Impact Projects — 2026, closed",
+      "after": "Impact Projects: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-la-city-cultural-affairs",
+      "programId": "la-near-2027-28",
+      "before": "NEAR artist residency — 2027–28",
+      "after": "NEAR artist residency: 2027–28"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-la-city-cultural-affairs",
+      "programId": "la-co-up-2027-28",
+      "before": "CO-UP social justice residency — 2027–28",
+      "after": "CO-UP social justice residency: 2027–28"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-la-city-cultural-affairs",
+      "programId": "la-outdoor-festivals-2027-28",
+      "before": "Outdoor Festivals and Parades — 2027–28, closed",
+      "after": "Outdoor Festivals and Parades: 2027–28"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-la-city-cultural-affairs",
+      "programId": "la-public-space-activation",
+      "before": "Public-Space Activation Fund — intake unconfirmed",
+      "after": "Public-Space Activation Fund"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-california-natural-resources",
+      "programId": "cnra-youth-access-round4",
+      "before": "Youth Community Access — round 4",
+      "after": "Youth Community Access: round 4"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-walmart",
+      "programId": "walmart-spark-good-cycle3-2026",
+      "before": "Spark Good Local Grants — cycle 3, 2026",
+      "after": "Spark Good Local Grants: cycle 3, 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-us-bank",
+      "programId": "usbank-community-possible",
+      "before": "Community Possible — letter of interest",
+      "after": "Community Possible: letter of interest"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-society-for-science",
+      "programId": "stem-action-2026",
+      "before": "STEM Action Grants — 2026, closed",
+      "after": "STEM Action Grants: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-society-for-science",
+      "programId": "stem-action-2027",
+      "before": "STEM Action Grants — 2027, future",
+      "after": "STEM Action Grants: 2027"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-goldhirsh",
+      "programId": "la2050-2026",
+      "before": "LA2050 Grants Challenge — 2026, closed",
+      "after": "LA2050 Grants Challenge: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-nea",
+      "programId": "nea-arts-projects-july2026",
+      "before": "Grants for Arts Projects — July 2026, closed",
+      "after": "Grants for Arts Projects: July 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-neh",
+      "programId": "neh-public-humanities-dec2026",
+      "before": "Public Humanities Projects — December 2026",
+      "after": "Public Humanities Projects: December 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-california-humanities",
+      "programId": "humanities-for-all-projects",
+      "before": "Humanities for All Project Grants — suspended",
+      "after": "Humanities for All Project Grants"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-cpuc",
+      "programId": "cpuc-cea-lat-round3",
+      "before": "CEA-LAT — round 3, ZIP 91326 only",
+      "after": "CEA-LAT: round 3, ZIP 91326 only"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-la-economic-opportunity",
+      "programId": "la-economic-opportunity-grant",
+      "before": "Economic Opportunity Grant — program closed",
+      "after": "Economic Opportunity Grant"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-shift",
+      "programId": "shift-round001",
+      "before": "SHIFT Grants — round 001, closed",
+      "after": "SHIFT Grants: round 001"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-blockchain-for-good",
+      "programId": "bga-sdgs-challenge-2024",
+      "before": "BGAwards / 17 SDGs Challenge — 2024, closed",
+      "after": "BGAwards / 17 SDGs Challenge: 2024"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-prosper-ventures",
+      "programId": "prosper-climate-colombia-2026",
+      "before": "Climate Lab Colombia — 2026, closed",
+      "after": "Climate Lab Colombia: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-rocket-pool",
+      "programId": "rocket-pool-gmc-round42",
+      "before": "GMC grants — round 42",
+      "after": "GMC grants: round 42"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-rogeap",
+      "programId": "rogeap-ctf-round4",
+      "before": "ROGEAP CTF grants — round 4, intake unconfirmed",
+      "after": "ROGEAP CTF grants: round 4"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-shutter",
+      "programId": "shutter-champions-melee2",
+      "before": "Shutter Champions — Melee 2, closed",
+      "after": "Shutter Champions: Melee 2"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-optimism",
+      "programId": "optimism-growth-season9",
+      "before": "Growth Grants — season 9, closed",
+      "after": "Growth Grants: season 9"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-us-doe",
+      "programId": "doe-sbir-genesis-2026",
+      "before": "SBIR/STTR Phase I Genesis — FY26, closed",
+      "after": "SBIR/STTR Phase I Genesis: FY26"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-us-doe",
+      "programId": "doe-sbir-phase1-future",
+      "before": "SBIR/STTR broader Phase I — expected future call",
+      "after": "SBIR/STTR broader Phase I"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-afdb-accf",
+      "programId": "accf-call4",
+      "before": "Africa Climate Change Fund — call 4, closed",
+      "after": "Africa Climate Change Fund: call 4"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-hacker-initiative",
+      "programId": "hacker-initiative-signal-noise-2026",
+      "before": "Signal/Noise — 2026 grant cycle",
+      "after": "Signal/Noise: 2026 grant cycle"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-project-2026",
+      "before": "Project Grants — 2026",
+      "after": "Project Grants: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-linux-australia",
+      "programId": "linux-australia-community-2026",
+      "before": "Community Grants — 2026",
+      "after": "Community Grants: 2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-people-powered",
+      "programId": "people-powered-cda-2027",
+      "before": "Climate Democracy Accelerator — March 2027 cohort",
+      "after": "Climate Democracy Accelerator: March 2027 cohort"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-cdfw",
+      "programId": "cdfw-mojave-tortoise-2026",
+      "before": "Mojave Desert Tortoise Recovery — 2026 call",
+      "after": "Mojave Desert Tortoise Recovery: 2026 call"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "local-funbio",
+      "programId": "funbio-floresta-viva-sao-francisco-2026",
+      "before": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+      "after": "Floresta Viva: Águas do São Francisco, Edital 04/2026"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "recOExYwWRXF9whgo",
+      "programId": "isoc-ccc-catalyst",
+      "before": "Community-Centered Connectivity — Catalyst",
+      "after": "Community-Centered Connectivity: Catalyst"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "recOExYwWRXF9whgo",
+      "programId": "isoc-ccc-scaling",
+      "before": "Community-Centered Connectivity — Scaling",
+      "after": "Community-Centered Connectivity: Scaling"
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "fundId": "reccZG8TtBrCwLG7R",
+      "programId": "climafii-africa-cohort2",
+      "before": "ClimaFii Africa — cohort 2, closed",
+      "after": "ClimaFii Africa: cohort 2"
+    }
+  ],
+  "funders": [
+    {
+      "path": "research/supplemental-funders.json",
+      "before": "SHIFT Grants — Edge City and Nodes",
+      "after": "SHIFT Grants: Edge City and Nodes",
+      "occurrences": 4
+    },
+    {
+      "path": "research/supplemental-funders.json",
+      "before": "African Development Bank — Africa Climate Change Fund",
+      "after": "African Development Bank: Africa Climate Change Fund",
+      "occurrences": 4
+    }
+  ],
+  "journalLengthAtRename": 4
+}

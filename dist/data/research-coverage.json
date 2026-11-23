@@ -15,7 +15,7 @@
     "numericAward": 187,
     "currentNumericAward": 86,
     "datedDeadline": 195,
-    "upcomingDatedDeadline": 21,
+    "upcomingDatedDeadline": 17,
     "applicationRoute": 555
   },
   "sourceWarningCount": 5,
@@ -3685,7 +3685,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -5741,20 +5741,23 @@
       "name": "Emergent Fund",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-16",
-      "sourceCount": 2,
+      "sourceCount": 5,
       "programCount": 1,
       "fields": {
         "focus": true,
         "eligibility": true,
         "numericAward": false,
         "currentNumericAward": false,
-        "datedDeadline": true,
+        "datedDeadline": false,
         "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
         "https://www.emergentfund.net/",
-        "https://www.emergentfund.net/apply"
+        "https://www.emergentfund.net/apply",
+        "https://www.emergentfund.net/apply",
+        "https://www.emergentfund.net/faqs",
+        "https://www.emergentfund.net/"
       ],
       "retrievals": []
     },
@@ -9258,7 +9261,7 @@
       "name": "Haymarket People’s Fund",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-15",
-      "sourceCount": 2,
+      "sourceCount": 4,
       "programCount": 1,
       "fields": {
         "focus": true,
@@ -9271,6 +9274,8 @@
       },
       "sources": [
         "https://www.haymarket.org/",
+        "https://www.haymarket.org/grants-1",
+        "https://www.haymarket.org/grants-1",
         "https://www.haymarket.org/grants-1"
       ],
       "retrievals": [],
@@ -10225,7 +10230,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -17655,7 +17660,7 @@
       "name": "Spencer Foundation",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-14",
-      "sourceCount": 1,
+      "sourceCount": 2,
       "programCount": 1,
       "fields": {
         "focus": true,
@@ -17667,6 +17672,7 @@
         "applicationRoute": true
       },
       "sources": [
+        "https://www.spencer.org/grant_types/small-research-grant/",
         "https://www.spencer.org/grant_types/small-research-grant/"
       ],
       "retrievals": []
@@ -17973,20 +17979,22 @@
       "name": "Susan Thompson Buffett Foundation (STBF)",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-15",
-      "sourceCount": 3,
+      "sourceCount": 5,
       "programCount": 1,
       "fields": {
         "focus": true,
         "eligibility": true,
         "numericAward": false,
         "currentNumericAward": false,
-        "datedDeadline": false,
+        "datedDeadline": true,
         "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
         "https://www.buffettscholarships.org/applicants",
         "https://www.buffettscholarships.org/eligibility-selection",
+        "https://www.buffettscholarships.org/applicant-faq",
+        "https://www.buffettscholarships.org/applicants",
         "https://www.buffettscholarships.org/applicant-faq"
       ],
       "retrievals": []
@@ -21288,7 +21296,7 @@
         "numericAward": true,
         "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -23204,7 +23212,7 @@
     },
     {
       "sourceRecordId": "local-shift",
-      "name": "SHIFT Grants — Edge City and Nodes",
+      "name": "SHIFT Grants: Edge City and Nodes",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-29",
       "sourceCount": 2,
@@ -23379,7 +23387,7 @@
     },
     {
       "sourceRecordId": "local-afdb-accf",
-      "name": "African Development Bank — Africa Climate Change Fund",
+      "name": "African Development Bank: Africa Climate Change Fund",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-29",
       "sourceCount": 3,
@@ -23458,7 +23466,7 @@
         "numericAward": false,
         "currentNumericAward": false,
         "datedDeadline": true,
-        "upcomingDatedDeadline": true,
+        "upcomingDatedDeadline": false,
         "applicationRoute": true
       },
       "sources": [
@@ -23538,7 +23546,7 @@
     }
   ],
   "notes": "All original and supplemental records have a research disposition. Source overviews, program terms and failed/unresolved checks are distinct. Unknown terms remain unknown. Retrieval entries describe collection, not a claim that terms were verified. Original30 pilot reviews were retained from October14; expanded research was checked October15.",
-  "compiledAt": "2026-11-15T09:16:01.447556+00:00",
+  "compiledAt": "2026-11-23T08:31:21.171930+00:00",
   "fieldDefinitions": {
     "currentNumericAward": "A numeric amount in published program terms, even if that intake is closed; not a promise of current availability.",
     "datedDeadline": "At least one source closing date, including historical or closed calls.",
