@@ -687,24 +687,52 @@ test("a version that differs only in its card binding is never dropped: this bui
   assert.deepEqual(kept[0]![1].account.retired, [card], "the older tab's version, with what it knew, is kept");
 });
 
+/** A clock the test moves by hand, so a bound is checked by the order of events and never by the machine's speed. */
+function handClock() {
+  let now = 0;
+  const waiting = new Set<{ at: number; then: () => void }>();
+  return {
+    now: () => now,
+    after(milliseconds: number, then: () => void) {
+      const entry = { at: now + milliseconds, then };
+      waiting.add(entry);
+      return () => void waiting.delete(entry);
+    },
+    advance(milliseconds: number) {
+      now += milliseconds;
+      for (const entry of [...waiting].sort((a, b) => a.at - b.at))
+        if (entry.at <= now && waiting.delete(entry)) entry.then();
+    },
+  };
+}
+
 test("a deletion has one bound in all, and once it fires the message says only what is certain", async t => {
   const start = words("Synthetic words before the update");
   const fake = withReleased(t, start, [[BACKUP, words("Synthetic earlier backup")]]);
   await new IndexedDraftRepository().bringAcross();
   const [backup] = await new IndexedDraftRepository().backups();
-  // A slow look that uses most of the bound, then a removal that does not answer in time.
-  const repository = new IndexedDraftRepository({ earlierWait: 200, earlier: {
-    read: async () => { await sleep(150); return readEarlier(); },
-    remove: async (removal, signal) => { await sleep(120); return removeFromEarlier(removal, signal); },
+  // A slow look that uses most of the bound, then a removal that does not answer in time. Each
+  // alone is inside the bound of 200; together they pass it, so only one bound for the whole
+  // deletion gives up here. One bound for each step would let the removal finish.
+  const clock = handClock();
+  let removalRan = false;
+  const repository = new IndexedDraftRepository({ earlierWait: 200, clock, earlier: {
+    read: async () => { const found = await readEarlier(); clock.advance(150); return found; },
+    remove: async (removal, signal) => {
+      // The removal's bound is set as it starts; its time passes after that.
+      await Promise.resolve();
+      clock.advance(120);
+      if (signal?.aborted) throw signal.reason;
+      removalRan = true;
+      return removeFromEarlier(removal, signal);
+    },
   } });
-  const started = performance.now();
   await assert.rejects(
     repository.deleteBackup(backup!.key, draftPin(backup!.draft)),
     (error) => error instanceof RemovalNotice && /may or may not have been removed/u.test(error.message) && /is still here/u.test(error.message),
   );
-  assert.ok(performance.now() - started < 300, "one bound for the whole deletion, not one for each step");
-  // The late removal is called off, so nothing contradicts what was said.
-  await sleep(150);
+  assert.equal(removalRan, false, "one bound for the whole deletion, not one for each step: the late removal is called off");
+  // So nothing contradicts what was said.
   assert.deepEqual(fake.earlier.snapshot().backups.map(([key]) => key), [BACKUP], "the earlier copy is still there");
   assert.deepEqual(fake.snapshot().backups.map(([key]) => key), [BACKUP], "and so is this one");
 });

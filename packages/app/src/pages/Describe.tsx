@@ -372,7 +372,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
   );
   return (
     <Stack>
-      <IntakeStepper current={0}>{forward("wide")}</IntakeStepper>
+      <IntakeStepper>{forward("wide")}</IntakeStepper>
       <Heading level={1} size="page">
         Tell Us About Your Initiative
       </Heading>

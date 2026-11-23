@@ -56,13 +56,11 @@ import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 /** What each of the two steps asks, in the order the steps come. */
 const ASK_STEPS = {
   needs: {
-    step: 1,
     title: "What You Need",
     intro: "Say or type everything that would help, in one go if you like. Weave makes a card for each need, up to four.",
     next: "offers",
   },
   offers: {
-    step: 2,
     title: "What You Can Offer",
     intro: "Say or type what you can share with others, in one go if you like. Weave makes a card for each offer, up to four.",
     next: "your-initiative",
@@ -116,7 +114,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
   return (
     <Stack>
       {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-127). */}
-      <IntakeStepper current={page.step}>
+      <IntakeStepper>
         {back && <BackButton target={back}>Back</BackButton>}
         {forward("wide")}
       </IntakeStepper>
