@@ -62,6 +62,11 @@ export function useProjectAccessAfterSignIn(): boolean {
   const signedIn = !!state?.user, answered = state !== null;
   useEffect(() => trip.attend(), []);
   useEffect(() => {
+    const shown = (event: PageTransitionEvent) => { if (event.persisted) trip.returned(); };
+    window.addEventListener("pageshow", shown);
+    return () => window.removeEventListener("pageshow", shown);
+  }, []);
+  useEffect(() => {
     trip.update({ answered, signedIn, ready }, () => projectAccessAddress({
       settled: () => controller.settled(),
       storage: () => controller.getSnapshot().storage,

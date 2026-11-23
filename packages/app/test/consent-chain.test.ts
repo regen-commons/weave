@@ -112,6 +112,9 @@ test("the trip starts once everything is known, goes once, and is over", async (
   assert.equal(starts, 1, "a second effect run does not start a second trip");
   await settled();
   assert.deepEqual(went, [address]);
+  assert.equal(trip.pending(), true, "while the browser leaves, the page keeps its shape and offers no second Allow");
+  // The person comes back with the browser's Back: the page shows what it always did.
+  trip.returned();
   assert.equal(trip.pending(), false);
   assert.deepEqual(time.pending(), [], "the limit is cleared with the trip");
   // Leaving and coming back, any time later, starts nothing: one page load, one trip.
@@ -172,6 +175,12 @@ test("a person who moved on is not taken to Certified, and the address is droppe
   again.resolve(address);
   await settled();
   assert.deepEqual(went, [address]);
+  // A browser that never leaves does not hold the page for good.
+  assert.equal(strict.pending(), true);
+  time.fire();
+  assert.equal(strict.pending(), false, "after 20 seconds the page stops waiting to leave");
+  strict.returned();
+  assert.equal(strict.pending(), false);
 });
 
 test("nobody signed in, or a check that never answers, ends the trip instead of holding the page", async () => {

@@ -73,9 +73,12 @@ const TRIP_LIMIT_MS = 20_000;
  * when it could not begin in time, so a session check that fails or a store that never opens cannot
  * hold the page in its loading shape. The address is used only if the page is still on screen when
  * it arrives: a person who has moved on is not taken to Certified, and the address is dropped.
+ * While the browser is leaving for Certified the page keeps its loading shape, so the Allow button
+ * cannot be pressed beside a trip already under way. That ends when the person comes back to the
+ * page with the browser's Back, or after the same limit if the browser never left.
  */
 export class ProjectAccessTrip {
-  private phase: "wanted" | "under-way" | "over";
+  private phase: "wanted" | "under-way" | "leaving" | "over";
   private listeners = new Set<() => void>();
   private pages = 0;
   private deadline: unknown = null;
@@ -111,14 +114,21 @@ export class ProjectAccessTrip {
     this.phase = "under-way";
     start().then(
       (address) => {
-        const onScreen = this.pages > 0;
-        this.end();
-        if (onScreen) this.go(address);
+        if (this.pages === 0) return this.end();
+        this.phase = "leaving";
+        if (this.deadline !== null) this.timers.clear(this.deadline);
+        this.deadline = this.timers.set(() => this.end(), TRIP_LIMIT_MS);
+        this.go(address);
       },
       () => this.end(),
     );
   }
+  /** The page is shown again from the browser's back-forward cache, after the trip left for Certified. */
+  returned = (): void => {
+    if (this.phase === "leaving") this.end();
+  };
   private end(): void {
+    if (this.phase === "over") return;
     this.phase = "over";
     if (this.deadline !== null) this.timers.clear(this.deadline);
     this.deadline = null;
