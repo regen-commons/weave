@@ -27,8 +27,10 @@ Fund is `/funding/local-nlnet`, Describe is `/start/initiative`.
 
 Nine other sessions were running browsers and builds on the same machine. Performance
 moved by up to 30 points between identical runs (Home on mobile scored 41, 50, 71, 72
-and 73 locally), so read single performance numbers as rough. Phase 2 reports the median
-of three runs. Accessibility, best practices and SEO did not move between runs.
+and 73 locally), so read single performance numbers as rough. Local performance numbers serve only to
+compare a change before and after under the same load; phase 2 takes its scores from
+production or a Vercel preview, as the median of three runs. Accessibility, best
+practices and SEO did not move between runs.
 
 Per-run scores, metrics and failing audits are in
 [lighthouse-baseline.json](lighthouse-baseline.json).
