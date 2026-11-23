@@ -11,8 +11,8 @@ const LANGUAGES = ["en-US", "pt-BR", "es-ES", "fr-FR", "de-DE", "sw-KE", "hi-IN"
  * Talk it out (`rc-voice-input`, DL-110): one button, one box and one action. The button turns
  * into Stop in place while the browser listens, and the words appear in the box,
  * whose space is always there. Stop answers the press at once: the button reads Finishing until
- * the recognizer has handed over its last words (DL-133). A person who cannot or will not speak types into the same box.
- * The action then structures the words, and its result is said in the line under it, which keeps
+ * the recognizer has handed over its last words (DL-133). A person who cannot or will not speak
+ * types into the same box. The action then structures the words, and its result is said in the line under it, which keeps
  * its height. Nothing on the page moves when any of them is pressed. Where talking goes through
  * the browser's own speech service, the first press on a device asks the person to agree in a
  * dialog, and listening starts only from their agreement. While the browser downloads and sets
