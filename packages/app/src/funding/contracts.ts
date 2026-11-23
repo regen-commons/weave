@@ -162,6 +162,8 @@ export const EvaluationSchema = z.object({
     score: z.number().nullable(),
     band: z.enum(["unknown", "strong", "relevant", "partial", "limited"]),
     label: z.string(),
+    /** The distinct specific topics the program and the initiative share, which grade the score. */
+    evidenceTerms: strings,
   }),
   readiness: z.object({ status: z.string(), label: z.string() }),
   shared: strings,
