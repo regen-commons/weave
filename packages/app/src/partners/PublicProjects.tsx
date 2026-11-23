@@ -9,6 +9,7 @@ import { keepFocusOnPage } from "../ui/focus.ts";
 import { ListEnd, ListEndHold, useAddedFocus } from "../ui/ListEnd.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
+import { projectAddress, rememberProject } from "./public-project.ts";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
   askedFor, chosenOrganizationType, chosenSort, chosenWorkScope, countLine, emptyList, filtersChosen, firstPage, indexLine,
@@ -22,16 +23,20 @@ const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
 
 /**
  * One listed public Certified project: its name, who shared it and where, its own words, when it was
- * shared and where it comes from. The card opens the project's public record from its name, in a new
- * tab, so it has the one target every card in a list has.
+ * shared and where it comes from. The card opens the project at its Weave address from its name, so it
+ * has the one target every card in a list has: over the list inside the app, and as its own page from a
+ * link (22 November 2026). The card is kept in memory as it opens, so the project shows at once. A
+ * project with no Weave address (none the index listed that day) opens its public record instead.
  */
 export function PublicProjectCard({ project, level }: { project: Project; level: 2 | 3 }) {
   const Title = level === 3 ? "h3" : "h2";
   const line = sharedByLine(project);
+  const address = projectAddress(project.uri);
   return (
     <Card kind="initiative" rows="fixed">
       <Title className="rc-card-title">
-        <Link href={project.sourceUrl}>{project.name}</Link>
+        {address ? <Link href={address} onClick={() => rememberProject(project)}>{project.name}</Link>
+          : <Link href={project.sourceUrl}>{project.name}</Link>}
       </Title>
       {/* Who shared it and where keep one line on every card, so cards are one height (DL-108). It is
           empty where the project names neither, and a line cut at its end is whole one hover away.
