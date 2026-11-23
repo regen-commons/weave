@@ -161,6 +161,28 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
       Until then, fit is not shown or sorted on. Check eligibility with the funder before applying.
     </DescribePrompt>
   );
+  // The room the line above takes for a checked card, unseen: its words, about as long, and its two
+  // actions. Nothing in it is this person's, and nothing in it can be pressed.
+  const checkedRoom = (
+    <div className="rc-skeleton" data-shape="room" aria-hidden="true">
+      <StatusLine
+        actions={
+          <>
+            <button className="rc-button" data-variant="secondary" data-size="sm" type="button" tabIndex={-1}>
+              Change Initiative
+            </button>
+            <button className="rc-button" data-variant="secondary" data-size="sm" type="button" tabIndex={-1}>
+              Edit Details
+            </button>
+          </>
+        }
+      >
+        Showing what fits <strong>Your initiative</strong>.
+        <br />
+        <span className="rc-meta">No details for funding yet.</span>
+      </StatusLine>
+    </div>
+  );
   return (
     <ListLayout>
       <Heading level={1} size="page">
@@ -278,8 +300,18 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
           )}
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
               Its words are drawn before the device draft opens, and its action holds its room until
-              then (DescribePrompt), so it reads at once and the list does not move (DL-104). */}
-          {(!catalog.subjectKnown || !catalog.personalized) && prompt}
+              then (DescribePrompt), so it reads at once. A checked card takes the line above instead,
+              which is shorter, so until the draft opens both are drawn and the page shows one: the
+              one the device's flag names, marked before the first paint (describe/checked-hint.ts).
+              The build's first view draws both too, so the list does not move (DL-104). */}
+          {catalog.subjectKnown ? (
+            !catalog.personalized && prompt
+          ) : (
+            <>
+              <div data-unless-checked-card="">{prompt}</div>
+              <div data-if-checked-card="">{checkedRoom}</div>
+            </>
+          )}
           {early ? (
             // The first cards, built into the app, while the catalog loads. The catalog's own first
             // cards are these, so it adds cards after them and moves none (DL-139, DL-140).
