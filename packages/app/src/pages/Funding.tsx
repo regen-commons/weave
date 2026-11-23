@@ -279,14 +279,9 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
             </p>
           )}
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.
-              Until the device draft opens its room is held, unseen, so the list does not move (DL-104). */}
-          {!catalog.subjectKnown ? (
-            <div className="rc-skeleton" data-shape="room" aria-hidden="true">
-              {prompt}
-            </div>
-          ) : (
-            !catalog.personalized && prompt
-          )}
+              Its words are drawn before the device draft opens, and its action holds its room until
+              then (DescribePrompt), so it reads at once and the list does not move (DL-104). */}
+          {(!catalog.subjectKnown || !catalog.personalized) && prompt}
           {early ? (
             // The first cards, built into the app, while the catalog loads. The catalog's own first
             // cards are these, so it adds cards after them and moves none.

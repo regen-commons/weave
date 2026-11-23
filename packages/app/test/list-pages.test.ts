@@ -74,10 +74,10 @@ test("a list's skeleton is built from the loaded page's own parts, so nothing mo
   for (const part of ["rc-card-title", "rc-card-summary", "rc-meta", "rc-time"])
     assert.match(project, new RegExp(`className="${part}"`, "u"), part);
   assert.match(read("partners/PublicProjects.tsx"), /<CardGridSkeleton kind="project"/u);
-  // Funding's prompt depends on the card, not the catalog: it is there from the first paint, and
-  // its room is held while the device draft opens.
+  // Funding's prompt depends on the card, not the catalog: it is there from the first paint, its
+  // words drawn while the device draft opens and its action holding its room (test/prompt-at-once.test.ts).
   const page = read("pages/Funding.tsx");
-  assert.match(page, /\{!catalog\.subjectKnown \? \(\s*<div className="rc-skeleton" data-shape="room" aria-hidden="true">\s*\{prompt\}/u);
+  assert.match(page, /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && prompt\}/u);
   assert.doesNotMatch(page, /!loading && !catalog\.personalized/u);
   for (const file of ["pages/Funding.tsx", "partners/PublicProjects.tsx"]) assert.match(read(file), /\breserve="/u, file);
 });
