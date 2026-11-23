@@ -39,21 +39,20 @@ import {
 import {
   backTarget,
   documentTitle,
-  fixtureHref,
   matchRoute,
   sheetBackground,
   splitRoute,
   type BackTarget,
   type Route,
 } from "./routes.ts";
-import type { SheetState } from "./ui/DetailSheet.tsx";
+import type { Presentation, SheetState } from "./ui/DetailSheet.tsx";
 import { Page } from "./ui/Page.tsx";
 import { FixtureControls } from "./ui/FixtureControls.tsx";
 import { Heading } from "./ui/Heading.tsx";
 import { NarrowLayout } from "./ui/layouts.tsx";
 import { DraftSkeleton } from "./ui/CardSkeleton.tsx";
 
-function content(route: Route, fixture?: FixtureContext) {
+function content(route: Route, search: string, fixture?: FixtureContext) {
   switch (route.name) {
     case "home":
       return <Home fixture={fixture} />;
@@ -84,8 +83,8 @@ function content(route: Route, fixture?: FixtureContext) {
       return <Funding fixture={fixture} />;
     case "opportunity":
     case "initiative-detail":
-      // A record opens over a page as a sheet; it is never the page itself.
-      return null;
+      // Only a record opened from a link reaches here: over a page, it comes up as a sheet instead.
+      return recordBody(route, search, { open: true, onClose: () => {} }, "page", fixture);
     case "team-workspace":
       return <TeamWorkspace key={route.id} workspaceId={route.id!} />;
     case "settings":
@@ -98,31 +97,41 @@ function content(route: Route, fixture?: FixtureContext) {
 }
 /** A record's sheet. It outlives its route for a moment, so it can leave with its motion. */
 interface Shown {
-  /** The record on show, so a retry on the same record keeps its sheet in place. */
-  readonly record: string;
   readonly location: string;
   readonly route: Route;
   readonly search: string;
   /** Closed by hand, and on its way back to the page under it. */
   readonly dismissed: boolean;
 }
+/** Which record is on show, so a retry on the same record keeps its sheet in place. */
 const recordKey = (route: Route, search: string): string =>
   `${route.name} ${route.id} ${new URLSearchParams(search).get("program") ?? ""}`;
-function sheetBody(shown: Shown, state: SheetState, fixture?: FixtureContext) {
-  return shown.route.name === "opportunity" ? (
+/**
+ * A fund's own page goes back to Funding as the person had it: the address keeps the list's search and
+ * filters, as one opened in a new tab from a filtered list does. Every other page keeps its back link.
+ */
+function recordPageBack(route: Route | undefined, search: string, back: BackTarget | null): BackTarget | null {
+  return route?.name === "opportunity" && back?.hops === 0 ? { ...back, href: fundingBackHref(search) } : back;
+}
+/** A record, as a sheet over the page it was opened from or as a page of its own. */
+function recordBody(route: Route, search: string, state: SheetState, presentation: Presentation, fixture?: FixtureContext) {
+  return route.name === "opportunity" ? (
     <Opportunity
-      key={shown.record}
-      fundId={shown.route.id!}
-      search={shown.search}
+      key={recordKey(route, search)}
+      fundId={route.id!}
+      search={search}
       fixture={fixture}
       sheet={state}
+      presentation={presentation}
     />
   ) : (
     <RecordDetail
-      key={shown.record}
+      key={recordKey(route, search)}
+      id={route.id!}
       fixture={fixture}
-      record={fixture?.initiatives.find((record) => record.id === shown.route.id)}
+      record={fixture?.initiatives.find((record) => record.id === route.id)}
       sheet={state}
+      presentation={presentation}
     />
   );
 }
@@ -191,9 +200,10 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     saved.contentKey === accountKey(device.draft);
   const { pathname, search } = splitRoute(location);
   const route = matchRoute(pathname);
-  // A record opens over the page the person was on, and that page stays as it was underneath.
-  const sheetRoute = route?.sheet ? route : undefined;
-  const under = sheetRoute ? sheetBackground(sheetRoute, currentVisit()) : undefined;
+  // A record opened inside the app comes up over the page the person was on, and that page stays as it
+  // was underneath. Opened from a link, it is a page of its own.
+  const under = route?.sheet ? sheetBackground(route, currentVisit()) ?? undefined : undefined;
+  const sheetRoute = under ? route : undefined;
   const pagePath = under ? splitRoute(under.route).pathname : pathname;
   const pageRoute = under ? matchRoute(pagePath) : route;
   const [shown, setShown] = useState<Shown>();
@@ -201,7 +211,7 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
   if (sheetRoute ? shown?.location !== location : shown?.dismissed) {
     setShown(
       sheetRoute
-        ? { record: recordKey(sheetRoute, search), location, route: sheetRoute, search, dismissed: false }
+        ? { location, route: sheetRoute, search, dismissed: false }
         : undefined,
     );
   }
@@ -214,16 +224,12 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     }
     // Closed by hand: return to the page under it, where the person left it.
     setShown({ ...shown, dismissed: true });
-    if (under.hops > 0) goBack(under.hops);
-    else {
-      const list = sheetRoute.name === "opportunity" ? fundingBackHref(search) : under.route;
-      navigate(fixtureHref(list, search, import.meta.env.DEV), true);
-    }
+    goBack(under.hops);
   }
   // The page keeps the back link it had before a record opened over it.
   const pageBack = useRef<{ path: string; target: BackTarget | null }>(null);
   const back = !sheetRoute
-    ? backTarget(pageRoute, currentVisit())
+    ? recordPageBack(pageRoute, search, backTarget(pageRoute, currentVisit()))
     : pageBack.current?.path === pagePath
       ? pageBack.current.target
       : backTarget(pageRoute, null);
@@ -236,8 +242,8 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     if (wasReturn()) settleScroll();
   }, []);
   useEffect(() => {
-    // An open sheet names the document itself.
-    if (!sheetRoute) document.title = documentTitle(pageRoute);
+    // A record, open as a sheet or as a page, names the document itself.
+    if (!route?.sheet) document.title = documentTitle(pageRoute);
     const before = last.current;
     if (before.location === location) return;
     last.current = { location, pagePath, sheet: !!sheetRoute };
@@ -263,9 +269,11 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
       current={pageRoute?.name}
       sheet={
         shown && !shown.dismissed
-          ? sheetBody(
-              shown,
+          ? recordBody(
+              shown.route,
+              shown.search,
               { open: !!sheetRoute && shown.location === location, onClose: sheetClosed },
+              "sheet",
               fixture,
             )
           : null
@@ -277,7 +285,7 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
         !(__WEAVE_PROTOTYPE__ && window.parent !== window) && <FixtureControls fixture={fixture} />
       }
     >
-      {pageRoute ? content(pageRoute, fixture) : <NotFound />}
+      {pageRoute ? content(pageRoute, search, fixture) : <NotFound />}
     </Page>
   );
 }

@@ -3,18 +3,21 @@ import { useEffect, useId, useState } from "react";
 import type { TeamAsk } from "../funding/team.ts";
 import { teamCoverage } from "../funding/team.ts";
 import { Fit } from "./Fit.tsx";
+import { useSectionTag } from "./section-level.ts";
 export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: boolean }) {
   const [selected, setSelected] = useState<string[]>([]);
   const id = useId();
+  // A section of the record it is drawn in, at that record's level (a sheet's or a page's).
+  const Heading = useSectionTag(), SlotHeading = useSectionTag(1);
   useEffect(() => {
     if (!shared) setSelected([]);
   }, [shared]);
   if (!import.meta.env.DEV || asks === null)
     return (
       <section className="rc-stack">
-        <h3 className="rc-heading" data-size="section">
+        <Heading className="rc-heading" data-size="section">
           Stronger With A Team
-        </h3>
+        </Heading>
         <p>
           Partner requirements have not been structured or checked for this call. Check the funder's published
           terms.
@@ -25,9 +28,9 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
   const coverage = teamCoverage(asks, shared ? selected : []);
   return (
     <section className="rc-stack" aria-labelledby={`${id}-heading`}>
-      <h3 className="rc-heading" data-size="section" id={`${id}-heading`}>
+      <Heading className="rc-heading" data-size="section" id={`${id}-heading`}>
         Stronger With A Team
-      </h3>
+      </Heading>
       {!asks.length ? (
         <p>This call asks for no partner. That does not establish eligibility.</p>
       ) : (
@@ -35,9 +38,9 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
           <ol className="rc-team-slots">
             {asks.map((ask, index) => (
               <li className="rc-team-slot" key={ask.id}>
-                <h4 className="rc-card-title">
+                <SlotHeading className="rc-card-title">
                   {index + 1}. {ask.label}
-                </h4>
+                </SlotHeading>
                 {!ask.candidates.length ? (
                   <p className="rc-meta">Nobody on the list yet.</p>
                 ) : !shared ? (

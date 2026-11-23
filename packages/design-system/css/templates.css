@@ -28,6 +28,12 @@
 @media (height < 30rem) {
   :root:has(.rc-app-header) { scroll-padding-block-start: var(--space-4); }
 }
+/* A list's pinned filter row sits under the app bar, or at the window's top where the bar has
+   scrolled away, so jumps and focus stop clear of it too (DL-130). */
+:root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(2 * var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+@media (height < 30rem) {
+  :root:has(.rc-filter-pin:not([hidden])) { scroll-padding-block-start: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4)); }
+}
 
 /* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
    window below it, reads this. */
