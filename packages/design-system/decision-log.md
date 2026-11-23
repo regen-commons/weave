@@ -994,7 +994,7 @@ A browser with no speech recognition, such as Firefox, got one line saying it co
 - **The line says when it leaves.** While recording: "Recording. Nothing is sent yet." After Stop the button reads Finishing, as in DL-133, and the line says "Sending your recording to Cloudflare to be turned into text."
 - **Discard.** Beside the recording line, Discard drops the recording unsent and gives the focus back to Talk It Out. Stop sends; Discard never does. The line is short so both fit the room the line always keeps, and nothing below moves.
 - **Three minutes.** A recording stops by itself at three minutes, or sooner if it would outgrow what the server takes, and is sent as if Stop had been pressed. The notice says so before the person agrees, and the button and the line change to Finishing and Sending without a press.
-- **Every way it stops says the recording was not kept,** and that typing still works: offline, not sent, the provider busy, the day's limit reached, cloud speech switched off, too long, unreadable.
+- **Every way it stops says the recording was not kept,** and that typing still works: offline, not sent, the provider busy, the day's limit reached, cloud speech switched off, too long, unreadable. If the microphone stops by itself, the recording is dropped and the page says nothing was sent: only Stop and the limit send.
 
 Given up: on these browsers a person sees no words until they stop, and must trust the count. A recording that fails to arrive is dropped and not tried again, so "sent once" stays true and nothing is kept; the person records again.
 

@@ -18,8 +18,9 @@ No screenshots are committed; the captures were looked at during the check.
   a real recording becoming real words.
 
 An independent review of the first version found seven defects in the recording session and in
-what the page said at the time limit, during the microphone question and after a withdrawal.
-They are fixed, each has a test, and the runs below are of the fixed version.
+what the page said at the time limit, during the microphone question and after a withdrawal, and
+two more in the first fixes. All are fixed, each has a test, and the keyboard runs below are of
+the version before the last two fixes, which changed no screen in them.
 
 ## The flow, with the keyboard only
 
@@ -86,9 +87,12 @@ Anywhere else, Weave asks before your voice leaves this device.", and left the c
   it stops a recording and sends nothing, and cancels a recording already on its way.
 - A recording is sent once, whole, with the language, no cookie and nothing else, and is never
   tried a second time. Discard, a withdrawn agreement and leaving the page drop it unsent.
+- Only Stop and the limit send. A recorder that stops by itself, as when the microphone is
+  unplugged, drops the recording and says nothing was sent.
 - The session ends once whatever happens: Stop before the microphone opens, the time limit, a
-  recorder that stops by itself or never reports that it stopped, and a page that fails on the
-  words. The device counts a recording only when it left the device.
+  recorder that never reports that it stopped, and a page that fails on the words.
+- The device counts a recording when it left the device, including one cancelled on its way, and
+  not one the network refused.
 - Every way it stops says what happened, that the recording was not kept, and that typing works.
 - The two agreements are stored apart. `test/privacy.test.ts` fails if any module but
   `speech-cloud.ts` records, if that module stores anything, or if the server gains a second
@@ -108,6 +112,15 @@ Anywhere else, Weave asks before your voice leaves this device.", and left the c
 - **A screen reader's speech.**
 
 ## Switching it on
+
+One request takes up to 50 seconds on the server (20 for the recording to arrive, 30 for the
+provider). `vercel.json` sets no time limit for this function, and it was left alone because
+deployment configuration is the owner's to change. Before switching on, confirm the Weave
+project's function limit is 60 seconds or more, or add `"api/transcribe.ts": { "maxDuration": 60 }`.
+With a shorter limit a long recording fails with a true message and nothing worse.
+
+A Vercel preview behind deployment protection is likely to refuse the page's own requests to
+`/api/transcribe`, which carry no cookie, so try it on a deployment without protection.
 
 Three settings in the Weave Vercel project, and nothing else:
 

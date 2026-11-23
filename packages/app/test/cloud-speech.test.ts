@@ -534,7 +534,7 @@ test("Talk It Out says where the recording goes before, during and after, and as
     assert.doesNotMatch(line, /[—→·]/u, line);
   }
   assert.match(CLOUD_SPEECH_NOTICE.body.join(" "), /Typing always works instead/u);
-  assert.match(CLOUD_SPEECH_NOTICE.body[0]!, /when you press Stop or after 3 minutes, send the recording to Cloudflare Workers AI/u, "said before agreeing: the limit sends it too");
+  assert.match(CLOUD_SPEECH_NOTICE.body[0]!, /when you press Stop or the recording reaches its limit of 3 minutes at most, send it to Cloudflare Workers AI/u, "said before agreeing: the limit sends it too");
   assert.match(speechNotStarted("cloud"), /Nothing was sent/u);
 });
 
@@ -618,6 +618,36 @@ test("the device notes each recording sent, with its time and length and nothing
   const refused = studio({ deny: "NotAllowedError" });
   await startCloudSpeech("en-US", page().callbacks, { consent: memoryConsent(true), recorder: refused.recorder, devices: refused.devices, send: server().send, status: async () => ON, log });
   await settle();
+  // The length is the recording's, however long the answer took to come back.
+  assert.equal(log.list()[1]?.seconds, 0, "stopped the moment it began, in this test's clock");
+  const slowAnswer = studio();
+  let clockNow = Date.parse("2026-11-23T11:00:00.000Z");
+  const lengths = memoryLog();
+  const answering = ((..._args: unknown[]) => {
+    clockNow += 30_000;
+    return Promise.resolve(Response.json({ text: "after a long wait" }));
+  }) as typeof fetch;
+  const timedSession = await startCloudSpeech("en-US", page().callbacks, { consent: memoryConsent(true), recorder: slowAnswer.recorder, devices: slowAnswer.devices, send: answering, status: async () => ON, now: () => clockNow, log: lengths });
+  await settle();
+  clockNow += 10_000;
+  timedSession.stop();
+  slowAnswer.recorders[0]!.end();
+  await settle();
+  assert.deepEqual(lengths.list(), [{ at: "2026-11-23T11:00:10.000Z", seconds: 10 }], "ten seconds recorded, noted when it was sent");
+  // Leaving the page while it is on its way cancels the request, but it had been sent: it is counted.
+  const leaving = studio();
+  const left = memoryLog();
+  const hanging = ((_url: unknown, init?: RequestInit) =>
+    new Promise((_resolve, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError"))))) as typeof fetch;
+  const going = await startCloudSpeech("en-US", page().callbacks, { consent: memoryConsent(true), recorder: leaving.recorder, devices: leaving.devices, send: hanging, status: async () => ON, log: left });
+  await settle();
+  going.stop();
+  leaving.recorders[0]!.end();
+  await settle();
+  assert.equal(left.list().length, 0, "not counted before anything is known");
+  going.dispose();
+  await settle();
+  assert.equal(left.list().length, 1, "sent, then cancelled: it left the device");
   // Offline, the recording never left, so it is not counted as sent.
   const offline = studio();
   const fourth = await startCloudSpeech("en-US", page().callbacks, { consent: memoryConsent(true), recorder: offline.recorder, devices: offline.devices, send: server(new TypeError("Failed to fetch")).send, status: async () => ON, online: () => false, log });
@@ -696,20 +726,24 @@ test("Discard drops the recording unsent, and is too late only once it is on its
   assert.deepEqual(second.heard, ["result:We grow seedlings|", "end:true"]);
 });
 
-test("a recorder that stops by itself, or never says it stopped, still ends the session", async () => {
-  // The microphone is unplugged: the browser stops the recorder with no press at all.
+test("a recorder that stops by itself sends nothing, and one that never says it stopped still ends", async () => {
+  // The microphone is unplugged, or its sharing is stopped from the browser's own indicator: the
+  // person did not press Stop and the limit was not reached, so the recording is dropped.
   const unplugged = studio();
   const first = server();
   const one = page();
-  await startCloudSpeech("en-US", one.callbacks, { consent: memoryConsent(true), recorder: unplugged.recorder, devices: unplugged.devices, send: first.send, status: async () => ON, log: memoryLog() });
+  const dropped = memoryLog();
+  await startCloudSpeech("en-US", one.callbacks, { consent: memoryConsent(true), recorder: unplugged.recorder, devices: unplugged.devices, send: first.send, status: async () => ON, log: dropped });
   await settle();
   unplugged.recorders[0]!.give(200);
   unplugged.recorders[0]!.end(10);
-  assert.equal(cloudSession.view().phase, "sending");
   await settle();
-  assert.equal(first.requests[0]?.bytes, 210, "what it recorded is sent, as after Stop");
-  assert.deepEqual(one.heard, ["result:We grow seedlings|", "end:true"]);
+  assert.equal(first.requests.length, 0, "nothing is sent without Stop or the limit");
+  assert.deepEqual(one.heard, ["error:cloud-interrupted", "end:false"]);
+  assert.equal(dropped.list().length, 0);
+  assert.equal(cloudSession.view().phase, "idle");
   assert.equal(unplugged.track.stopped, 1);
+  assert.equal(speechProblem("cloud-interrupted", "cloud"), "The microphone stopped, so the recording was dropped. Nothing was sent. Press Talk It Out to try again, or type in the box.");
 
   // Stop is pressed and the recorder never reports that it stopped.
   const silent = studio();
@@ -794,4 +828,21 @@ test("the page hears one end whatever it does with the words", async () => {
   full.recorders[0]!.end();
   await settle();
   assert.deepEqual(second, ["result"]);
+});
+
+test("what Talk It Out shows follows the session that is running, not one that ended late", async () => {
+  const first = studio();
+  const second = studio();
+  const options = { send: server().send, status: async () => ON, log: memoryLog() };
+  const earlier = await startCloudSpeech("en-US", page().callbacks, { ...options, consent: memoryConsent(true), recorder: first.recorder, devices: first.devices });
+  await settle();
+  const later = await startCloudSpeech("en-US", page().callbacks, { ...options, consent: memoryConsent(true), recorder: second.recorder, devices: second.devices, now: () => 9000 });
+  await settle();
+  assert.deepEqual(cloudSession.view(), { phase: "recording", since: 9000 });
+  earlier.dispose();
+  assert.deepEqual(cloudSession.view(), { phase: "recording", since: 9000 }, "an older session ending changes nothing");
+  cloudSession.discard();
+  assert.equal(second.recorders[0]!.stopped, 1, "Discard is the running session's");
+  assert.equal(cloudSession.view().phase, "idle");
+  later.dispose();
 });

@@ -123,6 +123,8 @@ test("what the copy says about cloud speech is what the recorder and the server 
   // One request asks whether it is on, one sends the recording, and neither carries a cookie.
   assert.equal((cloud.match(/await send\(/gu) ?? []).length, 2, "sent once: there is no second try");
   assert.equal((cloud.match(/credentials: "omit"/gu) ?? []).length, 2);
+  // Only the person's Stop and the limit send. A recorder that stops by itself drops the recording.
+  assert.match(cloud, /if \(phase === "recording"\) fail\("cloud-interrupted"\)/u);
   assert.doesNotMatch(cloud, /localStorage|sessionStorage|indexedDB|caches\.|createObjectURL|download/u);
   // It goes to Weave's own server and nowhere else, as the content security policy also holds.
   assert.equal(CLOUD_SPEECH.path, "/api/transcribe");
@@ -142,7 +144,7 @@ test("what the copy says about cloud speech is what the recorder and the server 
     assert.match(line, /may be processed outside your country/u);
     assert.match(line, /turn (this|it) off in Settings/u);
     // The time limit sends it too, and both places say so before the person agrees.
-    assert.match(line, /when you press Stop or after (3|three) minutes/u);
+    assert.match(line, /when you press Stop or the recording reaches its limit of (3|three) minutes at most/u);
   }
   assert.equal(CLOUD_SPEECH.maxSeconds, 180);
   assert.equal(CLOUD_SPEECH.provider, "Cloudflare Workers AI");

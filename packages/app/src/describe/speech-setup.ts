@@ -233,7 +233,7 @@ export const CLOUD_SPEECH_NOTE = `Weave can turn a recording of your voice into 
 export const CLOUD_SPEECH_NOTICE = {
   title: "Send Your Recording To Be Turned Into Text?",
   body: [
-    `This browser cannot turn speech into text on this device. Weave can record what you say and, when you press Stop or after ${CLOUD_SPEECH.maxSeconds / 60} minutes, send the recording to ${CLOUD_SPEECH.provider}, which turns it into text with the ${CLOUD_SPEECH.model} model.`,
+    `This browser cannot turn speech into text on this device. Weave can record what you say and, when you press Stop or the recording reaches its limit of ${CLOUD_SPEECH.maxSeconds / 60} minutes at most, send it to ${CLOUD_SPEECH.provider}, which turns it into text with the ${CLOUD_SPEECH.model} model.`,
     `Weave does not keep the recording. ${CLOUD_SPEECH.company} says it does not keep it or use it to train models. It may be processed outside your country.`,
     "Only the recording and the language you chose are sent. Typing always works instead. You can turn this off in Settings.",
   ],
@@ -462,6 +462,9 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
       return "Cloud speech was turned off in Settings while the recording was being sent. No words were added, and you can type in the box.";
     case "discarded":
       return "The recording was discarded. Nothing was sent. Press Talk It Out to try again, or type in the box.";
+    // The microphone went away mid-recording. The person did not press Stop, so nothing is sent.
+    case "cloud-interrupted":
+      return "The microphone stopped, so the recording was dropped. Nothing was sent. Press Talk It Out to try again, or type in the box.";
     // Cloud speech (`speech-cloud.ts`). The recording is dropped in every one of these.
     case "cloud-offline":
       return "You are offline, so the recording could not be sent. It was not kept. You can type in the box.";

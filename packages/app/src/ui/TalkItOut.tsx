@@ -117,15 +117,17 @@ export function TalkItOut({
     return () => clearTimeout(timer);
   }, [stopPressed, cloud]);
   // Cloud speech shows no words while it records, so the box's label counts the time instead.
+  // The time is always counted from this recording's own start, never carried over from the last one.
   const since = recording?.phase === "recording" ? recording.since : null;
-  const [elapsed, setElapsed] = useState(0);
+  const [clock, setClock] = useState(0);
   useEffect(() => {
     if (since === null) return;
-    const tick = () => setElapsed((Date.now() - since) / 1000);
+    const tick = () => setClock(Date.now());
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [since]);
+  const elapsed = since === null ? 0 : Math.max(0, (clock - since) / 1000);
   const talkButton = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   // While listening, the newest words stay in view inside the box.

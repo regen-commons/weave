@@ -144,6 +144,8 @@ export interface CloudSessionView {
 const IDLE: CloudSessionView = { phase: "idle", since: null };
 let view: CloudSessionView = IDLE;
 let discardCurrent: (() => void) | undefined;
+/** The session the view describes. A session that is not the latest one changes nothing here. */
+let owner: object | undefined;
 const viewListeners = new Set<() => void>();
 function show(next: CloudSessionView) {
   if (view.phase === next.phase && view.since === next.since) return;
@@ -227,6 +229,10 @@ export async function startCloudSpeech(
   let bytes = 0;
   let began: number | null = null;
   let uploading = false;
+  const token = {};
+  const tell = (next: CloudSessionView) => {
+    if (owner === token) show(next);
+  };
   const waits = new Set<() => void>();
   const sending = new AbortController();
   let withdrawn: () => void = () => {};
@@ -266,8 +272,11 @@ export async function startCloudSpeech(
     // The recording is dropped here whatever happened to it.
     chunks = [];
     release();
-    if (discardCurrent === discard) discardCurrent = undefined;
-    show(IDLE);
+    if (owner === token) {
+      owner = undefined;
+      discardCurrent = undefined;
+      show(IDLE);
+    }
   };
   const fail = (problem: SpeechProblem) => {
     if (phase === "ended") return;
@@ -279,8 +288,9 @@ export async function startCloudSpeech(
   const discard = () => {
     if (phase === "starting" || phase === "recording") fail("discarded");
   };
+  owner = token;
   discardCurrent = discard;
-  show({ phase: "starting", since: null });
+  tell({ phase: "starting", since: null });
   signal?.addEventListener("abort", dispose, { once: true });
   // Withdrawing the agreement, here or in another tab, stops the recording and sends nothing. One
   // already on its way is cancelled, but may have arrived, so the page does not say it was not sent.
@@ -289,9 +299,10 @@ export async function startCloudSpeech(
   });
 
   /** Sends the recording, once. Answers the words, or the problem to say. */
-  const post = async (recording: Blob): Promise<{ text: string } | { problem: SpeechProblem }> => {
+  const post = async (recording: Blob, seconds: number): Promise<{ text: string } | { problem: SpeechProblem }> => {
     const timeout = AbortSignal.timeout(CLOUD_SEND_MS);
-    const note = () => log.add({ at: new Date(now()).toISOString(), seconds: began === null ? 0 : Math.max(0, Math.round((now() - began) / 1000)) });
+    const sentAt = new Date(now()).toISOString();
+    const note = () => log.add({ at: sentAt, seconds });
     let response: Response;
     try {
       response = await send(CLOUD_SPEECH.path, {
@@ -308,8 +319,10 @@ export async function startCloudSpeech(
         signal: AbortSignal.any([sending.signal, timeout]),
       });
     } catch {
-      // A request that timed out had been sent. One the network refused is taken as not sent.
-      if (timeout.aborted) {
+      // A request that timed out, or that this session cancelled while it was on its way (the
+      // page left, or the agreement was withdrawn), had been sent, and is noted. One the network
+      // refused outright is taken as not sent.
+      if (timeout.aborted || sending.signal.aborted) {
         note();
         return { problem: "cloud-failed" };
       }
@@ -335,7 +348,7 @@ export async function startCloudSpeech(
     const recording = new Blob(chunks, { type: type.split(";")[0] });
     chunks = [];
     if (!recording.size) return fail("no-speech");
-    const outcome = await post(recording);
+    const outcome = await post(recording, Math.max(0, Math.round((recordedUntil - (began ?? recordedUntil)) / 1000)));
     if (phase !== "sending") return;
     if ("problem" in outcome) return fail(outcome.problem);
     const text = outcome.text.trim();
@@ -351,18 +364,16 @@ export async function startCloudSpeech(
     dispose();
     callbacks.end(true);
   };
-  /** The recording is over and goes on its way: from Stop, the limit, or a recorder that stopped by itself. */
-  const handOver = () => {
-    if (phase !== "recording") return;
-    phase = "sending";
-    show({ phase: "sending", since: null });
-    for (const stop of waits) stop();
-    waits.clear();
-  };
-  /** Stops the recording and sends it: from the person's Stop, or at the limit. */
+  /** When the recording stopped, for its length. */
+  let recordedUntil = 0;
+  /** Stops the recording and sends it: from the person's Stop, or at the limit. Nothing else sends. */
   const finish = () => {
     if (phase !== "recording" || !session) return;
-    handOver();
+    phase = "sending";
+    recordedUntil = now();
+    tell({ phase: "sending", since: null });
+    for (const stop of waits) stop();
+    waits.clear();
     // A recorder hands over its last piece and then stops. One that never says it has stopped is
     // not waited for: what it gave is sent.
     after(() => void upload(), HANDOVER_MS);
@@ -396,11 +407,12 @@ export async function startCloudSpeech(
         // A browser that ignores the bit rate fills the limit early. Stop while it still fits.
         if (phase === "recording" && bytes > limits.maxBytes * 0.9) finish();
       };
-      // Also when the recorder stops by itself, as when the microphone is unplugged: what it
-      // recorded is sent, as after Stop, and the session ends.
+      // A recorder that stops by itself, as when the microphone is unplugged or its sharing is
+      // stopped from the browser's own indicator, was not stopped by the person and has not
+      // reached the limit. Nothing is sent: the recording is dropped, and the page says so.
       session.onstop = () => {
-        handOver();
-        void upload();
+        if (phase === "recording") fail("cloud-interrupted");
+        else void upload();
       };
       session.onerror = () => fail("audio-capture");
       phase = "recording";
@@ -409,7 +421,7 @@ export async function startCloudSpeech(
       return fail("audio-capture");
     }
     began = now();
-    show({ phase: "recording", since: began });
+    tell({ phase: "recording", since: began });
     after(finish, limits.maxSeconds * 1000);
   };
   void begin();
