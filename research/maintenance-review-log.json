@@ -18063,6 +18063,294 @@
       ],
       "result": "Applied one existing-term revision through the revision journal: the application note and unknowns. Route and dates are unchanged. No whole-record verification date advanced.",
       "publication": "Committed on a local branch for review. No push, merge, deployment, application or funder contact."
+    },
+    {
+      "id": "dry-run-discovery-2026-11-22",
+      "runType": "manual-dry-run",
+      "localDate": "2026-11-22",
+      "timeZone": "America/Los_Angeles",
+      "scheduledTimerObserved": false,
+      "executionModel": "claude-fable-5-2",
+      "reasoningEffort": "medium",
+      "executionNote": "Dry run of one discovery pass in a Claude Code session, to exercise the source registry, search playbook, verification standard and planner added in regen-commons/weave#147. Not a scheduled routine run; no timer is claimed. Bounded on purpose: it shows the records a run writes and is not a full week's discovery.",
+      "repository": "regen-commons/weave",
+      "baselineCommit": "d11fd32f2956707f0d04bb3ca3a5c2c921d84492",
+      "plan": {
+        "command": "node scripts/research-plan.mjs discovery --as-of 2026-11-22",
+        "sourcesDue": 27,
+        "cellsDue": 20,
+        "cellsPlanned": [
+          "open-source-public-goods/US-CA",
+          "climate-restoration/NG",
+          "community-energy-digital-inclusion/BR",
+          "culture-community-education/ZA",
+          "open-source-public-goods/NG"
+        ]
+      },
+      "additions": [],
+      "appliedAdditions": [],
+      "appliedRevisions": [],
+      "revisedPrograms": [],
+      "sourceCounts": {
+        "attempted": 8,
+        "retrieved": 7,
+        "retrievalFailed": 1,
+        "verifiedFields": 3,
+        "reviewedNoTerms": 3,
+        "failed": 2,
+        "wholeRecordVerifications": 0
+      },
+      "countDefinition": "Unique URLs opened in the built-in browser. Verified fields means only the fields listed on that source. No whole-record verification was made, so no verification date advances. The 15 earlier attempts through the fetch tool, which failed before any HTTP response, are listed in fetchToolFailures and not counted as source attempts.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems/nsf26-506/solicitation",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application",
+            "award"
+          ],
+          "finding": "NSF 26-506, posted February 19, 2026, replaces NSF 24-606. Full proposals due by 5 p.m. submitting organization's local time on September 1, 2026 and March 2, 2027, then the first Tuesday of September and March. Track 1 up to USD 300,000, Tracks 2 and 3 up to USD 1,500,000; 40 to 60 awards from an anticipated USD 40,000,000. First 6,000 characters read: the eligibility section was not reached."
+        },
+        {
+          "id": "source-02",
+          "url": "https://www.grants.ca.gov/?p=188472",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application",
+            "award",
+            "applicants"
+          ],
+          "finding": "Extreme Heat and Community Resilience Program Round 2, Governor's Office of Land Use and Climate Innovation: status Closed; full application was due October 13, 2026 at 2:00 PM PST. Awards USD 750,000 to 1.2 million and USD 3 million to 4.5 million. A closed round the catalog does not hold.",
+          "sourceId": "ca-grants-portal",
+          "finalUrl": "https://www.grants.ca.gov/grants/extreme-heat-and-community-resilience-program-round-2/"
+        },
+        {
+          "id": "source-03",
+          "url": "https://chamadas.funbio.org.br/",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application"
+          ],
+          "finding": "Two open selections: Articulação Institucional 11/2026 open until 04/12/2026 (total BRL 1,000,000) and Floresta Viva Águas do São Francisco open until 02/12/2026 (total BRL 17,760,000). Both match the catalog. No new call listed.",
+          "sourceId": "funbio-chamadas"
+        },
+        {
+          "id": "source-04",
+          "url": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Discovery only, first three entries read: IKI Small Grants (deadline given as January 8, 2027), EnAccess Innovations for Energy Access, and an Earth Journalism Network workshop in Jakarta. None opened at the owner in this pass.",
+          "sourceId": "terra-viva"
+        },
+        {
+          "id": "source-05",
+          "url": "https://www.sovereign.tech/programs",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Programs page readable: Sovereign Tech Fund, Resilience and Fellowship described. Fund applications go through its application platform; no dates on this page. The catalog already holds the fund as open.",
+          "sourceId": "sovereign-tech"
+        },
+        {
+          "id": "source-06",
+          "url": "https://gap.karmahq.xyz/funding-map",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved-excerpt",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirects to karmahq.org/funding-map. Lists grant programs, hackathons and accelerators with registry end dates, readable without sign-in. No entry opened at its operator.",
+          "sourceId": "karma-gap",
+          "finalUrl": "https://www.karmahq.org/funding-map"
+        },
+        {
+          "id": "source-07",
+          "url": "https://www.grants.gov/search-grants",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirected to simpler.grants.gov/search. The page text read 'Loading the table...' when captured, so no opportunities were enumerated. Not evidence of zero results.",
+          "sourceId": "grants-gov",
+          "finalUrl": "https://simpler.grants.gov/search"
+        },
+        {
+          "id": "source-08",
+          "url": "https://www.fundsforngos.org/",
+          "attemptedOn": "2026-11-22",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403 with a bot challenge page. Not bypassed.",
+          "sourceId": "fundsforngos"
+        }
+      ],
+      "searches": [
+        {
+          "query": "open source public goods grant call for proposals California 2026 2027 apply",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/US-CA",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "Leads: NSF PESOSE (followed to owner), 20MM Spark Grants, California Grants Portal listings. No California-specific open-source call."
+        },
+        {
+          "query": "convocatoria subvención software libre código abierto California 2026 2027",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/US-CA",
+          "type": "new-call",
+          "language": "es",
+          "formOfCapital": "financial",
+          "outcome": "No Spanish-language call; results repeated NSF PESOSE and closed state listings."
+        },
+        {
+          "query": "in-kind equipment donation cloud credits program open source nonprofits 2026 apply",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/US-CA",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "material",
+          "outcome": "Cloud-credit programs from AWS, Cloudflare, Microsoft and DigitalOcean reported; none opened at the owner. No equipment program found."
+        },
+        {
+          "query": "climate adaptation restoration grant call for proposals Nigeria 2026 2027 deadline",
+          "searchedOn": "2026-11-22",
+          "cell": "climate-restoration/NG",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "GEF SGP Nigeria phase 8 concept call reported closed April 14, 2026; other dated calls reported past. No 2027 deadline found."
+        },
+        {
+          "query": "edital energia comunitária inclusão digital 2026 chamada pública inscrições",
+          "searchedOn": "2026-11-22",
+          "cell": "community-energy-digital-inclusion/BR",
+          "type": "new-call",
+          "language": "pt",
+          "formOfCapital": "financial",
+          "outcome": "Utility energy-efficiency calls (Enel, Equatorial, EDP) with reported cutoffs already past. Nothing for community energy or digital inclusion."
+        },
+        {
+          "query": "community arts cultural heritage funding call South Africa 2026 2027 applications open",
+          "searchedOn": "2026-11-22",
+          "cell": "culture-community-education/ZA",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "NAC, National Heritage Council and Western Cape 2026/27 calls reported closed March to May 2026. No 2027/28 call found."
+        },
+        {
+          "query": "open source digital public goods grant Nigeria 2026 2027 call for applications developers",
+          "searchedOn": "2026-11-22",
+          "cell": "open-source-public-goods/NG",
+          "type": "new-call",
+          "language": "en",
+          "formOfCapital": "financial",
+          "outcome": "USPF Changemaker Challenge reported open by a newspaper; N-ATLAS challenge reported closed October 12, 2026."
+        }
+      ],
+      "fetchToolFailures": {
+        "attemptedOn": "2026-11-22",
+        "count": 15,
+        "error": "The fetch tool refused every host before any HTTP response (domain safety check). A tool failure, not a source failure.",
+        "urls": [
+          "https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems/nsf26-506/solicitation",
+          "https://www.grants.ca.gov/?p=188472",
+          "https://www.grants.ca.gov/grant_categories/disadvantaged-communities/?show_grants=active",
+          "https://www.undp.org/nigeria/news/call-project-concepts-gef-sgp-operational-phase-8",
+          "https://www.thisdaylive.com/2026/11/09/uspf-opens-nationwide-call-for-homegrown-tech-solutions/",
+          "https://www.grants.ca.gov/",
+          "https://www.terravivagrants.org/category/energy-climate-change/",
+          "https://chamadas.funbio.org.br/",
+          "https://casa.org.br/chamadas/",
+          "https://www.grants.gov/search-grants",
+          "https://explorer.gitcoin.co/",
+          "https://www.sovereign.tech/programs",
+          "https://prosas.com.br/editais",
+          "https://gap.karmahq.xyz/funding-map",
+          "https://www.fundsforngos.org/"
+        ]
+      },
+      "deferredLeads": [
+        {
+          "name": "NSF Pathways to Enable Secure Open-Source Ecosystems (PESOSE), NSF 26-506",
+          "discoveryUrl": "https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems/nsf26-506/solicitation",
+          "status": "partially-verified",
+          "reason": "Deadline and award read at the owner; eligibility, the restricted PI rules and the US-organization limits were not read. A new program under the existing funder recNrcMSWtSI1Gzpq once the eligibility section is reviewed. The deadline is 5 p.m. in each submitter's local time, so there is no single UTC instant to store."
+        },
+        {
+          "name": "IKI Small Grants, call with a January 8, 2027 deadline",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "status": "aggregator-only",
+          "reason": "Not a new program: the catalog holds local-iki::iki-small-grants-2027 as future. A freshness run should verify the open call at the owner and revise that record."
+        },
+        {
+          "name": "EnAccess Foundation, Innovations for Energy Access",
+          "discoveryUrl": "https://www.terravivagrants.org/category/energy-climate-change/",
+          "status": "aggregator-only",
+          "reason": "Aggregator summary only; owner page not opened. Not in the catalog."
+        },
+        {
+          "name": "USPF Changemaker Challenge (Nigeria)",
+          "discoveryUrl": "https://www.thisdaylive.com/2026/11/09/uspf-opens-nationwide-call-for-homegrown-tech-solutions/",
+          "status": "unverified-news",
+          "reason": "Reported open by a newspaper in a search result; the article and the official application page were not opened."
+        },
+        {
+          "name": "20MM Spark Grants (California)",
+          "discoveryUrl": "https://20mm.org/spark-grants/",
+          "status": "search-result-only",
+          "reason": "Surfaced by search; page not opened. Not in the catalog."
+        },
+        {
+          "name": "California Extreme Heat and Community Resilience Program",
+          "discoveryUrl": "https://www.grants.ca.gov/grants/extreme-heat-and-community-resilience-program-round-2/",
+          "status": "closed-round",
+          "reason": "Round 2 verified closed on the state listing. Not imported: watch for Round 3."
+        },
+        {
+          "name": "Cloud-credit programs for open-source projects (AWS, Cloudflare Project Alexandria, Microsoft Azure, DigitalOcean)",
+          "discoveryUrl": "https://aws.amazon.com/blogs/opensource/aws-cloud-credits-for-open-source-projects-affirming-our-commitment",
+          "status": "non-cash-search-result-only",
+          "reason": "Material support, no money. Search results only; if confirmed at the owners they are non-cash-program dispositions, not catalog programs."
+        }
+      ],
+      "coverageLimitations": [
+        "Five of 20 due cells searched, one query per language. Only open-source-public-goods/US-CA was also searched for the rotating form of capital (material); the other four cells were searched for money only.",
+        "Eight of 27 due sources attempted. Not attempted: casa-chamadas and the 18 other candidates.",
+        "Search results are leads. Only three pages were read at an official source, and one of those only in part.",
+        "South Africa, Nigeria climate and Brazil energy leads were not followed to owners; their closed dates come from search summaries.",
+        "Grants.gov opportunities were not enumerated; FundsforNGOs stayed blocked.",
+        "Pending and unresolved historical leads were not revisited."
+      ],
+      "deduplication": {
+        "catalogRecordsCompared": 699,
+        "comparison": "Lead names checked against funder and program names in dist/data/funders.json. NSF, FUNBIO, IKI, Sovereign Tech and UNDP GEF SGP Nigeria are existing funders; EnAccess, 20MM and USPF are not present."
+      },
+      "validation": {
+        "catalogChanged": false,
+        "checks": "bun run build, bun run test, bun run guidance:check, git diff --check"
+      },
+      "result": "No catalog change. Coverage recorded for five cells and eight sources; seven leads held with reasons. No verification date advanced.",
+      "publication": "Pull request into develop for review. No deployment, application or funder contact."
     }
   ]
 }
