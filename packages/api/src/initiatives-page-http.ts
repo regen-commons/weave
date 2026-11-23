@@ -32,9 +32,9 @@ function page(html: string, cache: Record<string, string>): Response {
  * Serves the Initiatives page, to GET and to HEAD. Its own first page, asked for with no search, filter
  * or order, gets its cards drawn; an address with one of those gets the build's page as it is, since the
  * cards it wants are not the first page. A list that answers but would show the starter list, or whose
- * page the build drew differently than expected, also goes as the build drew it. A lookup that fails or
- * takes longer than `LIST_LOOKUP_TIMEOUT_MS` sends the build's page uncached, so the next request tries
- * again. A deployment whose list page cannot be read sends the app's own page with no head of its own,
+ * page the build drew differently than expected, also goes as the build drew it, uncached. A lookup that
+ * fails or takes longer than `LIST_LOOKUP_TIMEOUT_MS` sends the build's page uncached too, so the next
+ * request tries again: only a page with the list's answer in it is kept at the CDN. A deployment whose list page cannot be read sends the app's own page with no head of its own,
  * uncached: the app draws the list from the address either way.
  */
 export function createInitiativesPageHandler(options: {
@@ -70,9 +70,13 @@ export function createInitiativesPageHandler(options: {
     } catch {
       return page(html, NOT_CACHED);
     }
-    // A page the cards could not be drawn into goes as the build drew it, never as an error.
+    // Only a page the list's answer went into is kept at the CDN. One it left as the build drew it (a
+    // list that is off or empty, or a page of another shape) goes uncached, as a failed lookup does, so
+    // the next request asks again. A page the cards could not be drawn into goes the same way, never as
+    // an error.
     try {
-      return page(withListFirstPage(html, first), CACHED);
+      const served = withListFirstPage(html, first);
+      return page(served, served === html ? NOT_CACHED : CACHED);
     } catch {
       return page(html, NOT_CACHED);
     }
