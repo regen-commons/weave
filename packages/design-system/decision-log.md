@@ -691,6 +691,8 @@ Button labels and page and section headings in this flow are written in title ca
 
 **Amended by DL-127, 21 November 2026.** No rows are kept for chips on the describe step, which has none. A problem with a field is written in that field's own hint line. Adding a file adds its row under the box, which is the one press on the step that moves what is below it.
 
+**Amended 22 November 2026: the way back follows the steps** (user decision from manual QA: "the back button in the flow must follow the order of the steps, not the navigation history"). On a phone the app bar's back link went to the page the person came from, so needs and offers opened from an initiative's own page went back to that page and skipped step 1. A step after the first now goes back to the step before it, whichever page came before. When that step is the page before in history, Back steps back to it; otherwise it takes the step's place in history, so the next Back from step 1 returns to the page the person started from, and the back gesture agrees. The step's own Back button and the link to the step before in the step map do the same. Step 1 goes back to where the person came from, never on into a later step, and the last step, which is also the initiative's own page, keeps the way the person came.
+
 ## DL-114: Several drafts live in a new database, and an older tab is left as it is
 
 **Status:** user decision, 19 November 2026 ("New database + reload", and "Yes, delete both" for removals). The reload was then built, reviewed and dropped the same day ("Drop the reload"); its record is at the end of this entry. Amends the storage of DL-112 before it was released.

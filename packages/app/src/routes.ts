@@ -237,15 +237,38 @@ export interface BackTarget {
   readonly href: string;
   /** History entries to step back, so the link and the back gesture agree. Zero opens `href` as a new page. */
   readonly hops: number;
+  /**
+   * With `hops` at zero, `href` takes this page's place in history instead of adding a page, so a
+   * step's way back never leaves the step it left one Back away.
+   */
+  readonly replace?: boolean;
+}
+/**
+ * The step before a step of describing an initiative, which is where its way back goes. None for
+ * the first step, and none for a page that is not one of the step pages.
+ */
+export function previousStep(route: Route): RouteName | null {
+  if (!route.form) return null;
+  const step = stepOf(route);
+  return step > 0 ? INTAKE_STEPS[step - 1]!.route : null;
 }
 /**
  * Where a page's back link goes: the page the person came from, otherwise one level up.
- * Tabs have no back link, and a sheet closes instead.
+ * Tabs have no back link, and a sheet closes instead. The steps of describing an initiative
+ * follow one another, so a later step goes back to the step before it, whichever page the
+ * person came from: back through history when that step is the page before, otherwise in this
+ * page's place. The first step goes back to where the person came from, never on into the steps.
  */
 export function backTarget(route: Route | undefined, visit: Visit | null): BackTarget | null {
   if (!route?.parent || route.sheet) return null;
   const from = visit ? routeAt(visit.from) : undefined;
-  if (visit && from && from.name !== route.name) {
+  const before = previousStep(route);
+  if (before)
+    return visit && from?.name === before
+      ? { label: navLabel(before), href: visit.from, hops: visit.hops }
+      : { label: navLabel(before), href: pathTo(before), hops: 0, replace: true };
+  const later = route.form && !!from?.form && stepOf(from) > stepOf(route);
+  if (visit && from && from.name !== route.name && !later) {
     // Going back to a sheet lands on the page under it, so the link names that page.
     return { label: navLabel(from.sheet && from.parent ? from.parent : from.name), href: visit.from, hops: visit.hops };
   }
