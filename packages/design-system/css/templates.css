@@ -21,18 +21,22 @@
 @media (min-width: 56.25rem) {
   :root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-end: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin) + var(--space-4) + env(safe-area-inset-bottom)); }
 }
-
-.rc-page:has(> .rc-site-banner) {
-  grid-template-rows: auto auto 1fr auto auto;
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the app
+   bar scrolls away with the page instead of sticking, so the bars never take most of what there
+   is to read. A step's bar stays at the foot of the window, as a phone's dock does, because it
+   holds the way forward (DL-132, DL-127). */
+@media (height < 30rem) {
+  :root:has(.rc-app-header) { scroll-padding-block-start: var(--space-4); }
 }
+
 /* The app bar's height: a control and its padding. Whatever sticks under the bar, or fills the
    window below it, reads this. */
 .rc-page { --app-header-height: calc(var(--control-height) + 2 * var(--space-2) + var(--border-thin)); }
 /* The site banner's height where a page has one, and nothing where it has none. The page body
    leaves it out of the window it fills, so the footer starts at the fold and not a banner below
-   it (DL-102). */
+   it (DL-102). The banner is the first line of the page's header (DL-132). */
 .rc-page { --site-banner-height: 0rem; }
-.rc-page:has(> .rc-site-banner) { --site-banner-height: var(--space-7); }
+.rc-page:has(.rc-site-banner) { --site-banner-height: var(--space-7); }
 /* The tab bar's height on a phone: a tab and the bar's top edge. The bar is fixed to the bottom
    of the window, so the page keeps that much room under its footer, and the room the phone's
    home indicator takes, and the footer's last line is never under the bar (DL-086). */
@@ -76,7 +80,8 @@
   min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--step-bar-height));
 }
 
-/* One line of words in a bar of a known height, which the page body reads (--site-banner-height). */
+/* One line of words in a bar of a known height, which the page body and the header's sticky
+   offset read (--site-banner-height). */
 .rc-site-banner {
   display: grid;
   place-items: center;
@@ -183,6 +188,14 @@
   /* Work that carries on below the panel on a phone sits under the first column here, and the
      panel stays beside both for the length of the page. */
   .rc-step-layout:has(> .rc-step-main ~ .rc-step-main) > .rc-step-aside { grid-row: 1 / span 2; }
+}
+/* In a short window the app bar scrolls away, so the record beside the work sticks a step from
+   the window's top, clear of the step's bar at its foot (DL-132, DL-127). */
+@media (height < 30rem) and (min-width: 56.25rem) {
+  .rc-step-layout > .rc-step-aside {
+    inset-block-start: var(--space-5);
+    max-block-size: calc(100dvh - var(--step-bar-height) - 2 * var(--space-5));
+  }
 }
 @media (min-width: 100rem) {
   .rc-step-layout[data-main="wide"] { row-gap: var(--space-9); }

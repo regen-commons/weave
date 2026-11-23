@@ -524,7 +524,7 @@ button.rc-chip {
 }
 .rc-stage .rc-icon { color: var(--stage-tone); }
 
-/* Fit: strength as a word plus bar length. Never a number. */
+/* Fit: strength as a word plus bar length, four steps on every card. Never a number (DL-129). */
 .rc-fit {
   display: inline-flex;
   align-items: center;
@@ -542,15 +542,17 @@ button.rc-chip {
   background: var(--line);
 }
 .rc-fit[data-level="strong"] .rc-fit-bar > i,
-.rc-fit[data-level="good"] .rc-fit-bar > i:nth-child(-n + 2),
-.rc-fit[data-level="possible"] .rc-fit-bar > i:first-child {
+.rc-fit[data-level="good"] .rc-fit-bar > i:nth-child(-n + 3),
+.rc-fit[data-level="possible"] .rc-fit-bar > i:nth-child(-n + 2),
+.rc-fit[data-level="low"] .rc-fit-bar > i:first-child {
   background: var(--action);
 }
 @media (forced-colors: active) {
   .rc-fit-bar > i { border: var(--border-thin) solid CanvasText; }
   .rc-fit[data-level="strong"] .rc-fit-bar > i,
-  .rc-fit[data-level="good"] .rc-fit-bar > i:nth-child(-n + 2),
-  .rc-fit[data-level="possible"] .rc-fit-bar > i:first-child { background: CanvasText; }
+  .rc-fit[data-level="good"] .rc-fit-bar > i:nth-child(-n + 3),
+  .rc-fit[data-level="possible"] .rc-fit-bar > i:nth-child(-n + 2),
+  .rc-fit[data-level="low"] .rc-fit-bar > i:first-child { background: CanvasText; }
 }
 
 /* Timestamp: when a record was last confirmed. */

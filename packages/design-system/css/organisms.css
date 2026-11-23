@@ -1,5 +1,15 @@
 /* Organisms: distinct sections of an interface. */
 
+/* Page header (`rc-app-head`): the site banner and the app bar in one header landmark, so the
+   banner is read as part of the page's header (DL-132). It sticks with the banner's height above
+   the window's top, so the banner scrolls away with the page and the bar stays, as when the two
+   were apart. A page with no banner has the app bar alone as its header. */
+.rc-app-head {
+  position: sticky;
+  inset-block-start: calc(var(--site-banner-height) * -1);
+  z-index: var(--layer-sticky);
+}
+.rc-app-head > .rc-app-header { position: static; }
 /* App header: product name top-left returns home on every page. */
 /* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
    under it, and its contents keep the page's edges. */
@@ -95,6 +105,13 @@
 ::view-transition-new(rc-bottom-nav),
 ::view-transition-new(rc-dock),
 ::view-transition-new(rc-step-bar) { animation: none; }
+
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the
+   header scrolls away with the page, so the bars never take most of what there is to read. A
+   step's bar then sticks at the window's top on its own (DL-132). */
+@media (height < 30rem) {
+  .rc-app-head, .rc-app-header { position: static; }
+}
 
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
