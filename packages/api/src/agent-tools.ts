@@ -1,6 +1,7 @@
 // Runs the tools in agent-tools-contract.ts against the fund catalog and the public project list. It
-// reads public data only, keeps nothing a caller sent and never reads a cookie or a session.
-import type { AgentToolCall, GetFundArguments, GetProjectArguments, SearchFundsArguments, SearchProjectsArguments } from "./agent-tools-contract.ts";
+// reads public data only, keeps nothing a caller sent and never reads a cookie or a session. One tool takes
+// a person's own words, an initiative's description: it is used inside that one call and held nowhere.
+import type { AgentToolCall, FindFundsArguments, GetFundArguments, GetProjectArguments, SearchFundsArguments, SearchProjectsArguments } from "./agent-tools-contract.ts";
 import type { FindPublicProject } from "./public-projects-http.ts";
 import { parsePublicProjectPage, type PublicProjectCard, type PublicProjectPage } from "./public-projects-contract.ts";
 
@@ -38,7 +39,7 @@ export type FundCatalog = { compiledAt: string; researchCheckedOn?: string; fund
 
 /** A failure the assistant can be told about, with a stable code. */
 export class AgentToolError extends Error {
-  readonly code: "catalog_unavailable" | "projects_unavailable" | "not_found" | "invalid_cursor";
+  readonly code: "catalog_unavailable" | "projects_unavailable" | "not_found" | "invalid_cursor" | "invalid_argument";
   constructor(code: AgentToolError["code"], message: string) {
     super(message);
     this.code = code;
@@ -48,6 +49,11 @@ export class AgentToolError extends Error {
 export type AgentToolSources = {
   /** The fund catalog. Rejects when the file cannot be read. */
   catalog(): Promise<FundCatalog>;
+  /**
+   * The catalog's screening data, as its files hold them: the eligibility rules and the program
+   * conditions. Rejects when they cannot be read. Without it, find_funds_for_initiative is unavailable.
+   */
+  screening?(): Promise<{ rules: unknown; conditions: unknown }>;
   /** Answers a request as GET /api/public-projects does. */
   publicProjects(request: Request): Promise<Response>;
   /** One shown project by its address, from the same copy of the list. */
@@ -236,6 +242,150 @@ async function getProject(sources: AgentToolSources, a: GetProjectArguments) {
   return { note: NOT_CONFIRMED, index: found.index, project: projectCard(found.project, sources.origin) };
 }
 
+/**
+ * The catalog's ranking rubric and its list of countries, which the live site and the app also run.
+ * Loaded on first use, like the rest of the catalog's code.
+ */
+type Rubric = {
+  createLexicalIndex(funds: unknown[]): unknown;
+  rankFunds(funds: unknown[], project: unknown, index: unknown, rules: unknown[], semantic: null, now: Date, conditions: unknown[] | null): unknown;
+  validConditions(data: unknown, funds: unknown[]): boolean;
+  COUNTRIES: string[];
+};
+let rubric: Promise<Rubric> | undefined;
+function catalogRubric(): Promise<Rubric> {
+  const current = rubric ??= Promise.all([
+    import("../../../dist/matching.mjs") as Promise<unknown>, import("../../../dist/storage.mjs") as Promise<unknown>,
+  ]).then(([matching, storage]) => {
+    const loaded = { ...(matching as Partial<Rubric>), COUNTRIES: (storage as Partial<Rubric>).COUNTRIES };
+    for (const name of ["createLexicalIndex", "rankFunds", "validConditions"] as const)
+      if (typeof loaded[name] !== "function") throw Error("invalid_catalog_code");
+    if (!isTextList(loaded.COUNTRIES)) throw Error("invalid_catalog_code");
+    return loaded as Rubric;
+  });
+  current.catch(() => { if (rubric === current) rubric = undefined; });
+  return current;
+}
+/** One entry per program, as the app ranks them, and the word index over the whole catalog. Built once per catalog. */
+const ranked = new WeakMap<FundCatalog, { entries: unknown[]; index: unknown }>();
+/** Whether a conditions file belongs to a catalog, checked once for each pair. */
+const screened = new WeakMap<FundCatalog, WeakMap<object, boolean>>();
+
+const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
+/** The most open checks one result lists. The count says when there are more. */
+const TO_CHECK_MAX = 6;
+
+/** One ranked program as an assistant reads it. Null for a result the rubric did not shape as expected. */
+function fitResult(d: Domain, value: unknown, origin: string) {
+  if (!isRecord(value) || !isRecord(value.fund) || !isText(value.fund.id) || !isText(value.documentId)) return null;
+  const fund = value.fund as unknown as CatalogFund;
+  const program = isRecord(value.program) ? value.program : null;
+  const thematic = isRecord(value.thematicFit) ? value.thematicFit : {};
+  const readiness = isRecord(value.readiness) ? value.readiness : {};
+  const eligibility = isRecord(value.eligibility) ? value.eligibility : {};
+  const checks = (Array.isArray(eligibility.programs) ? eligibility.programs : [])
+    .flatMap((entry) => isRecord(entry) && Array.isArray(entry.checks) ? entry.checks : []).filter(isRecord)
+    // Every check is listed, including one the details sent seem to satisfy: the funder decides, not Weave.
+    .filter((check) => isText(check.outcome))
+    .map((check) => ({
+      outcome: check.outcome === "conflict" ? "possible_conflict" : check.outcome as string,
+      requirement: isText(check.requirement) ? check.requirement : isText(check.reason) ? check.reason : "",
+      ...(link(d, fund, check.sourceUrl) ? { sourceUrl: link(d, fund, check.sourceUrl) } : {}),
+      ...(isText(check.checkedOn) ? { checkedOn: check.checkedOn } : {}),
+    })).filter(({ requirement }) => requirement);
+  const access = isText(value.access) ? value.access : fund.access;
+  const application = program && isRecord(program.application) ? program.application : {};
+  const geographic = isRecord(value.geographic) && isTextList(value.geographic.reasons) ? value.geographic.reasons : [];
+  return {
+    score: typeof thematic.score === "number" && Number.isFinite(thematic.score) ? thematic.score : null,
+    result: {
+      id: value.documentId,
+      fund: fund.displayName || fund.name,
+      program: program && isText(program.name) ? program.name : null,
+      fit: {
+        score: typeof thematic.score === "number" && Number.isFinite(thematic.score) ? thematic.score : null,
+        label: isText(thematic.label) ? thematic.label : "Fit not assessed",
+        sharedTopics: isTextList(thematic.evidenceTerms) ? thematic.evidenceTerms.slice(0, 12) : [],
+      },
+      // The rubric calls this a known conflict. Here it is a caution to check, since only the funder decides.
+      nextStep: readiness.status === "conflict"
+        ? { status: "possible_conflict", label: "A published requirement may conflict with the details sent. Check with the funder." }
+        : { status: isText(readiness.status) ? readiness.status : "unverified", label: isText(readiness.label) ? readiness.label : "Application route needs checking" },
+      access: { state: access, label: d.ACCESS[access]?.label ?? access },
+      deadline: isText(application.closesOn) ? application.closesOn : fund.deadlineDate ?? null,
+      geography: geographic.slice(0, 3),
+      toCheck: checks.slice(0, TO_CHECK_MAX),
+      toCheckTotal: checks.length,
+      sourceUrl: link(d, fund, application.url) ?? link(d, fund, fund.evidenceUrl) ?? link(d, fund, fund.website) ?? null,
+      weaveUrl: `${origin}/funding/${fund.id}`,
+    },
+  };
+}
+
+const FIT_NOTE = "Fit grades shared topics only, from keywords. It is not eligibility and not a chance of funding. Check each program's own page.";
+
+async function findFunds(sources: AgentToolSources, a: FindFundsArguments, now: Date) {
+  const { catalog, d } = await loadCatalog(sources);
+  let r: Rubric;
+  let rules: unknown[];
+  let conditions: unknown[] | null;
+  try {
+    if (!sources.screening) throw Error("no_screening");
+    const [loaded, screening] = await Promise.all([catalogRubric(), sources.screening()]);
+    r = loaded;
+    if (!isRecord(screening.rules) || !Array.isArray(screening.rules.rules)) throw Error("invalid_rules");
+    rules = screening.rules.rules;
+    // As in the app: conditions that do not match this catalog are not used, and results say screening was unavailable.
+    conditions = null;
+    if (isRecord(screening.conditions) && Array.isArray(screening.conditions.conditions)) {
+      let known = screened.get(catalog);
+      if (!known) screened.set(catalog, known = new WeakMap());
+      let valid = known.get(screening.conditions);
+      if (valid === undefined) known.set(screening.conditions, valid = r.validConditions(screening.conditions, catalog.funds) === true);
+      if (valid) conditions = screening.conditions.conditions;
+    }
+  } catch {
+    throw new AgentToolError("catalog_unavailable", "The fund catalog could not be read. Try again later.");
+  }
+  const places = [...a.workCountries, ...a.benefitCountries, a.applicantBaseCountry, a.registrationCountry].filter(Boolean);
+  const unknown = places.find((code) => !r.COUNTRIES.includes(code));
+  if (unknown) throw new AgentToolError("invalid_argument", `${unknown} is not a country code the catalog knows.`);
+  // The same shape the app gives the rubric. Nothing here outlives this call.
+  const project = {
+    id: "assistant", name: "", description: a.description, tags: a.themes,
+    workCountries: a.workCountries, benefitCountries: a.benefitCountries,
+    applicantBaseCountry: a.applicantBaseCountry, registrationCountry: a.registrationCountry, applicantType: a.applicantType,
+    fundingInstruments: [], goalMin: null, goalMax: null, currency: "", usWorkStates: [], usBenefitStates: [], programAnswers: {},
+  };
+  let results: unknown;
+  try {
+    let prepared = ranked.get(catalog);
+    if (!prepared) {
+      const entries = catalog.funds.flatMap((fund): unknown[] => {
+        const programs = fund.enrichment?.programs ?? [];
+        return programs.length ? programs.map((program) => ({ ...fund, enrichment: { ...fund.enrichment, programs: [program] } })) : [fund];
+      });
+      ranked.set(catalog, prepared = { entries, index: r.createLexicalIndex(catalog.funds) });
+    }
+    results = r.rankFunds(prepared.entries, project, prepared.index, rules, null, now, conditions);
+  } catch {
+    // A catalog record the rubric cannot read fails here. The error is not passed on: it could quote the description.
+    throw new AgentToolError("catalog_unavailable", "The fund catalog could not be ranked. Try again later.");
+  }
+  // Strongest topical fit first; equal fit keeps the rubric's own order. A program with no topic in common is left out.
+  const fits = (Array.isArray(results) ? results : []).map((value, place) => ({ place, fit: fitResult(d, value, sources.origin) }))
+    .flatMap(({ place, fit }) => fit && fit.score !== null && fit.score > 0 ? [{ place, score: fit.score, result: fit.result }] : [])
+    .sort((x, y) => y.score - x.score || x.place - y.place);
+  return {
+    note: FIT_NOTE,
+    privacy: "The description was used for this answer only. Weave did not store or log it.",
+    catalog: { compiledAt: catalog.compiledAt, researchCheckedOn: catalog.researchCheckedOn ?? null },
+    screening: conditions === null ? "unavailable" : "applied",
+    total: fits.length,
+    programs: fits.slice(0, a.limit).map(({ result }) => result),
+  };
+}
+
 /** Runs one checked tool call and returns its result as plain data. Throws AgentToolError for a failure the caller can report. */
 export function createAgentTools(sources: AgentToolSources) {
   const now = sources.now ?? (() => new Date());
@@ -243,6 +393,7 @@ export function createAgentTools(sources: AgentToolSources) {
     switch (call.name) {
       case "search_funds": return searchFunds(sources, call.arguments, now());
       case "get_fund": return getFund(sources, call.arguments, now());
+      case "find_funds_for_initiative": return findFunds(sources, call.arguments, now());
       case "search_projects": return searchProjects(sources, call.arguments);
       case "get_project": return getProject(sources, call.arguments);
     }

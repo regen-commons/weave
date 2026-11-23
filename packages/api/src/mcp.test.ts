@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { AGENT_TOOLS, AgentToolArgumentError, parseAgentToolCall } from "./agent-tools-contract.ts";
 import { createAgentTools, type CatalogFund, type FundCatalog } from "./agent-tools.ts";
@@ -50,7 +51,7 @@ const SNAPSHOT: PublicProjectSnapshot = {
   checkpoint: { completedAt: "2026-11-22T04:02:00.000000Z", offset: 0 },
 };
 
-function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null } = {}) {
+function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; screening?: () => Promise<{ rules: unknown; conditions: unknown }>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null } = {}) {
   let loads = 0;
   const snapshot = over.snapshot === undefined ? SNAPSHOT : over.snapshot;
   const list = createPublicProjects({
@@ -62,7 +63,7 @@ function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; 
     now: () => NOW.getTime(),
   });
   const tools = over.tools === null ? null : createAgentTools({
-    catalog: over.catalog ?? (async () => CATALOG), publicProjects: list.handler, findPublicProject: list.find, origin: "https://weave.example", now: () => NOW,
+    catalog: over.catalog ?? (async () => CATALOG), screening: over.screening, publicProjects: list.handler, findPublicProject: list.find, origin: "https://weave.example", now: () => NOW,
   });
   const handler = createMcpHandler({ enabled: () => over.enabled ?? true, tools, log: over.log });
   return { handler, loads: () => loads };
@@ -132,7 +133,7 @@ test("only a bounded, same-site, single JSON request by POST is read", async () 
   assert.deepEqual([listed.headers.get("cache-control"), listed.headers.get("set-cookie")], ["no-store", null]);
 });
 
-test("a 2026-07-28 client discovers the server, lists four read-only tools and calls one", async () => {
+test("a 2026-07-28 client discovers the server, lists its read-only tools and calls one", async () => {
   const { handler } = setup();
   const discovered = (await read(await handler.POST(modern("server/discover")))).result!;
   assert.deepEqual([discovered.resultType, discovered.supportedVersions, discovered.capabilities, discovered.cacheScope],
@@ -142,7 +143,7 @@ test("a 2026-07-28 client discovers the server, lists four read-only tools and c
   assert.equal((discovered._meta as Record<string, { name: string }>)["io.modelcontextprotocol/serverInfo"]?.name, "weave");
   const listed = (await read(await handler.POST(modern("tools/list")))).result!;
   const tools = listed.tools as { name: string; inputSchema: { type: string; additionalProperties: boolean }; annotations: Record<string, boolean> }[];
-  assert.deepEqual(tools.map(({ name }) => name), ["search_funds", "get_fund", "search_projects", "get_project"]);
+  assert.deepEqual(tools.map(({ name }) => name), ["search_funds", "get_fund", "find_funds_for_initiative", "search_projects", "get_project"]);
   assert.ok(tools.every(({ inputSchema, annotations }) => inputSchema.type === "object" && inputSchema.additionalProperties === false
     && annotations.readOnlyHint === true && annotations.destructiveHint === false));
   assert.deepEqual([listed.resultType, listed.cacheScope], ["complete", "public"]);
@@ -377,4 +378,145 @@ test("the shipped catalog answers through the configured handler", async () => {
   } finally {
     if (before === undefined) delete process.env.WEAVE_MCP_ENABLED; else process.env.WEAVE_MCP_ENABLED = before;
   }
+});
+
+const DATA = new URL("../../../dist/data/", import.meta.url);
+const shipped = (name: string): unknown => JSON.parse(readFileSync(new URL(name, DATA), "utf8"));
+/** "Zorblatt" is in no program, so it can only appear in an answer or a log if the description leaked. */
+const DESCRIPTION = "We restore wetlands and train young farmers in agroforestry along the delta, with community seed banks and watershed monitoring. Zorblatt.";
+type Ranked = {
+  note: string; privacy: string; screening: string; total: number;
+  programs: { id: string; fund: string; fit: { score: number; label: string; sharedTopics: string[] }; nextStep: { status: string; label: string }; toCheck: { outcome: string; requirement: string }[]; toCheckTotal: number; weaveUrl: string; sourceUrl: string | null }[];
+};
+/** The shipped catalog and screening data behind a fixture handler, so a test can break one source at a time. */
+function shippedSetup(over: Parameters<typeof setup>[0] = {}) {
+  const catalog = shipped("funders.json") as FundCatalog;
+  return setup({
+    catalog: async () => catalog,
+    screening: async () => ({ rules: shipped("eligibility-rules.json"), conditions: shipped("program-conditions.json") }),
+    ...over,
+  });
+}
+
+test("find_funds_for_initiative ranks the catalog by shared topics and says what is still to check", async () => {
+  const { handler } = shippedSetup();
+  const result = await call(handler, "find_funds_for_initiative", { description: DESCRIPTION, themes: ["watershed restoration"], work_countries: ["ng"], applicant_type: "nonprofit", limit: 5 });
+  const ranked = result.structuredContent as unknown as Ranked;
+  assert.equal(result.isError, undefined);
+  assert.match(ranked.note, /not eligibility/u);
+  assert.match(ranked.privacy, /did not store or log/u);
+  assert.equal(ranked.screening, "applied");
+  assert.ok(ranked.total >= ranked.programs.length && ranked.programs.length > 0 && ranked.programs.length <= 5);
+  // Strongest topical fit first, and nothing without a topic in common.
+  const scores = ranked.programs.map(({ fit }) => fit.score);
+  assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
+  assert.ok(ranked.programs.every(({ fit, id, weaveUrl, nextStep }) => fit.score > 0 && fit.sharedTopics.length > 0 && id.length > 0
+    && nextStep.label.length > 0 && /^https:\/\/weave\.example\/funding\/[A-Za-z0-9_-]+$/u.test(weaveUrl)));
+  assert.ok(ranked.programs.every(({ toCheck, toCheckTotal }) => toCheck.length <= 6 && toCheckTotal >= toCheck.length));
+  // The person's words are read, never returned.
+  assert.equal(JSON.stringify(result).toLowerCase().includes("zorblatt"), false);
+  // The same call gives the same answer: nothing is kept between calls to change it.
+  const again = await call(handler, "find_funds_for_initiative", { description: DESCRIPTION, themes: ["watershed restoration"], work_countries: ["ng"], applicant_type: "nonprofit", limit: 5 });
+  assert.deepEqual(again.structuredContent, result.structuredContent);
+});
+
+test("find_funds_for_initiative refuses what it cannot rank, before the catalog is read", async () => {
+  const { handler } = setup({ catalog: async () => { throw Error("the catalog must not be read"); } });
+  const refusals: unknown[] = [
+    {}, { description: "too short" }, { description: "x".repeat(1501) }, { description: 7 }, { description: DESCRIPTION, name: "Our group" },
+    { description: DESCRIPTION, themes: "water" }, { description: DESCRIPTION, themes: Array(13).fill("water") }, { description: DESCRIPTION, themes: [7] },
+    { description: DESCRIPTION, work_countries: ["Nigeria"] }, { description: DESCRIPTION, work_countries: "NG" }, { description: DESCRIPTION, benefit_countries: Array(31).fill("NG") },
+    { description: DESCRIPTION, applicant_base_country: "NGA" }, { description: DESCRIPTION, registration_country: 5 },
+    { description: DESCRIPTION, applicant_type: "charity" }, { description: DESCRIPTION, limit: 25 }, { description: `${DESCRIPTION}\u0000` },
+  ];
+  for (const args of refusals) {
+    const result = await call(handler, "find_funds_for_initiative", args);
+    assert.equal(result.isError, true, JSON.stringify(args).slice(0, 80));
+    assert.equal(/unavailable|internal_error/u.test(result.content[0]!.text), false, JSON.stringify(args).slice(0, 80));
+    assert.equal(result.content[0]!.text.toLowerCase().includes("zorblatt"), false);
+  }
+  // A code shaped like a country that the catalog does not know is named, and nothing else is.
+  const unknown = await call(shippedSetup().handler, "find_funds_for_initiative", { description: DESCRIPTION, work_countries: ["ZZ"] });
+  assert.deepEqual([unknown.isError, unknown.content[0]!.text], [true, "invalid_argument: ZZ is not a country code the catalog knows."]);
+});
+
+test("find_funds_for_initiative fails closed when the screening data is missing, and says when conditions were not applied", async () => {
+  const text = async (over: Parameters<typeof setup>[0]) => {
+    const result = await call(shippedSetup(over).handler, "find_funds_for_initiative", { description: DESCRIPTION });
+    return [result.isError, result.content[0]!.text] as const;
+  };
+  for (const screening of [undefined, async () => { throw Error("ENOENT eligibility-rules.json"); }, async () => ({ rules: null, conditions: null }), async () => ({ rules: { rules: "x" }, conditions: null })]) {
+    const [isError, message] = await text({ screening });
+    assert.deepEqual([isError, message.startsWith("catalog_unavailable: "), message.includes("ENOENT")], [true, true, false]);
+  }
+  // Conditions that do not belong to this catalog are not used, as in the app, and the result says so.
+  const unscreened = await call(shippedSetup({ screening: async () => ({ rules: shipped("eligibility-rules.json"), conditions: { version: 1, conditions: [{ fundId: "nope", programId: "nope", id: "x" }] } }) }).handler,
+    "find_funds_for_initiative", { description: DESCRIPTION });
+  const ranked = unscreened.structuredContent as unknown as Ranked;
+  assert.equal(ranked.screening, "unavailable");
+  assert.ok(ranked.programs.length > 0 && ranked.programs.every(({ nextStep }) => nextStep.status !== "open"));
+});
+
+test("a description never reaches the log or the console through the configured handler", async () => {
+  const before = process.env.WEAVE_MCP_ENABLED;
+  process.env.WEAVE_MCP_ENABLED = "true";
+  const written: string[] = [];
+  const { log, warn, error, info } = console;
+  const other: string[] = [];
+  console.log = (...args: unknown[]) => { written.push(args.map(String).join(" ")); };
+  console.warn = console.error = console.info = (...args: unknown[]) => { other.push(args.map(String).join(" ")); };
+  try {
+    const { POST } = await import("./mcp.ts");
+    const response = await POST(modern("tools/call", { name: "find_funds_for_initiative", arguments: { description: DESCRIPTION, limit: 2 } }));
+    const result = (await read(response)).result as { structuredContent: Ranked };
+    assert.ok(result.structuredContent.programs.length > 0);
+    assert.equal(result.structuredContent.screening, "applied");
+    await POST(modern("tools/call", { name: "find_funds_for_initiative", arguments: { description: "zorblatt" } }));
+  } finally {
+    Object.assign(console, { log, warn, error, info });
+    if (before === undefined) delete process.env.WEAVE_MCP_ENABLED; else process.env.WEAVE_MCP_ENABLED = before;
+  }
+  assert.deepEqual(written.map((line) => (JSON.parse(line) as { tool: string; outcome: string }).outcome), ["ok", "refused"]);
+  assert.equal([...written, ...other].join(" ").toLowerCase().includes("zorblatt"), false);
+});
+
+test("find_funds_for_initiative reports a possible conflict as something to check, never as a decision", async () => {
+  // One real program, and a rule made for this test that only nonprofits may apply, so the outcome does not
+  // depend on what the catalog holds this week.
+  const catalog = shipped("funders.json") as FundCatalog;
+  const fund = catalog.funds.find(({ enrichment }) => (enrichment?.programs?.[0]?.focus as string[] | undefined)?.length)!;
+  const program = fund.enrichment!.programs![0]!;
+  const one = { ...catalog, funds: [{ ...fund, enrichment: { ...fund.enrichment, programs: [program] } }] } as FundCatalog;
+  const rule = { fundId: fund.id, programId: program.id, field: "applicantType", operator: "only", values: ["nonprofit"],
+    reason: "Only registered nonprofits may apply.", sourceUrl: "https://funder.example/rules", checkedOn: "2026-11-01" };
+  const { handler } = setup({ catalog: async () => one, screening: async () => ({ rules: { version: 1, rules: [rule] }, conditions: { version: 1, conditions: [] } }) });
+  const description = `Our work centers on ${(program.focus as string[]).join(", ")}, with local partners and volunteers.`;
+  const ask = async (applicant_type: string) => ((await call(handler, "find_funds_for_initiative", { description, applicant_type })).structuredContent as unknown as Ranked).programs;
+  const [business] = await ask("business");
+  assert.ok(business, "the description shares the program's own focus words");
+  assert.equal(business.nextStep.status, "possible_conflict");
+  assert.match(business.nextStep.label, /may conflict.*Check with the funder/u);
+  assert.deepEqual(business.toCheck.map(({ outcome, requirement }) => [outcome, requirement]), [["possible_conflict", "Only registered nonprofits may apply."]]);
+  // Weave's own words about a result never decide it, either way.
+  const [nonprofit] = await ask("nonprofit");
+  for (const result of [business, nonprofit!]) {
+    const own = [result.nextStep.status, result.nextStep.label, ...result.toCheck.map(({ outcome }) => outcome)];
+    assert.equal(own.some((value) => value === "conflict" || /Known eligibility conflict|\bineligible\b|\byou are eligible\b/iu.test(value)), false);
+  }
+  assert.notEqual(nonprofit!.nextStep.status, "possible_conflict");
+});
+
+test("find_funds_for_initiative answers the largest input it accepts, and a catalog it cannot rank fails with a stable code", async () => {
+  const { handler } = shippedSetup();
+  const words = Array.from({ length: 400 }, (_, i) => `w${i.toString(36)}`).join(" ").slice(0, 1500);
+  const largest = await call(handler, "find_funds_for_initiative", {
+    description: words, themes: Array.from({ length: 12 }, (_, i) => `theme ${i} restoration`), work_countries: Array(30).fill("NG"), benefit_countries: Array(30).fill("BR"), limit: 24,
+  });
+  assert.equal(largest.isError, undefined);
+  // A program the rubric cannot read (its focus is not a list) fails the ranking, with nothing of the description in the message.
+  const catalog = shipped("funders.json") as FundCatalog;
+  const first = catalog.funds.find(({ enrichment }) => enrichment?.programs?.length)!;
+  const broken = { ...catalog, funds: [{ ...first, enrichment: { ...first.enrichment, programs: [{ ...first.enrichment!.programs![0]!, focus: 7 }] } }, ...catalog.funds.slice(1)] } as FundCatalog;
+  const failed = await call(shippedSetup({ catalog: async () => broken }).handler, "find_funds_for_initiative", { description: DESCRIPTION });
+  assert.deepEqual([failed.isError, failed.content[0]!.text], [true, "catalog_unavailable: The fund catalog could not be ranked. Try again later."]);
 });

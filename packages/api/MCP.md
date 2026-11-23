@@ -5,17 +5,25 @@
 
 ## What it offers
 
-Four read-only tools, defined in `src/agent-tools-contract.ts`:
+Five read-only tools, defined in `src/agent-tools-contract.ts`:
 
 | Tool | Reads |
 |---|---|
 | `search_funds` | The fund catalog, by words, region, sector, access and deadline |
 | `get_fund` | One fund with its programs, evidence and sources, or one program as `fund::program` |
+| `find_funds_for_initiative` | The fund catalog, ranked for a description the person gives, with the rubric the Funding page uses |
 | `search_projects` | The public Certified projects Weave lists, as `/api/public-projects` does |
 | `get_project` | One of those projects by its address |
 
 Results are possibilities to check, never eligibility decisions. The endpoint takes no sign-in, reads no
 cookie and stores nothing. Its log holds a tool's name, outcome and duration, never its arguments.
+
+`find_funds_for_initiative` is the one tool that takes a person's own words. In the app that ranking runs
+on the device; here the description reaches Weave's server, which the user approved on 22 November 2026
+([D39](../../docs/platform/open-decisions.md#agent-access)). The server ranks in memory and keeps nothing:
+the description is not stored, logged or cached, and the tool's own description tells the assistant so.
+The answer does carry the topics the description shares with each program, as single words that also
+appear in that program's published focus, and it goes only to the caller. A test in `src/mcp.test.ts` checks that it never reaches the log.
 
 ## Switching it on
 
