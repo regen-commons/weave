@@ -148,15 +148,20 @@ Owners are the sessions working on the QA notes. Ticked items are fixed in this 
   maps would only help debugging in production.
 - [ ] **Q-16. Private and personal pages can be indexed.** Routes: Your Initiatives,
   Your Initiative, Settings, Team Workspace and the describe steps (`/start/*`). Fix in
-  phase 2: a `robots` meta tag set to `noindex` in each route's prerendered HTML. An
-  `X-Robots-Tag` header would need a `vercel.json` change and the user's OK.
+  phase 2: a `robots` meta tag set to `noindex` in each route's prerendered HTML, with its
+  value in `@weave/api/page-preview`. An `X-Robots-Tag` header would need a `vercel.json`
+  change and the user's OK.
 - [ ] **Q-17. The main pages name no canonical address.** Routes: Home, Funding,
   Initiatives. Each already has its own title and description in its section copy
-  (`dev/link-previews.ts`). Fix in phase 2: add a `rel="canonical"` link from the same
-  source, and keep the title and description in each prerendered page. Detail-sheet-sharing
-  owns the record pages' canonicals, their JSON-LD and the sitemap.
-- [ ] **Q-18. `robots.txt` names no sitemap.** Routes: all. Add a `Sitemap:` line once
-  detail-sheet-sharing publishes the sitemap's address. Search Console verification
+  (`dev/link-previews.ts`). Fix in phase 2: add a `rel="canonical"` link and keep the title
+  and description in each prerendered page. Every tag value comes from
+  `@weave/api/page-preview`, which the build's section copies and the `/api/record-page`
+  function also use. That function serves the prerendered shell for record pages and swaps
+  in each record's own canonical. Detail-sheet-sharing owns the record pages' canonicals,
+  their JSON-LD and the sitemap.
+- [ ] **Q-18. `robots.txt` names no sitemap.** Routes: all. Add
+  `Sitemap: https://weave.regencommons.com/sitemap.xml` once that address serves the
+  sitemap (detail-sheet-sharing's `/api/sitemap`, whose rewrite waits on the user's OK). Search Console verification
   needs the user's own account; ask the user before adding a verification tag or file,
   and leave DNS alone.
 
