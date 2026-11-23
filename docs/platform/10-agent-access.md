@@ -1,9 +1,9 @@
 # Agent access: MCP and WebMCP
 
-Status: proposal, waiting for the user's decision · Date: 2026-11-22
+Status: first slice approved by the user and built on 22 November 2026, switched off; the later slices are still proposals · Date: 2026-11-22
 Companions: [PRD interoperability requirements](04-prd.md#7-functional-requirements) · [technical spec, interoperability](05-technical-spec.md#10-interoperability-r29-to-r32) · [technical spec, security](05-technical-spec.md#12-security-and-privacy) · [repository layout](09-repository-layout.md) · [open decisions](open-decisions.md#agent-access)
 
-People increasingly ask an assistant instead of opening a site. This proposal lets them add Weave to that assistant, so it can search the fund catalog and the public project list and link back to Weave. It starts with public, read-only data over the Model Context Protocol (MCP), then offers the same tools inside the browser through WebMCP. Nothing here is approved or built. The questions it raises are D37 to D44 in [open decisions](open-decisions.md#agent-access).
+People increasingly ask an assistant instead of opening a site. This proposal lets them add Weave to that assistant, so it can search the fund catalog and the public project list and link back to Weave. It starts with public, read-only data over the Model Context Protocol (MCP), then offers the same tools inside the browser through WebMCP. The user approved the first slice on 22 November 2026 (D37, D38), and it is built but switched off: see the [endpoint notes](../../packages/api/MCP.md). Everything else here is still a proposal. The questions it raises are D37 to D44 in [open decisions](open-decisions.md#agent-access).
 
 ## Recommendation
 
@@ -44,6 +44,8 @@ Tool names use the platform's terms: fund, program, project. Results say "fit" a
 | `get_fund` | A fund or program identifier | The full record: programs, conditions to check, evidence with dates, source warnings |
 | `search_projects` | `query`, optional `organization_type`, `work_scope`, `sort`, `limit` up to 24, `cursor` | Public Certified projects: address, name, publisher, place, passages, when Weave last read it, the Certified source link and the Weave link. Also how fresh the index is (`bounded`, `partial` or `stale`) |
 | `get_project` | A project address | One project's card |
+
+As built, `get_project` returns the same card `search_projects` does. The public list has no lookup by address, so the tool reads the list's pages from the copy the function already holds until it finds the project.
 
 `search_funds` reuses the catalog's own filtering and keyword index, and `search_projects` calls the reader behind `/api/public-projects`, so the app and the tools cannot disagree. The assistant's own model does the reasoning about fit in this slice. Weave returns records and their evidence.
 
@@ -86,9 +88,17 @@ The quality baseline (finding Q-15, 22 November 2026) reports that Lighthouse 13
 | File | Served at | What it lists | Ships |
 |---|---|---|---|
 | `packages/app/public/llms.txt` | `/llms.txt` | A plain Markdown summary: what Weave is in two sentences; links to Funding, Partners and the privacy page; the fund catalog file and what its fields mean; that results are possibilities to check and never eligibility decisions; that private initiatives are not readable; and, once it is on, the MCP endpoint and its four tools | With slice 1. The endpoint lines are added when the switch is turned on |
-| `packages/app/public/.well-known/ai-catalog.json` | `/.well-known/ai-catalog.json` | One entry: the Weave MCP server, its URL, transport (Streamable HTTP), that it needs no sign-in, and its tool names | Only when the endpoint is on in production ([D40](open-decisions.md#agent-access)), so it never points at a route that answers 404 |
+| `packages/app/public/.well-known/ard.json` | `/.well-known/ard.json` | One entry, valid against the [ARD specification](https://agenticresourcediscovery.org/spec): the Weave MCP server, its URL, transport (Streamable HTTP), that it needs no sign-in, and its tool names | Only when the endpoint is on in production ([D40](open-decisions.md#agent-access)), so it never points at a route that answers 404 |
 
-Three cautions. We have not confirmed which manifest file Lighthouse's audit reads, so the quality session should check the audit's details before the second file is written; `ai-catalog.json` is the domain-level location the MCP server card extension names. Static files in `public/` are served before the app's catch-all rewrite, so neither needs a `vercel.json` change, and a test should prove `/llms.txt` returns text and not the app shell. And `public/` belongs to the quality session, so these files are theirs to add from the content agreed here ([D44](open-decisions.md#agent-access)).
+The quality session checked both audits against the Lighthouse 13.6.0 source on 22 November 2026:
+
+- The `llms.txt` audit needs a Markdown file with at least one top-level heading.
+- The manifest audit looks for an `Agentmap:` line in `robots.txt`, then `<link rel="ard">`, then a `Link` header with `rel="ard"`, then `/.well-known/ard.json`. It tries `/.well-known/ai-catalog.json` only after those, and scores that lower with a warning. The manifest has to validate against the ARD specification.
+- Both audits score 0 today because the app's catch-all rewrite answers every missing path, these two included, with the app's HTML and status 200.
+
+Files in `public/` are copied into the build and served before the rewrite, so real files need no `vercel.json` change. `public/` belongs to the quality session, so the files are theirs to add from the content agreed here.
+
+That leaves a choice for the time before the endpoint is live ([D44](open-decisions.md#agent-access)). Shipping `llms.txt` now fixes the first audit. The manifest audit then stays at 0 until `ard.json` ships with the endpoint, unless `/.well-known/ard.json` is made to answer 404 in the meantime, which makes the audit not applicable but is a `vercel.json` change and so needs the user's approval.
 
 ## WebMCP
 
