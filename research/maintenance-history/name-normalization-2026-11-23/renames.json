@@ -1,0 +1,242 @@
+{
+  "version": 1,
+  "id": "name-normalization-2026-11-23",
+  "appliedOn": "2026-11-23",
+  "rule": ".claude/skills/catalog-research/verification-standard.md#program-names",
+  "method": "Each rename restores the space between a word and a year in the name value of one program, found by funder and program id, in the listed input file. Ids are unchanged. Setting each value back restores the earlier files byte for byte, which tests/helpers/name-normalization.mjs does for the historical audits. Fiscal-year labels such as FY2024 and the funder name LA2050 are left as written.",
+  "journalLengthAtRename": 4,
+  "programs": [
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recAHSAEltnDtrOEW",
+      "programId": "resilient-futures2026-ideation-grants",
+      "before": "Resilient Futures2026: Ideation Grants",
+      "after": "Resilient Futures 2026: Ideation Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recAHSAEltnDtrOEW",
+      "programId": "resilient-futures2026-incubation-grants",
+      "before": "Resilient Futures2026: Incubation Grants",
+      "after": "Resilient Futures 2026: Incubation Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwTWZ68fvzg0U8S",
+      "programId": "ayni2026-small-grants",
+      "before": "AYNI2026: Small Grants",
+      "after": "AYNI 2026: Small Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwTWZ68fvzg0U8S",
+      "programId": "ayni2026-medium-grants",
+      "before": "AYNI2026: Medium Grants",
+      "after": "AYNI 2026: Medium Grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recrxlpERtiF8M6Mz",
+      "programId": "just-futures-initiative2026",
+      "before": "Just Futures Initiative2026",
+      "after": "Just Futures Initiative 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec9fBEyvIAOuPbVi",
+      "programId": "climate-smart-communities-initiative2027",
+      "before": "Climate Smart Communities Initiative2027",
+      "after": "Climate Smart Communities Initiative 2027"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "reczCJTknAQMNPYF3",
+      "programId": "community-foundation-general-grants2026",
+      "before": "Community Foundation General Grants2026",
+      "after": "Community Foundation General Grants 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recRRbqkhtZtedtrN",
+      "programId": "roots-fund2026",
+      "before": "Roots Fund2026",
+      "after": "Roots Fund 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec9zkozBYLkW4QQ2",
+      "programId": "connect2026-collaboration-grants",
+      "before": "CONNECT2026 collaboration grants",
+      "after": "CONNECT 2026 collaboration grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recmwR7BcJVVFp7r8",
+      "programId": "democracy-at-work-fund-consortium2025-call",
+      "before": "Democracy at Work Fund: consortium2025 call",
+      "after": "Democracy at Work Fund: consortium 2025 call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recIHYWXmBakUeMjs",
+      "programId": "survivor-leadership-fund-nepal2026",
+      "before": "Survivor Leadership Fund: Nepal2026",
+      "after": "Survivor Leadership Fund: Nepal 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recV9ifc0QZaVrOof",
+      "programId": "movement-solidarity2026-funding-transition",
+      "before": "Movement Solidarity2026 funding transition",
+      "after": "Movement Solidarity 2026 funding transition"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recBDZAbSW1C0t0YS",
+      "programId": "global-change-award2026",
+      "before": "Global Change Award2026",
+      "after": "Global Change Award 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recPVAEu1r0uXhmzS",
+      "programId": "bndes-periferias-fortes-norte2026-small",
+      "before": "BNDES Periferias Fortes Norte2026: Small",
+      "after": "BNDES Periferias Fortes Norte 2026: Small"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recPVAEu1r0uXhmzS",
+      "programId": "bndes-periferias-fortes-norte2026-medium",
+      "before": "BNDES Periferias Fortes Norte2026: Medium",
+      "after": "BNDES Periferias Fortes Norte 2026: Medium"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recQwDLcdM4kJUZDp",
+      "programId": "9th-regional-call2026-tier1",
+      "before": "9th Regional Call2026: Tier1",
+      "after": "9th Regional Call 2026: Tier1"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recQwDLcdM4kJUZDp",
+      "programId": "9th-regional-call2026-tier2",
+      "before": "9th Regional Call2026: Tier2",
+      "after": "9th Regional Call 2026: Tier2"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recQwDLcdM4kJUZDp",
+      "programId": "9th-regional-call2026-tier3",
+      "before": "9th Regional Call2026: Tier3",
+      "after": "9th Regional Call 2026: Tier3"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recxPzJLA9G0btOLd",
+      "programId": "reforming-local-government-funding-in-scotland2026",
+      "before": "Reforming local government funding in Scotland2026",
+      "after": "Reforming local government funding in Scotland 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recNRkQyG1uiWaBKN",
+      "programId": "national-grant-making-coordinating-organisation2026",
+      "before": "National Grant-making Coordinating Organisation2026",
+      "after": "National Grant-making Coordinating Organisation 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recIpHljosjoulYl3",
+      "programId": "21st-practical-women-s-studies-fellowship2027",
+      "before": "21st Practical Women’s Studies Fellowship2027",
+      "after": "21st Practical Women’s Studies Fellowship 2027"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recxGlMhgKcl26AYa",
+      "programId": "social-research-call2026",
+      "before": "Social Research Call2026",
+      "after": "Social Research Call 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recwmLeZDUINrVPsx",
+      "programId": "see-change2024-medwf-call",
+      "before": "SEE CHANGE2024: MedWF call",
+      "after": "SEE CHANGE 2024: MedWF call"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "reccHNBfpq6sRSeU3",
+      "programId": "6th-futuro-bem-maior2026",
+      "before": "6th Futuro Bem Maior2026",
+      "after": "6th Futuro Bem Maior 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec41lKUUqsWKl6wE",
+      "programId": "onside2025-group-grants",
+      "before": "ONSIDE2025 group grants",
+      "after": "ONSIDE 2025 group grants"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec9bE8Sue9uIgF4r",
+      "programId": "visa-foundation-us-small-business-growth-and-innovation2026",
+      "before": "Visa Foundation US Small Business Growth and Innovation2026",
+      "after": "Visa Foundation US Small Business Growth and Innovation 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recYjuk8oco6Kf6mv",
+      "programId": "sports-small-grants2025",
+      "before": "Sports Small Grants2025",
+      "after": "Sports Small Grants 2025"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "reczXDjAFKkyvzAAv",
+      "programId": "community-action-grants2026",
+      "before": "Community Action Grants2026",
+      "after": "Community Action Grants 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "rec8Pksooi50Wj0kU",
+      "programId": "systems-change-fellowship2026-27",
+      "before": "Systems Change Fellowship2026–27",
+      "after": "Systems Change Fellowship 2026–27"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "reclHspViIXmveGTc",
+      "programId": "adelante-fund2026",
+      "before": "Adelante Fund2026",
+      "after": "Adelante Fund 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recLvOauynAivk5m9",
+      "programId": "teladan2026-scholarship",
+      "before": "TELADAN2026 scholarship",
+      "after": "TELADAN 2026 scholarship"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "recSOtFxphmA2IwmG",
+      "programId": "transforming-systems-grants-influence2026",
+      "before": "Transforming Systems Grants: Influence2026",
+      "after": "Transforming Systems Grants: Influence 2026"
+    },
+    {
+      "path": "research/expanded-1.json",
+      "fundId": "reczEjInFO7WPMEQk",
+      "programId": "diaspora-investor-training-and-sme-matchmaking2026",
+      "before": "Diaspora Investor Training and SME Matchmaking2026",
+      "after": "Diaspora Investor Training and SME Matchmaking 2026"
+    }
+  ],
+  "funders": []
+}

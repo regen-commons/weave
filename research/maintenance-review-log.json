@@ -15588,6 +15588,27 @@
       ],
       "nextReviewOn": "2026-11-19",
       "note": "The 2026-2027 Sustaining Grant deadline is stated in the present tense, December 2, 2026, and requests for applications are considered until November 30, 2026. The page still says groups funded in the past three years will be emailed an application package in October 2025, and its Urgent Response section still names the 2024-2025 Grant Cycle. Both conflicts are kept as unknowns; the deadline date is unchanged."
+    },
+    {
+      "runId": "name-normalization-2026-11-23",
+      "recordKey": "name-normalization-2026-11-23::source-01",
+      "fundId": "recTQMgGnvmEseTmT",
+      "programId": "sustaining-grants2026-27",
+      "attemptedOn": "2026-11-23",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-23",
+      "result": "partial",
+      "fields": [
+        "name"
+      ],
+      "sourceUrls": [
+        "https://www.haymarket.org/grants-1"
+      ],
+      "revisions": [
+        "recTQMgGnvmEseTmT::sustaining-grants2026-27"
+      ],
+      "nextReviewOn": "2026-11-30",
+      "note": "Name only. The December 2, 2026 deadline is inside the closing window, so the route and dates are due a recheck within seven days."
     }
   ],
   "runs": [
@@ -18389,6 +18410,65 @@
         "checks": "bun run research:import with the existing compiledAt, bun run build, bun run test, bun run guidance:check, python3 scripts/revise-program.py --check-base, git diff --check"
       },
       "result": "296 program names and two funder names changed, each recorded with its earlier value. Historical audits read the earlier names through tests/helpers/name-normalization-2026-11-22.mjs.",
+      "publication": "Pull request into develop for review. No deployment, application or funder contact."
+    },
+    {
+      "id": "name-normalization-2026-11-23",
+      "runType": "manual-name-normalization",
+      "localDate": "2026-11-23",
+      "timeZone": "America/Los_Angeles",
+      "scheduledTimerObserved": false,
+      "executionModel": "claude-fable-5-2",
+      "reasoningEffort": "medium",
+      "executionNote": "Requested in a Claude Code session after the accessibility audit found a program name read aloud as \"Grants2026\". Not a scheduled routine run; no timer is claimed.",
+      "repository": "regen-commons/weave",
+      "branch": "codex/catalog-name-spacing-2026-11-23",
+      "baselineCommit": "fecf537",
+      "rule": ".claude/skills/catalog-research/verification-standard.md#program-names",
+      "renameArchive": "research/maintenance-history/name-normalization-2026-11-23/renames.json",
+      "programsRenamed": 33,
+      "fundersRenamed": 0,
+      "additions": [],
+      "appliedAdditions": [],
+      "appliedRevisions": [
+        {
+          "id": "2026-11-23-haymarket-name-spacing",
+          "fundId": "recTQMgGnvmEseTmT",
+          "programId": "sustaining-grants2026-27"
+        }
+      ],
+      "sourceCounts": {
+        "attempted": 1,
+        "retrieved": 1,
+        "verifiedFields": 1,
+        "wholeRecordVerifications": 0
+      },
+      "countDefinition": "One URL opened in the built-in browser, for one field. The 33 archive renames opened no source and are not verifications.",
+      "sources": [
+        {
+          "id": "source-01",
+          "url": "https://www.haymarket.org/grants-1",
+          "attemptedOn": "2026-11-23",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "name"
+          ],
+          "finding": "The section is headed \"Sustaining Grants\" and the page says \"The 2026-2027 Sustaining Grant deadline is Wednesday, December 2, 2026.\" Only the name was reviewed."
+        }
+      ],
+      "method": "A space was restored between a word and a year in 34 program names. 33 had no journaled revision and are recorded in the rename archive. The Haymarket Sustaining Grants program has journaled revisions, so its name changed through scripts/revise-program.py with the funder's page read that day as evidence and empty replacement screening, because the program has no screening rows. The revision command recompiled the catalog at the current time, which moved compiledAt and the count of upcoming dated deadlines.",
+      "coverageLimitations": [
+        "Names were corrected from our own records except Haymarket's, which was read at the funder.",
+        "Tier, track and phase labels run into a digit, such as Tier1, were not in scope.",
+        "FY2024 labels and LA2050 are left as written."
+      ],
+      "validation": {
+        "catalogChanged": true,
+        "checks": "bun run build, bun run test, bun run guidance:check, python3 scripts/revise-program.py --check-base, git diff --check"
+      },
+      "result": "34 program names corrected: 33 by rename archive and one by journaled revision. No whole-record verification date advanced.",
       "publication": "Pull request into develop for review. No deployment, application or funder contact."
     }
   ]
