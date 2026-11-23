@@ -17,7 +17,7 @@ export type RouteName =
   | "settings"
   | "team-workspace";
 /** The four tabs. A page inside one keeps that tab marked. */
-export type Section = "home" | "initiatives" | "funding" | "your-initiatives";
+export type Section = "home" | "funding" | "initiatives" | "your-initiatives";
 export interface Route {
   readonly name: RouteName;
   readonly path: string;
@@ -25,6 +25,12 @@ export interface Route {
   /** The short name navigation uses where the title is a sentence. */
   readonly label?: string;
   readonly form: boolean;
+  /**
+   * Where the footer shows. `"wide"` leaves it out on a phone, for a page that should feel like an
+   * app there: the steps of describing an initiative and the Your Initiatives tab. A wide screen
+   * keeps it on every page.
+   */
+  readonly footer?: "wide";
   readonly section?: Section;
   /** The page one level up, where the back link goes when the app does not know where the person came from. Tabs have none. */
   readonly parent?: RouteName;
@@ -47,6 +53,7 @@ export const ROUTES: readonly Route[] = [
     path: "/start/new",
     title: "Start An Initiative",
     form: true,
+    footer: "wide",
     parent: "home",
   },
   {
@@ -55,10 +62,11 @@ export const ROUTES: readonly Route[] = [
     title: "Tell Us About Your Initiative",
     label: "Describe Your Initiative",
     form: true,
+    footer: "wide",
     parent: "home",
   },
-  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, parent: "initiative" },
-  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, parent: "needs" },
+  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, footer: "wide", parent: "initiative" },
+  { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, footer: "wide", parent: "needs" },
   {
     name: "your-initiative",
     path: "/your-initiative",
@@ -72,6 +80,7 @@ export const ROUTES: readonly Route[] = [
     path: "/your-initiatives",
     title: "Your Initiatives",
     form: false,
+    footer: "wide",
     section: "your-initiatives",
   },
   {
@@ -237,15 +246,38 @@ export interface BackTarget {
   readonly href: string;
   /** History entries to step back, so the link and the back gesture agree. Zero opens `href` as a new page. */
   readonly hops: number;
+  /**
+   * With `hops` at zero, `href` takes this page's place in history instead of adding a page, so a
+   * step's way back never leaves the step it left one Back away.
+   */
+  readonly replace?: boolean;
+}
+/**
+ * The step before a step of describing an initiative, which is where its way back goes. None for
+ * the first step, and none for a page that is not one of the step pages.
+ */
+export function previousStep(route: Route): RouteName | null {
+  if (!route.form) return null;
+  const step = stepOf(route);
+  return step > 0 ? INTAKE_STEPS[step - 1]!.route : null;
 }
 /**
  * Where a page's back link goes: the page the person came from, otherwise one level up.
- * Tabs have no back link, and a sheet closes instead.
+ * Tabs have no back link, and a sheet closes instead. The steps of describing an initiative
+ * follow one another, so a later step goes back to the step before it, whichever page the
+ * person came from: back through history when that step is the page before, otherwise in this
+ * page's place. The first step goes back to where the person came from, never on into the steps.
  */
 export function backTarget(route: Route | undefined, visit: Visit | null): BackTarget | null {
   if (!route?.parent || route.sheet) return null;
   const from = visit ? routeAt(visit.from) : undefined;
-  if (visit && from && from.name !== route.name) {
+  const before = previousStep(route);
+  if (before)
+    return visit && from?.name === before
+      ? { label: navLabel(before), href: visit.from, hops: visit.hops }
+      : { label: navLabel(before), href: pathTo(before), hops: 0, replace: true };
+  const later = route.form && !!from?.form && stepOf(from) > stepOf(route);
+  if (visit && from && from.name !== route.name && !later) {
     // Going back to a sheet lands on the page under it, so the link names that page.
     return { label: navLabel(from.sheet && from.parent ? from.parent : from.name), href: visit.from, hops: visit.hops };
   }
