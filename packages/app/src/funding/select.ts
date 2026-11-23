@@ -2,7 +2,7 @@ import { effectiveAccess } from "../../../../dist/domain.mjs";
 import { MATCH_GROUPS, programFund } from "../../../../dist/matching.mjs";
 import type { Entry, Evaluation } from "./contracts.ts";
 import { closingDay, closingDayEnds } from "./deadline.ts";
-import { compareFit } from "./fit.ts";
+import { compareFit, fundingFit } from "./fit.ts";
 
 /**
  * How to apply, as a visitor chooses it (DL-062). The catalog records twelve states and several are
@@ -243,4 +243,51 @@ export function filterFunding(
       (a.program?.name ?? "").localeCompare(b.program?.name ?? "")
     );
   });
+}
+
+/** A fund the initiative may fit, with how it fits: its fit line and its caveat. */
+export interface FundingFitResult {
+  readonly entry: Entry;
+  readonly result: Evaluation;
+}
+export interface FundingFits {
+  /** The strongest fits, in Funding's own order for the initiative. */
+  readonly first: readonly FundingFitResult[];
+  /** How many fit with a Strong or Good fit. */
+  readonly well: number;
+  /** How many share one topic, a Possible fit. */
+  readonly possible: number;
+}
+
+/**
+ * What an initiative's own page shows of its funding (DL-141): the first funds in Funding's own fit
+ * order, the same function Funding sorts with, so the two cannot disagree. Every fund the rubric
+ * gives a shared topic counts, whatever it still needs checking (scope, route, dates), since each
+ * card says what to check. A fund sharing no topic (Low fit) or not assessed is not a fit.
+ */
+export function fundingFits(
+  entries: Entry[],
+  results: readonly Evaluation[],
+  now = new Date(),
+  shown = 2,
+): FundingFits {
+  const byId = new Map(results.map((result) => [result.documentId, result]));
+  const fits = filterFunding(entries, { ...emptyFundingFilters, sort: "fit" }, [...results], now).flatMap((entry) => {
+    const result = byId.get(entry.id);
+    const level = result && fundingFit(result.thematicFit.score);
+    return result && level && level !== "low" ? [{ entry, result, level }] : [];
+  });
+  return {
+    first: fits.slice(0, shown).map(({ entry, result }) => ({ entry, result })),
+    well: fits.filter(({ level }) => level === "strong" || level === "good").length,
+    possible: fits.filter(({ level }) => level === "possible").length,
+  };
+}
+
+/** The line under those funds: how many may fit, and that each needs a check. Never eligibility. */
+export function fundingFitsLine({ well, possible }: Pick<FundingFits, "well" | "possible">): string {
+  const check = (count: number) => (count === 1 ? "It needs a check with the funder." : "Each needs a check with the funder.");
+  if (well) return `${well === 1 ? "1 fund may" : `${well} funds may`} fit this card well. ${check(well)}`;
+  if (possible) return `${possible === 1 ? "1 fund shares" : `${possible} funds share`} a topic with this card. ${check(possible)}`;
+  return "No fund shares a topic with this card yet.";
 }
