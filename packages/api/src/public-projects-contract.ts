@@ -1,9 +1,45 @@
 // GET /api/public-projects: the listed public Certified projects Weave indexes, newest first.
 // Shared by the handler, which parses requests, and the app, which parses responses.
-import { parseProjectUri } from "./project-uri.ts";
+import { parseProjectUri, PROJECT_COLLECTION } from "./project-uri.ts";
 
-/** The record collection a project's address names, so the app can build the address a link names. */
-export { PROJECT_COLLECTION } from "./project-uri.ts";
+/** The record collection a project's address names. */
+export { PROJECT_COLLECTION };
+
+/**
+ * A public project's part of its Weave address, `/initiatives/<account>-<record>` (22 November 2026): the
+ * project's PLC account and its record key, both lower-case base32, joined by a hyphen neither contains.
+ * Every project the index listed that day has one. A `did:web` account or a key that is not a timestamp
+ * ID has none, and its card keeps its name unlinked.
+ */
+const PLC_ACCOUNT = /^did:plc:([a-z2-7]{24})$/u;
+const TIMESTAMP_KEY = /^[a-z2-7]{13}$/u;
+const PROJECT_SLUG = /^([a-z2-7]{24})-([a-z2-7]{13})$/u;
+
+export function projectSlug(uri: string): string | null {
+  if (!uri.startsWith("at://")) return null;
+  const [did, collection, key, ...rest] = uri.slice(5).split("/");
+  const account = PLC_ACCOUNT.exec(did ?? "")?.[1];
+  return account && collection === PROJECT_COLLECTION && key && TIMESTAMP_KEY.test(key) && !rest.length ? `${account}-${key}` : null;
+}
+
+/** The project an address part names, or null where it names none. */
+export function projectUriOf(slug: string): string | null {
+  const parts = PROJECT_SLUG.exec(slug);
+  return parts ? `at://did:plc:${parts[1]}/${PROJECT_COLLECTION}/${parts[2]}` : null;
+}
+
+/**
+ * A project's own words, each said once. A Certified project often has a short description that is its
+ * long one cut off with an ellipsis, so a passage that only begins another is left out.
+ */
+export function projectPassages(card: Pick<PublicProjectCard, "passages">): string[] {
+  const opening = (passage: string) => passage.trim().replace(/(\.\.\.|…)$/u, "").trim();
+  return card.passages.filter((passage, index) => {
+    const start = opening(passage);
+    return !card.passages.some((other, at) => at !== index && other.trim() !== passage.trim() && other.trim().startsWith(start))
+      && card.passages.findIndex((other) => other.trim() === passage.trim()) === index;
+  });
+}
 
 export const PUBLIC_PROJECT_PAGE_SIZE = 12;
 export const PUBLIC_PROJECT_PAGE_MAX = 24;

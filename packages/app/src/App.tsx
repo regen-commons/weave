@@ -39,7 +39,6 @@ import {
 import {
   backTarget,
   documentTitle,
-  fixtureHref,
   matchRoute,
   sheetBackground,
   splitRoute,
@@ -107,6 +106,13 @@ interface Shown {
 /** Which record is on show, so a retry on the same record keeps its sheet in place. */
 const recordKey = (route: Route, search: string): string =>
   `${route.name} ${route.id} ${new URLSearchParams(search).get("program") ?? ""}`;
+/**
+ * A fund's own page goes back to Funding as the person had it: the address keeps the list's search and
+ * filters, as one opened in a new tab from a filtered list does. Every other page keeps its back link.
+ */
+function recordPageBack(route: Route | undefined, search: string, back: BackTarget | null): BackTarget | null {
+  return route?.name === "opportunity" && back?.hops === 0 ? { ...back, href: fundingBackHref(search) } : back;
+}
 /** A record, as a sheet over the page it was opened from or as a page of its own. */
 function recordBody(route: Route, search: string, state: SheetState, presentation: Presentation, fixture?: FixtureContext) {
   return route.name === "opportunity" ? (
@@ -218,16 +224,12 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
     }
     // Closed by hand: return to the page under it, where the person left it.
     setShown({ ...shown, dismissed: true });
-    if (under.hops > 0) goBack(under.hops);
-    else {
-      const list = sheetRoute.name === "opportunity" ? fundingBackHref(search) : under.route;
-      navigate(fixtureHref(list, search, import.meta.env.DEV), true);
-    }
+    goBack(under.hops);
   }
   // The page keeps the back link it had before a record opened over it.
   const pageBack = useRef<{ path: string; target: BackTarget | null }>(null);
   const back = !sheetRoute
-    ? backTarget(pageRoute, currentVisit())
+    ? recordPageBack(pageRoute, search, backTarget(pageRoute, currentVisit()))
     : pageBack.current?.path === pagePath
       ? pageBack.current.target
       : backTarget(pageRoute, null);

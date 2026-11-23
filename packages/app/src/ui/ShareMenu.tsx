@@ -19,12 +19,17 @@ export function ShareMenu({ share }: { share: RecordShare }) {
   useEffect(() => {
     if (trigger.current && panel.current) return connectPopover(trigger.current, panel.current);
   }, []);
+  /** Says what happened, afresh each time, so a second copy is announced as the first was. */
+  function say(words: string) {
+    setResult("");
+    requestAnimationFrame(() => setResult(words));
+  }
   async function copy() {
     try {
       await navigator.clipboard.writeText(share.url);
-      setResult("Link copied.");
+      say("Link copied.");
     } catch {
-      setResult(`Copy this link: ${share.url}`);
+      say(`Copy this link: ${share.url}`);
     }
   }
   async function shareFromDevice() {
@@ -34,30 +39,32 @@ export function ShareMenu({ share }: { share: RecordShare }) {
     } catch (error) {
       // Closing the device's sheet is a choice, not a failure.
       if (!(error instanceof DOMException && error.name === "AbortError"))
-        setResult("This device could not share the link. Copy it instead.");
+        say("This device could not share the link. Copy it instead.");
     }
   }
   return (
     <div className="rc-action-bar">
-        <button ref={trigger} className="rc-button" data-variant="secondary" type="button" popoverTarget={id}>
-          <Icon name="share" size="sm" />
-          Share
+      <button ref={trigger} className="rc-button" data-variant="secondary" type="button" popoverTarget={id}>
+        <Icon name="share" size="sm" />
+        Share
+      </button>
+      <div className="rc-menu" ref={panel} id={id} popover="auto" aria-labelledby={`${id}-head`}>
+        <p className="rc-menu-head" id={`${id}-head`}>
+          Share a link to {share.title}
+        </p>
+        <button className="rc-menu-item" type="button" data-close-popover onClick={() => void copy()}>
+          Copy Link
         </button>
-        <div className="rc-menu" ref={panel} id={id} popover="auto">
-          <p className="rc-menu-head">Share a link to {share.title}</p>
-          <button className="rc-menu-item" type="button" data-close-popover onClick={() => void copy()}>
-            Copy Link
+        {device && (
+          <button className="rc-menu-item" type="button" data-close-popover onClick={() => void shareFromDevice()}>
+            More Ways To Share
           </button>
-          {device && (
-            <button className="rc-menu-item" type="button" data-close-popover onClick={() => void shareFromDevice()}>
-              More Ways To Share
-            </button>
-          )}
-          {shareTargets(share).map((target, index) => (
-            <Link key={target.label} className="rc-menu-item" href={target.href} data-close-popover data-divide={index === 0 || undefined}>
-              {target.label}
-            </Link>
-          ))}
+        )}
+        {shareTargets(share).map((target, index) => (
+          <Link key={target.label} className="rc-menu-item" href={target.href} data-close-popover data-divide={index === 0 || undefined}>
+            {target.label}
+          </Link>
+        ))}
       </div>
       <p className="rc-meta" role="status">
         {result}

@@ -3,6 +3,7 @@ import { Dialog } from "./Dialog.tsx";
 import { Heading } from "./Heading.tsx";
 import { NarrowLayout } from "./layouts.tsx";
 import { keepFocusOnPage } from "./focus.ts";
+import { SectionLevelContext, type SectionLevel } from "./section-level.ts";
 
 /** Whether a record's sheet is on screen, and what follows once it has left. */
 export interface SheetState {
@@ -15,6 +16,9 @@ export interface SheetState {
  * when it was opened from a link (22 November 2026).
  */
 export type Presentation = "sheet" | "page";
+
+/** The level a record's sections start at as it is shown: under a sheet's title or a page's heading. */
+export const recordSectionLevel = (presentation: Presentation): SectionLevel => (presentation === "page" ? 2 : 3);
 
 /**
  * A record opened over its list. The list stays as it was underneath, so closing returns to the
@@ -38,7 +42,7 @@ export function DetailSheet({
         <Heading level={1} size="page">
           {title}
         </Heading>
-        {children}
+        <SectionLevelContext value={2}>{children}</SectionLevelContext>
       </NarrowLayout>
     );
   return (
@@ -52,7 +56,7 @@ export function DetailSheet({
         state.onClose();
       }}
     >
-      {children}
+      <SectionLevelContext value={3}>{children}</SectionLevelContext>
     </Dialog>
   );
 }

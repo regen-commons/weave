@@ -1,37 +1,20 @@
 import { rankPartnerMatches, type ProjectEvidence } from "@weave/api/partner-matcher";
-import { PROJECT_COLLECTION } from "@weave/api/public-projects-contract";
+import { projectPassages, projectSlug, projectUriOf } from "@weave/api/public-projects-contract";
 import { privatePartnerQueries, projectSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
 import { requestPublicProjects, type PublicProjectCard } from "./public-projects.ts";
 
 /**
  * One public Certified project at its own address in Weave, so a person can open it, read it and share
- * it (22 November 2026). The address is `/initiatives/<did>-<record>`: the project's account and record
- * key, both written in lower-case base32, joined by a hyphen neither can contain. Every project the
- * index lists today has an address of this shape. One that does not (a `did:web` account, or a record
- * key that is not a timestamp ID) has no page, and its card keeps its name unlinked.
+ * it (22 November 2026). The address rule, `/initiatives/<account>-<record>`, and the rule for saying a
+ * project's words once belong to the list itself, in `@weave/api/public-projects-contract`, which the
+ * record pages' link previews read too.
  */
-const PLC = /^did:plc:([a-z2-7]{24})$/u;
-const TID = /^[a-z2-7]{13}$/u;
-const SLUG = /^([a-z2-7]{24})-([a-z2-7]{13})$/u;
-
-/** The project's part of its Weave address, or null where it has none. */
-export function projectSlug(uri: string): string | null {
-  if (!uri.startsWith("at://")) return null;
-  const [did, collection, key, ...rest] = uri.slice(5).split("/");
-  const account = PLC.exec(did ?? "")?.[1];
-  return account && collection === PROJECT_COLLECTION && key && TID.test(key) && !rest.length ? `${account}-${key}` : null;
-}
+export { projectPassages, projectSlug, projectUriOf };
 
 /** The project's Weave address, or null where it has none. */
 export function projectAddress(uri: string): string | null {
   const slug = projectSlug(uri);
   return slug ? `/initiatives/${slug}` : null;
-}
-
-/** The Certified project an address names, or null where the address names none. */
-export function projectUriOf(slug: string): string | null {
-  const parts = SLUG.exec(slug);
-  return parts ? `at://did:plc:${parts[1]}/${PROJECT_COLLECTION}/${parts[2]}` : null;
 }
 
 /** The same-origin request for one project's card. */
@@ -52,39 +35,31 @@ export function rememberProject(card: PublicProjectCard): void {
 
 export const rememberedProject = (uri: string): PublicProjectCard | undefined => seen.get(uri);
 
+/** What the list said about one project: its card, or why there is none. */
+export type ProjectLookup =
+  | { status: "found"; card: PublicProjectCard }
+  /** Not on the list: never listed, withdrawn by its publisher, or not read by Weave yet. */
+  | { status: "missing" }
+  /** The list is not switched on here, so no project can be found. */
+  | { status: "off" };
+
 /**
- * One project's card from the list, or null when the list does not show it: never listed, withdrawn by
- * its publisher, or the list is switched off here. A refusal, timeout or unexpected answer rejects.
- * Only a card at exactly this address counts, so an answer for another project is never shown as this one.
+ * One project's card from the list, or why there is none. A refusal, timeout or unexpected answer
+ * rejects. Only a card at exactly this address counts, so an answer for another project is never shown
+ * as this one.
  */
-export async function requestPublicProject(uri: string, signal: AbortSignal, request: typeof fetch = fetch): Promise<PublicProjectCard | null> {
+export async function requestPublicProject(uri: string, signal: AbortSignal, request: typeof fetch = fetch): Promise<ProjectLookup> {
   const page = await requestPublicProjects(publicProjectPath(uri), signal, request);
-  return page.projects.find((card) => card.uri === uri) ?? null;
+  if (page.index.status === "off") return { status: "off" };
+  const card = page.projects.find((candidate) => candidate.uri === uri);
+  return card ? { status: "found", card } : { status: "missing" };
 }
 
-/**
- * The project's own words, each said once. A Certified project often has a short description that is its
- * long one cut off with an ellipsis, so a passage that only begins another is left out.
- */
-export function projectPassages(card: Pick<PublicProjectCard, "passages">): string[] {
-  const opening = (passage: string) => passage.trim().replace(/(\.\.\.|…)$/u, "").trim();
-  return card.passages.filter((passage, index) => {
-    const start = opening(passage);
-    return !card.passages.some((other, at) => at !== index && other.trim() !== passage.trim() && other.trim().startsWith(start))
-      && card.passages.findIndex((other) => other.trim() === passage.trim()) === index;
-  });
-}
-
-/** The longest description a link preview or a share carries before it is cut at a word. */
-export const SUMMARY_MAX = 160;
-
-/** The project's own words in one short line, cut at a word where they run long. */
-export function projectSummary(card: Pick<PublicProjectCard, "passages">): string {
-  const words = projectPassages(card).join(" ").replace(/\s+/gu, " ").trim();
-  if (words.length <= SUMMARY_MAX) return words;
-  const cut = words.slice(0, SUMMARY_MAX - 1);
-  const end = cut.lastIndexOf(" ");
-  return `${(end > SUMMARY_MAX / 2 ? cut.slice(0, end) : cut).replace(/[\s,.;:]+$/u, "")}…`;
+/** What a project's page says when the list has no card for it. */
+export function missingLine(status: "missing" | "off"): string {
+  return status === "off"
+    ? "Shared initiatives are not switched on here yet, so this one cannot be shown."
+    : "This initiative is not on the public list. Its publisher may have withdrawn it, or Weave may not have read it yet.";
 }
 
 /** The person's needs and offers as the partner search reads them: the kept items of the card on screen. */
@@ -106,7 +81,7 @@ export function projectFit(
 ): ProjectSuggestion | null {
   const queries = privatePartnerQueries(initiative.id, initiative.revision, initiative.needs, initiative.offers);
   if (!queries.length) return null;
-  const evidence: ProjectEvidence[] = card.passages.map((passage, index) => ({
+  const evidence: ProjectEvidence[] = projectPassages(card).map((passage, index) => ({
     id: `${card.uri}#card-${index}`,
     projectUri: card.uri,
     projectName: card.name,

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectCard, PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  projectAddress, projectFit, projectPassages, projectSlug, projectSummary, projectUriOf, publicProjectPath, rememberedProject, rememberProject,
-  requestPublicProject, SUMMARY_MAX,
+  missingLine, projectAddress, projectFit, projectPassages, projectSlug, projectUriOf, publicProjectPath, rememberedProject, rememberProject,
+  requestPublicProject,
 } from "../src/partners/public-project.ts";
 import { matchRoute } from "../src/routes.ts";
 
@@ -46,15 +46,18 @@ test("a project opened from a link is read from the list by its address, and onl
     return Response.json(body, { status });
   }) as typeof fetch;
   const signal = new AbortController().signal;
-  assert.deepEqual(await requestPublicProject(URI, signal, answer(page([card()]))), card());
+  assert.deepEqual(await requestPublicProject(URI, signal, answer(page([card()]))), { status: "found", card: card() });
   assert.deepEqual(asked, [publicProjectPath(URI)]);
-  // Withdrawn, never listed, or the list is switched off: not found, never an error.
-  assert.equal(await requestPublicProject(URI, signal, answer(page([]))), null);
-  assert.equal(await requestPublicProject(URI, signal, answer({ ...page([]), index: { status: "off", checkedAt: null, total: 0 } })), null);
+  // Withdrawn or never listed is not an error, and the list being off says so rather than "withdrawn".
+  assert.deepEqual(await requestPublicProject(URI, signal, answer(page([]))), { status: "missing" });
+  assert.deepEqual(await requestPublicProject(URI, signal, answer({ ...page([]), index: { status: "off", checkedAt: null, total: 0 } })),
+    { status: "off" });
   // An answer about another project is not this one, as from a server that ignores the address.
   const other = "at://did:plc:vxghsglzk24hbujvq6mvgsp5/org.hypercerts.collection/3n2r2joirt226";
-  assert.equal(await requestPublicProject(URI, signal, answer(page([card(other)]))), null);
+  assert.deepEqual(await requestPublicProject(URI, signal, answer(page([card(other)]))), { status: "missing" });
   await assert.rejects(requestPublicProject(URI, signal, answer(page([]), 503)), /public_projects_unavailable/);
+  assert.match(missingLine("missing"), /may have withdrawn it, or Weave may not have read it yet/);
+  assert.doesNotMatch(missingLine("off"), /withdrawn/, "a list that is off never reads as a withdrawal");
 });
 
 test("a card opened from a list shows at once, and the tab keeps only a few pages of them", () => {
@@ -70,14 +73,6 @@ test("a project's words are said once, without the short description that only b
   assert.deepEqual(projectPassages({ passages: ["Funds will support community-led restoration…", long] }), [long]);
   assert.deepEqual(projectPassages({ passages: [long, long] }), [long], "the same words twice are said once");
   assert.deepEqual(projectPassages({ passages: ["Rewilding farm land.", "With neighbours."] }), ["Rewilding farm land.", "With neighbours."]);
-  assert.equal(projectSummary({ passages: ["Funds will support…", "Funds will support local seed banks."] }), "Funds will support local seed banks.");
-});
-
-test("a project's own words are one short line for a preview or a share, cut at a word", () => {
-  assert.equal(projectSummary({ passages: ["Rewilding  degraded\nland.", "With neighbours."] }), "Rewilding degraded land. With neighbours.");
-  const long = projectSummary({ passages: [`${"Seed library and growing circle ".repeat(10)}end`] });
-  assert.ok(long.length <= SUMMARY_MAX, `${long.length}`);
-  assert.match(long, /circle…$|library…$|growing…$|and…$|Seed…$/u, "ends on a whole word");
 });
 
 test("fit with the person's initiative is worked out on the device from its open needs and offers", () => {

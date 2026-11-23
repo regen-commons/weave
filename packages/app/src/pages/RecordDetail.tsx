@@ -6,7 +6,8 @@ import { STAGE_LABELS } from "../listing.ts";
 import { fullDate } from "../home.ts";
 import { currentRoute, navigate } from "../router.tsx";
 import { routeWith } from "../routes.ts";
-import { DetailSheet, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { sectionTag } from "../ui/section-level.ts";
 import { PublicProjectRecord } from "../partners/PublicProjectRecord.tsx";
 import { projectUriOf } from "../partners/public-project.ts";
 import { LinkPreview } from "../ui/LinkPreview.tsx";
@@ -60,7 +61,7 @@ function ExampleRecord({
   useEffect(() => {
     if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
   }, [title, sheet.open, presentation]);
-  const Section = presentation === "page" ? "h2" : "h3";
+  const Section = sectionTag(recordSectionLevel(presentation));
   function retry() {
     navigate(routeWith(currentRoute(), "state", "ready"), true);
   }
@@ -71,7 +72,7 @@ function ExampleRecord({
       ) : state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
-            <h3 className="rc-notice-title">The initiative did not load</h3>
+            <Section className="rc-notice-title">The initiative did not load</Section>
             <p>Your device card is safe.</p>
             <button type="button" className="rc-button" data-variant="secondary" onClick={retry}>
               Try Again

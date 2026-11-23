@@ -7,7 +7,8 @@ import { initiativeShare } from "../record-share.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
-import { DetailSheet, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { sectionTag, type SectionTag } from "../ui/section-level.ts";
 import { useDescribeDoor } from "../ui/describe-door.ts";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
@@ -15,14 +16,15 @@ import { Link } from "../router.tsx";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
 import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { MatchDetails } from "./NetworkResults.tsx";
-import { projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
+import { missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";
 
 type Loaded =
   | { status: "loading" }
-  | { status: "ready"; card: PublicProjectCard }
+  | { status: "found"; card: PublicProjectCard }
   | { status: "missing" }
+  | { status: "off" }
   | { status: "failed" };
 
 /**
@@ -31,28 +33,29 @@ type Loaded =
  * person opened from a list shows at once; a link loads the one card from the list.
  */
 export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string; sheet: SheetState; presentation: Presentation }) {
-  const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState<Loaded>(() => {
     const card = rememberedProject(uri);
-    return card ? { status: "ready", card } : { status: "loading" };
+    return card ? { status: "found", card } : { status: "loading" };
   });
   useEffect(() => {
     if (loaded.status !== "loading") return;
     const controller = new AbortController();
     requestPublicProject(uri, controller.signal).then(
-      (card) => setLoaded(card ? { status: "ready", card } : { status: "missing" }),
+      (lookup) => {
+        if (!controller.signal.aborted) setLoaded(lookup);
+      },
       () => {
         if (!controller.signal.aborted) setLoaded({ status: "failed" });
       },
     );
     return () => controller.abort();
-  }, [uri, attempt, loaded.status]);
+  }, [uri, loaded.status]);
   const title =
-    loaded.status === "ready" ? loaded.card.name : loaded.status === "loading" ? "Opening Initiative" : "Initiative Not Available";
+    loaded.status === "found" ? loaded.card.name : loaded.status === "loading" ? "Opening Initiative" : "Initiative Not Available";
   useEffect(() => {
     if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
   }, [title, sheet.open, presentation]);
-  const Section = presentation === "page" ? "h2" : "h3";
+  const Section = sectionTag(recordSectionLevel(presentation));
   return (
     <DetailSheet title={title} state={sheet} presentation={presentation}>
       {loaded.status === "loading" ? (
@@ -66,18 +69,15 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
               type="button"
               className="rc-button"
               data-variant="secondary"
-              onClick={() => {
-                setLoaded({ status: "loading" });
-                setAttempt((count) => count + 1);
-              }}
+              onClick={() => setLoaded({ status: "loading" })}
             >
               Try Again
             </button>
           </div>
         </section>
-      ) : loaded.status === "missing" ? (
+      ) : loaded.status === "missing" || loaded.status === "off" ? (
         <>
-          <p>This initiative is not on the public list. Its publisher may have withdrawn it from Certified.</p>
+          <p>{missingLine(loaded.status)}</p>
           <div className="rc-action-bar">
             <ButtonLink href={pathTo("initiatives")} variant="secondary">
               See All Initiatives
@@ -91,7 +91,7 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
   );
 }
 
-function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: "h2" | "h3" }) {
+function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: SectionTag }) {
   const line = sharedByLine(card);
   const path = projectAddress(card.uri);
   return (
@@ -103,7 +103,7 @@ function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: "h2"
         </p>
       ))}
       <p className="rc-meta">
-        Shared on Certified <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.
+        Shared on Certified on <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.
       </p>
       {path && <ShareMenu share={initiativeShare({ name: card.name, path })} />}
       <section className="rc-stack">
@@ -116,7 +116,7 @@ function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: "h2"
         <Section className="rc-heading" data-size="section">
           Get In Touch
         </Section>
-        <p>Weave makes no introductions yet, and the Certified record lists no website or contact for this initiative.</p>
+        <p>Weave makes no introductions yet. The record on Certified may say how to reach them.</p>
         <p className="rc-meta">
           <Link href={card.sourceUrl}>See the record's data on Certified</Link>
         </p>

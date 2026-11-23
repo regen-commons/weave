@@ -17,7 +17,8 @@ import { revise } from "../describe/contracts.ts";
 import { fullDate } from "../home.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { DetailSheet, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { sectionTag } from "../ui/section-level.ts";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
 import { fundShare } from "../record-share.ts";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
@@ -68,7 +69,8 @@ export function Opportunity({
     if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
   }, [title, sheet.open, presentation]);
   // Under a page's own heading the sections are the next level down; in a sheet, under its title.
-  const Section = presentation === "page" ? "h2" : "h3";
+  const Section = sectionTag(recordSectionLevel(presentation)),
+    Subsection = sectionTag(recordSectionLevel(presentation), 1);
   if (catalog.loading || !entry)
     return (
       <DetailSheet title={title} state={sheet} presentation={presentation}>
@@ -275,7 +277,7 @@ export function Opportunity({
         })}
         {program?.unknowns.length ? (
           <>
-            <h4 className="rc-card-title">What Still Needs Checking</h4>
+            <Subsection className="rc-card-title">What Still Needs Checking</Subsection>
             <ul className="rc-reasons">
               {program.unknowns.map((unknown, index) => (
                 <li key={index}>{unknown}</li>
