@@ -8,11 +8,10 @@ import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } fro
 import {
   emptyFundingFilters,
   filterFunding,
+  fundingListSearch,
   fundingOrder,
   readBrowsing,
   readFundingFilters,
-  writeBrowsing,
-  writeFundingFilters,
   type FundingFilters as Filters,
 } from "../funding/select.ts";
 import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../funding/subject.ts";
@@ -116,13 +115,12 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const results = new Map(catalog.results?.map((result) => [result.documentId, result]));
   useEffect(() => setLimit(BATCH), [filters]);
   const added = useAddedFocus(Math.min(limit, selected.length));
+  // The address for the choices in force, worked out as the page draws. The cards' links are built
+  // from it in the same drawing, so a chip just removed is never still in a card's link.
+  const listSearch = fundingListSearch(routeSearch(), filters, browsing);
   useEffect(() => {
-    const params = new URLSearchParams(routeSearch());
-    writeFundingFilters(filters, params);
-    writeBrowsing(browsing, params);
-    const query = params.toString();
-    replaceRouteQuietly(`${routePath()}${query ? `?${query}` : ""}`);
-  }, [filters, browsing]);
+    replaceRouteQuietly(`${routePath()}${listSearch ? `?${listSearch}` : ""}`);
+  }, [listSearch]);
   // How many funds, and when their sources were checked: as short as the Initiatives page's line.
   const summary = selected.length === entries.length ? `${entries.length} funds.` : `${selected.length} of ${entries.length} funds.`;
   const note = !catalog.bundle
@@ -274,6 +272,7 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                   <li key={entry.id} {...added.item(index)}>
                     <OpportunityCard
                       entry={entry}
+                      search={listSearch}
                       result={results.get(entry.id)}
                       teamLine={
                         import.meta.env.DEV && example

@@ -13,11 +13,17 @@ import { Tag } from "./Tag.tsx";
 /** One funding opportunity in a list. The whole card opens it, so it carries no button. */
 export function OpportunityCard({
   entry,
+  search,
   result,
   teamLine,
   level = 2,
 }: {
   entry: Entry;
+  /**
+   * The list's address for the choices in force, which the card's link keeps for the way back. A list
+   * passes its own, since the window's address is written only after the list draws.
+   */
+  search?: string;
   result?: Evaluation;
   /** What is known about the partners this call asks for. Left out when nothing is. */
   teamLine?: string;
@@ -38,7 +44,7 @@ export function OpportunityCard({
         {fundingEyebrow(entry.program)}
       </p>
       <Title className="rc-card-title">
-        <Link href={opportunityHref(entry, routeSearch())}>{entry.program?.name ?? fund.displayName}</Link>
+        <Link href={opportunityHref(entry, search ?? routeSearch())}>{entry.program?.name ?? fund.displayName}</Link>
       </Title>
       {/* The funder's line keeps its room on every card, so cards are one height (DL-108). It is
           empty where the name above is already the funder's, and a long name is cut with its whole
