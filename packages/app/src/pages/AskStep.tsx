@@ -26,6 +26,7 @@ import { spokenList } from "../intake/spoken.ts";
 import {
   activeItems,
   addStepFiles,
+  askFormProblem,
   changeStep,
   commitPending,
   decide,
@@ -35,6 +36,7 @@ import {
   reconcile,
   returnWords,
   settleEarlierInput,
+  type AskFormField,
 } from "../intake/state.ts";
 import { currentVisit, navigate, routePath, routeSearch } from "../router.tsx";
 import { backTarget, fixtureHref, matchRoute, pathTo } from "../routes.ts";
@@ -186,6 +188,7 @@ function AskSection({
   const part = (name: string) => `ask-${kind}-${name}`;
   const [notice, setNotice] = useState("");
   const [editorError, setEditorError] = useState("");
+  const [editorField, setEditorField] = useState<AskFormField | null>(null);
   const [busy, setBusy] = useState(false);
   const [language, setLanguage] = useState(navigator.language || "en-US");
   const speech = useSpeechSetup(language, speechStore, consent);
@@ -522,11 +525,9 @@ function AskSection({
       setEditorError("");
       setNotice(`${one} details kept.`);
     } catch (error) {
-      setEditorError(
-        error instanceof Error && !error.message.startsWith("[")
-          ? error.message
-          : "Add a title. Check amounts, currency and terms. Your unfinished values are still here.",
-      );
+      const problem = askFormProblem(error);
+      setEditorError(problem.message);
+      setEditorField(problem.field);
     }
   }
   function cancelEditor() {
@@ -664,6 +665,7 @@ function AskSection({
             kind={kind}
             value={step.editor.form}
             error={editorError}
+            errorField={editorField}
             onChange={(form) => update((current) => changeStep(current, { editor: { ...current.editor!, form } }))}
             onSave={saveEditor}
             onCancel={cancelEditor}

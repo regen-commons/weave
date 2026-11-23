@@ -3,12 +3,14 @@ import { suggestEntryKinds } from "../intake/keywords.ts";
 import { CAPITALS } from "../capitals.ts";
 import { ASK_DESCRIPTION_LIMIT, SCOPES, STATUS, TERMS, URGENCY, type AskForm, type AskKind } from "../intake/contracts.ts";
 import { nearLimit } from "../describe/fill.ts";
+import type { AskFormField } from "../intake/state.ts";
 
 /** Ask card editor: native fields, every kind equal, raw values owned by the device draft. */
 export function AskEditor({
   kind,
   value,
   error,
+  errorField = null,
   onChange,
   onSave,
   onCancel,
@@ -18,6 +20,8 @@ export function AskEditor({
   kind: AskKind;
   value: AskForm;
   error: string;
+  /** The field the error is about, which is marked and takes the focus (WCAG 3.3.1). */
+  errorField?: AskFormField | null;
   onChange(value: AskForm): void;
   onSave(): void;
   onCancel(): void;
@@ -30,6 +34,23 @@ export function AskEditor({
   useEffect(() => {
     form.current?.querySelector<HTMLInputElement>("input")?.focus();
   }, []);
+  // A save that failed on one field moves the focus there, where its error is read with it.
+  useEffect(() => {
+    if (!error || !errorField) return;
+    const target = document.getElementById(`${id}-${errorField}`);
+    (target?.matches("fieldset") ? target.querySelector<HTMLInputElement>("input") : target)?.focus();
+  }, [error, errorField]);
+  const errorId = `${id}-error`;
+  /** The error, said at the field it is about, which is in view when the focus arrives there. */
+  const errorAt = (key: AskFormField | keyof AskForm) =>
+    error && errorField === key ? (
+      <p className="rc-error" role="alert" id={errorId}>
+        {error}
+      </p>
+    ) : null;
+  /** What describes a field: its hint, and the error when the error is about it. */
+  const described = (key: AskFormField | keyof AskForm, hint?: string) =>
+    [hint, error && errorField === key ? errorId : undefined].filter(Boolean).join(" ") || undefined;
   const set = <K extends keyof AskForm>(key: K, next: AskForm[K]) => {
     if (key === "capitalForms") manualKinds.current = true;
     const updated = { ...value, [key]: next };
@@ -60,7 +81,8 @@ export function AskEditor({
       maxLength: max,
       required: key === "title",
       disabled,
-      "aria-describedby": hint ? `${id}-${key}-hint` : undefined,
+      "aria-describedby": described(key, hint ? `${id}-${key}-hint` : undefined),
+      "aria-invalid": (error && errorField === key) || undefined,
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         set(key, event.target.value),
     };
@@ -72,6 +94,7 @@ export function AskEditor({
             {hint}
           </p>
         )}
+        {errorAt(key)}
         {multiline ? (
           <textarea {...attrs} rows={3} />
         ) : (
@@ -118,12 +141,14 @@ export function AskEditor({
         true,
       )}
       <fieldset
+        id={`${id}-capitalForms`}
         disabled={disabled}
         className="rc-menu-group"
-        aria-describedby={error ? `${id}-error` : undefined}
+        aria-describedby={described("capitalForms")}
       >
         <legend>Kinds of support</legend>
         <p className="rc-hint">Suggested from your words. Add or remove any kind.</p>
+        {errorAt("capitalForms")}
         {CAPITALS.map((capital) => (
           <label className="rc-menu-option" key={capital.key}>
             <input
@@ -195,8 +220,9 @@ export function AskEditor({
           ))}
         </select>
       </div>
-      <fieldset className="rc-menu-group" disabled={disabled}>
+      <fieldset id={`${id}-exchangeTerms`} className="rc-menu-group" disabled={disabled} aria-describedby={described("exchangeTerms")}>
         <legend>Terms you would accept</legend>
+        {errorAt("exchangeTerms")}
         {Object.entries(TERMS).map(([key, label]) => (
           <label className="rc-menu-option" key={key}>
             <input
@@ -226,8 +252,8 @@ export function AskEditor({
         </select>
       </div>
       {/* The problem has its place whether or not there is one, so it pushes nothing down. */}
-      <p className="rc-error rc-status-slot" role="alert" id={`${id}-error`}>
-        {error}
+      <p className="rc-error rc-status-slot" role="alert" id={errorField ? undefined : errorId}>
+        {errorField ? "" : error}
       </p>
       <div className="rc-action-bar">
         <button className="rc-button" data-variant="primary" type="submit" disabled={disabled}>
