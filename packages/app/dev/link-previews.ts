@@ -70,9 +70,15 @@ export function previewAlt(preview: LinkPreview): string {
   return `${[...preview.headline.lines, ...preview.headline.accent].join(" ")}. Weave, part of Regen Commons.`;
 }
 
-/** The head tags a preview is read from. */
+/**
+ * The head tags a preview is read from. Open Graph first, which Telegram, WhatsApp, Slack and Facebook
+ * read; then the same words and picture as Twitter cards, which X reads and which Telegram's reader (it
+ * names itself "like TwitterBot") falls back to. The picture's type and size are given, so a reader
+ * can draw the large card before it has fetched the picture.
+ */
 export function previewTags(preview: LinkPreview, origin = PUBLIC_ORIGIN): string[] {
   const { page, image } = previewAddresses(preview, origin);
+  const alt = previewAlt(preview);
   const meta = (key: "property" | "name", name: string, content: string) =>
     `<meta ${key}="${name}" content="${escape(content)}">`;
   return [
@@ -82,29 +88,37 @@ export function previewTags(preview: LinkPreview, origin = PUBLIC_ORIGIN): strin
     meta("property", "og:description", preview.description),
     meta("property", "og:url", page),
     meta("property", "og:image", image),
+    meta("property", "og:image:type", "image/png"),
     meta("property", "og:image:width", "1200"),
     meta("property", "og:image:height", "630"),
-    meta("property", "og:image:alt", previewAlt(preview)),
+    meta("property", "og:image:alt", alt),
     meta("name", "twitter:card", "summary_large_image"),
+    meta("name", "twitter:title", preview.title),
+    meta("name", "twitter:description", preview.description),
+    meta("name", "twitter:image", image),
+    meta("name", "twitter:image:alt", alt),
   ];
 }
 
 /**
  * The app's HTML with one section's words in its head: the title and description a browser tab and
- * a search result show, and the preview tags. The page must have exactly one title, one description
- * and one head to change, or the file is not the one this was written for.
+ * a search result show, and the preview tags straight after the description, ahead of the scripts,
+ * styles and fonts, so a reader that stops early still finds them. The page must have exactly one
+ * title and one description to change, or the file is not the one this was written for.
  */
 export function withPreview(html: string, preview: LinkPreview, origin = PUBLIC_ORIGIN): string {
-  const swaps: [RegExp, string][] = [
-    [/<title>[^<]*<\/title>/g, `<title>${escape(preview.title)}</title>`],
-    [/<meta name="description" content="[^"]*">/g, `<meta name="description" content="${escape(preview.description)}">`],
-    [/<\/head>/g, `  ${previewTags(preview, origin).join("\n    ")}\n  </head>`],
-  ];
-  return swaps.reduce((page, [pattern, replacement]) => {
-    const found = page.match(pattern)?.length ?? 0;
-    if (found !== 1) throw new Error(`Expected one match for ${pattern} in index.html, found ${found}.`);
-    return page.replace(pattern, () => replacement);
-  }, html);
+  const titled = replaceOnce(html, /<title>[^<]*<\/title>/g, () => `<title>${escape(preview.title)}</title>`);
+  return replaceOnce(titled, /^([ \t]*)<meta name="description" content="[^"]*">$/gm, (indent) =>
+    [`<meta name="description" content="${escape(preview.description)}">`, ...previewTags(preview, origin)]
+      .map((tag) => indent + tag)
+      .join("\n"));
+}
+
+/** Replaces the one match of `pattern`, given its first group, or refuses a page with none or several. */
+function replaceOnce(page: string, pattern: RegExp, replacement: (first: string) => string): string {
+  const found = page.match(pattern)?.length ?? 0;
+  if (found !== 1) throw new Error(`Expected one match for ${pattern} in index.html, found ${found}.`);
+  return page.replace(pattern, (_match, first: unknown) => replacement(typeof first === "string" ? first : ""));
 }
 
 /**

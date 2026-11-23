@@ -14,10 +14,10 @@ test("the shared filter bar has no search button: the list follows each letter",
   assert.match(bar, /onSubmit=\{\(event\) => event\.preventDefault\(\)\}/u, "Enter sends nothing and reloads nothing");
 });
 
-test("only Home's search, which leads to another page, keeps its button", () => {
+test("no search keeps a button, and Home has none: Initiatives holds the search (DL-128)", () => {
   const home = read("pages/Home.tsx");
-  assert.equal(home.match(/type="submit"/gu)?.length, 1);
-  assert.match(home, /role="search"/u);
+  assert.doesNotMatch(home, /type="submit"/u);
+  assert.doesNotMatch(home, /role="search"/u);
   for (const page of ["pages/Funding.tsx", "pages/ListPage.tsx", "partners/PublicProjects.tsx", "partners/PartnerDiscovery.tsx"])
     assert.doesNotMatch(read(page), /type="submit"/u, page);
 });

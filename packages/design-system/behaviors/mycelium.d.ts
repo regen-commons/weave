@@ -33,8 +33,10 @@ export interface Density {
 }
 /** The website's depths 1 and 2. */
 export const DEPTHS: { readonly 1: Depth; readonly 2: Depth };
-/** The website's fade fill: the share of the trails so far that goes each frame. */
+/** The share of the trails so far that goes each frame: slower than the website's, so strands linger (DL-128). */
 export const TRAIL_FADE: number;
+/** How many times as long as the website's a tuft lives (DL-128). */
+export const LINGER: number;
 /** The website's depth for a page: 1 on Home, 2 on every other. */
 export function depthFor(depth: number): Depth;
 /** How much rests in a region this size, at a depth. */
@@ -72,8 +74,10 @@ export function advance(branches: Branch[], width: number, height: number, rando
 export function settle(branches: Branch[], width: number, height: number, random: () => number, density: Density): Branch[];
 /** Only a mouse on a fine pointer, with motion allowed, grows the logo. */
 export function growsFromPointer(pointerType: string, finePointer: boolean, reducedMotion: boolean): boolean;
-/** Without a mouse, and with motion allowed, tufts grow on their own. */
-export function growsOnItsOwn(finePointer: boolean, reducedMotion: boolean): boolean;
+/** With motion allowed, tufts grow on their own, on a phone and on a desk. */
+export function growsOnItsOwn(reducedMotion: boolean): boolean;
+/** Whether a mouse last moved long enough ago, in milliseconds, for a tuft to grow on its own. */
+export function mouseAtRest(sinceMove: number): boolean;
 /** How strongly a new tuft of the logo shows at an age in frames. */
 export function tuftAlpha(age: number): number;
 /** The logo's resting network for a ring this many CSS pixels wide. */

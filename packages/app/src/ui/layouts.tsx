@@ -27,15 +27,13 @@ export function NarrowLayout({ children }: { children: ReactNode }) {
   return <div className="rc-narrow">{children}</div>;
 }
 
-/** Home hero template (`rc-home-hero`): what this is and where to start. */
+/** Home hero template (`rc-home-hero`): what this is and where to start, filling the window under the app bar. */
 export function HomeHero({
   actions,
-  search,
   live,
   children,
 }: {
   actions: ReactNode;
-  search?: ReactNode;
   live?: ReactNode;
   children: ReactNode;
 }) {
@@ -43,7 +41,6 @@ export function HomeHero({
     <section className="rc-home-hero" aria-labelledby="home-title">
       {children}
       <div className="rc-home-actions">{actions}</div>
-      {search}
       <div className="rc-home-live">{live}</div>
     </section>
   );
