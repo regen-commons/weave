@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo } from "react";
 import { useAccount } from "../account/context.tsx";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
@@ -10,8 +10,8 @@ import {
 } from "../home.ts";
 import { cardName, cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
-import { currentRoute, Link, navigate, routeSearch } from "../router.tsx";
-import { fixtureHref, pathTo, routeWith } from "../routes.ts";
+import { currentRoute, Link, navigate } from "../router.tsx";
+import { pathTo, routeWith } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { readWorkspaceResume } from "../initiative/workspace-resume.ts";
 import { useSetAside } from "../account/set-aside.ts";
@@ -37,7 +37,6 @@ import { sharedLabel } from "../partners/public-projects.ts";
  * to resume it, so the page keeps one solid primary.
  */
 export function Home({ fixture }: { fixture?: FixtureContext }) {
-  const [search, setSearch] = useState("");
   const { draft } = useDraft();
   const status = useCardStatus();
   const account = useAccount();
@@ -80,11 +79,6 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   // Another account's card on this device is not one to resume here (DL-055).
   const setAside = useSetAside();
   const doors = homeDoors((status.state !== "none" && !setAside) || !!resume, elsewhere);
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const query = new URLSearchParams({ q: search.trim() });
-    navigate(fixtureHref(`${pathTo("initiatives")}?${query}`, routeSearch(), import.meta.env.DEV));
-  }
   function retry() {
     if (catalog.failed) catalog.retry();
     if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
@@ -121,25 +115,6 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             )}
           </>
         }
-        search={
-          <form className="rc-field" role="search" onSubmit={submit} action={pathTo("initiatives")}>
-            <label htmlFor="home-search">Search initiatives</label>
-            <div className="rc-search rc-inline-field">
-              <input
-                className="rc-input"
-                type="search"
-                id="home-search"
-                name="q"
-                enterKeyHint="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-              <button className="rc-button" data-variant="secondary" type="submit">
-                Search
-              </button>
-            </div>
-          </form>
-        }
         live={
           loading || failed ? (
             <p className="rc-meta">{loading ? "Loading what is new" : "The latest did not load"}</p>
@@ -171,7 +146,10 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             </span>
           ) : (
             <>
-              Find Partners And Funding For <em>Regenerative Work</em>
+              {/* Partners in the colour of Initiatives and Funding in its own, the two sections the
+                  page leads to; the italic words keep Home's (DL-128). */}
+              Find <span data-accent="initiatives">Partners</span> And{" "}
+              <span data-accent="funding">Funding</span> For <em>Regenerative Work</em>
             </>
           )}
         </Heading>

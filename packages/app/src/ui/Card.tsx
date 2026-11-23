@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { bounceAtEdges } from "@regen-commons/design-system/carousel";
 
 /**
  * Listing card molecule; content comes from pages, actions sit at the bottom. `kind` keeps a record's
@@ -19,11 +20,18 @@ export function Card({ kind, rows, children }: {
 /**
  * Card grid template (`rc-card-grid`). A `preview` shows whole rows only: one row, or two with
  * `rows`. It holds a card more than three to a row needs, for the large desktop's fourth column.
- * On a phone a preview is one row that swipes sideways and shows every card it holds (DL-090).
+ * On a phone a preview is one row that swipes sideways and shows every card it holds (DL-090), and
+ * its cards bounce when it reaches its start or its end (DL-128).
  */
 export function CardGrid({ preview, children }: { preview?: "row" | "rows"; children: ReactNode }) {
+  const list = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    if (!preview || !list.current) return;
+    const row = bounceAtEdges(list.current);
+    return () => row.dispose();
+  }, [preview]);
   return (
-    <ul className="rc-card-grid" data-preview={preview}>
+    <ul ref={list} className="rc-card-grid" data-preview={preview}>
       {children}
     </ul>
   );
