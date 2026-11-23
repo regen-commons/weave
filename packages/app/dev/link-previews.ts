@@ -1,7 +1,7 @@
 import type { Plugin } from "vite";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { previewTags as pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
+import { pageTags, withPagePreview, type PagePreview } from "@weave/api/page-preview";
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
 import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
@@ -78,7 +78,10 @@ export function pagePreview(preview: LinkPreview, origin = PUBLIC_ORIGIN): PageP
   return { title: preview.title, description: preview.description, url: page, image, imageAlt: previewAlt(preview) };
 }
 
-/** The head tags a section's preview is read from (see `previewTags` in `@weave/api/page-preview`). */
+/**
+ * The head tags a section's copy gets: its preview, then its canonical link, its own address, so no copy
+ * names Home's (see `pageTags` in `@weave/api/page-preview`, which writes every page's).
+ */
 export const previewTags = (preview: LinkPreview, origin = PUBLIC_ORIGIN): string[] => pageTags(pagePreview(preview, origin));
 
 /** The app's HTML with one section's words in its head, in place of any preview it had. */

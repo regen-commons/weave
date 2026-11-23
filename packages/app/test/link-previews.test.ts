@@ -98,6 +98,11 @@ test("a section's copy is made from the built page, Home's preview and all, what
   assert.equal(copy.match(/property="og:title"/g)?.length, 1);
   assert.equal(copy.match(/name="twitter:card"/g)?.length, 1);
   assert.ok(!copy.includes(home.description), "none of Home's words are left");
+  // Each page names its own address as canonical: Home its own, and a section's copy never Home's.
+  assert.equal(built.match(/rel="canonical"/g)?.length, 1);
+  assert.ok(built.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/">`));
+  assert.equal(copy.match(/rel="canonical"/g)?.length, 1);
+  assert.ok(copy.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding">`));
 });
 
 test("the record page function is deployed with the two built files it reads", async () => {

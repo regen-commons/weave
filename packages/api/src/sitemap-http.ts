@@ -17,15 +17,17 @@ const NOT_CACHED = { "Cache-Control": "no-store" };
 const xml = (text: string) =>
   text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
 
-/** One address in the sitemap, with the day its record last changed where that is known. */
+/**
+ * One address in the sitemap. No `lastmod`: Weave knows when a project was shared and when it last read
+ * it, not when it changed, and a date that does not follow changes teaches search engines to ignore it.
+ */
 export interface SitemapEntry {
   readonly loc: string;
-  readonly lastmod?: string;
 }
 
 /**
  * Every address the sitemap lists, in a fixed order: the public pages, each fund that has no programs,
- * each program, then each initiative with a Weave address, newest first. A fund with programs is listed
+ * each program, then each initiative with a Weave address, in the list's order. A fund with programs is listed
  * through them, because its bare address opens its first program (DL-136).
  */
 export function sitemapEntries(previews: RecordPreviews, projects: readonly PublicProjectCard[]): SitemapEntry[] {
@@ -36,21 +38,15 @@ export function sitemapEntries(previews: RecordPreviews, projects: readonly Publ
       fund.programs.length ? fund.programs.map((program) => ({ loc: fundAddress(id, program.id) })) : [{ loc: fundAddress(id, null) }]),
     ...projects.flatMap((card) => {
       const slug = projectSlug(card.uri);
-      return slug ? [{ loc: initiativeAddress(slug), lastmod: card.sharedAt.slice(0, 10) }] : [];
+      return slug ? [{ loc: initiativeAddress(slug) }] : [];
     }),
   ];
 }
 
 /** The sitemap protocol's document for these addresses. */
 export function sitemapXml(entries: readonly SitemapEntry[]): string {
-  const urls = entries.map(({ loc, lastmod }) => `  <url><loc>${xml(loc)}</loc>${lastmod ? `<lastmod>${xml(lastmod)}</lastmod>` : ""}</url>`);
+  const urls = entries.map(({ loc }) => `  <url><loc>${xml(loc)}</loc></url>`);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
-}
-
-function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const late = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error("projects_timeout")), ms); });
-  return Promise.race([work, late]).finally(() => clearTimeout(timer));
 }
 
 /**
@@ -60,8 +56,8 @@ function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
  */
 export function createSitemapHandler(options: {
   previews(request: Request): Promise<RecordPreviews>;
-  /** Every project the public list shows. Rejects when the list cannot be read. */
-  projects(): Promise<PublicProjectCard[]>;
+  /** Every project the public list shows. Rejects when the list cannot be read, or once `signal` aborts. */
+  projects(signal: AbortSignal): Promise<PublicProjectCard[]>;
   projectsTimeoutMs?: number;
 }) {
   const timeout = options.projectsTimeoutMs ?? PROJECTS_TIMEOUT_MS;
@@ -70,8 +66,15 @@ export function createSitemapHandler(options: {
     try { previews = await options.previews(request); }
     catch { return new Response("The sitemap is not available right now.", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", ...NOT_CACHED } }); }
     let projects: PublicProjectCard[] = [], whole = true;
-    try { projects = await withDeadline(options.projects(), timeout); }
+    // The walk through the list stops when the deadline passes, so a slow list costs no more than that.
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(Error("projects_timeout")); }, timeout);
+    });
+    try { projects = await Promise.race([options.projects(controller.signal), late]); }
     catch { whole = false; }
+    finally { clearTimeout(timer); }
     return new Response(sitemapXml(sitemapEntries(previews, projects)), {
       status: 200, headers: { "Content-Type": "application/xml; charset=utf-8", "X-Content-Type-Options": "nosniff", ...(whole ? CACHED : PARTIAL) },
     });

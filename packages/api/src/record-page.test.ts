@@ -83,8 +83,9 @@ test("only an address the app could open names a record, and a program only when
   const ask = (search: string) => recordAsk(new URL(`${PUBLIC_ORIGIN}/api/record-page${search}`));
   assert.deepEqual(ask("?kind=funding&id=local-people-powered&program=people-powered-cda-2027"),
     { kind: "funding", id: "local-people-powered", program: "people-powered-cda-2027" });
-  assert.equal(ask("?kind=funding&id=recxmWk9XCOOqAGIH&program=%3Cx%3E"), null, "a program the app could not open");
-  assert.equal(ask("?kind=funding&id=local-people-powered&program=a&program=b"), null);
+  // The program is read as the app reads it, the first one given; one the fund lacks is looked up and not found.
+  assert.deepEqual(ask("?kind=funding&id=recxmWk9XCOOqAGIH&program=%3Cx%3E"), { kind: "funding", id: "recxmWk9XCOOqAGIH", program: "<x>" });
+  assert.deepEqual(ask("?kind=funding&id=local-people-powered&program=a&program=b"), { kind: "funding", id: "local-people-powered", program: "a" });
   assert.deepEqual(ask("?kind=funding&id=recxmWk9XCOOqAGIH"), { kind: "funding", id: "recxmWk9XCOOqAGIH", program: null });
   assert.deepEqual(ask(`?kind=initiative&id=${SLUG}`), { kind: "initiative", id: SLUG, uri: URI });
   for (const bad of ["", "?kind=funding", "?kind=funding&id=a/b", "?kind=funding&id=..", "?kind=initiative&id=orchard", "?kind=other&id=x"])
@@ -108,9 +109,13 @@ test("a fund, a program and an initiative each get their own words at their own 
   assert.equal(meta(first, "og:title"), "Climate Democracy Accelerator, March 2027 cohort | Weave");
   assert.ok(first.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding/local-people-powered?program=people-powered-cda-2027">`),
     "both addresses name one canonical");
-  const gone = await get("?kind=funding&id=local-people-powered&program=gone");
-  assert.equal(gone.status, 404);
-  assert.equal(meta(await gone.text(), "og:title"), "Funding | Weave");
+  for (const program of ["gone", "", "%3Cx%3E"]) {
+    const gone = await get(`?kind=funding&id=local-people-powered&program=${program}`);
+    assert.equal(gone.status, 404, program);
+    const page = await gone.text();
+    assert.equal(meta(page, "og:title"), "Funding | Weave", program);
+    assert.ok(!page.includes('rel="canonical"') && !page.includes("ld+json"), "a missing record names no page");
+  }
   const fund = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH")).text();
   assert.equal(meta(fund, "og:title"), "A Team Foundation (UK) | Weave");
   assert.equal(meta(fund, "og:description"), "Funding for regenerative work from A Team Foundation (UK).");
@@ -199,9 +204,12 @@ test("a record's page names its one address as canonical and says what it is, on
     name: "Participatory Budgeting Hub", description: meta(program, "og:description"),
     isPartOf: { "@type": "WebSite", name: "Weave", url: `${PUBLIC_ORIGIN}/` },
     about: {
+      // The catalog's words describe the fund, so they are the fund's here, not the program's.
       "@type": "FundingScheme", name: "Participatory Budgeting Hub",
-      description: "Participatory climate policy training with conditional implementation funding.",
-      parentOrganization: { "@type": "Organization", name: "People Powered" },
+      parentOrganization: {
+        "@type": "Organization", name: "People Powered",
+        description: "Participatory climate policy training with conditional implementation funding.",
+      },
     },
   });
   assert.doesNotMatch(JSON.stringify(ld(program)), /eligib|apply|award|amount/iu, "nothing about who may apply");
@@ -218,7 +226,17 @@ test("a record's page names its one address as canonical and says what it is, on
   const own = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH", handler({ template: async () => shell }))).text();
   assert.equal(own.match(/rel="canonical"/g)?.length, 1);
   assert.ok(own.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding/recxmWk9XCOOqAGIH">`));
-  // A page that is not a record keeps the shell's canonical.
-  const section = await (await get("?kind=funding&id=nope", handler({ template: async () => shell }))).text();
-  assert.ok(section.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/">`) && !section.includes("ld+json"));
+  // A canonical written another way, or JSON-LD already there, gives way too.
+  const other = TEMPLATE.replace("<title>", `<link href="${PUBLIC_ORIGIN}/" rel='canonical' />\n    <script type='application/ld+json'>{"a":1}</script>\n    <title>`);
+  const replaced = await (await get("?kind=funding&id=recxmWk9XCOOqAGIH", handler({ template: async () => other }))).text();
+  assert.deepEqual([replaced.match(/canonical/g)?.length, replaced.match(/ld\+json/g)?.length, replaced.includes('{"a":1}')], [1, 1, false]);
+  // A record that is not there, or could not be looked up, names no page, not even its section.
+  const missing = await (await get("?kind=funding&id=nope", handler({ template: async () => shell }))).text();
+  assert.ok(!missing.includes('rel="canonical"') && !missing.includes("ld+json"));
+  const down = await (await get(`?kind=initiative&id=${SLUG}`, handler({ project: async () => { throw Error("down"); } }))).text();
+  assert.equal(meta(down, "og:title"), "Initiatives | Weave");
+  assert.ok(!down.includes('rel="canonical"') && !down.includes("ld+json"));
+  // A place its publisher gave becomes the project's location.
+  const placed = await (await get(`?kind=initiative&id=${SLUG}`, handler({ project: async () => ({ ...card, place: "Serpentine, WA" }) }))).text();
+  assert.equal(ld(placed).about.location, "Serpentine, WA");
 });

@@ -7,25 +7,30 @@ import { GET as publicProjects } from "./public-projects.ts";
 import { PUBLIC_PROJECT_PAGE_MAX, parsePublicProjectPage, type PublicProjectCard } from "./public-projects-contract.ts";
 import { createSitemapHandler } from "./sitemap-http.ts";
 
-/** More pages than a list of this size can have: a guard against a cursor that never ends. */
-const PAGES_MAX = 200;
-
-async function projects(): Promise<PublicProjectCard[]> {
+/**
+ * Every project the list shows, a page at a time from its own handler, until it says there are no more,
+ * it has given as many as it counts, or `signal` aborts. A cursor seen twice would walk in a circle, so it
+ * is refused instead.
+ */
+export async function allProjects(signal: AbortSignal, list: (request: Request) => Promise<Response> = publicProjects): Promise<PublicProjectCard[]> {
   const cards: PublicProjectCard[] = [];
+  const seen = new Set<string>();
   let cursor: string | null = null;
-  for (let page = 0; page < PAGES_MAX; page++) {
+  for (;;) {
+    signal.throwIfAborted();
     const query = new URLSearchParams({ limit: String(PUBLIC_PROJECT_PAGE_MAX), ...(cursor ? { cursor } : {}) });
-    const response = await publicProjects(new Request(`${PUBLIC_ORIGIN}/api/public-projects?${query}`));
+    const response = await list(new Request(`${PUBLIC_ORIGIN}/api/public-projects?${query}`));
     if (!response.ok) throw Error("public_projects_unavailable");
-    const result = parsePublicProjectPage(await response.json());
-    cards.push(...result.projects);
-    if (!result.next) return cards;
-    cursor = result.next;
+    const page = parsePublicProjectPage(await response.json());
+    cards.push(...page.projects);
+    if (!page.next || cards.length >= page.index.total) return cards;
+    if (seen.has(page.next)) throw Error("public_projects_cursor_repeated");
+    seen.add(page.next);
+    cursor = page.next;
   }
-  throw Error("public_projects_unbounded");
 }
 
-const serve = createSitemapHandler({ previews: builtPreviews, projects });
+const serve = createSitemapHandler({ previews: builtPreviews, projects: (signal) => allProjects(signal) });
 
 export async function GET(request: Request): Promise<Response> {
   const response = await serve(request);

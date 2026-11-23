@@ -178,7 +178,7 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
       {address && (
         <div className="rc-action-bar">
           <ButtonLink href={address} variant="secondary">
-            Open Initiative
+            Open Initiative<span className="rc-visually-hidden">: {project.name}</span>
           </ButtonLink>
         </div>
       )}
