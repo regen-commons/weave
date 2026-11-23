@@ -29,6 +29,7 @@ const section = (name: "funding" | "initiatives", title: string): PagePreview =>
 });
 const PREVIEWS: RecordPreviews = parseRecordPreviews({
   sections: { funding: section("funding", "Funding | Weave"), initiatives: section("initiatives", "Initiatives | Weave") },
+  crumbs: { funding: { trail: [{ label: "Funding", href: "/funding" }], current: "Opportunity" }, initiatives: { trail: [{ label: "Initiatives", href: "/initiatives" }], current: "Initiative" } },
   pages: [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/funding`],
   funds: {
     "local-people-powered": {
@@ -179,7 +180,11 @@ test("HEAD gets the same answer without a body, and a doubled kind or id names n
 });
 
 test("the build's record previews are read only as the build writes them", () => {
-  const base = { sections: { funding: section("funding", "Funding | Weave"), initiatives: section("initiatives", "Initiatives | Weave") }, pages: [], funds: {} };
+  const crumbs = { trail: [{ label: "Funding", href: "/funding" }], current: "Opportunity" };
+  const base = {
+    sections: { funding: section("funding", "Funding | Weave"), initiatives: section("initiatives", "Initiatives | Weave") },
+    crumbs: { funding: crumbs, initiatives: crumbs }, pages: [], funds: {},
+  };
   assert.deepEqual(Object.keys(parseRecordPreviews(base).funds), []);
   for (const bad of [
     null, {}, { ...base, funds: null },
@@ -190,6 +195,13 @@ test("the build's record previews are read only as the build writes them", () =>
     { ...base, funds: { a: { name: "x", description: null, programs: [] } } },
     { ...base, pages: [`https://evil.example/`] }, { ...base, pages: null },
     { ...base, sections: { ...base.sections, funding: { ...section("funding", "Funding"), image: "https://evil.example/x.png" } } },
+    // A breadcrumb links only within the site, with words, and the trail is short.
+    { ...base, crumbs: undefined }, { ...base, crumbs: { funding: crumbs } },
+    ...["//evil.example", "https://evil.example/", "javascript:alert(1)", "/a b", ""].map((href) =>
+      ({ ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, trail: [{ label: "Funding", href }] } } })),
+    { ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, trail: [{ label: "", href: "/funding" }] } } },
+    { ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, current: "" } } },
+    { ...base, crumbs: { ...base.crumbs, funding: { ...crumbs, trail: Array(5).fill(crumbs.trail[0]) } } },
   ]) assert.throws(() => parseRecordPreviews(bad), /invalid_record_previews|Invalid URL/u, JSON.stringify(bad));
   // An identifier that names a property every object has is still only a fund the build wrote.
   assert.equal(parseRecordPreviews(base).funds["constructor"], undefined);

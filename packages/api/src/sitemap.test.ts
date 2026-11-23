@@ -13,6 +13,7 @@ const section = (name: string): PagePreview => ({
 });
 const PREVIEWS = parseRecordPreviews({
   sections: { funding: section("funding"), initiatives: section("initiatives") },
+  crumbs: { funding: { trail: [{ label: "Funding", href: "/funding" }], current: "Opportunity" }, initiatives: { trail: [{ label: "Initiatives", href: "/initiatives" }], current: "Initiative" } },
   pages: [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/initiatives`, `${PUBLIC_ORIGIN}/funding`],
   funds: {
     zeta: { name: "Zeta Fund", description: "", programs: [] },
