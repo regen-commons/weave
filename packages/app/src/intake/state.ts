@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LinkSchema, type Attachment, type Turn } from "../describe/source-contracts.ts";
+import { askFormText, askText } from "./presentation.ts";
 import {
   ASK_DESCRIPTION_LIMIT,
   ASK_LIMIT,
@@ -312,7 +313,9 @@ export function stepHasWords(step: AskStep): boolean {
     step.editor
   );
 }
-export function stepText(step: AskStep): string {
+/** How each card's state reads in the copy of the words, for a person and not a program. */
+const DECISION_WORDS = { kept: "Kept card", pencil: "Card to check", removed: "Removed card" } as const;
+export function stepText(step: AskStep, kind: AskKind): string {
   return [
     ...step.turns.map((turn) => `${turn.prompt}\n${turn.text}`),
     step.composer,
@@ -320,8 +323,8 @@ export function stepText(step: AskStep): string {
     step.pendingLink,
     ...step.links,
     ...step.attachments.map((file) => `File kept locally: ${file.name}`),
-    ...step.items.map((item) => `${item.decision}: ${JSON.stringify(item.value)}`),
-    step.editor ? `Unfinished card: ${JSON.stringify(step.editor.form)}` : "",
+    ...step.items.map((item) => `${DECISION_WORDS[item.decision]}\n${askText(item.value)}`),
+    step.editor ? `Unfinished card\n${askFormText(step.editor.form, kind)}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");
