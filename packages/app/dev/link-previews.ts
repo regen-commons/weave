@@ -22,7 +22,10 @@ export interface LinkPreview {
   readonly description: string;
   /** The picture's headline: plain lines, then the line set in italic, as the page's own title is. */
   readonly headline: { readonly lines: readonly string[]; readonly accent: readonly string[] };
-  /** False for a person's own page, which search engines should leave out (`noindex`, no canonical). */
+  /**
+   * False for a page search engines should leave out (`noindex`, no canonical): a person's own page, or a
+   * step of describing an initiative. Its preview still shows where it is shared.
+   */
   readonly indexed?: false;
 }
 
@@ -54,6 +57,7 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
     title: "Describe your initiative | Weave",
     description: "Four short fields about your initiative, then what you need and what you can offer. No sign-in to start.",
     headline: { lines: ["Describe your", "initiative"], accent: ["once"] },
+    indexed: false,
   },
   {
     route: "your-initiatives",
@@ -121,10 +125,10 @@ export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): Record
 }
 
 /**
- * The pages besides the records that the sitemap lists: the public sections and the start of describing an
- * initiative. Your Initiatives is the person's own and is left out.
+ * The pages besides the records that the sitemap lists: every page with a preview that search engines may
+ * index. Your Initiatives and the steps of describing an initiative ask not to be, so they are left out.
  */
-export const SITEMAP_PAGES: readonly RouteName[] = ["home", "initiatives", "funding", "initiative"];
+export const SITEMAP_PAGES: readonly RouteName[] = LINK_PREVIEWS.filter(({ indexed }) => indexed !== false).map(({ route }) => route);
 
 /** The catalog the app bundles, from the repository's built data. */
 const CATALOG = "../../dist/data/funders.json";

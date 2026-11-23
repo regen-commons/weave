@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
   LINK_PREVIEWS,
+  SITEMAP_PAGES,
   previewAddresses,
   previewAlt,
   previewFile,
@@ -105,12 +106,14 @@ test("a section's copy is made from the built page, Home's preview and all, what
   assert.ok(copy.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/funding">`));
 });
 
-test("a person's own page is left out of search: noindex and no canonical, but still a preview", () => {
-  const own = LINK_PREVIEWS.find(({ route }) => route === "your-initiatives")!;
-  const page = withPreview(index, own);
-  assert.ok(page.includes('<meta name="robots" content="noindex">'));
-  assert.ok(!page.includes('rel="canonical"'));
-  assert.match(page, /<meta property="og:title" content="Your Initiatives \| Weave">/);
+test("a person's own page and a describe step are left out of search: noindex and no canonical, but still a preview", () => {
+  for (const [route, title] of [["your-initiatives", "Your Initiatives \\| Weave"], ["initiative", "Describe your initiative \\| Weave"]] as const) {
+    const page = withPreview(index, LINK_PREVIEWS.find((preview) => preview.route === route)!);
+    assert.ok(page.includes('<meta name="robots" content="noindex">'), route);
+    assert.ok(!page.includes('rel="canonical"'), route);
+    assert.match(page, new RegExp(`<meta property="og:title" content="${title}">`), route);
+    assert.ok(!SITEMAP_PAGES.includes(route), `${route} is not in the sitemap`);
+  }
   for (const preview of LINK_PREVIEWS.filter(({ indexed }) => indexed !== false))
     assert.ok(!withPreview(index, preview).includes('name="robots"'), `${preview.route} is indexed`);
 });
@@ -145,8 +148,8 @@ test("the build gives each fund's words and the two sections' previews to the re
   assert.equal(previews.sections.initiatives.url, `${PUBLIC_ORIGIN}/initiatives`);
   const people = previews.funds["local-people-powered"];
   assert.ok(people && people.name && people.programs.length > 0, "a fund with its programs, in the catalog's order");
-  assert.deepEqual(previews.pages, [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/initiatives`, `${PUBLIC_ORIGIN}/funding`, `${PUBLIC_ORIGIN}/start/initiative`],
-    "the sitemap's pages: the public sections and describing an initiative, not the person's own");
+  assert.deepEqual(previews.pages, [`${PUBLIC_ORIGIN}/`, `${PUBLIC_ORIGIN}/initiatives`, `${PUBLIC_ORIGIN}/funding`],
+    "the sitemap's pages: the public sections, not the person's own or the describe steps");
   assert.ok(JSON.stringify(previews).length < 600_000, "small enough to read on every cold start");
   // A record's first view draws the breadcrumbs the app draws above its heading, from the routes' own trail.
   assert.deepEqual(previews.crumbs, {
