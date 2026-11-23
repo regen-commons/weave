@@ -41,8 +41,11 @@ test("a list that is loading holds its layout with the bar and card skeletons, n
   assert.match(bar, /data-filter="one" data-menu type="button" disabled>/u);
   assert.match(bar, /<span aria-hidden="true">\s*<span className="rc-skeleton" data-shape="hold">/u);
   assert.match(bar, /<span role="status" aria-atomic="true" className=\{loading \? "rc-visually-hidden" : undefined\}>/u);
-  for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx", "pages/YourInitiative.tsx"])
-    assert.match(read(page), /<DraftSkeleton \/>/u, page);
+  assert.match(read("pages/YourInitiative.tsx"), /<DraftSkeleton \/>/u);
+  // The steps of describing an initiative hold their shape by being drawn at once, their controls
+  // inert until the draft opens (test/step-at-once.test.ts).
+  for (const page of ["pages/AskStep.tsx", "pages/Describe.tsx"])
+    assert.match(read(page), /inert=\{!ready \|\| undefined\}/u, page);
 });
 
 test("nothing waits behind a visible line of loading text: a page, list or sheet holds its shape (DL-085)", async () => {

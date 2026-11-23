@@ -5,7 +5,7 @@ import { pageTags, withPagePreview, type PagePreview } from "@weave/api/page-pre
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "@weave/api/record-page-http";
 import { CatalogSchema } from "../src/funding/contracts.ts";
 import { PUBLIC_ORIGIN } from "../src/public-origin.ts";
-import { pathTo, type RouteName } from "../src/routes.ts";
+import { breadcrumbTrail, navLabel, pathTo, ROUTES, type RouteName } from "../src/routes.ts";
 
 /**
  * What a shared link shows before anyone opens it (DL-068): a title, a sentence and a picture for
@@ -22,7 +22,10 @@ export interface LinkPreview {
   readonly description: string;
   /** The picture's headline: plain lines, then the line set in italic, as the page's own title is. */
   readonly headline: { readonly lines: readonly string[]; readonly accent: readonly string[] };
-  /** False for a person's own page, which search engines should leave out (`noindex`, no canonical). */
+  /**
+   * False for a page search engines should leave out (`noindex`, no canonical): a person's own page, or a
+   * step of describing an initiative. Its preview still shows where it is shared.
+   */
   readonly indexed?: false;
 }
 
@@ -54,6 +57,7 @@ export const LINK_PREVIEWS: readonly LinkPreview[] = [
     title: "Describe your initiative | Weave",
     description: "Four short fields about your initiative, then what you need and what you can offer. No sign-in to start.",
     headline: { lines: ["Describe your", "initiative"], accent: ["once"] },
+    indexed: false,
   },
   {
     route: "your-initiatives",
@@ -110,18 +114,21 @@ export function recordPreviews(catalog: unknown, origin = PUBLIC_ORIGIN): Record
     description: fund.description,
     programs: (fund.enrichment as { programs?: { id: string; name: string }[] }).programs?.map(({ id, name }) => ({ id, name })) ?? [],
   }] as const);
+  // The breadcrumbs the app draws above a record's heading, from the record routes' own trail.
+  const crumbs = (name: RouteName) => ({ trail: breadcrumbTrail(ROUTES.find((route) => route.name === name)), current: navLabel(name) });
   return parseRecordPreviews({
     sections: { funding: section("funding"), initiatives: section("initiatives") },
+    crumbs: { funding: crumbs("opportunity"), initiatives: crumbs("initiative-detail") },
     pages: SITEMAP_PAGES.map((route) => origin + pathTo(route)),
     funds: Object.fromEntries(funds),
   });
 }
 
 /**
- * The pages besides the records that the sitemap lists: the public sections and the start of describing an
- * initiative. Your Initiatives is the person's own and is left out.
+ * The pages besides the records that the sitemap lists: every page with a preview that search engines may
+ * index. Your Initiatives and the steps of describing an initiative ask not to be, so they are left out.
  */
-export const SITEMAP_PAGES: readonly RouteName[] = ["home", "initiatives", "funding", "initiative"];
+export const SITEMAP_PAGES: readonly RouteName[] = LINK_PREVIEWS.filter(({ indexed }) => indexed !== false).map(({ route }) => route);
 
 /** The catalog the app bundles, from the repository's built data. */
 const CATALOG = "../../dist/data/funders.json";

@@ -6,7 +6,7 @@ import { cardName } from "../initiative/status.ts";
 import { initiativeShare } from "../record-share.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { DetailSheet, RecordSkeleton, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, RecordLead, RecordSkeleton, recordSectionLevel, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
 import { sectionTag, type SectionTag } from "../ui/section-level.ts";
 import { useDescribeDoor } from "../ui/describe-door.ts";
 import { Fit } from "../ui/Fit.tsx";
@@ -18,6 +18,7 @@ import { MatchDetails } from "./NetworkResults.tsx";
 import { missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";
+import { recordFirstView } from "../record-first-view.ts";
 
 type Loaded =
   | { status: "loading" }
@@ -49,8 +50,15 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
     );
     return () => controller.abort();
   }, [uri, loaded.status]);
+  // Opened from a link, the page came with the initiative's heading and summary, which stay while it loads.
+  const path = projectAddress(uri);
+  const firstView = presentation === "page" && path ? recordFirstView(path) : undefined;
   const title =
-    loaded.status === "found" ? loaded.card.name : loaded.status === "loading" ? "Opening Initiative" : "Initiative Not Available";
+    loaded.status === "found"
+      ? loaded.card.name
+      : loaded.status === "loading"
+        ? (firstView?.title ?? "Opening Initiative")
+        : "Initiative Not Available";
   useEffect(() => {
     if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
   }, [title, sheet.open, presentation]);
@@ -58,7 +66,10 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
   return (
     <DetailSheet title={title} state={sheet} presentation={presentation}>
       {loaded.status === "loading" ? (
-        <RecordSkeleton label="Loading initiative" />
+        <>
+          {firstView && <RecordLead summary={firstView.summary} />}
+          <RecordSkeleton label="Loading initiative" />
+        </>
       ) : loaded.status === "failed" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
