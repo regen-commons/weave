@@ -79,24 +79,28 @@ script. The fund page also shifted its footer as the record loaded (CLS 0.069 on
 
 ### Local production build of #140, 23 November
 
-Class: local, for comparison only. #140 at `a7c366c`, built and served through a stand-in that
-sends each page's own file and compresses text as Vercel does; Lighthouse 13.6.0 in Chrome 149,
-mobile, median of three runs.
+Class: local, for comparison only. #140 at `e45da33`, with develop's first-view work merged
+(record pages #190, the describe step #192, Initiatives' early list #194, Funding's first cards
+#195 and #197, the describe prompt #196), built and served through a stand-in that sends each
+page's own file, routes records through the record-page function and compresses text as Vercel
+does. Lighthouse 13.6.0 in Chrome 149, median of three runs, on a machine at a load average of
+about 30, which inflates blocking time.
 
-| Route | Mobile | LCP | TBT | Largest paint |
-|---|---|---|---|---|
-| Home | 99 | 0.92 s | 146 ms | the prerendered heading, at first paint |
-| Your Initiatives | 99 | 0.92 s | 122 ms | the prerendered view, at first paint |
-| Settings | 100 | 0.92 s | 55 ms | the prerendered view, at first paint |
-| Describe | 86 | 4.12 s | 116 ms | the step's paragraph, drawn once the device draft opens |
-| Fund | 85 | 4.12 s | 141 ms | the record's description, drawn in the browser only |
-| Funding | 82 | 4.27 s | 223 ms | the first fund card, drawn once the catalog loads |
-| Initiatives | 81 | 4.84 s | 155 ms | a project card, drawn once the public list answers |
+| Route | Mobile | LCP | TBT | Desktop | Largest paint |
+|---|---|---|---|---|---|
+| Home | 95 | 1.04 s | 238 ms | 100 | the prerendered view, at first paint |
+| Funding | 97 | 0.98 s | 200 ms | 100 | the prerendered view with its first cards, at first paint |
+| Fund | 99 | 0.94 s | 128 ms | 100 | the record's server-drawn heading and summary, at first paint |
+| Describe | 99 | 0.96 s | 106 ms | 100 | the prerendered step, at first paint (CLS 0.035) |
+| Your Initiatives | 99 | 0.95 s | 105 ms | 100 | the prerendered view, at first paint |
+| Settings | 99 | 0.95 s | 114 ms | 100 | the prerendered view, at first paint |
+| Initiatives | 81 | 4.63 s | 174 ms | 97 | a project card, drawn by the app once its code has run |
 
-Accessibility and best practices were 100 on every route, and SEO 100 except on Settings and
-Your Initiatives (63): they ask not to be indexed, and Lighthouse's `is-crawlable` audit fails
-any page that does. The four slower routes reach their largest paint with content the first
-view cannot hold, because the app fetches it after it starts.
+Accessibility and best practices were 100 on every route; SEO was 100 on the public routes
+and 63 on the private ones, the exception under Q-16. What remains: Initiatives' cards are
+drawn by the app (a server-drawn list is coming from lists-filters), and blocking time of
+100 to 240 ms keeps the other routes just short of 100 on mobile, which production will
+measure without this machine's load.
 
 ### Local production build
 
