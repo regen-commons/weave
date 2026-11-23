@@ -45,6 +45,7 @@ annual program's next deadline is unknown until the funder publishes it.
 
 | Field | Rule |
 |---|---|
+| Name | The funder's own name for the program, with any round label after a colon and no status words. See [program names](#program-names) |
 | Identity | Legal or public name, official domain and country. Compare aliases, domains and existing source URLs before adding a funder |
 | Route | `open` needs a published way to apply now. `rolling` needs the funder's own statement that it accepts applications continuously. `future` needs an announced opening. `closed` needs the funder's statement, a results announcement or a published cutoff that has passed. Use `unconfirmed` when intake could not be established |
 | Dates | `opensOn` and `closesOn` are the dates as published, in the funder's local calendar |
@@ -53,6 +54,21 @@ annual program's next deadline is unknown until the funder publishes it.
 | Geography | Keep where applicants must be registered apart from where work must happen |
 | Instrument | Keep grants, prizes, investments, fellowships and in-kind support apart |
 | Unknowns | List each term that matters to an applicant and could not be established |
+
+### Program names
+
+A program's name is what the funder calls it, in the funder's language. Do not put
+status in a name: words such as closed, paused or unconfirmed belong in the route,
+where a freshness run keeps them current.
+
+When one funder has several rounds, tracks or tiers, add a label after a colon, such
+as "Restack: first call 2026" or "Seabury Community Grants: Chicago". If the funder's
+own name already has a colon, join the label with a comma. Never use an em dash in a
+program or funder name. A year range keeps its en dash, as in "2026–27".
+
+Renaming a program never changes its id. A rename that only applies this rule is
+recorded in a rename archive under `research/maintenance-history/`, with the old and
+new name of every program, and is not a revision of terms.
 
 An opportunity is never an eligibility decision. The catalog records published terms;
 it does not rule on whether an initiative qualifies.

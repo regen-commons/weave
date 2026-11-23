@@ -54,7 +54,7 @@
         "programs": [
           {
             "id": "nlnet-restack",
-            "name": "Restack — first call 2026",
+            "name": "Restack: first call 2026",
             "instrument": "grant",
             "focus": [
               "Open source",
@@ -144,7 +144,7 @@
           },
           {
             "id": "nlnet-fediversity-final",
-            "name": "NGI Fediversity — final call closed",
+            "name": "NGI Fediversity: final call",
             "instrument": "grant",
             "focus": [
               "Reproducible hosting",
@@ -205,7 +205,7 @@
           },
           {
             "id": "nlnet-taler-final",
-            "name": "NGI TALER — final call closed",
+            "name": "NGI TALER: final call",
             "instrument": "grant",
             "focus": [
               "Privacy-preserving payments",
@@ -274,7 +274,7 @@
           },
           {
             "id": "nlnet-commons-final",
-            "name": "NGI Zero Commons Fund — final call closed",
+            "name": "NGI Zero Commons Fund: final call",
             "instrument": "grant",
             "focus": [
               "Open internet",
@@ -787,7 +787,7 @@
         "programs": [
           {
             "id": "cisco-global-impact",
-            "name": "Global Impact Cash Grants — nonprofit route",
+            "name": "Global Impact Cash Grants: nonprofit route",
             "instrument": "grant",
             "focus": [
               "Digital inclusion",
@@ -959,7 +959,7 @@
         "programs": [
           {
             "id": "d-prize-2026",
-            "name": "D-Prize — Fall 2026 competition",
+            "name": "D-Prize: Fall 2026 competition",
             "instrument": "prize",
             "focus": [
               "Poverty reduction",
@@ -2073,7 +2073,7 @@
         "programs": [
           {
             "id": "acta-living-cultures-org",
-            "name": "Living Cultures — organization track 2026–27",
+            "name": "Living Cultures: organization track 2026–27",
             "instrument": "grant",
             "focus": [
               "Cultural heritage",
@@ -2160,7 +2160,7 @@
           },
           {
             "id": "acta-apprenticeship-2026",
-            "name": "Apprenticeship Program — 2026 cohort",
+            "name": "Apprenticeship Program: 2026 cohort",
             "instrument": "grant",
             "focus": [
               "Traditional arts",
@@ -2331,7 +2331,7 @@
         "programs": [
           {
             "id": "iki-small-grants-2027",
-            "name": "IKI Small Grants — eighth call 2027",
+            "name": "IKI Small Grants: eighth call 2027",
             "instrument": "grant",
             "focus": [
               "Nature-based solutions",
@@ -3232,7 +3232,7 @@
         "programs": [
           {
             "id": "ekoenergy-climate-fund",
-            "name": "Climate Fund — first-partner small projects",
+            "name": "Climate Fund: first-partner small projects",
             "instrument": "grant",
             "focus": [
               "Energy access",
@@ -3420,7 +3420,7 @@
         "programs": [
           {
             "id": "ieee-epics-oct2026",
-            "name": "EPICS in IEEE — October 2026 call",
+            "name": "EPICS in IEEE: October 2026 call",
             "instrument": "grant",
             "focus": [
               "Engineering education",
@@ -3591,7 +3591,7 @@
         "programs": [
           {
             "id": "comcast-innovation",
-            "name": "Innovation Fund — 2026 grants",
+            "name": "Innovation Fund: 2026 grants",
             "instrument": "grant",
             "focus": [
               "Open source",
@@ -3755,7 +3755,7 @@
         "programs": [
           {
             "id": "icann-grants",
-            "name": "ICANN Grant Program — first cycle",
+            "name": "ICANN Grant Program: first cycle",
             "instrument": "grant",
             "focus": [
               "Internet infrastructure",
@@ -4091,7 +4091,7 @@
         "programs": [
           {
             "id": "table-mountain-small",
-            "name": "Pride and Care — small grants",
+            "name": "Pride and Care: small grants",
             "instrument": "grant",
             "focus": [
               "Biodiversity",
@@ -4444,7 +4444,7 @@
         "programs": [
           {
             "id": "cepf-cerrado-small-2026",
-            "name": "Cerrado — third small-project call 2026",
+            "name": "Cerrado: third small-project call 2026",
             "instrument": "grant",
             "focus": [
               "Biodiversity",
@@ -4632,7 +4632,7 @@
         "programs": [
           {
             "id": "undp-nigeria-icca-regular",
-            "name": "ICCA-GSI Phase 2 — regular local grants",
+            "name": "ICCA-GSI Phase 2: regular local grants",
             "instrument": "grant",
             "focus": [
               "Community conservation",
@@ -4805,7 +4805,7 @@
         "programs": [
           {
             "id": "unesco-ifcd-2026",
-            "name": "International Fund for Cultural Diversity — 2026 call",
+            "name": "International Fund for Cultural Diversity: 2026 call",
             "instrument": "grant",
             "focus": [
               "Cultural diversity",
@@ -6278,7 +6278,7 @@
         "programs": [
           {
             "id": "interledger",
-            "name": "Fellowship — 2026 closed cycle",
+            "name": "Fellowship: 2026 cycle",
             "instrument": "fellowship",
             "focus": [
               "Financial inclusion",
@@ -6345,7 +6345,7 @@
           },
           {
             "id": "interledger-campus-2026",
-            "name": "Interledger on Campus — 2026, closed",
+            "name": "Interledger on Campus: 2026",
             "instrument": "grant",
             "focus": [
               "Open payments",
@@ -6509,7 +6509,7 @@
         "programs": [
           {
             "id": "zero-foodprint",
-            "name": "Restore Grants — October 2026",
+            "name": "Restore Grants: October 2026",
             "instrument": "grant",
             "focus": [
               "Regenerative agriculture",
@@ -6901,7 +6901,7 @@
         "programs": [
           {
             "id": "obol",
-            "name": "Grants Program — paused",
+            "name": "Grants Program",
             "instrument": "grant",
             "focus": [
               "Ethereum",
@@ -7219,7 +7219,7 @@
         "programs": [
           {
             "id": "gooddollar",
-            "name": "GoodBuilders — future round unconfirmed",
+            "name": "GoodBuilders",
             "instrument": "grant",
             "focus": [
               "Financial inclusion",
@@ -7368,7 +7368,7 @@
         "programs": [
           {
             "id": "gitcoin-gg24",
-            "name": "Gitcoin Grants 24 — ended",
+            "name": "Gitcoin Grants 24",
             "instrument": "grant",
             "focus": [
               "Ethereum public goods"
@@ -7514,7 +7514,7 @@
         "programs": [
           {
             "id": "giveth-qf",
-            "name": "Quadratic funding — intake unconfirmed",
+            "name": "Quadratic funding",
             "instrument": "grant",
             "focus": [
               "Public goods crowdfunding"
@@ -7662,7 +7662,7 @@
         "programs": [
           {
             "id": "octant-epoch-13",
-            "name": "Epoch 13 — privacy, closed",
+            "name": "Epoch 13: privacy",
             "instrument": "grant",
             "focus": [
               "Ethereum privacy",
@@ -7810,7 +7810,7 @@
         "programs": [
           {
             "id": "prezenti-anchor-2026",
-            "name": "Anchor Pool — 2026",
+            "name": "Anchor Pool: 2026",
             "instrument": "grant",
             "focus": [
               "Celo applications"
@@ -7929,7 +7929,7 @@
           },
           {
             "id": "prezenti-frontier-2026",
-            "name": "Frontier Pool — 2026",
+            "name": "Frontier Pool: 2026",
             "instrument": "grant",
             "focus": [
               "Celo AI infrastructure"
@@ -8130,7 +8130,7 @@
           },
           {
             "id": "celo-builders-fund",
-            "name": "Celo Builders Fund — investment",
+            "name": "Celo Builders Fund: investment",
             "instrument": "investment",
             "focus": [
               "Venture-viable Celo applications"
@@ -8349,7 +8349,7 @@
           },
           {
             "id": "arbifuel",
-            "name": "ArbiFuel — gas sponsorship",
+            "name": "ArbiFuel: gas sponsorship",
             "instrument": "mixed",
             "focus": [
               "Arbitrum onboarding",
@@ -8418,7 +8418,7 @@
           },
           {
             "id": "arbitrum-open-house-singapore-2026",
-            "name": "Open House Singapore — 2026, closed",
+            "name": "Open House Singapore: 2026",
             "instrument": "mixed",
             "focus": [
               "Onchain products"
@@ -8581,7 +8581,7 @@
         "programs": [
           {
             "id": "arbitrum-dao-domain-grants",
-            "name": "DAO domain allocator grants — completed",
+            "name": "DAO domain allocator grants",
             "instrument": "grant",
             "focus": [
               "Arbitrum adoption",
@@ -8864,7 +8864,7 @@
         "programs": [
           {
             "id": "artizen-seasons-paused",
-            "name": "Artizen seasons — operations paused",
+            "name": "Artizen seasons",
             "instrument": "mixed",
             "focus": [
               "Creative projects"
@@ -8995,7 +8995,7 @@
         "programs": [
           {
             "id": "fast-forward-2027",
-            "name": "Tech Nonprofit Accelerator — 2027 cohort, closed",
+            "name": "Tech Nonprofit Accelerator: 2027 cohort",
             "instrument": "grant",
             "focus": [
               "Technology for social impact",
@@ -9193,7 +9193,7 @@
           },
           {
             "id": "green-accountability-2024",
-            "name": "Green Accountability Cohort — 2024, closed",
+            "name": "Green Accountability Cohort: 2024",
             "instrument": "grant",
             "focus": [
               "Climate finance transparency",
@@ -9490,7 +9490,7 @@
         "programs": [
           {
             "id": "gnosis-events",
-            "name": "Gnosis World community event support — conditional",
+            "name": "Gnosis World community event support",
             "instrument": "grant",
             "focus": [
               "Community onboarding",
@@ -9628,7 +9628,7 @@
         "programs": [
           {
             "id": "osv-fellowship-2026",
-            "name": "O'Shaughnessy Fellowships — 2026, closed",
+            "name": "O'Shaughnessy Fellowships: 2026",
             "instrument": "fellowship",
             "focus": [
               "Research",
@@ -9765,7 +9765,7 @@
         "programs": [
           {
             "id": "sff-climate-2026",
-            "name": "Climate Change theme round — 2026, closed",
+            "name": "Climate Change theme round: 2026",
             "instrument": "grant",
             "focus": [
               "Climate change"
@@ -9898,7 +9898,7 @@
         "programs": [
           {
             "id": "ens-small-grants-archive",
-            "name": "ENS Small Grants — discontinued",
+            "name": "ENS Small Grants",
             "instrument": "grant",
             "focus": [
               "Ethereum public goods"
@@ -10027,7 +10027,7 @@
         "programs": [
           {
             "id": "filecoin-propgf-batch3",
-            "name": "ProPGF Batch 3 — closed",
+            "name": "ProPGF Batch 3",
             "instrument": "grant",
             "focus": [
               "Filecoin infrastructure"
@@ -10239,7 +10239,7 @@
         "programs": [
           {
             "id": "ethereum-esp",
-            "name": "Ecosystem Support Program — Wishlist and RFPs",
+            "name": "Ecosystem Support Program: Wishlist and RFPs",
             "instrument": "grant",
             "focus": [
               "Ethereum public goods"
@@ -10375,7 +10375,7 @@
         "programs": [
           {
             "id": "nrcs-cig-classic",
-            "name": "Conservation Innovation Grants — Classic",
+            "name": "Conservation Innovation Grants: Classic",
             "instrument": "grant",
             "focus": [
               "Agricultural conservation",
@@ -10511,7 +10511,7 @@
         "programs": [
           {
             "id": "darwin-main-r32-stage2",
-            "name": "Darwin Main Round 32 — invited stage 2",
+            "name": "Darwin Main Round 32: invited stage 2",
             "instrument": "grant",
             "focus": [
               "Biodiversity",
@@ -10572,7 +10572,7 @@
           },
           {
             "id": "darwin-extra-r32-stage2",
-            "name": "Darwin Extra Round 32 — invited stage 2",
+            "name": "Darwin Extra Round 32: invited stage 2",
             "instrument": "grant",
             "focus": [
               "Biodiversity",
@@ -10712,7 +10712,7 @@
         "programs": [
           {
             "id": "gef-cso-africa-lac-asia-2026",
-            "name": "CSO Challenge — Africa, LAC and Asia-Pacific 2026, closed",
+            "name": "CSO Challenge: Africa, LAC and Asia-Pacific 2026",
             "instrument": "grant",
             "focus": [
               "Community environmental solutions"
@@ -10869,7 +10869,7 @@
         "programs": [
           {
             "id": "ca-urban-streams-2026",
-            "name": "Urban Streams Restoration Program — 2026 solicitation",
+            "name": "Urban Streams Restoration Program: 2026 solicitation",
             "instrument": "grant",
             "focus": [
               "Urban stream restoration",
@@ -11037,7 +11037,7 @@
         "programs": [
           {
             "id": "neef-greening-stem-2026",
-            "name": "LyondellBasell Greening STEM — 2026–27, closed",
+            "name": "LyondellBasell Greening STEM: 2026–27",
             "instrument": "grant",
             "focus": [
               "Environmental STEM education"
@@ -11187,7 +11187,7 @@
         "programs": [
           {
             "id": "western-sare-professional-producer",
-            "name": "Professional + Producer — closed",
+            "name": "Professional + Producer",
             "instrument": "grant",
             "focus": [
               "Sustainable agriculture research",
@@ -11467,7 +11467,7 @@
         "programs": [
           {
             "id": "halcyon-africa-ag-2027",
-            "name": "Africa Agriculture and Food Security Accelerator — invited stage",
+            "name": "Africa Agriculture and Food Security Accelerator: invited stage",
             "instrument": "fellowship",
             "focus": [
               "Agriculture",
@@ -11607,7 +11607,7 @@
         "programs": [
           {
             "id": "keeling-curve-prize",
-            "name": "Keeling Curve Prize — between rounds",
+            "name": "Keeling Curve Prize",
             "instrument": "prize",
             "focus": [
               "Climate mitigation",
@@ -11755,7 +11755,7 @@
         "programs": [
           {
             "id": "seeding-future-2027",
-            "name": "Global Food System Challenge — 2027",
+            "name": "Global Food System Challenge: 2027",
             "instrument": "mixed",
             "focus": [
               "Food systems",
@@ -11908,7 +11908,7 @@
         "programs": [
           {
             "id": "honnold-core-2026",
-            "name": "Core Fund — 2026, closed",
+            "name": "Core Fund: 2026",
             "instrument": "grant",
             "focus": [
               "Solar energy access",
@@ -12051,7 +12051,7 @@
         "programs": [
           {
             "id": "zayed-2027",
-            "name": "Zayed Sustainability Prize — 2027 cycle, closed",
+            "name": "Zayed Sustainability Prize: 2027 cycle",
             "instrument": "prize",
             "focus": [
               "Health",
@@ -12188,7 +12188,7 @@
         "programs": [
           {
             "id": "milken-circular-2026",
-            "name": "Milken-Motsepe Circular Economy Prize — 2026, closed",
+            "name": "Milken-Motsepe Circular Economy Prize: 2026",
             "instrument": "prize",
             "focus": [
               "Circular economy"
@@ -12337,7 +12337,7 @@
         "programs": [
           {
             "id": "au-education-2026",
-            "name": "Innovating Education in Africa — 2026, closed",
+            "name": "Innovating Education in Africa: 2026",
             "instrument": "grant",
             "focus": [
               "Education innovation",
@@ -12473,7 +12473,7 @@
         "programs": [
           {
             "id": "youth4climate-2026",
-            "name": "Call for Solutions — 2026, closed",
+            "name": "Call for Solutions: 2026",
             "instrument": "grant",
             "focus": [
               "Youth climate action"
@@ -12609,7 +12609,7 @@
         "programs": [
           {
             "id": "youthadapt",
-            "name": "YouthADAPT Challenge — current intake unconfirmed",
+            "name": "YouthADAPT Challenge",
             "instrument": "grant",
             "focus": [
               "Youth entrepreneurship",
@@ -12755,7 +12755,7 @@
         "programs": [
           {
             "id": "africa-prize-2027",
-            "name": "Africa Prize for Engineering Innovation — 2027, closed",
+            "name": "Africa Prize for Engineering Innovation: 2027",
             "instrument": "prize",
             "focus": [
               "Engineering innovation"
@@ -12917,7 +12917,7 @@
         "programs": [
           {
             "id": "f5-stem-ai-2026",
-            "name": "STEM & AI Education Grants — 2026, closed",
+            "name": "STEM & AI Education Grants: 2026",
             "instrument": "grant",
             "focus": [
               "STEM education",
@@ -13068,7 +13068,7 @@
         "programs": [
           {
             "id": "ma-earth-round4",
-            "name": "Ma Earth Round 4 — future",
+            "name": "Ma Earth Round 4",
             "instrument": "grant",
             "focus": [
               "Nature restoration",
@@ -13220,7 +13220,7 @@
         "programs": [
           {
             "id": "rea-dares",
-            "name": "DARES grants — intake conflict",
+            "name": "DARES grants",
             "instrument": "grant",
             "focus": [
               "Solar energy access"
@@ -13307,7 +13307,7 @@
           },
           {
             "id": "solar-power-naija",
-            "name": "Solar Power Naija — credit facility, closed",
+            "name": "Solar Power Naija: credit facility",
             "instrument": "investment",
             "focus": [
               "Solar energy access"
@@ -13466,7 +13466,7 @@
         "programs": [
           {
             "id": "all-on-challenge-2026",
-            "name": "Off-Grid Energy Challenge — 2026, closed",
+            "name": "Off-Grid Energy Challenge: 2026",
             "instrument": "mixed",
             "focus": [
               "Off-grid clean energy"
@@ -13602,7 +13602,7 @@
         "programs": [
           {
             "id": "tef-entrepreneurship-2026",
-            "name": "Entrepreneurship Programme — 2026, closed",
+            "name": "Entrepreneurship Programme: 2026",
             "instrument": "grant",
             "focus": [
               "African entrepreneurship"
@@ -13742,7 +13742,7 @@
         "programs": [
           {
             "id": "eep-africa-2026",
-            "name": "EEP Africa Call for Proposals — 2026, closed",
+            "name": "EEP Africa Call for Proposals: 2026",
             "instrument": "mixed",
             "focus": [
               "Renewable energy",
@@ -13916,7 +13916,7 @@
         "programs": [
           {
             "id": "cac-general-operations-2026",
-            "name": "General Operating Support — 2026, closed",
+            "name": "General Operating Support: 2026",
             "instrument": "grant",
             "focus": [
               "Arts operations"
@@ -13980,7 +13980,7 @@
           },
           {
             "id": "cac-arts-youth-2026",
-            "name": "Arts and Youth — 2026, closed",
+            "name": "Arts and Youth: 2026",
             "instrument": "grant",
             "focus": [
               "Youth arts education"
@@ -14043,7 +14043,7 @@
           },
           {
             "id": "cac-impact-projects-2026",
-            "name": "Impact Projects — 2026, closed",
+            "name": "Impact Projects: 2026",
             "instrument": "grant",
             "focus": [
               "Community arts",
@@ -14208,7 +14208,7 @@
         "programs": [
           {
             "id": "la-near-2027-28",
-            "name": "NEAR artist residency — 2027–28",
+            "name": "NEAR artist residency: 2027–28",
             "instrument": "grant",
             "focus": [
               "Participatory community arts"
@@ -14273,7 +14273,7 @@
           },
           {
             "id": "la-co-up-2027-28",
-            "name": "CO-UP social justice residency — 2027–28",
+            "name": "CO-UP social justice residency: 2027–28",
             "instrument": "grant",
             "focus": [
               "Social justice arts"
@@ -14337,7 +14337,7 @@
           },
           {
             "id": "la-outdoor-festivals-2027-28",
-            "name": "Outdoor Festivals and Parades — 2027–28, closed",
+            "name": "Outdoor Festivals and Parades: 2027–28",
             "instrument": "grant",
             "focus": [
               "Outdoor cultural festivals"
@@ -14410,7 +14410,7 @@
           },
           {
             "id": "la-public-space-activation",
-            "name": "Public-Space Activation Fund — intake unconfirmed",
+            "name": "Public-Space Activation Fund",
             "instrument": "grant",
             "focus": [
               "Community arts",
@@ -14577,7 +14577,7 @@
         "programs": [
           {
             "id": "cnra-youth-access-round4",
-            "name": "Youth Community Access — round 4",
+            "name": "Youth Community Access: round 4",
             "instrument": "grant",
             "focus": [
               "Youth access to nature",
@@ -14733,7 +14733,7 @@
         "programs": [
           {
             "id": "walmart-spark-good-cycle3-2026",
-            "name": "Spark Good Local Grants — cycle 3, 2026",
+            "name": "Spark Good Local Grants: cycle 3, 2026",
             "instrument": "grant",
             "focus": [
               "Local community benefit"
@@ -15072,7 +15072,7 @@
         "programs": [
           {
             "id": "usbank-community-possible",
-            "name": "Community Possible — letter of interest",
+            "name": "Community Possible: letter of interest",
             "instrument": "grant",
             "focus": [
               "Workforce development",
@@ -15212,7 +15212,7 @@
         "programs": [
           {
             "id": "stem-action-2026",
-            "name": "STEM Action Grants — 2026, closed",
+            "name": "STEM Action Grants: 2026",
             "instrument": "grant",
             "focus": [
               "Community STEM participation"
@@ -15281,7 +15281,7 @@
           },
           {
             "id": "stem-action-2027",
-            "name": "STEM Action Grants — 2027, future",
+            "name": "STEM Action Grants: 2027",
             "instrument": "grant",
             "focus": [
               "Community STEM participation"
@@ -15419,7 +15419,7 @@
         "programs": [
           {
             "id": "la2050-2026",
-            "name": "LA2050 Grants Challenge — 2026, closed",
+            "name": "LA2050 Grants Challenge: 2026",
             "instrument": "grant",
             "focus": [
               "Community-led social impact"
@@ -15560,7 +15560,7 @@
         "programs": [
           {
             "id": "nea-arts-projects-july2026",
-            "name": "Grants for Arts Projects — July 2026, closed",
+            "name": "Grants for Arts Projects: July 2026",
             "instrument": "grant",
             "focus": [
               "Public arts projects"
@@ -15701,7 +15701,7 @@
         "programs": [
           {
             "id": "neh-public-humanities-dec2026",
-            "name": "Public Humanities Projects — December 2026",
+            "name": "Public Humanities Projects: December 2026",
             "instrument": "grant",
             "focus": [
               "Public humanities"
@@ -15856,7 +15856,7 @@
         "programs": [
           {
             "id": "humanities-for-all-projects",
-            "name": "Humanities for All Project Grants — suspended",
+            "name": "Humanities for All Project Grants",
             "instrument": "grant",
             "focus": [
               "Public humanities"
@@ -15999,7 +15999,7 @@
         "programs": [
           {
             "id": "cpuc-cea-lat-round3",
-            "name": "CEA-LAT — round 3, ZIP 91326 only",
+            "name": "CEA-LAT: round 3, ZIP 91326 only",
             "instrument": "grant",
             "focus": [
               "Clean energy access",
@@ -16145,7 +16145,7 @@
         "programs": [
           {
             "id": "la-economic-opportunity-grant",
-            "name": "Economic Opportunity Grant — program closed",
+            "name": "Economic Opportunity Grant",
             "instrument": "grant",
             "focus": [
               "Small business recovery",
@@ -16238,8 +16238,8 @@
     {
       "fund": {
         "id": "local-shift",
-        "name": "SHIFT Grants — Edge City and Nodes",
-        "displayName": "SHIFT Grants — Edge City and Nodes",
+        "name": "SHIFT Grants: Edge City and Nodes",
+        "displayName": "SHIFT Grants: Edge City and Nodes",
         "program": "",
         "description": "Funding and support for Defensive technology, Decentralized science, Public infrastructure. See each program for availability, conditions and unresolved terms.",
         "descriptionBasis": "primary",
@@ -16270,13 +16270,13 @@
           "batchId": "history-verification-2026-10-29",
           "candidateId": "history-lead-085",
           "upstreamRecordId": null,
-          "aliases": "SHIFT Grants — Edge City and Nodes"
+          "aliases": "SHIFT Grants: Edge City and Nodes"
         }
       },
       "enrichment": {
         "sourceRecordId": "local-shift",
         "researchedOn": "2026-10-29",
-        "name": "SHIFT Grants — Edge City and Nodes",
+        "name": "SHIFT Grants: Edge City and Nodes",
         "summary": "Funding and support for Defensive technology, Decentralized science, Public infrastructure. See each program for availability, conditions and unresolved terms.",
         "themes": [
           "Defensive technology",
@@ -16287,7 +16287,7 @@
         "programs": [
           {
             "id": "shift-round001",
-            "name": "SHIFT Grants — round 001, closed",
+            "name": "SHIFT Grants: round 001",
             "instrument": "grant",
             "focus": [
               "Defensive technology",
@@ -16438,7 +16438,7 @@
         "programs": [
           {
             "id": "bga-sdgs-challenge-2024",
-            "name": "BGAwards / 17 SDGs Challenge — 2024, closed",
+            "name": "BGAwards / 17 SDGs Challenge: 2024",
             "instrument": "prize",
             "focus": [
               "Blockchain for social impact"
@@ -16592,7 +16592,7 @@
         "programs": [
           {
             "id": "prosper-climate-colombia-2026",
-            "name": "Climate Lab Colombia — 2026, closed",
+            "name": "Climate Lab Colombia: 2026",
             "instrument": "grant",
             "focus": [
               "Climate resilience",
@@ -16748,7 +16748,7 @@
         "programs": [
           {
             "id": "rocket-pool-gmc-round42",
-            "name": "GMC grants — round 42",
+            "name": "GMC grants: round 42",
             "instrument": "grant",
             "focus": [
               "Ethereum staking",
@@ -16900,7 +16900,7 @@
         "programs": [
           {
             "id": "rogeap-ctf-round4",
-            "name": "ROGEAP CTF grants — round 4, intake unconfirmed",
+            "name": "ROGEAP CTF grants: round 4",
             "instrument": "grant",
             "focus": [
               "Off-grid solar"
@@ -17072,7 +17072,7 @@
         "programs": [
           {
             "id": "shutter-champions-melee2",
-            "name": "Shutter Champions — Melee 2, closed",
+            "name": "Shutter Champions: Melee 2",
             "instrument": "grant",
             "focus": [
               "Blockchain privacy",
@@ -17208,7 +17208,7 @@
         "programs": [
           {
             "id": "optimism-growth-season9",
-            "name": "Growth Grants — season 9, closed",
+            "name": "Growth Grants: season 9",
             "instrument": "grant",
             "focus": [
               "Superchain ecosystem"
@@ -17346,7 +17346,7 @@
         "programs": [
           {
             "id": "doe-sbir-genesis-2026",
-            "name": "SBIR/STTR Phase I Genesis — FY26, closed",
+            "name": "SBIR/STTR Phase I Genesis: FY26",
             "instrument": "grant",
             "focus": [
               "Commercial scientific innovation"
@@ -17416,7 +17416,7 @@
           },
           {
             "id": "doe-sbir-phase1-future",
-            "name": "SBIR/STTR broader Phase I — expected future call",
+            "name": "SBIR/STTR broader Phase I",
             "instrument": "grant",
             "focus": [
               "Commercial scientific innovation"
@@ -17511,8 +17511,8 @@
     {
       "fund": {
         "id": "local-afdb-accf",
-        "name": "African Development Bank — Africa Climate Change Fund",
-        "displayName": "African Development Bank — Africa Climate Change Fund",
+        "name": "African Development Bank: Africa Climate Change Fund",
+        "displayName": "African Development Bank: Africa Climate Change Fund",
         "program": "",
         "description": "Funding and support for Gender-transformative methane reduction, Climate finance. See each program for availability, conditions and unresolved terms.",
         "descriptionBasis": "primary",
@@ -17542,13 +17542,13 @@
           "batchId": "history-verification-2026-10-29",
           "candidateId": "history-lead-093",
           "upstreamRecordId": null,
-          "aliases": "African Development Bank — Africa Climate Change Fund"
+          "aliases": "African Development Bank: Africa Climate Change Fund"
         }
       },
       "enrichment": {
         "sourceRecordId": "local-afdb-accf",
         "researchedOn": "2026-10-29",
-        "name": "African Development Bank — Africa Climate Change Fund",
+        "name": "African Development Bank: Africa Climate Change Fund",
         "summary": "Funding and support for Gender-transformative methane reduction, Climate finance. See each program for availability, conditions and unresolved terms.",
         "themes": [
           "Gender-transformative methane reduction",
@@ -17558,7 +17558,7 @@
         "programs": [
           {
             "id": "accf-call4",
-            "name": "Africa Climate Change Fund — call 4, closed",
+            "name": "Africa Climate Change Fund: call 4",
             "instrument": "grant",
             "focus": [
               "Gender-transformative methane reduction",
@@ -17859,7 +17859,7 @@
         "programs": [
           {
             "id": "hacker-initiative-signal-noise-2026",
-            "name": "Signal/Noise — 2026 grant cycle",
+            "name": "Signal/Noise: 2026 grant cycle",
             "instrument": "grant",
             "focus": [
               "Open source",
@@ -18055,7 +18055,7 @@
         "programs": [
           {
             "id": "linux-australia-project-2026",
-            "name": "Project Grants — 2026",
+            "name": "Project Grants: 2026",
             "instrument": "grant",
             "focus": [
               "Open source",
@@ -18140,7 +18140,7 @@
           },
           {
             "id": "linux-australia-community-2026",
-            "name": "Community Grants — 2026",
+            "name": "Community Grants: 2026",
             "instrument": "grant",
             "focus": [
               "Open technology communities",
@@ -18306,7 +18306,7 @@
         "programs": [
           {
             "id": "people-powered-cda-2027",
-            "name": "Climate Democracy Accelerator — March 2027 cohort",
+            "name": "Climate Democracy Accelerator: March 2027 cohort",
             "instrument": "grant",
             "focus": [
               "Climate participation",
@@ -18454,7 +18454,7 @@
         "programs": [
           {
             "id": "cdfw-mojave-tortoise-2026",
-            "name": "Mojave Desert Tortoise Recovery — 2026 call",
+            "name": "Mojave Desert Tortoise Recovery: 2026 call",
             "instrument": "grant",
             "focus": [
               "Habitat restoration",
@@ -18759,7 +18759,7 @@
         "programs": [
           {
             "id": "funbio-floresta-viva-sao-francisco-2026",
-            "name": "Floresta Viva — Águas do São Francisco, Edital 04/2026",
+            "name": "Floresta Viva: Águas do São Francisco, Edital 04/2026",
             "instrument": "grant",
             "focus": [
               "Ecological restoration",
@@ -18939,7 +18939,7 @@
       "sourceRecordId": "recOExYwWRXF9whgo",
       "program": {
         "id": "isoc-ccc-catalyst",
-        "name": "Community-Centered Connectivity — Catalyst",
+        "name": "Community-Centered Connectivity: Catalyst",
         "instrument": "grant",
         "focus": [
           "Digital inclusion",
@@ -19037,7 +19037,7 @@
       "sourceRecordId": "recOExYwWRXF9whgo",
       "program": {
         "id": "isoc-ccc-scaling",
-        "name": "Community-Centered Connectivity — Scaling",
+        "name": "Community-Centered Connectivity: Scaling",
         "instrument": "grant",
         "focus": [
           "Digital inclusion",
@@ -19251,7 +19251,7 @@
       "sourceRecordId": "reccZG8TtBrCwLG7R",
       "program": {
         "id": "climafii-africa-cohort2",
-        "name": "ClimaFii Africa — cohort 2, closed",
+        "name": "ClimaFii Africa: cohort 2",
         "instrument": "mixed",
         "focus": [
           "Productive-use energy",
