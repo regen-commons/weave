@@ -1,3 +1,4 @@
+import { useAccount } from "../account/context.tsx";
 import { useDraft } from "../describe/use-draft.ts";
 import { useSocial } from "../social/context.tsx";
 import { deviceChoosers } from "../social/project-choice.ts";
@@ -12,11 +13,15 @@ import { projectLinkState, type ProjectLinkState } from "./list.ts";
 export function useProjectLink(): ProjectLinkState {
   const { draft } = useDraft();
   const social = useSocial();
+  const { expectsAccount } = useAccount();
   const live = social?.mode === "live" ? social : null;
+  const choosers = live ? deviceChoosers(draft.id) : [];
+  // An account this device expects is still being checked: the card is not yet "signed out".
+  if (live && expectsAccount && choosers.length) return "checking";
   return projectLinkState({
     linked: !!live?.state.project,
     owner: live?.state.identity?.id,
-    choosers: live ? deviceChoosers(draft.id) : [],
+    choosers,
     loading: !!live?.loading,
     problem: !!live?.problem,
   });

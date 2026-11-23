@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "about": "The discovery coverage ledger. A cell is one theme in one place. Each Monday run takes the cells that scripts/research-plan.mjs lists as due, searches them as the search playbook says, and writes back the date, run id and outcome. Queries themselves live in the run's entry in research/maintenance-review-log.json; this file only says when each cell was last covered. A cell that has never been searched is absent.",
+  "cadenceDays": 28,
+  "cellsPerRun": 5,
+  "themes": [
+    {
+      "id": "open-source-public-goods",
+      "label": "Open-source public goods"
+    },
+    {
+      "id": "climate-restoration",
+      "label": "Climate and restoration"
+    },
+    {
+      "id": "community-energy-digital-inclusion",
+      "label": "Community energy and digital inclusion"
+    },
+    {
+      "id": "culture-community-education",
+      "label": "Culture and community education"
+    }
+  ],
+  "places": [
+    {
+      "id": "US-CA",
+      "label": "California",
+      "languages": [
+        "en",
+        "es"
+      ]
+    },
+    {
+      "id": "NG",
+      "label": "Nigeria",
+      "languages": [
+        "en"
+      ]
+    },
+    {
+      "id": "BR",
+      "label": "Brazil",
+      "languages": [
+        "pt"
+      ]
+    },
+    {
+      "id": "ZA",
+      "label": "South Africa",
+      "languages": [
+        "en"
+      ]
+    },
+    {
+      "id": "global",
+      "label": "Global programs",
+      "languages": [
+        "en",
+        "es",
+        "fr"
+      ]
+    }
+  ],
+  "formsOfCapital": [
+    "financial",
+    "material",
+    "living",
+    "social",
+    "intellectual",
+    "experiential",
+    "cultural",
+    "spiritual"
+  ],
+  "cells": [
+    {
+      "id": "open-source-public-goods/US-CA",
+      "lastSearchedOn": "2026-11-22",
+      "runId": "dry-run-discovery-2026-11-22",
+      "forms": {
+        "financial": "2026-11-22",
+        "material": "2026-11-22"
+      },
+      "result": "English and Spanish. One lead followed to its owner and held (NSF PESOSE, March 2, 2027); no California-specific open-source call found; four cloud-credit programs noted as non-cash leads."
+    },
+    {
+      "id": "climate-restoration/NG",
+      "lastSearchedOn": "2026-11-22",
+      "runId": "dry-run-discovery-2026-11-22",
+      "forms": {
+        "financial": "2026-11-22"
+      },
+      "result": "English. GEF SGP Nigeria phase 8 concept call reported closed April 14, 2026, not verified at the owner; no open Nigeria call found. Material support not searched."
+    },
+    {
+      "id": "community-energy-digital-inclusion/BR",
+      "lastSearchedOn": "2026-11-22",
+      "runId": "dry-run-discovery-2026-11-22",
+      "forms": {
+        "financial": "2026-11-22"
+      },
+      "result": "Portuguese. Utility energy-efficiency calls found, all past their reported cutoffs; no community energy or digital inclusion call found. Material support not searched."
+    },
+    {
+      "id": "culture-community-education/ZA",
+      "lastSearchedOn": "2026-11-22",
+      "runId": "dry-run-discovery-2026-11-22",
+      "forms": {
+        "financial": "2026-11-22"
+      },
+      "result": "English. Reported 2026/27 national and provincial calls all closed between March and May 2026; none verified at owners. Material support not searched."
+    },
+    {
+      "id": "open-source-public-goods/NG",
+      "lastSearchedOn": "2026-11-22",
+      "runId": "dry-run-discovery-2026-11-22",
+      "forms": {
+        "financial": "2026-11-22"
+      },
+      "result": "English. One lead held (USPF challenge, reported open, official page not found); no open-source grant call found. Material support not searched."
+    }
+  ]
+}

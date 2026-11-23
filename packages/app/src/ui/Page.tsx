@@ -51,8 +51,14 @@ export function Page({
         <a className="rc-skip-link" href="#main">
           Skip to content
         </a>
-        <p className="rc-site-banner">Still in development will be live soon</p>
-        <AppHeader pathname={pathname} sections={!form} status={status} back={back} ended={ended} />
+        <AppHeader
+          pathname={pathname}
+          sections={!form}
+          status={status}
+          back={back}
+          ended={ended}
+          banner="Still in development. Live soon."
+        />
         {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
             network grows once. */}
         <div className="rc-page-body">

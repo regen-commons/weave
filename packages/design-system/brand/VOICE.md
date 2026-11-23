@@ -53,8 +53,8 @@ The left column is the domain language used in data, code and documents. The mid
 | Seed, Sprout, Flowering, Tree | Just starting, Getting going, Up and running, Long established | The website keeps its stage names |
 | recipe | partnership | Roles we need, what it is for |
 | pulse | weekly update | |
-| match | Partners for you, Funding that fits | |
-| score | Strong fit, Good fit, Possible fit | Never a number |
+| match | Partners for you, Funding that fits | One exception: the last step of starting an initiative is labelled Matches in the step map, where one word has to fit (user decision, 22 November 2026). The page itself says Partners For You and Funding That Fits |
+| score | Strong fit, Good fit, Possible fit, and on funding Low fit | Never a number. Fit is about shared topics, never eligibility (DL-129) |
 | say hello | Ask for an introduction | State what is sent and what follows |
 | private, network, public | Only you, People signed in, Anyone | If the access tier narrows, the middle label becomes Regen Commons members |
 | Murmurations, knowledge commons | Share with other directories | Link to what this means |

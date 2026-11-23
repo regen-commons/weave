@@ -3,12 +3,18 @@ import { type AccountState } from "./client.ts";
 import { AccountSession } from "./session.ts";
 import type { SessionEnding } from "./session-end.ts";
 import { browserSessionEvents } from "./session-events.ts";
+import { browserPresence } from "./presence.ts";
 import { checkSavedPresence, type SavedPresence } from "./saved-presence.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { revise } from "../describe/contracts.ts";
 import { forgetSavedCard } from "./delete-card.ts";
 const AccountContext = createContext<{
   state: AccountState | null;
+  /**
+   * The session has not been checked yet and an account is expected: this device last saw one signed
+   * in, or another tab has just signed in. Hold the page's shape and do not offer sign-in.
+   */
+  expectsAccount: boolean;
   refresh: () => Promise<AccountState>;
   /** The session ended without this tab's Sign Out. */
   clear: () => void;
@@ -25,8 +31,9 @@ const AccountContext = createContext<{
 } | null>(null);
 const unavailable: AccountState = { available: false, fixture: false, user: null, items: [] };
 export function AccountProvider({ children, fixture = false }: { children: ReactNode; fixture?: boolean }) {
-  const session = useMemo(() => new AccountSession(), [fixture]);
+  const session = useMemo(() => new AccountSession(undefined, undefined, undefined, browserPresence()), [fixture]);
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const expected = useSyncExternalStore(session.subscribe, session.getExpected);
   const ending = useSyncExternalStore(session.subscribe, session.getEnding);
   const { controller, draft } = useDraft();
   const [missingDraft, setMissingDraft] = useState<string | null>(null);
@@ -71,6 +78,7 @@ export function AccountProvider({ children, fixture = false }: { children: React
     <AccountContext.Provider
       value={{
         state: fixture ? unavailable : state,
+        expectsAccount: !fixture && expected,
         refresh: fixture ? async () => unavailable : session.refresh,
         clear: session.clear,
         signedOut: session.signedOut,

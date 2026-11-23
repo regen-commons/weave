@@ -68,7 +68,7 @@ export const ROUTES: readonly Route[] = [
     footer: "wide",
     parent: "home",
   },
-  { name: "needs", path: "/start/needs", title: "Needs And Offers", form: true, footer: "wide", parent: "initiative" },
+  { name: "needs", path: "/start/needs", title: "What You Need", form: true, footer: "wide", parent: "initiative" },
   { name: "offers", path: "/start/offers", title: "What You Can Offer", form: true, footer: "wide", parent: "needs" },
   {
     name: "your-initiative",
@@ -133,8 +133,9 @@ export const ROUTES: readonly Route[] = [
 ];
 export const INTAKE_STEPS = [
   { route: "initiative", label: "Initiative" },
-  { route: "needs", label: "Needs And Offers" },
-  { route: "your-initiative", label: "Funding And Partners" },
+  { route: "needs", label: "Needs" },
+  { route: "offers", label: "Offers" },
+  { route: "your-initiative", label: "Matches" },
 ] as const satisfies readonly { route: RouteName; label: string }[];
 /**
  * How a move between two pages is drawn on a phone (DL-094). A page deeper in is pushed on, the

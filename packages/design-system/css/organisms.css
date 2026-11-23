@@ -1,5 +1,15 @@
 /* Organisms: distinct sections of an interface. */
 
+/* Page header (`rc-app-head`): the site banner and the app bar in one header landmark, so the
+   banner is read as part of the page's header (DL-132). It sticks with the banner's height above
+   the window's top, so the banner scrolls away with the page and the bar stays, as when the two
+   were apart. A page with no banner has the app bar alone as its header. */
+.rc-app-head {
+  position: sticky;
+  inset-block-start: calc(var(--site-banner-height) * -1);
+  z-index: var(--layer-sticky);
+}
+.rc-app-head > .rc-app-header { position: static; }
 /* App header: product name top-left returns home on every page. */
 /* The app bar stays at the top, as in a native app. It spans the window so the page scrolls
    under it, and its contents keep the page's edges. */
@@ -96,6 +106,13 @@
 ::view-transition-new(rc-dock),
 ::view-transition-new(rc-step-bar) { animation: none; }
 
+/* In a short window, such as a phone turned on its side or a page zoomed to 400 percent, the
+   header scrolls away with the page, so the bars never take most of what there is to read. A
+   step's bar then sticks at the window's top on its own (DL-132). */
+@media (height < 30rem) {
+  .rc-app-head, .rc-app-header { position: static; }
+}
+
 /* Bottom navigation for phones. Icon and word, always both. */
 /* Equal tabs, as a native tab bar has. The labels are small enough for the longest to fit a
    quarter of the narrowest phone; with very large text a label wraps inside its own tab. */
@@ -177,34 +194,36 @@
   .rc-dock > * { inline-size: 100%; max-inline-size: var(--form-width); }
 }
 
-/* Step bar: on a wide screen a step's map and its way forward share one bar under the app bar,
-   so both stay in view however far the page has scrolled. It is the wide screen's answer to the
-   phone's dock (DL-127). It is a child of the page shell and comes after the page body, so the
-   keyboard reaches the way forward after the step's fields; the page's grid draws it above them
-   (templates.css). It spans the window as the app bar does, keeps the page's edges, and an empty
-   one is not drawn. A phone never draws it: its steps are at the top of the page and its way
-   forward is in the dock. */
+/* Step bar: on a wide screen a step's map and its way forward share one bar fixed to the foot of
+   the window, so both stay in view however far the page has scrolled, and the way forward is where
+   a phone's dock puts it (DL-127). It is a child of the page shell and comes after the page body,
+   so the keyboard reaches the way forward after the step's fields, and the page keeps room for it
+   under its footer (templates.css). It spans the window as the app bar does, keeps the page's
+   edges, and an empty one is not drawn. A phone never draws it: its steps are at the top of the
+   page and its way forward is in the dock. */
 .rc-step-bar { display: none; }
 @media (min-width: 56.25rem) {
   .rc-step-bar:not(:empty) {
-    position: sticky;
-    inset-block-start: var(--app-header-height);
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
     z-index: var(--layer-sticky);
     display: flex;
     align-items: center;
     gap: var(--space-2) var(--space-7);
-    min-block-size: var(--step-bar-height);
+    min-block-size: calc(var(--step-bar-height) + env(safe-area-inset-bottom));
+    padding-block-end: env(safe-area-inset-bottom);
     padding-inline: max(var(--gutter), (100% - var(--page-width)) / 2 + var(--gutter));
-    border-block-end: var(--border-thin) solid var(--line);
+    border-block-start: var(--border-thin) solid var(--control-line);
     background: var(--surface);
   }
-  /* The steps take the room the actions leave. Each step's edge lies on the bar's own line, as
-     the current section's does in the app bar. */
+  /* The steps take the room the actions leave. Each step's edge lies on the bar's top line, where
+     the bar meets the page. */
   .rc-step-bar > .rc-stepper {
     flex: 1 1 0;
     align-self: stretch;
     max-inline-size: var(--list-width);
-    margin-block-end: calc(-1 * var(--border-thin));
+    margin-block-start: calc(-1 * var(--border-thin));
   }
   .rc-step-bar > .rc-stepper > li,
   .rc-step-bar > .rc-stepper > li > a {
@@ -212,7 +231,13 @@
     gap: var(--space-2);
     text-align: start;
   }
-  .rc-step-bar > .rc-stepper > li { padding-block-end: 0; }
+  .rc-step-bar > .rc-stepper > li {
+    padding-block-end: 0;
+    border-block-end: 0;
+    border-block-start: var(--border-edge) solid var(--line);
+  }
+  .rc-step-bar > .rc-stepper > li[data-state="done"] { border-block-start-color: var(--control-line); }
+  .rc-step-bar > .rc-stepper > li[aria-current="step"] { border-block-start-color: var(--action); }
   /* The way forward sits at the far end and never wraps under the steps. */
   .rc-step-bar > .rc-action-bar { flex: none; flex-wrap: nowrap; margin-inline-start: auto; }
 }

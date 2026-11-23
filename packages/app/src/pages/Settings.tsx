@@ -29,6 +29,7 @@ import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { InstallGuide } from "../install/InstallGuide.tsx";
 import { DeviceBackups } from "../data/DeviceBackups.tsx";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
+import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 export function Settings() {
   const { theme } = useTheme();
   const browserSpeech = useBrowserSpeechAgreement();
@@ -118,6 +119,9 @@ export function Settings() {
               <AccountSection showLeave={false} heading={false} showBackups={false} />
             ) : account.state?.user ? (
               <p>Signed in with Certified.</p>
+            ) : account.expectsAccount ? (
+              // An account this device expects is being checked: hold the line's room, not a guess.
+              <LinesSkeleton label="Checking your account" lines={1} />
             ) : (
               <>
                 <p>Not signed in. Sign in with Certified when you want a private saved copy.</p>
