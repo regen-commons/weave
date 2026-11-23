@@ -1,5 +1,6 @@
 import { useCatalog, type FundingSubject } from "../funding/use-catalog.ts";
 import { catalogEntries } from "../funding/catalog.ts";
+import { compareFit } from "../funding/fit.ts";
 import { CardGrid } from "./Card.tsx";
 import { CardGridSkeleton } from "./CardSkeleton.tsx";
 import { OpportunityCard } from "./OpportunityCard.tsx";
@@ -7,7 +8,14 @@ import { ButtonLink } from "./ButtonLink.tsx";
 export function FirstFunding({ subject }: { subject?: FundingSubject }) {
   const { bundle, results, loading, ranking, error, retry } = useCatalog(undefined, subject);
   const entries = bundle ? catalogEntries(bundle) : [];
-  const first = results?.filter((result) => result.group === "lead").slice(0, 2) ?? [];
+  // Research leads, strongest fit first as on Funding; equal fits keep research priority's order.
+  const first =
+    results
+      ?.map((result, priority) => ({ result, place: { score: result.thematicFit.score, priority } }))
+      .filter(({ result }) => result.group === "lead")
+      .sort((a, b) => compareFit(a.place, b.place))
+      .slice(0, 2)
+      .map(({ result }) => result) ?? [];
   return (
     <>
       {loading || ranking ? (

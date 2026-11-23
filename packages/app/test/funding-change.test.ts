@@ -82,7 +82,7 @@ test("one choice opens once and settles", async () => {
 test("Funding's menu marks the last choice while it opens, and every choice goes through lastChoiceWins", async () => {
   const { readFileSync } = await import("node:fs");
   const funding = readFileSync(new URL("../src/pages/Funding.tsx", import.meta.url), "utf8");
-  assert.match(funding, /value=\{chosen \?\? subject\.current\?\.id\}\s+onChange=\{choose\}/u);
+  assert.match(funding, /value=\{browsing \? NO_INITIATIVE : \(chosen \?\? subject\.current\?\.id\)\}\s+onChange=\{choose\}/u);
   assert.match(funding, /const \[compareWith\] = useState\(\(\) =>\s+lastChoiceWins\(/u);
   assert.doesNotMatch(funding, /if \(changing\) return/u, "a choice made while another opens is never dropped");
 });

@@ -61,7 +61,11 @@ function whenIdle(task: () => void): () => void {
   return () => clearTimeout(handle);
 }
 
-export function useCatalog(example?: Bundle, subject?: FundingSubject) {
+/**
+ * The catalog and, unless `compare` is off, how it fits the initiative: the tab's own, or `subject`.
+ * With `compare` off, as when someone browses Funding with no initiative, nothing is ranked.
+ */
+export function useCatalog(example?: Bundle, subject?: FundingSubject, { compare = true }: { compare?: boolean } = {}) {
   const device = useDraft();
   // Another account's card on this device fits nothing for this one (DL-055).
   const setAside = useSetAside();
@@ -80,7 +84,7 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject) {
     setResults(null);
     setRanking(false);
     setRankError("");
-    if (!bundle) return;
+    if (!bundle || !compare) return;
     let project;
     try {
       project = projectFrom(
@@ -106,7 +110,7 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject) {
         if (!abort.signal.aborted) setRanking(false);
       });
     return () => abort.abort();
-  }, [bundle, subjectKey, attempt]);
+  }, [bundle, subjectKey, attempt, compare]);
   return {
     bundle,
     results,
