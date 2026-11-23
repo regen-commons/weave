@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSocialFixture } from "../social/context.tsx";
 import { AccountMenu } from "../account/AccountMenu.tsx";
 import { useAccount } from "../account/context.tsx";
@@ -18,14 +18,22 @@ const STATUS_TEXT: Record<Exclude<SaveStatus, "none">, string> = {
   account: "Saved",
   memory: "Not saved",
 };
+/**
+ * Page header (`rc-app-head`): the site banner, where there is one, and the app bar in one header
+ * landmark, so the banner is read as part of the header (DL-132). The banner scrolls away with the
+ * page and the bar stays.
+ */
 export function AppHeader({
   pathname,
   sections,
   status,
   back,
+  banner,
   ended = "",
 }: {
   pathname: string;
+  /** A short notice above the bar, such as the development banner. */
+  banner?: ReactNode;
   /** Said when the session ended without this tab's Sign Out; the page shows it too. */
   ended?: string;
   sections: boolean;
@@ -48,8 +56,8 @@ export function AppHeader({
     if (signedOut && !signedIn) signIn.current?.focus();
     if (signedOut && signedIn) setSignedOut("");
   }, [signedOut, signedIn]);
-  return (
-    <header className="rc-app-header">
+  const bar = (
+    <div className="rc-app-header">
       <div className="rc-app-header-lead">
         {/* On a phone the way back takes the logo's place, where a native app bar keeps it. A wide
             screen keeps the logo and shows breadcrumbs above the page's title instead (DL-080). */}
@@ -93,6 +101,12 @@ export function AppHeader({
           {signedIn ? "" : signedOut || ended}
         </p>
       </div>
+    </div>
+  );
+  return (
+    <header className="rc-app-head">
+      {banner && <p className="rc-site-banner">{banner}</p>}
+      {bar}
     </header>
   );
 }

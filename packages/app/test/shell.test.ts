@@ -29,3 +29,14 @@ test("describing an initiative and the Your Initiatives tab leave the footer out
     /@media \(width < 56\.25rem\) \{\s*\.rc-footer\[data-from="wide"\] \{ display: none; \}\s*\}/u,
   );
 });
+
+test("the site banner says two sentences inside the page's header landmark (DL-132)", () => {
+  const header = read("../src/ui/AppHeader.tsx");
+  assert.match(header, /<header className="rc-app-head">\s*\{banner && <p className="rc-site-banner">\{banner\}<\/p>\}\s*\{bar\}\s*<\/header>/u);
+  assert.match(header, /const bar = \(\s*<div className="rc-app-header">/u);
+  const page = read("../src/ui/Page.tsx");
+  assert.doesNotMatch(page, /className="rc-site-banner"/u, "the page shell has no banner outside the header");
+  const words = /banner="([^"]+)"/u.exec(page)?.[1] ?? "";
+  assert.equal(words.split(". ").length, 2, `two sentences, not "${words}"`);
+  assert.match(words, /\.$/u);
+});

@@ -539,6 +539,8 @@ Not verified on a phone: built and measured in desktop Chromium, with touch emul
 
 The gap above it had three causes. The page's bottom padding (80 px on a wide screen) and the footer's top padding (40 px) added up to 120 px; they are now 40 and 32. An empty status line at the end of the starter list held a row of the page's spacing; it takes room only once it says something. And the page body filled the window under the app bar without counting the site banner, so on a short page the footer started a banner's height below the fold. The banner now has a known height, `--site-banner-height`, which the page body leaves out, on a phone as well.
 
+**Amended by DL-132, 22 November 2026.** The banner is now the first line of the page's header landmark, which sticks with the banner's height above the window's top. The page body still leaves the banner's height out of the window it fills.
+
 ## DL-103: A funding card counts the days to a deadline that is near
 
 **Status:** user decision from manual QA, 18 November 2026. A card gave its deadline as a date in a tag like any other, "Closes 30 Nov 2026", and the reader did the sum. Within 60 days the tag now counts: "Closes in 12 days", "Closes tomorrow", "Closes today". Further out the date says more than a count and stays. A date that has passed reads "Ended" with its date, whether or not the catalog marks the call closed; it read "Closes" with a past date before.
@@ -907,6 +909,15 @@ From Krug: a step map that is always in view, help that is brief and right where
 - **Preview rows bounce at their ends.** On a phone, a preview row that swipes sideways (DL-090) bounces when it reaches its start or its end, and when a finger, a wheel or a trackpad pushes past an end it is already at: the cards run on 16 px past the end and spring back, in one and a half times `--duration-slow`. `behaviors/carousel.js` says which end with `data-bounce` and clears it when the bounce has played; the stylesheet draws it, never under reduced motion. The row's own overscroll is now `none` instead of `contain`, so a phone's native stretch or rubber band never plays on top of it, and a swipe still never starts the browser's way back. A wide screen's grid does not scroll and does not bounce.
 
 Not verified on a real phone: captured in desktop Chromium with touch and a phone viewport emulated. How the bounce feels after a fast fling on iOS, where the native rubber band is now off for the row, is the part to try. Lighthouse on a production build of Home, before and after, is in the pull request.
+
+## DL-132: The site banner is part of the page's header, and a short window lets the header scroll away
+
+**Status:** quality findings Q-10 and Q-11 from the baseline review, 22 November 2026, for the home-shell session. Amends DL-102 on where the banner sits.
+
+- **The banner is inside the header.** "Still in development will be live soon" ran two thoughts together and sat outside every landmark, so a screen reader moving by landmark skipped it. It now reads "Still in development. Live soon.", two sentences short enough for one line at 320 px, and it is the first line of the page's one header landmark (`rc-app-head`), before the app bar. The header sticks with the banner's height above the window's top, so the banner still scrolls away with the page and the bar stays, as when the two were apart. The page's grid no longer needs a row of its own for the banner.
+- **A short window lets the header go.** At 400 percent zoom a 1280 by 1024 window is 320 by 256 CSS px, and the banner, the sticky app bar and the tab bar left about 96 px of it to read. Under 30rem tall the header no longer sticks: it scrolls away with the page, and jumps and focus stop a small step from the window's top instead of under a bar that is gone. A phone turned on its side is that short too, and gets the same. The tab bar and a phone's dock stay fixed, because they hold the way between sections and the way forward; at 320 by 256 they leave 199 px to read. On a wide short window a step's bar sticks at the window's top on its own, and the record beside the work sticks under it.
+
+Rendered in Chromium with a phone viewport at 320 by 256 and 360 by 780, and at 1280 by 400 on a describe step, in both themes. Not tried with a real browser's zoom on a real phone.
 
 ## DL-133: Stop answers at once, and the wait for the last words has an end
 
