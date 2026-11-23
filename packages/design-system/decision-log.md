@@ -975,3 +975,14 @@ Kept as it was: the words still appear in the box while the person talks. Showin
 Given up: a recognizer slower than 2.5 seconds loses whatever it would have corrected in its last phrase, though not the phrase. Very fast recognizers show Finishing for only an instant.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
+
+## DL-134: Your Initiatives says what each card is, and keeps Certified projects apart
+
+**Status:** the user's choice, 22 November 2026, from QA notes 4, 5 and 6 for the sign-in-initiatives session. Amends DL-112 on the single list and DL-086 on a phone's You tab.
+
+- **Every card carries a tag for what it is.** A draft and a Certified project with one name read the same in the list: only a line of small text differed. Each card now has a Tag under its name: Not saved yet, Saved privately, Personal project, Group project or Team workspace, each with its icon. A draft linked to a project carries the project's tag, and Not saved yet beside it while that is true. The line under the tag says only what the tag does not, such as the date of the save.
+- **Two sections.** Drafts And Private Saves holds what exists only in Weave. On Certified holds Certified projects, team workspaces and any draft linked to one, which is listed once, there. DL-112's one list kept a draft and its saved card as one entry; that stays, and an entry now sits in the section its link decides. Three sections (device, account, Certified) were turned down: a saved card being edited on this device belongs to two of them.
+- **A draft that looks like a Certified project is offered that project.** The check Weave already had for the needs step runs on Your Initiatives once the person's projects are read. The draft's card says which project it looks like and offers Use That Project and It's A Different Initiative. Use That Project opens the reviewed link step with the project chosen, so what changes is shown before anything does: the name, place, description and links come from Certified, and the needs and offers stay. Nothing links on its own, and a no is kept for the visit. Choosing each detail side by side was turned down: the card could then differ from what Certified shows.
+- **A phone's You tab holds more of Settings.** Appearance and Install Weave On Your Phone are their own groups there, drawn as Settings draws them, then All Settings. They are the two a phone uses most, and installing is something only a phone can do.
+
+Rendered from the dev server's example account in Chromium at 360 and 1280 px, in both themes, with the keyboard. Proof class: fixture.
