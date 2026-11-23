@@ -37,12 +37,12 @@ import {
   returnWords,
   settleEarlierInput,
 } from "../intake/state.ts";
-import { navigate, routeSearch } from "../router.tsx";
-import { fixtureHref, pathTo } from "../routes.ts";
+import { currentVisit, navigate, routePath, routeSearch } from "../router.tsx";
+import { backTarget, fixtureHref, matchRoute, pathTo } from "../routes.ts";
 import { AskCard } from "../ui/AskCard.tsx";
 import { AskEditor } from "../ui/AskEditor.tsx";
 import { AttachmentList } from "../ui/AttachmentList.tsx";
-import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { BackButton } from "../ui/BackLink.tsx";
 import { Dock } from "../ui/Dock.tsx";
 import { DraftNotice } from "../ui/DraftNotice.tsx";
 import { Heading } from "../ui/Heading.tsx";
@@ -104,6 +104,8 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
     const first = ASK_KINDS.find((entry) => result.blocked[entry]);
     if (first) document.getElementById(`ask-${first}-blocker`)?.focus();
   }
+  // The way back is the step before, whichever page the person came from, as the app bar's is.
+  const back = backTarget(matchRoute(routePath()), currentVisit());
   /** The step's way forward: in its place on a wide screen, in the dock on a phone (DL-089). */
   const forward = (from?: "wide") => (
     <button
@@ -122,9 +124,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
     <Stack>
       {/* On a wide screen the way back and the way forward are in the Step bar, beside the steps (DL-127). */}
       <IntakeStepper current={1}>
-        <ButtonLink href={pathTo("initiative")} variant="quiet">
-          Back
-        </ButtonLink>
+        {back && <BackButton target={back}>Back</BackButton>}
         {forward("wide")}
       </IntakeStepper>
       <Heading level={1} size="page">
@@ -163,9 +163,7 @@ export function AskStep({ kind, fixture: example }: { kind: AskKind; fixture?: F
           </div>
           {/* A phone keeps the way back at the end of the step, above the docked way forward. */}
           <div className="rc-action-bar" data-until="wide">
-            <ButtonLink href={pathTo("initiative")} variant="quiet">
-              Back
-            </ButtonLink>
+            {back && <BackButton target={back}>Back</BackButton>}
           </div>
           <Dock>{forward()}</Dock>
         </>
