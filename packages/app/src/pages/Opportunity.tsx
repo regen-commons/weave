@@ -17,7 +17,9 @@ import { revise } from "../describe/contracts.ts";
 import { fullDate } from "../home.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { DetailSheet, type SheetState } from "../ui/DetailSheet.tsx";
+import { DetailSheet, type Presentation, type SheetState } from "../ui/DetailSheet.tsx";
+import { ShareMenu } from "../ui/ShareMenu.tsx";
+import { fundShare } from "../record-share.ts";
 import { TeamSlots } from "../ui/TeamSlots.tsx";
 import { Fit } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
@@ -32,11 +34,14 @@ export function Opportunity({
   search,
   fixture,
   sheet,
+  presentation = "sheet",
 }: {
   fundId: string;
   search: string;
   fixture?: FixtureContext;
   sheet: SheetState;
+  /** Over the page it was opened from, or a page of its own when opened from a link. */
+  presentation?: Presentation;
 }) {
   const social = useSocialFixture();
   // A share the card has moved on from is out of matching, so it opens no other team's slots.
@@ -60,11 +65,13 @@ export function Opportunity({
     ? "Opening Opportunity"
     : (entry?.program?.name ?? entry?.fund.displayName ?? "Opportunity Not Available");
   useEffect(() => {
-    if (sheet.open) document.title = `${title} | Weave`;
-  }, [title, sheet.open]);
+    if (sheet.open || presentation === "page") document.title = `${title} | Weave`;
+  }, [title, sheet.open, presentation]);
+  // Under a page's own heading the sections are the next level down; in a sheet, under its title.
+  const Section = presentation === "page" ? "h2" : "h3";
   if (catalog.loading || !entry)
     return (
-      <DetailSheet title={title} state={sheet}>
+      <DetailSheet title={title} state={sheet} presentation={presentation}>
         {catalog.loading ? (
           <LinesSkeleton label="Opening the catalog copy" panel />
         ) : (
@@ -99,7 +106,7 @@ export function Opportunity({
   // The next step depends on the person: describe the work first, then go to the funder.
   const described = catalog.personalized;
   return (
-    <DetailSheet title={title} state={sheet}>
+    <DetailSheet title={title} state={sheet} presentation={presentation}>
       {(fixture?.state === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
           Showing the bundled catalog copy. The funder's page needs a connection.
@@ -152,10 +159,13 @@ export function Opportunity({
         )}
       </div>
       {!url && <p className="rc-meta">The source link needs checking, so no link is offered.</p>}
+      <ShareMenu
+        share={fundShare({ id: entry.fund.id, name: entry.fund.displayName }, program ? { id: program.id, name: program.name } : null)}
+      />
       <section className="rc-stack">
-        <h3 className="rc-heading" data-size="section">
+        <Section className="rc-heading" data-size="section">
           Why It Fits
-        </h3>
+        </Section>
         {catalog.ranking ? (
           <LinesSkeleton label="Comparing your card on this device" lines={2} />
         ) : result ? (
@@ -194,9 +204,9 @@ export function Opportunity({
         )}
       </section>
       <section className="rc-stack">
-        <h3 className="rc-heading" data-size="section">
+        <Section className="rc-heading" data-size="section">
           Before You Apply
-        </h3>
+        </Section>
         <dl className="rc-facts">
           <div>
             <dt>Who can apply</dt>

@@ -2,6 +2,9 @@
 // Shared by the handler, which parses requests, and the app, which parses responses.
 import { parseProjectUri } from "./project-uri.ts";
 
+/** The record collection a project's address names, so the app can build the address a link names. */
+export { PROJECT_COLLECTION } from "./project-uri.ts";
+
 export const PUBLIC_PROJECT_PAGE_SIZE = 12;
 export const PUBLIC_PROJECT_PAGE_MAX = 24;
 const maxQuery = 100;
@@ -76,8 +79,13 @@ export type PublicProjectQuery = {
   sort: PublicProjectSort;
   cursor: PublicProjectCursor | null;
   limit: number;
+  /**
+   * One project by its address, for the page a link to it opens. Asked alone, so each project has one
+   * cached address, and absent from every other query.
+   */
+  uri?: string;
 };
-const QUERY_KEYS = ["q", "organizationType", "workScope", "sort", "cursor", "limit"];
+const QUERY_KEYS = ["q", "organizationType", "workScope", "sort", "cursor", "limit", "uri"];
 
 export function searchTerms(q: string): string[] {
   return [...new Set(searchText(q).split(/\s+/u).filter(Boolean))].slice(0, maxTerms);
@@ -112,13 +120,20 @@ function decodeCursor(value: string, sort: PublicProjectSort): PublicProjectCurs
 }
 
 /**
- * Accepts only `q`, `organizationType`, `workScope`, `sort`, `cursor` and `limit`, each at most once, so
- * every cached page has one address.
+ * Accepts only `q`, `organizationType`, `workScope`, `sort`, `cursor` and `limit`, each at most once, or
+ * `uri` on its own, so every cached page has one address.
  */
 export function parsePublicProjectQuery(url: URL): PublicProjectQuery {
   const keys = [...url.searchParams.keys()];
   if (keys.some((key) => !QUERY_KEYS.includes(key)) || new Set(keys).size !== keys.length)
     throw Error("invalid_project_query");
+  const uriText = url.searchParams.get("uri");
+  if (uriText !== null) {
+    if (keys.length !== 1) throw Error("invalid_project_query");
+    let uri: string;
+    try { uri = parseProjectUri(uriText).uri; } catch { throw Error("invalid_project_query"); }
+    return { q: "", terms: [], organizationType: null, workScope: null, sort: "newest", cursor: null, limit: 1, uri };
+  }
   const q = (url.searchParams.get("q") ?? "").trim().replace(/\s+/gu, " ");
   if (q.length > maxQuery || controls.test(q)) throw Error("invalid_project_query");
   const typeText = url.searchParams.get("organizationType");
