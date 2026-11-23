@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
-import { MAX_FILE_BYTES, revise, type FieldKey, type RecordForm } from "../describe/contracts.ts";
+import { MAX_FILE_BYTES, newDraft, revise, type FieldKey, type RecordForm } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import {
   FieldsProblem,
@@ -42,7 +42,6 @@ import { fullDate } from "../home.ts";
 import { publicCard } from "../initiative/status.ts";
 import { Facts } from "../ui/Facts.tsx";
 import { useAccountDoor } from "../account/door.tsx";
-import { DraftSkeleton } from "../ui/CardSkeleton.tsx";
 
 const FIELDS_ID = "describe-fields";
 const PROBLEM_ID = "describe-problem";
@@ -58,8 +57,23 @@ const SAY_EXAMPLE = "For example: We are River Keepers, based in Nairobi. We res
  * on to needs and offers: in the Step bar on a wide screen and in the dock on a phone (DL-127).
  * Nothing here opens, closes or moves when it is pressed.
  */
-export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
-  const { draft, error: storageError, ready, controller, fixture } = useDraft();
+export function Describe({
+  fixture: examples,
+  starting = false,
+}: {
+  fixture?: FixtureContext;
+  /**
+   * Shown by the address that starts a new card, before the card exists: the same step, blank and
+   * not yet taking input, so the step is on screen at once and nothing moves when the new card
+   * opens in its place. The tab's earlier draft is never shown here.
+   */
+  starting?: boolean;
+}) {
+  const live = useDraft();
+  const [blank] = useState(newDraft);
+  const draft = starting ? blank : live.draft;
+  const ready = live.ready && !starting;
+  const { error: storageError, controller, fixture } = live;
   const social = useSocialFixture();
   const openDoor = useAccountDoor();
   const [language, setLanguage] = useState(navigator.language || "en-US");
@@ -341,7 +355,7 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
       data-from={from}
       type="submit"
       form={FIELDS_ID}
-      disabled={working || listening}
+      disabled={!ready || working || listening}
     >
       Continue
     </button>
@@ -389,29 +403,31 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
           </button>
         </div>
       )}
-      {!ready ? (
-        <DraftSkeleton />
-      ) : (
-        // On a wide screen the card fills in beside the fields. A phone shows it at the last step.
-        <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
-          {/* Words and controls sit on a panel, so the mycelium behind the page does not run through them. */}
-          <Panel>
-            {offline && (
-              <p className="rc-notice" data-tone="info">
-                You are offline. Your words stay on this device.
-              </p>
-            )}
-            {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
-            {!linked && <section className="rc-stack" aria-labelledby="describe-talk">
-              <Heading level={2} size="section" id="describe-talk">
-                Say It In Your Own Words
-              </Heading>
-              {/* What to say, in the order the fields under the box are filled (DL-127). */}
-              <p>
-                {!talksHere(speech.state)
-                  ? "Write three things: its name, where you work and what you do. Weave fills in the fields below, on this device."
-                  : "Say or type three things: its name, where you work and what you do. Weave fills in the fields below, on this device."}
-              </p>
+      {/* The step is drawn at once, before this device's draft has opened, so what to say is on
+          screen without waiting for storage. Its box and fields take input once the draft is open:
+          until then they are inert, so nothing typed can land in a blank card, and the draft fills
+          them in place, moving nothing. */}
+      {/* On a wide screen the card fills in beside the fields. A phone shows it at the last step. */}
+      <StepLayout asideFrom="wide" aside={<RecordPreview fields={previewFields(draft)} confirmed={!!draft.confirmed} />}>
+        {/* Words and controls sit on a panel, so the mycelium behind the page does not run through them. */}
+        <Panel>
+          {offline && (
+            <p className="rc-notice" data-tone="info">
+              You are offline. Your words stay on this device.
+            </p>
+          )}
+          {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
+          {!linked && <section className="rc-stack" aria-labelledby="describe-talk">
+            <Heading level={2} size="section" id="describe-talk">
+              Say It In Your Own Words
+            </Heading>
+            {/* What to say, in the order the fields under the box are filled (DL-127). */}
+            <p>
+              {!talksHere(speech.state)
+                ? "Write three things: its name, where you work and what you do. Weave fills in the fields below, on this device."
+                : "Say or type three things: its name, where you work and what you do. Weave fills in the fields below, on this device."}
+            </p>
+            <div className="rc-stack" inert={!ready || undefined}>
               <TalkItOut
                 speech={speech}
                 listening={listening}
@@ -446,54 +462,54 @@ export function Describe({ fixture: examples }: { fixture?: FixtureContext }) {
                 lead={talkLeads}
               />
               {files}
-            </section>}
-            <form className="rc-form" data-width="full" id={FIELDS_ID} noValidate onSubmit={next} onKeyDown={moveOnEnter}>
-              <Heading level={2} size="section">
-                Your Initiative
-              </Heading>
-              {linked ? (
-                <>
-                  <p className="rc-meta">
-                    From your Certified project, published {fullDate(linked.publishedOn)}. Change these details on Certified.
+            </div>
+          </section>}
+          <form className="rc-form" data-width="full" id={FIELDS_ID} noValidate inert={!ready || undefined} onSubmit={next} onKeyDown={moveOnEnter}>
+            <Heading level={2} size="section">
+              Your Initiative
+            </Heading>
+            {linked ? (
+              <>
+                <p className="rc-meta">
+                  From your Certified project, published {fullDate(linked.publishedOn)}. Change these details on Certified.
+                </p>
+                <Facts items={publicFacts(publicCard(draft))} />
+                <div className="rc-action-bar">
+                  {addFilesButton}
+                  <p className="rc-meta rc-status-slot" role="status">
+                    {fileNote || "Optional, up to 25 MB each. Files stay on this device."}
                   </p>
-                  <Facts items={publicFacts(publicCard(draft))} />
-                  <div className="rc-action-bar">
-                    {addFilesButton}
-                    <p className="rc-meta rc-status-slot" role="status">
-                      {fileNote || "Optional, up to 25 MB each. Files stay on this device."}
-                    </p>
-                  </div>
-                  {files}
-                </>
-              ) : (
-                <RecordFields
-                  value={form}
-                  filled={draft.filled}
-                  problem={problem?.field ? { field: problem.field, message: problem.message } : null}
-                  onChange={changeForm}
-                />
-              )}
-              {/* A problem with the form as a whole is written in a place that is always there, so
-                  it pushes nothing down. One about a field is written at the field. */}
-              <p className="rc-error rc-status-slot" role="alert" id={PROBLEM_ID}>
-                {problem && !problem.field ? problem.message : ""}
-              </p>
-              <Dock>{forward()}</Dock>
-            </form>
-            {/* Add Files opens the file picker directly. The input is not drawn, and it sits outside
-                the form so Enter in the last field never tries to move to it. */}
-            <input
-              ref={fileInput}
-              type="file"
-              hidden
-              multiple
-              tabIndex={-1}
-              aria-label="Add files"
-              onChange={(event) => addFiles(event.currentTarget)}
-            />
-          </Panel>
-        </StepLayout>
-      )}
+                </div>
+                {files}
+              </>
+            ) : (
+              <RecordFields
+                value={form}
+                filled={draft.filled}
+                problem={problem?.field ? { field: problem.field, message: problem.message } : null}
+                onChange={changeForm}
+              />
+            )}
+            {/* A problem with the form as a whole is written in a place that is always there, so
+                it pushes nothing down. One about a field is written at the field. */}
+            <p className="rc-error rc-status-slot" role="alert" id={PROBLEM_ID}>
+              {problem && !problem.field ? problem.message : ""}
+            </p>
+            <Dock>{forward()}</Dock>
+          </form>
+          {/* Add Files opens the file picker directly. The input is not drawn, and it sits outside
+              the form so Enter in the last field never tries to move to it. */}
+          <input
+            ref={fileInput}
+            type="file"
+            hidden
+            multiple
+            tabIndex={-1}
+            aria-label="Add files"
+            onChange={(event) => addFiles(event.currentTarget)}
+          />
+        </Panel>
+      </StepLayout>
     </Stack>
   );
 }

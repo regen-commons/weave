@@ -85,6 +85,11 @@
       "source": "./src/page-preview.ts",
       "default": "./dist/page-preview.js"
     },
+    "./record-first-view": {
+      "types": "./src/record-first-view.ts",
+      "source": "./src/record-first-view.ts",
+      "default": "./dist/record-first-view.js"
+    },
     "./record-page-http": {
       "types": "./src/record-page-http.ts",
       "source": "./src/record-page-http.ts",
