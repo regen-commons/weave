@@ -114,10 +114,9 @@ Anywhere else, Weave asks before your voice leaves this device.", and left the c
 ## Switching it on
 
 One request takes up to 50 seconds on the server (20 for the recording to arrive, 30 for the
-provider). `vercel.json` sets no time limit for this function, and it was left alone because
-deployment configuration is the owner's to change. Before switching on, confirm the Weave
-project's function limit is 60 seconds or more, or add `"api/transcribe.ts": { "maxDuration": 60 }`.
-With a shorter limit a long recording fails with a true message and nothing worse.
+provider). Since 23 November 2026 `/api/transcribe` runs in the shared `api/router.ts` function,
+which `vercel.json` gives `"maxDuration": 60`, so no setting is needed here. A shorter limit would
+make a long recording fail with a true message and nothing worse.
 
 A Vercel preview behind deployment protection is likely to refuse the page's own requests to
 `/api/transcribe`, which carry no cookie, so try it on a deployment without protection.
