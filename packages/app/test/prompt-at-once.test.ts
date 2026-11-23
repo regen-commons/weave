@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { MemoryDraftRepository, type DraftRepository } from "../src/describe/repository.ts";
-import { describeDoor, describePrompt } from "../src/describe/start-new.ts";
+import { describeDoor, describePromptTitle } from "../src/describe/start-new.ts";
 import { memoryPointer } from "../src/describe/tabs.ts";
 import { hasDraft } from "../src/describe/view.ts";
 import { cardRoute } from "../src/initiative/status.ts";
@@ -18,7 +18,8 @@ const source = (path: string) => readFileSync(fileURLToPath(new URL(`../src/${pa
 function prompt(controller: DraftController) {
   const { draft, ready } = controller.getSnapshot();
   const started = hasDraft(draft);
-  return { ...describePrompt(ready, started), door: describeDoor(started, started ? cardRoute(draft) : "initiative") };
+  // The door waits for the draft (DescribeDoor holds its button until `ready`).
+  return { title: describePromptTitle(ready, started), actionWaits: !ready, door: describeDoor(started, started ? cardRoute(draft) : "initiative") };
 }
 
 test("with a card in progress and a draft that opens late, the words read at once and the action waits for the draft", async () => {
@@ -60,12 +61,17 @@ test("without a card the prompt is the same before and after the draft opens, ap
   assert.deepEqual(after.door, { href: "/start/new", label: "Describe Your Initiative" });
 });
 
-test("the prompt's action holds its room until the draft opens, and Funding draws the prompt at once", () => {
-  const component = source("ui/DescribePrompt.tsx");
-  assert.match(component, /shown\.actionWaits \? \(\s*<span className="rc-skeleton" data-shape="room" aria-hidden="true">\s*\{action\}/u);
-  assert.match(component, /title=\{shown\.title\}/u);
+test("the door holds its room until the draft opens, everywhere it is offered, and Funding draws the prompt at once", () => {
+  const door = source("ui/DescribePrompt.tsx");
+  assert.match(door, /return door\.ready \? \(\s*button\s*\) : \(\s*<span className="rc-skeleton" data-shape="room" aria-hidden="true">\s*\{button\}/u);
+  assert.match(door, /<DescribeDoor variant="primary" \/>/u, "the prompt's own door");
+  // Every other page that offers the door uses the one that waits, and none builds its own.
+  for (const [file, variant] of [["pages/ListPage.tsx", "primary"], ["pages/Opportunity.tsx", "primary"], ["partners/PublicProjectRecord.tsx", "secondary"]] as const) {
+    const page = source(file);
+    assert.match(page, new RegExp(`<DescribeDoor variant="${variant}" />`, "u"), file);
+    assert.doesNotMatch(page, /useDescribeDoor|door\.href|door\.label/u, file);
+  }
   const funding = source("pages/Funding.tsx");
   assert.match(funding, /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && prompt\}/u);
-  // No longer hidden in a room of its own while the draft opens.
   assert.doesNotMatch(funding, /data-shape="room"[^>]*>\s*\{prompt\}/u);
 });
