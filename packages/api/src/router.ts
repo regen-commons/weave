@@ -22,6 +22,7 @@ export const ENDPOINTS = {
   mcp: { methods: ["GET", "POST", "DELETE"], load: () => import("./mcp.ts") },
   projects: { methods: ["POST"], load: () => import("./projects.ts") },
   "public-projects": { methods: ["GET"], load: () => import("./public-projects.ts") },
+  "record-image": { methods: ["GET", "HEAD"], load: () => import("./record-image.ts") },
   "record-page": { methods: ["GET", "HEAD"], load: () => import("./record-page.ts") },
   sitemap: { methods: ["GET", "HEAD"], load: () => import("./sitemap.ts") },
   transcribe: { methods: ["GET", "POST"], load: () => import("./transcribe.ts") },

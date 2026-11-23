@@ -33,6 +33,14 @@ rewrite in `packages/app/vercel.json` from `/api/<name>` to
 `/api/router?__route=<name>`, ahead of the catch-all. The router hands the request on
 untouched (streamed body, headers, origin) and returns the handler's response as it is.
 
+A record's link picture (`GET /api/record-image`, `src/record-image*.ts`) is drawn by
+`@vercel/og` 0.9.0, the newest version that runs as an ES module in Node without
+`sharp`. Its faces are TrueType files in `assets/record-image`, written from the design
+system's fonts by `scripts/record-image-fonts.swift`. Run that on macOS after a font
+changes. A picture draws only characters its faces have, because the renderer would
+otherwise fetch a font from Google at run time. Raise `RECORD_IMAGE_DESIGN` whenever the
+drawing changes, so every picture gets a new address past the CDN's year-long cache.
+
 ## Boundaries
 
 - TypeScript follows the [TypeScript rules](../../.claude/rules/typescript.md).
