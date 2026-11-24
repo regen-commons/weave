@@ -41,8 +41,9 @@ const LANGUAGES = ["en", "pt", "es", "fr", "sw"];
 
 /**
  * One initiative as a card confirmed on the describe step holds it. It has no themes: the step has
- * offered none since DL-127, so every path ranks the description alone, and the MCP call and the live
- * site's form are given none either.
+ * offered none since DL-127, and the MCP call and the live site's form are given none either. The app
+ * and the MCP tool add the catalog topics a Portuguese or Spanish description names (DL-142); the live
+ * site ranks the description alone.
  */
 export type RankingInitiative = {
   id: string;
@@ -89,13 +90,17 @@ export function validateRankingSet(data: unknown): RankingSet {
   return set;
 }
 
-/** The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft. */
+/**
+ * The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft
+ * with no kept needs or offers. The app's matcher (`evaluateCatalog`) adds the topics its words name.
+ */
 function appProject(row: RankingInitiative): Project {
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     tags: [],
+    asks: [],
     workCountries: row.workCountries,
     benefitCountries: row.benefitCountries,
     applicantBaseCountry: row.applicantBaseCountry,
@@ -163,7 +168,8 @@ export async function rankInitiative(data: RankingData, row: RankingInitiative):
   const liveConditions = validConditions(data.conditions, data.catalog.funds) && Array.isArray(conditionList) ? conditionList : null;
   const live = rankFunds(
     data.catalog.funds,
-    // The live site's own form, which defaults the currency to USD where the app leaves it blank.
+    // The live site's own form, which defaults the currency to USD where the app leaves it blank. It
+    // reads no topics into a card: its themes are only those a person types.
     normalizeProject({ ...appProject(row), currency: undefined }),
     createLexicalIndex(data.catalog.funds),
     (data.rules as { rules: unknown[] }).rules,
