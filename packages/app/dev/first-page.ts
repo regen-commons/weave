@@ -24,11 +24,13 @@ export function firstPageScript(): string {
   return `"use strict";
 // Starts the Initiatives page's first request as the page arrives (packages/app/dev/first-page.ts).
 (() => {
+  // Every other page leaves at once, before it touches the document or the device's storage.
+  if (location.search || location.pathname.replace(/\\/+$/, "") !== ${page}) return;
   // A page the server sent with its first page already drawn carries it in its head; nothing to ask for.
   if (document.getElementById(${JSON.stringify(LIST_FIRST_PAGE_ID)})) return;
   let off = false;
   try { off = localStorage.getItem(${JSON.stringify(INDEX_OFF_KEY)}) === "1"; } catch { /* The list is asked for. */ }
-  if (off || location.search || location.pathname.replace(/\\/+$/, "") !== ${page}) return;
+  if (off) return;
   const response = fetch(${JSON.stringify(path)}, ${JSON.stringify(PUBLIC_PROJECTS_REQUEST)});
   const early = { path: ${JSON.stringify(path)}, response };
   // Read as soon as it arrives, so a list that draws after it starts with its cards. A failure here is

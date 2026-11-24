@@ -32,8 +32,8 @@ the public project list to be on (`WEAVE_PUBLIC_PROJECTS_ENABLED`). Turning eith
 adding a Firewall rate limit rule for `/api/mcp`, are the maintainer's steps
 ([D40](../../docs/platform/open-decisions.md#agent-access)).
 
-The switch is on for Preview and Production (23 November 2026). Two things were meant to come first. One
-is done and one is not:
+The switch is on for Preview and Production (23 November 2026). Two things were meant to come first, and
+both are done:
 
 - **A preview deployment that answers the route: done for four tools.** The compiled function imports
   the catalog's code and data from the repository root, outside the Weave project's root directory. On a
@@ -42,8 +42,9 @@ is done and one is not:
   (`dist/matching.mjs`, `dist/data/eligibility-rules.json`, `dist/data/program-conditions.json`) and had
   not been called on a deployment when this was written. If one is missing it answers
   `catalog_unavailable` and the other tools keep working.
-- **The Firewall rate limit rule: not done.** It is described under [Limits](#limits). The endpoint's own limit bounds one
-  function instance; the rule is what bounds a caller across instances, before a function runs.
+- **The Firewall rate limit rule: done.** "Rate limit MCP" was published on 23 November 2026, on the
+  user's word. It is described under [Limits](#limits). The endpoint's own limit bounds one function
+  instance; the rule is what bounds a caller across instances, before a function runs.
 
 ## Adding it to an assistant
 
@@ -96,23 +97,23 @@ What this layer does and does not do:
 
 **At the Vercel Firewall**, one rate limit rule, which the Hobby plan allows (one per project, fixed
 window of 10 seconds to 10 minutes, keyed by address, counted per region). It cannot be written in
-`vercel.json`, whose `mitigate` supports only `challenge` and `deny`, so it is set in the dashboard or with
-the CLI:
+`vercel.json`, whose `mitigate` supports only `challenge` and `deny`, so it lives in the weave project's
+Firewall settings. The rule as published on 23 November 2026:
 
-- Dashboard: the weave project, Firewall, Configure, New Rule. Name `Rate limit MCP`. If Request Path
-  Equals `/api/mcp` and Method Equals `POST`. Then Rate Limit, Fixed Window, 60 seconds, 120 requests, key
-  IP, action Too Many Requests (429). Save, Review Changes, Publish.
-- CLI, from a checkout linked to the weave project:
+- Name: `Rate limit MCP`.
+- It applies when either of two groups of conditions holds:
+  - the method is `POST` and the path is `/api/mcp`;
+  - the method is `POST`, the path is `/api/router` and the query has `__route=mcp`.
+  The second group is there because `/api/mcp` is rewritten to the shared router
+  ([How it is deployed](#how-it-is-deployed)), whose own address can be called directly. A rule on the
+  public path alone would let a caller go around it.
+- Then: rate limit, fixed window, 60 seconds, 120 requests, keyed by IP, action rate limit, which answers
+  429 Too Many Requests.
 
-```bash
-vercel firewall rules add "Rate limit MCP" --condition '{"type":"path","op":"eq","value":"/api/mcp"}' --condition '{"type":"method","op":"eq","value":"POST"}' --action rate_limit --rate-limit-window 60 --rate-limit-requests 120 --rate-limit-keys ip --rate-limit-action rate_limit --yes
-```
+To change it, use the dashboard: the weave project, Firewall, then the rule, then Review Changes and
+Publish. Keep both condition groups.
 
-```bash
-vercel firewall publish
-```
-
-The CLI line follows Vercel's documentation and has not been run here. Do not use Challenge as the action, or Attack Mode on this path: assistants are not browsers and cannot
+Do not use Challenge as the action, or Attack Mode on this path: assistants are not browsers and cannot
 pass a challenge. The rule cannot tell one tool from another, which is why the ranking tool's tighter
 limit lives in the function.
 

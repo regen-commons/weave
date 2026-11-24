@@ -1,7 +1,8 @@
 // The app's build, as the record page and sitemap functions read it. Vercel bundles the files with each
-// function (`includeFiles` in packages/app/vercel.json); a deployment without them reads its own static
-// copies instead, and says so.
+// function (`includeFiles` in packages/app/vercel.json); a function without them reads the public site's
+// static copies instead, and says so.
 import { readFile } from "node:fs/promises";
+import { PUBLIC_ORIGIN } from "./page-preview.ts";
 import { parseRecordPreviews, RECORD_PREVIEWS_FILE, type RecordPreviews } from "./record-page-http.ts";
 
 const TIMEOUT_MS = 3000;
@@ -22,18 +23,22 @@ export const BUILT_FILES = {
 export type BuiltFileName = keyof typeof BUILT_FILES;
 
 /** Which copy served the last read, for a header a check after a deploy can read. */
-let source: "bundle" | "deployment" = "bundle";
-export const builtSource = (): "bundle" | "deployment" => source;
+let source: "bundle" | "site" = "bundle";
+export const builtSource = (): "bundle" | "site" => source;
 
 /**
- * The first of the build's files that exists, from the function's bundle, or else the first from the
- * deployment it belongs to. Over the network a missing file would come back as the app's page, so only
- * the first is asked for there. `read` is the file system's, replaced only in tests.
+ * The first of the build's files that exists, from the function's bundle, or else the first from Weave's
+ * public site. Never from the address a request came to: what is read here is kept for the instance and
+ * goes into cached pages, so no request's Host may choose it. Over the network a missing file would come
+ * back as the app's page, so only the first is asked for there. `read` is the file system's and `get` the
+ * network's, replaced only in tests.
  */
 export async function builtFile(
   files: BuiltFileName | readonly BuiltFileName[],
-  request: Request,
-  read: (address: URL) => Promise<string> = (address) => readFile(address, "utf8"),
+  { read = (address: URL) => readFile(address, "utf8"), get = fetch }: {
+    read?: (address: URL) => Promise<string>;
+    get?: typeof fetch;
+  } = {},
 ): Promise<string> {
   const names: readonly BuiltFileName[] = typeof files === "string" ? [files] : files;
   for (const file of names) {
@@ -45,17 +50,17 @@ export async function builtFile(
       // Not in this build or not bundled; try the next one.
     }
   }
-  const response = await fetch(new URL(`/${names[0]}`, request.url), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
+  const response = await get(new URL(`/${names[0]}`, PUBLIC_ORIGIN), { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: "error" });
   if (!response.ok) throw Error("built_file_unavailable");
-  source = "deployment";
+  source = "site";
   return response.text();
 }
 
 /** Kept for the life of the function instance once read: a deployment's build never changes. */
-export function once<T>(read: (request: Request) => Promise<T>): (request: Request) => Promise<T> {
+export function once<T>(read: () => Promise<T>): () => Promise<T> {
   let kept: Promise<T> | undefined;
-  return (request) => {
-    const current = kept ??= read(request);
+  return () => {
+    const current = kept ??= read();
     // A failed read is tried again by the next request instead of being kept.
     current.catch(() => { if (kept === current) kept = undefined; });
     return current;
@@ -63,5 +68,5 @@ export function once<T>(read: (request: Request) => Promise<T>): (request: Reque
 }
 
 /** The build's record previews, read once per function instance. */
-export const builtPreviews = once(async (request): Promise<RecordPreviews> =>
-  parseRecordPreviews(JSON.parse(await builtFile(RECORD_PREVIEWS_FILE, request))));
+export const builtPreviews = once(async (): Promise<RecordPreviews> =>
+  parseRecordPreviews(JSON.parse(await builtFile(RECORD_PREVIEWS_FILE))));
