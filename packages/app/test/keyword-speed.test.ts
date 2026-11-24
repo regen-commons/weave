@@ -6,10 +6,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise } from "../src/describe/contracts.ts";
-import { fieldsForm, fillFields } from "../src/describe/fill.ts";
+import { fieldsForm, fillFields, withoutLinkPointers } from "../src/describe/fill.ts";
 import { collectSource, fromSource, keywordSuggestion } from "../src/describe/keywords.ts";
 import { statedName } from "../src/describe/names.ts";
 import { statedWhere } from "../src/describe/places.ts";
+import { initiativeWords } from "../src/describe/about.ts";
 
 /** Well under a second, with room for a slow machine. */
 const LIMIT_MS = 500;
@@ -82,6 +83,17 @@ test("the place rules make one bounded pass, on 20,000 spaces, on line ends, and
     quick("a place, then prose", () => statedWhere(`We are a seed library in Porto Alegre, Brazil. ${prose(2_000_000)}`, "")),
     { locations: ["Porto Alegre, Brazil"], isGlobal: false },
   );
+});
+
+test("About it reads a full box of run-on speech as quickly as a short one (24 November 2026)", () => {
+  quick("a run-on box of clauses", () => initiativeWords("we swim at the lake and ".repeat(90_000)));
+  quick("a run-on box of asks", () => initiativeWords("we need a boat and ".repeat(110_000)));
+  quick("a box of sentences", () => initiativeWords("We need tools. ".repeat(130_000)));
+  quick("a box of spaces", () => initiativeWords(`My name is${spaces}Dara and ${spaces}we swim.`));
+  quick("a sentence ending in a long run of marks", () => initiativeWords(`we swim and we need a boat${"?".repeat(20_000)}`));
+  quick("a sentence ending in a long run of commas", () => initiativeWords(`we swim and we need a boat${",".repeat(20_000)}`));
+  // One long word after "for" took seconds to read as a pointer's tail in a first draft of this rule.
+  quick("a pointer before one long word", () => withoutLinkPointers(`See https://x.example.org for ${"a".repeat(300)}1.`, ["https://x.example.org"]));
 });
 
 test("the whole keyword fill of a full box finishes quickly", async () => {

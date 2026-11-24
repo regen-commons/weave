@@ -2,6 +2,7 @@ import { z } from "../validation.ts";
 import { wholeWords } from "../intake/keywords.ts";
 import { fileName, spokenName, statedName } from "./names.ts";
 import { spokenWhere, statedWhere, whereFromAnswer } from "./places.ts";
+import { initiativeWords } from "./about.ts";
 import {
   FileReadSchema,
   SuggestionSchema,
@@ -159,12 +160,14 @@ export function aboutPassage(text: string): string {
   return "";
 }
 /**
- * About it is the person's own words when they said enough to describe the initiative. A file
- * fills it only when they did not, so a description they gave is never mixed with a document's.
+ * About it is the person's own words when they said enough to describe the initiative, as the
+ * initiative's own description: without what it needs or could offer, and without the speaker's
+ * own name (`initiativeWords`). A file fills it only when they did not, so a description they gave
+ * is never mixed with a document's.
  */
 function aboutWords(said: string, fromFiles: string, all: string): string {
-  if (!fromFiles) return all;
-  if (countWords(said) >= ABOUT_OWN_WORDS) return said;
+  if (!fromFiles) return initiativeWords(all);
+  if (countWords(said) >= ABOUT_OWN_WORDS) return initiativeWords(said);
   return aboutPassage(fromFiles) || all;
 }
 export async function collectSource(

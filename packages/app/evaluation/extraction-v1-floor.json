@@ -1,6 +1,6 @@
 {
   "dataset": "extraction-v1",
-  "recordedOn": "2026-11-23",
+  "recordedOn": "2026-11-24",
   "corpusHash": "231d7fb5688d612bfeb3f5a6bb55409067870c84e7b2eee89447d3da746eabcf",
   "summary": {
     "name": {
@@ -16,10 +16,10 @@
       "passed": 18
     },
     "about": {
-      "precision": 0.8462,
-      "recall": 0.8049,
+      "precision": 0.8974,
+      "recall": 0.8537,
       "cases": 41,
-      "passed": 33
+      "passed": 35
     },
     "link": {
       "precision": 1,
@@ -38,6 +38,7 @@
     "d-01": [
       "name",
       "where",
+      "about",
       "link"
     ],
     "d-02": [
@@ -118,6 +119,7 @@
     ],
     "d-19": [
       "name",
+      "about",
       "link"
     ],
     "d-20": [
@@ -290,8 +292,8 @@
         "fn": 0
       },
       "about": {
-        "fp": 1,
-        "fn": 1
+        "fp": 0,
+        "fn": 0
       },
       "link": {
         "fp": 0,
@@ -554,8 +556,8 @@
         "fn": 1
       },
       "about": {
-        "fp": 1,
-        "fn": 1
+        "fp": 0,
+        "fn": 0
       },
       "link": {
         "fp": 0,

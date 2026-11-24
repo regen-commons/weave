@@ -128,9 +128,12 @@ places are paired; the rules were the same and so were the numbers.)
 
 What the holdout shows: the rules never invent a name or a place, but they miss most
 places said in sentences ("in Leeds", "in Belo Horizonte"), most Spanish and many
-Portuguese names, and most lists typed with commas or said in Spanish. About it keeps
-the whole box, so it often holds the speaker's own name ("my name is dara") and a
-need sentence. These are agent-written cases and agent-judged labels, so read them as a
+Portuguese names, and most lists typed with commas or said in Spanish. About it kept
+the whole box, so it often held the speaker's own name ("my name is dara") and a
+need sentence. Since 24 November 2026 it leaves out the clauses that ask or offer and
+the speaker's introduction, never rewording what stays: About it is 1.00 / 1.00 on the
+original 48 development cases and 0.93 / 0.93 on the holdout, and the other rates are
+unchanged. These are agent-written cases and agent-judged labels, so read them as a
 direction, not a measured rate for real people's words. Every person and link in both
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.
@@ -138,15 +141,18 @@ splits is invented; places are real. A label names a place as fully as the words
 The one exception is Green Goods and Tech and Sun, two real projects included with their
 owner's consent. Their 12 typed and spoken cases (`owner-profile-2026-11-23`) are written
 from the public-safe facts of the owner's profile and leave out everything the owner
-marked private; Tech and Sun's place is Awka only, for now. Their four files are
-excerpts of the projects' public documentation. With those cases, d-31 and the files
-added on 23 November, development (91 cases) scores Name 0.91 / 0.56, Where you work
-0.93 / 0.35, About it 0.85 / 0.80, Link 1.00 / 0.33 and Cards 0.30 / 0.39. The owner's
-longer texts lose most of the cards: on the needs and offers steps, each sentence of a
-typed description becomes a card, and a recording becomes a few long cards that each
-hold several items, their titles cut at 140 characters. Link is filled from a full
-address such as `https://mangrove-futures.example.org`, but not from a bare domain such
-as "greengoods.app" or from one said aloud.
+marked private; Tech and Sun's place is Awka only, for now. Their four files are excerpts
+of the projects' public documentation. With those cases, d-31 and the files added on 23
+November, development (91 cases) scores Name 0.91 / 0.56, Where you work 0.93 / 0.35,
+About it 0.90 / 0.85, Link 1.00 / 0.33 and Cards 0.30 / 0.39. Of the typed and spoken
+cases, About it fails only on d-30, where a spoken need clause ("so what we need right
+now is uh money to keep the awka hub running") stays, and d-31, where a Portuguese
+sentence that points at the link stays. The owner's longer texts lose most of the cards:
+on the needs and offers steps, each sentence of a typed description becomes a card, and a
+recording becomes a few long cards that each hold several items, their titles cut at 140
+characters. Link is filled from a full address such as
+`https://mangrove-futures.example.org`, but not from a bare domain such as
+"greengoods.app" or from one said aloud.
 
 ### What better places would need (24 November 2026)
 
@@ -175,6 +181,10 @@ in the table, and CI holds each case to the floor like any other. The floor also
 whether each file was read, and CI fails when a file read then is not read now: a
 document that asks for no cards would otherwise score better once it stopped being
 read.
+
+Since 24 November the page offers Add Files on the first step only, for launch (#240).
+The needs and offers file cases still measure those steps' reader, `extractAsks`, which
+reads files as before, so they hold the work that brings Add Files back there.
 
 Ten documents are each read on the describe, needs and offers steps, 30 cases:
 
