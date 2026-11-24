@@ -77,6 +77,11 @@ one-minute windows. A caller is one client address, or one /64 network for IPv6.
 | `find_funds_for_initiative` calls that run, from everyone | 30 a minute |
 | All tool calls that run, from everyone | 300 a minute |
 
+Every failure is a tool result with `isError: true`, its text starting with a stable code such as
+`invalid_argument`, `catalog_unavailable` or `rate_limited`, and the same code and message in
+`structuredContent.error`. A refused argument names what the tool takes; `find_funds_for_initiative`
+takes `countries` as another name for `work_countries`.
+
 A tool call over its limit gets an answer the assistant can read: `rate_limited: Too many calls. Try again
 in N seconds.` The address is the one Vercel sets in `x-forwarded-for`, which a caller cannot choose. The
 per-caller numbers are loose on purpose: an assistant service calls from a few shared addresses for all
