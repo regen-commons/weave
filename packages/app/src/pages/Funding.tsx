@@ -303,15 +303,13 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
               then (DescribePrompt), so it reads at once. A checked card takes the line above instead,
               which is shorter, so until the draft opens both are drawn and the page shows one: the
               one the device's flag names, marked before the first paint (describe/checked-hint.ts).
-              The build's first view draws both too, so the list does not move (DL-104). */}
-          {catalog.subjectKnown ? (
-            !catalog.personalized && prompt
-          ) : (
-            <>
-              <div data-unless-checked-card="">{prompt}</div>
-              <div data-if-checked-card="">{checkedRoom}</div>
-            </>
+              The build's first view draws both too, so the list does not move (DL-104). The prompt
+              keeps one wrapper before and after, so its words are drawn once and are not drawn again,
+              later, when the draft opens; once it has, the device's flag no longer decides. */}
+          {(!catalog.subjectKnown || !catalog.personalized) && (
+            <div data-unless-checked-card={catalog.subjectKnown ? undefined : ""}>{prompt}</div>
           )}
+          {!catalog.subjectKnown && <div data-if-checked-card="">{checkedRoom}</div>}
           {early ? (
             // The first cards, built into the app, while the catalog loads. The catalog's own first
             // cards are these, so it adds cards after them and moves none (DL-139, DL-140).

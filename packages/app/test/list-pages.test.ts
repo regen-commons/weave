@@ -78,7 +78,7 @@ test("a list's skeleton is built from the loaded page's own parts, so nothing mo
   // words drawn while the device draft opens and its action holding its room, beside a checked
   // card's room for a device that has one (test/prompt-at-once.test.ts, test/checked-hint.test.ts).
   const page = read("pages/Funding.tsx");
-  assert.match(page, /\{catalog\.subjectKnown \? \(\s*!catalog\.personalized && prompt\s*\) : \(/u);
+  assert.match(page, /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && \(\s*<div data-unless-checked-card=/u);
   assert.doesNotMatch(page, /!loading && !catalog\.personalized/u);
   for (const file of ["pages/Funding.tsx", "partners/PublicProjects.tsx"]) assert.match(read(file), /\breserve="/u, file);
 });
