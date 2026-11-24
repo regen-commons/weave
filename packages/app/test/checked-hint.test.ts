@@ -157,7 +157,7 @@ test("until the draft opens, Funding draws both rooms and the mark shows one, in
   const funding = read("../src/pages/Funding.tsx");
   assert.match(
     funding,
-    /\{catalog\.subjectKnown \? \(\s*!catalog\.personalized && prompt\s*\) : \(\s*<>\s*<div data-unless-checked-card="">\{prompt\}<\/div>\s*<div data-if-checked-card="">\{checkedRoom\}<\/div>/u,
+    /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && \(\s*<div data-unless-checked-card=\{catalog\.subjectKnown \? undefined : ""\}>\{prompt\}<\/div>\s*\)\}\s*\{!catalog\.subjectKnown && <div data-if-checked-card="">\{checkedRoom\}<\/div>\}/u,
   );
   // The checked card's room holds the line's shape unseen, and nothing in it can be reached.
   assert.match(funding, /const checkedRoom = \(\s*<div className="rc-skeleton" data-shape="room" aria-hidden="true">\s*<StatusLine/u);
