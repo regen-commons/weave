@@ -13,8 +13,14 @@
 // base.css shows the loading view index.html carries for it instead of Home's first view.
 (function () {
   if (location.pathname !== "/") return;
-  if (/[?&]projectConsent=/.test(location.search || "")) document.documentElement.setAttribute("data-returning", "");
-  else document.documentElement.setAttribute("data-home", "");
+  var returning = false;
+  try {
+    // The same test the app makes (App.tsx), so the two always agree on what a return is.
+    returning = new URLSearchParams(location.search || "").has("projectConsent");
+  } catch (error) {
+    // No way to read the address: the page is Home, as it was before returns had a view.
+  }
+  document.documentElement.setAttribute(returning ? "data-returning" : "data-home", "");
 })();
 // It marks, too, whether this device's draft held a checked card when it was last open: a flag the
 // app keeps, with nothing of the card in it (src/describe/checked-hint.ts). Until the draft opens, a
