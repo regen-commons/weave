@@ -56,6 +56,12 @@ reaches it as fast.
   recording of up to 3 MB, and still requires the same-origin `Origin` header. It
   stores and logs nothing, and needs no sign-in, so nothing in it may depend on who
   is asking.
+- `/api/feedback` is the one endpoint that posts to another site: the feedback sheet's message,
+  kinds and page path, to the Regen Commons website's fixed `/api/feedback`, so it reaches the
+  stewards' desk (DL-145). It forwards no cookie, header or address of the person's and logs only
+  the website's status. Only the production deployment posts to the website: a preview answers
+  that feedback is unavailable, and off Vercel it posts only to a loopback
+  `WEAVE_FEEDBACK_UPSTREAM`, so a pull request, a local run or a test never reaches the stewards.
 - Give every outbound call a timeout. Return stable error codes, never a raw provider
   response or personal data, and log neither.
 - Cloud AI runs only after consent that names the provider, model, region and
