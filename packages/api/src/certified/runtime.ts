@@ -13,11 +13,11 @@ export async function openBridgeRuntime(
   const { config, cipher, connect } = configuration;
   const sql = connect(connections);
   try {
-    await assertBridgeRuntimeRole(sql);
     const store = new AuthStore(sql, cipher);
-    const signing = await store.signingMaterial();
+    // The role check and the one read of the signing keys go together; a failed check still stops the start.
+    const [, signing] = await Promise.all([assertBridgeRuntimeRole(sql), store.signingMaterial()]);
     const client = await createCertifiedClient(store, signing, config.issuer);
-    const bridge = await createBridge(config, store, client, observer);
+    const bridge = await createBridge(config, store, client, observer, signing);
     return { store, bridge, close: () => sql.end({ timeout: 5 }) };
   } catch (error) {
     await sql.end({ timeout: 5 });

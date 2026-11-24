@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { performance } from "node:perf_hooks";
 import type { IncomingMessage, ServerResponse, RequestListener } from "node:http";
 import Provider, { errors } from "oidc-provider";
 import { AuthStore } from "./store.ts";
@@ -6,6 +7,8 @@ import { certifiedAuthorizationFailure, oidcAdapter, type CertifiedClient } from
 import { identityClaims } from "./identity.ts";
 import { createBridgeObserver, type BridgeExpiryReason, type BridgeObserver, type BridgeStartStage } from "./operations.ts";
 import { recoveryOrigin, validateConfig, type BridgeConfig } from "./bridge-config.ts";
+import { responseTiming } from "./server-timing.ts";
+import type { SigningMaterial } from "./keys.ts";
 export { validateConfig, type BridgeConfig } from "./bridge-config.ts";
 const random = () => randomBytes(32).toString("base64url");
 /**
@@ -30,9 +33,9 @@ function redirect(res: ServerResponse, target: string) { res.writeHead(303, { Lo
 
 /** Native Node service boundary for oidc-provider; no Vercel route is enabled here. */
 export async function createBridge(config: BridgeConfig, store: AuthStore, certified: CertifiedClient,
-  observer: BridgeObserver = createBridgeObserver()): Promise<RequestListener> {
+  observer: BridgeObserver = createBridgeObserver(), loadedSigning?: SigningMaterial): Promise<RequestListener> {
   validateConfig(config);
-  const signing = await store.signingMaterial();
+  const signing = loadedSigning ?? await store.signingMaterial();
   // A local Supabase callback does not weaken an HTTPS issuer's ingress or cookies.
   const secure = new URL(config.issuer).protocol === "https:", prefix = secure ? "__Host-weave_" : "weave_test_";
   const setCookie = (res: ServerResponse, kind: string, value: string, age = 600) =>
@@ -62,6 +65,7 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("Referrer-Policy", "no-referrer");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    const timing = responseTiming(res);
     let startStage: BridgeStartStage | undefined;
     try {
       if (req.headers.host !== new URL(config.issuer).host || (req.url?.length ?? 0) > 8192)
@@ -77,6 +81,13 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
       // Koa bounds form parsing too; reject streaming/chunked writes before delegation.
       if (req.method === "POST" && req.headers["transfer-encoding"]) return json(res, 411, { error: "length_required" });
       if (url.pathname === "/client-metadata.json" && req.method === "GET") return json(res, 200, certified.metadata);
+      // Weave asks this while Sign In is on screen, so the press finds Certified's metadata and a DPoP
+      // nonce already here. It names no one, starts nothing and says nothing about how it went.
+      if (url.pathname === "/warm" && req.method === "GET") {
+        const started = performance.now(), outcome = await certified.prime();
+        timing.add("prime", performance.now() - started, outcome);
+        res.writeHead(204); return res.end();
+      }
       if (url.pathname === "/at-jwks.json" && req.method === "GET") return json(res, 200, certified.jwks);
       if (url.pathname === "/at/callback" && req.method === "GET") {
         // A missing cookie or binding has expired or was already used. Either way it cannot finish here.
@@ -87,7 +98,7 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
         if (typeof binding?.uid !== "string") return expired(res, "state_gone");
         // Past the deadline, skip the Certified exchange: no identity is read for a flow Supabase will refuse.
         if (pastDeadline(binding.deadline)) return expired(res, "deadline");
-        const result = await certified.callback(url.searchParams);
+        const result = await timing.time("exchange", () => certified.callback(url.searchParams));
         if (result.state !== bindingId) throw new Error("invalid_browser_state");
         identityClaims(result.subject);
         const ticket = random();
@@ -126,7 +137,7 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
           if (pastDeadline(deadline)) return expired(res, "deadline");
           const state = random();
           startStage = "browser_state";
-          await store.put("browser:at", state, { uid: interaction.uid, deadline }, 600);
+          await timing.time("state", () => store.put("browser:at", state, { uid: interaction.uid, deadline }, 600));
           setCookie(res, "at", state);
           const emailHints = config.emailHints;
           const hint = emailHints?.open(interaction.params.login_hint);
@@ -140,7 +151,11 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
             });
           }
           startStage = "oauth_authorize";
-          return redirect(res, String(await certified.authorize(state, email)));
+          // Costs nothing when the warm-up already readied Certified; otherwise it takes the place of the
+          // request Certified would refuse for want of a nonce.
+          const primeStarted = performance.now(), readiness = await certified.prime();
+          timing.add("prime", performance.now() - primeStarted, readiness);
+          return redirect(res, String(await timing.time("par", () => certified.authorize(state, email))));
         }
         startStage = undefined;
         if (interaction.prompt.name === "consent") {

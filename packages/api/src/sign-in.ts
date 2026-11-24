@@ -5,6 +5,7 @@ import { boundedJson, RENEWAL_SECONDS, sessionCookies } from "./account-http.ts"
 import { accountRuntime } from "./account-runtime.ts";
 import type { SignInStore } from "./sign-in-store.ts";
 import { signInEmail, type certifiedEmailHints } from "./certified/email-hint.ts";
+import { serverTiming, withServerTiming } from "./certified/server-timing.ts";
 
 const nonce = () => randomBytes(32).toString("base64url");
 const tasks = new Set(["/", "/settings", "/start/initiative", "/start/initiative/check", "/start/needs", "/start/offers", "/start/finish", "/your-initiative", "/your-initiatives", "/partners", "/funding", "/initiatives"]);
@@ -41,6 +42,7 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
   };
   return {
     async POST(request: Request) {
+      const timing = serverTiming();
       try {
         if (new URL(request.url).origin !== origin || request.headers.get("origin") !== origin)
           throw new AccountError(403, "origin_required");
@@ -52,8 +54,8 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         // starts no attempt, sets no cookie and says nothing about whether any of it worked.
         if (body.warm === true) {
           if (Object.keys(body).length !== 1) throw new AccountError(400, "invalid_data");
-          await Promise.allSettled([store.ready?.(), warmBridge?.()]);
-          return new Response(JSON.stringify({ warm: true }), { status: 200, headers: { ...headers, "Content-Type": "application/json" } });
+          await Promise.allSettled([timing.time("store", async () => store.ready?.()), timing.time("bridge", async () => warmBridge?.())]);
+          return withServerTiming(new Response(JSON.stringify({ warm: true }), { status: 200, headers: { ...headers, "Content-Type": "application/json" } }), timing);
         }
         const returnTo = returnTask(body.returnTo);
         // A press with no warning still gives the bridge a head start on the redirects that follow.
@@ -70,16 +72,19 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         const redirect = provider.signInUrl(createHash("sha256").update(verifier).digest("base64url"), callback,
           email ? emailHints?.seal(email) : undefined);
         const previous = cookies.binding(request);
-        if (previous) await store.take(previous);
-        await store.put(id, { verifier, state, returnTo });
-        return new Response(JSON.stringify({ redirect }), { status: 200,
-          headers: { ...headers, "Content-Type": "application/json", "Set-Cookie": cookies.pending(id, 600) } });
+        await timing.time("state", async () => {
+          if (previous) await store.take(previous);
+          await store.put(id, { verifier, state, returnTo });
+        });
+        return withServerTiming(new Response(JSON.stringify({ redirect }), { status: 200,
+          headers: { ...headers, "Content-Type": "application/json", "Set-Cookie": cookies.pending(id, 600) } }), timing);
       } catch (error) {
         const known = error instanceof AccountError ? error : new AccountError(503, "sign_in_unavailable");
         return new Response(JSON.stringify({ error: known.code }), { status: known.status, headers: { ...headers, "Content-Type": "application/json" } });
       }
     },
     async GET(request: Request) {
+      const timing = serverTiming();
       let returnTo = "/settings";
       let established: string | undefined;
       try {
@@ -103,13 +108,13 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         if (returned) return finish(returnTo, returned);
         const code = url.searchParams.get("code");
         if (!code || code.length > 2048 || url.searchParams.getAll("code").length !== 1) throw Error("invalid_callback");
-        const session = await provider.exchangeCode(code, attempt.verifier);
+        const session = await timing.time("exchange", () => provider.exchangeCode(code, attempt.verifier));
         established = session.token;
         // Authoritative database predicate rejects missing Certified identity, bans and revoked sessions.
-        await provider.authorize(session.token);
+        await timing.time("authorize", () => provider.authorize(session.token));
         // The refresh token lets /api/account renew the access token before its hour runs out.
-        return finish(returnTo, "signed-in", [cookies.session(session.token, session.expiresIn),
-          cookies.renewal(session.refreshToken, RENEWAL_SECONDS)]);
+        return withServerTiming(finish(returnTo, "signed-in", [cookies.session(session.token, session.expiresIn),
+          cookies.renewal(session.refreshToken, RENEWAL_SECONDS)]), timing);
       } catch (error) {
         if (established) { try { await provider.signOut(established); } catch {} }
         return finish(returnTo, error instanceof AccountError && error.code === "sign_in_expired" ? "expired" : "failed");

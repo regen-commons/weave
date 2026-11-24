@@ -9,6 +9,8 @@ import { AccountError } from "./account-provider.ts";
 import { SESSION_CAP_SECONDS } from "./account-session.ts";
 import type { StateCipher } from "./certified/crypto.ts";
 import { CERTIFIED_ISSUER, identitySubject } from "./certified/identity.ts";
+import { certifiedOAuthCaches, certifiedPrimer, type CertifiedOAuthCaches } from "./certified/oauth-prime.ts";
+import { serverTiming, withServerTiming, type ServerTiming } from "./certified/server-timing.ts";
 
 export const certifiedProjectOAuthPaths = {
   metadata: "/api/certified-project-client",
@@ -135,6 +137,9 @@ interface ScopedSession {
 interface ProjectOAuthClient {
   clientMetadata: unknown;
   jwks: unknown;
+  /** The SDK's resolver, which the primer uses to ready Certified's metadata. A test fixture may leave it out. */
+  oauthResolver?: { resolve(input: string, options?: { signal?: AbortSignal }):
+    Promise<{ metadata: { issuer: string; pushed_authorization_request_endpoint?: string } }> };
   authorize(input: string, options: Parameters<NodeOAuthClient["authorize"]>[1]): Promise<URL>;
   callback(params: URLSearchParams, options: Parameters<NodeOAuthClient["callback"]>[1]):
     Promise<{ state: string | null; session: ScopedSession }>;
@@ -151,6 +156,10 @@ interface ProjectOAuthOptions {
   allowsDid(did: string): boolean;
   /** Test fixture only; production always uses the pinned NodeOAuthClient. */
   makeClient?: (options: NodeOAuthClientOptions) => ProjectOAuthClient;
+  /** Shared by every client this instance makes. Tests pass their own; production makes one set. */
+  caches?: CertifiedOAuthCaches;
+  /** Test fixture only: what Certified's PAR endpoint is asked with when readying a nonce. */
+  primeFetch?: typeof fetch;
 }
 function isAction(value: unknown): value is ConsentAction {
   return typeof value === "string" && Object.hasOwn(grantMethods, value);
@@ -293,6 +302,9 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     },
     implementation: Pick<NodeOAuthClientOptions, "requestLock" | "fetch"> = {},
   ) => (options.makeClient ?? (input => new NodeOAuthClient(input)))({
+    // One set of metadata and nonce caches for every attempt, callback and restored session, where each
+    // new client used to start empty and ask Certified for all of it again.
+    ...caches,
     clientMetadata, keyset, stateStore, sessionStore,
     // Initial consent uses one client per attempt; restored sessions override
     // this with the SDK's durable session/refresh lock below.
@@ -303,7 +315,14 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     }),
     ...implementation,
   });
+  const caches = options.caches ?? certifiedOAuthCaches();
   const publicClient = makeClient();
+  const prime = certifiedPrimer({
+    caches, ...(options.primeFetch ? { fetch: options.primeFetch } : {}),
+    resolve: signal => publicClient.oauthResolver
+      ? publicClient.oauthResolver.resolve(CERTIFIED_ISSUER, { signal })
+      : Promise.reject(Error("project_oauth_resolver_unavailable")),
+  });
   const requests = new WeakMap<Request, { closing: boolean; pending: Set<Promise<void>> }>();
   const requestState = (request: Request) => {
     let state = requests.get(request);
@@ -317,7 +336,10 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     return actor && attempt({ ...actor, action: "membership" });
   };
 
-  async function start(request: Request, actor: CertifiedProjectActor, action: ConsentAction) {
+  async function start(request: Request, actor: CertifiedProjectActor, action: ConsentAction,
+    readied: Promise<unknown>, timing: ServerTiming) {
+    // Readying ran while the session was checked. Waiting for it means the PAR below carries a nonce.
+    await timing.time("prime", () => readied);
     const binding = randomId();
     const input = { ...actor, action };
     const client = makeClient(AbortSignal.any([request.signal, AbortSignal.timeout(10000)]), {
@@ -329,9 +351,9 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       get: async () => undefined,
       del: async () => {},
     });
-    const target = await client.authorize(CERTIFIED_ISSUER, {
+    const target = await timing.time("par", () => client.authorize(CERTIFIED_ISSUER, {
       state: JSON.stringify(input), scope: scopes(grantMethods[action]), prompt: "consent",
-    });
+    }));
     const endpoint = target.origin + target.pathname;
     if (![CERTIFIED_ISSUER + "/oauth/authorize", "https://auth.certified.one/oauth/authorize"].includes(endpoint) ||
         target.username || target.password || target.hash ||
@@ -544,6 +566,8 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       }
       return removed;
     },
+    /** Readies Certified's metadata and a DPoP nonce for this instance. Never rejects. */
+    prime,
     metadata: () => response(publicClient.clientMetadata),
     jwks: () => response(publicClient.jwks),
     async consent(request: Request) {
@@ -552,16 +576,20 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
         return response({ error: "invalid_origin" }, 403);
       if (request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== "application/json")
         return response({ error: "invalid_data" }, 415);
+      const timing = serverTiming();
       try {
         const body = await boundedJson(request);
         if (Object.keys(body).length !== 1 || (body.action !== "finish" && !isAction(body.action)))
           throw new AccountError(400, "invalid_data");
-        const actor = await getActor(request);
+        // A start readies Certified while the session is checked; nothing about the person goes with it.
+        const readied = body.action === "finish" ? undefined : prime();
+        const actor = await timing.time("actor", () => getActor(request));
         if (!actor) throw new AccountError(401, "sign_in_required");
-        return await (body.action === "finish" ? finish(request, actor) : start(request, actor, body.action));
+        return withServerTiming(await (body.action === "finish" ? finish(request, actor)
+          : start(request, actor, body.action, readied ?? prime(), timing)), timing);
       } catch (error) {
-        if (error instanceof AccountError) return response({ error: error.code }, error.status);
-        return response({ error: "certified_project_auth_unavailable" }, 503);
+        if (error instanceof AccountError) return withServerTiming(response({ error: error.code }, error.status), timing);
+        return withServerTiming(response({ error: "certified_project_auth_unavailable" }, 503), timing);
       }
     },
     async callback(request: Request) {
@@ -577,6 +605,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       const isCode = single("code") && Boolean(params.get("code")) && !params.has("error");
       if ((!isCode && !isError) || (params.has("iss") && (!single("iss") || params.get("iss") !== CERTIFIED_ISSUER)) ||
           (isCode && params.get("iss") !== CERTIFIED_ISSUER)) return complete("failed");
+      const timing = serverTiming();
       try {
         const stored = await store.take("state", `${binding}:${state}`) as NodeSavedState | undefined;
         if (!stored || stored.iss !== CERTIFIED_ISSUER || !stored.appState) return complete("failed");
@@ -597,15 +626,15 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
           },
           del: async () => { session = undefined; },
         });
-        const result = await client.callback(params, {});
+        const result = await timing.time("exchange", () => client.callback(params, {}));
         if (result.state !== stored.appState || result.session.did !== input.did ||
             result.session.serverMetadata.issuer !== CERTIFIED_ISSUER || !session) return complete("failed");
         const receipt = randomId();
-        await store.put("receipt", receipt, { ...input, session, expiresAt: Date.now() + grantLifetime(input.action) * 1000 }, attemptTtl);
+        await timing.time("state", () => store.put("receipt", receipt, { ...input, session, expiresAt: Date.now() + grantLifetime(input.action) * 1000 }, attemptTtl));
         // SameSite=Strict keeps the Weave session off the cross-site callback. The
         // browser must complete a same-origin POST before the staged token can be used.
-        return complete("ready", receipt);
-      } catch { return complete("failed"); }
+        return withServerTiming(complete("ready", receipt), timing);
+      } catch { return withServerTiming(complete("failed"), timing); }
     },
     async assertGrant(request: Request, expectedDid: string, methods: readonly string[]) {
       const actor = await getActor(request);
