@@ -138,7 +138,7 @@ export const AGENT_TOOLS: readonly AgentToolDefinition[] = [
         description: { type: "string", minLength: INITIATIVE_DESCRIPTION_MIN, maxLength: INITIATIVE_DESCRIPTION_MAX, description: "What the initiative does, where and for whom, in plain words. A few specific sentences work better than a slogan." },
         themes: { type: "array", maxItems: THEMES_MAX, items: { type: "string", maxLength: 60 }, description: "Optional topics the work centers on, such as watershed restoration or seed saving." },
         work_countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional two-letter country codes where the work happens, such as NG or BR." },
-        countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional, the same as work_countries: two-letter country codes where the work happens, such as NG." },
+        countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional, the same as work_countries: two-letter country codes where the work happens, such as NG. The two together hold at most 30." },
         benefit_countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional two-letter country codes where the people who benefit are." },
         applicant_base_country: { type: "string", pattern: "^[A-Za-z]{2}$", description: "Optional two-letter country code where the applicant is based." },
         registration_country: { type: "string", pattern: "^[A-Za-z]{2}$", description: "Optional two-letter country code where the applicant is legally registered." },
@@ -191,7 +191,9 @@ function fields(value: unknown, allowed: readonly string[]): Record<string, unkn
   if (typeof value !== "object" || Array.isArray(value)) return refuse("Arguments must be an object.");
   const unknown = Object.keys(value).find((key) => !allowed.includes(key));
   // The refusal names what the tool does take, so a caller that guessed a name can try again.
-  if (unknown !== undefined) return refuse(`Unknown argument: ${unknown.slice(0, 40)}. This tool takes ${allowed.length ? allowed.join(", ") : "no arguments"}.`);
+  // Only a plain name is said back, so a key cannot carry other text into the answer.
+  if (unknown !== undefined)
+    return refuse(`Unknown argument${/^[A-Za-z0-9_-]{1,40}$/u.test(unknown) ? `: ${unknown}` : ""}. This tool takes ${allowed.join(", ")}.`);
   return value as Record<string, unknown>;
 }
 function text(value: unknown, name: string, max: number): string | null {
@@ -223,7 +225,8 @@ function offset(value: unknown): number {
 }
 function list(value: unknown, name: string, max: number): unknown[] {
   if (value === undefined || value === null) return [];
-  return Array.isArray(value) && value.length <= max ? value : refuse(`${name} must be a list of at most ${max}.`);
+  if (!Array.isArray(value)) return refuse(`${name} must be a list, such as ["${name.includes("countr") ? "NG" : "example"}"].`);
+  return value.length <= max ? value : refuse(`${name} must hold at most ${max} items.`);
 }
 /** Where the work happens. "countries" is another name for work_countries, the name a caller most often guesses. */
 function workCountries(a: Record<string, unknown>): string[] {
