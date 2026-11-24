@@ -1,25 +1,25 @@
 {
   "dataset": "extraction-v1",
   "recordedOn": "2026-11-23",
-  "corpusHash": "b57e89ca2906d57a3262411d5f6b1de35dd421de13f3e4efa840ce239a94ba9e",
+  "corpusHash": "231d7fb5688d612bfeb3f5a6bb55409067870c84e7b2eee89447d3da746eabcf",
   "summary": {
     "name": {
-      "precision": 1,
-      "recall": 0.7308,
-      "cases": 31,
-      "passed": 24
+      "precision": 0.9091,
+      "recall": 0.5556,
+      "cases": 41,
+      "passed": 25
     },
     "where": {
-      "precision": 1,
-      "recall": 0.4138,
-      "cases": 31,
-      "passed": 15
+      "precision": 0.9286,
+      "recall": 0.3514,
+      "cases": 41,
+      "passed": 18
     },
     "about": {
-      "precision": 0.871,
-      "recall": 0.871,
-      "cases": 31,
-      "passed": 27
+      "precision": 0.8462,
+      "recall": 0.8049,
+      "cases": 41,
+      "passed": 33
     },
     "link": {
       "precision": 1,
@@ -28,9 +28,9 @@
       "passed": 6
     },
     "cards": {
-      "precision": 0.5634,
-      "recall": 0.5263,
-      "cases": 30,
+      "precision": 0.2963,
+      "recall": 0.3846,
+      "cases": 50,
       "passed": 17
     }
   },
@@ -231,7 +231,53 @@
     "o-11": [],
     "o-12": [],
     "o-13": [],
-    "o-14": []
+    "o-14": [],
+    "f-01-d": [
+      "where",
+      "about"
+    ],
+    "f-01-n": [],
+    "f-01-o": [],
+    "f-02-d": [
+      "name",
+      "where",
+      "about"
+    ],
+    "f-02-n": [],
+    "f-02-o": [],
+    "f-03-d": [
+      "about"
+    ],
+    "f-03-n": [],
+    "f-03-o": [],
+    "f-04-d": [
+      "about"
+    ],
+    "f-04-n": [],
+    "f-04-o": [],
+    "f-05-d": [
+      "about"
+    ],
+    "f-05-n": [],
+    "f-05-o": [],
+    "f-06-d": [
+      "where",
+      "about"
+    ],
+    "f-06-n": [],
+    "f-06-o": [],
+    "f-07-d": [],
+    "f-07-n": [],
+    "f-07-o": [],
+    "f-08-d": [],
+    "f-08-n": [],
+    "f-08-o": [],
+    "f-09-d": [],
+    "f-09-n": [],
+    "f-09-o": [],
+    "f-10-d": [],
+    "f-10-n": [],
+    "f-10-o": []
   },
   "errors": {
     "d-01": {
@@ -887,6 +933,298 @@
         "fp": 4,
         "fn": 3
       }
+    },
+    "f-01-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "f-01-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-01-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-02-d": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "f-02-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-02-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-03-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "f-03-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-03-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-04-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "f-04-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-04-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 0
+      }
+    },
+    "f-05-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "f-05-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
+      }
+    },
+    "f-05-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 2
+      }
+    },
+    "f-06-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "f-06-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
+      }
+    },
+    "f-06-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 2
+      }
+    },
+    "f-07-d": {
+      "name": {
+        "fp": 1,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 1,
+        "fn": 1
+      }
+    },
+    "f-07-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
+      }
+    },
+    "f-07-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 2
+      }
+    },
+    "f-08-d": {
+      "name": {
+        "fp": 1,
+        "fn": 1
+      },
+      "where": {
+        "fp": 1,
+        "fn": 1
+      },
+      "about": {
+        "fp": 1,
+        "fn": 1
+      }
+    },
+    "f-08-n": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
+      }
+    },
+    "f-08-o": {
+      "cards": {
+        "fp": 4,
+        "fn": 2
+      }
+    },
+    "f-09-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "f-09-n": {
+      "cards": {
+        "fp": 0,
+        "fn": 3
+      }
+    },
+    "f-09-o": {
+      "cards": {
+        "fp": 0,
+        "fn": 2
+      }
+    },
+    "f-10-d": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "f-10-n": {
+      "cards": {
+        "fp": 0,
+        "fn": 2
+      }
+    },
+    "f-10-o": {
+      "cards": {
+        "fp": 0,
+        "fn": 1
+      }
     }
+  },
+  "files": {
+    "f-01-d": "read",
+    "f-01-n": "read",
+    "f-01-o": "read",
+    "f-02-d": "read",
+    "f-02-n": "read",
+    "f-02-o": "read",
+    "f-03-d": "read",
+    "f-03-n": "read",
+    "f-03-o": "read",
+    "f-04-d": "read",
+    "f-04-n": "read",
+    "f-04-o": "read",
+    "f-05-d": "read",
+    "f-05-n": "read",
+    "f-05-o": "read",
+    "f-06-d": "read",
+    "f-06-n": "read",
+    "f-06-o": "read",
+    "f-07-d": "read",
+    "f-07-n": "read",
+    "f-07-o": "read",
+    "f-08-d": "read",
+    "f-08-n": "read",
+    "f-08-o": "read",
+    "f-09-d": "unread",
+    "f-09-n": "unread",
+    "f-09-o": "unread",
+    "f-10-d": "unread",
+    "f-10-n": "unread",
+    "f-10-o": "unread"
   }
 }

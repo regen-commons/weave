@@ -129,4 +129,86 @@ test("the validator rejects a label no rule could meet, duplicate words and a ca
   reject((data) => { needs(data).cards = ["a", "b", "c", "d", "e"]; }, "invalid_extraction_expected");
   // "tree seedlings" sits inside "fruit tree seedlings", so a card could never hold one without the other.
   reject((data) => { needs(data).cards = ["fruit tree seedlings", "tree seedlings"]; }, /^overlapping_keys/u);
+  // A file case says what its file is, and a Word file is not a PDF.
+  reject((data) => { data.cases.find((row) => row.id === "f-09-d")!.format = "pdf"; }, /^invalid_extraction_file/u);
+  reject((data) => { delete data.cases.find((row) => row.id === "f-01-d")!.file; }, /^invalid_extraction_file/u);
+});
+
+// Files a person adds: each case's document exists, its gold is in the document's own words, and the reader
+// reads what the page reads. A Word file and a PDF with no text layer are kept and not read, so they score as misses.
+test("every file case's gold is in its document, and the reader reads the files the page reads", async () => {
+  const corpus = await development;
+  const { readFile } = await import("node:fs/promises");
+  const { existsSync } = await import("node:fs");
+  const { collectSource } = await import("../src/describe/keywords.ts");
+  const { attachmentOf, nodePdfReader } = await import("../evaluation/extraction.ts");
+  const folder = new URL("../evaluation/files/", import.meta.url);
+  // A PDF or Word file is made from Markdown of the same name, beside it or in sources/.
+  const words = async (file: string) => {
+    const stem = file.replace(/\.[a-z]+$/u, "");
+    const beside = new URL(`${stem}.md`, folder), source = new URL(`sources/${stem}.md`, folder);
+    return readFile(/\.(md|txt)$/u.test(file) ? new URL(file, folder) : existsSync(beside) ? beside : source, "utf8");
+  };
+  const files = corpus.cases.filter((row) => row.mode === "file");
+  assert.ok(files.length >= 30 && new Set(files.map((row) => row.format)).size === 5, "Markdown, text, PDF, a scanned PDF and Word");
+  for (const row of files) {
+    const text = await words(row.file!);
+    const expected = row.expected as { name?: string; where?: string[]; about?: { includes: string[]; excludes: string[] }; cards?: string[] };
+    const phrases = [...(expected.about?.includes ?? []), ...(expected.about?.excludes ?? []), ...(expected.where ?? []), ...(expected.cards ?? [])];
+    for (const phrase of [...phrases, ...(expected.name ? [expected.name] : [])])
+      assert.ok(` ${fold(text)} `.includes(` ${fold(phrase)} `), `${row.id}: "${phrase}" is not in ${row.file}`);
+  }
+  const status = async (file: string) => (await collectSource({ turns: [], composer: "", attachments: [await attachmentOf(file)] }, nodePdfReader)).files[0]!.status;
+  assert.deepEqual(
+    await Promise.all(["en-one-pager.md", "en-grant-excerpt.txt", "pt-grant-application.pdf", "pt-project-brief.docx", "en-scanned-proposal.pdf"].map(status)),
+    ["read", "read", "read", "unread", "unread"],
+  );
+});
+
+// The eval reads words and files with the page's own readers (keywordExtract, extractAsks). Those need the page's
+// worker for a PDF, so a PDF goes through the eval's copy of their steps with PDF.js's Node build. The copy must
+// give what the page's readers give on everything else, or a PDF case would measure rules the page does not run.
+test("the eval's PDF path gives what the page's own readers give, on every case without a PDF", async () => {
+  const corpus = await development;
+  const { askStepOf, attachmentOf, nodeCards, nodeKeywords, readCards, readDescribe } = await import("../evaluation/extraction.ts");
+  const { reconcile } = await import("../src/intake/state.ts");
+  let fileCards = 0;
+  for (const row of corpus.cases) {
+    if (row.format === "pdf" || row.format === "pdf-image") continue;
+    const files = row.file ? [await attachmentOf(row.file)] : [];
+    if (row.step === "describe") {
+      assert.deepEqual(await readDescribe(row.text, files, nodeKeywords), await readDescribe(row.text, files), row.id);
+      continue;
+    }
+    const step = askStepOf(row.text, row.step, row.mode, files);
+    const page = await readCards(row.text, row.step, row.mode, files);
+    assert.deepEqual(reconcile(step, await nodeCards(step, row.step)).items.map((item) => item.value.title), page, row.id);
+    if (row.file && !row.text) fileCards += page.length;
+  }
+  // A file alone makes cards on the needs and offers steps, so a reader that dropped files would show here.
+  assert.ok(fileCards > 0, "no card came from a file");
+});
+
+test("a file read when the floor was recorded that is not read now fails the gate, even where it asked for no cards", async () => {
+  const corpus: ExtractionCorpus = {
+    version: 1, dataset: "example", authoring: "test",
+    cases: [{ id: "f", split: "development", step: "needs", mode: "file", language: "en", source: "test", text: "", file: "green-goods-readme.md", format: "md", expected: { cards: [] } }],
+  };
+  // Before: the file was read and its lines became four wrong cards. After: nothing is read, so no card is wrong.
+  const before = await evaluate(corpus, giving({}, ["# Green Goods", "badge", "badge", "summary"]));
+  assert.equal(before.rows[0]!.file!.status, "read");
+  const floor = floorOf(corpus, before, "2026-11-23");
+  const after = await evaluate(corpus, giving({}, []));
+  after.rows[0]!.file!.status = "unread";
+  const verdict = gate(corpus, after, floor);
+  assert.equal(verdict.passed, false);
+  assert.ok(verdict.message.includes("  f file (md, en): green-goods-readme.md was read when the floor was recorded and is unread now."), verdict.message);
+});
+
+test("each file format gets its own rates, and a file the app cannot read counts against recall, not as a skip", async () => {
+  const result = await scored;
+  for (const format of ["md", "txt", "pdf", "pdf-image", "docx"]) assert.ok(result.byFormat[format], format);
+  // Nothing comes out of a Word file today, so every field it should fill is a miss.
+  assert.equal(result.byFormat.docx!.about.recall, 0);
+  assert.equal(result.byFormat.docx!.cards.cases, 2);
 });

@@ -88,12 +88,12 @@ a browser has one, is not. Each case says what a careful person would want there
 - **Link**: the website, on the cases that name one. `https://`, `www.` and a trailing
   slash do not count.
 
-Each field gets precision and recall, overall and by typed or spoken words and by
-language.
+Each field gets precision and recall, overall, by typed, spoken or file, by language and
+by file format.
 
 | Split | Cases | Who wrote it | Runs |
 |---|---|---|---|
-| `extraction-v1.json` (development) | 61: 31 describe, 16 needs, 14 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases; Green Goods and Tech and Sun from their owner's profile | CI, in `test/extraction-eval.test.ts` |
+| `extraction-v1.json` (development) | 91: 41 describe, 26 needs, 24 offers; en, pt, es; 37 typed, 24 spoken, 30 [files](#add-files) | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases; Green Goods and Tech and Sun from their owner's profile | CI, in `test/extraction-eval.test.ts` |
 | `extraction-v1-holdout.json` | 26: 14 describe, 6 needs, 6 offers | Another agent that read no code or tests | By hand only |
 
 ```sh
@@ -137,14 +137,79 @@ splits is invented; places are real. A label names a place as fully as the words
 The one exception is Green Goods and Tech and Sun, two real projects included with their
 owner's consent. Their 12 typed and spoken cases (`owner-profile-2026-11-23`) are written
 from the public-safe facts of the owner's profile and leave out everything the owner
-marked private; Tech and Sun's place is Awka only, for now. With those cases and d-31
-added on 23 November, development (61 cases) scores Name 1.00 / 0.73, Where you work
-1.00 / 0.41, About it 0.87 / 0.87, Link 1.00 / 0.33 and Cards 0.56 / 0.53. The owner's
+marked private; Tech and Sun's place is Awka only, for now. Their four files are
+excerpts of the projects' public documentation. With those cases, d-31 and the files
+added on 23 November, development (91 cases) scores Name 0.91 / 0.56, Where you work
+0.93 / 0.35, About it 0.85 / 0.80, Link 1.00 / 0.33 and Cards 0.30 / 0.39. The owner's
 longer texts lose most of the cards: on the needs and offers steps, each sentence of a
 typed description becomes a card, and a recording becomes a few long cards that each
 hold several items, their titles cut at 140 characters. Link is filled from a full
 address such as `https://mangrove-futures.example.org`, but not from a bare domain such
 as "greengoods.app" or from one said aloud.
+
+### Add files
+
+A file case (`"mode": "file"`) adds one document to the step and types nothing beside it,
+as a person does with Add Files, and is scored with the same rubric. Every case, typed,
+spoken or file, goes through the page's own readers, `keywordExtract` on the describe step
+and `extractAsks` on the needs and offers steps, without the browser's model. Both read a
+file with `collectSource` in `src/describe/keywords.ts`: Markdown and plain text as they
+are, and a PDF page by page through `src/describe/pdf-core.ts`. The page reads a PDF in
+its worker, which Node does not have, so a case with a PDF runs a copy of the two
+readers' steps with PDF.js's Node build in its place, and a test holds the copy to the
+page's readers on every case without a PDF. The page keeps any other file without
+reading it, a Word file included, and a PDF that holds only a picture of its pages reads
+as nothing. Those cases still expect what a person would find in the document, so each
+field they miss counts against recall, never as a skip. Each format gets its own line
+in the table, and CI holds each case to the floor like any other. The floor also records
+whether each file was read, and CI fails when a file read then is not read now: a
+document that asks for no cards would otherwise score better once it stopped being
+read.
+
+Ten documents are each read on the describe, needs and offers steps, 30 cases:
+
+| File | Format | What it is |
+|---|---|---|
+| `green-goods-readme.md`, `green-goods-readme.pdf` | Markdown, PDF | The opening of the Green Goods README |
+| `tech-and-sun-overview.md`, `tech-and-sun-overview.pdf` | Markdown, PDF | Two excerpts of the Tech & Sun Hubs documentation |
+| `en-one-pager.md` | Markdown | An invented one-pager, in English |
+| `en-grant-excerpt.txt` | Text | An invented grant excerpt, in English |
+| `pt-grant-application.pdf` | PDF | An invented application form, in Portuguese |
+| `es-project-brief.pdf` | PDF | An invented project sheet, in Spanish |
+| `pt-project-brief.docx` | Word | An invented project brief, in Portuguese |
+| `en-scanned-proposal.pdf` | PDF with no text layer | An invented proposal, scanned |
+
+The two projects' documents name no needs or offers, so on those steps they expect no
+cards. Each label quotes the document's own words, and `test/extraction-eval.test.ts`
+checks every phrase against the document, or, for a PDF or Word file, against the
+Markdown it was made from. The same test proves the reader reads the Markdown, text and
+PDF files and leaves the Word file and the scan unread. [`files/NOTICE.md`](files/NOTICE.md)
+names the sources and licences, and `node evaluation/files/make-files.mjs` makes the PDFs
+and the Word file again (on macOS, for `textutil`). Their line breaks come from Chromium
+and its fonts, and the rules read line breaks, so after making them again, record the
+floor again and check each case that moved.
+
+| 23 November 2026, precision / recall | Cases | Name | Where you work | About it | Cards |
+|---|---:|---|---|---|---|
+| Markdown | 9 | none / 0.00 | none / 0.00 | 1.00 / 1.00 | 0.00 / 0.00 |
+| Text | 3 | none / 0.00 | 1.00 / 1.00 | 1.00 / 1.00 | 0.00 / 0.00 |
+| PDF | 12 | 0.33 / 0.25 | 0.00 / 0.00 | 0.50 / 0.50 | 0.00 / 0.00 |
+| Scanned PDF | 3 | none / 0.00 | none / 0.00 | none / 0.00 | none / 0.00 |
+| Word | 3 | none / 0.00 | none / 0.00 | none / 0.00 | none / 0.00 |
+
+"none" is a precision with nothing to score: the rules gave nothing for that field.
+About it keeps a document's first passage of full sentences, which in the Markdown and
+text files is the description, so it is right there. A PDF's text comes without blank
+lines, so in the Portuguese and Spanish PDFs that passage is the whole document, needs
+and offers included. The other fields fail. Every line of a file becomes a card
+candidate, headings, badges and "Nome do projeto:" lines included, and the first four
+are kept, so no file gave a right card, and the two projects' documents, which ask for
+nothing, gave four wrong cards on each step. A name was found once, in the Green Goods PDF, whose first line is the name
+alone; a Markdown heading or a "Project title:" label was not read as one, and the
+Portuguese and Spanish forms gave their title line ("Formulário de candidatura", "Ficha
+del proyecto"). Where you work was found once, in the text file's "Location: Lamu,
+Kenya", and the Spanish sheet gave its project's name as a place. A Word file and a
+scanned PDF give nothing at all.
 
 ## Labels
 
