@@ -9,7 +9,7 @@ import { AccountError } from "./account-provider.ts";
 import { SESSION_CAP_SECONDS } from "./account-session.ts";
 import type { StateCipher } from "./certified/crypto.ts";
 import { CERTIFIED_ISSUER, identitySubject } from "./certified/identity.ts";
-import { certifiedOAuthCaches, certifiedPrimer, type CertifiedOAuthCaches } from "./certified/oauth-prime.ts";
+import { certifiedOAuthCaches, certifiedPrimer, primeWithin, type CertifiedOAuthCaches, type PrimeOutcome } from "./certified/oauth-prime.ts";
 import { serverTiming, withServerTiming, type ServerTiming } from "./certified/server-timing.ts";
 
 export const certifiedProjectOAuthPaths = {
@@ -316,7 +316,9 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     ...implementation,
   });
   const caches = options.caches ?? certifiedOAuthCaches();
-  const publicClient = makeClient();
+  // Lives as long as the instance and serves its metadata, its keys and the primer. Its requests are bounded
+  // by each caller's own signal (the primer's five seconds), never by one deadline set when it was made.
+  const publicClient = makeClient(new AbortController().signal);
   const prime = certifiedPrimer({
     caches, ...(options.primeFetch ? { fetch: options.primeFetch } : {}),
     resolve: signal => publicClient.oauthResolver
@@ -337,9 +339,9 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
   };
 
   async function start(request: Request, actor: CertifiedProjectActor, action: ConsentAction,
-    readied: Promise<unknown>, timing: ServerTiming) {
-    // Readying ran while the session was checked. Waiting for it means the PAR below carries a nonce.
-    await timing.time("prime", () => readied);
+    readied: Promise<PrimeOutcome>, timing: ServerTiming) {
+    // Readying ran while the session was checked. Waiting for it, briefly, means the PAR below carries a nonce.
+    await timing.time("prime", () => primeWithin(readied));
     const binding = randomId();
     const input = { ...actor, action };
     const client = makeClient(AbortSignal.any([request.signal, AbortSignal.timeout(10000)]), {

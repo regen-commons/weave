@@ -6,7 +6,9 @@ import { createHash } from "node:crypto";
 import { createCertifiedClient, type CertifiedClient } from "./certified/adapters.ts";
 import { createBridge } from "./certified/bridge.ts";
 import { generateSigningMaterial } from "./certified/keys.ts";
-import { certifiedOAuthCaches, certifiedPrimer, memoryStore, METADATA_TTL_MS, NONCE_TTL_MS } from "./certified/oauth-prime.ts";
+import { certifiedOAuthCaches, certifiedPrimer, memoryStore, METADATA_TTL_MS, NONCE_TTL_MS, PRIME_RETRY_AFTER_MS, primeWithin } from "./certified/oauth-prime.ts";
+import { createCertifiedProjectAuth, type ProjectOAuthStore } from "./certified-project-auth.ts";
+import { generateKeyPairSync } from "node:crypto";
 import { responseTiming, serverTiming, withServerTiming } from "./certified/server-timing.ts";
 import type { AuthStore } from "./certified/store.ts";
 
@@ -94,12 +96,54 @@ test("priming never rejects and stores nothing it cannot trust", async () => {
   assert.equal(await hanging(), "failed");
 });
 
+test("after a failure, priming waits before it asks Certified again, so no caller can make it ask at will", async () => {
+  let now = 0, asked = 0, answer: string | null = null;
+  const prime = certifiedPrimer({ caches: certifiedOAuthCaches(), resolve: resolved(), now: () => now,
+    fetch: async () => { asked++; return parAnswer(answer); } });
+  assert.equal(await prime(), "failed");
+  answer = nonce(3);
+  now += PRIME_RETRY_AFTER_MS - 1;
+  assert.equal(await prime(), "failed"); assert.equal(await prime(), "failed");
+  assert.equal(asked, 1, "nothing is sent while it waits");
+  now += 1;
+  assert.equal(await prime(), "primed");
+  assert.equal(asked, 2);
+});
+
+test("a start waits for readying only briefly, then goes on and lets it finish in the background", async () => {
+  assert.equal(await primeWithin(Promise.resolve("primed"), 50), "primed");
+  let finish!: (value: "primed") => void;
+  const slow = new Promise<"primed">(resolve => { finish = resolve; });
+  const started = performance.now();
+  assert.equal(await primeWithin(slow, 30), "late");
+  assert.ok(performance.now() - started < 1000);
+  finish("primed");
+  assert.equal(await slow, "primed");
+});
+
+test("the project primer keeps working after the instance's first ten seconds", async t => {
+  const certified = certifiedServer(() => nonce(4));
+  t.mock.method(globalThis, "fetch", certified.handler);
+  // Every deadline set while the auth is built has already passed, as it would have ten seconds later.
+  const timeout = t.mock.method(AbortSignal, "timeout", () => AbortSignal.abort(new DOMException("expired", "TimeoutError")));
+  const key = { ...generateKeyPairSync("ec", { namedCurve: "P-256" }).privateKey.export({ format: "jwk" }), kid: "test-only", alg: "ES256" };
+  const auth = await createCertifiedProjectAuth({
+    origin: "https://weave.example.test", cgsOrigin: "https://groups.example.test", signingKeys: [key],
+    store: {} as ProjectOAuthStore, resolveActor: async () => null, allowsDid: () => true,
+  });
+  timeout.mock.restore();
+  assert.equal(await auth.prime(), "primed");
+  assert.ok(certified.metadataReads() > 0, "the metadata was read through the long-lived client");
+});
+
 /** Certified as the SDK sees it: metadata, and a PAR endpoint that wants the current nonce. */
 function certifiedServer(current: () => string) {
   const pars: { nonce: unknown }[] = [];
   let metadataReads = 0;
   const handler = async (resource: string | URL | Request, init?: RequestInit) => {
     const input = resource instanceof Request && !init ? resource : new Request(resource, init);
+    // As a real fetch does, an aborted request never reaches the server.
+    input.signal.throwIfAborted();
     if (input.url === `${issuer}/.well-known/oauth-protected-resource`) { metadataReads++; return new Response(null, { status: 404 }); }
     if (input.url === `${issuer}/.well-known/oauth-authorization-server`) { metadataReads++; return Response.json(metadata()); }
     assert.equal(input.url, par);

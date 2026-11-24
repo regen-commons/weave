@@ -15,7 +15,8 @@ const WARM_BODY_LIMIT = 64;
  * Whether this is the page asking the function to start before it is needed: a same-origin JSON
  * POST whose body is exactly `{"warm":true}`. Consent follows sign-in, and the first request after
  * a quiet spell waited over a second for the function to start, before the page could leave for
- * Certified. A warm request reads no session, sets no cookie and starts nothing.
+ * Certified. A warm request reads no session, sets no cookie and starts no consent. It does build the
+ * project runtime and ready Certified's metadata and a DPoP nonce.
  */
 export async function isWarmRequest(request: Request): Promise<boolean> {
   if (request.method !== "POST") return false;

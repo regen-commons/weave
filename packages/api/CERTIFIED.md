@@ -339,7 +339,9 @@ seconds (Certified accepts one for two to three). Its primer resolves the metada
 is validated as a sign-in validates it, and posts an empty form to Certified's PAR endpoint, which answers
 400 with a fresh `DPoP-Nonce` before it looks up any client. It sends no client, state or credential,
 only ever to Certified's own HTTPS PAR endpoint, never rejects, and makes no request when a nonce is
-cached. A stale nonce costs what it always did: Certified answers `use_dpop_nonce` and the SDK retries once.
+cached, and after a failure it waits 20 seconds before asking again, so no caller can make it ask at will.
+A stale nonce costs what it always did: Certified answers `use_dpop_nonce` and the SDK retries once. A
+start waits for readying at most 1.5 seconds; past that it goes on and its PAR fetches what it needs.
 
 The bridge's `GET /warm` primes and answers 204, and its login step primes before the PAR, which costs
 nothing when the warm-up got there first. The project consent start primes while the session is checked,
@@ -348,7 +350,7 @@ when a pointer or keyboard reaches it 45 seconds after the last warm-up, so the 
 
 The bridge, `/api/sign-in` and the consent function send `Server-Timing` with fixed labels only:
 `runtime` (cold or warm), `prune`, `state`, `prime` (ready, primed, skipped or failed), `par`, `exchange`,
-`actor` and `authorize`.
+`actor` and `authorize`. `prime` reads `late` when a start stopped waiting for it.
 
 The session checks behind `/api/account` also run together: `/auth/v1/user` beside the `account_access`
 predicate, and the list beside both. The user's answer is still judged first, then the predicate, then

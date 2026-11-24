@@ -26,6 +26,10 @@ export const METADATA_TTL_MS = 300_000;
 /** The SDK's own lifetime for a nonce. Certified accepts one for two to three minutes. */
 export const NONCE_TTL_MS = 60_000;
 const PRIME_TIMEOUT_MS = 5_000;
+/** After a failure, priming waits this long before it asks Certified again, so no caller can make it ask at will. */
+export const PRIME_RETRY_AFTER_MS = 20_000;
+/** The longest a sign-in or consent start waits for readying before it goes on without it. */
+export const PRIME_WAIT_MS = 1_500;
 /** Nonce token syntax (RFC 9449), bounded. Certified's are 43 base64url characters. */
 const NONCE = /^[\x21\x23-\x5B\x5D-\x7E]{8,512}$/u;
 
@@ -72,12 +76,27 @@ export function certifiedOAuthCaches(now: () => number = Date.now) {
 export type CertifiedOAuthCaches = ReturnType<typeof certifiedOAuthCaches>;
 
 export type PrimeOutcome = "ready" | "primed" | "skipped" | "failed";
+/** `late` when a start stopped waiting for readying, which then carries on in the background. */
+export type PrimeWait = PrimeOutcome | "late";
+
+/**
+ * Waits for readying no longer than `ms`. A Certified that is slow to answer the nonce request would be
+ * just as slow with the PAR, so a start does not pay for both: past the limit it goes on, and its PAR
+ * fetches what it needs, as it did before readying existed.
+ */
+export async function primeWithin(readying: Promise<PrimeOutcome>, ms = PRIME_WAIT_MS): Promise<PrimeWait> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<"late">(resolve => { timer = setTimeout(() => resolve("late"), ms); timer.unref?.(); });
+  try { return await Promise.race([readying, late]); }
+  finally { clearTimeout(timer); }
+}
 interface PrimerOptions {
   caches: Pick<CertifiedOAuthCaches, "dpopNonceCache">;
   /** The SDK's resolver for Certified's issuer, which fills the shared metadata caches. */
   resolve(signal: AbortSignal): Promise<{ metadata: { issuer: string; pushed_authorization_request_endpoint?: string } }>;
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
+  now?: () => number;
 }
 
 /**
@@ -85,8 +104,9 @@ interface PrimerOptions {
  * makes no request. It sends nothing of any person's: the nonce request carries no client, no state
  * and no credentials. The outcome is for timing labels and tests, not for deciding anything.
  */
-export function certifiedPrimer({ caches, resolve, fetch = globalThis.fetch, timeoutMs = PRIME_TIMEOUT_MS }: PrimerOptions) {
+export function certifiedPrimer({ caches, resolve, fetch = globalThis.fetch, timeoutMs = PRIME_TIMEOUT_MS, now = Date.now }: PrimerOptions) {
   let pending: Promise<PrimeOutcome> | undefined;
+  let failedAt = Number.NEGATIVE_INFINITY;
   const run = async (): Promise<PrimeOutcome> => {
     const signal = AbortSignal.timeout(timeoutMs);
     try {
@@ -113,5 +133,11 @@ export function certifiedPrimer({ caches, resolve, fetch = globalThis.fetch, tim
       return "failed";
     }
   };
-  return (): Promise<PrimeOutcome> => pending ??= run().finally(() => { pending = undefined; });
+  return (): Promise<PrimeOutcome> => {
+    if (now() - failedAt < PRIME_RETRY_AFTER_MS) return Promise.resolve("failed");
+    return pending ??= run().then(outcome => {
+      if (outcome === "failed") failedAt = now();
+      return outcome;
+    }).finally(() => { pending = undefined; });
+  };
 }

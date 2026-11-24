@@ -8,6 +8,7 @@ import { identityClaims } from "./identity.ts";
 import { createBridgeObserver, type BridgeExpiryReason, type BridgeObserver, type BridgeStartStage } from "./operations.ts";
 import { recoveryOrigin, validateConfig, type BridgeConfig } from "./bridge-config.ts";
 import { responseTiming } from "./server-timing.ts";
+import { primeWithin } from "./oauth-prime.ts";
 import type { SigningMaterial } from "./keys.ts";
 export { validateConfig, type BridgeConfig } from "./bridge-config.ts";
 const random = () => randomBytes(32).toString("base64url");
@@ -82,7 +83,8 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
       if (req.method === "POST" && req.headers["transfer-encoding"]) return json(res, 411, { error: "length_required" });
       if (url.pathname === "/client-metadata.json" && req.method === "GET") return json(res, 200, certified.metadata);
       // Weave asks this while Sign In is on screen, so the press finds Certified's metadata and a DPoP
-      // nonce already here. It names no one, starts nothing and says nothing about how it went.
+      // nonce already here. It names no one and starts nothing. It always answers 204; only its timing
+      // labels say whether Certified was readied.
       if (url.pathname === "/warm" && req.method === "GET") {
         const started = performance.now(), outcome = await certified.prime();
         timing.add("prime", performance.now() - started, outcome);
@@ -153,7 +155,7 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
           startStage = "oauth_authorize";
           // Costs nothing when the warm-up already readied Certified; otherwise it takes the place of the
           // request Certified would refuse for want of a nonce.
-          const primeStarted = performance.now(), readiness = await certified.prime();
+          const primeStarted = performance.now(), readiness = await primeWithin(certified.prime());
           timing.add("prime", performance.now() - primeStarted, readiness);
           return redirect(res, String(await timing.time("par", () => certified.authorize(state, email))));
         }
