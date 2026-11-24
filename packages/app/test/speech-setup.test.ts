@@ -455,7 +455,8 @@ test("each way the browser's speech service can stop says only what is known, an
       assert.match(line, /type in the box/, `${code}: typing still works`);
       assert.doesNotMatch(line, /[\u2014\u2192]/);
     }
-  assert.equal(speechProblem("aborted", "browser"), "", "the page stopped it itself, so there is nothing to say");
+  // The page's own abort never reaches it, so "aborted" is the browser stopping by itself: said, never silence.
+  assert.match(speechProblem("aborted", "browser"), /Your browser stopped listening/u);
   assert.match(speechProblem("not-allowed", "browser"), /did not allow the microphone/);
   assert.match(speechProblem("audio-capture", "browser"), /could not use a microphone/);
   assert.match(speechProblem("network", "browser"), /speech service could not be reached/);
