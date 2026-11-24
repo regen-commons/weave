@@ -6,6 +6,7 @@ import {
   CLOUD_SPEECH_NOTICE,
   DISCARD_RECORDING,
   recordingLabel,
+  holdsTalkRoom,
   talkControls,
   talkHold,
 } from "../describe/speech-setup.ts";
@@ -163,6 +164,15 @@ export function TalkItOut({
   return (
     <div className="rc-voice-input">
       <div className="rc-voice-slot">
+        {/* Until the browser answers, the button's room is held, so the button arrives in place. */}
+        {!controls.action && holdsTalkRoom(speech.state, { asking: speech.asking, secondary }) && (
+          <span className="rc-skeleton" data-shape="room" aria-hidden="true">
+            <span className="rc-button" data-variant="secondary" data-size="lg">
+              <Icon name="mic" />
+              Set Up Speech
+            </span>
+          </span>
+        )}
         {controls.action && (
           <button
             className="rc-button"

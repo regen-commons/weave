@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { speechStatus, type SpeechConstructor } from "../src/describe/speech.ts";
 import {
   installSpeech,
+  holdsTalkRoom,
   offersSetup,
   speechSetupStore,
   speechSupport,
@@ -347,7 +348,8 @@ test("Talk it out says plainly where speech stands, and where it cannot work it 
     ["set-up", "Set Up Speech"],
   );
   // The setup's line waits for the press, so a phone's box is higher; the press then says what it does.
-  assert.equal(talkControls("offer").note, "", "nothing under Set Up Speech before it is pressed");
+  assert.equal(talkControls("offer").note, "You can also type in the box below.", "before the press, only what is true whatever the setup does");
+  assert.doesNotMatch(talkControls("offer").note, /download|speech files|Audio/u, "what the setup does waits for the press");
   assert.match(talkControls("installing").note, /may download/, "it does not claim a download that may not happen");
   assert.match(talkControls("ready", { setUpHere: true }).note, /Audio stays on this device/, "where the audio goes is said once speech works");
   for (const state of ["installing", "slow"] as const) {
@@ -519,4 +521,22 @@ test("Talk It Out keeps the keyboard focus while it is held", () => {
   // Stopping always works, and the setup holds itself with aria-busy.
   for (const action of ["stop", "finishing", "set-up", "setting-up"] as const)
     assert.equal(talkHold(action, { working: true, disabled: true, focused: true }), "free", `${action} is never held here`);
+});
+
+test("until the browser answers, the button's place is held, so the button arrives without moving the box (DL-110)", async () => {
+  // On load, and while a newly chosen language is asked about, the controls have no button yet.
+  assert.equal(talkControls("checking").action, null);
+  assert.equal(holdsTalkRoom("checking"), true);
+  assert.equal(talkControls("ready", { asking: true }).action, null);
+  assert.equal(holdsTalkRoom("ready", { asking: true }), true);
+  // Once it answers, the button or the plain line takes the place, and nothing is held.
+  for (const state of ["none", "browser", "cloud", "offer", "installing", "slow", "failed", "ready"] as const)
+    assert.equal(holdsTalkRoom(state), false, state);
+  // The second Talk It Out on a page shows nothing until talking works, so it holds nothing either.
+  assert.equal(holdsTalkRoom("checking", { secondary: true }), false);
+  const { readFileSync } = await import("node:fs");
+  const talk = readFileSync(new URL("../src/ui/TalkItOut.tsx", import.meta.url), "utf8");
+  assert.match(talk, /!controls\.action && holdsTalkRoom\(speech\.state, \{ asking: speech\.asking, secondary \}\) && \(\s*<span className="rc-skeleton" data-shape="room" aria-hidden="true">/u);
+  const css = readFileSync(new URL("../../design-system/css/organisms.css", import.meta.url), "utf8");
+  assert.match(css, /\.rc-voice-slot > \.rc-skeleton\[data-shape="room"\] \{ display: flex; flex: 1 1 100%; \}/u);
 });

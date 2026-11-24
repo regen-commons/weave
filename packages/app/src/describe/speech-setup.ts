@@ -187,6 +187,8 @@ export interface TalkControls {
 
 /** Said in one plain line where the browser cannot turn speech into text. The typed path is the same box. */
 export const NO_SPEECH = "This browser cannot turn speech into text here. You can type instead.";
+/** Under Set Up Speech until it is pressed: the box works whatever the setup does. */
+export const TYPE_INSTEAD = "You can also type in the box below.";
 /**
  * Said instead on a touch screen, where many keyboards have their own microphone key. Not every
  * keyboard has one, so the line says "if". The keyboard's dictation is the phone's, not Weave's.
@@ -374,11 +376,11 @@ export function talkControls(
       return SILENT;
     case "none":
       return { ...SILENT, note: touch ? KEYBOARD_MIC : NO_SPEECH };
-    // The button says what it does, and its line waits for the press: before it, the line kept the
-    // box at the fold on a phone. Its room is kept all the same, so nothing moves as speech is
-    // found on load or when the setup starts (DL-127).
+    // The button says what it does, and what the setup does waits for the press. The line's room is
+    // kept, so nothing moves as speech is found on load or when the setup starts, and until the
+    // press it holds a line that is true whatever the setup does (DL-127).
     case "offer":
-      return { ...SILENT, action: "set-up", label: "Set Up Speech" };
+      return { ...SILENT, action: "set-up", label: "Set Up Speech", note: TYPE_INSTEAD };
     case "installing":
       return {
         ...SILENT,
@@ -411,6 +413,16 @@ export function talkControls(
     case "ready":
       return { ...SILENT, action: "talk", label: "Talk It Out", note: setUpHere ? "Speech is ready. Audio stays on this device." : "", language: !setUpHere, mode };
   }
+}
+
+/**
+ * Whether the button's place is held, unseen, while the browser has not answered yet: on load, or
+ * while a newly chosen language is asked about. Almost every answer brings a button, which on a
+ * phone takes a row of its own, so the box under it would move when it came (DL-110, DL-127).
+ * The second Talk It Out on a page shows nothing until talking works, so it holds nothing.
+ */
+export function holdsTalkRoom(state: SpeechSetupState, { asking = false, secondary = false }: { asking?: boolean; secondary?: boolean } = {}): boolean {
+  return !secondary && (state === "checking" || asking);
 }
 
 /**
