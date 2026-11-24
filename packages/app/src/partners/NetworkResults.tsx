@@ -217,7 +217,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
   return (
     <>
       {search && <CoverageGaps coverage={search.coverage} />}
-      {search && !matches.length && <p>No partners fit what you have shared yet.</p>}
+      {search && !matches.length && <p>No team has shared a match for this yet.</p>}
       <FitGroups results={fits} kindOf={({ match }) => match.evidenceKind}
         keyOf={({ entry, match }) => leadKey(entry, match.candidateId)}
         level={compact ? 4 : 3} limit={compact ? PREVIEW_FITS : undefined}>
