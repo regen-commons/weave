@@ -116,4 +116,6 @@ jobs:
         with:
           name: lighthouse
           path: packages/app/.lighthouseci/
+          # The reports' folder starts with a dot, which the action leaves out unless told.
+          include-hidden-files: true
           retention-days: 14

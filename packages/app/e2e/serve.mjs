@@ -78,7 +78,9 @@ function builtFile(pathname) {
   return undefined;
 }
 
-const preview = spawn(join(app, "node_modules", ".bin", "vite"), ["preview", "--port", String(previewPort), "--strictPort"], { cwd: app, stdio: ["ignore", "inherit", "inherit"] });
+// One loopback address for both sides: "localhost" can mean ::1 to Vite and 127.0.0.1 to Node, or the reverse.
+const LOOPBACK = "127.0.0.1";
+const preview = spawn(join(app, "node_modules", ".bin", "vite"), ["preview", "--host", LOOPBACK, "--port", String(previewPort), "--strictPort"], { cwd: app, stdio: ["ignore", "inherit", "inherit"] });
 for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => { preview.kill(signal); process.exit(0); });
 preview.on("exit", (code) => { console.error(`vite preview stopped (${code}).`); process.exit(1); });
 
@@ -94,7 +96,7 @@ function send(request, response, pathname, status, headers, body) {
 /** Waits for the preview server, so the first request a test makes is answered. */
 async function ready() {
   for (let i = 0; i < 240; i++) {
-    const up = await new Promise((resolve) => http.get({ host: "localhost", port: previewPort, path: "/" }, (r) => { r.resume(); resolve(true); }).on("error", () => resolve(false)));
+    const up = await new Promise((resolve) => http.get({ host: LOOPBACK, port: previewPort, path: "/" }, (r) => { r.resume(); resolve(true); }).on("error", () => resolve(false)));
     if (up) return;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
@@ -121,7 +123,7 @@ http.createServer((request, response) => {
     }
   }
   // The page's own host goes on, so a same-origin check in a handler sees the address the browser used.
-  const proxied = http.request({ host: "localhost", port: previewPort, method: request.method, path: request.url, headers: { ...request.headers, "accept-encoding": "identity" } }, (answer) => {
+  const proxied = http.request({ host: LOOPBACK, port: previewPort, method: request.method, path: request.url, headers: { ...request.headers, "accept-encoding": "identity" } }, (answer) => {
     send(request, response, url.pathname, answer.statusCode ?? 502, answer.headers, answer);
   });
   proxied.on("error", () => { response.writeHead(502); response.end(); });
