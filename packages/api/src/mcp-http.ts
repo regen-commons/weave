@@ -111,7 +111,8 @@ export function createMcpHandler(options: McpOptions) {
     try { call = parseAgentToolCall(name, params.arguments); }
     catch (error) {
       done("refused");
-      return toolFailure(error instanceof AgentToolArgumentError ? error.message : "The arguments could not be read.");
+      // Coded like every other failure, so a caller can tell a refused argument from a tool that could not run.
+      return toolFailure(`invalid_argument: ${error instanceof AgentToolArgumentError ? error.message : "The arguments could not be read."}`);
     }
     if (!options.tools) { done("failed"); return toolFailure("tools_unavailable: Weave's tools are not available right now."); }
     // The ceilings everyone shares count only calls that will run, so calls the checks above refuse cannot

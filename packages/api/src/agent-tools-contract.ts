@@ -138,6 +138,7 @@ export const AGENT_TOOLS: readonly AgentToolDefinition[] = [
         description: { type: "string", minLength: INITIATIVE_DESCRIPTION_MIN, maxLength: INITIATIVE_DESCRIPTION_MAX, description: "What the initiative does, where and for whom, in plain words. A few specific sentences work better than a slogan." },
         themes: { type: "array", maxItems: THEMES_MAX, items: { type: "string", maxLength: 60 }, description: "Optional topics the work centers on, such as watershed restoration or seed saving." },
         work_countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional two-letter country codes where the work happens, such as NG or BR." },
+        countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional, the same as work_countries: two-letter country codes where the work happens, such as NG." },
         benefit_countries: { type: "array", maxItems: COUNTRIES_MAX, items: { type: "string", pattern: "^[A-Za-z]{2}$" }, description: "Optional two-letter country codes where the people who benefit are." },
         applicant_base_country: { type: "string", pattern: "^[A-Za-z]{2}$", description: "Optional two-letter country code where the applicant is based." },
         registration_country: { type: "string", pattern: "^[A-Za-z]{2}$", description: "Optional two-letter country code where the applicant is legally registered." },
@@ -189,7 +190,8 @@ function fields(value: unknown, allowed: readonly string[]): Record<string, unkn
   if (value === undefined || value === null) return {};
   if (typeof value !== "object" || Array.isArray(value)) return refuse("Arguments must be an object.");
   const unknown = Object.keys(value).find((key) => !allowed.includes(key));
-  if (unknown !== undefined) return refuse(`Unknown argument: ${unknown.slice(0, 40)}.`);
+  // The refusal names what the tool does take, so a caller that guessed a name can try again.
+  if (unknown !== undefined) return refuse(`Unknown argument: ${unknown.slice(0, 40)}. This tool takes ${allowed.length ? allowed.join(", ") : "no arguments"}.`);
   return value as Record<string, unknown>;
 }
 function text(value: unknown, name: string, max: number): string | null {
@@ -223,10 +225,16 @@ function list(value: unknown, name: string, max: number): unknown[] {
   if (value === undefined || value === null) return [];
   return Array.isArray(value) && value.length <= max ? value : refuse(`${name} must be a list of at most ${max}.`);
 }
+/** Where the work happens. "countries" is another name for work_countries, the name a caller most often guesses. */
+function workCountries(a: Record<string, unknown>): string[] {
+  const codes = [...new Set(["work_countries", "countries"].flatMap((key) =>
+    list(a[key], key, COUNTRIES_MAX).map((item) => country(item, key) ?? refuse(`${key} must hold two-letter country codes, such as NG.`))))];
+  return codes.length > COUNTRIES_MAX ? refuse(`work_countries and countries together hold at most ${COUNTRIES_MAX} codes.`) : codes;
+}
 /** A two-letter country code, upper case. Null when left out. */
 function country(value: unknown, name: string): string | null {
   if (value === undefined || value === null || value === "") return null;
-  return typeof value === "string" && /^[A-Za-z]{2}$/u.test(value) ? value.toUpperCase() : refuse(`${name} must be a two-letter country code.`);
+  return typeof value === "string" && /^[A-Za-z]{2}$/u.test(value) ? value.toUpperCase() : refuse(`${name} must be a two-letter country code, such as NG for Nigeria.`);
 }
 const IDENTIFIER = /^[A-Za-z0-9_-]{1,80}$/u;
 
@@ -257,14 +265,14 @@ export function parseAgentToolCall(name: unknown, input: unknown): AgentToolCall
     return { name, arguments: { fundId, programId: programId ?? null } };
   }
   if (name === "find_funds_for_initiative") {
-    const a = fields(input, ["description", "themes", "work_countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"]);
+    const a = fields(input, ["description", "themes", "work_countries", "countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"]);
     const description = text(a.description, "description", INITIATIVE_DESCRIPTION_MAX) ?? refuse("description is required.");
     if (description.length < INITIATIVE_DESCRIPTION_MIN) return refuse(`description must be at least ${INITIATIVE_DESCRIPTION_MIN} characters, so there are topics to match.`);
     return { name, arguments: {
       description,
       themes: list(a.themes, "themes", THEMES_MAX).flatMap((item) => text(item, "themes", 60) ?? []),
-      workCountries: list(a.work_countries, "work_countries", COUNTRIES_MAX).map((item) => country(item, "work_countries") ?? refuse("work_countries must hold two-letter country codes.")),
-      benefitCountries: list(a.benefit_countries, "benefit_countries", COUNTRIES_MAX).map((item) => country(item, "benefit_countries") ?? refuse("benefit_countries must hold two-letter country codes.")),
+      workCountries: workCountries(a),
+      benefitCountries: list(a.benefit_countries, "benefit_countries", COUNTRIES_MAX).map((item) => country(item, "benefit_countries") ?? refuse("benefit_countries must hold two-letter country codes, such as NG.")),
       applicantBaseCountry: country(a.applicant_base_country, "applicant_base_country") ?? "",
       registrationCountry: country(a.registration_country, "registration_country") ?? "",
       applicantType: choice(a.applicant_type, "applicant_type", APPLICANT_TYPES) ?? "unknown",

@@ -682,3 +682,25 @@ test("the router hands the caller's address on, so limits hold behind it", async
   await route(new Request("https://weave.example/api/router?__route=health", { method: "POST", headers: { "x-forwarded-for": "203.0.113.7" }, body: "{}" }));
   assert.equal(seen, "203.0.113.7");
 });
+
+test("find_funds_for_initiative takes countries as another name for work_countries, and a refused argument says what the tool takes", async () => {
+  const { handler } = shippedSetup();
+  const hub = "We build free, solar-powered hubs where students and builders get steady power, internet and a place to learn and work.";
+  const ids = async (args: Record<string, unknown>) => ((await call(handler, "find_funds_for_initiative", { description: hub, limit: 10, ...args })).structuredContent as unknown as Ranked).programs.map(({ id }) => id);
+  const named = await ids({ countries: ["NG"] });
+  assert.ok(named.length > 0, "a plausible key no longer comes back empty");
+  assert.deepEqual(named, await ids({ work_countries: ["ng"] }));
+  assert.deepEqual(await ids({ countries: ["NG"], work_countries: ["NG"] }), named);
+  assert.ok(named.includes("local-all-on::all-on-challenge-2026"), "Nigeria's own energy challenge ranks for a Nigerian solar hub");
+  // A refused argument is coded like every other failure, and says what to send instead.
+  const refused = async (args: Record<string, unknown>) => {
+    const result = await call(handler, "find_funds_for_initiative", { description: hub, ...args });
+    assert.equal(result.isError, true);
+    return result.content[0]!.text;
+  };
+  assert.equal(await refused({ country_codes: ["NG"] }), "invalid_argument: Unknown argument: country_codes. This tool takes description, themes, work_countries, countries, benefit_countries, applicant_base_country, registration_country, applicant_type, limit.");
+  assert.equal(await refused({ countries: ["Nigeria"] }), "invalid_argument: countries must be a two-letter country code, such as NG for Nigeria.");
+  const many = ["AF", "AL", "DZ", "AO", "AR", "AM", "AU", "AT", "AZ", "BD", "BE", "BJ", "BO", "BR", "BG", "BF", "BI", "KH", "CM", "CA"];
+  const more = ["CF", "TD", "CL", "CN", "CO", "KM", "CG", "CD", "CR", "CI", "HR", "CU", "CY", "CZ", "DK", "DJ", "DM", "DO", "EC", "EG"];
+  assert.equal(await refused({ work_countries: many, countries: more }), "invalid_argument: work_countries and countries together hold at most 30 codes.");
+});
