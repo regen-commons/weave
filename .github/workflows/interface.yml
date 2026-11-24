@@ -1,0 +1,110 @@
+name: Interface checks
+
+# The slow interface checks, apart from the Weave app and API workflow: the describe flow end to end, axe
+# on every route in both themes, screenshots of the flow at 360 and 1280, and Lighthouse budgets, all on
+# the production build served as Vercel serves it. See packages/app/e2e/README.md.
+on:
+  pull_request:
+    paths:
+      - 'packages/app/**'
+      - 'packages/api/**'
+      - 'packages/design-system/**'
+      - 'dist/*.mjs'
+      - 'dist/data/**'
+      - 'bun.lock'
+      - '.github/workflows/interface.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/app/**'
+      - 'packages/api/**'
+      - 'packages/design-system/**'
+      - 'dist/*.mjs'
+      - 'dist/data/**'
+      - 'bun.lock'
+      - '.github/workflows/interface.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: interface-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Flows, axe and screenshots
+    runs-on: ubuntu-latest
+    # The screenshots were taken in this image, and fonts draw differently anywhere else.
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --ipc=host
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.20.0'
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter '@weave/*' build
+      - name: Type-check the interface checks
+        working-directory: packages/app
+        run: ./node_modules/.bin/tsc -p tsconfig.e2e.json
+      - name: Flows, axe and screenshots
+        working-directory: packages/app
+        run: ./node_modules/.bin/playwright test
+      # When a picture differs or is missing, take the new ones in the same image, so a person can look at
+      # them and commit them if the change is intended.
+      - name: Take the screenshots again
+        if: failure()
+        working-directory: packages/app
+        run: ./node_modules/.bin/playwright test e2e/screenshots.spec.ts --update-snapshots=all --reporter=list || true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: screenshots
+          path: packages/app/e2e/screenshots/
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: interface-report
+          path: |
+            packages/app/playwright-report/
+            packages/app/test-results/
+          retention-days: 14
+
+  lighthouse:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.20.0'
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter '@weave/*' build
+      # Mobile, Lighthouse's default: the PRD's bar is a mid-range Android. Budgets are in lighthouserc.json.
+      - name: Lighthouse budgets
+        working-directory: packages/app
+        run: ./node_modules/.bin/lhci autorun
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: lighthouse
+          path: packages/app/.lighthouseci/
+          retention-days: 14
