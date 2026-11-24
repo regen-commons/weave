@@ -15,11 +15,12 @@ import { NetworkResults } from "./NetworkResults.tsx";
 import { MatchingFeedback } from "./MatchingFeedback.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { CardGridSkeleton, LinesSkeleton } from "../ui/CardSkeleton.tsx";
+import { waitingSuggestions } from "../initiative/import.ts";
 import { CertifiedSuggestions } from "./CertifiedSuggestions.tsx";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { MatchingDate, SharingReview } from "./SharingReview.tsx";
 import { entryKey, entryReference, type MatchingEntry } from "./matching-client.ts";
-import { sharedEntries, useNetworkMatching } from "./use-network-matching.ts";
+import { notSharedLine, sharedEntries, useNetworkMatching } from "./use-network-matching.ts";
 
 const sharingLabels: Record<MatchingEntry["sharing"], string> = {
   private: "Not shared",
@@ -43,7 +44,11 @@ const isOnline = () => navigator.onLine;
 const kindsOf = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((kind): kind is string => typeof kind === "string") : [];
 
-export function PartnerExperience({ mode, separateActions = false, refreshVersion = 0 }: { mode: "matches" | "preview"; separateActions?: boolean; refreshVersion?: number }) {
+export function PartnerExperience({ mode, separateActions = false, refreshVersion = 0, onShared }: {
+  mode: "matches" | "preview"; separateActions?: boolean; refreshVersion?: number;
+  /** Hears that the share step opened here closed, so the page's sharing row reads its status again. */
+  onShared?(): void;
+}) {
   const { state } = useAccount();
   const social = useSocial();
   const project = social?.mode === "live" ? social.state.project : null;
@@ -72,11 +77,12 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
   return (
     <div className="rc-stack">
       {linkedId && ready && <CertifiedSuggestions key={`${owner}/${linkedId}`}
-        workspaceId={linkedId} queries={queries} compact={compact} online={online} />}
+        workspaceId={linkedId} queries={queries} waiting={waitingSuggestions(draft)} compact={compact} online={online} />}
       {active && ready && linkedPersonal ? (
         <SavedMatching key={`${active.owner}/${active.id}/${active.revision}`}
           active={active} synced={active.contentKey === accountKey(draft)}
-          compact={compact} online={online} fixture={state?.fixture === true} presentation={separateActions ? "results" : "all"} refreshVersion={refreshVersion} />
+          compact={compact} online={online} fixture={state?.fixture === true} presentation={separateActions ? "results" : "all"} refreshVersion={refreshVersion}
+          onShared={onShared} />
       ) : (
         // With no card yet there is nothing to save: the list below asks for the card first. A session
         // that ended is said once, by the page's own notice (SessionEndedNotice).
@@ -106,7 +112,7 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
   );
 }
 
-export function SavedMatching({ active, synced, compact, online, onExpired, fixture, readOnly = false, team = false, presentation = "all", visible = true, refreshVersion = 0 }: {
+export function SavedMatching({ active, synced, compact, online, onExpired, fixture, readOnly = false, team = false, presentation = "all", visible = true, refreshVersion = 0, onShared }: {
   active: ActiveInitiative;
   synced: boolean;
   compact: boolean;
@@ -119,6 +125,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   presentation?: "all" | "sharing" | "results";
   visible?: boolean;
   refreshVersion?: number;
+  onShared?(): void;
 }) {
   const heading = useId();
   const { confirm } = useAccount();
@@ -135,6 +142,9 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
     notice.current?.focus();
   }, [network.notice]);
   const [selected, setSelected] = useState<string[] | null>(null);
+  // The share step opened from Partners For You: the same step Saving And Sharing opens, which shows
+  // what other signed-in teams will see before anything is shared (23 November 2026, the user's choice).
+  const [sharing, setSharing] = useState(false);
   const [withdrawal, setWithdrawal] = useState<string | null>(null);
   const Title = compact ? "h3" : "h2";
   const state = network.state;
@@ -169,8 +179,19 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
     <MatchingFeedback {...network} online={online} readOnly={readOnly} noticeRef={notice}
       first={state === null ? <CardGridSkeleton kind="partner" label="Checking partners" /> : undefined}
       onRetry={command => void network.mutate(command)} onRefresh={network.refresh} refreshBlocked={blocked} />
-    {!network.loading && !sharedEntries(entries).length && <p className="rc-meta">To search what other teams have shared, share at least one open need or offer.</p>}
+    {/* Only from the entries as they stand: before they load, after a failed read or for an earlier
+        version, an empty list would read as having no needs or offers. */}
+    {!network.loading && state !== null && !stale && notSharedLine(entries, { team, readOnly }) && (
+      <StatusLine actions={!readOnly && eligible.length > 0 && (
+        <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={blocked}
+          onClick={() => setSharing(true)}>Share For Matching</button>
+      )}>{notSharedLine(entries, { team, readOnly })}</StatusLine>
+    )}
     {results}
+    <TaskDialog title="Share For Matching" open={sharing} onClose={() => { setSharing(false); network.refresh(); onShared?.(); }} retainContents>
+      {sharing && <SavedMatching active={active} synced={synced} compact={false} online={online} onExpired={onExpired}
+        fixture={fixture} team={team} readOnly={readOnly} presentation="sharing" visible={sharing} />}
+    </TaskDialog>
   </div>;
   return (
     <section className="rc-stack" aria-labelledby={presentation === "sharing" ? undefined : heading} aria-label={presentation === "sharing" ? "Sharing for matching" : undefined}>
@@ -260,7 +281,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
               )}
             </fieldset>
           ) : <p>Save an open need or offer to find partners.</p>}
-          {!network.loading && !sharedEntries(entries).length && !!entries.length && <p>To search what other teams have shared, share at least one open need or offer.</p>}
+          {!network.loading && !!entries.length && notSharedLine(entries, { team, readOnly }) && <p>{notSharedLine(entries, { team, readOnly })}</p>}
         </>
       )}
       {visible && !readOnly && reviewing && (

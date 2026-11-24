@@ -106,7 +106,7 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
       </FitGroups>
       {access === "public" && (
         <p>{stale ? "To search what other teams have shared again, share your changes."
-          : "To search what other teams have shared, share at least one open need or offer."}</p>
+          : "Your needs and offers are private. Share them for matching to find partners."}</p>
       )}
       {(access === "public" || compact) && (
         <div className="rc-action-bar">

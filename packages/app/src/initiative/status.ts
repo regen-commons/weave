@@ -161,6 +161,16 @@ function sharingOf(draft: DeviceDraft, example: SocialState): Exposure {
     waits: null,
   };
 }
+/**
+ * Publishing puts needs and offers on Certified as public listings of the project; the project itself
+ * is already there. The row and its button say which, so a project from Certified never reads as not
+ * published.
+ */
+export const PUBLISH_ACTION = "Publish Needs And Offers";
+export const NOT_PUBLIC_LINE = "Your project is on Certified. Its needs and offers are not public.";
+export const publicListingsLine = (count: number): string =>
+  `${count} ${count === 1 ? "need or offer" : "needs and offers"} public on Certified.`;
+
 function publishingOf(draft: DeviceDraft, example: SocialState): Exposure | null {
   const project = example.identity ? example.project : null;
   // Publishing goes through a Certified project, so there is nothing to say about it before one is linked.
@@ -187,7 +197,7 @@ function publishingOf(draft: DeviceDraft, example: SocialState): Exposure | null
   // Publishing authority comes from the Certified group, so a plain member reads why there is no action.
   if (project.group && project.role === "member")
     return { state: "locked", line: "Only a group admin or owner can publish on Certified.", waits: "authority" };
-  return locked(example, project) ?? { state: "off", line: "Not published.", waits: null };
+  return locked(example, project) ?? { state: "off", line: NOT_PUBLIC_LINE, waits: null };
 }
 
 /** What the saving and sharing section shows: the steps open now, the one to take next, and a line for the rest. */

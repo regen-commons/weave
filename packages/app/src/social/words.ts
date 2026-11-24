@@ -158,7 +158,20 @@ export function waitingLine(waiting: Suggested, checked: boolean): string {
 
 /** The button beside the waiting line on a checked card. */
 export const waitingAction = (waiting: Suggested): string =>
-  waiting.length === 1 ? "Check the suggestion" : "Check the suggestions";
+  waiting.length === 1 ? "Check The Suggestion" : "Check The Suggestions";
+
+/**
+ * Partners For You with nothing kept to compare, while the project page's suggestions wait: why it
+ * is empty and what fills it. Partner suggestions compare kept needs and offers only, so a person who
+ * sees the suggestions on the card is told they are not kept yet, not that they have none. Empty when
+ * none wait.
+ */
+export function partnersWaitingLine(waiting: Suggested): string {
+  if (!waiting.length) return "";
+  const them = waiting.length === 1 ? "it" : "them";
+  return `Your project page suggests ${entryCount(waiting)}. Keep ${them} to see partners for ${them}.`;
+}
+
 
 /** True when linking would change any of the card's four public details. */
 export function replacesCard(card: PublicCard, record: PublicCard): boolean {
