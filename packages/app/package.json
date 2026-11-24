@@ -15,6 +15,7 @@
     "eval:kinds": "node --conditions=source evaluation/support-kinds.ts",
     "eval:flows": "node --conditions=source evaluation/user-flows.ts",
     "eval:funds": "node --conditions=source evaluation/fund-ranking.ts",
+    "eval:labels": "node --conditions=source evaluation/fund-labels.ts",
     "eval:extraction": "node --conditions=source evaluation/extraction.ts",
     "prototype": "node scripts/copy-brand.mjs && NODE_ENV=development vite build --mode prototype"
   },
