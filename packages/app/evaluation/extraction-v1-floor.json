@@ -16,10 +16,10 @@
       "passed": 15
     },
     "about": {
-      "precision": 0.871,
-      "recall": 0.871,
+      "precision": 0.9355,
+      "recall": 0.9355,
       "cases": 31,
-      "passed": 27
+      "passed": 29
     },
     "link": {
       "precision": 1,
@@ -38,6 +38,7 @@
     "d-01": [
       "name",
       "where",
+      "about",
       "link"
     ],
     "d-02": [
@@ -118,6 +119,7 @@
     ],
     "d-19": [
       "name",
+      "about",
       "link"
     ],
     "d-20": [
@@ -244,8 +246,8 @@
         "fn": 0
       },
       "about": {
-        "fp": 1,
-        "fn": 1
+        "fp": 0,
+        "fn": 0
       },
       "link": {
         "fp": 0,
@@ -508,8 +510,8 @@
         "fn": 1
       },
       "about": {
-        "fp": 1,
-        "fn": 1
+        "fp": 0,
+        "fn": 0
       },
       "link": {
         "fp": 0,

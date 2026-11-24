@@ -1,0 +1,1249 @@
+{
+ "about": "Inputs written by a reviewer on 24 November 2026 to break the About it rules. keep: words that describe the initiative and must stay; drop: a need, offer, speaker name or link pointer that should go; soft: judgement calls. Not taken from the holdout.",
+ "cases": [
+  {
+   "id": "E01",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We need to protect the last mangroves in our bay. We plant seedlings with fishermen every month.",
+   "keep": [
+    "protect the last mangroves",
+    "plant seedlings with fishermen"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E02",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We're looking for ways to reduce food waste in school canteens. We collect leftovers and cook them into soups.",
+   "keep": [
+    "looking for ways to reduce food waste",
+    "cook them into soups"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E03",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We are seeking to restore native forest on degraded farmland. We need seedlings and a water tank.",
+   "keep": [
+    "restore native forest"
+   ],
+   "drop": [
+    "water tank"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E04",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We can grow food year round in our greenhouse. We can also offer cooking classes for local families.",
+   "keep": [
+    "grow food year round"
+   ],
+   "drop": [
+    "cooking classes"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E05",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We lend tools to neighbours from a shed behind the church. We are looking for a bigger shed.",
+   "keep": [
+    "lend tools to neighbours"
+   ],
+   "drop": [
+    "bigger shed"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E06",
+   "lang": "en",
+   "mode": "typed",
+   "text": "I'm Seed Circle's coordinator and we save heirloom seeds from local farms.",
+   "keep": [
+    "Seed Circle's coordinator",
+    "heirloom seeds"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E07",
+   "lang": "en",
+   "mode": "typed",
+   "text": "I am a farmer and we run a seed bank for 12 villages.",
+   "keep": [
+    "I am a farmer",
+    "seed bank for 12 villages"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E08",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We teach kids to paint murals and need a bigger room.",
+   "keep": [
+    "teach kids to paint murals"
+   ],
+   "drop": [
+    "bigger room"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E09",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We teach coding to girls aged 12 to 16, but we need more laptops.",
+   "keep": [
+    "coding to girls aged 12 to 16"
+   ],
+   "drop": [
+    "laptops"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E10",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We need more trees in our city, so we plant them with schools every spring.",
+   "keep": [
+    "plant them with schools every spring"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E11",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We built a community kitchen so we can offer free meals to 200 families every week.",
+   "keep": [
+    "free meals to 200 families"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E12",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a community kitchen in Accra. We need volunteers, but we already serve 300 meals a day.",
+   "keep": [
+    "already serve 300 meals a day"
+   ],
+   "drop": [
+    "volunteers"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E13",
+   "lang": "en",
+   "mode": "typed",
+   "text": "My name is Maria José da Silva and we run a sewing cooperative in Recife.",
+   "keep": [
+    "sewing cooperative in Recife"
+   ],
+   "drop": [
+    "Maria"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E14",
+   "lang": "en",
+   "mode": "typed",
+   "text": "Hi, I'm Grace from Seed Circle and we swap seeds at the Saturday market.",
+   "keep": [
+    "Seed Circle",
+    "swap seeds"
+   ],
+   "drop": [
+    "Grace"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E15",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a repair café in Leeds. My name is Tom and I fix bikes there every Sunday.",
+   "keep": [
+    "fix bikes there every Sunday"
+   ],
+   "drop": [
+    "Tom"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E16",
+   "lang": "en",
+   "mode": "typed",
+   "text": "I'm with Semillas and we teach seed saving to farmers.",
+   "keep": [
+    "Semillas",
+    "seed saving"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E17",
+   "lang": "en",
+   "mode": "typed",
+   "text": "I'm coordinating Fishnet and we clean beaches every weekend.",
+   "keep": [
+    "Fishnet",
+    "clean beaches"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E18",
+   "lang": "en",
+   "mode": "typed",
+   "text": "I'm Mapuche and we protect the araucaria forest with our community.",
+   "keep": [
+    "araucaria forest"
+   ],
+   "drop": [],
+   "soft": [
+    "Mapuche"
+   ]
+  },
+  {
+   "id": "E19",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We could use some help with our website. We host free yoga in the park.",
+   "keep": [
+    "free yoga"
+   ],
+   "drop": [
+    "help with our website"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E20",
+   "lang": "en",
+   "mode": "typed",
+   "text": "Looking for volunteers! We restore old boats with teenagers.",
+   "keep": [
+    "restore old boats"
+   ],
+   "drop": [
+    "Looking for volunteers"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E21",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We desperately need a new roof. Our shelter houses 25 rescued dogs.",
+   "keep": [
+    "25 rescued dogs"
+   ],
+   "drop": [
+    "new roof"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E22",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We grow 🌱 vegetables for 50 families! 🙏 We need seeds and compost.",
+   "keep": [
+    "vegetables for 50 families"
+   ],
+   "drop": [
+    "seeds and compost"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E23",
+   "lang": "en",
+   "mode": "typed",
+   "text": "Our motto is \"we need each other\". We run a mutual aid network for 40 households.",
+   "keep": [
+    "we need each other",
+    "mutual aid network"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E24",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We need each other, and that is why we run a mutual aid network for 40 households.",
+   "keep": [
+    "mutual aid network for 40 households"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E25",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We lack access to land, so we formed a cooperative that leases plots from the city.",
+   "keep": [
+    "formed a cooperative that leases plots"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E26",
+   "lang": "en",
+   "mode": "typed",
+   "text": "What we really need is funding. We teach adults to read.",
+   "keep": [
+    "teach adults to read"
+   ],
+   "drop": [
+    "funding"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E27",
+   "lang": "en",
+   "mode": "typed",
+   "text": "The garden needs a fence. We grow herbs with refugees.",
+   "keep": [
+    "herbs with refugees"
+   ],
+   "drop": [
+    "fence"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E28",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a farm camp in Vermont. We can host up to 40 children each summer.",
+   "keep": [
+    "farm camp"
+   ],
+   "drop": [],
+   "soft": [
+    "40 children each summer"
+   ]
+  },
+  {
+   "id": "E29",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a tool library and we need a bigger shed and we also repair bikes for free.",
+   "keep": [
+    "repair bikes for free"
+   ],
+   "drop": [
+    "bigger shed"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E30",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We need volunteers. We need tools. We need a van.",
+   "keep": [
+    "We need"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E31",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a seed library in Porto.\n- We need a freezer\n- We need shelves",
+   "keep": [
+    "seed library in Porto"
+   ],
+   "drop": [
+    "freezer",
+    "shelves"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E32",
+   "lang": "en",
+   "mode": "typed",
+   "text": "Hi, I'm Dr. Ana Souza and we run a mobile clinic along the river.",
+   "keep": [
+    "mobile clinic along the river"
+   ],
+   "drop": [
+    "Ana Souza"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E33",
+   "lang": "en",
+   "mode": "typed",
+   "text": "I'm 72 and I've been teaching kids to garden for 30 years.",
+   "keep": [
+    "teaching kids to garden for 30 years"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "E34",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We started as five neighbours in 2019. Right now we're also looking for a treasurer.",
+   "keep": [
+    "five neighbours in 2019"
+   ],
+   "drop": [
+    "treasurer"
+   ],
+   "soft": []
+  },
+  {
+   "id": "E35",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run Kibera Green Hub. I need help writing grant applications.",
+   "keep": [
+    "Kibera Green Hub"
+   ],
+   "drop": [
+    "grant applications"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S01",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "hi my name is grace and we run a seed library in the old post office and we need more shelves",
+   "keep": [
+    "seed library in the old post office"
+   ],
+   "drop": [
+    "grace",
+    "shelves"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S02",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "so we basically clean the river every saturday and we need gloves and bags and we also teach kids about the fish",
+   "keep": [
+    "clean the river",
+    "teach kids about the fish"
+   ],
+   "drop": [
+    "gloves"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S03",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we need to protect the wetlands and we do bird counts with schools",
+   "keep": [
+    "protect the wetlands",
+    "bird counts with schools"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S04",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we're looking for ways to get more girls into football and we run free training on tuesdays",
+   "keep": [
+    "get more girls into football",
+    "free training on tuesdays"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S05",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "i'm a nurse and i started a walking group for older people in my street",
+   "keep": [
+    "walking group for older people"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S06",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "my name is tomas okafor and i'm with the riverside youth club we teach boxing",
+   "keep": [
+    "riverside youth club",
+    "teach boxing"
+   ],
+   "drop": [
+    "tomas"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S07",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we teach kids to code and we can offer our classroom on weekends",
+   "keep": [
+    "teach kids to code"
+   ],
+   "drop": [
+    "classroom on weekends"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S08",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we can grow food all year in the greenhouse and we sell it at the market",
+   "keep": [
+    "grow food all year",
+    "sell it at the market"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S09",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we lend tools to neighbours and we fix bikes for free on sundays",
+   "keep": [
+    "lend tools to neighbours",
+    "fix bikes"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S10",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "um so i'm dara and uh we run a soup kitchen near the station",
+   "keep": [
+    "soup kitchen near the station"
+   ],
+   "drop": [
+    "dara"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S11",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we run a soup kitchen near the station and my name is dara by the way",
+   "keep": [
+    "soup kitchen near the station"
+   ],
+   "drop": [
+    "dara"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S12",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we really need a bigger van and we deliver food to 80 elderly people",
+   "keep": [
+    "deliver food to 80 elderly people"
+   ],
+   "drop": [
+    "bigger van"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S13",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we are seeking funding but we already plant mangroves with fishermen",
+   "keep": [
+    "plant mangroves with fishermen"
+   ],
+   "drop": [
+    "funding"
+   ],
+   "soft": []
+  },
+  {
+   "id": "S14",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we need more people to understand composting so we run workshops in the library",
+   "keep": [
+    "run workshops in the library"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S15",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "i'm with greenroots and we plant trees in schoolyards",
+   "keep": [
+    "greenroots",
+    "plant trees in schoolyards"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "S16",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we built a kitchen so we can share meals with refugees every friday",
+   "keep": [
+    "share meals with refugees every friday"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "P01",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Precisamos garantir água limpa para a comunidade. Construímos cisternas com as famílias.",
+   "keep": [
+    "garantir água limpa",
+    "cisternas com as famílias"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "P02",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Somos a Horta Viva, uma horta comunitária em Maputo. Precisamos de sementes e de uma caixa d'água.",
+   "keep": [
+    "horta comunitária em Maputo"
+   ],
+   "drop": [
+    "caixa d'água"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P03",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Meu nome é Ana e sou da Rede Sementes. Trocamos sementes crioulas nas feiras.",
+   "keep": [
+    "Rede Sementes",
+    "sementes crioulas"
+   ],
+   "drop": [
+    "Ana"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P04",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Eu sou a Joana e coordeno a Cozinha Solidária do bairro.",
+   "keep": [
+    "Cozinha Solidária"
+   ],
+   "drop": [
+    "Joana"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P05",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Ensinamos capoeira para crianças, mas precisamos de um espaço coberto.",
+   "keep": [
+    "capoeira para crianças"
+   ],
+   "drop": [
+    "espaço coberto"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P06",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Procuramos voluntários para a colheita. Plantamos café agroecológico na serra.",
+   "keep": [
+    "café agroecológico"
+   ],
+   "drop": [
+    "voluntários"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P07",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Emprestamos ferramentas para os vizinhos. Podemos oferecer oficinas de marcenaria.",
+   "keep": [
+    "Emprestamos ferramentas"
+   ],
+   "drop": [
+    "oficinas de marcenaria"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P08",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Estamos procurando formas de reduzir o lixo no bairro. Fazemos compostagem com as escolas.",
+   "keep": [
+    "formas de reduzir o lixo",
+    "compostagem com as escolas"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "P09",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Precisamos comprar uma caminhonete. Levamos alimentos para 60 famílias.",
+   "keep": [
+    "alimentos para 60 famílias"
+   ],
+   "drop": [
+    "caminhonete"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P10",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "O projeto precisa de voluntários. Damos aulas de reforço escolar.",
+   "keep": [
+    "reforço escolar"
+   ],
+   "drop": [
+    "voluntários"
+   ],
+   "soft": []
+  },
+  {
+   "id": "P11",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Precisamos de mais gente plantando, por isso fazemos mutirões todo domingo.",
+   "keep": [
+    "fazemos mutirões todo domingo"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "PS1",
+   "lang": "pt",
+   "mode": "spoken",
+   "text": "oi meu nome é ana e a gente cuida de uma horta na escola e a gente também precisa de ferramentas",
+   "keep": [
+    "horta na escola"
+   ],
+   "drop": [
+    "ana e",
+    "ferramentas"
+   ],
+   "soft": []
+  },
+  {
+   "id": "PS2",
+   "lang": "pt",
+   "mode": "spoken",
+   "text": "a gente precisa proteger as nascentes e faz mutirão todo mês",
+   "keep": [
+    "proteger as nascentes",
+    "mutirão todo mês"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "PS3",
+   "lang": "pt",
+   "mode": "spoken",
+   "text": "eu sou o carlos da associação de pescadores e a gente limpa o mangue",
+   "keep": [
+    "associação de pescadores",
+    "limpa o mangue"
+   ],
+   "drop": [
+    "carlos"
+   ],
+   "soft": []
+  },
+  {
+   "id": "PS4",
+   "lang": "pt",
+   "mode": "spoken",
+   "text": "nós ensinamos música para jovens e precisamos de instrumentos e também fazemos shows na praça",
+   "keep": [
+    "música para jovens",
+    "shows na praça"
+   ],
+   "drop": [
+    "instrumentos"
+   ],
+   "soft": []
+  },
+  {
+   "id": "PS5",
+   "lang": "pt",
+   "mode": "spoken",
+   "text": "meu nome é maria e eu tenho 65 anos e faço pão para a comunidade",
+   "keep": [
+    "faço pão para a comunidade"
+   ],
+   "drop": [
+    "maria"
+   ],
+   "soft": []
+  },
+  {
+   "id": "PS6",
+   "lang": "pt",
+   "mode": "spoken",
+   "text": "a gente faz compostagem no bairro mas a gente precisa de um terreno maior",
+   "keep": [
+    "compostagem no bairro"
+   ],
+   "drop": [
+    "terreno maior"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES01",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Buscamos que los jóvenes se queden en el campo. Enseñamos agricultura a 30 chicos.",
+   "keep": [
+    "jóvenes se queden en el campo",
+    "agricultura a 30 chicos"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "ES02",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Soy de la Red Semillas. Intercambiamos semillas nativas en ferias.",
+   "keep": [
+    "Red Semillas",
+    "semillas nativas"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "ES03",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Soy Rosa y coordino la Huerta Las Flores en Medellín.",
+   "keep": [
+    "Huerta Las Flores"
+   ],
+   "drop": [
+    "Rosa"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES04",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Me llamo Rosa Martínez y soy de la Red Semillas. Guardamos semillas nativas.",
+   "keep": [
+    "Red Semillas",
+    "semillas nativas"
+   ],
+   "drop": [
+    "Rosa"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES05",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Buscamos voluntarios para la cosecha. Cultivamos café orgánico en la montaña.",
+   "keep": [
+    "café orgánico"
+   ],
+   "drop": [
+    "voluntarios"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES06",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Estamos buscando formas de reducir el plástico en la playa. Limpiamos la costa cada domingo.",
+   "keep": [
+    "formas de reducir el plástico",
+    "costa cada domingo"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "ES07",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Damos talleres de costura, pero nos faltan máquinas.",
+   "keep": [
+    "talleres de costura"
+   ],
+   "drop": [
+    "máquinas"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES08",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Necesitamos pagar el alquiler del local. Damos comida a 100 niños.",
+   "keep": [
+    "comida a 100 niños"
+   ],
+   "drop": [
+    "alquiler"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES09",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Necesitamos que la comunidad entienda el valor del agua, por eso hacemos talleres en las escuelas.",
+   "keep": [
+    "hacemos talleres en las escuelas"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "ES10",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Podemos ofrecer nuestro salón para eventos. Enseñamos danza folclórica a adolescentes.",
+   "keep": [
+    "danza folclórica"
+   ],
+   "drop": [
+    "salón para eventos"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ES11",
+   "lang": "es",
+   "mode": "typed",
+   "text": "La huerta necesita agua. Sembramos maíz con 20 familias.",
+   "keep": [
+    "maíz con 20 familias"
+   ],
+   "drop": [
+    "necesita agua"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ESS1",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "hola me llamo rosa y tenemos una huerta comunitaria y además necesitamos herramientas",
+   "keep": [
+    "huerta comunitaria"
+   ],
+   "drop": [
+    "rosa",
+    "herramientas"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ESS2",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "somos un grupo de mujeres que hace pan pero lo que más necesitamos es un horno",
+   "keep": [
+    "mujeres que hace pan"
+   ],
+   "drop": [
+    "horno"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ESS3",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "soy maestra y enseñamos a leer a adultos y necesitamos libros",
+   "keep": [
+    "enseñamos a leer a adultos"
+   ],
+   "drop": [
+    "libros"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ESS4",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "buscamos fortalecer la soberanía alimentaria y hacemos ferias de trueque",
+   "keep": [
+    "soberanía alimentaria",
+    "ferias de trueque"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "ESS5",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "necesitamos voluntarios y también damos clases de apoyo escolar",
+   "keep": [
+    "clases de apoyo escolar"
+   ],
+   "drop": [
+    "voluntarios"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ESS6",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "yo soy juan pérez y trabajo con la cooperativa la esperanza que cultiva cacao",
+   "keep": [
+    "cooperativa la esperanza"
+   ],
+   "drop": [
+    "juan"
+   ],
+   "soft": []
+  },
+  {
+   "id": "ESS7",
+   "lang": "es",
+   "mode": "spoken",
+   "text": "limpiamos el río con los vecinos y necesitamos guantes y también hacemos murales",
+   "keep": [
+    "limpiamos el río",
+    "hacemos murales"
+   ],
+   "drop": [
+    "guantes"
+   ],
+   "soft": []
+  },
+  {
+   "id": "L01",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a seed library in Porto. Visit our garden at https://seeds.example.org every Saturday to learn grafting.",
+   "keep": [
+    "every Saturday to learn grafting"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L02",
+   "lang": "en",
+   "mode": "typed",
+   "text": "Visit https://hortaviva.example.org to see the community garden we run in Maputo with 30 families.",
+   "keep": [
+    "community garden we run in Maputo"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L03",
+   "lang": "en",
+   "mode": "typed",
+   "text": "See how we turned a parking lot into a forest at https://forest.example.org. We plant with schools.",
+   "keep": [
+    "turned a parking lot into a forest",
+    "plant with schools"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L04",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a tool library. See our opening hours on the website.",
+   "keep": [
+    "tool library",
+    "opening hours"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L05",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a tool library. Check out https://tools.example.org for hours. Visit https://repair.example.org for repairs.",
+   "keep": [
+    "tool library",
+    "repair.example.org"
+   ],
+   "drop": [
+    "Check out"
+   ],
+   "soft": []
+  },
+  {
+   "id": "L06",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We run a tool library at https://tools.example.org where neighbours borrow drills.",
+   "keep": [
+    "neighbours borrow drills"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L07",
+   "lang": "en",
+   "mode": "typed",
+   "text": "Hi, I'm Dara. We run a seed library. More at https://seeds.example.org.",
+   "keep": [
+    "seed library"
+   ],
+   "drop": [
+    "Dara",
+    "More at"
+   ],
+   "soft": []
+  },
+  {
+   "id": "L08",
+   "lang": "en",
+   "mode": "typed",
+   "text": "We plant street trees in Lagos. You can see our map of 200 planted trees at https://trees.example.org.",
+   "keep": [
+    "street trees in Lagos"
+   ],
+   "drop": [],
+   "soft": [
+    "200 planted trees"
+   ]
+  },
+  {
+   "id": "L09",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Somos a Horta Viva. Acesse https://horta.example.org e conheça as 12 hortas que mantemos em escolas públicas.",
+   "keep": [
+    "12 hortas que mantemos em escolas públicas"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L10",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Conoce nuestra huerta en https://huerta.example.org, donde cultivamos 40 variedades de maíz.",
+   "keep": [
+    "40 variedades de maíz"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L11",
+   "lang": "es",
+   "mode": "typed",
+   "text": "Cultivamos maíz nativo con familias campesinas. Mira https://huerta.example.org para ver fotos.",
+   "keep": [
+    "maíz nativo"
+   ],
+   "drop": [
+    "Mira"
+   ],
+   "soft": []
+  },
+  {
+   "id": "L12",
+   "lang": "pt",
+   "mode": "typed",
+   "text": "Visite https://horta.example.org todo sábado para aprender a enxertar com a gente.",
+   "keep": [
+    "aprender a enxertar"
+   ],
+   "drop": [],
+   "soft": []
+  },
+  {
+   "id": "L13",
+   "lang": "en",
+   "mode": "spoken",
+   "text": "we run a seed library and you can see it at https://seeds.example.org",
+   "keep": [
+    "seed library"
+   ],
+   "drop": [],
+   "soft": []
+  }
+ ]
+}
