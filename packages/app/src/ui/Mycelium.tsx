@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { growMycelium } from "@regen-commons/design-system/mycelium";
+import { afterPaint } from "./after-paint.ts";
 
 /**
  * Mycelium backdrop (`rc-mycelium`): the website's branching growth behind a region, or behind a
@@ -26,8 +27,16 @@ export function Mycelium({ extent, home = false, quiet = false }: { extent?: "pa
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const growth = growMycelium(canvas, { depth: () => depth.current, quiet: () => still.current });
-    return () => growth.dispose();
+    // Started after the next paint: growing measures the canvas and every thread's anchor, and done
+    // in the task that drew the page those reads forced the browser to lay the page out early.
+    let growth: { dispose(): void } | undefined;
+    const cancel = afterPaint(window, () => {
+      growth = growMycelium(canvas, { depth: () => depth.current, quiet: () => still.current });
+    });
+    return () => {
+      cancel();
+      growth?.dispose();
+    };
   }, [extent]);
   return <canvas ref={ref} className="rc-mycelium" data-extent={extent} aria-hidden="true" />;
 }

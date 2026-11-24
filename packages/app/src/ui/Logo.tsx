@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { growLogoMark } from "@regen-commons/design-system/mycelium";
+import { afterPaint } from "./after-paint.ts";
 import { Link } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 
@@ -25,8 +26,16 @@ function LogoMark() {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const mark = growLogoMark(canvas, { hoverTarget: canvas.closest(".rc-logo") ?? canvas });
-    return () => mark.dispose();
+    // Drawn after the next paint, so sizing the canvas reads the layout that paint made instead of
+    // forcing one in the task that drew the page (ui/after-paint.ts).
+    let mark: { dispose(): void } | undefined;
+    const cancel = afterPaint(window, () => {
+      mark = growLogoMark(canvas, { hoverTarget: canvas.closest(".rc-logo") ?? canvas });
+    });
+    return () => {
+      cancel();
+      mark?.dispose();
+    };
   }, []);
   return <canvas ref={ref} className="rc-logo-mark" aria-hidden="true" />;
 }
