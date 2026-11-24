@@ -123,7 +123,8 @@ export const AGENT_TOOLS: readonly AgentToolDefinition[] = [
     title: "Find Funds For An Initiative",
     description: "Rank Weave's catalog of funding programs for an initiative you describe, the way Weave's Funding page "
       + "ranks them. Fit is graded from what the description and a program's documented purpose have in common: the field "
-      + "of work first, then the people served, then the tools used, and higher where the program names a country sent. "
+      + "of work first, then the people served, then the tools used. It is higher where the program names a country sent, "
+      + "and lower, as a caution to check, where it names only other countries or names countries when none are sent. "
       + "Each result also says how the program can be approached and what must still be checked with the funder, "
       + "including a published requirement that may conflict with the details sent. Fit "
       + "is about topics and place only: it is never a decision that someone may apply or will be funded. The description is read on "

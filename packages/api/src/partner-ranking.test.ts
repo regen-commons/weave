@@ -98,3 +98,14 @@ test("review findings: a reason names only what the passage shown supports, and 
   const app = { ...tool, description: "Ledger is an app for groups doing regenerative work, such as planting trees.", locations: [] };
   assert.deepEqual(rankPartners({ queries: [entry("p2", "need", "Communities to pilot it", "Groups to try it.", ["social"], "anywhere", app)], publicEvidence: [thin] }), []);
 });
+
+test("second review: a need kept to here still needs a field, and receiving or investing locally is not funding others", () => {
+  const tryModel = entry("try", "need", "Communities to try our hub model", "Groups who will try it.", ["social"], "here");
+  const local = evidence("at://local", "Local garden", "A village garden in Awka, Nigeria, where neighbours meet.");
+  assert.deepEqual(rankPartners({ queries: [tryModel], publicEvidence: [local] }), []);
+  const money = entry("money", "need", "Funding to keep running", "Money for batteries.", ["financial"]);
+  for (const passage of ["We invest in our community and its gardens in Nigeria.", "We received grants to communities from the state."])
+    assert.deepEqual(rankPartners({ queries: [money], publicEvidence: [evidence("at://x", "X", passage)] }), [], passage);
+  const funder = evidence("at://fund", "Fund", "Communities apply and we fund local groups that address community needs in Nigeria.");
+  assert.equal(rankPartners({ queries: [money], publicEvidence: [funder] })[0]?.counterpart.id, "at://fund");
+});

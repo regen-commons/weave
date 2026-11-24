@@ -115,3 +115,15 @@ test("review findings: an ask's audience is read as such only when it names peop
   assert.equal(fundFit(readInitiative({ ...later, asks: ["Spare parts, such as solar inverters"] }), solar).score,
     fundFit(readInitiative({ ...later, asks: [] }), solar).score);
 });
+
+test("second review: a country in parentheses is read, Congo is the Democratic Republic, and negation reaches past one verb", () => {
+  const read = (text: string) => [...namedPlaces(text).countries].sort();
+  assert.deepEqual(read("Solar hubs (Anambra, Nigeria)"), ["NG"]);
+  assert.deepEqual(read("Forest work in the Congo Basin and the Democratic Republic of the Congo"), ["CD"]);
+  assert.deepEqual(read("Republic of the Congo"), ["CG"]);
+  assert.deepEqual(read("New South Wales and Northern Ireland"), ["AU", "GB"]);
+  assert.deepEqual(ids("We do not use blockchain."), {});
+  assert.deepEqual(ids("Our app does not need internet."), { technology: "lead" });
+  assert.deepEqual(ids("A DAO for climate."), { web3: "lead", climate: "lead" });
+  assert.deepEqual(ids("Elas dão oficinas."), {});
+});

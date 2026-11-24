@@ -324,7 +324,7 @@ function fitResult(d: Domain, value: unknown, origin: string) {
   };
 }
 
-const FIT_NOTE = "Fit grades shared topics only: the field of work weighs most, then the people served, then the tools used, and it rises where a program names the countries sent. It is not eligibility and not a chance of funding. Check each program's own page.";
+const FIT_NOTE = "Fit grades shared topics only: the field of work weighs most, then the people served, then the tools used. It rises where a program names a country sent, and falls, as a caution, where it names only other countries or names countries when none are sent. It is not eligibility and not a chance of funding. Check each program's own page.";
 
 async function findFunds(sources: AgentToolSources, a: FindFundsArguments, now: Date) {
   const { catalog, d } = await loadCatalog(sources);

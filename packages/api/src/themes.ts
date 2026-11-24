@@ -76,7 +76,7 @@ const ROWS: readonly Row[] = [
   ["commons", "open source and public goods", "field",
     "open source, opensource, free software, floss, public goods, public good, digital public goods, digital commons, knowledge commons, commons, open knowledge, open data, open hardware, open science, digital public infrastructure, open infrastructure, open technology, developer tools"],
   ["web3", "web3 and blockchain", "field",
-    "blockchain, web3, ethereum, crypto, cryptocurrency, onchain, on chain, daos, smart contract, token, tokenized, defi, refi, decentralized, decentralised, nft, filecoin, ipfs, celo, hypercert, attestation, layer 2, wallet, decentralized storage, decentralized science"],
+    "blockchain, web3, ethereum, crypto, cryptocurrency, onchain, on chain, dao, smart contract, token, tokenized, defi, refi, decentralized, decentralised, nft, filecoin, ipfs, celo, hypercert, attestation, layer 2, wallet, decentralized storage, decentralized science"],
   ["staking", "staking and validators", "field",
     "staking, staking infrastructure, validator, distributed validators, home stakers, node operators, community staking, ethereum staking, ethereum community staking"],
   ["rights-online", "digital rights and security", "field",
@@ -210,7 +210,9 @@ function themeOfTopic(topic: string): string | undefined {
  * phrase counts, past an article, so "non-profit education" and "no-till farming" keep their themes.
  */
 const NEGATIONS = new Set(["without", "not", "no", "never", "nor"]);
+/** Words a negation may reach past: an article, or one verb, as in "does not use blockchain". */
 const ARTICLES = new Set(["a", "an", "the", "any"]);
+const NEGATED_VERBS = new Set(["use", "uses", "need", "needs", "involve", "involves", "require", "requires", "have", "has", "offer", "offers", "provide", "provides", "do", "does"]);
 /**
  * Teaching words that name a means when another word names what is taught: "investor training",
  * "watershed mapping training", "caregiver workshops". Their field is investment, water or care, not
@@ -239,8 +241,10 @@ const SENTENCES = /(?<!\b(?:etc|dr|dra|sr|sra|prof))[.!?;\n]+/iu;
 const ABBREVIATIONS: readonly (readonly [RegExp, string])[] = [[/\be\.\s?g\.,?/giu, "for example"], [/\bi\.\s?e\.,?/giu, "that is"]];
 
 type Found = Map<string, { words: Set<string>; example: boolean; lead: boolean }>;
+/** Portuguese "dão" (they give) folds to "dao"; it is set apart first, so only a DAO reads as one. */
+const PORTUGUESE_DAO = /(?<![\p{L}\p{N}])dão(?![\p{L}\p{N}])/giu;
 function readPart(text: string, example: boolean, found: Found, lead = false) {
-  const list = tokens(text);
+  const list = tokens(text.normalize("NFC").replace(PORTUGUESE_DAO, " daopt "));
   const used = new Array<boolean>(list.length).fill(false);
   const note = (theme: string, words: string, isExample: boolean) => {
     const seen = found.get(theme);
@@ -270,6 +274,7 @@ function readPart(text: string, example: boolean, found: Found, lead = false) {
       for (let at = 0; at < length; at++) used[i + at] = true;
       let before = i - 1;
       while (before >= 0 && ARTICLES.has(list[before]!)) before--;
+      if (before >= 0 && NEGATED_VERBS.has(list[before]!)) before--;
       if (before >= 0 && NEGATIONS.has(list[before]!)) continue;
       const previous = list[i - 1];
       const means = length === 1 && TEACHING.has(list[i]!) && previous !== undefined && !TEACHING_AFTER.has(previous);

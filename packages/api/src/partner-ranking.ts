@@ -49,8 +49,9 @@ const LOCAL = /\b(?:villages?|county|counties|district|province|municipality|sta
 /** Research the project does. Being based at a university is a place, not research. */
 const RESEARCH = /\b(?:research|researchers?|scientists?|scientific|study|studies|laborator(?:y|ies)|monitor(?:ing|s|ed)?|baseline|surveys?|data collection|citizen science|bioacoustic\w*|ecoacoustic\w*|acoustic|evaluation|evaluators?|measur\w+|analysis|inventory)\b/iu;
 /** A statement that the project funds others. Seeking money ("looking for investors") is not one. */
-const FUNDS = /\b(?:we (?:fund|give grants|award grants|make grants|regrant|invest in)|grantmak\w*|regranting|small grants (?:to|for)|grants? to (?:communit\w*|groups|grassroots|local)|funding pool)\b/iu;
-const ASKS_OR_DENIES = /\b(?:looking for|seek\w*|need\w*|want\w*|rais\w*|apply\w*|attract\w*|hope\w*|plan\w* to|not|never|no longer|without)\b/iu;
+const FUNDS = /\b(?:we (?:fund|give grants|award grants|make grants|regrant)|grantmak\w*|regranting|small grants (?:to|for)|grants? to (?:communit\w*|groups|grassroots|local)|funding pool)\b/iu;
+/** A clause that seeks or receives money, or denies giving it, is not one that funds others. */
+const ASKS_OR_DENIES = /\b(?:looking for|seeking|we seek|we need|need funding|we want|we are raising|raise funds|raising funds|apply for|applying for|attract|hope to|plan to|received|receive|won|were awarded|not|never|no longer|without)\b/iu;
 const fundsOthers = (text: string) =>
   text.split(/[.!?;\n]+|\bbut\b/iu).some((clause) => FUNDS.test(clause) && !ASKS_OR_DENIES.test(clause));
 
@@ -185,7 +186,10 @@ const display = new Intl.DisplayNames(["en"], { type: "region" });
  */
 export type Rarity = (themeId: string) => number;
 const everyFieldEqual: Rarity = () => 1;
+/** Below this many projects, rarity says nothing: a single project page weighs every field alike. */
+const RARITY_MIN = 20;
 function rarityOf(readings: readonly ProjectReading[]): Rarity {
+  if (readings.length < RARITY_MIN) return everyFieldEqual;
   const counts = new Map<string, number>();
   for (const { themes } of readings) for (const id of themes.keys()) counts.set(id, (counts.get(id) ?? 0) + 1);
   return (id) => (readings.length ? 0.75 + 0.5 * (1 - (counts.get(id) ?? 0) / readings.length) : 1);
@@ -216,7 +220,9 @@ export function complement(query: QueryReading, project: ProjectReading, rarity:
   // A community where the initiative already works is the better one to pilot with.
   const near = query.wanted.has("place") ? 30 : 20;
   const score = (role ? 30 + topical : topical / 2) + (country ? near : region ? 8 : 0);
-  return { score: Math.round(score), role, fields: fields.slice(0, 4).map(({ label }) => label), own: owned, place };
+  const shown = fields.slice(0, 4).map(({ label }) => label);
+  // A suggestion stands only on what its reason can show.
+  return { score: Math.round(score), role, fields: shown, own: owned.filter((label) => shown.includes(label)), place };
 }
 
 /** Whether a project is where an entry limited to here, or to its region, must be. Unknown places never qualify. */
@@ -315,8 +321,10 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
       });
     }
     const listed = new Set(ownWords.map((match) => match.candidateId));
-    if (!money) {
+    {
       for (const project of projectReadings) {
+        // A need for money alone looks only at projects that say they fund others.
+        if (money && !project.roles.has("funder")) continue;
         const candidateId = `public:${project.uri}`;
         // The device snapshot already leaves out the initiative's own project; this guards a caller that does not.
         if (listed.has(candidateId) || project.uri === entry.initiativeId || !inScope(query, project)) continue;
@@ -333,7 +341,9 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
         // kept to here may stand on the same country alone, since where it is used is the point.
         const country = !!found.place && [...project.countries].some((code) => query.countries.has(code));
         if (!(found.own.length >= 1 || found.fields.length >= 2 || (found.fields.length >= 1 && country)
-          || (entry.value.placeScope === "here" && country))) continue;
+          || (entry.kind === "offer" && entry.value.placeScope === "here" && country)
+          // A funder that funds the same field, or in the same country, answers a need for money.
+          || (money && (found.fields.length >= 1 || country)))) continue;
         const unknowns: PartnerMatch["unknowns"] = [...PUBLIC_UNKNOWNS];
         if (entry.value.placeScope !== "anywhere") unknowns.push("place");
         candidates.push({

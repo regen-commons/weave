@@ -51,6 +51,9 @@ const EXTRA_NAMES: Readonly<Record<string, string>> = {
   philippine: "PH", filipino: "PH", vietnamese: "VN", "ivory coast": "CI", drc: "CD",
   myanmar: "MM", burma: "MM", bosnia: "BA", "bosnia and herzegovina": "BA", "hong kong": "HK", macau: "MO", macao: "MO",
   trinidad: "TT", "trinidad and tobago": "TT", palestine: "PS", palestinian: "PS", gaza: "PS", "west bank": "PS",
+  // Bare "Congo" most often means the Democratic Republic; the Republic is named in full or by its capital.
+  congo: "CD", "dr congo": "CD", "democratic republic of the congo": "CD", "democratic republic of congo": "CD",
+  "congo basin": "CD", "republic of the congo": "CG", "congo brazzaville": "CG",
 };
 /**
  * Country names that are also everyday words in English, Portuguese or Spanish, or parts of other
@@ -64,12 +67,15 @@ const NOT_PLACES = new Set([
 /** Phrases whose words would otherwise read as a country: their words are not read. */
 const OTHER_PLACES: Readonly<Record<string, string | null>> = {
   "papua new guinea": "PG", "new guinea": "PG", "south sudan": "SS", "niger delta": "NG", "new mexico": "US", "new england": "US",
+  "new south wales": "AU", "northern ireland": "GB", "benin city": "NG", "new jersey": "US",
   "guinea fowl": null, "guinea pig": null, "guinea pigs": null,
 };
 /** Longer names first, so "south sudan" is read before "sudan" and "papua new guinea" before "guinea". */
 let names: (readonly [string, string])[] | undefined;
-const key = (name: string) => fold(name).replace(/&/gu, " and ").replace(/\([^)]*\)/gu, " ").replace(/\bsar china\b/gu, " ")
-  .replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+/** Text as words: folded, "&" as "and", everything else a space. */
+const key = (text: string) => fold(text).replace(/&/gu, " and ").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+/** A country's display name as words, without what ICU adds in parentheses or as "SAR China". */
+const nameKey = (name: string) => key(fold(name).replace(/\([^)]*\)/gu, " ").replace(/\bsar china\b/gu, " "));
 function countryNames(): (readonly [string, string])[] {
   if (names) return names;
   const found = new Map<string, string>(Object.entries(EXTRA_NAMES));
@@ -82,7 +88,7 @@ function countryNames(): (readonly [string, string])[] {
       if (!regionsByCountry.has(code)) continue;
       const name = display.of(code);
       if (!name || name === code) continue;
-      const named = key(name);
+      const named = nameKey(name);
       if (named.length >= 4 && !NOT_PLACES.has(named) && !found.has(named)) found.set(named, code);
     }
   }
