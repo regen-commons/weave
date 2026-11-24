@@ -40,3 +40,33 @@ test("the production bundle keeps validation.ts's jitless setting", (context) =>
     .join("\n");
   assert.match(bundle, /jitless\s*:\s*(?:!0|true)/, "z.config({ jitless: true }) is missing from dist/assets");
 });
+
+// Each chunk that builds schemas, workers included, must configure Zod itself before it does: under
+// zod/mini a chunk without the call would also lose the English messages and the memoizer.
+test("every built chunk that builds Zod schemas also sets jitless and the English messages", (context) => {
+  if (!existsSync(assets)) {
+    context.skip("Build @weave/app first; CI builds before running this check.");
+    return;
+  }
+  const chunks = readdirSync(assets).filter((path) => path.endsWith(".js"));
+  const builders = chunks.filter((path) => readFileSync(`${assets}/${path}`, "utf8").includes("$ZodType"));
+  assert.ok(builders.length > 0, "no chunk builds Zod schemas; the check would prove nothing");
+  for (const path of builders) {
+    const code = readFileSync(`${assets}/${path}`, "utf8");
+    assert.match(code, /jitless\s*:\s*(?:!0|true)/, `${path} builds schemas without jitless`);
+    assert.ok(code.includes("localeError"), `${path} builds schemas without the English messages`);
+  }
+});
+
+// Zod's JSON Schema code is for on-device model requests only (describe/model-constraint.ts), so the
+// start-up chunks named in shell.html never carry it.
+test("start-up carries no JSON Schema code", (context) => {
+  const shell = fileURLToPath(new URL("../dist/shell.html", import.meta.url));
+  if (!existsSync(shell)) {
+    context.skip("Build @weave/app first; CI builds before running this check.");
+    return;
+  }
+  const files = [...readFileSync(shell, "utf8").matchAll(/(?:href|src)="\/(assets\/[^"]+\.js)"/g)].map((match) => match[1]!);
+  assert.ok(files.length > 0);
+  for (const file of files) assert.doesNotMatch(readFileSync(fileURLToPath(new URL(`../dist/${file}`, import.meta.url)), "utf8"), /json-schema\.org/u, `${file} carries JSON Schema code`);
+});
