@@ -13,7 +13,7 @@ import {
   storedSpeechRecord,
   type BrowserSpeechRecordState,
 } from "../src/describe/speech-fallback.ts";
-import { speechProblem, speechSetupStore, talkControls } from "../src/describe/speech-setup.ts";
+import { SPEECH_SETTING, speechProblem, speechSettingLine, speechSetupStore, talkControls } from "../src/describe/speech-setup.ts";
 
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -118,7 +118,7 @@ test("a speech service that fails with network before it ever worked is noted, a
   assert.deepEqual(offered.heard, ["error:browser-failed", "end:false"]);
   assert.equal(offered.record.state(), "failed");
   assert.match(speechProblem("browser-failed", "browser"), /speech service did not answer/u);
-  assert.match(speechProblem("browser-failed", "browser"), /Press Talk It Out to use Weave's own transcription instead, or type in the box\./u);
+  assert.match(speechProblem("browser-failed", "browser"), /Press Talk It Out to send a recording to Cloudflare instead, after Weave asks, or type in the box\./u);
 
   // Where cloud speech is off, the failure is still noted, and the line is the plain one.
   const off = await session({ cloud: false });
@@ -131,14 +131,22 @@ test("a speech service that fails with network before it ever worked is noted, a
   assert.deepEqual(refused.heard, ["error:browser-failed", "end:false"]);
 });
 
-test("a speech service that heard the microphone and gave nothing back is noted, after long enough to have heard words", async () => {
-  // Chromium's own service with no key: audio starts, and after Stop it ends with no words and no error.
-  const silent = await session();
-  silent.clock.pass(SERVICE_SILENT_MS);
-  silent.handle.stop();
-  silent.recognizer.onend?.();
-  assert.deepEqual(silent.heard, ["error:browser-failed", "end:false"]);
-  assert.equal(silent.record.state(), "failed");
+test("a speech service that twice heard the microphone and gave nothing back is noted, after long enough to have heard words", async () => {
+  // Chromium's own service with no key: audio starts, and after Stop it ends with no words and no
+  // error. Once may be a person thinking, so the first time only says no speech was heard.
+  const record = memorySpeechRecord();
+  const first = await session({ record });
+  first.clock.pass(SERVICE_SILENT_MS);
+  first.handle.stop();
+  first.recognizer.onend?.();
+  assert.deepEqual(first.heard, ["error:no-speech", "end:false"]);
+  assert.equal(record.state(), "quiet");
+  const second = await session({ record });
+  second.clock.pass(SERVICE_SILENT_MS);
+  second.handle.stop();
+  second.recognizer.onend?.();
+  assert.deepEqual(second.heard, ["error:browser-failed", "end:false"]);
+  assert.equal(record.state(), "failed");
 
   // A quick Stop is not enough to tell: it may only have been a quick Stop.
   const quick = await session();
@@ -147,6 +155,41 @@ test("a speech service that heard the microphone and gave nothing back is noted,
   quick.recognizer.onend?.();
   assert.deepEqual(quick.heard, ["error:no-speech", "end:false"]);
   assert.equal(quick.record.state(), "unknown");
+});
+
+test("the time that counts runs from when audio capture began, not from when the recognizer said it started", async () => {
+  // Chromium says start at once and audiostart about a second later; Brave 1.6 s later.
+  const browser = recognizer({ opens: false });
+  const { heard, callbacks } = page();
+  const clock = time();
+  const record = memorySpeechRecord("quiet");
+  const handle = await startSpeech("browser", "en-US", callbacks, { speech: browser.speech, consent: memoryConsent(true), later: clock.later, clock: clock.clock, record, cloudOffered: async () => true });
+  browser.sessions[0]?.onstart?.();
+  clock.pass(2000);
+  browser.sessions[0]?.onaudiostart?.();
+  clock.pass(SERVICE_SILENT_MS - 1);
+  handle.stop();
+  browser.sessions[0]?.onend?.();
+  assert.deepEqual(heard, ["error:no-speech", "end:false"]);
+  assert.equal(record.state(), "quiet", "not long enough with audio to count");
+});
+
+test("a speech service that cannot be reached while the device is offline is not written off", async () => {
+  const browser = recognizer();
+  const { heard, callbacks } = page();
+  const record = memorySpeechRecord();
+  await startSpeech("browser", "en-US", callbacks, {
+    speech: browser.speech,
+    consent: memoryConsent(true),
+    later: time().later,
+    record,
+    cloudOffered: async () => true,
+    online: () => false,
+  });
+  await settle();
+  browser.sessions[0]?.onerror?.({ error: "network" });
+  assert.deepEqual(heard, ["error:network", "end:false"]);
+  assert.equal(record.state(), "unknown");
 });
 
 test("once the service has given words on this device, a later failure is a passing one", async () => {
@@ -220,6 +263,55 @@ test("a failure noted on this device puts cloud speech in the service's place, a
   assert.equal(store.state("en-US"), "browser", "turning cloud speech off in Settings forgets the failure");
 });
 
+test("a failure noted again makes Talk It Out look again, so the line and the offer never disagree", async () => {
+  // Found in review: the record already said failed, but the store's first question about cloud
+  // speech got no answer, so it stayed on the browser's service. The session's own question got a
+  // yes, so its line offered cloud speech. Noting the failure again now makes the store ask again.
+  const record = memorySpeechRecord("failed");
+  const answers = [false, true];
+  const store = speechSetupStore({ speech: recognizer().speech, cloud: async () => answers.shift() ?? true, brave: async () => false, record });
+  store.check("en-US");
+  await settle();
+  assert.equal(store.state("en-US"), "browser");
+  record.failed();
+  await settle();
+  assert.equal(store.state("en-US"), "cloud");
+});
+
+test("a failure noted while the first answer is still on its way is not lost", async () => {
+  const record = memorySpeechRecord();
+  // The first question about cloud speech is still on its way when the failure is noted; the
+  // answer it brings is from before, and is not the one that stands.
+  let answer: (yes: boolean) => void = () => {};
+  let questions = 0;
+  const store = speechSetupStore({
+    speech: recognizer().speech,
+    cloud: () => (++questions === 1 ? new Promise<boolean>((resolve) => (answer = resolve)) : Promise.resolve(true)),
+    brave: async () => false,
+    record,
+  });
+  record.failed();
+  store.check("en-US");
+  await settle();
+  assert.equal(store.state("en-US"), "checking", "the first answer is on its way");
+  // Noted again in another tab, say, while that answer is still out.
+  record.failed();
+  answer(false);
+  await settle();
+  await settle();
+  await settle();
+  assert.equal(questions, 2, "asked again once the first answer came");
+  assert.equal(store.state("en-US"), "cloud", "the later answer stands");
+});
+
+test("Settings says when cloud speech stands in for the browser's service, and offers it back", () => {
+  assert.equal(speechSettingLine(false, false, true), SPEECH_SETTING.failed);
+  assert.match(SPEECH_SETTING.failed, /did not answer on this device, so Talk It Out offers cloud speech instead\.$/u);
+  assert.equal(speechSettingLine(false, true, true), `${SPEECH_SETTING.cloudAgreed} ${SPEECH_SETTING.failed}`);
+  assert.equal(SPEECH_SETTING.useBrowserAgain, "Use Browser Speech Again");
+  assert.equal(speechSettingLine(false, false), SPEECH_SETTING.notAgreed);
+});
+
 test("the record keeps one word on the device, follows other tabs, and never notes a failure after the service worked", () => {
   const stored = new Map<string, string>();
   const storage = {
@@ -245,6 +337,21 @@ test("the record keeps one word on the device, follows other tabs, and never not
   assert.equal(tab.state(), "worked", "forgetting clears only a failure");
   stored.set(BROWSER_SPEECH_RECORD_KEY, "anything else");
   assert.equal(tab.state(), "unknown");
+  tab.forget();
+  stored.delete(BROWSER_SPEECH_RECORD_KEY);
+  const fresh = storedSpeechRecord(() => storage, events);
+  assert.equal(fresh.quiet(), "quiet", "one silent try is not a failure");
+  assert.equal(fresh.quiet(), "failed", "the second is");
+  fresh.forget();
+  assert.equal(fresh.state(), "unknown", "and Use Browser Speech Again forgets it");
+  // Storage that reads but refuses writes is not believed for the rest of the visit.
+  const full = storedSpeechRecord(
+    () => ({ ...storage, setItem: () => { throw new Error("full"); } }),
+    events,
+  );
+  stored.delete(BROWSER_SPEECH_RECORD_KEY);
+  full.failed();
+  assert.equal(full.state(), "failed");
   // A browser that refuses storage keeps the record for the visit.
   const refusing = storedSpeechRecord(() => {
     throw new Error("blocked");

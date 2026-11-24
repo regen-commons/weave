@@ -11,10 +11,12 @@ export type { Wait } from "./speech.ts";
  * send the audio to the browser vendor; otherwise no talking, and on a touch screen a line about
  * the keyboard's own microphone key. Weave downloads no model.
  *
- * Since 23 November 2026 there is one more step before "no talking": where the browser has no
- * speech recognition at all and the server has cloud speech switched on, a person who agrees can
+ * Since 23 November 2026 there is one more step before "no talking": where the browser cannot turn
+ * speech into text itself and the server has cloud speech switched on, a person who agrees can
  * record what they say and have the recording turned into text by the provider the notice names
- * (`speech-cloud.ts`). That is the only case in which Weave records or sends audio.
+ * (`speech-cloud.ts`). The browser cannot when it has no speech recognition at all, or when its own
+ * speech service cannot work here: Brave, or a failure this device noted (`speech-fallback.ts`).
+ * That is the only case in which Weave records or sends audio.
  */
 export type SpeechSetupState =
   /** The browser has not answered yet, so nothing about speech shows. */
@@ -172,9 +174,10 @@ export function speechSetupStore({
         if (!underWay(language)) publish(language, support);
       });
   };
-  // A failure noted, here or in another tab, or forgotten, changes what Talk It Out offers.
+  // A failure noted, here or in another tab, or forgotten, changes what Talk It Out offers. A
+  // language still waiting for its first answer is asked again too, so no answer from before stands.
   record.subscribe(() => {
-    for (const language of states.keys()) check(language);
+    for (const language of new Set([...states.keys(), ...asking])) check(language);
   });
   return {
     state,
@@ -284,14 +287,18 @@ export const SPEECH_SETTING = {
   withdraw: "Stop Using Browser Speech",
   cloudAgreed: `Where this browser cannot turn speech into text, Weave sends your recording to ${CLOUD_SPEECH.provider} to turn it into text. Weave does not keep it.`,
   withdrawCloud: "Stop Using Cloud Speech",
+  /** A failure this device noted put cloud speech in the place of the browser's own speech service. */
+  failed: "Your browser's speech service did not answer on this device, so Talk It Out offers cloud speech instead.",
+  useBrowserAgain: "Use Browser Speech Again",
 } as const;
 
 /**
  * The one line Settings says about speech: each agreement in force, or that Weave asks first.
  * It is one status line, so withdrawing an agreement is heard as the line it leaves behind.
  */
-export const speechSettingLine = (browser: boolean, cloud: boolean): string =>
-  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed].filter(Boolean).join(" ") || SPEECH_SETTING.notAgreed;
+export const speechSettingLine = (browser: boolean, cloud: boolean, failed = false): string =>
+  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed, failed && SPEECH_SETTING.failed].filter(Boolean).join(" ") ||
+  SPEECH_SETTING.notAgreed;
 
 /**
  * What Settings says about the recordings this device has sent, from the device's own record
@@ -503,7 +510,7 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
       return "The microphone did not turn on. Allow it if your browser asks, then try again, or type in the box.";
     // The browser's own service failed before it ever worked here, and cloud speech can take its place.
     case "browser-failed":
-      return "This browser's speech service did not answer. Press Talk It Out to use Weave's own transcription instead, or type in the box.";
+      return `This browser's speech service did not answer. Press Talk It Out to send a recording to ${CLOUD_SPEECH.company} instead, after Weave asks, or type in the box.`;
     case "network":
       return mode === "browser"
         ? `Your browser's speech service could not be reached. ${instead}`

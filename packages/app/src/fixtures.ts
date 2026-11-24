@@ -11,6 +11,7 @@ import { parseBundle } from "./funding/catalog.ts";
 import type { TeamAsk } from "./funding/team.ts";
 import type { LocalSpeechOptions, LocalSpeechSession, SpeechConstructor } from "./describe/speech.ts";
 import { speechSetupStore, type SpeechSetupStore } from "./describe/speech-setup.ts";
+import { memorySpeechRecord } from "./describe/speech-fallback.ts";
 import { memoryConsent, type BrowserSpeechConsent } from "./describe/speech-consent.ts";
 /**
  * Where the example card stands: nothing yet, on this device, saved privately, saved in a
@@ -509,8 +510,11 @@ export function exampleSpeech(example: SpeechExample): SpeechSetupStore {
   return (exampleSpeechStores[example] ??= speechSetupStore({
     speech: exampleRecognizer(example),
     slowAfter: 5000,
-    // The example world answers for cloud speech itself, so no example ever asks the real server.
+    // The example world answers for cloud speech itself, so no example ever asks the real server,
+    // and keeps its own record of the browser's speech service, never this browser's.
     cloud: async () => example in CLOUD_EXAMPLES,
+    record: memorySpeechRecord(),
+    brave: async () => false,
     ...(example === "keyboard" ? { touch: true } : {}),
   }));
 }

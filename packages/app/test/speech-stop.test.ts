@@ -10,10 +10,14 @@ import * as speechModule from "../src/describe/speech.ts";
 import { STOP_WAIT_MS, startSpeech, type LocalSpeechSession, type SpeechConstructor, type SpeechEvent, type Wait } from "../src/describe/speech.ts";
 import { cloudSession, startCloudSpeech, type RecorderConstructor, type RecordingDevices } from "../src/describe/speech-cloud.ts";
 import { memoryConsent } from "../src/describe/speech-consent.ts";
+import { memorySpeechRecord } from "../src/describe/speech-fallback.ts";
 import { speechProblem, talkControls } from "../src/describe/speech-setup.ts";
 
 /** How long Stop waits while no words have come. Read from the module, so its absence fails a test, not the file. */
 const STOP_WAIT_NO_WORDS_MS = (speechModule as { STOP_WAIT_NO_WORDS_MS?: number }).STOP_WAIT_NO_WORDS_MS ?? Number.NaN;
+
+/** Each session its own record of the browser's service, and no cloud speech, so tests never meet. */
+const isolated = () => ({ record: memorySpeechRecord(), cloudOffered: async () => false });
 
 function recognizer({ local = false }: { local?: boolean } = {}) {
   const sessions: Session[] = [];
@@ -89,7 +93,7 @@ test("words a recognizer hands over only after Stop, later than the Stop deadlin
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();
   const time = clock();
-  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  const handle = await startSpeech("browser", "en-US", callbacks, { ...isolated(), speech, consent: memoryConsent(true), later: time.later });
   handle.stop();
   time.pass(STOP_WAIT_MS + 1500);
   assert.deepEqual(heard, [], "with no words yet, Stop waits past its usual deadline");
@@ -104,7 +108,7 @@ test("words that only begin to arrive near the usual deadline are all kept", asy
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();
   const time = clock();
-  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  const handle = await startSpeech("browser", "en-US", callbacks, { ...isolated(), speech, consent: memoryConsent(true), later: time.later });
   handle.stop();
   time.pass(STOP_WAIT_MS - 100);
   sessions[0]?.say("We are River", false);
@@ -118,7 +122,7 @@ test("a recognizer that hands over words after Stop and never ends is ended at t
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();
   const time = clock();
-  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  const handle = await startSpeech("browser", "en-US", callbacks, { ...isolated(), speech, consent: memoryConsent(true), later: time.later });
   handle.stop();
   time.pass(5000);
   sessions[0]?.say("We restore the riverbank");
@@ -131,7 +135,7 @@ test("leaving the page while Stop waits for words ends the session with nothing 
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();
   const time = clock();
-  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  const handle = await startSpeech("browser", "en-US", callbacks, { ...isolated(), speech, consent: memoryConsent(true), later: time.later });
   handle.stop();
   time.pass(STOP_WAIT_MS + 1000);
   handle.dispose();
@@ -144,7 +148,7 @@ test("leaving the page while Stop waits for words ends the session with nothing 
 test("words revised to nothing count as none, and a browser answering Stop with aborted is still the person's Stop", async () => {
   const revised = recognizer();
   const blank = page();
-  const first = await startSpeech("browser", "en-US", blank.callbacks, { speech: revised.speech, consent: memoryConsent(true), later: clock().later });
+  const first = await startSpeech("browser", "en-US", blank.callbacks, { ...isolated(), speech: revised.speech, consent: memoryConsent(true), later: clock().later });
   revised.sessions[0]?.say("um", false);
   revised.sessions[0]?.say("", true);
   first.stop();
@@ -153,7 +157,7 @@ test("words revised to nothing count as none, and a browser answering Stop with 
 
   const answered = recognizer();
   const stopping = page();
-  const second = await startSpeech("browser", "en-US", stopping.callbacks, { speech: answered.speech, consent: memoryConsent(true), later: clock().later });
+  const second = await startSpeech("browser", "en-US", stopping.callbacks, { ...isolated(), speech: answered.speech, consent: memoryConsent(true), later: clock().later });
   answered.sessions[0]?.say("We grow seedlings");
   second.stop();
   answered.sessions[0]?.onerror?.({ error: "aborted" });
@@ -165,7 +169,7 @@ test("a recognizer that already gave words still ends at the usual deadline, wit
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();
   const time = clock();
-  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  const handle = await startSpeech("browser", "en-US", callbacks, { ...isolated(), speech, consent: memoryConsent(true), later: time.later });
   sessions[0]?.say("We restore the riverbank", false);
   handle.stop();
   time.pass(STOP_WAIT_MS);
@@ -178,7 +182,7 @@ test("Stop that brings no words says so, never nothing", async () => {
   // service that answered with nothing, as Chromium's own does when it has no words.
   const ended = recognizer();
   const quiet = page();
-  const first = await startSpeech("browser", "en-US", quiet.callbacks, { speech: ended.speech, consent: memoryConsent(true), later: clock().later });
+  const first = await startSpeech("browser", "en-US", quiet.callbacks, { ...isolated(), speech: ended.speech, consent: memoryConsent(true), later: clock().later });
   first.stop();
   ended.sessions[0]?.onend?.();
   assert.deepEqual(quiet.heard, ["error:no-speech", "end:false"]);
@@ -187,6 +191,7 @@ test("Stop that brings no words says so, never nothing", async () => {
   const blank = recognizer({ local: true });
   const blankPage = page();
   const second = await startSpeech("device", "en-US", blankPage.callbacks, {
+    ...isolated(),
     speech: Object.assign(blank.speech, { available: async () => "available" }),
     later: clock().later,
   });
@@ -199,7 +204,7 @@ test("Stop that brings no words says so, never nothing", async () => {
   const hung = recognizer();
   const waiting = page();
   const time = clock();
-  const third = await startSpeech("browser", "en-US", waiting.callbacks, { speech: hung.speech, consent: memoryConsent(true), later: time.later });
+  const third = await startSpeech("browser", "en-US", waiting.callbacks, { ...isolated(), speech: hung.speech, consent: memoryConsent(true), later: time.later });
   third.stop();
   assert.ok(Number.isFinite(STOP_WAIT_NO_WORDS_MS), "a longest wait is set");
   time.pass(STOP_WAIT_NO_WORDS_MS - 1);
@@ -214,7 +219,7 @@ test("Stop that brings no words says so, never nothing", async () => {
 test("a recognizer that ends by itself with no words is still a pause, not a problem", async () => {
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();
-  await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: clock().later });
+  await startSpeech("browser", "en-US", callbacks, { ...isolated(), speech, consent: memoryConsent(true), later: clock().later });
   sessions[0]?.onend?.();
   assert.deepEqual(heard, ["end:false"], "the page says listening stopped after a pause");
 });

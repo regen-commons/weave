@@ -5,24 +5,31 @@
  * - **Brave.** It has the Web Speech API's recognizer but none of the speech service behind it, so a
  *   session fails with `network` once the microphone is allowed (brave/brave-browser#2802). Brave says
  *   who it is through `navigator.brave.isBrave()`.
- * - **This device's own record.** A browser whose service heard the microphone and gave nothing back,
- *   or failed with `network`, before it had ever given words here, is noted as not working. The next
- *   press of Talk It Out then offers cloud speech. Once the service has given words on this device,
- *   a later failure is taken as a passing one and changes nothing.
+ * - **This device's own record**, before the service has ever given words here: it failed with
+ *   `network` while the device was online, or with `service-not-allowed`; or it twice had the
+ *   microphone open for a while and gave nothing back. One silent try may be a person thinking, so it
+ *   takes two. The next press of Talk It Out then offers cloud speech. Once the service has given
+ *   words on this device, a later failure is taken as a passing one and changes nothing.
  *
- * Only that one word is stored, never what was said. Turning cloud speech off in Settings forgets it,
- * so the browser's own service is offered again.
+ * Only that one word is stored, never what was said. Settings forgets a failure, with Use Browser
+ * Speech Again or with Stop Using Cloud Speech, so the browser's own service is offered again.
  */
 
-export type BrowserSpeechRecordState = "unknown" | "worked" | "failed";
+/** `quiet`: one silent try, not yet a failure. */
+export type BrowserSpeechRecordState = "unknown" | "quiet" | "worked" | "failed";
 
 export interface BrowserSpeechRecord {
   state(): BrowserSpeechRecordState;
   /** The browser's own service gave words on this device. */
   worked(): void;
-  /** It failed before it had ever given words here. Ignored once it has worked. */
+  /**
+   * It failed before it had ever given words here. Ignored once it has worked. Tells its listeners
+   * every time, so a page that missed the first failure looks again.
+   */
   failed(): void;
-  /** Forgets a failure, so the browser's own service is offered again. */
+  /** It had the microphone and gave nothing back. The second time before it has worked is a failure. Answers the state after. */
+  quiet(): BrowserSpeechRecordState;
+  /** Forgets a failure or a silent try, so the browser's own service is offered again. */
   forget(): void;
   /** Calls back when the record changes here or in another tab of this browser. */
   subscribe(listener: () => void): () => void;
@@ -31,13 +38,15 @@ export interface BrowserSpeechRecord {
 /** Where the record is kept. Any other stored value counts as unknown. */
 export const BROWSER_SPEECH_RECORD_KEY = "weave-browser-speech-record";
 
+const STATES: readonly BrowserSpeechRecordState[] = ["quiet", "worked", "failed"];
+
 interface RecordStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
 }
 
-/** A record held in memory only: for tests, and for a browser that stores nothing. */
+/** A record held in memory only: for tests and examples, and for a browser that stores nothing. */
 export function memorySpeechRecord(initial: BrowserSpeechRecordState = "unknown"): BrowserSpeechRecord {
   return speechRecord(() => undefined, undefined, initial);
 }
@@ -56,40 +65,61 @@ function speechRecord(
   initial: BrowserSpeechRecordState,
 ): BrowserSpeechRecord {
   let visit: BrowserSpeechRecordState = initial;
+  // Storage that reads but refused a write is not believed for the rest of the visit.
+  let unwritable = false;
   const listeners = new Set<() => void>();
+  const tell = () => {
+    for (const listener of listeners) listener();
+  };
   const read = (): BrowserSpeechRecordState => {
+    if (unwritable) return visit;
     try {
       const place = storage();
       if (!place) return visit;
       const value = place.getItem(BROWSER_SPEECH_RECORD_KEY);
-      return value === "worked" || value === "failed" ? value : "unknown";
+      return STATES.find((state) => state === value) ?? "unknown";
     } catch {
       return visit;
     }
   };
   const write = (next: BrowserSpeechRecordState) => {
-    if (read() === next) return;
     visit = next;
     try {
       const place = storage();
       if (next === "unknown") place?.removeItem(BROWSER_SPEECH_RECORD_KEY);
       else place?.setItem(BROWSER_SPEECH_RECORD_KEY, next);
     } catch {
-      /* Kept for this visit only. */
+      unwritable = true;
     }
-    for (const listener of listeners) listener();
   };
   const fromOtherTab = (event: Event) => {
-    if ((event as StorageEvent).key === BROWSER_SPEECH_RECORD_KEY) for (const listener of listeners) listener();
+    if ((event as StorageEvent).key === BROWSER_SPEECH_RECORD_KEY) tell();
   };
   return {
     state: read,
-    worked: () => write("worked"),
+    worked: () => {
+      if (read() === "worked") return;
+      write("worked");
+      tell();
+    },
     failed: () => {
-      if (read() !== "worked") write("failed");
+      if (read() === "worked") return;
+      write("failed");
+      tell();
+    },
+    quiet: () => {
+      const now = read();
+      if (now === "worked") return now;
+      const next = now === "unknown" ? "quiet" : "failed";
+      write(next);
+      if (next === "failed") tell();
+      return next;
     },
     forget: () => {
-      if (read() === "failed") write("unknown");
+      const now = read();
+      if (now !== "failed" && now !== "quiet") return;
+      write("unknown");
+      tell();
     },
     subscribe(listener) {
       if (!listeners.size) events?.addEventListener("storage", fromOtherTab);

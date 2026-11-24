@@ -21,6 +21,8 @@
  *   logs nothing (`src/describe/speech-cloud.ts`, `@weave/api` transcribe). The device keeps the
  *   time and length of each recording sent, and nothing of its content
  *   (`src/describe/speech-cloud-log.ts`).
+ * - The device notes in one word whether the browser's own speech service gave words here, so a
+ *   service that cannot work is replaced by the cloud speech offer (`src/describe/speech-fallback.ts`).
  * - Someone's own AI assistant can read Weave's public data through `/api/mcp`. One of its tools takes
  *   a description, topics, countries and kind of applicant that the assistant sends, and ranks the fund
  *   list on Weave's server for that one answer; none of it is stored or logged
@@ -95,6 +97,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
       "When you talk, your browser turns your voice into text wherever it can, and gives Weave only the words.",
       "Where your browser can do that on this device, the audio stays here. Where it cannot, your browser can send your voice to its own speech service instead. Weave asks before the first time, and you can turn it off in Settings. That service belongs to your browser, so its own terms apply.",
       "Some browsers cannot turn speech into text themselves. Where Weave offers cloud speech there, and only if you agree, Weave records what you say and, when you press Stop or the recording reaches its limit of three minutes at most, sends it once through its own server to Cloudflare Workers AI, which turns it into text. Discard drops it unsent. Weave does not keep the recording or the words on its server. Cloudflare says it does not keep them or use them to train models. The recording may be processed outside your country. This device notes when a recording was sent and how long it was, and Settings shows how many. Weave asks before the first time, and you can turn it off in Settings.",
+      "Where your browser's own speech service gives no words back, this device notes that, and nothing of what you said, so Talk It Out can offer cloud speech instead. Use Browser Speech Again in Settings forgets it.",
       "On a phone, your keyboard's microphone key is part of the phone, not Weave.",
     ],
   },

@@ -10,7 +10,7 @@ import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
 import { deviceCloudConsent, deviceConsent } from "../describe/speech-consent.ts";
 import { deviceSpeechRecord } from "../describe/speech-fallback.ts";
-import { useBrowserSpeechAgreement, useCloudSpeechAgreement, useCloudSpeechUses } from "../describe/use-speech.ts";
+import { useBrowserSpeechAgreement, useBrowserSpeechRecord, useCloudSpeechAgreement, useCloudSpeechUses } from "../describe/use-speech.ts";
 import { cloudSpeechUseLine, SPEECH_SETTING, speechSettingLine } from "../describe/speech-setup.ts";
 import { useTheme } from "../ui/ThemeSwitch.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
@@ -36,6 +36,8 @@ export function Settings() {
   const { theme } = useTheme();
   const browserSpeech = useBrowserSpeechAgreement();
   const cloudSpeech = useCloudSpeechAgreement();
+  // Cloud speech stands in for a browser speech service that failed on this device (speech-fallback.ts).
+  const browserFailed = useBrowserSpeechRecord() === "failed";
   const cloudSpeechUses = cloudSpeechUseLine(useCloudSpeechUses());
   // Withdrawing removes its own button, so the line that says what changed takes the focus.
   const speechLine = useRef<HTMLParagraphElement>(null);
@@ -199,10 +201,10 @@ export function Settings() {
       </SettingsSection>
       <SettingsSection title="Speech" note="How talking turns into text.">
         <p role="status" ref={speechLine} tabIndex={-1}>
-          {speechSettingLine(browserSpeech, cloudSpeech)}
+          {speechSettingLine(browserSpeech, cloudSpeech, browserFailed)}
         </p>
         {cloudSpeechUses && <p className="rc-meta">{cloudSpeechUses}</p>}
-        {(browserSpeech || cloudSpeech) && (
+        {(browserSpeech || cloudSpeech || browserFailed) && (
           <div className="rc-action-bar">
             {browserSpeech && (
               <button
@@ -231,6 +233,19 @@ export function Settings() {
                 }}
               >
                 {SPEECH_SETTING.withdrawCloud}
+              </button>
+            )}
+            {browserFailed && (
+              <button
+                className="rc-button"
+                data-variant="secondary"
+                type="button"
+                onClick={() => {
+                  deviceSpeechRecord().forget();
+                  speechLine.current?.focus();
+                }}
+              >
+                {SPEECH_SETTING.useBrowserAgain}
               </button>
             )}
           </div>
