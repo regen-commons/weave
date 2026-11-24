@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { supabaseDirect, SUPABASE_DIRECT_PAUSE_MS, SUPABASE_DIRECT_TIMEOUT_MS } from "./sign-in-direct.ts";
+import { supabaseDirect, supabaseWarmer, SUPABASE_DIRECT_FAILURES_TO_PAUSE, SUPABASE_DIRECT_PAUSE_MS, SUPABASE_DIRECT_TIMEOUT_MS,
+  SUPABASE_WARM_EVERY_MS, SUPABASE_WARM_TIMEOUT_MS } from "./sign-in-direct.ts";
 import { createSignInHandlers } from "./sign-in.ts";
 import type { SignInAttempt, SignInStore } from "./sign-in-store.ts";
 import type { AccountProvider } from "./account-provider.ts";
@@ -73,19 +74,55 @@ test("anything but that exact answer sends the browser to Supabase itself", asyn
   assert.equal(asked, 0, "without a bridge, Supabase is not asked");
 });
 
-test("after an unusable answer the instance lets browsers go to Supabase for a minute; a good answer keeps it direct", async () => {
+test("one unusable answer does not pause direct starts; two in a row pause them for a minute", async () => {
+  assert.equal(SUPABASE_DIRECT_FAILURES_TO_PAUSE, 2);
+  assert.equal(SUPABASE_DIRECT_PAUSE_MS, 60_000);
   let now = 0, answer: () => Response = () => redirectTo(bridgeAuth()), asked = 0;
   const toBridge = supabaseDirect(bridge, async () => { asked++; return answer(); }, 100, () => now);
-  assert.ok(await toBridge(authorizeUrl, callback)); assert.ok(await toBridge(authorizeUrl, callback));
+  assert.ok(await toBridge(authorizeUrl, callback));
+  answer = () => new Response("challenge", { status: 403 });
+  assert.equal(await toBridge(authorizeUrl, callback), undefined, "the first failure falls back");
+  answer = () => redirectTo(bridgeAuth());
+  assert.ok(await toBridge(authorizeUrl, callback), "and the next start still asks Supabase");
+  answer = () => new Response("challenge", { status: 403 });
+  assert.equal(await toBridge(authorizeUrl, callback), undefined);
+  assert.equal(await toBridge(authorizeUrl, callback), undefined, "a second failure in a row");
+  answer = () => redirectTo(bridgeAuth());
+  const before = asked;
+  now += SUPABASE_DIRECT_PAUSE_MS - 1;
+  assert.equal(await toBridge(authorizeUrl, callback), undefined);
+  assert.equal(asked, before, "nothing is asked while paused");
+  now += 1;
+  assert.ok(await toBridge(authorizeUrl, callback), "the pause ends");
+  // After a pause it again takes two failures in a row.
   answer = () => new Response("challenge", { status: 403 });
   assert.equal(await toBridge(authorizeUrl, callback), undefined);
   answer = () => redirectTo(bridgeAuth());
-  now += SUPABASE_DIRECT_PAUSE_MS - 1;
-  assert.equal(await toBridge(authorizeUrl, callback), undefined);
-  assert.equal(asked, 3, "nothing is asked while paused");
-  now += 1;
   assert.ok(await toBridge(authorizeUrl, callback));
-  assert.equal(SUPABASE_DIRECT_PAUSE_MS, 60_000);
+});
+
+test("a single slow call does not pause direct starts; two slow calls in a row do; a success between resets the count", async () => {
+  let now = 0, slow = true, asked = 0;
+  const request: typeof fetch = (_url, init) => {
+    asked++;
+    if (!slow) return Promise.resolve(redirectTo(bridgeAuth()));
+    return new Promise((_resolve, reject) => init?.signal?.addEventListener("abort", () => reject(init.signal!.reason)));
+  };
+  const toBridge = supabaseDirect(bridge, request, 20, () => now);
+  assert.equal(await toBridge(authorizeUrl, callback), undefined, "a new instance's slow first call falls back");
+  slow = false;
+  assert.ok(await toBridge(authorizeUrl, callback), "but does not pause: the next start goes direct");
+  slow = true;
+  assert.equal(await toBridge(authorizeUrl, callback), undefined);
+  slow = false;
+  assert.ok(await toBridge(authorizeUrl, callback), "a success resets the count");
+  slow = true;
+  assert.equal(await toBridge(authorizeUrl, callback), undefined);
+  assert.equal(await toBridge(authorizeUrl, callback), undefined);
+  slow = false;
+  const before = asked;
+  assert.equal(await toBridge(authorizeUrl, callback), undefined, "two slow calls in a row pause it");
+  assert.equal(asked, before);
 });
 
 test("a slow Supabase is given up on at the limit", async () => {
@@ -201,4 +238,88 @@ test("a start that waits out a slow Supabase sends the browser the old way and s
   const { redirect } = await response.json() as { redirect: string };
   assert.equal(new URL(redirect).origin + new URL(redirect).pathname, supabase);
   assert.match(response.headers.get("server-timing") ?? "", /supabase;desc=fallback;dur=\d+/u);
+});
+
+test("starts still in flight when a pause begins neither extend it nor count toward the next one", async () => {
+  let now = 0;
+  const waiting: ((response: Response) => void)[] = [];
+  const toBridge = supabaseDirect(bridge, () => new Promise<Response>(resolve => { waiting.push(resolve); }), 1_000, () => now);
+  const refuse = () => waiting.shift()!(new Response("challenge", { status: 403 }));
+  // Four starts at once on one instance; two fail and pause it.
+  const starts = [1, 2, 3, 4].map(() => toBridge(authorizeUrl, callback));
+  refuse(); refuse();
+  assert.equal(await starts[0], undefined); assert.equal(await starts[1], undefined);
+  const pausedFrom = now;
+  // The other two fail during the pause: they must not move its end or count toward the next.
+  now += 1_000; refuse(); refuse();
+  await starts[2]; await starts[3];
+  now = pausedFrom + SUPABASE_DIRECT_PAUSE_MS;
+  const next = toBridge(authorizeUrl, callback);
+  assert.equal(waiting.length, 1, "the pause ended on time and Supabase is asked again");
+  waiting.shift()!(new Response("challenge", { status: 403 }));
+  assert.equal(await next, undefined);
+  const after = toBridge(authorizeUrl, callback);
+  assert.equal(waiting.length, 1, "one failure after the pause does not pause it again");
+  waiting.shift()!(redirectTo(bridgeAuth()));
+  assert.ok(await after);
+});
+
+test("the Supabase warm-up asks only the health check, with the publishable key, and at most once in 3 seconds", async () => {
+  const sent: { url: string; init: RequestInit }[] = [];
+  let now = 0;
+  const warm = supabaseWarmer("https://project.example.test", "sb_publishable_synthetic",
+    async (url, init) => { sent.push({ url: String(url), init: init! }); return Response.json({ name: "GoTrue" }); }, () => now);
+  await Promise.all([warm(), warm(), warm()]);
+  assert.equal(sent.length, 1, "warm-ups at the same time share one request");
+  assert.equal(sent[0]!.url, "https://project.example.test/auth/v1/health");
+  assert.equal(sent[0]!.init.method, "GET");
+  assert.equal(sent[0]!.init.body, undefined, "no body");
+  assert.equal(sent[0]!.init.credentials, "omit");
+  assert.equal(sent[0]!.init.redirect, "error");
+  assert.deepEqual(sent[0]!.init.headers, { apikey: "sb_publishable_synthetic", Accept: "application/json" }, "no cookie, nothing of anyone's");
+  assert.ok(sent[0]!.init.signal instanceof AbortSignal);
+  assert.equal(SUPABASE_WARM_EVERY_MS, 3_000);
+  now += SUPABASE_WARM_EVERY_MS - 1; await warm();
+  assert.equal(sent.length, 1);
+  now += 1; await warm();
+  assert.equal(sent.length, 2);
+  assert.equal(SUPABASE_WARM_TIMEOUT_MS, 2_000);
+});
+
+test("a failed or slow health check never rejects the warm-up", async () => {
+  await assert.doesNotReject(supabaseWarmer("https://project.example.test", "k", async () => { throw new TypeError("fetch failed"); })());
+  await assert.doesNotReject(supabaseWarmer("https://project.example.test", "k", async () => new Response("down", { status: 503 }))());
+  const hanging: typeof fetch = (_url, init) => new Promise((_resolve, reject) =>
+    init?.signal?.addEventListener("abort", () => reject(init.signal!.reason)));
+  const started = performance.now();
+  await assert.doesNotReject(supabaseWarmer("https://project.example.test", "k", hanging, Date.now, 30)());
+  assert.ok(performance.now() - started < 500);
+});
+
+test("a warm request opens Supabase's connection but starts no flow, sets no cookie and answers the same whatever Supabase does", async () => {
+  for (const [name, health] of [
+    ["healthy", async () => Response.json({})],
+    ["down", async () => { throw new TypeError("fetch failed"); }],
+    ["slow", (_url: unknown, init?: RequestInit) => new Promise<Response>((_resolve, reject) =>
+      init?.signal?.addEventListener("abort", () => reject(init.signal!.reason)))],
+  ] as const) {
+    let puts = 0, takes = 0, healthCalls = 0;
+    const store: SignInStore = { async put() { puts++; }, async take() { takes++; return undefined; } };
+    const provider = { signInUrl() { throw Error("a warm-up must never build a sign-in"); } } as unknown as AccountProvider;
+    const warmSupabase = supabaseWarmer("https://project.example.test", "sb_publishable_synthetic",
+      (url, init) => { healthCalls++; return (health as (u: unknown, i?: RequestInit) => Promise<Response>)(url, init); }, Date.now, 30);
+    let toBridgeCalls = 0;
+    const handlers = createSignInHandlers({ origin, secureCookies: true, provider, store, warmSupabase,
+      toBridge: async () => { toBridgeCalls++; return undefined; } });
+    const response = await handlers.POST(new Request(`${origin}/api/sign-in`, { method: "POST",
+      headers: { Origin: origin, "Content-Type": "application/json", Cookie: "__Host-weave_sign_in=" + "p".repeat(43) },
+      body: JSON.stringify({ warm: true }) }));
+    assert.equal(response.status, 200, name);
+    assert.deepEqual(await response.json(), { warm: true }, name);
+    assert.equal(response.headers.get("set-cookie"), null, `${name}: no cookie`);
+    assert.equal(puts + takes, 0, `${name}: no attempt stored or taken`);
+    assert.equal(toBridgeCalls, 0, `${name}: no flow started at Supabase`);
+    assert.equal(healthCalls, 1, name);
+    assert.match(response.headers.get("server-timing") ?? "", /supabase;dur=\d+/u, name);
+  }
 });

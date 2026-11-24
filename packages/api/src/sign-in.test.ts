@@ -427,6 +427,10 @@ function cookieJar() {
 async function bridgeChain(run: (scenario: {
   issuer: string; browser: ReturnType<typeof cookieJar>; app: ReturnType<typeof fixture>; auth: ReturnType<typeof platformAuth>;
   certifiedCallbacks: () => number; store: ReturnType<typeof memoryStore>;
+  /** How many Certified authorizations the bridge started, and a switch to make the next one fail. */
+  certifiedStarts: () => number; failNextStart: () => void;
+  /** The start failures the bridge logged, as stage and error. */
+  startFailures: () => { stage: string; error: string }[];
   /** The bounded reasons the bridge logged for each return to Weave. */
   expiries: () => string[];
   /** Follows bridge redirects until the browser leaves the bridge. */
@@ -435,11 +439,15 @@ async function bridgeChain(run: (scenario: {
   finish: (location: string, appCookie: string) => Promise<string>;
 }) => Promise<void>) {
   const signing = generateSigningMaterial(), lines: string[] = [];
-  let callbacks = 0, bridge: RequestListener | undefined;
+  let callbacks = 0, starts = 0, failNext = false, bridge: RequestListener | undefined;
   const certified: CertifiedClient = {
     metadata: { scope: "atproto" }, jwks: { keys: [] },
     async prime() { return "ready" as const; },
-    async authorize(state) { return new URL(`https://certified.example.test/authorize?state=${state}`); },
+    async authorize(state) {
+      starts++;
+      if (failNext) { failNext = false; throw new Error("certified_unavailable"); }
+      return new URL(`https://certified.example.test/authorize?state=${state}`);
+    },
     async callback(params) {
       callbacks++;
       return { state: params.get("state"), subject: identitySubject("https://certified.one", "did:plc:synthetic", { did: "did:plc:synthetic" }) };
@@ -469,19 +477,28 @@ async function bridgeChain(run: (scenario: {
       return (await app.make().GET(new Request(location, { headers: { Cookie: appCookie } }))).headers.get("location")!;
     };
     await run({ issuer, browser, app, auth, follow, finish, store, certifiedCallbacks: () => callbacks,
+      certifiedStarts: () => starts, failNextStart: () => { failNext = true; },
+      startFailures: () => lines.map(line => JSON.parse(line)).filter(event => event.event === "certified_start_failed")
+        .map(event => ({ stage: event.stage, error: event.error })),
       expiries: () => lines.map(line => JSON.parse(line)).filter(event => event.event === "sign_in_expired").map(event => event.reason) });
     assert.ok(lines.every(line => !line.includes("synthetic") && !line.includes("did:")));
   } finally {
     await new Promise<void>(resolve => { server.close(() => resolve()); server.closeAllConnections(); });
   }
 }
+/** The bridge's /auth request as Supabase's redirect makes it, for one recorded Supabase flow. */
+function bridgeAuthParams(flow: string, change: (params: URLSearchParams) => void = () => {}) {
+  const params = new URLSearchParams({ client_id: "weave-platform", redirect_uri: supabaseCallback, response_type: "code",
+    scope: "openid", state: flow, nonce: "synthetic-nonce", prompt: "login", code_challenge_method: "S256",
+    code_challenge: createHash("sha256").update("synthetic-platform-verifier").digest("base64url") });
+  change(params);
+  return params;
+}
 /** Weave starts the attempt, Supabase records its flow, and the browser reaches Certified through the bridge. */
 async function reachCertified({ issuer, app, auth, follow }: Parameters<Parameters<typeof bridgeChain>[0]>[0], returnTo = "/start/finish") {
   const started = await app.begin(returnTo);
   const flow = auth.authorize(started.authorize.searchParams.get("redirect_to")!);
-  const params = new URLSearchParams({ client_id: "weave-platform", redirect_uri: supabaseCallback, response_type: "code",
-    scope: "openid", state: flow, nonce: "synthetic-nonce", prompt: "login", code_challenge_method: "S256",
-    code_challenge: createHash("sha256").update("synthetic-platform-verifier").digest("base64url") });
+  const params = bridgeAuthParams(flow);
   const certified = new URL(await follow(`${issuer}/auth?${params}`));
   assert.equal(certified.origin, "https://certified.example.test");
   return { appCookie: started.cookie, certifiedState: certified.searchParams.get("state")! };
@@ -600,5 +617,137 @@ test("a provider interaction that lost its cookie, expired or changed hands retu
     assert.equal(await scenario.follow(`${scenario.issuer}/interaction/${uid}`), recovery);
     assert.equal(scenario.certifiedCallbacks(), 1, "only the first, finished attempt read an identity");
     assert.deepEqual(scenario.expiries(), ["principal_changed"]);
+  });
+});
+
+test("the bridge answers /auth with Certified's address, the cookies the return needs and a binding to its interaction", async () => {
+  await bridgeChain(async scenario => {
+    const started = await scenario.app.begin("/start/finish");
+    const flow = scenario.auth.authorize(started.authorize.searchParams.get("redirect_to")!);
+    const response = await scenario.browser.request(`${scenario.issuer}/auth?${bridgeAuthParams(flow)}`);
+    assert.equal(response.status, 303);
+    const certified = new URL(response.headers.get("location")!);
+    assert.equal(certified.origin, "https://certified.example.test", "one response, straight to Certified");
+    assert.match(response.headers.get("server-timing") ?? "", /interaction;desc=joined;dur=0/u);
+    const uid = scenario.browser.cookies.get("_interaction");
+    assert.ok(uid && scenario.browser.cookies.get("_interaction.sig"), "oidc-provider's interaction cookie, signed");
+    assert.ok(scenario.browser.cookies.get("_interaction_resume") && scenario.browser.cookies.get("_interaction_resume.sig"));
+    const bindingId = scenario.browser.cookies.get("weave_test_at");
+    assert.equal(bindingId, certified.searchParams.get("state"), "the browser holds the state Certified will return");
+    const binding = scenario.store.records.get(`browser:at:${bindingId}`)?.payload;
+    const interaction = scenario.store.records.get(`oidc:Interaction:${uid}`)?.payload;
+    assert.equal(binding?.uid, uid, "bound to the interaction oidc-provider started");
+    assert.equal(typeof interaction?.iat, "number");
+    assert.equal(binding?.deadline, (interaction!.iat as number) + RELYING_PARTY_WINDOW_SECONDS,
+      "the deadline counts from the stored interaction's issue time");
+    assert.equal(scenario.certifiedStarts(), 1);
+    // The way back uses those cookies exactly as before.
+    const returned = await scenario.follow(`${scenario.issuer}/at/callback?code=synthetic-code&state=${bindingId}`);
+    assert.ok(returned.startsWith(supabaseCallback));
+    assert.equal(await scenario.finish(returned, started.cookie), `${origin}/start/finish?account=signed-in`);
+  });
+});
+
+test("oidc-provider still judges /auth first: a request it refuses starts nothing at Certified", async () => {
+  await bridgeChain(async scenario => {
+    const flow = scenario.auth.authorize(`${origin}/api/sign-in?state=${"s".repeat(43)}`);
+    for (const [name, change] of [
+      ["another client", (p: URLSearchParams) => p.set("client_id", "someone-else")],
+      ["another return address", (p: URLSearchParams) => p.set("redirect_uri", "https://evil.example.test/cb")],
+      ["no PKCE challenge", (p: URLSearchParams) => { p.delete("code_challenge"); p.delete("code_challenge_method"); }],
+      ["another response type", (p: URLSearchParams) => p.set("response_type", "token")],
+    ] as const) {
+      const response = await scenario.browser.request(`${scenario.issuer}/auth?${bridgeAuthParams(flow, change)}`);
+      const location = response.headers.get("location") ?? "";
+      assert.ok(!location.startsWith("https://certified.example.test"), name);
+      assert.ok(!scenario.browser.cookies.has("weave_test_at"), name);
+    }
+    assert.equal(scenario.certifiedStarts(), 0);
+  });
+});
+
+test("if Certified fails at /auth, the failure is answered once, as /interaction answered it, and nothing is left bound", async () => {
+  await bridgeChain(async scenario => {
+    const started = await scenario.app.begin("/start/finish");
+    const flow = scenario.auth.authorize(started.authorize.searchParams.get("redirect_to")!);
+    scenario.failNextStart();
+    const response = await scenario.browser.request(`${scenario.issuer}/auth?${bridgeAuthParams(flow)}`);
+    assert.equal(response.status, 400);
+    assert.equal(response.headers.get("location"), null);
+    assert.deepEqual(await response.json(), { error: "sign_in_failed" });
+    assert.match(response.headers.get("server-timing") ?? "", /interaction;desc=failed;dur=0/u);
+    assert.equal(scenario.certifiedStarts(), 1, "Certified is not asked a second time");
+    assert.ok(!scenario.browser.cookies.has("weave_test_at"));
+    assert.ok(![...scenario.store.records.keys()].some(key => key.startsWith("browser:at:")), "no binding is left behind");
+    assert.deepEqual(scenario.startFailures(), [{ stage: "oauth_authorize", error: "validation_failed" }]);
+  });
+});
+
+test("if the binding cannot be stored at /auth, the browser takes the old two steps and /interaction tries again", async () => {
+  await bridgeChain(async scenario => {
+    const started = await scenario.app.begin("/start/finish");
+    const flow = scenario.auth.authorize(started.authorize.searchParams.get("redirect_to")!);
+    const put = scenario.store.put.bind(scenario.store);
+    let failed = false;
+    scenario.store.put = async (namespace, id, payload, ttl) => {
+      if (namespace === "browser:at" && !failed) { failed = true; throw Error("database unavailable"); }
+      return put(namespace, id, payload, ttl);
+    };
+    const response = await scenario.browser.request(`${scenario.issuer}/auth?${bridgeAuthParams(flow)}`);
+    const uid = scenario.browser.cookies.get("_interaction");
+    assert.equal(response.headers.get("location"), `${scenario.issuer}/interaction/${uid}`);
+    assert.match(response.headers.get("server-timing") ?? "", /interaction;desc=separate;dur=0/u);
+    assert.ok(!scenario.browser.cookies.has("weave_test_at"));
+    assert.equal(scenario.certifiedStarts(), 0, "Certified was never asked");
+    const certified = new URL(await scenario.follow(response.headers.get("location")!));
+    assert.equal(certified.origin, "https://certified.example.test");
+    assert.equal(scenario.browser.cookies.get("weave_test_at"), certified.searchParams.get("state"));
+    const returned = await scenario.follow(`${scenario.issuer}/at/callback?code=synthetic-code&state=${certified.searchParams.get("state")}`);
+    assert.equal(await scenario.finish(returned, started.cookie), `${origin}/start/finish?account=signed-in`);
+  });
+});
+
+test("the joined response scopes each cookie as before: oidc-provider's to their routes, the bridge's to itself", async () => {
+  await bridgeChain(async scenario => {
+    const flow = scenario.auth.authorize(`${origin}/api/sign-in?state=${"s".repeat(43)}`);
+    const response = await fetch(`${scenario.issuer}/auth?${bridgeAuthParams(flow)}`, { redirect: "manual" });
+    const raw = response.headers.getSetCookie();
+    const named = (name: string) => raw.find(line => line.startsWith(`${name}=`)) ?? "";
+    const uid = named("_interaction").split(";")[0]!.split("=")[1]!;
+    assert.match(named("_interaction"), new RegExp(`path=/interaction/${uid}(;|$)`, "iu"));
+    assert.match(named("_interaction"), /httponly/iu);
+    assert.match(named("_interaction.sig"), new RegExp(`path=/interaction/${uid}(;|$)`, "iu"));
+    assert.match(named("_interaction_resume"), new RegExp(`path=/auth/${uid}(;|$)`, "iu"));
+    assert.match(named("_interaction_resume"), /httponly/iu);
+    assert.match(named("weave_test_at"), /^weave_test_at=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Lax; Path=\/; Max-Age=600$/u);
+    assert.match(response.headers.get("cache-control") ?? "", /no-store/u);
+  });
+});
+
+test("an /auth that is not a login (a returning session asked for consent) is left to oidc-provider and starts nothing at Certified", async () => {
+  await bridgeChain(async scenario => {
+    const { appCookie, certifiedState } = await reachCertified(scenario);
+    const returned = await scenario.follow(`${scenario.issuer}/at/callback?code=synthetic-code&state=${certifiedState}`);
+    assert.equal(await scenario.finish(returned, appCookie), `${origin}/start/finish?account=signed-in`);
+    assert.equal(scenario.certifiedStarts(), 1);
+    // The browser now holds the bridge's session. With its grant gone, a request without prompt=login
+    // starts a consent interaction, not a login: oidc-provider's redirect to it must stand.
+    for (const key of [...scenario.store.records.keys()]) if (key.startsWith("oidc:Grant:")) scenario.store.records.delete(key);
+    const flow = scenario.auth.authorize(`${origin}/api/sign-in?state=${"t".repeat(43)}`);
+    const again = await scenario.browser.request(`${scenario.issuer}/auth?${bridgeAuthParams(flow, p => p.delete("prompt"))}`);
+    const location = again.headers.get("location") ?? "";
+    assert.match(location, new RegExp(`^${scenario.issuer}/interaction/[A-Za-z0-9_-]+$`, "u"), "the consent step, as before");
+    const consent = scenario.store.records.get(`oidc:Interaction:${location.split("/").pop()}`)?.payload as { prompt?: { name?: string } };
+    assert.equal(consent?.prompt?.name, "consent");
+    assert.equal(scenario.certifiedStarts(), 1, "Certified is not asked for a request that needs no login");
+  });
+});
+
+test("a start with an email hint keeps its own step at /interaction", async () => {
+  await bridgeChain(async scenario => {
+    const flow = scenario.auth.authorize(`${origin}/api/sign-in?state=${"s".repeat(43)}`);
+    const response = await scenario.browser.request(`${scenario.issuer}/auth?${bridgeAuthParams(flow, p => p.set("login_hint", "sealed-hint"))}`);
+    assert.equal(response.headers.get("location"), `${scenario.issuer}/interaction/${scenario.browser.cookies.get("_interaction")}`);
+    assert.equal(scenario.certifiedStarts(), 0);
   });
 });
