@@ -5,6 +5,7 @@ import { applyTheme, readTheme } from "./theme.ts";
 import { App, preloadPage } from "./App.tsx";
 import { connectReviewPage } from "./prototype.ts";
 import { watchInstallOffer } from "./install/prompt.ts";
+import { registerWorkerWhenIdle } from "./register-worker.ts";
 import { currentRoute, routePath } from "./router.tsx";
 import { retireFirstView } from "./first-view.ts";
 import { keepRecordFirstView } from "./record-first-view.ts";
@@ -38,3 +39,6 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 );
+
+// Offline support, once the page has loaded and the browser is idle. The prototype has no worker.
+if (!__WEAVE_PROTOTYPE__) registerWorkerWhenIdle(window);
