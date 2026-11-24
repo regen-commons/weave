@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { deviceCloudSpeechLog, type CloudSpeechLog, type CloudSpeechUse } from "./speech-cloud-log.ts";
 import { deviceCloudConsent, deviceConsent, type SpeechConsent } from "./speech-consent.ts";
+import { deviceSpeechRecord, type BrowserSpeechRecord, type BrowserSpeechRecordState } from "./speech-fallback.ts";
 import { speechSetupStore, type SpeechSetupState, type SpeechSetupStore } from "./speech-setup.ts";
 
 let device: SpeechSetupStore | undefined;
@@ -41,6 +42,11 @@ export function useBrowserSpeechAgreement(consent: SpeechConsent = deviceConsent
 /** Whether the person agreed to cloud speech, kept current across tabs. */
 export function useCloudSpeechAgreement(consent: SpeechConsent = deviceCloudConsent()): boolean {
   return useSyncExternalStore(consent.subscribe, consent.agreed);
+}
+
+/** The device's record of whether the browser's own speech service works here, kept current across tabs. */
+export function useBrowserSpeechRecord(record: BrowserSpeechRecord = deviceSpeechRecord()): BrowserSpeechRecordState {
+  return useSyncExternalStore(record.subscribe, record.state);
 }
 
 /** The device's record of the recordings it has sent for cloud speech, kept current across tabs. */

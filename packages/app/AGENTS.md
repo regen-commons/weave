@@ -118,8 +118,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   speech on the device, its own speech service may be used, only after the person
   agrees to a notice that it may send their voice away, and never as a silent
   fallback (`src/describe/speech-consent.ts`, 19 November 2026). Where the browser has
-  no speech recognition at all and the server has cloud speech on, a person who agrees
-  to its own notice can record, and the recording goes once through `/api/transcribe`
+  no speech recognition at all, or its own speech service cannot work here (Brave, or a
+  failure this device noted in `src/describe/speech-fallback.ts`), and the server has
+  cloud speech on, a person who agrees to its own notice can record, and the recording goes once through `/api/transcribe`
   to the provider the notice names (`src/describe/speech-cloud.ts`, 23 November 2026).
   That module is the only place the app records or sends audio, and a test fails if
   another does. No example records or sends anything: an example of cloud speech shows
