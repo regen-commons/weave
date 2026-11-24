@@ -148,6 +148,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | Any change | `bun run --filter @weave/app test` and `bun run --filter @weave/app typecheck` |
 | Before push | `bun run ci`, which builds and tests every package and the live site |
 | Anything people see | Start the `app` server in `.claude/launch.json` (`bun run --filter @weave/app dev`, port 5173) and check 360 px and 1280 px in both themes, with the keyboard, then run the five-minute review |
+| The describe flow, a route or a screen's layout | After building the API and the app, `bun run --filter @weave/app e2e`: the flows, axe and, in CI, screenshots, as [e2e/README.md](e2e/README.md) says |
 
 The tests check the route table, that every `rc-` class, form of capital and icon
 exists in the design system, that there are no inline styles, raw values or app CSS
