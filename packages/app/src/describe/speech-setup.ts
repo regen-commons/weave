@@ -1,6 +1,7 @@
 import { CLOUD_SPEECH } from "@weave/api/transcribe-contract";
 import { speechConstructor, speechStatus, wait, type SpeechConstructor, type SpeechMode, type SpeechProblem, type Wait } from "./speech.ts";
 import { cloudSpeechAvailable } from "./speech-cloud.ts";
+import { deviceSpeechRecord, isBrave, type BrowserSpeechRecord } from "./speech-fallback.ts";
 export type { Wait } from "./speech.ts";
 
 /**
@@ -20,7 +21,11 @@ export type SpeechSetupState =
   | "checking"
   /** This browser has no speech recognition at all, as in Firefox, and cloud speech is not on offer. */
   | "none"
-  /** No speech recognition at all, but the page can record and cloud speech is on. Talking asks first. */
+  /**
+   * The browser cannot turn speech into text itself, the page can record and cloud speech is on:
+   * no speech recognition at all, or a speech service that cannot work here (`speech-fallback.ts`).
+   * Talking asks first.
+   */
   | "cloud"
   /** No speech on this device for this language, but the browser has its own speech service. Talking asks first. */
   | "browser"
@@ -112,6 +117,8 @@ export function speechSetupStore({
   later = wait,
   touch = touchPrimary(),
   cloud = cloudSpeechAvailable,
+  record = deviceSpeechRecord(),
+  brave = isBrave,
 }: {
   /** null: a browser with no speech recognition at all. */
   speech?: SpeechConstructor | null;
@@ -120,10 +127,15 @@ export function speechSetupStore({
   touch?: boolean;
   /**
    * Whether cloud speech can be offered: the browser can record and the server has it on. Asked
-   * only where the browser has no speech recognition at all, so no other browser calls the
-   * server. A failure to answer counts as no.
+   * only where the browser cannot turn speech into text itself: it has no speech recognition at
+   * all, or its own speech service cannot work here (Brave, or a failure this device noted). A
+   * failure to answer counts as no.
    */
   cloud?: () => Promise<boolean>;
+  /** Whether the browser's own speech service has worked on this device (`speech-fallback.ts`). */
+  record?: BrowserSpeechRecord;
+  /** Whether this is Brave, whose recognizer has no speech service behind it. */
+  brave?: () => Promise<boolean>;
 } = {}): SpeechSetupStore {
   const states = new Map<string, SpeechSetupState>();
   const asking = new Set<string>();
@@ -135,6 +147,35 @@ export function speechSetupStore({
     states.set(language, next);
     for (const listener of listeners) listener();
   };
+  /** Languages asked about again while an answer was on its way, so the later answer wins. */
+  const again = new Set<string>();
+  const offerCloud = () => cloud().catch(() => false);
+  const check = (language: string) => {
+    if (underWay(language)) return;
+    if (asking.has(language)) {
+      again.add(language);
+      return;
+    }
+    asking.add(language);
+    void speechSupport(language, speech)
+      .then(async (support): Promise<SpeechSetupState> => {
+        if (support === "none") return (await offerCloud()) ? "cloud" : "none";
+        // The browser's own service cannot work here, so cloud speech is offered in its place,
+        // with its own agreement. Where cloud speech is off, the browser's service stays on offer.
+        if (support === "browser" && (record.state() === "failed" || (await brave().catch(() => false))))
+          return (await offerCloud()) ? "cloud" : "browser";
+        return support;
+      })
+      .then((support) => {
+        asking.delete(language);
+        if (again.delete(language)) return check(language);
+        if (!underWay(language)) publish(language, support);
+      });
+  };
+  // A failure noted, here or in another tab, or forgotten, changes what Talk It Out offers.
+  record.subscribe(() => {
+    for (const language of states.keys()) check(language);
+  });
   return {
     state,
     touch,
@@ -142,16 +183,7 @@ export function speechSetupStore({
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    check(language) {
-      if (asking.has(language) || underWay(language)) return;
-      asking.add(language);
-      void speechSupport(language, speech)
-        .then(async (support) => (support === "none" && (await cloud().catch(() => false)) ? "cloud" : support))
-        .then((support) => {
-          asking.delete(language);
-          if (!underWay(language)) publish(language, support);
-        });
-    },
+    check,
     setUp(language) {
       const current = state(language);
       if (!speech || (current !== "offer" && current !== "failed")) return;
@@ -466,6 +498,12 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
     // Also how a session ends when Stop brought no words at all (`speech.ts`).
     case "no-speech":
       return "No speech was heard. Check your microphone and try again, or type in the box.";
+    // Stop came before the browser opened the microphone, as while it still asks about it.
+    case "no-microphone":
+      return "The microphone did not turn on. Allow it if your browser asks, then try again, or type in the box.";
+    // The browser's own service failed before it ever worked here, and cloud speech can take its place.
+    case "browser-failed":
+      return "This browser's speech service did not answer. Press Talk It Out to use Weave's own transcription instead, or type in the box.";
     case "network":
       return mode === "browser"
         ? `Your browser's speech service could not be reached. ${instead}`

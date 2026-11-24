@@ -1078,6 +1078,14 @@ A browser with no speech recognition, such as Firefox, got one line saying it co
 
 Given up: on these browsers a person sees no words until they stop, and must trust the count. A recording that fails to arrive is dropped and not tried again, so "sent once" stays true and nothing is kept; the person records again.
 
+**Revised 23 November 2026** (report from Brave: Talk It Out gave no words). A browser whose own speech service cannot work here also gets cloud speech, with the same notice and agreement.
+
+- **Brave, from the first press.** Brave has a recognizer with no speech service behind it. Checked in Brave 156: while Brave asks about the microphone nothing starts, and Stop ends the session with no words and no error; once the microphone is allowed, the session fails with `network` about two seconds in. Brave says who it is (`navigator.brave.isBrave()`), so Talk It Out offers cloud speech straight away.
+- **Any other browser, after its service failed here.** A session of the browser's service that fails with `network` or `service-not-allowed`, or has the microphone open for three seconds and gives nothing back by Stop, before that service ever gave words on this device, is noted. The status line says "This browser's speech service did not answer. Press Talk It Out to use Weave's own transcription instead, or type in the box.", and the next press offers cloud speech with its agreement. Once the service has given words here, a failure is taken as a passing one. Stop Using Cloud Speech in Settings forgets the failure.
+- **The microphone that never opened is its own problem.** Stop before the browser opened the microphone says "The microphone did not turn on. Allow it if your browser asks, then try again, or type in the box.", and counts against nothing: cloud speech needs the same microphone.
+
+Given up: a person who stays silent for three seconds on the first try of a working service is offered cloud speech next time; Not Now leaves typing, and Settings brings the browser's service back once cloud speech has been agreed to.
+
 From Krug: say where things go before the press that sends them. From Dirksen: say what is happening while the person waits.
 
 ## DL-139: Funding's first cards come with the page, and a list ranked by fit waits for its ranking

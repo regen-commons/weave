@@ -14,7 +14,8 @@
  * - Talking uses speech on the device where the browser has it; elsewhere the browser's own speech
  *   service, only after the person agrees (`src/describe/speech.ts`,
  *   `src/describe/speech-consent.ts`). That service is the browser's, and it may send the audio away.
- * - Weave receives audio in one case only: a browser with no speech recognition at all, the server
+ * - Weave receives audio in one case only: a browser that cannot turn speech into text itself (no
+ *   speech recognition at all, or a speech service that cannot work here, as in Brave), the server
  *   has cloud speech on, and the person agreed to its notice. The page then records and sends the
  *   recording once to `/api/transcribe`, which passes it to Cloudflare Workers AI and stores and
  *   logs nothing (`src/describe/speech-cloud.ts`, `@weave/api` transcribe). The device keeps the
@@ -93,7 +94,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     body: [
       "When you talk, your browser turns your voice into text wherever it can, and gives Weave only the words.",
       "Where your browser can do that on this device, the audio stays here. Where it cannot, your browser can send your voice to its own speech service instead. Weave asks before the first time, and you can turn it off in Settings. That service belongs to your browser, so its own terms apply.",
-      "Some browsers cannot turn speech into text at all. Where Weave offers cloud speech there, and only if you agree, Weave records what you say and, when you press Stop or the recording reaches its limit of three minutes at most, sends it once through its own server to Cloudflare Workers AI, which turns it into text. Discard drops it unsent. Weave does not keep the recording or the words on its server. Cloudflare says it does not keep them or use them to train models. The recording may be processed outside your country. This device notes when a recording was sent and how long it was, and Settings shows how many. Weave asks before the first time, and you can turn it off in Settings.",
+      "Some browsers cannot turn speech into text themselves. Where Weave offers cloud speech there, and only if you agree, Weave records what you say and, when you press Stop or the recording reaches its limit of three minutes at most, sends it once through its own server to Cloudflare Workers AI, which turns it into text. Discard drops it unsent. Weave does not keep the recording or the words on its server. Cloudflare says it does not keep them or use them to train models. The recording may be processed outside your country. This device notes when a recording was sent and how long it was, and Settings shows how many. Weave asks before the first time, and you can turn it off in Settings.",
       "On a phone, your keyboard's microphone key is part of the phone, not Weave.",
     ],
   },

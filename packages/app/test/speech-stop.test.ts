@@ -24,11 +24,15 @@ function recognizer({ local = false }: { local?: boolean } = {}) {
     onresult: ((event: SpeechEvent) => void) | null = null;
     onerror: ((event: { error: string }) => void) | null = null;
     onend: (() => void) | null = null;
+    onstart?: (() => void) | null = null;
     aborted = 0;
     constructor() {
       sessions.push(this);
     }
-    start() {}
+    /** The browser opens the microphone at once, as one already allowed to does. */
+    start() {
+      this.onstart?.();
+    }
     stop() {}
     abort() {
       this.aborted++;
@@ -223,7 +227,18 @@ test("Talk It Out shows Finishing for as long as a session may wait for its word
 
 test("every way a session can stop has a line to say, with a next step", () => {
   // Each code a session can hand the page. None may leave the status line empty.
-  const codes = ["aborted", "no-speech", "not-allowed", "audio-capture", "network", "withdrawn", "stopped-early", "something new"];
+  const codes = [
+    "aborted",
+    "no-speech",
+    "no-microphone",
+    "browser-failed",
+    "not-allowed",
+    "audio-capture",
+    "network",
+    "withdrawn",
+    "stopped-early",
+    "something new",
+  ];
   for (const mode of ["device", "browser", "cloud"] as const)
     for (const code of codes) {
       const line = speechProblem(code, mode);

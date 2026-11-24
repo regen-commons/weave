@@ -479,9 +479,10 @@ test("each way the browser's speech service can stop says only what is known, an
 });
 
 test("a failed session leaves Talk It Out in place, so the page does not move and the focus stays", async () => {
-  // What is offered comes from the browser's answer alone, never from how a session ended: the
-  // button keeps its place after every error, as Set Up does after a failed setup, and pressing it
-  // again tries again. The error is said in the status line under the box.
+  // A session's end never changes the controls: the button keeps its place after every error, as
+  // Set Up does after a failed setup, and pressing it again tries again. The error is said in the
+  // status line under the box. (Only the device's record of a speech service that cannot work here
+  // changes what the next press offers: test/speech-fallback.test.ts.)
   const safari = browser({ status: () => "unavailable", local: false });
   const store = speechSetupStore({ speech: safari.speech });
   store.check("en-US");

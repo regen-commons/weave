@@ -20,6 +20,7 @@ import {
 } from "../src/describe/speech-cloud.ts";
 import { CLOUD_SPEECH_LOG_KEY, memoryLog, storedLog } from "../src/describe/speech-cloud-log.ts";
 import { BROWSER_SPEECH_KEY, CLOUD_SPEECH_KEY, memoryConsent, storedConsent, type ConsentStorage } from "../src/describe/speech-consent.ts";
+import { memorySpeechRecord } from "../src/describe/speech-fallback.ts";
 import {
   cloudSpeechUseLine,
   CLOUD_SPEECH_NOTE,
@@ -460,7 +461,7 @@ test("the server is asked about cloud speech only where the browser can record, 
   forgetSpeechStatus();
 });
 
-test("cloud speech is offered only where the browser has no speech recognition at all", async () => {
+test("cloud speech is offered where the browser cannot turn speech into text itself, and nowhere else", async () => {
   let asked = 0;
   const cloud = async () => (asked++, true);
   const none = speechSetupStore({ speech: null, cloud });
@@ -471,7 +472,8 @@ test("cloud speech is offered only where the browser has no speech recognition a
   assert.equal(talksHere("cloud"), true);
   assert.equal(asked, 1);
 
-  // A browser with its own speech service, as Safari has, keeps it: cloud speech is never asked about.
+  // A browser with its own speech service, as Safari has, keeps it: cloud speech is never asked
+  // about, unless that service cannot work here (test/speech-fallback.ts).
   class Service {
     lang = "";
     continuous = false;
@@ -483,7 +485,7 @@ test("cloud speech is offered only where the browser has no speech recognition a
     stop() {}
     abort() {}
   }
-  const safari = speechSetupStore({ speech: Service as unknown as SpeechConstructor, cloud });
+  const safari = speechSetupStore({ speech: Service as unknown as SpeechConstructor, cloud, record: memorySpeechRecord(), brave: async () => false });
   safari.check("en-US");
   await settle();
   assert.equal(safari.state("en-US"), "browser");

@@ -9,6 +9,7 @@ import { deviceExport } from "../data/export.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
 import { deviceCloudConsent, deviceConsent } from "../describe/speech-consent.ts";
+import { deviceSpeechRecord } from "../describe/speech-fallback.ts";
 import { useBrowserSpeechAgreement, useCloudSpeechAgreement, useCloudSpeechUses } from "../describe/use-speech.ts";
 import { cloudSpeechUseLine, SPEECH_SETTING, speechSettingLine } from "../describe/speech-setup.ts";
 import { useTheme } from "../ui/ThemeSwitch.tsx";
@@ -223,6 +224,9 @@ export function Settings() {
                 type="button"
                 onClick={() => {
                   deviceCloudConsent().withdraw();
+                  // Where cloud speech stood in for a browser speech service that had failed here,
+                  // that service is offered again (speech-fallback.ts).
+                  deviceSpeechRecord().forget();
                   speechLine.current?.focus();
                 }}
               >

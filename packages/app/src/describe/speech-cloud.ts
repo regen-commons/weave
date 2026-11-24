@@ -1,5 +1,5 @@
 /**
- * Cloud speech: where a browser cannot turn speech into text at all, a person who agrees can
+ * Cloud speech: where a browser cannot turn speech into text itself, a person who agrees can
  * record what they say and have the recording turned into text by the provider the notice names
  * (the owner's decision of 23 November 2026, in `docs/platform/open-decisions.md`).
  *
