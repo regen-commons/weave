@@ -6,16 +6,28 @@ import { describeByTyping } from "./flow.ts";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-/** Every page a person can reach without an account. A record is the fund page every catalog holds. */
-const FIRST_VISIT = ["/", "/initiatives", "/funding", "/funding/local-nlnet", "/start/initiative", "/your-initiatives", "/partners", "/settings", "/no-such-page"];
-/** The pages that change once a card is checked. */
-const WITH_A_CARD = ["/start/initiative", "/start/needs", "/start/offers", "/your-initiative", "/your-initiatives", "/funding", "/"];
+/**
+ * Every page a person can reach without an account, empty steps included. A record is the fund page every
+ * catalog holds. An initiative's record needs the public project list, which the build has no copy of.
+ */
+const FIRST_VISIT = [
+  "/", "/initiatives", "/funding", "/funding/local-nlnet", "/start/initiative", "/start/needs", "/start/offers",
+  "/your-initiative", "/your-initiatives", "/partners", "/settings", "/no-such-page",
+];
+/** Every page again once a card is checked: most of them change, with the card's fit, partners and prompts. */
+const WITH_A_CARD = [
+  "/start/initiative", "/start/needs", "/start/offers", "/your-initiative", "/your-initiatives", "/funding",
+  "/funding/local-nlnet", "/partners", "/settings", "/",
+];
 
+/**
+ * Opens a page and waits until the app has drawn it: the prerendered first view is inert until the app takes
+ * over, and a list or ranking still loading is marked busy. axe treats inert content as hidden.
+ */
 async function scan(page: Page, path: string) {
   await page.goto(path);
   await page.getByRole("main").waitFor();
-  // A page drawn by the app settles once its first data has arrived.
-  await page.waitForLoadState("networkidle");
+  await page.waitForFunction(() => !document.querySelector("#root[data-first-view], [aria-busy='true']"), undefined, { timeout: 20_000 });
   const { violations } = await new AxeBuilder({ page }).withTags(WCAG).analyze();
   const report = violations.map((v) => `${v.id} (${v.impact}): ${v.help}\n${v.nodes.slice(0, 5).map((n) => `    ${n.target.join(" ")}`).join("\n")}`);
   expect(report, `axe found WCAG 2.2 AA problems on ${path}:\n${report.join("\n")}`).toEqual([]);
@@ -30,7 +42,8 @@ for (const colorScheme of ["light", "dark"] as const) {
         await scan(page, path);
       });
 
-    test("with a checked card, every page it changes", async ({ page }) => {
+    test("with a checked card, every page", async ({ page }) => {
+      test.setTimeout(180_000);
       await describeByTyping(page);
       for (const path of WITH_A_CARD) await test.step(path, () => scan(page, path));
     });

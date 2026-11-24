@@ -34,16 +34,14 @@ test("speech on needs: one recording becomes one card per need, with no press af
   for (const words of ["Seedlings", "A meeting room", "Some funding for fencing"]) await expect(cards(page, "Your needs").filter({ hasText: words })).toHaveCount(1);
 });
 
-test("edit and return: changing a checked card's name comes back to the card with the new name", async ({ page }) => {
+test("edit and return: a changed name on a checked card comes straight back to the card with one Continue", async ({ page }) => {
   await describeByTyping(page);
   await page.getByRole("link", { name: "Change Your Card" }).click();
   await expect(page).toHaveURL(/\/start\/initiative$/u);
   await field(page, "Name").fill("River Keepers Nairobi");
-  // Continue goes on through the steps that still need a look, and no further than the card.
-  for (let presses = 0; presses < 3 && !/\/your-initiative$/u.test(page.url()); presses++) {
-    await continueButton(page).click();
-    await page.waitForURL(/\/(start\/(needs|offers)|your-initiative)$/u);
-  }
+  // The needs and offers were checked and did not change, so the person is not walked through them again.
+  await continueButton(page).click();
   await expect(page).toHaveURL(/\/your-initiative$/u);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("River Keepers Nairobi");
+  await expect(page.getByRole("main").getByText("Teach composting", { exact: false }).first()).toBeVisible();
 });

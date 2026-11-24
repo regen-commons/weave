@@ -15,6 +15,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
+  // In CI a missing or changed picture fails and is never written: the workflow takes new ones on purpose.
+  updateSnapshots: process.env.CI ? "none" : "missing",
   expect: {
     timeout: 15_000,
     toHaveScreenshot: { maxDiffPixelRatio: 0.002, animations: "disabled", caret: "hide", scale: "css" },
