@@ -12,12 +12,24 @@ import { ButtonLink } from "./ButtonLink.tsx";
  * the ranking Funding sorts with (`fundingFits`), so the two never disagree.
  */
 export function FirstFunding({ subject }: { subject?: FundingSubject }) {
-  const { bundle, results, loading, ranking, error, retry } = useCatalog(undefined, subject);
+  const { bundle, results, loading, ranking, error, retry, personalized } = useCatalog(undefined, subject);
   const fits = bundle && results ? fundingFits(catalogEntries(bundle), results) : null;
+  // A checked card is compared as soon as the catalog is here; until its ranking lands it is still
+  // loading, never "not compared", even for the moment between the two.
+  const waiting = loading || ranking || (personalized && !results && !error);
   return (
     <>
-      {loading || ranking ? (
-        <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding on this device" />
+      {waiting ? (
+        // The two cards' shapes and the count line's room, so the block is its loaded height and
+        // what follows it on the page does not move when the ranking lands (DL-108).
+        <>
+          <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding on this device" />
+          <p aria-hidden="true">
+            <span className="rc-skeleton" data-shape="hold">
+              {fundingFitsLine({ well: 26, possible: 0 })}
+            </span>
+          </p>
+        </>
       ) : error ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
