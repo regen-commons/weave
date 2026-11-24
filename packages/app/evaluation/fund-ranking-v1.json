@@ -1,0 +1,351 @@
+{
+  "version": 1,
+  "dataset": "fund-ranking-v1",
+  "purpose": "Fixed initiatives whose top five funds are snapshotted on every ranking path, so any change to the order is visible in review. Not a relevance judgment: see fund-ranking.ts for the labelled metrics.",
+  "authoring": "Written on 23 November 2026 by an agent. Fourteen are paraphrased from public Certified project records in packages/api/evaluation/partner-real-v1-corpus.json, without the names of people; countries and applicant types are assumed where a record does not say. Six are invented in the same style to cover Portuguese, Spanish, software, art and a one-line card. No private initiative text. No themes: a card confirmed on the describe step holds none since DL-127, so every path ranks the words alone.",
+  "initiatives": [
+    {
+      "id": "fr-01",
+      "source": "certified",
+      "sourceUri": "at://did:plc:j7dgtlqp6ajxwyhl3me3irzd/org.hypercerts.collection/3mrkfx6zoj22t",
+      "language": "en",
+      "name": "Listening to Nature Taraba",
+      "description": "A community-led biodiversity monitoring project in Zing, Taraba State, Nigeria. We place AudioMoth bioacoustic sensors to record wildlife, train young people and faith communities to use them, and turn the recordings into evidence for nature conservation.",
+      "workCountries": [
+        "NG"
+      ],
+      "benefitCountries": [
+        "NG"
+      ],
+      "applicantBaseCountry": "NG",
+      "registrationCountry": "NG",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-02",
+      "source": "certified",
+      "sourceUri": "at://did:plc:cpoagodpqrgs4t7thi5z37uf/org.hypercerts.collection/3mpxu6dnfbk2q",
+      "language": "en",
+      "name": "Rio Claro Mangrove Restoration",
+      "description": "Local volunteers replant mangroves along the Rio Claro estuary in Ecuador and track the birds, crabs and fish that come back. Since January the team has planted over 3,000 seedlings across two hectares of degraded shoreline.",
+      "workCountries": [
+        "EC"
+      ],
+      "benefitCountries": [
+        "EC"
+      ],
+      "applicantBaseCountry": "EC",
+      "registrationCountry": "",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-03",
+      "source": "certified",
+      "sourceUri": "at://did:plc:4hsbckpeyyv37kmqb2ffuudv/org.hypercerts.collection/3mmbxwnzisc2q",
+      "language": "en",
+      "name": "Youth-Led Restoration Along Lake Victoria",
+      "description": "Young people in Samia Sub-county, Busia County, Kenya restore streams and riverbanks that feed Lake Victoria. We plant indigenous trees, clean up plastic pollution and work with fishing families on climate adaptation.",
+      "workCountries": [
+        "KE"
+      ],
+      "benefitCountries": [
+        "KE"
+      ],
+      "applicantBaseCountry": "KE",
+      "registrationCountry": "KE",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-04",
+      "source": "certified",
+      "sourceUri": "at://did:plc:fecxqglqlbrlh65bpp6oj3sb/org.hypercerts.collection/3moitedz2tk2i",
+      "language": "en",
+      "name": "Sulphur Creek Watershed Restoration",
+      "description": "Restoring the Sulphur Creek watershed in Colusa County, California, on land long inhabited by the Patwin and Pomo peoples, after decades of extractive mining. The work covers 1,800 acres: erosion control, native planting and water quality monitoring.",
+      "workCountries": [
+        "US"
+      ],
+      "benefitCountries": [
+        "US"
+      ],
+      "usWorkStates": [
+        "CA"
+      ],
+      "applicantBaseCountry": "US",
+      "registrationCountry": "US",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-05",
+      "source": "certified",
+      "sourceUri": "at://did:plc:pal4dr6rzskwd4mzng7kw53z/org.hypercerts.collection/3mn5r4sdaus2q",
+      "language": "es",
+      "name": "Permacultura desde 0",
+      "description": "Educación regenerativa gratuita en español para América Latina. La buena formación en permacultura suele estar detrás de dos barreras, el idioma y el precio, así que publicamos cursos abiertos y acompañamos a grupos locales que diseñan sus huertas.",
+      "workCountries": [
+        "MX",
+        "CO",
+        "AR"
+      ],
+      "benefitCountries": [
+        "MX",
+        "CO",
+        "AR",
+        "PE",
+        "CL"
+      ],
+      "applicantBaseCountry": "MX",
+      "registrationCountry": "",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-06",
+      "source": "certified",
+      "sourceUri": "at://did:plc:xmtbyav6djilhvuwk6yvxndf/org.hypercerts.collection/3mmetsqbncs2q",
+      "language": "en",
+      "name": "Circular Supply Chain Traceability Platform",
+      "description": "A cloud software platform in Mauritius that traces materials through circular supply chains, so recyclers and manufacturers can prove where materials came from and meet reporting rules on e-waste and plastics.",
+      "workCountries": [
+        "MU"
+      ],
+      "benefitCountries": [
+        "MU"
+      ],
+      "applicantBaseCountry": "MU",
+      "registrationCountry": "MU",
+      "applicantType": "business"
+    },
+    {
+      "id": "fr-07",
+      "source": "certified",
+      "sourceUri": "at://did:plc:zphmada2qkoddrb5etwsbiuo/org.hypercerts.collection/3mtkxk6rqtc2g",
+      "language": "en",
+      "name": "CoolWalk Sofia",
+      "description": "An outdoor experiment on urban heat in Sofia, Bulgaria. Residents walk set routes with sensors to measure street temperatures and shade, and the city uses the results to plan trees and cooler public spaces.",
+      "workCountries": [
+        "BG"
+      ],
+      "benefitCountries": [
+        "BG"
+      ],
+      "applicantBaseCountry": "BG",
+      "registrationCountry": "BG",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-08",
+      "source": "certified",
+      "sourceUri": "at://did:plc:aqvfy4qsrxwixogtr4xessgf/org.hypercerts.collection/3mn62xc4i7k2q",
+      "language": "en",
+      "name": "Loita Forests and Maasai Women Artisans",
+      "description": "A community group in Loita, Narok County, Kenya, where Maasai women artisans make beadwork and restore indigenous forest. Craft sales fund tree nurseries and keep cultural knowledge alive.",
+      "workCountries": [
+        "KE"
+      ],
+      "benefitCountries": [
+        "KE"
+      ],
+      "applicantBaseCountry": "KE",
+      "registrationCountry": "KE",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-09",
+      "source": "certified",
+      "sourceUri": "at://did:plc:3v7ar73ujlld4hwjvs4o2lau/org.hypercerts.collection/3mnev6ftn2c2q",
+      "language": "en",
+      "name": "Free Film Training Center",
+      "description": "A free film school for young people who cannot pay for university. We lend cameras and sound gear and teach documentary filmmaking, so communities can tell their own stories about land and water.",
+      "workCountries": [
+        "ZA"
+      ],
+      "benefitCountries": [
+        "ZA"
+      ],
+      "applicantBaseCountry": "ZA",
+      "registrationCountry": "",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-10",
+      "source": "certified",
+      "sourceUri": "at://did:plc:xjyotv77ltcoskf6ds4gdmyo/org.hypercerts.collection/3mmrp52gfvs2q",
+      "language": "pt",
+      "name": "Sentir a Amazônia: jardim sensorial",
+      "description": "Um jardim sensorial em Santarém, no Pará, que resgata os saberes ancestrais da Amazônia sobre plantas medicinais. Recebemos escolas e visitantes para ecoturismo e cura, com mudas nativas e oficinas.",
+      "workCountries": [
+        "BR"
+      ],
+      "benefitCountries": [
+        "BR"
+      ],
+      "applicantBaseCountry": "BR",
+      "registrationCountry": "BR",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-11",
+      "source": "certified",
+      "sourceUri": "at://did:plc:viubfq2bbu7n36vgtbnchlio/org.hypercerts.collection/3mmhmf66fhc2q",
+      "language": "es",
+      "name": "Propagación de especies nativas altoandinas",
+      "description": "En la Reserva Guanacas, en Colombia, propagamos especies nativas para restaurar los bosques altoandinos y los nacimientos de agua. Lo que empezó con un predio familiar de 120 hectáreas hoy protege más de 800 hectáreas de corredores biológicos.",
+      "workCountries": [
+        "CO"
+      ],
+      "benefitCountries": [
+        "CO"
+      ],
+      "applicantBaseCountry": "CO",
+      "registrationCountry": "CO",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-12",
+      "source": "certified",
+      "sourceUri": "at://did:plc:5fwoptbxz63m5357lpjlb5qi/org.hypercerts.collection/3mn5uzbham22q",
+      "language": "en",
+      "name": "Community Composting Hub in Mérida",
+      "description": "A weekly community composting project at the University of Los Andes in Mérida, Venezuela. Neighbours bring food scraps, students run the compost piles, and the finished compost goes to school and urban gardens.",
+      "workCountries": [
+        "VE"
+      ],
+      "benefitCountries": [
+        "VE"
+      ],
+      "applicantBaseCountry": "VE",
+      "registrationCountry": "",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-13",
+      "source": "certified",
+      "sourceUri": "at://did:plc:ee5vjozxf4wrdw6i32wlkb2q/org.hypercerts.collection/3mmvirkg2mk2q",
+      "language": "en",
+      "name": "Place-Based Environment Education Network",
+      "description": "Environmental education for schools across India. Students learn about their local environment through stories, art, reference books and hands-on conservation activities, and teachers get lesson plans for each region.",
+      "workCountries": [
+        "IN"
+      ],
+      "benefitCountries": [
+        "IN"
+      ],
+      "applicantBaseCountry": "IN",
+      "registrationCountry": "IN",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-14",
+      "source": "certified",
+      "sourceUri": "at://did:plc:6l5dxrsjyejlcdxid3ogyz7k/org.hypercerts.collection/3mrt7mv4ly22t",
+      "language": "en",
+      "name": "Biocultural Heritage in the Cordillera Negra",
+      "description": "A youth-led initiative in mountain communities of the Cordillera Negra, Áncash, Peru. We document ancestral knowledge of medicinal plants and land management on Wikimedia Commons and use AudioMoth sensors for participatory biodiversity monitoring, building climate resilience.",
+      "workCountries": [
+        "PE"
+      ],
+      "benefitCountries": [
+        "PE"
+      ],
+      "applicantBaseCountry": "PE",
+      "registrationCountry": "",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-15",
+      "source": "invented",
+      "language": "pt",
+      "name": "Cozinha Comunitária e Horta Escolar",
+      "description": "Somos uma cozinha comunitária no Recife que cultiva uma horta com a escola do bairro. As crianças plantam, as famílias cozinham juntas e servimos refeições a quem precisa. Queremos ampliar a horta e oferecer oficinas de alimentação saudável.",
+      "workCountries": [
+        "BR"
+      ],
+      "benefitCountries": [
+        "BR"
+      ],
+      "applicantBaseCountry": "BR",
+      "registrationCountry": "BR",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-16",
+      "source": "invented",
+      "language": "es",
+      "name": "Radio Comunitaria de Pescadoras",
+      "description": "Una radio comunitaria hecha por pescadoras artesanales y recolectoras de algas en Chiloé, Chile. Grabamos programas sobre el mar, la memoria de la isla y el cuidado de la costa, y capacitamos a mujeres jóvenes en periodismo comunitario.",
+      "workCountries": [
+        "CL"
+      ],
+      "benefitCountries": [
+        "CL"
+      ],
+      "applicantBaseCountry": "CL",
+      "registrationCountry": "CL",
+      "applicantType": "nonprofit"
+    },
+    {
+      "id": "fr-17",
+      "source": "invented",
+      "language": "en",
+      "name": "Open Water Points Map",
+      "description": "Open-source mobile app for mapping community water points in Malawi. Volunteers record whether each borehole works, and district water officers get the data to plan repairs. We need help with offline sync and hosting.",
+      "workCountries": [
+        "MW"
+      ],
+      "benefitCountries": [
+        "MW"
+      ],
+      "applicantBaseCountry": "MW",
+      "registrationCountry": "",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-18",
+      "source": "invented",
+      "language": "en",
+      "name": "Murals for a Plastic-Free Accra",
+      "description": "Young muralists in Accra, Ghana paint public walls about plastic waste with the neighbours who live beside them, and run music and art workshops on recycling in the same streets.",
+      "workCountries": [
+        "GH"
+      ],
+      "benefitCountries": [
+        "GH"
+      ],
+      "applicantBaseCountry": "GH",
+      "registrationCountry": "GH",
+      "applicantType": "informal"
+    },
+    {
+      "id": "fr-19",
+      "source": "invented",
+      "language": "en",
+      "name": "Soil Testing for Coffee Cooperatives",
+      "description": "A small soil laboratory that tests soil carbon and nutrients for smallholder coffee cooperatives in Loja, Ecuador, and trains farmers to read the results and plan cover crops and compost.",
+      "workCountries": [
+        "EC"
+      ],
+      "benefitCountries": [
+        "EC"
+      ],
+      "applicantBaseCountry": "EC",
+      "registrationCountry": "EC",
+      "applicantType": "business"
+    },
+    {
+      "id": "fr-20",
+      "source": "invented",
+      "language": "en",
+      "name": "Beekeeping Cooperative",
+      "description": "Beekeeping cooperative for women farmers in Gulu, Uganda.",
+      "workCountries": [
+        "UG"
+      ],
+      "benefitCountries": [
+        "UG"
+      ],
+      "applicantBaseCountry": "",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    }
+  ]
+}

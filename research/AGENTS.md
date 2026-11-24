@@ -61,6 +61,13 @@ test, because the vector tests read ignored build output and fail on stale files
 `bun run build` downloads the pinned model files into `dist/models/` the first time
 it runs in a fresh checkout or worktree.
 
+A catalog change can move the funds Weave ranks first for an initiative. The Weave
+check compares the first five on each ranking path with a committed snapshot and
+prints any change. Run `bun run --filter @weave/app eval:funds`; if it reports
+changes, run it again with `-- --update` and commit
+`packages/app/evaluation/fund-ranking-v1.snapshot.json` with the catalog change, so
+reviewers see the new order.
+
 For a change to the live site's interface, also run `bun run dev` and inspect the
 rendered result at 360 px and 1280 px, with the keyboard, including exact program
 navigation from `fund` and `program` links. Label the proof as local.
