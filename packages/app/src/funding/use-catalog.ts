@@ -3,11 +3,11 @@ import { hasCheckedCard } from "../describe/checked-hint.ts";
 import type { Bundle, Evaluation } from "./contracts.ts";
 import { loadCatalog, loadClosingSoon, loadedCatalog, rankCatalog } from "./client.ts";
 import { closingSoonOf, type ClosingSoon } from "./catalog-requests.ts";
-import { projectFrom } from "./profile.ts";
+import { fundingKey, projectFromKey } from "./profile.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { DeviceDraftSchema, type DeviceDraft } from "../describe/contracts.ts";
+import type { DeviceDraft } from "../describe/contracts.ts";
 import { useSetAside } from "../account/set-aside.ts";
-export type FundingSubject = Pick<DeviceDraft, "id" | "confirmed" | "funding">;
+export type FundingSubject = Pick<DeviceDraft, "id" | "confirmed" | "funding" | "needs" | "offers">;
 
 /**
  * The funding catalog, loaded once and shared, so Home and Funding read the same request. An
@@ -131,11 +131,7 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject, { compare
   const [results, setResults] = useState<Evaluation[] | null>(null);
   const [rankError, setRankError] = useState("");
   const [ranking, setRanking] = useState(false);
-  const subjectKey = JSON.stringify({
-    id: draft.id,
-    confirmed: draft.confirmed,
-    funding: { ...draft.funding, editor: null },
-  });
+  const subjectKey = fundingKey(draft);
   useEffect(() => {
     const abort = new AbortController();
     setResults(null);
@@ -144,9 +140,7 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject, { compare
     if (!bundle || !compare) return;
     let project;
     try {
-      project = projectFrom(
-        DeviceDraftSchema.pick({ id: true, confirmed: true, funding: true }).parse(JSON.parse(subjectKey)),
-      );
+      project = projectFromKey(subjectKey);
     } catch {
       setRankError(
         "Your saved funding details need checking. The unranked catalog is available; change those details to continue.",

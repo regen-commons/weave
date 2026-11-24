@@ -17,7 +17,7 @@ export function intakeComplete(draft: DeviceDraft): boolean {
     return false;
   }
 }
-export function keptAsks(draft: DeviceDraft, kind: AskKind): AskFields[] {
+export function keptAsks(draft: Pick<DeviceDraft, AskKind>, kind: AskKind): AskFields[] {
   return draft[kind].items.filter((item) => item.decision === "kept").map((item) => item.value);
 }
 /**
