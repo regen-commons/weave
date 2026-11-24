@@ -5,7 +5,7 @@ import { accountMessage, accountRequest } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { useAccountDoor } from "./door.tsx";
 import { continueToCertified } from "./sign-in.ts";
-import { warmSignIn } from "./warm.ts";
+import { warmProjectConsent, warmSignIn } from "./warm.ts";
 import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { pathTo } from "../routes.ts";
 
@@ -56,7 +56,10 @@ export function SignInButton({
   // Only where a press would go to Certified: accounts on, nobody signed in, and not the example world.
   const offered = !!state?.available && !state.user && !(import.meta.env.DEV && example);
   useEffect(() => {
-    if (offered) warmSignIn();
+    if (!offered) return;
+    warmSignIn();
+    // Signing in goes on to project access, so its function starts now too.
+    warmProjectConsent();
   }, [offered]);
   const warm = offered ? warmSignIn : undefined;
   async function signIn() {
