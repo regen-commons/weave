@@ -56,8 +56,9 @@ program the catalog no longer holds fails by name.
 
 Only a person confirms a label, with their name in `by` and the day in `confirmedOn`.
 An agent may draft labels, signed `agent: <name>`; drafts stay `draft`, the metrics
-leave them out entirely, and the validator refuses a confirmation an agent signed. No
-label file exists yet, so precision and NDCG are not gated today.
+leave them out entirely, and the validator refuses a confirmation an agent signed. The
+one label file holds drafts only, so precision and NDCG are not gated today: see
+[Labels](#labels).
 
 What this does not cover: the live site's optional semantic ranking, which needs its
 model and can differ by machine; the live site as deployed, which runs the rubric from
@@ -139,3 +140,51 @@ Where you work is the field the holdout shows weakest (recall 0.06), and keyword
 - **The on-device model** (D32 in `docs/platform/open-decisions.md`): it reads a sentence's meaning, which keywords cannot, but it is not yet approved, its download sizes and devices are unproven, and its answers would need the same precision gate on this eval and on attack sentences.
 
 What did ship is the opposite direction: places the rules already gave wrongly are gone (`test/places-false.test.ts`).
+
+## Labels
+
+`fund-relevance-v1-labels.json` holds 840 labels for the 40 initiatives in
+`fund-relevance-v1.json`. Each initiative is a public Certified project record, its
+description the passages the public project list shows, verbatim, from
+[the partner corpus](../../api/evaluation/partner-real-v1-corpus.json); countries are
+assumed from the places they name. Each one's pool is the first 20 programs Funding
+ranks and the first 10 the live site ranks, about 21 programs, as of 23 November 2026.
+The question for every pair: should the people running this initiative spend time
+looking at this program? `fits`, `maybe` or `doesnt`, as the file's `question` defines
+them. It is relevance, not eligibility.
+
+**Every label is an agent's draft.** Four agent instances drafted them, 52 fits, 174
+maybe and 614 doesn't. They reported that most "doesn't" notes were written by rule
+from a program's focus and geography rather than pair by pair, so those notes are
+hints only. No metric counts a draft.
+
+To review, export a spreadsheet outside the repository, grade the rows you judge, and
+import it:
+
+```sh
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # drafts and confirmations beside each row
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # neither, to judge unprompted
+bun run --filter @weave/app eval:labels -- --import ~/weave-review.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:funds -- --record-baseline
+```
+
+Each row shows the initiative's words and places, the program's focus, who it serves,
+its geography and kind of funding, its draft and any confirmation already made. "Your
+grade" always starts blank: fill it in (fits, maybe or doesn't) for the rows you judge,
+and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
+saved back with semicolons reads the same. The import confirms exactly the rows you
+graded, under your name and the day, keeps the draft each one answered beside it, and
+leaves every other row as it was. It refuses a row for a pair the file does not hold,
+a pair graded twice, an agent as reviewer, and a grade on a pair someone else already
+confirmed, unless you add `--replace`, when the note records whose grade it replaced.
+A sheet can be shared out in parts: import each part as it comes back. Commit the label
+file with the new baseline in the same pull request, and say who judged. An agent never
+runs the import.
+
+The file holds one grade per pair. Who judges is still to be decided. A blind sheet
+avoids leaning on the drafts; to have two people judge, give the second a blind sheet,
+compare their grades outside the file, and import the grade they agree on.
+
+A catalog change can drop a program a draft names. That draft counts for nothing, so CI
+only warns; rebuild the pool before it is reviewed. A confirmed label for a program the
+catalog no longer holds fails by name.

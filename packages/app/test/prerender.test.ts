@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { FIRST_VIEWS, PAGE_MODULES, RESULT_MARK, pageChunks, readFirstViews, scriptsAfterFirstPaint, unlistedPage, withFirstView, withModuleHints } from "../dev/prerender.ts";
+import { FIRST_VIEWS, PAGE_MODULES, RESULT_MARK, pageChunks, readFirstViews, scriptsAfterFirstPaint, unlistedPage, withFirstView, withModuleHints, withReturningView, RETURNING_PATH } from "../dev/prerender.ts";
 import { LINK_PREVIEWS, previewFile, withPreview } from "../dev/link-previews.ts";
 import { ROUTES } from "../src/routes.ts";
 
@@ -92,4 +92,11 @@ test("a page names its own files that the app's script does not bring, and no ot
   const page = withModuleHints(PAGE, ["assets/Home.js"], "/");
   assert.match(page, /<link rel="modulepreload" crossorigin href="\/assets\/Home\.js">\n  <\/head>/u);
   assert.equal(withModuleHints(PAGE, [], "/"), PAGE);
+});
+
+test("Home's file carries the returning view beside the root, once, for Certified's return address", () => {
+  assert.equal(RETURNING_PATH, "/?projectConsent=ready");
+  const page = withReturningView(PAGE.replace("</body>", "  <p data-app-fallback>note</p>\n  </body>"), "<p>Returning</p>");
+  assert.match(page, /<div data-returning-view><p>Returning<\/p><\/div>\n    <p data-app-fallback>/u);
+  assert.throws(() => withReturningView(PAGE, "<p>x</p>"), /exactly one <p data-app-fallback>/u);
 });

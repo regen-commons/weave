@@ -7,10 +7,13 @@ import { PublicSupport } from "../partners/PublicSupport.tsx";
 import { SavedMatching } from "../partners/PartnerExperience.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
+import { NOT_PUBLIC_LINE, PUBLISH_ACTION, publicListingsLine } from "../initiative/status.ts";
 
 /** Agreed status rows; their reviews retain server receipts, conflict handling and the exact retry command. */
-export function LiveExposure({ saved, owner, readOnly = false, online = true, onExpired, onChanged, team = false }: {
+export function LiveExposure({ saved, owner, readOnly = false, online = true, onExpired, onChanged, team = false, refreshVersion = 0 }: {
   saved: SavedInitiative; owner: string; readOnly?: boolean; online?: boolean; team?: boolean;
+  /** Changes when sharing changed elsewhere on the page, such as from Partners For You, so the rows read again. */
+  refreshVersion?: number;
   /** Hears of a session that ended, after the screen was cleared. */
   onExpired?(): void; onChanged?(): void;
 }) {
@@ -36,10 +39,10 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
       const page = publicListingPage(result, saved.id);
       const pending = page.listings.find(listing => ["conflict", "withdrawal_pending", "publish_pending"].includes(listing.status));
       const count = page.listings.filter(listing => listing.status === "published").length;
-      setPublished(pending ? publicSupportStatuses[pending.status]! : count ? `${count} public ${count === 1 ? "listing" : "listings"} on AT Protocol.` : "Not published.");
+      setPublished(pending ? publicSupportStatuses[pending.status]! : count ? publicListingsLine(count) : NOT_PUBLIC_LINE);
     }).catch(() => { if (!controller.signal.aborted) setPublished("Public listing status could not be checked."); });
     return () => controller.abort();
-  }, [saved.id, saved.revision, version, online, team]);
+  }, [saved.id, saved.revision, version, online, team, refreshVersion]);
   const active = { id: saved.id, owner, revision: saved.revision, document: saved.document, contentKey: JSON.stringify(saved.document) };
   function close(panel: "share" | "publish") {
     // Native close events can arrive after the next task has opened.
@@ -51,13 +54,13 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
     <StatusLine actions={!readOnly && <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={!online}
       onClick={() => show("share")}>Share For Matching</button>}>{shared}</StatusLine>
     <StatusLine actions={!readOnly && <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
-      onClick={() => show("publish")}>Publish On Certified</button>}>{published}</StatusLine>
+      onClick={() => show("publish")}>{PUBLISH_ACTION}</button>}>{published}</StatusLine>
     <TaskDialog title="Share For Matching" open={step === "share"} onClose={() => close("share")} retainContents>
       {opened.share && <SavedMatching key={saved.revision} active={active} synced online={online} compact={false}
         onExpired={onExpired} fixture={false} team={team} readOnly={readOnly} presentation="sharing" visible={step === "share"} />
       }
     </TaskDialog>
-    <TaskDialog title="Publish On Certified" open={step === "publish"} onClose={() => close("publish")} retainContents>
+    <TaskDialog title={PUBLISH_ACTION} open={step === "publish"} onClose={() => close("publish")} retainContents>
       {opened.publish && <PublicSupport workspaceId={saved.id} saved={saved} readOnly={readOnly} expanded visible={step === "publish"} />}
     </TaskDialog>
   </>;

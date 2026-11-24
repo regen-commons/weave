@@ -3,19 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "sideEffects": ["./src/main.tsx", "**/*.css"],
+  "sideEffects": ["./src/main.tsx", "./src/validation.ts", "**/*.css"],
   "description": "Weave, part of Regen Commons: a React 19 PWA built with Vite. Root directory of the Weave Vercel project.",
   "scripts": {
     "dev": "node scripts/copy-brand.mjs && vite --port 5173 --strictPort",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && node scripts/copy-brand.mjs && vite build",
     "preview": "vite preview --port 4174 --strictPort",
     "prototype": "node scripts/copy-brand.mjs && NODE_ENV=development vite build --mode prototype",
-    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p tsconfig.e2e.json",
     "test": "node --conditions=source --test test/*.test.ts",
     "eval:kinds": "node --conditions=source evaluation/support-kinds.ts",
     "eval:flows": "node --conditions=source evaluation/user-flows.ts",
     "eval:funds": "node --conditions=source evaluation/fund-ranking.ts",
+    "eval:labels": "node --conditions=source evaluation/fund-labels.ts",
     "eval:extraction": "node --conditions=source evaluation/extraction.ts",
+    "e2e": "playwright test",
+    "lighthouse": "lhci autorun",
     "prototype": "node scripts/copy-brand.mjs && NODE_ENV=development vite build --mode prototype"
   },
   "dependencies": {
@@ -27,6 +30,9 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@lhci/cli": "0.16.1",
+    "@playwright/test": "1.65.1",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

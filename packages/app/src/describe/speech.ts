@@ -1,5 +1,6 @@
-import { startCloudSpeech } from "./speech-cloud.ts";
+import { cloudSpeechAvailable, startCloudSpeech } from "./speech-cloud.ts";
 import type { SpeechConsent } from "./speech-consent.ts";
+import { deviceSpeechRecord, type BrowserSpeechRecord } from "./speech-fallback.ts";
 
 export interface SpeechEvent {
   results: ArrayLike<{ isFinal: boolean; [index: number]: { transcript: string } | undefined }>;
@@ -13,6 +14,9 @@ export interface LocalSpeechSession {
   onresult: ((event: SpeechEvent) => void) | null;
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
+  /** The recognizer has begun listening. A browser fires it only once the microphone is open. */
+  onstart?: (() => void) | null;
+  onaudiostart?: (() => void) | null;
   start(): void;
   stop(): void;
   abort(): void;
@@ -71,7 +75,7 @@ export async function availableSpeech(
  * - `device`: the browser recognizes speech on this device (`processLocally = true`). Audio stays here.
  * - `browser`: the browser's own speech service, which may send the audio to the browser vendor.
  *   Only with the person's agreement (`speech-consent.ts`).
- * - `cloud`: where the browser cannot turn speech into text at all, a recording made in the page
+ * - `cloud`: where the browser cannot turn speech into text itself, a recording made in the page
  *   and sent once, on Stop, through Weave to the provider its notice names (`speech-cloud.ts`).
  *   Only with the person's own, separate agreement. No words come back until Stop.
  */
@@ -124,6 +128,13 @@ function measure(name: string, start: number | undefined): void {
 }
 const now = (): number | undefined => globalThis.performance?.now?.();
 
+/**
+ * How long the microphone must have been open in a session of the browser's own speech service,
+ * with no words back by Stop, before the service is taken as not answering. A person who has talked
+ * this long to a working service has seen words; a shorter silence may only be a quick Stop.
+ */
+export const SERVICE_SILENT_MS = 3000;
+
 export interface SpeechCallbacks {
   result(finalText: string, interimText: string): void;
   error(problem: SpeechProblem): void;
@@ -142,6 +153,10 @@ export async function startSpeech(
     stopWait = STOP_WAIT_MS,
     noWordsWait = STOP_WAIT_NO_WORDS_MS,
     later = wait,
+    record = deviceSpeechRecord(),
+    cloudOffered = cloudSpeechAvailable,
+    clock = () => globalThis.performance?.now?.() ?? Date.now(),
+    online = () => globalThis.navigator?.onLine !== false,
   }: {
     speech?: SpeechConstructor | null;
     /** Required for `browser` and `cloud`: a session starts only while it says the person agreed to that mode. */
@@ -152,6 +167,13 @@ export async function startSpeech(
     /** The same while it has given none. */
     noWordsWait?: number;
     later?: Wait;
+    /** Whether the browser's own speech service has worked on this device (`speech-fallback.ts`). */
+    record?: BrowserSpeechRecord;
+    /** Whether cloud speech can be offered here, asked only while the browser's service is untried. */
+    cloudOffered?: () => Promise<boolean>;
+    clock?: () => number;
+    /** A service that cannot be reached while the device is offline says nothing about the service. */
+    online?: () => boolean;
   } = {},
 ): Promise<{ stop(): void; dispose(): void }> {
   // Cloud speech records in the page and has its own session: nothing below runs for it.
@@ -176,6 +198,26 @@ export async function startSpeech(
   let stoppedAt: number | undefined;
   let heard = false;
   /**
+   * When the recognizer began listening (`start`) and when audio capture began (`audiostart`), by
+   * `clock`. Neither comes while the browser still asks the person about the microphone.
+   */
+  let began: number | undefined;
+  let audio: number | undefined;
+  let stopPressed: number | undefined;
+  /**
+   * The browser's own service has not given words on this device yet, so a failure now may mean it
+   * cannot work here. Whether cloud speech could take its place is asked as the session starts, so
+   * the answer is there when a failure is said.
+   */
+  const untried = mode === "browser" && record.state() !== "worked";
+  let offered = false;
+  if (untried) void cloudOffered().then((yes) => (offered = yes), () => {});
+  /** The browser's service failed before it ever worked here: noted, and cloud speech offered where it can be. */
+  const serviceFailed = (problem: SpeechProblem): SpeechProblem => {
+    record.failed();
+    return offered ? "browser-failed" : problem;
+  };
+  /**
    * The recognizer's latest results hold words, final or not, so the page has something to show
    * and keep. A recognizer can revise its words to nothing, so this follows the latest results.
    */
@@ -189,6 +231,8 @@ export async function startSpeech(
     session.onresult = null;
     session.onerror = null;
     session.onend = null;
+    session.onstart = null;
+    session.onaudiostart = null;
     session.abort();
   };
   const fail = (problem: SpeechProblem) => {
@@ -218,12 +262,23 @@ export async function startSpeech(
     const finalText = final.join(" ").trim();
     const interimText = interim.join(" ").trim();
     words = Boolean(finalText || interimText);
+    if (words && untried && record.state() !== "worked") record.worked();
     callbacks.result(finalText, interimText);
+  };
+  session.onstart = () => {
+    began ??= clock();
+  };
+  session.onaudiostart = () => {
+    audio ??= clock();
   };
   session.onerror = (event) => {
     const problem = typeof event?.error === "string" ? event.error : "unknown";
     // A browser that answers the person's own Stop with "aborted" has not stopped by itself.
     if (requested && problem === "aborted") return disposed ? undefined : stopped();
+    // The service could not be reached while the device is online, or is not allowed here, before it
+    // ever worked: as in Brave.
+    if (untried && record.state() !== "worked" && ((problem === "network" && online()) || problem === "service-not-allowed"))
+      return fail(serviceFailed(problem));
     fail(problem);
   };
   /**
@@ -232,9 +287,19 @@ export async function startSpeech(
    */
   const stopped = () => {
     measure(SPEECH_MEASURES.stop, stoppedAt);
-    if (!words) return fail("no-speech");
-    dispose();
-    callbacks.end(true);
+    if (words) {
+      dispose();
+      return callbacks.end(true);
+    }
+    // The browser never opened the microphone, as while it still asks the person about it.
+    const opened = audio ?? began;
+    if (opened === undefined) return fail("no-microphone");
+    // The microphone was open long enough to hear words, and the browser's service gave none back.
+    // Once may be a person thinking; the second time before it ever worked, it is noted as failed.
+    const listened = (stopPressed ?? clock()) - opened;
+    if (untried && record.state() !== "worked" && listened >= SERVICE_SILENT_MS && record.quiet() === "failed")
+      return fail(offered ? "browser-failed" : "no-speech");
+    fail("no-speech");
   };
   session.onend = () => {
     if (disposed) return;
@@ -255,6 +320,7 @@ export async function startSpeech(
       if (disposed || requested) return;
       requested = true;
       stoppedAt = now();
+      stopPressed = clock();
       // Words already shown when the person pressed Stop. Only then can the session end at the
       // usual deadline without losing what the person said.
       const shown = words;

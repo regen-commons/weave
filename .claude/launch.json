@@ -78,6 +78,15 @@
         "serve.mjs"
       ],
       "port": 4198
+    },
+    {
+      "name": "app-production",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "packages/app/e2e/serve.mjs",
+        "4790"
+      ],
+      "port": 4790
     }
   ]
 }

@@ -32,7 +32,7 @@ const LABELS: Record<ShareIntent, Partial<Record<Exposure["state"], string>>> = 
   share: { on: "Change or stop sharing", changed: "Share the changes" },
   publish: { on: "Change or withdraw", changed: "Publish again", withdrawing: "Check again" },
 };
-const START: Record<ShareIntent, string> = { share: "Share for matching", publish: "Publish on Certified" };
+const START: Record<ShareIntent, string> = { share: "Share for matching", publish: "Publish needs and offers" };
 
 /** The action a page offers for sharing or publishing, named for where that exposure stands now. */
 export function exposureLabel(intent: ShareIntent, state: Exposure["state"] | undefined): string {

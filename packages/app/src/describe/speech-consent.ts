@@ -23,7 +23,7 @@ export type BrowserSpeechConsent = SpeechConsent;
 export const BROWSER_SPEECH_KEY = "weave-browser-speech";
 /**
  * Where the agreement to cloud speech is kept: a recording sent through Weave to the provider the
- * notice names, where the browser cannot turn speech into text at all (the owner's decision of
+ * notice names, where the browser cannot turn speech into text itself (the owner's decision of
  * 23 November 2026). It is a separate agreement. Agreeing to one never agrees to the other.
  */
 export const CLOUD_SPEECH_KEY = "weave-cloud-speech";

@@ -93,6 +93,12 @@ const groupDid = "did:plc:bbbbbbbbbbbbbbbbbbbbbbbb";
 const groupUri = `at://${groupDid}/org.hypercerts.collection/watershed`;
 const personalDid = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa";
 const personalUri = `at://${personalDid}/org.hypercerts.collection/water-notes`;
+/**
+ * A personal project whose public description names one need and one offer, as a project made on Ma Earth
+ * or Certified often does. Linking it suggests both in pencil, which is how the 23 November 2026 release
+ * blocker arose: the person saw them on the card while matching, which compares kept entries, had none.
+ */
+const gardenUri = `at://${personalDid}/org.hypercerts.collection/garden-commons`;
 const memberGroup = "did:plc:cccccccccccccccccccccccc";
 const memberUri = `at://${memberGroup}/org.hypercerts.collection/seed-library`;
 const project = (uri: string, title: string, group?: string, source: Record<string, unknown> = {}) => ({ uri, cid: "bafyfixture", repoDid: uri.split("/")[2],
@@ -104,6 +110,10 @@ const fixtureProjects = [
   project(memberUri, "Seed library (fixture)", memberGroup,
     { place: { status: "named", name: "Upper valley seed house (fixture)" }, publisherLinks: ["https://seeds.example.org/"] }),
   project(personalUri, "Water notes (fixture)", undefined, { place: { status: "unread" } }),
+  project(gardenUri, "Garden commons (fixture)", undefined, {
+    description: "A fictional community garden run by neighbours. We need watershed mapping training for our volunteers. We offer seedlings to local schools.",
+    place: { status: "named", name: "Upper valley (fixture)" },
+  }),
 ];
 const externalGroup = "did:plc:ffffffffffffffffffffffff";
 const externalProject = project(`at://${externalGroup}/org.hypercerts.collection/editor-return`, "Editor return project (fixture)", externalGroup);
@@ -245,7 +255,9 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
       return { status: "granted" };
     }
     if (command.action === "support_state") {
-      fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId);
+      // A personal project's card is the person's own; a team's needs the team's access.
+      const ownPersonal = [...soloLinks].some(([link, id]) => link.startsWith(`${actor.userId} `) && id === command.workspaceId);
+      if (!ownPersonal) fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId);
       return { workspaceId: command.workspaceId, listings: [], nextCursor: null };
     }
     if (command.action !== "public_evidence" && command.action !== "team_load" && command.action !== "team_save")

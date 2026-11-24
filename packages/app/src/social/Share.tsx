@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { cardRoute, chosenEntries, entryCount, publicCard, publicKey } from "../initiative/status.ts";
+import { cardRoute, chosenEntries, entryCount, PUBLISH_ACTION, publicCard, publicKey } from "../initiative/status.ts";
 import { askTerms } from "../intake/presentation.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { pathTo, type RouteName } from "../routes.ts";
@@ -14,7 +14,7 @@ import { exposureLabel, shareGate, type ShareIntent } from "./gate.ts";
 import { ProjectStep, WorkspaceRow } from "./Project.tsx";
 import { publicFacts } from "./words.ts";
 
-const TITLES: Record<ShareIntent, string> = { share: "Share For Matching", publish: "Publish On Certified" };
+const TITLES: Record<ShareIntent, string> = { share: "Share For Matching", publish: PUBLISH_ACTION };
 const CARD_STEPS: Partial<Record<RouteName, string>> = {
   initiative: "Describe your initiative",
   needs: "Add needs and offers",
