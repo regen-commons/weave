@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
+import {inputBeforeDiscovery} from './helpers/audit-revisions.mjs';
 import {checkConditions, rankFunds, createLexicalIndex} from '../dist/matching.mjs';
 import {normalizeProject} from '../dist/storage.mjs';
 const read = name => JSON.parse(fs.readFileSync(new URL('../'+name,import.meta.url)));
@@ -85,8 +86,9 @@ test('additional tracks share funder identities without replacing prior program 
  assert.equal(get('local-mozilla').find(p=>p.id==='mozilla-human-scale-ai').award.max,300000);
  assert.equal(get('local-mozilla').find(p=>p.id==='mozilla-independent-fellow-2027').instrument,'fellowship');
  assert.equal(get('local-la-county-arts').length,2);
- assert.equal(manifest.programAdditions.length,4);
- assert.equal(manifest.funds.reduce((n,row)=>n+row.enrichment.programs.length,0)+manifest.programAdditions.length,138);
+ const prior=inputBeforeDiscovery('research/supplemental-funders.json',manifest);
+ assert.equal(prior.programAdditions.length,4);
+ assert.equal(prior.funds.reduce((n,row)=>n+row.enrichment.programs.length,0)+prior.programAdditions.length,138);
 });
 
 test('unknown currency, award terms and intake dates never become invented bounds or rolling access',()=>{

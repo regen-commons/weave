@@ -2289,6 +2289,25 @@
       "unresolved": [
         "Award size, detailed contract/payment structure and fiscal sponsorship"
       ]
+    },
+    {
+      "id": "discovery-2026-11-23-close-the-gap",
+      "runId": "monday-discovery-2026-11-23-retry",
+      "name": "Close the Gap South Africa",
+      "discoveryUrl": "https://www.close-the-gap.org/south-africa",
+      "status": "non-cash-program",
+      "initialUnresolved": "Determine whether equipment support is a cash grant or a guaranteed free donation.",
+      "attemptedOn": "2026-11-24",
+      "officialSources": [
+        "https://www.close-the-gap.org/south-africa"
+      ],
+      "programs": [],
+      "findings": [
+        "Affordable pre-owned IT devices for social projects; no cash grant or guaranteed free donation established."
+      ],
+      "unresolved": [
+        "Pricing, availability and delivery require applicant review."
+      ]
     }
   ],
   "verificationSummary": {

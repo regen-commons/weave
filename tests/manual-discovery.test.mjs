@@ -1,4 +1,4 @@
-import {auditCatalog,auditInput} from './helpers/audit-revisions.mjs';
+import {auditCatalog,auditInput,auditFileHash} from './helpers/audit-revisions.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -31,7 +31,7 @@ test('manual discovery preserves all 694 full prior records, 721 programs and 18
   assert.equal(data.funds.reduce((n,f) => n + f.enrichment.programs.length,0), 727);
   assert.equal(data.funds.reduce((n,f) => n + f.enrichment.sources.length,0), 1835);
   for (const [path,expected] of Object.entries(baseline.preservedFiles))
-    assert.equal(bytesHash(fs.readFileSync(new URL(path,root))), expected, path);
+    assert.equal(auditFileHash(path), expected, path);
   assert.equal(hash(log.entries.slice(0,112)), baseline.reviewEntriesSha256);
   const manifest = auditInput('research/supplemental-funders.json');
   const original = {...manifest, funds: manifest.funds.slice(0,101)};
