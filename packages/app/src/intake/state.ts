@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../validation.ts";
 import { LinkSchema, type Attachment, type Turn } from "../describe/source-contracts.ts";
 import { askFormText, askText } from "./presentation.ts";
 import {
