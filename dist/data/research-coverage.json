@@ -13,9 +13,9 @@
     "focus": 687,
     "eligibility": 600,
     "numericAward": 187,
-    "currentNumericAward": 86,
+    "currentNumericAward": 87,
     "datedDeadline": 195,
-    "upcomingDatedDeadline": 17,
+    "upcomingDatedDeadline": 18,
     "applicationRoute": 555
   },
   "sourceWarningCount": 5,
@@ -8270,21 +8270,29 @@
       "name": "Fundo Casa Socioambiental (Casa Socio-Environmental Fund, Brazil)",
       "reviewStatus": "program_reviewed",
       "checkedOn": "2026-10-15",
-      "sourceCount": 1,
-      "programCount": 1,
+      "sourceCount": 3,
+      "programCount": 2,
       "fields": {
         "focus": true,
         "eligibility": true,
         "numericAward": true,
-        "currentNumericAward": false,
+        "currentNumericAward": true,
         "datedDeadline": true,
-        "upcomingDatedDeadline": false,
+        "upcomingDatedDeadline": true,
         "applicationRoute": true
       },
       "sources": [
-        "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/"
+        "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/",
+        "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/",
+        "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71"
       ],
-      "retrievals": []
+      "retrievals": [
+        {
+          "url": "https://casa.org.br/en/calls/",
+          "checkedOn": "2026-11-24",
+          "outcome": "unreachable"
+        }
+      ]
     },
     {
       "sourceRecordId": "recxh6ndvgIOLOkyS",
@@ -23546,7 +23554,7 @@
     }
   ],
   "notes": "All original and supplemental records have a research disposition. Source overviews, program terms and failed/unresolved checks are distinct. Unknown terms remain unknown. Retrieval entries describe collection, not a claim that terms were verified. Original30 pilot reviews were retained from October14; expanded research was checked October15.",
-  "compiledAt": "2026-11-23T08:31:21.171930+00:00",
+  "compiledAt": "2026-11-24T07:19:55.238376+00:00",
   "fieldDefinitions": {
     "currentNumericAward": "A numeric amount in published program terms, even if that intake is closed; not a promise of current availability.",
     "datedDeadline": "At least one source closing date, including historical or closed calls.",

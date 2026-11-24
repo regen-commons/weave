@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dataset": "extraction-v1",
-  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent. Added on 23 November 2026: Green Goods and Tech and Sun (owner-profile-2026-11-23), two real projects included with their owner's consent in public-safe form, an exception to the invented-cases rule; their gold comes from the owner profile. Every gold here was written before the rules ran on it. Also: Link golds on d-19 and on a new case, d-31, so a full link the rules read today is held too, and an empty one on d-01, d-09, d-15 and d-21, so a link where the words give none counts against precision.",
+  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent. Added on 23 November 2026: Green Goods and Tech and Sun (owner-profile-2026-11-23), two real projects included with their owner's consent in public-safe form, an exception to the invented-cases rule; their gold comes from the owner profile. Every gold here was written before the rules ran on it. Also: Link golds on d-19 and on a new case, d-31, so a full link the rules read today is held too, and an empty one on d-01, d-09, d-15 and d-21, so a link where the words give none counts against precision. File cases (mode file): a person adds one document and types nothing; ten documents, from the two projects' public docs (owner-public-docs) and invented proposals, in Markdown, text, PDF, a PDF with no text layer and Word, each read on all three steps. Their gold was written before the rules ran on them, except one need line each that About it must leave out in f-05-d to f-08-d, added after review the same day.",
   "rubric": "Labels say what a careful person would want each field or list to hold, not what the rules do today. Name: the initiative's name only where the words state one, otherwise empty; never a person's name. Where you work: only places the words say the initiative works in, each as one entry; Global for worldwide or online-anywhere work. About it: must contain every includes phrase and none of the excludes phrases. Cards: one per need or offer said, in order; each key phrase must appear in its own card's title, and a list never holds what belongs to the other list.",
   "cases": [
     {
@@ -308,6 +308,156 @@
       "id": "o-14", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
       "text": "so um tech and sun we basically build these solar powered hubs in nigeria free spaces where students and creatives and builders can come and get steady power and internet and somewhere to actually work you know our first one is a shipping container at nnamdi azikiwe university in awka and the next one is going to be in enugu so what we need right now is uh money to keep the awka hub running like the batteries and the starlink and the stewards and then funding to build the second hub and um work opportunities for our members like gigs and engineers who can check our design properly and what we can offer is free desk space with power and internet workshops on digital skills and web3 and climate and our hub blueprint it's open source so anyone can build their own you can find us at tech and sun dot com",
       "expected": { "cards": ["free desk space", "workshops on digital skills", "hub blueprint"] }
+    },
+    {
+      "id": "f-01-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "green-goods-readme.md", "format": "md",
+      "text": "",
+      "expected": { "name": "Green Goods", "where": [], "about": { "includes": ["document regenerative work"], "excludes": [] } }
+    },
+    {
+      "id": "f-01-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "green-goods-readme.md", "format": "md",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-01-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "green-goods-readme.md", "format": "md",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-02-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "green-goods-readme.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "name": "Green Goods", "where": [], "about": { "includes": ["document regenerative work"], "excludes": [] } }
+    },
+    {
+      "id": "f-02-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "green-goods-readme.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-02-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "green-goods-readme.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-03-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "tech-and-sun-overview.md", "format": "md",
+      "text": "",
+      "expected": { "name": "Tech & Sun", "nameAlternatives": ["Tech and Sun", "TAS"], "where": ["Awka"], "about": { "includes": ["solar-powered shipping-container facility"], "excludes": [] } }
+    },
+    {
+      "id": "f-03-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "tech-and-sun-overview.md", "format": "md",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-03-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "tech-and-sun-overview.md", "format": "md",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-04-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "tech-and-sun-overview.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "name": "Tech & Sun", "nameAlternatives": ["Tech and Sun", "TAS"], "where": ["Awka"], "about": { "includes": ["solar-powered shipping-container facility"], "excludes": [] } }
+    },
+    {
+      "id": "f-04-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "tech-and-sun-overview.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-04-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "owner-public-docs", "file": "tech-and-sun-overview.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": [] }
+    },
+    {
+      "id": "f-05-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "invented", "file": "en-one-pager.md", "format": "md",
+      "text": "",
+      "expected": { "name": "Riverside Bee Collective", "where": ["Kisumu, Kenya"], "about": { "includes": ["trains young farmers to keep bees"], "excludes": ["A honey extractor"] } }
+    },
+    {
+      "id": "f-05-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "invented", "file": "en-one-pager.md", "format": "md",
+      "text": "",
+      "expected": { "cards": ["beehives", "honey extractor", "processing room"] }
+    },
+    {
+      "id": "f-05-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "invented", "file": "en-one-pager.md", "format": "md",
+      "text": "",
+      "expected": { "cards": ["beekeeping training", "honey for community events"] }
+    },
+    {
+      "id": "f-06-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "invented", "file": "en-grant-excerpt.txt", "format": "txt",
+      "text": "",
+      "expected": { "name": "Coastal Mangrove Nursery", "where": ["Lamu, Kenya"], "about": { "includes": ["grow mangrove seedlings in a community nursery"], "excludes": ["requesting funding for nursery shade nets"] } }
+    },
+    {
+      "id": "f-06-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "invented", "file": "en-grant-excerpt.txt", "format": "txt",
+      "text": "",
+      "expected": { "cards": ["shade nets", "boat", "nursery keepers"] }
+    },
+    {
+      "id": "f-06-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "invented", "file": "en-grant-excerpt.txt", "format": "txt",
+      "text": "",
+      "expected": { "cards": ["planting maps", "train other villages"] }
+    },
+    {
+      "id": "f-07-d", "split": "development", "step": "describe", "mode": "file", "language": "pt", "source": "invented", "file": "pt-grant-application.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "name": "Horta Viva Sertão", "where": ["Petrolina, Pernambuco"], "about": { "includes": ["cultiva hortas agroecológicas no semiárido"], "excludes": ["Cisternas para captar água da chuva"] } }
+    },
+    {
+      "id": "f-07-n", "split": "development", "step": "needs", "mode": "file", "language": "pt", "source": "invented", "file": "pt-grant-application.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": ["cisternas", "sementes crioulas", "moto"] }
+    },
+    {
+      "id": "f-07-o", "split": "development", "step": "offers", "mode": "file", "language": "pt", "source": "invented", "file": "pt-grant-application.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": ["oficinas de compostagem", "mudas para escolas"] }
+    },
+    {
+      "id": "f-08-d", "split": "development", "step": "describe", "mode": "file", "language": "es", "source": "invented", "file": "es-project-brief.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "name": "Red de Semillas Andinas", "where": ["Cusco, Perú"], "about": { "includes": ["guarda variedades nativas de papa y quinua"], "excludes": ["Un almacén fresco para las semillas"] } }
+    },
+    {
+      "id": "f-08-n", "split": "development", "step": "needs", "mode": "file", "language": "es", "source": "invented", "file": "es-project-brief.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": ["almacén fresco", "registro de variedades", "tres ferias"] }
+    },
+    {
+      "id": "f-08-o", "split": "development", "step": "offers", "mode": "file", "language": "es", "source": "invented", "file": "es-project-brief.pdf", "format": "pdf",
+      "text": "",
+      "expected": { "cards": ["huertos escolares", "talleres sobre cultivos andinos"] }
+    },
+    {
+      "id": "f-09-d", "split": "development", "step": "describe", "mode": "file", "language": "pt", "source": "invented", "file": "pt-project-brief.docx", "format": "docx",
+      "text": "",
+      "expected": { "name": "Rede Mulheres do Mangue", "where": ["São Luís, Maranhão"], "about": { "includes": ["recuperam o manguezal"], "excludes": [] } }
+    },
+    {
+      "id": "f-09-n", "split": "development", "step": "needs", "mode": "file", "language": "pt", "source": "invented", "file": "pt-project-brief.docx", "format": "docx",
+      "text": "",
+      "expected": { "cards": ["barco a remo", "caixas térmicas", "formação em gestão"] }
+    },
+    {
+      "id": "f-09-o", "split": "development", "step": "offers", "mode": "file", "language": "pt", "source": "invented", "file": "pt-project-brief.docx", "format": "docx",
+      "text": "",
+      "expected": { "cards": ["visitas guiadas", "receitas tradicionais"] }
+    },
+    {
+      "id": "f-10-d", "split": "development", "step": "describe", "mode": "file", "language": "en", "source": "invented", "file": "en-scanned-proposal.pdf", "format": "pdf-image",
+      "text": "",
+      "expected": { "name": "Sunrise Solar Kiosk", "where": ["Gulu, Uganda"], "about": { "includes": ["solar charging kiosk"], "excludes": [] } }
+    },
+    {
+      "id": "f-10-n", "split": "development", "step": "needs", "mode": "file", "language": "en", "source": "invented", "file": "en-scanned-proposal.pdf", "format": "pdf-image",
+      "text": "",
+      "expected": { "cards": ["second battery bank", "bookkeeping course"] }
+    },
+    {
+      "id": "f-10-o", "split": "development", "step": "offers", "mode": "file", "language": "en", "source": "invented", "file": "en-scanned-proposal.pdf", "format": "pdf-image",
+      "text": "",
+      "expected": { "cards": ["phone charging"] }
     }
   ]
 }

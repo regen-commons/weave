@@ -1,4 +1,4 @@
-import {auditCatalog} from './helpers/audit-revisions.mjs';
+import {auditCatalog,auditInput} from './helpers/audit-revisions.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -139,7 +139,7 @@ test('manual-review proposals retain exact prior records at their historical rev
 });
 
 test('unresolved historical leads and incomplete discovery remain held with explicit evidence limits', () => {
-  const intake=read('research/history-intake.json');
+  const intake=auditInput('research/history-intake.json');
   assert.equal(intake.pending.length,0);
   assert.equal(intake.reviewed.length,94);
   assert.deepEqual(coverage.discovery.historicalRevisits.map(r=>r.leadId),['history-lead-020','history-lead-023','history-lead-054','history-lead-059']);

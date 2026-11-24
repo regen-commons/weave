@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "checkedOn": "2026-11-22",
+  "checkedOn": "2026-11-24",
   "about": "The source registry: the funding databases, portals and lists the catalog routines pull leads from. Rules for using it are in .claude/skills/catalog-research/search-playbook.md. A run updates lastUsed for every source it attempts, including failures.",
   "fields": {
     "kind": "government-portal | funder-directory | foundation-database | ecosystem-list | aggregator",
@@ -155,14 +155,18 @@
         "cost": "free",
         "terms": "Public agency pages."
       },
-      "query": "Read the funding programs index and each program's notice.",
+      "query": "Read the funding programs index and each program's notice. First-use/retry note (2026-11-24): HTTP 403; notices not enumerated.",
       "reliability": {
         "level": "official",
-        "note": "Agency directory. Not yet used by a run."
+        "note": "Agency directory. First attempted November 24, 2026; retrieval or listing remains incomplete."
       },
       "cadenceDays": 28,
       "status": "candidate",
-      "lastUsed": null
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "HTTP 403; notices not enumerated."
+      }
     },
     {
       "id": "eu-funding-tenders",
@@ -192,14 +196,18 @@
         "cost": "free",
         "terms": "Public listings; an EU Login account is needed only to apply."
       },
-      "query": "Script-rendered: use a real browser. Filter calls for proposals by status open and forthcoming and by programme (Horizon Europe, LIFE, Creative Europe, CERV). The topic page and the call document are the evidence. Check whether applicants outside the EU are eligible.",
+      "query": "Script-rendered: use a real browser. Filter calls for proposals by status open and forthcoming and by programme (Horizon Europe, LIFE, Creative Europe, CERV). The topic page and the call document are the evidence. Check whether applicants outside the EU are eligible. First-use/retry note (2026-11-24): Brave rendered results. Excluded closed status and selected Creative Europe: 20 results. Other programme filters and binding documents not completed.",
       "reliability": {
         "level": "official",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 14,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Brave rendered results. Excluded closed status and selected Creative Europe: 20 results. Other programme filters and binding documents not completed."
+      }
     },
     {
       "id": "uk-find-a-grant",
@@ -228,14 +236,18 @@
         "cost": "free",
         "terms": "Public UK government listings."
       },
-      "query": "Browse or search the list, then follow each listing to the department's own guidance.",
+      "query": "Browse or search the list, then follow each listing to the department's own guidance. First-use/retry note (2026-11-24): First page read. Woodland Creation Planning Grant followed to Forestry Commission guidance; full application review incomplete. Listing explains 2030 is funding horizon, not closure.",
       "reliability": {
         "level": "official",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "First page read. Woodland Creation Planning Grant followed to Forestry Commission guidance; full application review incomplete. Listing explains 2030 is funding horizon, not closure."
+      }
     },
     {
       "id": "ukri-opportunities",
@@ -265,14 +277,18 @@
         "cost": "free",
         "terms": "Public listings from the UK research councils and Innovate UK."
       },
-      "query": "Filter by status open and upcoming. Check lead-organisation rules: most calls need a UK research organisation, some allow international partners.",
+      "query": "Filter by status open and upcoming. Check lead-organisation rules: most calls need a UK research organisation, some allow international partners. First-use/retry note (2026-11-24): First page contained open/upcoming opportunities; Open-source semiconductor security followed to owner detail. Institutional eligibility and award read, linked eligibility rules not fully reviewed.",
       "reliability": {
         "level": "official",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "First page contained open/upcoming opportunities; Open-source semiconductor security followed to owner detail. Institutional eligibility and award read, linked eligibility rules not fully reviewed."
+      }
     },
     {
       "id": "au-grantconnect",
@@ -301,14 +317,18 @@
         "cost": "registration",
         "terms": "Public listings; some documents need a free account."
       },
-      "query": "Read current grant opportunities, then the guidelines document.",
+      "query": "Read current grant opportunities, then the guidelines document. First-use/retry note (2026-11-24): HTTP 403; current opportunities and guidelines not enumerated.",
       "reliability": {
         "level": "official",
-        "note": "Not yet used by a run."
+        "note": "First attempted November 24, 2026; retrieval or listing remains incomplete."
       },
       "cadenceDays": 56,
       "status": "candidate",
-      "lastUsed": null
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "HTTP 403; current opportunities and guidelines not enumerated."
+      }
     },
     {
       "id": "funbio-chamadas",
@@ -374,7 +394,7 @@
         "cost": "free",
         "terms": "Public call pages."
       },
-      "query": "Read the calls directory and its open and closed labels. The /editais path has been inaccessible; the English directory has worked.",
+      "query": "Read the calls directory and its open and closed labels. The /editais path has been inaccessible; the English directory has worked. First-use/retry note (2026-11-24): Directory lists emergency fire-response 2026 call open. Call and CasaDigital form read; new program proposed under existing Casa identity.",
       "reliability": {
         "level": "official",
         "note": "Funder's own site."
@@ -382,9 +402,9 @@
       "cadenceDays": 14,
       "status": "active",
       "lastUsed": {
-        "on": "2026-10-29",
-        "runId": "manual-monday-discovery-2026-10-29",
-        "result": "Directory retrieved; displayed calls were labeled closed."
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Directory lists emergency fire-response 2026 call open. Call and CasaDigital form read; new program proposed under existing Casa identity."
       }
     },
     {
@@ -411,7 +431,7 @@
         "cost": "free",
         "terms": "Public call pages."
       },
-      "query": "Read the latest funding calls page, then each call's own post. The directory has timed out and returned HTTP 429: retry once later in the run, then record the gap.",
+      "query": "Read the latest funding calls page, then each call's own post. The directory has timed out and returned HTTP 429: retry once later in the run, then record the gap. First-use/retry note (2026-11-24): Directory read, PESP 7 post initially retrieved but reread timed out twice. No terms verified; held, no closure inferred.",
       "reliability": {
         "level": "official",
         "note": "Funder's own site; directory retrieval is unreliable."
@@ -419,9 +439,9 @@
       "cadenceDays": 14,
       "status": "active",
       "lastUsed": {
-        "on": "2026-11-09",
-        "runId": "monday-discovery-2026-11-09",
-        "result": "Directory failed (page shell, then HTTP 429); two historical calls verified on their own posts."
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Directory read, PESP 7 post initially retrieved but reread timed out twice. No terms verified; held, no closure inferred."
       }
     },
     {
@@ -524,14 +544,18 @@
         "cost": "free",
         "terms": "Public pages."
       },
-      "query": "Read the applicants pages for open grant rounds and wishlist items.",
+      "query": "Read the applicants pages for open grant rounds and wishlist items. First-use/retry note (2026-11-24): Applicant page read; Wishlist/RFP directory already represented by local-ethereum-foundation::ethereum-esp. Individual items not enumerated.",
       "reliability": {
         "level": "official",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Applicant page read; Wishlist/RFP directory already represented by local-ethereum-foundation::ethereum-esp. Individual items not enumerated."
+      }
     },
     {
       "id": "arbitrum-grants",
@@ -594,14 +618,18 @@
         "cost": "free",
         "terms": "Public forum."
       },
-      "query": "Read the grants and retro funding categories for round announcements, then verify on the Collective's own application page.",
+      "query": "Read the grants and retro funding categories for round announcements, then verify on the Collective's own application page. First-use/retry note (2026-11-24): Grants and retro categories read. Foundation budget post says retro funding paused after Season 7; no new round verified.",
       "reliability": {
         "level": "community",
-        "note": "Forum posts are leads; proposals are not open calls. Not yet used by a run."
+        "note": "Forum posts are leads; proposals are not open calls. First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Grants and retro categories read. Foundation budget post says retro funding paused after Season 7; no new round verified."
+      }
     },
     {
       "id": "gitcoin-explorer",
@@ -628,14 +656,18 @@
         "cost": "free",
         "terms": "Public pages."
       },
-      "query": "List active and upcoming rounds. Each round has its own operator and eligibility: verify on the operator's page. Record matching pools as pools, never as awards.",
+      "query": "List active and upcoming rounds. Each round has its own operator and eligibility: verify on the operator's page. Record matching pools as pools, never as awards. First-use/retry note (2026-11-24): Web HTTP 502; Brave DNS ERR_NAME_NOT_RESOLVED. No rounds enumerated.",
       "reliability": {
         "level": "community",
-        "note": "Rounds are run by many operators. Not yet used by a run."
+        "note": "Rounds are run by many operators. First attempted November 24, 2026; retrieval or listing remains incomplete."
       },
       "cadenceDays": 14,
       "status": "candidate",
-      "lastUsed": null
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Web HTTP 502; Brave DNS ERR_NAME_NOT_RESOLVED. No rounds enumerated."
+      }
     },
     {
       "id": "giveth-qf",
@@ -662,14 +694,18 @@
         "cost": "free",
         "terms": "Public pages."
       },
-      "query": "Read active and upcoming rounds and their eligibility posts.",
+      "query": "Read active and upcoming rounds and their eligibility posts. First-use/retry note (2026-11-24): Redirected to www.giveth.io/qf. Web and Brave showed empty active list and no closed rounds, with sign-in check unfinished. Data loading not established; not zero-opportunity evidence.",
       "reliability": {
         "level": "community",
-        "note": "Not yet used by a run."
+        "note": "First attempted November 24, 2026; retrieval or listing remains incomplete."
       },
       "cadenceDays": 28,
       "status": "candidate",
-      "lastUsed": null
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Redirected to www.giveth.io/qf. Web and Brave showed empty active list and no closed rounds, with sign-in check unfinished. Data loading not established; not zero-opportunity evidence."
+      }
     },
     {
       "id": "octant",
@@ -695,14 +731,18 @@
         "cost": "free",
         "terms": "Public pages."
       },
-      "query": "Check epoch dates and the project submission rules in Octant's own documentation.",
+      "query": "Check epoch dates and the project submission rules in Octant's own documentation. First-use/retry note (2026-11-24): Web empty. Brave reached wallet participation introduction, no epoch dates. Public v2 documentation found; project onboarding page retrieved, detailed rounds not reviewed.",
       "reliability": {
         "level": "community",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 56,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Web empty. Brave reached wallet participation introduction, no epoch dates. Public v2 documentation found; project onboarding page retrieved, detailed rounds not reviewed."
+      }
     },
     {
       "id": "karma-gap",
@@ -766,14 +806,18 @@
         "cost": "free",
         "terms": "Open standard and published grant-pool data."
       },
-      "query": "Find grant systems that publish DAOIP-5 grant pools; use them to find operators, then verify at the operator.",
+      "query": "Find grant systems that publish DAOIP-5 grant pools; use them to find operators, then verify at the operator. First-use/retry note (2026-11-24): OpenGrants page describes DAOIP-5 integrations (Giveth, Octant, Stellar, Optimism, Arbitrum). Pool API not enumerated; not call evidence.",
       "reliability": {
         "level": "community",
-        "note": "Structured data of past and current pools. Not yet used by a run."
+        "note": "Structured data of past and current pools. First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 84,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "OpenGrants page describes DAOIP-5 integrations (Giveth, Octant, Stellar, Optimism, Arbitrum). Pool API not enumerated; not call evidence."
+      }
     },
     {
       "id": "floss-fund",
@@ -799,14 +843,18 @@
         "cost": "free",
         "terms": "Public pages."
       },
-      "query": "Read the fund's own application and eligibility pages.",
+      "query": "Read the fund's own application and eligibility pages. First-use/retry note (2026-11-24): FAQ read; matches existing local-floss-fund::floss-fund. No new round established; dollar currency remains unspecified.",
       "reliability": {
         "level": "official",
-        "note": "Appeared in a November 9 query; not yet reviewed as a source."
+        "note": "Public FAQ reviewed November 24, 2026; already represented in the catalog."
       },
       "cadenceDays": 56,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "FAQ read; matches existing local-floss-fund::floss-fund. No new round established; dollar currency remains unspecified."
+      }
     },
     {
       "id": "microgrants-list",
@@ -833,14 +881,18 @@
         "cost": "free",
         "terms": "Public repository."
       },
-      "query": "Read the list for small no-strings programs, then verify each at its owner. Check the last commit date before trusting an entry.",
+      "query": "Read the list for small no-strings programs, then verify each at its owner. Check the last commit date before trusting an entry. First-use/retry note (2026-11-24): Public CC0 list; latest commit e214bd5402d9f88c8ffda3149a4d9626bc09d207 dated 2026-06-10. Awesome Foundation followed to owner; chapter-specific terms not reviewed.",
       "reliability": {
         "level": "community",
-        "note": "May be stale. Not yet used by a run."
+        "note": "May be stale. First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 84,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Public CC0 list; latest commit e214bd5402d9f88c8ffda3149a4d9626bc09d207 dated 2026-06-10. Awesome Foundation followed to owner; chapter-specific terms not reviewed."
+      }
     },
     {
       "id": "fito-funders",
@@ -907,14 +959,18 @@
         "cost": "free",
         "terms": "Open data on grants already made, published by UK funders to the 360Giving standard. Check each publisher's licence before reusing data."
       },
-      "query": "Search awarded grants by keyword and place to find who funds similar work, then look for that funder's current program on its own site. It lists past grants, not open calls.",
+      "query": "Search awarded grants by keyword and place to find who funds similar work, then look for that funder's current program on its own site. It lists past grants, not open calls. First-use/retry note (2026-11-24): Public historical grants index and CC BY 4.0 notice readable. Community arts London search failed; funded-by investigation incomplete.",
       "reliability": {
         "level": "curated",
-        "note": "Publisher-supplied data. Not yet used by a run."
+        "note": "Publisher-supplied data. First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 84,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Public historical grants index and CC BY 4.0 notice readable. Community arts London search failed; funded-by investigation incomplete."
+      }
     },
     {
       "id": "propublica-nonprofits",
@@ -943,14 +999,18 @@
         "cost": "free",
         "terms": "Public US tax filings with a free API. Read its terms of use before bulk queries."
       },
-      "query": "Look up a US foundation's legal name, EIN and Form 990-PF to settle identity and whether it makes grants. It never establishes an open call.",
+      "query": "Look up a US foundation's legal name, EIN and Form 990-PF to settle identity and whether it makes grants. It never establishes an open call. First-use/retry note (2026-11-24): Public filings index retrieved; Tor Project identity search failed. No bulk retrieval, filings or open-call inference.",
       "reliability": {
         "level": "curated",
-        "note": "Derived from IRS filings, one to two years behind. Not yet used by a run."
+        "note": "Derived from IRS filings, one to two years behind. First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 84,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Public filings index retrieved; Tor Project identity search failed. No bulk retrieval, filings or open-call inference."
+      }
     },
     {
       "id": "candid-fdo",
@@ -1097,14 +1157,18 @@
         "cost": "registration",
         "terms": "Brazilian platform of editais; some detail needs a free account."
       },
-      "query": "List open editais by area, then verify at the sponsor's own edital. Confirm access on first use.",
+      "query": "List open editais by area, then verify at the sponsor's own edital. Confirm access on first use. First-use/retry note (2026-11-24): Redirected to produtos.prosas.com.br/editais; registration links and loading feed, no edital list. Enumeration incomplete.",
       "reliability": {
         "level": "curated",
-        "note": "Not yet used by a run."
+        "note": "First attempted November 24, 2026; retrieval or listing remains incomplete."
       },
       "cadenceDays": 14,
       "status": "candidate",
-      "lastUsed": null
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Redirected to produtos.prosas.com.br/editais; registration links and loading feed, no edital list. Enumeration incomplete."
+      }
     },
     {
       "id": "opportunities-for-africans",
@@ -1136,14 +1200,18 @@
         "cost": "free",
         "terms": "Public blog listings."
       },
-      "query": "Read the grants and fellowships categories and follow leads to owners.",
+      "query": "Read the grants and fellowships categories and follow leads to owners. First-use/retry note (2026-11-24): Latest fellowship listing led to Tor Community Fellowship at the owner's forum; linked application is a Nextcloud shell. Held for full application terms.",
       "reliability": {
         "level": "community",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 14,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Latest fellowship listing led to Tor Community Fellowship at the owner's forum; linked application is a Nextcloud shell. Held for full application terms."
+      }
     },
     {
       "id": "on-the-move",
@@ -1173,14 +1241,18 @@
         "cost": "free",
         "terms": "Public cultural mobility funding guides and calls."
       },
-      "query": "Read current calls and the country funding guides, then verify at the owner.",
+      "query": "Read current calls and the country funding guides, then verify at the owner. First-use/retry note (2026-11-24): Redirected to /resources/funding. Country guide directory and news retrieved; individual guide PDFs and owner call terms not reviewed.",
       "reliability": {
         "level": "curated",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 28,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Redirected to /resources/funding. Country guide directory and news retrieved; individual guide PDFs and owner call terms not reviewed."
+      }
     },
     {
       "id": "climate-funds-update",
@@ -1207,14 +1279,18 @@
         "cost": "free",
         "terms": "Public data on multilateral climate funds."
       },
-      "query": "Use the fund profiles to find multilateral funds and their access routes; most reach projects through accredited entities, so record the route honestly.",
+      "query": "Use the fund profiles to find multilateral funds and their access routes; most reach projects through accredited entities, so record the route honestly. First-use/retry note (2026-11-24): Public fund index and GCF profile retrieved; historical multilateral funding, not direct open calls. GCF owner access failed.",
       "reliability": {
         "level": "curated",
-        "note": "Not yet used by a run."
+        "note": "First attempted in November 2026; individual call terms require owner verification."
       },
       "cadenceDays": 84,
-      "status": "candidate",
-      "lastUsed": null
+      "status": "active",
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Public fund index and GCF profile retrieved; historical multilateral funding, not direct open calls. GCF owner access failed."
+      }
     },
     {
       "id": "dsire",
@@ -1241,14 +1317,18 @@
         "cost": "free",
         "terms": "Public database of US clean energy incentives and policies."
       },
-      "query": "Filter by state and by grant or loan program, then verify at the administering agency.",
+      "query": "Filter by state and by grant or loan program, then verify at the administering agency. First-use/retry note (2026-11-24): Programs page returned unrendered variables; Brave showed empty filters and Processing, still unresolved on later read. State/grant filtering incomplete.",
       "reliability": {
         "level": "curated",
-        "note": "Not yet used by a run."
+        "note": "First attempted November 24, 2026; retrieval or listing remains incomplete."
       },
       "cadenceDays": 84,
       "status": "candidate",
-      "lastUsed": null
+      "lastUsed": {
+        "on": "2026-11-24",
+        "runId": "monday-discovery-2026-11-23-retry",
+        "result": "Programs page returned unrendered variables; Brave showed empty filters and Processing, still unresolved on later read. State/grant filtering incomplete."
+      }
     }
   ]
 }

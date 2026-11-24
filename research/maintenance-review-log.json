@@ -15609,6 +15609,1106 @@
       ],
       "nextReviewOn": "2026-11-30",
       "note": "Name only. The December 2, 2026 deadline is inside the closing window, so the route and dates are due a recheck within seven days."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-01",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.grants.gov.au/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "HTTP 403; current opportunities and guidelines not enumerated."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-02",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://climatefundsupdate.org/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Public fund index and GCF profile retrieved; historical multilateral funding, not direct open calls. GCF owner access failed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-03",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://daostar.org/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "OpenGrants page describes DAOIP-5 integrations (Giveth, Octant, Stellar, Optimism, Arbitrum). Pool API not enumerated; not call evidence."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-04",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.dsireusa.org/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Programs page returned unrendered variables; Brave showed empty filters and Processing, still unresolved on later read. State/grant filtering incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-05",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://esp.ethereum.foundation/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Applicant page read; Wishlist/RFP directory already represented by local-ethereum-foundation::ethereum-esp. Individual items not enumerated."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-06",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Brave rendered results. Excluded closed status and selected Creative Europe: 20 results. Other programme filters and binding documents not completed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-07",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://floss.fund/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "FAQ read; matches existing local-floss-fund::floss-fund. No new round established; dollar currency remains unspecified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-08",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://explorer.gitcoin.co/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Web HTTP 502; Brave DNS ERR_NAME_NOT_RESOLVED. No rounds enumerated."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-09",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://giveth.io/qf"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Redirected to www.giveth.io/qf. Web and Brave showed empty active list and no closed rounds, with sign-in check unfinished. Data loading not established; not zero-opportunity evidence."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-10",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://grantnav.threesixtygiving.org/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Public historical grants index and CC BY 4.0 notice readable. Community arts London search failed; funded-by investigation incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-11",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://github.com/nayafia/microgrants"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Public CC0 list; latest commit e214bd5402d9f88c8ffda3149a4d9626bc09d207 dated 2026-06-10. Awesome Foundation followed to owner; chapter-specific terms not reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-12",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://broadbandusa.ntia.gov/funding-programs"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "HTTP 403; notices not enumerated."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-13",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://octant.app/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Web empty. Brave reached wallet participation introduction, no epoch dates. Public v2 documentation found; project onboarding page retrieved, detailed rounds not reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-14",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://on-the-move.org/funding"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Redirected to /resources/funding. Country guide directory and news retrieved; individual guide PDFs and owner call terms not reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-15",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.opportunitiesforafricans.com/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Latest fellowship listing led to Tor Community Fellowship at the owner's forum; linked application is a Nextcloud shell. Held for full application terms."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-16",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://gov.optimism.io/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Grants and retro categories read. Foundation budget post says retro funding paused after Season 7; no new round verified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-17",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://projects.propublica.org/nonprofits/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Public filings index retrieved; Tor Project identity search failed. No bulk retrieval, filings or open-call inference."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-18",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://prosas.com.br/editais"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Redirected to produtos.prosas.com.br/editais; registration links and loading feed, no edital list. Enumeration incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-19",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.find-government-grants.service.gov.uk/grants"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "First page read. Woodland Creation Planning Grant followed to Forestry Commission guidance; full application review incomplete. Listing explains 2030 is funding horizon, not closure."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-20",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.ukri.org/opportunity/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "First page contained open/upcoming opportunities; Open-source semiconductor security followed to owner detail. Institutional eligibility and award read, linked eligibility rules not fully reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-21",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://casa.org.br/chamadas/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Directory lists emergency fire-response 2026 call open. Call and CasaDigital form read; new program proposed under existing Casa identity."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::registry-22",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.nac.org.za/latest-funding-calls/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Directory read, PESP 7 post initially retrieved but reread timed out twice. No terms verified; held, no closure inferred."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-01",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.daostar.org/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Address inaccessible; canonical daostar.org recovered."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-02",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://climatefundsupdate.org/the-funds/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Multilateral fund profiles; data labelled January 2025."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-03",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://climatefundsupdate.org/the-funds/green-climate-fund/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "GCF overview; not an open call."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-04",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.greenclimate.fund/projects/process"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "HTTP 403 at owner."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-05",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://daostar.org/opengrants"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "DAOIP-5 overview; pool enumeration incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-06",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://programs.dsireusa.org/system/program"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Web template variables; Brave filters/table did not populate."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-07",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://esp.ethereum.foundation/applicants"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Directory terms only, already represented."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-08",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://floss.fund/faq/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Existing program terms read; no new round."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-09",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://grantnav.threesixtygiving.org/search?query=community%20arts%20London"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Keyword/place search inaccessible."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-10",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://on-the-move.org/news"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "News index only; owner calls unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-11",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.opportunitiesforafricans.com/the-tor-community-fellowship-2027/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Discovery lead; followed to owner forum."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-12",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://gov.optimism.io/c/grants/87"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Category lists discussions; not itself a new round."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-13",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://gov.optimism.io/c/grants/retrofunding/46"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Category read; no new round verified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-14",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://gov.optimism.io/t/collective-year-4-budget-update-and-year-5-budget-outlook/10796"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Foundation post says retro funding paused after Season 7. No catalog revision in this discovery pass."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-15",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://projects.propublica.org/nonprofits/search?q=Tor+Project"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Identity query inaccessible; no filings read."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-16",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://docs.octant.app/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "v2 documentation landing page."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-17",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://docs.octant.app/docs/projects/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Onboarding page retrieved but not fully reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-18",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.awesomefoundation.org/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Monthly microgrant directory; autonomous chapter terms not reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-19",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.gov.uk/guidance/woodland-creation-planning-grant"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner guidance, England woodland planning; full review incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-20",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.ukri.org/opportunity/open-source-semiconductor-security-platform-development/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "UK-only research organisation conditions and award read; linked standard eligibility unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-21",
+      "fundId": "recTQD6Q18JaLesU1",
+      "programId": "casa-emergencial-incendios-2026",
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": "2026-11-24",
+      "fieldVerifiedOn": "2026-11-24",
+      "result": "verified",
+      "fields": [
+        "name",
+        "focus",
+        "beneficiaries",
+        "geography",
+        "applicants",
+        "award",
+        "application",
+        "costs",
+        "unknowns"
+      ],
+      "sourceUrls": [
+        "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/"
+      ],
+      "nextReviewOn": "2026-11-25",
+      "note": "Call and FAQ reviewed; new program added."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-22",
+      "fundId": "recTQD6Q18JaLesU1",
+      "programId": "casa-emergencial-incendios-2026",
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": "2026-11-24",
+      "result": "partial",
+      "fields": [
+        "application.url"
+      ],
+      "sourceUrls": [
+        "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71"
+      ],
+      "nextReviewOn": "2026-11-25",
+      "note": "Application form available; no submission."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-23",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.nac.org.za/new-call-for-presidential-employment-stimulus-programme-pesp-7-applications/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Initial retrieval not reviewed; two subsequent reads timed out. No terms verified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-24",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://forum.torproject.org/t/call-for-applications-tor-community-fellowship/22490"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner announcement read; application terms still incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-25",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://nc.torproject.net/apps/forms/s/Dtk65kWacFaq8ejwsXYSsZmr"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Nextcloud shell; application terms unread."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-26",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.cgi.br/noticia/notas/chamada-abre-financiamento-de-r-21-milhoes-para-pesquisas-e-desenvolvimento-de-plataformas-de-i-software-i-livre/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Official announcement linked FAPESP notice; detailed eligibility not reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-27",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://fapesp.br/18444/chamada-de-propostas-fapespmctimcomcgibr-2026-para-auxilio-a-pesquisa-regular-apr-e-projeto-tematico"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Notice retrieved; full terms review deferred."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-28",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://anr.fr/fr/detail/call/rch-jtc-2027-fondations-pour-un-patrimoine-culturel-resilient-face-au-climat-evaluation-et-analy/?cHash=d3b9ecf35f78f6284599dba31e6c8d8e&tx_anrprojects_request%5Baction%5D=show"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Bot challenge, not verified from search excerpt."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-29",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://agenciadenoticias.bndes.gov.br/noticia/Edital-Recaatingar-seleciona-projetos-para-recuperar-areas-degradadas-da-Caatinga/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner announcement retrieved; binding call not reviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-30",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.close-the-gap.org/south-africa"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Affordable reused IT devices; no cash grant or promise of free equipment."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-31",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.undp.org/south-africa/blog/gef-small-grants-programme-opens-call-community-led-conservation-projects-northern-cape"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner call retrieved; no whole-record review or new round established."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-32",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://casa.org.br/en/calls/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Mac crawler DNS failure; Portuguese call recovered through web tool."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-33",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.gov.br/pt-br/servicos/solicitar-doacao-de-mudas-e-sementes-nativas-fiocruz-rj-1?id=23786&origem=servico"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner service page retrieved; seedling eligibility, quantities and delivery were not fully reviewed. Living support, not a cash program."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-34",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://desafios.enap.gov.br/desafios/inova-car/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner overview retrieved; open-source Sicar challenge. Binding competition rules, individual award and deduplication remain incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-35",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.aecid.es/web/cc-lima/w/convocatoria-2027-ciudadania-en-movimiento"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner announcement retrieved; local community/public-space programme. Binding terms and application requirements remain incomplete."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-36",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://switch-2-ce.impactamplifier.co.za/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner site timed out; instrument and applicant terms remain unverified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-37",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://globalebafund.org/news/the-global-eba-fund-announces-usd-7-5-million-in-grants-for-ecosystem-based-adaptation/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner announcement retrieved; two calls announced. Binding calls and current cutoffs remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-38",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.gov.uk/government/news/peoples-power-projects-to-give-more-control-over-local-energy"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Government announcement retrieved; current round guidance and application route remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-39",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.london.gov.uk/what-we-do/environment/energy/london-community-energy-fund"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner page returned HTTP 403; stream rules and deadline remain unverified."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-40",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.marincounty.gov/news-releases/new-marin-cultural-association-grants-fund-arts-and-culture-across-marin"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner announcement retrieved; two arts programmes. Binding rules and application route remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-41",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.servicesseta.org.za/strategic-projects-funding-window-2026-27-now-open/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner announcement retrieved; full eligibility, costs, deadline and application terms remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-42",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://laboralcentrodearte.org/es/convocatorias/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner call directory retrieved; EHIN residency detail, equipment access and financial terms remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-43",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "failed",
+      "fields": [],
+      "sourceUrls": [
+        "https://prototypefund.de/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner returned HTTP 403; reopening and existing round require follow-up."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-44",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://www.cultural-bridge.info/funding/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner funding page retrieved; Round 6 opens January 4, 2027 for established partnerships. Binding handbook and full terms remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-45",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://culture.ec.europa.eu/culture-moves-europe/call-for-individual-mobility"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner call page retrieved; individual mobility overview and rolling dates read. Binding call document and FAQ remain unreviewed."
+    },
+    {
+      "runId": "monday-discovery-2026-11-23-retry",
+      "recordKey": "monday-discovery-2026-11-23-retry::followup-46",
+      "fundId": null,
+      "programId": null,
+      "attemptedOn": "2026-11-24",
+      "verifiedOn": null,
+      "fieldVerifiedOn": null,
+      "result": "reviewed-no-terms",
+      "fields": [],
+      "sourceUrls": [
+        "https://zmina.eu/en/"
+      ],
+      "nextReviewOn": "2026-12-01",
+      "note": "Owner project page retrieved; showcasing Round 2 and second co-creation call identified. Binding call and application terms remain unreviewed."
     }
   ],
   "runs": [
@@ -18470,6 +19570,1234 @@
       },
       "result": "34 program names corrected: 33 by rename archive and one by journaled revision. No whole-record verification date advanced.",
       "publication": "Pull request into develop for review. No deployment, application or funder contact."
+    },
+    {
+      "id": "monday-discovery-2026-11-23-retry",
+      "runType": "monday-discovery",
+      "localDate": "2026-11-23",
+      "timeZone": "America/Los_Angeles",
+      "researchDate": "2026-11-24",
+      "scheduledTimerObserved": false,
+      "executionNote": "Retry of the blocked scheduled run, executed November 23 local time / November 24 UTC. Dates in evidence and coverage use actual UTC retrieval date. No timer claim.",
+      "repository": "regen-commons/weave",
+      "baselineCommit": "fbda326c42c103d0cabcccfc1842cea9525c6d22",
+      "defaultBranchCommit": "23558358594a773cf0db1c50bf64070c0b0d0a92",
+      "openPullRequestsInspected": [
+        {
+          "number": 238,
+          "url": "https://github.com/regen-commons/weave/pull/238",
+          "finding": "About-it extraction; no catalog discovery overlap."
+        },
+        {
+          "number": 237,
+          "url": "https://github.com/regen-commons/weave/pull/237",
+          "finding": "Owner evaluations; no catalog discovery overlap."
+        }
+      ],
+      "pullRequestCrossCheck": "gh pr list and gh api repos/regen-commons/weave/pulls?state=open&per_page=100 agreed on two open PRs.",
+      "priorRunsRead": [
+        "dry-run-discovery-2026-11-22",
+        "name-normalization-2026-11-22",
+        "name-normalization-2026-11-23"
+      ],
+      "plan": {
+        "sourcesDue": 22,
+        "cellsDue": 15,
+        "cellsSelected": 5
+      },
+      "sources": [
+        {
+          "id": "registry-01",
+          "sourceId": "au-grantconnect",
+          "url": "https://www.grants.gov.au/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403; current opportunities and guidelines not enumerated."
+        },
+        {
+          "id": "registry-02",
+          "sourceId": "climate-funds-update",
+          "url": "https://climatefundsupdate.org/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Public fund index and GCF profile retrieved; historical multilateral funding, not direct open calls. GCF owner access failed."
+        },
+        {
+          "id": "registry-03",
+          "sourceId": "daostar-grants",
+          "url": "https://daostar.org/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "OpenGrants page describes DAOIP-5 integrations (Giveth, Octant, Stellar, Optimism, Arbitrum). Pool API not enumerated; not call evidence."
+        },
+        {
+          "id": "registry-04",
+          "sourceId": "dsire",
+          "url": "https://www.dsireusa.org/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Programs page returned unrendered variables; Brave showed empty filters and Processing, still unresolved on later read. State/grant filtering incomplete."
+        },
+        {
+          "id": "registry-05",
+          "sourceId": "ef-esp",
+          "url": "https://esp.ethereum.foundation/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Applicant page read; Wishlist/RFP directory already represented by local-ethereum-foundation::ethereum-esp. Individual items not enumerated."
+        },
+        {
+          "id": "registry-06",
+          "sourceId": "eu-funding-tenders",
+          "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Brave rendered results. Excluded closed status and selected Creative Europe: 20 results. Other programme filters and binding documents not completed."
+        },
+        {
+          "id": "registry-07",
+          "sourceId": "floss-fund",
+          "url": "https://floss.fund/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "FAQ read; matches existing local-floss-fund::floss-fund. No new round established; dollar currency remains unspecified."
+        },
+        {
+          "id": "registry-08",
+          "sourceId": "gitcoin-explorer",
+          "url": "https://explorer.gitcoin.co/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Web HTTP 502; Brave DNS ERR_NAME_NOT_RESOLVED. No rounds enumerated."
+        },
+        {
+          "id": "registry-09",
+          "sourceId": "giveth-qf",
+          "url": "https://giveth.io/qf",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirected to www.giveth.io/qf. Web and Brave showed empty active list and no closed rounds, with sign-in check unfinished. Data loading not established; not zero-opportunity evidence."
+        },
+        {
+          "id": "registry-10",
+          "sourceId": "grantnav-360giving",
+          "url": "https://grantnav.threesixtygiving.org/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Public historical grants index and CC BY 4.0 notice readable. Community arts London search failed; funded-by investigation incomplete."
+        },
+        {
+          "id": "registry-11",
+          "sourceId": "microgrants-list",
+          "url": "https://github.com/nayafia/microgrants",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Public CC0 list; latest commit e214bd5402d9f88c8ffda3149a4d9626bc09d207 dated 2026-06-10. Awesome Foundation followed to owner; chapter-specific terms not reviewed."
+        },
+        {
+          "id": "registry-12",
+          "sourceId": "ntia-broadband",
+          "url": "https://broadbandusa.ntia.gov/funding-programs",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403; notices not enumerated."
+        },
+        {
+          "id": "registry-13",
+          "sourceId": "octant",
+          "url": "https://octant.app/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Web empty. Brave reached wallet participation introduction, no epoch dates. Public v2 documentation found; project onboarding page retrieved, detailed rounds not reviewed."
+        },
+        {
+          "id": "registry-14",
+          "sourceId": "on-the-move",
+          "url": "https://on-the-move.org/funding",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirected to /resources/funding. Country guide directory and news retrieved; individual guide PDFs and owner call terms not reviewed."
+        },
+        {
+          "id": "registry-15",
+          "sourceId": "opportunities-for-africans",
+          "url": "https://www.opportunitiesforafricans.com/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Latest fellowship listing led to Tor Community Fellowship at the owner's forum; linked application is a Nextcloud shell. Held for full application terms."
+        },
+        {
+          "id": "registry-16",
+          "sourceId": "optimism-gov",
+          "url": "https://gov.optimism.io/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Grants and retro categories read. Foundation budget post says retro funding paused after Season 7; no new round verified."
+        },
+        {
+          "id": "registry-17",
+          "sourceId": "propublica-nonprofits",
+          "url": "https://projects.propublica.org/nonprofits/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Public filings index retrieved; Tor Project identity search failed. No bulk retrieval, filings or open-call inference."
+        },
+        {
+          "id": "registry-18",
+          "sourceId": "prosas",
+          "url": "https://prosas.com.br/editais",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Redirected to produtos.prosas.com.br/editais; registration links and loading feed, no edital list. Enumeration incomplete."
+        },
+        {
+          "id": "registry-19",
+          "sourceId": "uk-find-a-grant",
+          "url": "https://www.find-government-grants.service.gov.uk/grants",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "First page read. Woodland Creation Planning Grant followed to Forestry Commission guidance; full application review incomplete. Listing explains 2030 is funding horizon, not closure."
+        },
+        {
+          "id": "registry-20",
+          "sourceId": "ukri-opportunities",
+          "url": "https://www.ukri.org/opportunity/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "First page contained open/upcoming opportunities; Open-source semiconductor security followed to owner detail. Institutional eligibility and award read, linked eligibility rules not fully reviewed."
+        },
+        {
+          "id": "registry-21",
+          "sourceId": "casa-chamadas",
+          "url": "https://casa.org.br/chamadas/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Directory lists emergency fire-response 2026 call open. Call and CasaDigital form read; new program proposed under existing Casa identity."
+        },
+        {
+          "id": "registry-22",
+          "sourceId": "nac-za",
+          "url": "https://www.nac.org.za/latest-funding-calls/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Directory read, PESP 7 post initially retrieved but reread timed out twice. No terms verified; held, no closure inferred."
+        },
+        {
+          "id": "followup-01",
+          "url": "https://www.daostar.org/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Address inaccessible; canonical daostar.org recovered."
+        },
+        {
+          "id": "followup-02",
+          "url": "https://climatefundsupdate.org/the-funds/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Multilateral fund profiles; data labelled January 2025."
+        },
+        {
+          "id": "followup-03",
+          "url": "https://climatefundsupdate.org/the-funds/green-climate-fund/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "GCF overview; not an open call."
+        },
+        {
+          "id": "followup-04",
+          "url": "https://www.greenclimate.fund/projects/process",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "HTTP 403 at owner."
+        },
+        {
+          "id": "followup-05",
+          "url": "https://daostar.org/opengrants",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "DAOIP-5 overview; pool enumeration incomplete."
+        },
+        {
+          "id": "followup-06",
+          "url": "https://programs.dsireusa.org/system/program",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Web template variables; Brave filters/table did not populate."
+        },
+        {
+          "id": "followup-07",
+          "url": "https://esp.ethereum.foundation/applicants",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Directory terms only, already represented."
+        },
+        {
+          "id": "followup-08",
+          "url": "https://floss.fund/faq/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Existing program terms read; no new round."
+        },
+        {
+          "id": "followup-09",
+          "url": "https://grantnav.threesixtygiving.org/search?query=community%20arts%20London",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Keyword/place search inaccessible."
+        },
+        {
+          "id": "followup-10",
+          "url": "https://on-the-move.org/news",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "News index only; owner calls unreviewed."
+        },
+        {
+          "id": "followup-11",
+          "url": "https://www.opportunitiesforafricans.com/the-tor-community-fellowship-2027/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Discovery lead; followed to owner forum."
+        },
+        {
+          "id": "followup-12",
+          "url": "https://gov.optimism.io/c/grants/87",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Category lists discussions; not itself a new round."
+        },
+        {
+          "id": "followup-13",
+          "url": "https://gov.optimism.io/c/grants/retrofunding/46",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Category read; no new round verified."
+        },
+        {
+          "id": "followup-14",
+          "url": "https://gov.optimism.io/t/collective-year-4-budget-update-and-year-5-budget-outlook/10796",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Foundation post says retro funding paused after Season 7. No catalog revision in this discovery pass."
+        },
+        {
+          "id": "followup-15",
+          "url": "https://projects.propublica.org/nonprofits/search?q=Tor+Project",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Identity query inaccessible; no filings read."
+        },
+        {
+          "id": "followup-16",
+          "url": "https://docs.octant.app/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "v2 documentation landing page."
+        },
+        {
+          "id": "followup-17",
+          "url": "https://docs.octant.app/docs/projects/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Onboarding page retrieved but not fully reviewed."
+        },
+        {
+          "id": "followup-18",
+          "url": "https://www.awesomefoundation.org/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Monthly microgrant directory; autonomous chapter terms not reviewed."
+        },
+        {
+          "id": "followup-19",
+          "url": "https://www.gov.uk/guidance/woodland-creation-planning-grant",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner guidance, England woodland planning; full review incomplete."
+        },
+        {
+          "id": "followup-20",
+          "url": "https://www.ukri.org/opportunity/open-source-semiconductor-security-platform-development/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "UK-only research organisation conditions and award read; linked standard eligibility unreviewed."
+        },
+        {
+          "id": "followup-21",
+          "url": "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "verified",
+          "verifiedOn": "2026-11-24",
+          "fields": [
+            "name",
+            "focus",
+            "beneficiaries",
+            "geography",
+            "applicants",
+            "award",
+            "application",
+            "costs",
+            "unknowns"
+          ],
+          "finding": "Call and FAQ reviewed; new program added."
+        },
+        {
+          "id": "followup-22",
+          "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "verified-fields",
+          "verifiedOn": null,
+          "fields": [
+            "application.url"
+          ],
+          "finding": "Application form available; no submission."
+        },
+        {
+          "id": "followup-23",
+          "url": "https://www.nac.org.za/new-call-for-presidential-employment-stimulus-programme-pesp-7-applications/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Initial retrieval not reviewed; two subsequent reads timed out. No terms verified."
+        },
+        {
+          "id": "followup-24",
+          "url": "https://forum.torproject.org/t/call-for-applications-tor-community-fellowship/22490",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner announcement read; application terms still incomplete."
+        },
+        {
+          "id": "followup-25",
+          "url": "https://nc.torproject.net/apps/forms/s/Dtk65kWacFaq8ejwsXYSsZmr",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Nextcloud shell; application terms unread."
+        },
+        {
+          "id": "followup-26",
+          "url": "https://www.cgi.br/noticia/notas/chamada-abre-financiamento-de-r-21-milhoes-para-pesquisas-e-desenvolvimento-de-plataformas-de-i-software-i-livre/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Official announcement linked FAPESP notice; detailed eligibility not reviewed."
+        },
+        {
+          "id": "followup-27",
+          "url": "https://fapesp.br/18444/chamada-de-propostas-fapespmctimcomcgibr-2026-para-auxilio-a-pesquisa-regular-apr-e-projeto-tematico",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Notice retrieved; full terms review deferred."
+        },
+        {
+          "id": "followup-28",
+          "url": "https://anr.fr/fr/detail/call/rch-jtc-2027-fondations-pour-un-patrimoine-culturel-resilient-face-au-climat-evaluation-et-analy/?cHash=d3b9ecf35f78f6284599dba31e6c8d8e&tx_anrprojects_request%5Baction%5D=show",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Bot challenge, not verified from search excerpt."
+        },
+        {
+          "id": "followup-29",
+          "url": "https://agenciadenoticias.bndes.gov.br/noticia/Edital-Recaatingar-seleciona-projetos-para-recuperar-areas-degradadas-da-Caatinga/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner announcement retrieved; binding call not reviewed."
+        },
+        {
+          "id": "followup-30",
+          "url": "https://www.close-the-gap.org/south-africa",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Affordable reused IT devices; no cash grant or promise of free equipment."
+        },
+        {
+          "id": "followup-31",
+          "url": "https://www.undp.org/south-africa/blog/gef-small-grants-programme-opens-call-community-led-conservation-projects-northern-cape",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner call retrieved; no whole-record review or new round established."
+        },
+        {
+          "id": "followup-32",
+          "url": "https://casa.org.br/en/calls/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Mac crawler DNS failure; Portuguese call recovered through web tool."
+        },
+        {
+          "id": "followup-33",
+          "url": "https://www.gov.br/pt-br/servicos/solicitar-doacao-de-mudas-e-sementes-nativas-fiocruz-rj-1?id=23786&origem=servico",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner service page retrieved; seedling eligibility, quantities and delivery were not fully reviewed. Living support, not a cash program."
+        },
+        {
+          "id": "followup-34",
+          "url": "https://desafios.enap.gov.br/desafios/inova-car/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner overview retrieved; open-source Sicar challenge. Binding competition rules, individual award and deduplication remain incomplete."
+        },
+        {
+          "id": "followup-35",
+          "url": "https://www.aecid.es/web/cc-lima/w/convocatoria-2027-ciudadania-en-movimiento",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner announcement retrieved; local community/public-space programme. Binding terms and application requirements remain incomplete."
+        },
+        {
+          "id": "followup-36",
+          "url": "https://switch-2-ce.impactamplifier.co.za/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner site timed out; instrument and applicant terms remain unverified."
+        },
+        {
+          "id": "followup-37",
+          "url": "https://globalebafund.org/news/the-global-eba-fund-announces-usd-7-5-million-in-grants-for-ecosystem-based-adaptation/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner announcement retrieved; two calls announced. Binding calls and current cutoffs remain unreviewed."
+        },
+        {
+          "id": "followup-38",
+          "url": "https://www.gov.uk/government/news/peoples-power-projects-to-give-more-control-over-local-energy",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Government announcement retrieved; current round guidance and application route remain unreviewed."
+        },
+        {
+          "id": "followup-39",
+          "url": "https://www.london.gov.uk/what-we-do/environment/energy/london-community-energy-fund",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner page returned HTTP 403; stream rules and deadline remain unverified."
+        },
+        {
+          "id": "followup-40",
+          "url": "https://www.marincounty.gov/news-releases/new-marin-cultural-association-grants-fund-arts-and-culture-across-marin",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner announcement retrieved; two arts programmes. Binding rules and application route remain unreviewed."
+        },
+        {
+          "id": "followup-41",
+          "url": "https://www.servicesseta.org.za/strategic-projects-funding-window-2026-27-now-open/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner announcement retrieved; full eligibility, costs, deadline and application terms remain unreviewed."
+        },
+        {
+          "id": "followup-42",
+          "url": "https://laboralcentrodearte.org/es/convocatorias/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner call directory retrieved; EHIN residency detail, equipment access and financial terms remain unreviewed."
+        },
+        {
+          "id": "followup-43",
+          "url": "https://prototypefund.de/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "failed",
+          "review": "failed",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner returned HTTP 403; reopening and existing round require follow-up."
+        },
+        {
+          "id": "followup-44",
+          "url": "https://www.cultural-bridge.info/funding/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner funding page retrieved; Round 6 opens January 4, 2027 for established partnerships. Binding handbook and full terms remain unreviewed."
+        },
+        {
+          "id": "followup-45",
+          "url": "https://culture.ec.europa.eu/culture-moves-europe/call-for-individual-mobility",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner call page retrieved; individual mobility overview and rolling dates read. Binding call document and FAQ remain unreviewed."
+        },
+        {
+          "id": "followup-46",
+          "url": "https://zmina.eu/en/",
+          "attemptedOn": "2026-11-24",
+          "retrieval": "retrieved",
+          "review": "reviewed-no-terms",
+          "verifiedOn": null,
+          "fields": [],
+          "finding": "Owner project page retrieved; showcasing Round 2 and second co-creation call identified. Binding call and application terms remain unreviewed."
+        }
+      ],
+      "searches": [
+        {
+          "cell": "climate-restoration/BR",
+          "language": "pt",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "restauração biodiversidade agroecologia Brasil edital chamada 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "FUNBIO and Recaatingar surfaced; Casa emergency call found in registry sweep and proposed. Other binding terms incomplete."
+        },
+        {
+          "cell": "climate-restoration/BR",
+          "language": "pt",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "restauração ambiental Brasil doação equipamentos mudas edital 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "Fiocruz seedling donations surfaced as a non-cash lead; no equipment award established."
+        },
+        {
+          "cell": "climate-restoration/BR",
+          "language": "pt",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "restauração clima Brasil inscrições até novembro dezembro 2026 2027 edital",
+          "searchedOn": "2026-11-24",
+          "outcome": "FUNBIO December calls already known; Recaatingar second-cycle announcement followed to BNDES, binding notice not reviewed."
+        },
+        {
+          "cell": "community-energy-digital-inclusion/ZA",
+          "language": "en",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "South Africa community energy digital inclusion grants call 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "Services SETA funding surfaced; no new community energy grant verified."
+        },
+        {
+          "cell": "community-energy-digital-inclusion/ZA",
+          "language": "en",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "South Africa community solar digital inclusion donated equipment computers grants 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "Close the Gap followed to owner: affordable reused devices, not a cash grant or guaranteed free donation."
+        },
+        {
+          "cell": "community-energy-digital-inclusion/ZA",
+          "language": "en",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "South Africa community energy digital inclusion grant deadline November December 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "Scatec and JET calls reported past cutoff by aggregator; not treated as new open programs."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "en",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "community arts cultural heritage grants international open call 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "Culture Moves Europe and Cultural Bridge surfaced; binding calls not reviewed."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "en",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "community arts education donated equipment free space international 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "No new global material-support route established; results mostly cash grants and local arts activity."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "es",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "convocatoria artes comunitarias patrimonio cultural internacional subvención 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "PACMyC and Andalusian arts programme surfaced; no current international call verified."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "es",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "arte educación comunitaria donación equipos espacio gratuito convocatoria internacional 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "Results were domestic cultural support and programme listings; no international equipment offer established."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "fr",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "appel à projets arts communautaires patrimoine culturel subvention international 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "RCH JTC 2027 surfaced; ANR owner page returned bot challenge."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "fr",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "arts éducation culturelle don matériel équipements espace gratuit appel 2026 2027 international",
+          "searchedOn": "2026-11-24",
+          "outcome": "No dedicated global equipment offer established; regional arts support surfaced."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "en",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "community cultural heritage arts grants deadline December 2026 January 2027 international",
+          "searchedOn": "2026-11-24",
+          "outcome": "European cultural programmes and local awards surfaced; held pending owner terms."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "es",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "convocatoria cultura comunitaria internacional fecha límite diciembre 2026 enero 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "CCE Lima 2027 call followed to owner; binding terms unreviewed, held."
+        },
+        {
+          "cell": "culture-community-education/global",
+          "language": "fr",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "appel projets patrimoine culturel date limite décembre 2026 janvier 2027 international",
+          "searchedOn": "2026-11-24",
+          "outcome": "RCH pre-proposal deadline appeared in excerpt; blocked owner means no verification."
+        },
+        {
+          "cell": "open-source-public-goods/BR",
+          "language": "pt",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "software livre bens públicos digitais Brasil edital financiamento 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "CGI/FAPESP software-livre call found; CGI announcement and FAPESP notice retrieved, detailed eligibility unreviewed."
+        },
+        {
+          "cell": "open-source-public-goods/BR",
+          "language": "pt",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "software livre Brasil créditos nuvem doação equipamentos projetos 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "No new material-support call established; WeGIA software and procurement results are not equipment grants."
+        },
+        {
+          "cell": "open-source-public-goods/BR",
+          "language": "pt",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "software livre bens públicos digitais edital prazo dezembro 2026 fevereiro 2027 Brasil",
+          "searchedOn": "2026-11-24",
+          "outcome": "CGI/FAPESP repeated; InovaCAR surfaced, held for owner rules and deduplication."
+        },
+        {
+          "cell": "climate-restoration/ZA",
+          "language": "en",
+          "formOfCapital": "financial",
+          "type": "new-call",
+          "query": "South Africa restoration biodiversity climate adaptation grants call 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "UNDP Northern Cape ICCA-GSI call followed to owner; no new open round established."
+        },
+        {
+          "cell": "climate-restoration/ZA",
+          "language": "en",
+          "formOfCapital": "material",
+          "type": "new-call",
+          "query": "South Africa restoration conservation donated equipment in-kind support 2026 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "No current equipment programme verified; old conservation coverage and Nature Connect leads require follow-up."
+        },
+        {
+          "cell": "climate-restoration/ZA",
+          "language": "en",
+          "formOfCapital": "financial",
+          "type": "deadline-sweep",
+          "query": "South Africa restoration climate adaptation grants deadline December 2026 January 2027",
+          "searchedOn": "2026-11-24",
+          "outcome": "SWITCH Financing Facility surfaced; owner application rules unreviewed. No newly verified restoration grant."
+        },
+        {
+          "query": "site:gov.optimism.io grants retro funding November 2026",
+          "outcome": "Found grants and retro categories and a budget post; opened all three.",
+          "searchedOn": "2026-11-24",
+          "type": "site-scoped"
+        },
+        {
+          "query": "site:grantnav.threesixtygiving.org community arts London grant",
+          "outcome": "No GrantNav result surfaced in the combined response; direct keyword search failed.",
+          "searchedOn": "2026-11-24",
+          "type": "site-scoped"
+        },
+        {
+          "query": "climate restoration announces new fund 2026 2027",
+          "outcome": "Global EbA announcement surfaced; binding call unreviewed.",
+          "searchedOn": "2026-11-24",
+          "type": "new-fund"
+        },
+        {
+          "query": "open source public goods announces fund 2026 2027",
+          "outcome": "Prototype Fund reopening reported by OSS Funded; owner returned HTTP 403.",
+          "searchedOn": "2026-11-24",
+          "type": "new-fund"
+        },
+        {
+          "query": "community energy digital inclusion launches fund 2026 2027",
+          "outcome": "Great British Energy Community Fund and London Community Energy Fund surfaced; round-specific guidance unreviewed.",
+          "searchedOn": "2026-11-24",
+          "type": "new-fund"
+        },
+        {
+          "query": "community arts cultural education announces new fund 2026 2027",
+          "outcome": "Marin Cultural Association owner announcement retrieved; binding call unreviewed.",
+          "searchedOn": "2026-11-24",
+          "type": "new-fund"
+        },
+        {
+          "query": "Culture Moves Europe 2026 2027 call Goethe official",
+          "outcome": "Followed to European Commission owner page; binding call document unreviewed.",
+          "searchedOn": "2026-11-24",
+          "type": "owner-followup",
+          "attempts": 2,
+          "attemptNote": "Repeated after first combined response exceeded output context; no extra claim of query coverage."
+        },
+        {
+          "query": "Cultural Bridge 2027 2028 applications official",
+          "outcome": "Followed to owner funding page; upcoming Round 6 identified, binding handbook unreviewed.",
+          "searchedOn": "2026-11-24",
+          "type": "owner-followup",
+          "attempts": 2,
+          "attemptNote": "Repeated after first combined response exceeded output context; no extra claim of query coverage."
+        },
+        {
+          "query": "ZMINA Resilience international showcasing 2026 official call",
+          "outcome": "Followed to owner project page; binding round terms unreviewed.",
+          "searchedOn": "2026-11-24",
+          "type": "owner-followup",
+          "attempts": 2,
+          "attemptNote": "Repeated after first combined response exceeded output context; no extra claim of query coverage."
+        }
+      ],
+      "appliedAdditions": [
+        {
+          "fundId": "recTQD6Q18JaLesU1",
+          "programId": "casa-emergencial-incendios-2026"
+        }
+      ],
+      "appliedRevisions": [],
+      "deferredLeads": [
+        {
+          "name": "Tor Community Fellowship 2027",
+          "discoveryUrl": "https://forum.torproject.org/t/call-for-applications-tor-community-fellowship/22490",
+          "status": "held",
+          "reason": "Application form was a shell; sponsorship, payment restrictions and full intake terms need review. Owner announcement alone not imported."
+        },
+        {
+          "name": "RCH JTC 2027",
+          "discoveryUrl": "https://anr.fr/fr/detail/call/rch-jtc-2027-fondations-pour-un-patrimoine-culturel-resilient-face-au-climat-evaluation-et-analy/",
+          "status": "held",
+          "reason": "Owner page blocked. Deadline excerpt is not verification."
+        },
+        {
+          "name": "FAPESP/MCTI/MCom/CGI.br 2026",
+          "discoveryUrl": "https://fapesp.br/18444/chamada-de-propostas-fapespmctimcomcgibr-2026-para-auxilio-a-pesquisa-regular-apr-e-projeto-tematico",
+          "status": "held",
+          "reason": "Full eligibility, fiscal sponsorship and per-project award need reading; deduplicate under FAPESP/CGI identities."
+        },
+        {
+          "name": "Recaatingar second cycle 2026",
+          "discoveryUrl": "https://agenciadenoticias.bndes.gov.br/noticia/Edital-Recaatingar-seleciona-projetos-para-recuperar-areas-degradadas-da-Caatinga/",
+          "status": "held",
+          "reason": "Announcement followed to owner; binding call, individual award and round deduplication incomplete."
+        },
+        {
+          "name": "Open-source semiconductor security",
+          "discoveryUrl": "https://www.ukri.org/opportunity/open-source-semiconductor-security-platform-development/",
+          "status": "held",
+          "reason": "Owner detail read partly; standard eligibility links, fiscal sponsorship and identity deduplication incomplete."
+        },
+        {
+          "name": "Woodland Creation Planning Grant",
+          "discoveryUrl": "https://www.gov.uk/guidance/woodland-creation-planning-grant",
+          "status": "held",
+          "reason": "Owner guidance read partly; full costs, applicant rules and identity deduplication incomplete. Portal horizon is not a closure date."
+        },
+        {
+          "name": "PESP 7",
+          "discoveryUrl": "https://www.nac.org.za/new-call-for-presidential-employment-stimulus-programme-pesp-7-applications/",
+          "status": "held",
+          "reason": "Post rereads timed out. No current route or deadline verified."
+        },
+        {
+          "name": "Fiocruz/RJ seedling donations",
+          "discoveryUrl": "https://www.gov.br/pt-br/servicos/solicitar-doacao-de-mudas-e-sementes-nativas-fiocruz-rj-1?id=23786&origem=servico",
+          "status": "held",
+          "reason": "Owner service page retrieved; seedling eligibility, quantities and delivery were not fully reviewed. Living support, not a cash program."
+        },
+        {
+          "name": "InovaCAR",
+          "discoveryUrl": "https://desafios.enap.gov.br/desafios/inova-car/",
+          "status": "held",
+          "reason": "Owner overview retrieved; open-source Sicar challenge. Binding competition rules, individual award and deduplication remain incomplete."
+        },
+        {
+          "name": "CCE Lima: Ciudadanía en Movimiento 2027",
+          "discoveryUrl": "https://www.aecid.es/web/cc-lima/w/convocatoria-2027-ciudadania-en-movimiento",
+          "status": "held",
+          "reason": "Owner announcement retrieved; local community/public-space programme. Binding terms and application requirements remain incomplete."
+        },
+        {
+          "name": "SWITCH Financing Facility",
+          "discoveryUrl": "https://switch-2-ce.impactamplifier.co.za/",
+          "status": "held",
+          "reason": "Owner site timed out; instrument and applicant terms remain unverified."
+        },
+        {
+          "name": "Global EbA new calls 2026",
+          "discoveryUrl": "https://globalebafund.org/news/the-global-eba-fund-announces-usd-7-5-million-in-grants-for-ecosystem-based-adaptation/",
+          "status": "held",
+          "reason": "Owner announcement retrieved; two calls announced. Binding calls and current cutoffs remain unreviewed."
+        },
+        {
+          "name": "Prototype Fund next round",
+          "discoveryUrl": "https://ossfunded.org/",
+          "status": "held",
+          "reason": "Owner returned HTTP 403; reopening and existing round require follow-up.",
+          "officialUrls": [
+            "https://prototypefund.de/"
+          ]
+        },
+        {
+          "name": "Great British Energy community funding",
+          "discoveryUrl": "https://www.gov.uk/government/news/peoples-power-projects-to-give-more-control-over-local-energy",
+          "status": "held",
+          "reason": "Government announcement retrieved; current round guidance and application route remain unreviewed."
+        },
+        {
+          "name": "London Community Energy Fund 2026–27",
+          "discoveryUrl": "https://www.london.gov.uk/what-we-do/environment/energy/london-community-energy-fund",
+          "status": "held",
+          "reason": "Owner page returned HTTP 403; stream rules and deadline remain unverified."
+        },
+        {
+          "name": "Marin Cultural Association new grants",
+          "discoveryUrl": "https://www.marincounty.gov/news-releases/new-marin-cultural-association-grants-fund-arts-and-culture-across-marin",
+          "status": "held",
+          "reason": "Owner announcement retrieved; two arts programmes. Binding rules and application route remain unreviewed."
+        },
+        {
+          "name": "Creative Europe: ZMINA.Resilience",
+          "discoveryUrl": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals",
+          "status": "held",
+          "reason": "Owner project page retrieved; showcasing Round 2 and second co-creation call identified. Binding call and application terms remain unreviewed.",
+          "officialUrls": [
+            "https://zmina.eu/en/"
+          ]
+        },
+        {
+          "name": "Services SETA strategic projects 2026/27",
+          "discoveryUrl": "https://www.servicesseta.org.za/strategic-projects-funding-window-2026-27-now-open/",
+          "status": "held",
+          "reason": "Owner announcement retrieved; full eligibility, costs, deadline and application terms remain unreviewed."
+        },
+        {
+          "name": "Culture Moves Europe and Cultural Bridge 2027",
+          "discoveryUrl": "https://www.circostrada.org/en/categories/43-calls",
+          "status": "held",
+          "reason": "Both owner call pages retrieved; binding handbook, call document and FAQs remain unreviewed. Cultural Bridge opens January 2027.",
+          "officialUrls": [
+            "https://www.cultural-bridge.info/funding/",
+            "https://culture.ec.europa.eu/culture-moves-europe/call-for-individual-mobility"
+          ]
+        },
+        {
+          "name": "LABoral EHIN 2026",
+          "discoveryUrl": "https://laboralcentrodearte.org/es/convocatorias/",
+          "status": "held",
+          "reason": "Owner call directory retrieved; EHIN residency detail, equipment access and financial terms remain unreviewed."
+        }
+      ],
+      "intakeReview": "Zero pending leads. Four historical unresolved leads retained; no new official evidence found for them. Prior run deferred leads remain in their original run.",
+      "coverageLimitations": [
+        "22 registry sources attempted, not 22 exhaustive sweeps. Failures, loading shells and unread terms are specified per source.",
+        "EU browser sweep covered Creative Europe open/forthcoming results only; Horizon Europe, LIFE and CERV filtered sweeps remain incomplete.",
+        "DSIRE state/type filters, GrantNav keyword/place lookup, ProPublica identity search, Prosas listings and Gitcoin rounds could not be completed.",
+        "Five selected cells searched for financial and material support in every listed language, with a deadline sweep per language. Search coverage is not whole-program verification.",
+        "All 20 held leads were followed to owner pages or attempted owner retrievals. Binding terms and deduplication remain incomplete for held leads; directory pagination and every linked listing were not exhaustively reviewed.",
+        "Mac crawler ran with python3 for Casa (batch 2, one identity, three-page bound) and failed DNS; web retrieved the Portuguese call. No crawl result was treated as verification.",
+        "Prior deferred leads were not all reverified; no historic verification date advanced.",
+        "No rendered site proof is claimed; browser use was source research in Brave."
+      ],
+      "deduplication": {
+        "method": "Compared funder names, aliases, official domains, source URLs and named programs/rounds. Casa is the existing original identity; its only prior program is the separate closed simplified call. FLOSS/fund and Ethereum ESP are already represented. Other held leads need complete deduplication before import."
+      },
+      "validation": {
+        "status": "passed",
+        "checks": [
+          {
+            "command": "bun install --frozen-lockfile",
+            "result": "passed; Bun 1.4.2 and Node 24.20.0; lockfile unchanged"
+          },
+          {
+            "command": "bun run research:import",
+            "result": "passed; 699 identities, 731 programs"
+          },
+          {
+            "command": "bun run ci",
+            "result": "passed; catalog 167, design-system 88, app 944, API 437 passed with 67 skipped, harness 78; builds, design and guidance checks passed"
+          },
+          {
+            "command": "bun run --filter @weave/app typecheck",
+            "result": "passed"
+          },
+          {
+            "command": "bun run --filter @weave/app eval:funds",
+            "result": "passed; first five results unchanged on every path for all 20 initiatives; 840 relevance labels remain ungraded drafts"
+          },
+          {
+            "command": "python3 scripts/revise-program.py --check-base fbda326c42c103d0cabcccfc1842cea9525c6d22",
+            "result": "passed; committed revision history append-only"
+          },
+          {
+            "command": "git diff --check",
+            "result": "passed"
+          }
+        ],
+        "preservation": {
+          "identities": 699,
+          "priorPrograms": 730,
+          "priorSources": 1851,
+          "priorLogEntries": 686,
+          "priorRuns": 10,
+          "priorIntakeDispositions": 94
+        },
+        "environmentNote": "Initial sandbox CI could not open local HTTP listeners; final CI passed with local listener access. Historical audit tests now reverse only this archived append; app catalog-size assertions include the new program. No application logic changed."
+      },
+      "result": "One new Casa program proposed; Close the Gap recorded as a non-cash resource. All 22 due sources attempted, five cells and 30 unique queries recorded, 20 leads held. Prior terms and evidence preserved; local CI passed.",
+      "publication": "Draft PR into develop requested; no merge or deployment.",
+      "sourceCounts": {
+        "attempted": 68,
+        "retrieved": 55,
+        "retrievalFailed": 13,
+        "verified": 1,
+        "verifiedFields": 1
+      },
+      "countDefinition": "Unique requested URLs, with rereads/browser fallbacks consolidated in findings. Only the Casa call received a whole-program review. Retrieved pages and discovery excerpts are not verification.",
+      "resourceDispositions": [
+        {
+          "name": "Close the Gap South Africa",
+          "officialUrl": "https://www.close-the-gap.org/south-africa",
+          "disposition": "non-cash-program",
+          "checkedOn": "2026-11-24",
+          "finding": "Affordable pre-owned IT devices, not a cash grant or guaranteed free donation. Pricing, availability and delivery need applicant review.",
+          "intakeId": "discovery-2026-11-23-close-the-gap"
+        }
+      ],
+      "prePublicationPullRequestsInspected": [
+        {
+          "number": 239,
+          "finding": "Add Files extraction evaluation; no discovery overlap."
+        },
+        {
+          "number": 240,
+          "finding": "First-step file intake; no discovery overlap."
+        }
+      ],
+      "prePublicationCrossCheck": "gh pr list and direct repository pulls endpoint agreed on PRs 239 and 240; descriptions inspected."
     }
   ]
 }

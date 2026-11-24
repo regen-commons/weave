@@ -100,8 +100,8 @@ const draft = () =>
   );
 test("the app retains the entire public release and all program identities, including unverified overview records", () => {
   assert.equal(bundle.catalog.funds.length, 699);
-  assert.equal(entries.length, 771);
-  assert.equal(entries.filter((entry) => entry.program).length, 730);
+  assert.equal(entries.length, 772);
+  assert.equal(entries.filter((entry) => entry.program).length, 731);
   assert.equal(entries.filter((entry) => !entry.program).length, 41);
   assert.equal(new Set(entries.map((entry) => entry.id)).size, entries.length);
   assert.deepEqual(bundle.catalog, raw);
@@ -166,7 +166,7 @@ test("each program uses the unchanged rubric and full-corpus IDF; every result b
         bundle.conditions,
       ),
     );
-  assert.equal(app.length, 771);
+  assert.equal(app.length, 772);
   for (const expected of live) {
     const actual = app.find((row) => row.documentId === expected.documentId)!;
     // Readiness, research priority and screening are the rubric's own; only fit is Funding's.
@@ -185,7 +185,7 @@ test("missing condition data keeps screening unavailable rather than treating pr
   assert.ok(results.some((row) => row.readiness.status === "screening"));
 });
 test("visitors keep the whole catalog with no synthetic fit; filtering distinguishes closed cycles and exact dates", () => {
-  assert.equal(filterFunding(entries, emptyFundingFilters, null, at).length, 771);
+  assert.equal(filterFunding(entries, emptyFundingFilters, null, at).length, 772);
   const closed = entries.filter((entry) => effectiveAccess(programFund(entry.fund, entry.program), at) === "closed");
   assert.ok(closed.length > 0);
   const soon = filterFunding(entries, { ...emptyFundingFilters, closing: "30" }, null, at);
