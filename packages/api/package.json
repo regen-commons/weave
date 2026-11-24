@@ -45,10 +45,30 @@
       "source": "./src/topics.ts",
       "default": "./dist/topics.js"
     },
+    "./themes": {
+      "types": "./src/themes.ts",
+      "source": "./src/themes.ts",
+      "default": "./dist/themes.js"
+    },
+    "./places": {
+      "types": "./src/places.ts",
+      "source": "./src/places.ts",
+      "default": "./dist/places.js"
+    },
+    "./fund-fit": {
+      "types": "./src/fund-fit.ts",
+      "source": "./src/fund-fit.ts",
+      "default": "./dist/fund-fit.js"
+    },
     "./partner-matcher": {
       "types": "./src/partner-matcher.ts",
       "source": "./src/partner-matcher.ts",
       "default": "./dist/partner-matcher.js"
+    },
+    "./partner-ranking": {
+      "types": "./src/partner-ranking.ts",
+      "source": "./src/partner-ranking.ts",
+      "default": "./dist/partner-ranking.js"
     },
     "./projects": {
       "types": "./src/projects.ts",

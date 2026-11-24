@@ -1139,3 +1139,38 @@ Funding and the MCP tool now give the rubric, as a card's themes, the catalog to
 - **Pencil stays off the card.** Only needs and offers the person kept are read, so typing in their box or a suggestion in pencil ranks nothing again (DL-110).
 
 On the set's five Portuguese and Spanish initiatives, each now has between 3 and 15 Strong or Good fits where it had none. For example, the Colombian reserve that propagates native species to restore Andean forests and springs shares restoration and water with FUNBIO's Floresta Viva, and the Chilean radio made by women who fish shares fishers, women and youth with the Network of European Foundations' farmer-organisation round.
+
+## DL-143: Funding's fit reads what an initiative does and where it works
+
+**Status:** user request, 24 November 2026, relayed with the task: "it should be clear what a good match is for tech and sun and green goods ... This should not be difficult!" Amends DL-129 and DL-142 where they had Funding read the rubric's thematic score unchanged. The live site and its rubric (`dist/matching.mjs`) are unchanged.
+
+The rubric grades fit by how many distinct words a program and a card share, and every word counts the same. Tech and Sun, a free solar-powered hub in Nigeria that also offers internet, shared "internet", "digital" and "open" with internet-freedom and open-source funds and only "solar" with energy-access programs, so its first ten were internet funds and All On's Nigerian off-grid challenge ranked 525th.
+
+Funding and the MCP tool now grade fit from the themes both sides name (`@weave/api/themes`, `@weave/api/fund-fit`), over the rubric's own results:
+
+- **The field of work weighs most.** Energy access, farming and food, or open source and public goods weighs 40, in full where the card's first sentence names it and three quarters where a later one does. The people served weigh 15. The tools used (technology, internet access) weigh 8, and at most 16 together.
+- **Examples weigh a quarter.** A theme named only in a list of examples ("such as keeping solar panels running") or as a subject taught ("workshops on Web3 and climate") illustrates the work. Green Goods lists solar panels among the work its users record; it is not an energy project.
+- **Place counts.** A program that names the card's country adds 20, one that limits itself to the card's region or to low- and middle-income countries adds 10, once something topical is shared. A program that names only other countries keeps half its fit, and one limited to other regions three quarters: a caution, never an exclusion. Countries come from the card's funding details, and for fit only from the places its words and its Where you work name; those never become eligibility facts.
+- **Focus counts.** A program about the card's field fits better than one that funds it among many: up to 40% of fit depends on how many of the program's fields the card shares.
+- **A word the rubric shares that names no theme** still adds 10, at most twice.
+
+The score keeps the rubric's scale, so Funding's four levels stand (DL-129): one field in common is a Good fit, a field and the program's own country or two fields a Strong one. The fit line names the shared themes and place. Readiness, research priority and screening are the rubric's own, and an eligibility conflict still never reorders fit.
+
+Measured on 24 November 2026: Tech and Sun's first ten now hold All On, ROGEAP and REA's DARES ("energy access, Nigeria") and EKOenergy ("energy access, low- and middle-income countries"); no internet-freedom fund is in it. Green Goods' owner card ranks open-source and public-goods programs first. Its About leaves out that its work becomes an onchain record; with that public fact, Gitcoin, the Ecosystem Support Program and Filecoin Open Grants rank 2nd to 5th. Every first five in the fund-ranking snapshot changed on Funding and MCP and none on the live site; the pull request gives each reason. The must-match suite (`packages/app/evaluation/README.md#must-match-suite`) gates the anchor pairs and the keyword traps.
+
+## DL-144: Partners for you matches on complementarity
+
+**Status:** user request, 24 November 2026, with DL-143. Amends DL-064's note that strength comes from evidence alone: it still does, and the order within each kind of evidence now follows what links the two sides.
+
+Partners for you found a counterpart only when a public project repeated the words of a need or offer, and read neither side as a whole. Green Goods' app "for recording community work" met bioacoustic projects that make "recordings"; its need for communities to pilot with never met Tech and Sun, which runs exactly the kind of work Green Goods lists.
+
+`@weave/api/partner-ranking` now reads each need or offer with the initiative it belongs to, and each public project with all of its passages and its title, and ranks on what the PRD's persona table pairs:
+
+- **The role asked for.** A need asks for a place-based community (pilots, host sites), a tool builder (a record, a platform), a research group (evaluation, monitoring), learning and education (workshops), art and culture (stories), or a funder (money); an offer looks for places and, for a tool or method, research groups that could use it. Roles are read in English, Portuguese and Spanish.
+- **Fields in common**, from the same themes as Funding, the initiative's examples included where they say whom it is looking for: the kinds of work a tool builder lists are the communities it wants. A field few projects name counts more than one many name.
+- **The same country or region.** A community where the initiative already works is the better pilot. An entry kept to here reaches only projects named in the same country, and one kept to its region only those in it.
+- **Money only from funders.** A need for money alone is never answered by a project that does not say it funds others.
+
+A project that complements an entry without sharing its words appears when it has the role asked for and a field or the country in common. It is an inferred capability or a potential use, never a confirmed offer, with the same unknowns as before, and its reason reads "What links you: a place-based community, energy access, education and skills, Nigeria." An initiative's own project is never its partner. The word matcher (`partner-matcher.ts`), its reasons and the sealed partner-real-v2 holdout that pins it are unchanged, and Partners for you still searches only the snapshot it is given. The network search for shared entries keeps the word matcher for now.
+
+Measured on the must-match suite's real projects: Green Goods' need for communities to pilot with finds Tech and Sun first, its app and its reports find Tech and Sun first and second, and Tech and Sun's need for a record of what the hub delivers finds Green Goods first. Bioacoustic species surveys no longer reach Green Goods, and a need for money finds nothing.

@@ -95,6 +95,8 @@ export function projectFrom(draft: FundingCard) {
     // topics its words name in Portuguese or Spanish, and those its kept needs and offers name (DL-142).
     tags: draft.confirmed.themes,
     asks: [...(draft.asks ?? [])],
+    // Where you work, read for fit only: typed places are never mapped into eligibility facts (DL-143).
+    places: [...draft.confirmed.locations],
     workCountries,
     benefitCountries,
     applicantBaseCountry: singleCountry(form.applicantBaseCountry, "applicantBaseCountry"),

@@ -23,7 +23,8 @@ Portuguese, Spanish, software, art and a one-line card. Countries and applicant 
 are assumed where a record does not say. No initiative has themes: a card confirmed on
 the describe step holds none since DL-127. Funding and the MCP tool rank the description
 with the catalog topics its Portuguese or Spanish words name (DL-142), as the app does,
-and the live site ranks it alone. Every path ranks as of the catalog's `compiledAt`, so the result
+and grade fit by the themes and places both sides name (DL-143); the live site ranks the
+description alone, with the rubric's count of shared words. Every path ranks as of the catalog's `compiledAt`, so the result
 depends only on the code and the catalog, and moves on when the catalog does.
 
 ```sh
@@ -65,6 +66,86 @@ What this does not cover: the live site's optional semantic ranking, which needs
 model and can differ by machine; the live site as deployed, which runs the rubric from
 `codex/funding-commons-demo` rather than this branch's; and the order of Funding That
 Fits on an initiative's page, which takes the leads from the same Funding order.
+
+## Must-match suite
+
+`must-match.ts` checks that Weave matches the pairs its purpose says it must, and keeps
+out the keyword traps it must not fall into. `must-match-v1.json` holds about 30 pairs
+built from real public initiatives: Green Goods and Tech and Sun from their owners'
+public-safe profiles and public repositories, and the rest from the public Certified
+projects in `../../api/evaluation/partner-real-v1-corpus.json` and `fund-ranking-v1.json`.
+`test/must-match-eval.test.ts` runs it in CI, and every pair marked `gate` must hold.
+
+```sh
+bun run --filter @weave/app eval:must-match             # the current matchers
+bun run --filter @weave/app eval:must-match -- --before # what shipped before DL-143 and DL-144
+```
+
+### The rubric
+
+A pair is written, and judged, against these rules. They come from the
+[PRD](../../../docs/platform/04-prd.md) and the
+[matching contract](../../../docs/platform/05-technical-spec.md#72-cross-initiative-matching-r12-r16),
+not from what any matcher returns.
+
+1. **Complement, not keywords** (PRD goal 2, R12). A need meets an offer or a capability
+   that could answer it, and an offer meets a need or work that could use it. Sharing a
+   theme alone is not a match, and repeating a word ("recording", "monitoring") is not
+   one either.
+2. **Roles from the persona table** (PRD section 4). A tool builder needs communities to
+   pilot with, and ecosystem grants. A research group needs place-based partners. Art and
+   culture joins a place's work. A place-based community needs money, tools, research,
+   skills and stories. A funder's program fits the initiatives that do what it funds.
+3. **The kind of support has to be one the other side can give.** Money comes only from
+   someone who funds others, so a public project that does not say it funds anyone never
+   answers a need for money. Social capital (communities, pilots) comes from places;
+   intellectual capital (a record, a method) from tools and research.
+4. **What an initiative does, and where it works, come first.** Its field of work, as its
+   own first sentence says it, outweighs the tools it uses (internet, an app) and the
+   examples it lists. A fund program that names the initiative's country or region fits
+   better; one that names only other places is a caution to check, never an exclusion.
+5. **Evidence stays honest** (R12). Public work is an inferred capability or a potential
+   use of an offer, never a confirmed offer. Every result says what links the two sides,
+   keeps what is unknown, and fit is never eligibility.
+6. **Words count in every language Weave reads.** A Portuguese or Spanish need or card
+   is judged by what it means, as an English one is.
+
+Each pair names its persona, the need or offer it reads, what must or must not rank and
+how far down (three for Partners for you, which shows three per entry; five for the
+Partners page; ten for Funding's first screen), and a reason in these terms: which need
+meets which offer or capability, the kind of support, the field and the place. Kinds of
+check:
+
+| Field | Holds when |
+|---|---|
+| `must` | every named program or project is within the first `within` |
+| `mustNot` | none of them is |
+| `anyOf` | at least one is, where several fit equally |
+| `none` | nothing is suggested at all |
+| `onlyCountries` | every suggestion names one of these countries |
+| `first` (fund programs) | the program fits this initiative better than every other in `among` |
+
+A pair marked `should` is reported and not gated, with its reason saying why.
+
+### What it shows, and what it does not
+
+On 24 November 2026: 29 of 30 pairs hold, and all 29 gated pairs, on the current
+matchers; 16 of 30 held on the matchers before DL-143 and DL-144. The one that does not
+hold is F-04, a `should`: NGI Zero Commons ranks 22nd for Green Goods, sharing one field
+(open source and public goods) with a closed call.
+
+- An agent wrote the pairs against the rubric, and the matchers were changed while the
+  suite was written, so it is development data: it proves the anchor case and the traps,
+  not precision in general. Rerun the partner-real-v2 holdout for that.
+- One pair was changed after a run. P-07 first named one community monitoring project;
+  seven fit equally, so it asks for any of them. Its reason says so.
+- Green Goods' Certified record and Tech and Sun's were not read from the live index:
+  their public records here are written from their owners' public-safe profiles and
+  public repositories. Partners for you searches the projects its snapshot holds (the
+  80 most recently fetched); the suite ranks against all 142.
+- Green Goods' 400-character About leaves out that its work becomes an onchain record.
+  With that one public fact (`green-goods-public`), Gitcoin, the Ecosystem Support Program
+  and Filecoin Open Grants rank 2nd to 5th; without it they are Possible fits around 40th.
 
 ## Extraction
 

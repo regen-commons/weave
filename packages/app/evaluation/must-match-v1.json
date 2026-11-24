@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "dataset": "must-match-v1",
+  "rubric": "packages/app/evaluation/README.md#must-match-suite",
+  "authoring": "Written on 24 November 2026 by an agent against the rubric in the README, from public words only. Green Goods and Tech and Sun use their owners' public-safe profile text (the same as fund-relevance-owner-v1.json) and their public repositories; every other initiative is a real public Certified project in packages/api/evaluation/partner-real-v1-corpus.json or fund-ranking-v1.json. Needs and offers marked agent-written restate the project's own public words as a need or offer; no person's name, contact or private figure is used. Each pair says why it must or must not match in the PRD's terms: which need meets which offer or capability, the kind of support, the field of work and the place.",
+  "initiatives": [
+    {
+      "id": "green-goods",
+      "name": "Green Goods",
+      "lens": "technology",
+      "source": "owner",
+      "sourceUri": "https://github.com/greenpill-dev-guild/green-goods",
+      "description": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, such as planting trees, sorting waste, keeping solar panels running or teaching classes. Members log the work with photos, offline or by chat, and the people it served confirm it was done. That shared record helps supporters see what happened and fund what comes next.",
+      "places": ["Awka, Nigeria"],
+      "isGlobal": true,
+      "workCountries": [],
+      "entries": [
+        { "id": "gg-need-funding", "kind": "need", "title": "Funding for development and community support", "description": "Pay for engineering, maintenance, onboarding and reporting so communities keep a tool that works.", "capitalForms": ["financial"], "placeScope": "anywhere" },
+        { "id": "gg-need-evaluators", "kind": "need", "title": "Evaluators to define credible evidence", "description": "People who can set a baseline and say what good evidence of change looks like.", "capitalForms": ["intellectual", "experiential"], "placeScope": "anywhere" },
+        { "id": "gg-need-pilots", "kind": "need", "title": "Communities to pilot it and give honest feedback", "description": "Groups doing regenerative work who will use it for a season and tell us where it gets in the way.", "capitalForms": ["social"], "placeScope": "anywhere" },
+        { "id": "gg-offer-app", "kind": "offer", "title": "Open-source app for recording community work", "description": "An offline-ready app and steward dashboard, under the MIT licence, in English, Spanish and Portuguese.", "capitalForms": ["intellectual", "material"], "placeScope": "anywhere" },
+        { "id": "gg-offer-reports", "kind": "offer", "title": "Reports funders can read", "description": "One reviewed record of what a community did, readable outside Green Goods, instead of a report per funder.", "capitalForms": ["intellectual"], "placeScope": "anywhere" }
+      ],
+      "publicRecord": {
+        "uri": "at://must-match/green-goods",
+        "name": "Green Goods",
+        "passages": [
+          "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, such as planting trees, sorting waste, keeping solar panels running or teaching classes.",
+          "Gardeners record their contributions through a mobile web app. Stewards review the evidence, and approved work becomes an onchain record that communities use with shared governance and funding tools."
+        ]
+      }
+    },
+    {
+      "id": "green-goods-public",
+      "name": "Green Goods",
+      "lens": "technology",
+      "source": "owner",
+      "sourceUri": "https://github.com/greenpill-dev-guild/green-goods",
+      "note": "The same initiative described with one more public fact from its README: approved work becomes an onchain record. The owner's 400-character About leaves it out, and with it everything that ties Green Goods to Ethereum public goods funding.",
+      "description": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, such as planting trees, sorting waste, keeping solar panels running or teaching classes. Stewards review the evidence, and approved work becomes an onchain record that supporters can see and fund.",
+      "places": [],
+      "isGlobal": true,
+      "workCountries": []
+    },
+    {
+      "id": "tech-and-sun",
+      "name": "Tech and Sun",
+      "lens": "place_based",
+      "source": "owner",
+      "sourceUri": "https://github.com/Greenpill9ja/tas-documentation",
+      "description": "Tech and Sun builds free, solar-powered hubs in Nigeria where students, creatives and builders get steady power, internet and a place to learn and work. Our first hub is a converted shipping container at Nnamdi Azikiwe University in Awka. We run workshops on digital skills, Web3 and climate, and we share our hub design as an open blueprint so other communities can build their own.",
+      "places": ["Awka, Nigeria"],
+      "isGlobal": false,
+      "workCountries": ["NG"],
+      "entries": [
+        { "id": "tas-need-running", "kind": "need", "title": "Funding to keep the Awka hub running", "description": "Cover batteries, internet, maintenance and steward support so the hub stays open every day.", "capitalForms": ["financial"], "placeScope": "here" },
+        { "id": "tas-need-record", "kind": "need", "title": "A clear record of what the hub delivers", "description": "A simple way to record attendance, uptime and outcomes that funders and partners can check.", "capitalForms": ["intellectual"], "placeScope": "anywhere" },
+        { "id": "tas-need-workshops", "kind": "need", "title": "Partners to run workshops at the hub", "description": "Organisations or experts who can lead sessions on digital skills, Web3 and climate.", "capitalForms": ["experiential", "social"], "placeScope": "anywhere" },
+        { "id": "tas-offer-desks", "kind": "offer", "title": "Free desk space with power and internet", "description": "Desks in a solar-powered hub with Starlink, open for study, work and building.", "capitalForms": ["material"], "placeScope": "here" },
+        { "id": "tas-offer-blueprint", "kind": "offer", "title": "Open-source hub blueprint", "description": "A CC BY-SA guide to designing, building and running a solar and internet hub.", "capitalForms": ["intellectual"], "placeScope": "anywhere" }
+      ],
+      "publicRecord": {
+        "uri": "at://must-match/tech-and-sun",
+        "name": "Tech & Sun: Solar Hubs for Builders and Communities in Nigeria",
+        "passages": [
+          "Tech and Sun builds free, solar-powered hubs in Nigeria where students, creatives and builders get steady power, internet and a place to learn and work.",
+          "Our first hub is a converted shipping container at Nnamdi Azikiwe University in Awka. We run workshops on digital skills, Web3 and climate, and we share our hub design as an open blueprint so other communities can build their own."
+        ]
+      }
+    },
+    {
+      "id": "rio-claro",
+      "corpus": "rp-012",
+      "name": "Rio Claro Mangrove Restoration",
+      "lens": "place_based",
+      "entries": [
+        { "id": "rio-need-wildlife", "kind": "need", "title": "Help measuring which wildlife returns to the restored mangroves", "description": "Someone who can set up monitoring of birds and other wildlife along the estuary and read the results with us.", "capitalForms": ["intellectual", "experiential"], "placeScope": "anywhere", "authored": "agent, from the project's public words" }
+      ]
+    },
+    {
+      "id": "gainforest",
+      "corpus": "rp-072",
+      "name": "gainforest.earth",
+      "lens": "research",
+      "entries": [
+        { "id": "gainforest-offer-tools", "kind": "offer", "title": "Open tools for communities to record their own biodiversity data", "description": "Local AI assistants, bioacoustics and remote sensing that a community can use to document the species on its land.", "capitalForms": ["intellectual", "material"], "placeScope": "anywhere", "authored": "agent, from the project's public words" }
+      ]
+    },
+    {
+      "id": "sofia-rivers",
+      "corpus": "rp-041",
+      "name": "Sofia's rivers: from sewage channels to community spaces",
+      "lens": "place_based",
+      "entries": [
+        { "id": "sofia-need-artists", "kind": "need", "title": "Artists to tell the story of our rivers' recovery", "description": "Artists and storytellers who can help neighbours see the rivers as living places worth restoring.", "capitalForms": ["cultural"], "placeScope": "anywhere", "authored": "agent, from the project's public words" }
+      ]
+    },
+    {
+      "id": "sentir-amazonia",
+      "corpus": "rp-121",
+      "name": "Ecoturismo e cura: jardim sensorial amazônico de Santarém",
+      "lens": "place_based",
+      "language": "pt",
+      "entries": [
+        { "id": "sentir-need-record", "kind": "need", "title": "Uma ferramenta para registrar e mostrar o trabalho do jardim", "description": "Um aplicativo simples para registrar as visitas, as oficinas e as mudas plantadas e mostrar esse registro aos apoiadores.", "capitalForms": ["intellectual"], "placeScope": "anywhere", "authored": "agent, from the project's public words" }
+      ]
+    },
+    {
+      "id": "ayure",
+      "corpus": "rp-122",
+      "name": "Ayure no vino a salvar el mundo, vino a conectar a quienes ya lo sostienen.",
+      "lens": "place_based",
+      "language": "es",
+      "entries": [
+        { "id": "ayure-need-traceability", "kind": "need", "title": "Herramientas para rastrear el material reciclado", "description": "Una plataforma que registre de dónde viene el material y cuánto se recicla, para mostrarlo a compradores y aliados.", "capitalForms": ["intellectual", "material"], "placeScope": "anywhere", "authored": "agent, from the project's public words" }
+      ]
+    }
+  ],
+  "funds": [
+    { "id": "F-01", "persona": "place-based community", "initiative": "tech-and-sun", "within": 10, "status": "gate",
+      "must": ["local-all-on::all-on-challenge-2026", "local-rogeap::rogeap-ctf-round4", "local-rea::rea-dares", "local-ekoenergy::ekoenergy-climate-fund"],
+      "reason": "Tech and Sun's field is energy access (free solar-powered hubs) and it works in Nigeria. All On, ROGEAP and REA's DARES fund off-grid and solar energy access in programs that name Nigeria; EKOenergy funds community solar in low- and middle-income countries. Financial capital for the field and place it works in." },
+    { "id": "F-02", "persona": "place-based community", "initiative": "tech-and-sun", "within": 10, "status": "gate",
+      "mustNot": ["rectXjOx3IGNOAPEn::otf-internet-freedom", "local-cpuc::cpuc-cea-lat-round3", "local-funbio::funbio-floresta-viva-sao-francisco-2026"],
+      "reason": "Keyword traps. The hub gives people internet, but internet freedom (censorship and surveillance) is not its field. CEA-LAT is for one California ZIP code and Floresta Viva for one Brazilian basin." },
+    { "id": "F-03", "persona": "technology builder", "initiative": "green-goods-public", "within": 10, "status": "gate",
+      "must": ["local-gitcoin::gitcoin-gg24", "local-ethereum-foundation::ethereum-esp", "local-filecoin::filecoin-open-grants"],
+      "reason": "An open-source app whose reviewed work becomes an onchain record is an Ethereum public good: Gitcoin Grants and the Ecosystem Support Program fund open-source public goods on Ethereum, and Filecoin Open Grants fund open developer tools on decentralized infrastructure. These are the ecosystem grants the PRD's tooling builder looks for." },
+    { "id": "F-04", "persona": "technology builder", "initiative": "green-goods-public", "within": 10, "status": "should",
+      "must": ["local-nlnet::nlnet-commons-final"],
+      "reason": "NGI Zero Commons funds digital commons, which Green Goods is, but it names neither Ethereum nor regeneration and its final call has closed. Expected among the Good fits, reported rather than gated." },
+    { "id": "F-05", "persona": "technology builder", "initiative": "green-goods", "within": 10, "status": "gate",
+      "mustNot": ["local-all-on::all-on-challenge-2026", "local-rogeap::rogeap-ctf-round4", "local-rea::rea-dares"],
+      "reason": "Green Goods names solar panels only as an example of the work its users record. It is not an energy project, so energy-access programs must not fill its first ten." },
+    { "id": "F-06", "persona": "learning and education (cross-language, es)", "initiative": "fr-05", "within": 10, "status": "gate",
+      "must": ["local-seeding-future::seeding-future-2027"],
+      "mustNot": ["recTQ9YEkfGnn8QFQ::strategic-early-childhood-grantmaking", "recDcTfu7qgawGUnu::strategic-early-childhood-grantmaking"],
+      "reason": "Free permaculture courses in Spanish: farming and food, regeneration and education. The Global Food System Challenge funds regenerative food systems. Early-childhood programs share only the word education." },
+    { "id": "F-07", "persona": "place-based community (cross-language, pt)", "initiative": "fr-10", "within": 10, "status": "gate",
+      "mustNot": ["recTQ9YEkfGnn8QFQ::strategic-early-childhood-grantmaking", "recDcTfu7qgawGUnu::strategic-early-childhood-grantmaking"],
+      "reason": "A sensory garden that keeps ancestral Amazonian knowledge of medicinal plants and receives schools. It works with schools; it is not early-childhood development." },
+    { "id": "F-08", "persona": "place-based community (cross-language, es)", "initiative": "fr-11", "within": 10, "status": "gate",
+      "mustNot": ["local-funbio::funbio-floresta-viva-sao-francisco-2026"],
+      "reason": "A Colombian reserve restoring Andean forest. Floresta Viva shares restoration and water but names only Brazil's São Francisco basin, so it is a caution, not a first-ten fit." },
+    { "id": "F-09", "persona": "technology builder", "initiative": "fr-06", "within": 10, "status": "gate",
+      "must": ["local-milken-motsepe::milken-circular-2026"],
+      "reason": "A traceability platform for circular supply chains; the Milken-Motsepe prize funds circular-economy solutions." },
+    { "id": "F-10", "persona": "art and culture with place", "initiative": "fr-08", "within": 10, "status": "gate",
+      "must": ["reclELHBM37wcMrzW::ayni-small-grants-2026"],
+      "reason": "Maasai women artisans restoring Indigenous forest: Indigenous women, culture and forests. FIMI's AYNI small grants fund Indigenous women's initiatives." },
+    { "id": "F-11", "persona": "place-based community", "initiative": "fr-04", "within": 10, "status": "gate",
+      "must": ["local-california-dwr::ca-urban-streams-2026"],
+      "reason": "Watershed restoration in California; the Urban Streams Restoration Program funds stream and watershed restoration in California." },
+    { "id": "F-12", "persona": "research group with place", "initiative": "fr-01", "within": 10, "status": "gate",
+      "must": ["local-undp-gef::undp-nigeria-icca-regular"],
+      "reason": "Community-led biodiversity monitoring in Taraba State, Nigeria; the GEF Small Grants Programme's Nigeria window funds community conservation there." }
+  ],
+  "programs": [
+    { "id": "FP-01", "persona": "funder", "program": "local-all-on::all-on-challenge-2026", "first": "tech-and-sun", "among": ["tech-and-sun", "green-goods", "green-goods-public", "fr-01", "fr-05", "fr-06", "fr-08"], "status": "gate",
+      "reason": "A funder reading for fitting initiatives: an off-grid energy challenge in Nigeria fits the Nigerian solar hub before anyone else." },
+    { "id": "FP-02", "persona": "funder", "program": "local-gitcoin::gitcoin-gg24", "first": "green-goods-public", "among": ["tech-and-sun", "green-goods-public", "fr-01", "fr-05", "fr-06", "fr-08"], "status": "gate",
+      "reason": "Ethereum public goods fit the open-source app with onchain records first." },
+    { "id": "FP-03", "persona": "funder", "program": "local-milken-motsepe::milken-circular-2026", "first": "fr-06", "among": ["tech-and-sun", "green-goods", "fr-01", "fr-05", "fr-06", "fr-08"], "status": "gate",
+      "reason": "A circular-economy prize fits the circular supply-chain platform first." },
+    { "id": "FP-04", "persona": "funder", "program": "reclELHBM37wcMrzW::ayni-small-grants-2026", "first": "fr-08", "among": ["tech-and-sun", "green-goods", "fr-01", "fr-05", "fr-06", "fr-08"], "status": "gate",
+      "reason": "An Indigenous women's fund fits the Maasai women artisans first." }
+  ],
+  "partners": [
+    { "id": "P-01", "persona": "technology builder with a place-based community", "entry": "gg-need-pilots", "within": 3, "status": "gate",
+      "must": ["tech-and-sun"],
+      "reason": "Green Goods' need for communities to pilot with (social capital) meets Tech and Sun, a place-based community doing two of the kinds of work Green Goods records (keeping solar running, teaching), in Nigeria, where Green Goods' first community is." },
+    { "id": "P-02", "persona": "technology builder with a place-based community", "entry": "gg-offer-app", "within": 3, "status": "gate",
+      "must": ["tech-and-sun"],
+      "reason": "Green Goods' offer of an open-source app for recording community work (intellectual and material) is a potential use for Tech and Sun's hubs: their workshops and running hours are community work to record." },
+    { "id": "P-03", "persona": "place-based community with a technology builder", "entry": "tas-need-record", "within": 3, "status": "gate",
+      "must": ["green-goods"],
+      "reason": "Tech and Sun's need for a clear record of what the hub delivers (intellectual) meets Green Goods' capability: an app that records and reviews community work so supporters can see it." },
+    { "id": "P-04", "persona": "place-based community with a learning partner", "entry": "tas-need-workshops", "within": 3, "status": "gate",
+      "must": ["rp-108"],
+      "reason": "Tech and Sun needs partners to run workshops on digital skills, Web3 and climate (experiential); Greenpill Cape Town runs Web3 education and regenerative projects with grassroots communities." },
+    { "id": "P-05", "persona": "technology builder with a place-based community", "entry": "gg-need-pilots", "within": 5, "status": "gate",
+      "must": ["rp-108"],
+      "reason": "Greenpill Cape Town works with grassroots communities on regenerative projects and waste, one of the kinds of work Green Goods records, and already uses Web3." },
+    { "id": "P-06", "persona": "place-based community with a research group", "entry": "rio-need-wildlife", "within": 5, "status": "gate",
+      "must": ["rp-051"],
+      "reason": "A mangrove restoration crew needs help measuring returning wildlife (intellectual, experiential); COBEC runs community bioacoustic monitoring of birds in restored mangroves. Here bioacoustics is the right answer." },
+    { "id": "P-07", "persona": "research group with a place-based community", "entry": "gainforest-offer-tools", "within": 3, "status": "gate",
+      "anyOf": ["rp-073", "rp-009", "rp-113", "rp-087", "rp-051", "rp-105", "rp-080"],
+      "reason": "GainForest's open tools for communities to record biodiversity data are a potential use for a community that monitors the species on its own land, such as the Mkingu members documenting species as a baseline or the Taraba and Bedti community monitoring projects. The first draft named Mkingu alone; seven projects in the corpus fit equally, so the pair asks for one of them." },
+    { "id": "P-08", "persona": "place-based community with art and culture", "entry": "sofia-need-artists", "within": 5, "status": "gate",
+      "must": ["rp-096"],
+      "reason": "Sofia's river project needs artists to tell the story of its rivers (cultural capital); Te Reo o te Wai joins art and conservation to restore a river." },
+    { "id": "P-09", "persona": "place-based community with a technology builder (cross-language, pt)", "entry": "sentir-need-record", "within": 5, "status": "gate",
+      "must": ["green-goods"],
+      "reason": "A Portuguese need for a tool to record and show the garden's work to supporters meets Green Goods' app for recording community work, read across languages." },
+    { "id": "P-10", "persona": "place-based community with a technology builder (cross-language, es)", "entry": "ayure-need-traceability", "within": 5, "status": "gate",
+      "must": ["rp-053"],
+      "reason": "A Spanish need for a platform to trace recycled material meets TechCycle's traceability platform for circular supply chains, read across languages." },
+    { "id": "N-01", "persona": "keyword trap", "entry": "gg-offer-app", "within": 5, "status": "gate",
+      "mustNot": ["rp-057", "rp-069"],
+      "reason": "Recording community work is not making bioacoustic recordings: research projects tracking urban wildlife or a hornbill's range would not use Green Goods' app." },
+    { "id": "N-02", "persona": "keyword trap", "entry": "gg-need-pilots", "within": 5, "status": "gate",
+      "mustNot": ["rp-057", "rp-069"],
+      "reason": "Species surveys are research, not communities doing regenerative work that would pilot a work-recording app." },
+    { "id": "N-03", "persona": "money", "entry": "tas-need-running", "within": 5, "status": "gate",
+      "none": true,
+      "reason": "Money to keep the hub running is financial capital only; no public project in the corpus says it funds others, so nothing may be offered as a capability." },
+    { "id": "N-04", "persona": "place", "entry": "tas-offer-desks", "within": 5, "status": "gate",
+      "onlyCountries": ["NG"],
+      "reason": "Desk space in Awka is offered here only: whoever uses it must be in Nigeria." }
+  ]
+}
