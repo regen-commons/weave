@@ -4,6 +4,7 @@ import test from "node:test";
 import { AGENT_TOOLS, AgentToolArgumentError, parseAgentToolCall } from "./agent-tools-contract.ts";
 import { createAgentTools, type CatalogFund, type FundCatalog } from "./agent-tools.ts";
 import { createMcpHandler, MCP_BODY_MAX_BYTES, MCP_LEGACY_VERSIONS, MCP_MODERN_VERSION, type McpLog } from "./mcp-http.ts";
+import { callerAddress, createRateLimiter, MCP_LIMITS, type RateLimiter } from "./mcp-limit.ts";
 import type { PublicProjectCard } from "./public-projects-contract.ts";
 import { createPublicProjects } from "./public-projects-http.ts";
 import type { PublicProjectSnapshot } from "./public-projects-store.ts";
@@ -51,7 +52,7 @@ const SNAPSHOT: PublicProjectSnapshot = {
   checkpoint: { completedAt: "2026-11-22T04:02:00.000000Z", offset: 0 },
 };
 
-function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; screening?: () => Promise<{ rules: unknown; conditions: unknown }>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null } = {}) {
+function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; screening?: () => Promise<{ rules: unknown; conditions: unknown }>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null; limiter?: RateLimiter } = {}) {
   let loads = 0;
   const snapshot = over.snapshot === undefined ? SNAPSHOT : over.snapshot;
   const list = createPublicProjects({
@@ -65,7 +66,7 @@ function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; 
   const tools = over.tools === null ? null : createAgentTools({
     catalog: over.catalog ?? (async () => CATALOG), screening: over.screening, publicProjects: list.handler, findPublicProject: list.find, origin: "https://weave.example", now: () => NOW,
   });
-  const handler = createMcpHandler({ enabled: () => over.enabled ?? true, tools, log: over.log });
+  const handler = createMcpHandler({ enabled: () => over.enabled ?? true, tools, log: over.log, limiter: over.limiter });
   return { handler, loads: () => loads };
 }
 
@@ -519,4 +520,145 @@ test("find_funds_for_initiative answers the largest input it accepts, and a cata
   const broken = { ...catalog, funds: [{ ...first, enrichment: { ...first.enrichment, programs: [{ ...first.enrichment!.programs![0]!, focus: 7 }] } }, ...catalog.funds.slice(1)] } as FundCatalog;
   const failed = await call(shippedSetup({ catalog: async () => broken }).handler, "find_funds_for_initiative", { description: DESCRIPTION });
   assert.deepEqual([failed.isError, failed.content[0]!.text], [true, "catalog_unavailable: The fund catalog could not be ranked. Try again later."]);
+});
+
+/** A handler over the small fixture catalog, so limit tests rank quickly. */
+function limitedSetup(limiter: RateLimiter, log?: McpLog) {
+  // Three real funds: enough for the rubric to rank, and quick.
+  const whole = shipped("funders.json") as FundCatalog;
+  const small = { ...whole, funds: whole.funds.filter(({ enrichment }) => enrichment?.programs?.length).slice(0, 3) };
+  return setup({ limiter, log, catalog: async () => small, screening: async () => ({ rules: { version: 1, rules: [] }, conditions: { version: 1, conditions: [] } }) });
+}
+const RANK = { description: "We restore wetlands along the river and train farmers in wetland restoration." };
+
+test("the rate limiter counts in fixed windows and lets a caller back in when the window ends", () => {
+  let at = 1_000_000;
+  const limiter = createRateLimiter({ now: () => at });
+  const window = { limit: 2, windowMs: 60_000 };
+  assert.deepEqual([limiter.caller("a", window), limiter.caller("a", window)], [{ ok: true }, { ok: true }]);
+  assert.deepEqual(limiter.caller("a", window), { ok: false, retryAfterSeconds: 60 });
+  at += 59_500;
+  // A refused use is not counted, and the wait is what is left of the window, never zero.
+  assert.deepEqual(limiter.caller("a", window), { ok: false, retryAfterSeconds: 1 });
+  assert.deepEqual(limiter.caller("b", window), { ok: true });
+  at += 500;
+  assert.deepEqual([limiter.caller("a", window), limiter.caller("a", window), limiter.caller("a", window).ok], [{ ok: true }, { ok: true }, false]);
+  // A clock that steps back starts a new window, and never asks for a wait longer than the window.
+  at -= 10 * 60_000;
+  assert.deepEqual(limiter.caller("a", window), { ok: true });
+  assert.deepEqual([limiter.ceiling("all", window), limiter.ceiling("all", window), limiter.ceiling("all", window)], [{ ok: true }, { ok: true }, { ok: false, retryAfterSeconds: 60 }]);
+});
+
+test("when an instance holds too many callers the oldest window is forgotten, and the ceilings everyone shares never are", () => {
+  let at = 0;
+  const limiter = createRateLimiter({ now: () => at, maxKeys: 3 });
+  const window = { limit: 1, windowMs: 60_000 };
+  assert.deepEqual([limiter.ceiling("ranking", window), limiter.ceiling("ranking", window).ok], [{ ok: true }, false]);
+  for (const key of ["a", "b", "c"]) { at += 1; assert.deepEqual(limiter.caller(key, window), { ok: true }); }
+  assert.equal(limiter.caller("b", window).ok, false);
+  // Thousands of new callers push out the oldest counts, one for one.
+  for (let n = 0; n < 5_000; n += 1) limiter.caller(`flood-${n}`, window);
+  assert.equal(limiter.size(), 3);
+  assert.equal(limiter.caller("flood-4999", window).ok, false, "the newest callers are still counted");
+  assert.deepEqual(limiter.caller("a", window), { ok: true }, "a forgotten caller starts again, which the ceilings allow for");
+  // The flood did not reopen the ceiling.
+  assert.equal(limiter.ceiling("ranking", window).ok, false);
+  assert.equal(createRateLimiter({ maxKeys: 0 }).caller("a", window).ok, true);
+});
+
+test("a caller is known by the address Vercel sets, and an IPv6 network counts as one caller", () => {
+  const from = (headers: Record<string, string>) => callerAddress(new Request(ENDPOINT, { headers }));
+  assert.equal(from({ "x-forwarded-for": "203.0.113.7" }), "203.0.113.7");
+  assert.equal(from({ "x-forwarded-for": "203.0.113.7, 10.0.0.1", "x-real-ip": "198.51.100.9" }), "203.0.113.7");
+  assert.equal(from({ "x-real-ip": "198.51.100.9" }), "198.51.100.9");
+  // Every host in one /64 is one caller, however the address is written.
+  for (const address of ["2001:db8:0:1::1", "2001:DB8:0000:0001:ffff:ffff:ffff:ffff", "2001:db8:0:1:a:b:c:d", "2001:db8:0:1::"])
+    assert.equal(from({ "x-forwarded-for": address }), "2001:db8:0:1", address);
+  assert.equal(from({ "x-forwarded-for": "2001:db8:0:2::1" }), "2001:db8:0:2");
+  assert.equal(from({ "x-forwarded-for": "::1" }), "0:0:0:0");
+  // An IPv4 address carried inside an IPv6 one is that IPv4 caller, not one caller for all of them.
+  for (const address of ["::ffff:203.0.113.7", "::FFFF:cb00:7107", "0:0:0:0:0:ffff:203.0.113.7", "64:ff9b::203.0.113.7", "64:ff9b::cb00:7107"])
+    assert.equal(from({ "x-forwarded-for": address }), "203.0.113.7", address);
+  assert.equal(from({ "x-forwarded-for": "::ffff:198.51.100.9" }), "198.51.100.9");
+  // No address, or something that is not one, shares a single count.
+  for (const headers of [{}, { "x-forwarded-for": "" }, { "x-forwarded-for": "not an address" }, { "x-forwarded-for": "bad" }, { "x-forwarded-for": "999.1.1.1" }, { "x-forwarded-for": "203.0.113.007" }, { "x-forwarded-for": "::ffff:999.1.1.1" }, { "x-forwarded-for": "1.2.3.4:80" }, { "x-forwarded-for": "..." },
+    { "x-forwarded-for": "1:2:3:4:5:6:7:8:9" }, { "x-forwarded-for": "1::2::3" }, { "x-forwarded-for": ":::" }, { "x-forwarded-for": "a".repeat(200) }, { forwarded: "for=203.0.113.7" }] as Record<string, string>[])
+    assert.equal(from(headers), "unknown", JSON.stringify(headers));
+});
+
+test("one caller's requests are limited before they are read, and other callers are not affected", async () => {
+  let at = 0;
+  const { handler } = limitedSetup(createRateLimiter({ now: () => at }));
+  const post = (address: string, body = '{"jsonrpc":"2.0","id":1,"method":"ping"}', headers: Record<string, string> = {}) => handler.POST(new Request(ENDPOINT, {
+    method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": address, ...headers }, body,
+  }));
+  // Another site's page is refused before it is counted, so it cannot spend a visitor's requests.
+  for (let n = 0; n < MCP_LIMITS.caller.limit + 5; n += 1) assert.equal((await post("203.0.113.7", undefined, { origin: "https://evil.example" })).status, 403);
+  for (let n = 0; n < MCP_LIMITS.caller.limit; n += 1) assert.equal((await post("203.0.113.7")).status, 200, `request ${n + 1}`);
+  // Refused without reading the body: an unreadable one gets the same answer. The same network is the same caller.
+  for (const [address, body] of [["203.0.113.7", undefined], ["203.0.113.7", "{not json"]] as const) {
+    const refused = await post(address, body);
+    assert.deepEqual([refused.status, refused.headers.get("retry-after"), (await read(refused)).error?.code], [429, "60", -32000]);
+  }
+  assert.equal((await post("198.51.100.9")).status, 200);
+  for (let n = 0; n < MCP_LIMITS.caller.limit; n += 1) await post(`2001:db8:0:1::${(n + 1).toString(16)}`);
+  assert.equal((await post("2001:db8:0:1::ffff")).status, 429, "rotating inside one /64 is one caller");
+  at += MCP_LIMITS.caller.windowMs;
+  assert.equal((await post("203.0.113.7")).status, 200);
+  // A switched-off endpoint answers 404 whatever the count.
+  const off = setup({ enabled: false, limiter: createRateLimiter({ now: () => at }) }).handler;
+  for (let n = 0; n < MCP_LIMITS.caller.limit + 5; n += 1) assert.equal((await off.POST(modern("tools/list"))).status, 404);
+});
+
+test("the ranking tool has the tightest limit per caller, and a ceiling across callers that refused calls cannot use up", async () => {
+  let at = 0;
+  const entries: Parameters<McpLog>[0][] = [];
+  const { handler } = limitedSetup(createRateLimiter({ now: () => at }), (entry) => entries.push(entry));
+  const rank = async (address: string, args: unknown = RANK, legacyPath = false) => {
+    const request = legacyPath
+      ? legacy({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "find_funds_for_initiative", arguments: args } }, { "x-forwarded-for": address })
+      : modern("tools/call", { name: "find_funds_for_initiative", arguments: args }, { "x-forwarded-for": address });
+    const response = await handler.POST(request);
+    assert.equal(response.status, 200);
+    return (await read(response)).result as { isError?: boolean; content: { text: string }[] };
+  };
+  // Calls the argument check refuses count against their own caller only. Ten of them leave everyone else's ceiling untouched.
+  for (let n = 0; n < MCP_LIMITS.ranking.limit; n += 1) assert.match((await rank("203.0.113.1", { description: "x" })).content[0]!.text, /at least 40 characters/u);
+  const own = await rank("203.0.113.1");
+  assert.deepEqual([own.isError, own.content[0]!.text], [true, "rate_limited: Too many calls. Try again in 60 seconds."]);
+  assert.deepEqual(entries.at(-1), { tool: "find_funds_for_initiative", outcome: "limited", ms: 0 });
+  // The same caller can still use the other tools.
+  const search = await handler.POST(modern("tools/call", { name: "search_funds", arguments: { limit: 1 } }, { "x-forwarded-for": "203.0.113.1" }));
+  assert.equal(((await read(search)).result as { isError?: boolean }).isError, undefined);
+  // Thirty calls that run, from several callers and both protocol eras, reach the ceiling. Nothing above spent any of it.
+  let ran = 0;
+  for (let caller = 2; ran < MCP_LIMITS.rankingAll.limit; caller += 1)
+    for (let n = 0; n < MCP_LIMITS.ranking.limit && ran < MCP_LIMITS.rankingAll.limit; n += 1, ran += 1)
+      assert.equal((await rank(`203.0.113.${caller}`, RANK, n % 2 === 1)).isError, undefined, `ranking ${ran + 1}`);
+  const fresh = await rank("198.51.100.200");
+  assert.deepEqual([fresh.isError, fresh.content[0]!.text.startsWith("rate_limited: ")], [true, true]);
+  at += MCP_LIMITS.rankingAll.windowMs;
+  assert.equal((await rank("198.51.100.200")).isError, undefined);
+});
+
+test("every tool call that runs counts toward one ceiling, and calls that are refused do not", async () => {
+  const at = 0;
+  const { handler } = limitedSetup(createRateLimiter({ now: () => at }));
+  const search = async (n: number, args: unknown) => {
+    // A different caller each time, so only the shared ceiling can refuse.
+    const response = await handler.POST(modern("tools/call", { name: "search_funds", arguments: args }, { "x-forwarded-for": `10.${Math.floor(n / 250)}.${n % 250}.1` }));
+    return ((await read(response)).result as { isError?: boolean; content: { text: string }[] });
+  };
+  for (let n = 0; n < 50; n += 1) assert.match((await search(n, { limit: 0 })).content[0]!.text, /limit must be/u);
+  for (let n = 0; n < MCP_LIMITS.toolsAll.limit; n += 1) assert.equal((await search(1000 + n, { limit: 1 })).isError, undefined, `call ${n + 1}`);
+  assert.match((await search(5000, { limit: 1 })).content[0]!.text, /^rate_limited: /u);
+});
+
+test("the router hands the caller's address on, so limits hold behind it", async () => {
+  const { createRouter } = await import("./router.ts");
+  let seen = "";
+  // The router only knows its own endpoints by name, so the stand-in takes one of them.
+  const route = createRouter({ health: { methods: ["POST"], load: async () => ({ POST: (request: Request) => { seen = callerAddress(request); return new Response(null, { status: 204 }); } }) } });
+  await route(new Request("https://weave.example/api/router?__route=health", { method: "POST", headers: { "x-forwarded-for": "203.0.113.7" }, body: "{}" }));
+  assert.equal(seen, "203.0.113.7");
 });
