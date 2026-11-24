@@ -306,7 +306,7 @@ test("a failure noted while the first answer is still on its way is not lost", a
 
 test("Settings says when cloud speech stands in for the browser's service, and offers it back", () => {
   assert.equal(speechSettingLine(false, false, true), SPEECH_SETTING.failed);
-  assert.match(SPEECH_SETTING.failed, /did not answer on this device, so Talk It Out offers cloud speech instead\.$/u);
+  assert.match(SPEECH_SETTING.failed, /did not answer on this device, so Talk It Out offers cloud speech instead where Weave has it on\.$/u);
   assert.equal(speechSettingLine(false, true, true), `${SPEECH_SETTING.cloudAgreed} ${SPEECH_SETTING.failed}`);
   assert.equal(SPEECH_SETTING.useBrowserAgain, "Use Browser Speech Again");
   assert.equal(speechSettingLine(false, false), SPEECH_SETTING.notAgreed);

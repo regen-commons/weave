@@ -288,7 +288,7 @@ export const SPEECH_SETTING = {
   cloudAgreed: `Where this browser cannot turn speech into text, Weave sends your recording to ${CLOUD_SPEECH.provider} to turn it into text. Weave does not keep it.`,
   withdrawCloud: "Stop Using Cloud Speech",
   /** A failure this device noted put cloud speech in the place of the browser's own speech service. */
-  failed: "Your browser's speech service did not answer on this device, so Talk It Out offers cloud speech instead.",
+  failed: "Your browser's speech service did not answer on this device, so Talk It Out offers cloud speech instead where Weave has it on.",
   useBrowserAgain: "Use Browser Speech Again",
 } as const;
 
