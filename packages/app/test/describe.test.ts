@@ -5,12 +5,12 @@ import {
   confirmDraft,
   DeviceDraftSchema,
   EMPTY_INITIATIVE,
-  modelConstraint,
   newDraft,
   revise,
   reviewedProposal,
   type DeviceDraft,
 } from "../src/describe/contracts.ts";
+import { modelConstraint } from "../src/describe/model-constraint.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { collectSource, fromSource, keywordSuggestion, readKeywordSource } from "../src/describe/keywords.ts";
@@ -652,4 +652,21 @@ test("a draft stored before places were read from files loads unchanged until th
   assert.equal(fieldsForm(loaded)!.where, "");
   assert.equal(loaded.attachments.length, 1);
   assert.deepEqual(keywordSuggestion(loaded, GARDEN).locations, ["Awka"], "building again proposes the place");
+});
+
+test("a browser model request still carries the contract as JSON Schema, loaded when the request is made", async () => {
+  const constraints: unknown[] = [];
+  const factory = {
+    availability: async () => "available",
+    create: async () => ({
+      prompt: async (_text: string, options: { responseConstraint: unknown }) => {
+        constraints.push(options.responseConstraint);
+        return JSON.stringify(EMPTY_INITIATIVE);
+      },
+      destroy: () => {},
+    }),
+  };
+  await browserExtract("Words", new AbortController().signal, factory as never);
+  assert.equal(constraints.length, 1);
+  assert.deepEqual(constraints[0], modelConstraint());
 });
