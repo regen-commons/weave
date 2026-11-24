@@ -36,7 +36,7 @@ const FIELDS: readonly FieldKey[] = ["name", "where", "about", "links"];
 const DETAILS = DETAIL_KEYS;
 const NAME_HELP = "Add a name for your initiative.";
 const PLACES_HELP = "Use up to eight places, each up to 120 characters.";
-const LINK_HELP = "Use a complete http or https link, such as https://example.org.";
+const LINK_HELP = "Use a web address, such as example.org.";
 const ABOUT_HELP = `Keep About it to ${ABOUT_LIMIT} characters or fewer.`;
 
 /** What the four fields show, and so what Continue reads. */

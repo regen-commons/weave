@@ -59,6 +59,18 @@ export function cardRoute(draft: DeviceDraft): RouteName {
   if (!(draft.confirmed && draft.proposalVersion === draft.inputVersion)) return "initiative";
   return stepChecked(draft, "needs") ? "offers" : "needs";
 }
+/**
+ * Where Continue on the first step goes. A change there leaves needs and offers checked, so a card
+ * whose lists are both checked goes back to its own page, and one press brings the matches back.
+ * Otherwise the steps go on in order, to needs (DL-113).
+ */
+export function afterInitiative(draft: DeviceDraft): RouteName {
+  return intakeComplete(draft) ? "your-initiative" : "needs";
+}
+/** Only the first step waits: the card changed there, and its needs and offers are still checked. */
+export function onlyInitiativeWaits(draft: DeviceDraft): boolean {
+  return cardRoute(draft) === "initiative" && stepChecked(draft, "needs") && stepChecked(draft, "offers");
+}
 
 export function chosenEntries(draft: DeviceDraft, entries: Entries) {
   return (["needs", "offers"] as const).flatMap((kind) =>

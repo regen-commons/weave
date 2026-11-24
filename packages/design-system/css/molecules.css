@@ -513,7 +513,9 @@
   font: var(--type-body-md);
   color: inherit;
 }
-.rc-status-line > .rc-action-bar { flex: none; }
+/* The actions keep their width beside the line, and wrap their labels only when they are wider than
+   the row on their own, as at 200 percent text on a phone, so no button runs off the screen. */
+.rc-status-line > .rc-action-bar { flex: 0 1 auto; min-inline-size: 0; }
 
 /* Save status: always says where the work lives. */
 .rc-save-status {

@@ -10,6 +10,7 @@ import { useProjectLink } from "../initiative/use-project-link.ts";
 import { STATUS } from "../intake/contracts.ts";
 import { pathTo } from "../routes.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
+import { StatusLine } from "../ui/StatusLine.tsx";
 import { NetworkResults } from "./NetworkResults.tsx";
 import { MatchingFeedback } from "./MatchingFeedback.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
@@ -58,6 +59,15 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
     draft.offers.items.filter(({ decision }) => decision === "kept"),
   ) : [], [linkedId, active, draft.needs.items, draft.offers.items]);
   const compact = mode === "preview";
+  // Why there are no partner suggestions yet, and what opens them.
+  const unlinkedLine = project?.group && !linkedId
+    ? project.role === "member"
+      ? "Your team workspace needs approval and an access grant before partner suggestions can open."
+      : "Set up the team workspace to open partner suggestions."
+    : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
+      : link === "signed-out" ? "Sign in to get partner suggestions for your linked Certified project."
+        : link === "checking" || link === "unchecked" ? projectLinkLine(link)
+          : "Link a Certified project to get partner suggestions for your private needs and offers.";
   const online = useSyncExternalStore(subscribeOnline, isOnline);
   return (
     <div className="rc-stack">
@@ -70,19 +80,24 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
       ) : (
         // With no card yet there is nothing to save: the list below asks for the card first. A session
         // that ended is said once, by the page's own notice (SessionEndedNotice).
-        ready && !!draft.confirmed && (
+        ready && !!draft.confirmed && (compact ? (
+          // On the card's page the steps to link a project sit in Saving And Sharing, so this line
+          // offers what can be done now: the initiatives already in the directory.
+          <StatusLine
+            actions={
+              <ButtonLink href={pathTo("initiatives")} variant="secondary" size="sm">
+                Browse All Initiatives
+              </ButtonLink>
+            }
+          >
+            {unlinkedLine}
+          </StatusLine>
+        ) : (
           <div className="rc-stack">
-            <p>{project?.group && !linkedId
-              ? project.role === "member"
-                ? "Your team workspace needs approval and an access grant before partner suggestions can open."
-                : "Set up the team workspace to open partner suggestions."
-              : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
-                : link === "signed-out" ? "Sign in to get partner suggestions for your linked Certified project."
-                  : link === "checking" || link === "unchecked" ? projectLinkLine(link)
-                    : "Link a Certified project to get partner suggestions for your private needs and offers."}</p>
-            {!compact && <div className="rc-action-bar"><SaveAction variant="secondary">Save your initiative</SaveAction></div>}
+            <p>{unlinkedLine}</p>
+            <div className="rc-action-bar"><SaveAction variant="secondary">Save your initiative</SaveAction></div>
           </div>
-        )
+        ))
       )}
       {compact && active && !separateActions && (
         <div className="rc-action-bar"><ButtonLink href={pathTo("partners")} variant="secondary">See All Partners</ButtonLink></div>
