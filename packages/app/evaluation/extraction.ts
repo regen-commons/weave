@@ -105,7 +105,7 @@ export async function readDescribe(text: string): Promise<Described> {
 export function readCards(text: string, kind: AskKind, mode: "typed" | "spoken"): string[] {
   const step = answerStep(emptyAskStep(), kind, mode === "spoken" ? spokenList(text) : text, mode === "spoken" ? "voice" : "typed");
   const turn = step.turns[0]!;
-  return reconcile(step, keywordExtraction(candidateChunks(chunksFrom(turn.text, turn.id), step), kind)).items.map((item) => item.value.title);
+  return reconcile(step, keywordExtraction(candidateChunks(chunksFrom(turn.text, turn.id, kind), step), kind)).items.map((item) => item.value.title);
 }
 
 /** Counts for one field: true positives, false positives and false negatives. */

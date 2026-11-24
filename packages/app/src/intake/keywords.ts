@@ -8,6 +8,7 @@ import {
   type AskStep,
 } from "./contracts.ts";
 import { cardTitle } from "./spoken.ts";
+import { listPieces } from "./typed-list.ts";
 import { fingerprint, keptOnRebuild } from "./state.ts";
 /** `\w` in any script: a letter, mark, digit or underscore. JavaScript's `\w` and `\b` know only ASCII ones. */
 const WORD = String.raw`[\p{L}\p{M}\p{Nd}_]`;
@@ -80,11 +81,19 @@ export function suggestKinds(text: string): (keyof typeof BANKS)[] {
 export function suggestEntryKinds(title: string, description: string | null): (keyof typeof BANKS)[] {
   return suggestKinds(`${title}\n${description ?? ""}`);
 }
-export function chunksFrom(text: string, sourceId: string): AskChunk[] {
-  return text
-    .split(
-      /(?:\r?\n)+|;\s*|(?<=[.!?])\s+(?=[A-ZÀ-Þ])|,\s+(?=(?:and\s+)?(?:someone|somebody|an?\b|help\b|land\b|tools?\b|funding\b|money\b|equipment\b|fencing\b|volunteers?\b|uma?\b|alguém\b))/iu,
-    )
+/**
+ * The pieces of a box that may each become a card. With the step's kind, a typed list is split
+ * into its items and a pasted description is read from its sentences that ask for this step
+ * (`typed-list.ts`); without one, the words are split at lines, sentences and some commas.
+ */
+export function chunksFrom(text: string, sourceId: string, kind?: AskKind): AskChunk[] {
+  return (
+    kind
+      ? listPieces(text, kind)
+      : text.split(
+          /(?:\r?\n)+|;\s*|(?<=[.!?])\s+(?=[A-ZÀ-Þ])|,\s+(?=(?:and\s+)?(?:someone|somebody|an?\b|help\b|land\b|tools?\b|funding\b|money\b|equipment\b|fencing\b|volunteers?\b|uma?\b|alguém\b))/iu,
+        )
+  )
     .map((text) =>
       text
         .replace(/^\s*(?:[-*•]|\d+[.)])\s+/u, "")
