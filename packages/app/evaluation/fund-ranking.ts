@@ -351,6 +351,8 @@ export type FundLabel = {
   /** The day a person confirmed it. */
   confirmedOn?: string;
   note?: string;
+  /** On a confirmed label, the draft it answered, so agreeing with a draft stays visible. */
+  draft?: { grade: Grade; by: string; note?: string };
 };
 export type LabelSet = { version: 1; dataset: string; initiatives: string; labels: FundLabel[] };
 export type LabelLookup = (initiative: string, documentId: string) => string | undefined;
@@ -369,9 +371,13 @@ export function validateLabels(data: unknown, set: RankingSet, documents?: Reado
   for (const label of file.labels) {
     if (!label || typeof label !== "object" || !ids.has(label.initiative) || !text(label.documentId)) throw Error("invalid_label");
     if (!Object.hasOwn(GRADES, label.grade) || !["draft", "confirmed"].includes(label.status) || !text(label.by)) throw Error("invalid_label");
-    if (label.status === "confirmed" && (AGENT.test(label.by) || !/^\d{4}-\d{2}-\d{2}$/u.test(label.confirmedOn ?? "")))
+    if (label.status === "confirmed" && (AGENT.test(label.by.trim()) || !/^\d{4}-\d{2}-\d{2}$/u.test(label.confirmedOn ?? "")))
       throw Error("invalid_confirmation");
-    if (documents && !documents.has(label.documentId)) unknown.push(label.documentId);
+    if (label.draft !== undefined && (label.status !== "confirmed" || !Object.hasOwn(GRADES, label.draft.grade) || !text(label.draft.by)))
+      throw Error("invalid_label");
+    // A confirmed label for a program the catalog no longer holds would quietly lower NDCG. A draft counts
+    // for nothing, so a catalog change that drops its program must not stop CI: `staleDrafts` names it.
+    if (documents && label.status === "confirmed" && !documents.has(label.documentId)) unknown.push(label.documentId);
     const pair = `${label.initiative}\n${label.documentId}`;
     if (pairs.has(pair)) throw Error("duplicate_label");
     pairs.add(pair);
@@ -379,6 +385,11 @@ export function validateLabels(data: unknown, set: RankingSet, documents?: Reado
   // A program the catalog dropped or renamed would count as never ranked and quietly lower NDCG.
   if (unknown.length) throw Error(`unknown_document: ${[...new Set(unknown)].join(", ")}`);
   return file;
+}
+
+/** Drafts whose program the catalog no longer holds: worth a fresh pool before anyone reviews them. */
+export function staleDrafts(labels: LabelSet, documents: ReadonlySet<string>): string[] {
+  return [...new Set(labels.labels.filter((label) => label.status === "draft" && !documents.has(label.documentId)).map((label) => label.documentId))];
 }
 
 /** The confirmed grades only. Drafts are left out entirely, never scored as unknown or as zero. */
@@ -485,8 +496,13 @@ export const FILES = {
   snapshot: new URL("fund-ranking-v1.snapshot.json", HERE),
   baseline: new URL("fund-ranking-baseline.json", HERE),
 };
+/** The initiative sets a label file may judge, by dataset name. */
+export const RANKING_SETS: Readonly<Record<string, URL>> = {
+  "fund-ranking-v1": FILES.set,
+  "fund-relevance-v1": new URL("fund-relevance-v1.json", HERE),
+};
 /** Label files the gate reads. A person's confirmations in them are what the metrics count. */
-export const LABEL_FILES: URL[] = [];
+export const LABEL_FILES: URL[] = [new URL("fund-relevance-v1-labels.json", HERE)];
 
 /** A file that is not there reads as null; one that is there and does not parse is an error, never "missing". */
 async function readOptional(url: URL): Promise<unknown> {
@@ -500,8 +516,27 @@ async function readOptional(url: URL): Promise<unknown> {
   return JSON.parse(raw);
 }
 
-export async function loadRankingSet(): Promise<RankingSet> {
-  return validateRankingSet(await readJson(FILES.set));
+export async function loadRankingSet(dataset = "fund-ranking-v1"): Promise<RankingSet> {
+  const file = RANKING_SETS[dataset];
+  if (!file) throw Error(`unknown_ranking_set: ${dataset}`);
+  const set = validateRankingSet(await readJson(file));
+  if (set.dataset !== dataset) throw Error(`ranking_set_mismatch: ${dataset}`);
+  return set;
+}
+
+/**
+ * A label file and the set it judges. The set is ranked only when a person has confirmed a fit, since
+ * nothing else is measured, and once per run however many files judge it.
+ */
+export async function loadLabels(file: URL, data: RankingData, ranked: Map<string, Map<string, Rankings>>) {
+  const raw = (await readJson(file)) as { initiatives?: unknown };
+  const dataset = typeof raw?.initiatives === "string" ? raw.initiatives : "";
+  const set = await loadRankingSet(dataset);
+  const documents = new Set(data.names.keys());
+  const labels = validateLabels(raw, set, documents);
+  const measured = [...confirmedGrades(labels).values()].some((grades) => [...grades.values()].includes("fits"));
+  if (measured && !ranked.has(dataset)) ranked.set(dataset, await rankSet(data, set));
+  return { set, labels, ranked: ranked.get(dataset) ?? new Map<string, Rankings>(), stale: staleDrafts(labels, documents) };
 }
 export async function loadSnapshot(): Promise<{ snapshot: Snapshot; raw: string } | null> {
   const snapshot = (await readOptional(FILES.snapshot)) as Snapshot | null;
@@ -521,10 +556,11 @@ export async function runGate(options: { update?: boolean; recordBaseline?: bool
   const changes = stored && !options.update ? compareSnapshot(stored.snapshot, current, ranked) : [];
   if (options.update) await writeFile(FILES.snapshot, serializeSnapshot(current));
   const metrics = [];
-  const documents = new Set(data.names.keys());
+  const sets = new Map([[set.dataset, ranked]]);
   for (const file of LABEL_FILES) {
-    const labels = validateLabels(await readJson(file), set, documents);
-    const report = measure(labels, ranked);
+    const { labels, ranked: judged, stale } = await loadLabels(file, data, sets);
+    if (stale.length) console.warn(`${labels.dataset}: ${stale.length} draft programs are no longer in the catalog (${stale.slice(0, 5).join(", ")}${stale.length > 5 ? ", ..." : ""}). They count for nothing; rebuild the pool before they are reviewed.`);
+    const report = measure(labels, judged);
     if (options.recordBaseline && report.paths)
       baselines.labelSets[report.labels] = { labelsHash: report.labelsHash, recordedAt: new Date().toISOString(), paths: report.paths };
     metrics.push({ report, gate: gateMetrics(report, baselines.labelSets[report.labels] ?? null) });
@@ -548,6 +584,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   else if (result.missingSnapshot) console.log(`No snapshot yet. Run \`${UPDATE_COMMAND}\`.`);
   else console.log(result.changes.length ? describeChanges(result.changes, { collation: collation ?? undefined }) : `The first ${SNAPSHOT_DEPTH} of every path match the snapshot for all ${result.set.initiatives.length} initiatives.`);
   for (const { gate } of result.metrics) console.log(gate.message);
-  if (!LABEL_FILES.length) console.log("No label files yet, so precision and NDCG are not gated.");
+  if (!LABEL_FILES.length) console.log("No label files, so precision and NDCG are not gated.");
   process.exitCode = result.changes.length || result.missingSnapshot || result.metrics.some(({ gate }) => !gate.passed) ? 1 : 0;
 }

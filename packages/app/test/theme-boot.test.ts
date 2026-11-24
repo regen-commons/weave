@@ -100,3 +100,23 @@ test("the security policy is what it was: scripts from the site itself, and noth
   // index.html itself carries no script but the app's module.
   assert.equal(read("../index.html").split("<script").length - 1, 1);
 });
+
+test("a visit the service worker does not control yet is marked a first visit, and one it controls is not", () => {
+  const marked = (navigator: unknown) => {
+    const marks: Record<string, string> = {};
+    const document = {
+      documentElement: { dataset: {}, setAttribute: (name: string, value: string) => void (marks[name] = value) },
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      getElementById: () => null,
+    };
+    vm.runInNewContext(BOOT, { document, navigator, location: { pathname: "/funding" }, localStorage: { getItem: () => null }, setTimeout: () => 0 });
+    return "data-first-visit" in marks;
+  };
+  assert.equal(marked({ serviceWorker: { controller: null } }), true, "not controlled yet");
+  assert.equal(marked({}), true, "no service workers");
+  assert.equal(marked({ serviceWorker: { controller: {} } }), false, "controlled: the faces are stored");
+  // The mark only swaps the reading face for its size-matched fallback.
+  const base = read("../../design-system/css/base.css");
+  assert.ok(base.includes(':root[data-first-visit] { --font-serif: "Source Serif 4 Fallback", Georgia, serif; }'));
+});
