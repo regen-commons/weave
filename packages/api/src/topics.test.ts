@@ -47,6 +47,13 @@ test("an English description is left to the rubric, so its own words weigh as th
   assert.ok(!namedTopics("Ayudamos a las cooperativas a adaptarse a el niño.").has("children"));
 });
 
+test("a phrase stays inside its sentence, and keeps the topic it names", () => {
+  assert.deepEqual(fundingTopics("Diversificamos culturas agrícolas."), ["agricultural"]);
+  assert.deepEqual(fundingTopics("Protegemos cada especie. De noche cuidamos el bosque."), ["protection", "species", "care", "forest"]);
+  // An abbreviation's full stop does not start a sentence, so a name after it is still a name.
+  assert.deepEqual(fundingTopics("Fundada por la Dra. Costa y el Sr. Paz."), []);
+});
+
 test("names and places are not read as topics, typed or said without capitals", () => {
   assert.deepEqual(fundingTopics("Fundada por María Costa en Costa Rica, La Paz y Mar del Plata, con apoyo de Terra Viva."), []);
   // Speech gives no capitals: the places are known as phrases.

@@ -24,7 +24,7 @@
 export const TOPIC_WORDS: Readonly<Record<string, string>> = {
   // Farming and food
   agriculture: "agricultura agriculturas agropecuaria agropecuario permacultura",
-  agricultural: "agricola agricolas agrario agraria agrarios agrarias",
+  agricultural: "agricola agricolas agrario agraria agrarios agrarias culturas_agricolas",
   agroecology: "agroecologia",
   agroecological: "agroecologico agroecologica agroecologicos agroecologicas",
   farmer:
@@ -161,7 +161,8 @@ export const TOPIC_WORDS: Readonly<Record<string, string>> = {
 
 /**
  * Phrases that name something other than their words' topics: places, a weather pattern and turns
- * of phrase. Their words are not read, with or without capitals, as speech gives them without.
+ * of phrase. Their words are not read one by one, with or without capitals, as speech gives them
+ * without. A phrase that is listed for a topic itself, such as culturas agricolas, names that topic.
  */
 export const OTHER_MEANINGS: readonly string[] = [
   "costa rica", "costa do marfim", "costa de marfil", "mar del plata", "en la paz", "el nino", "la nina",
@@ -202,6 +203,8 @@ const fold = (word: string) => word.normalize("NFD").replace(/\p{M}/gu, "").toLo
 const READ_LIMIT = 6000;
 /** The longest phrase in the lists, in words. */
 const LONGEST = 3;
+/** Abbreviations whose full stop does not end a sentence, as in "la Dra. Costa". */
+const ABBREVIATIONS = new Set(["dr", "dra", "sr", "sra", "srta", "prof", "profa", "sto", "sta", "av", "dom", "dona"]);
 
 /** The topics a text names, split into those named in English words and those named in Portuguese or Spanish. */
 function readTopics(text: string): { english: Set<string>; other: Set<string> } {
@@ -211,24 +214,32 @@ function readTopics(text: string): { english: Set<string>; other: Set<string> } 
   const read = text.slice(0, READ_LIMIT);
   for (const match of read.matchAll(/[\p{L}\p{M}\p{N}]+/gu)) {
     const word = match[0];
+    const gap = read.slice(last, match.index);
+    const previous = words.at(-1)?.folded ?? "";
     words.push({
       folded: fold(word),
       capital: word !== word.toLowerCase(),
       // The first word, or one after a sentence's end, is capitalized for the sentence.
-      starts: !words.length || /[.!?¡¿:\n]/u.test(read.slice(last, match.index)),
+      starts: !words.length || /[!?¡¿:\n]/u.test(gap) || (gap.includes(".") && !ABBREVIATIONS.has(previous)),
     });
     last = match.index + word.length;
   }
   const english = new Set<string>(), other = new Set<string>();
   for (let i = 0; i < words.length; i++) {
-    const phrase = (length: number) => words.slice(i, i + length).map(({ folded }) => folded).join(" ");
-    const stop = [LONGEST, 2].find((length) => i + length <= words.length && stops.has(phrase(length)));
+    // A phrase of this word and the next ones in the same sentence, if there are that many.
+    const phrase = (length: number) => {
+      const run = words.slice(i, i + length);
+      return run.length === length && !run.slice(1).some(({ starts }) => starts) ? run.map(({ folded }) => folded).join(" ") : "";
+    };
+    const stop = [LONGEST, 2].find((length) => stops.has(phrase(length)));
     if (stop) {
+      const named = byWord.get(phrase(stop));
+      if (named) other.add(named);
       i += stop - 1;
       continue;
     }
     for (const length of [2, LONGEST]) {
-      const named = i + length <= words.length ? byWord.get(phrase(length)) : undefined;
+      const named = byWord.get(phrase(length));
       if (named) other.add(named);
     }
     const { folded, capital, starts } = words[i]!;
