@@ -1,37 +1,44 @@
 {
   "dataset": "extraction-v1",
   "recordedOn": "2026-11-23",
-  "corpusHash": "387aafa2297279bb7e0481c3fe396e4bb575e6653bf9b58715c11315e8dda5b9",
+  "corpusHash": "b57e89ca2906d57a3262411d5f6b1de35dd421de13f3e4efa840ce239a94ba9e",
   "summary": {
     "name": {
       "precision": 1,
-      "recall": 0.8095,
-      "cases": 26,
-      "passed": 22
+      "recall": 0.7308,
+      "cases": 31,
+      "passed": 24
     },
     "where": {
       "precision": 1,
-      "recall": 0.5,
-      "cases": 26,
+      "recall": 0.4138,
+      "cases": 31,
       "passed": 15
     },
     "about": {
-      "precision": 0.9231,
-      "recall": 0.9231,
-      "cases": 26,
-      "passed": 24
+      "precision": 0.871,
+      "recall": 0.871,
+      "cases": 31,
+      "passed": 27
+    },
+    "link": {
+      "precision": 1,
+      "recall": 0.3333,
+      "cases": 10,
+      "passed": 6
     },
     "cards": {
-      "precision": 0.8837,
-      "recall": 0.7917,
-      "cases": 22,
+      "precision": 0.5634,
+      "recall": 0.5263,
+      "cases": 30,
       "passed": 17
     }
   },
   "passing": {
     "d-01": [
       "name",
-      "where"
+      "where",
+      "link"
     ],
     "d-02": [
       "name",
@@ -70,7 +77,8 @@
     ],
     "d-09": [
       "name",
-      "about"
+      "about",
+      "link"
     ],
     "d-10": [
       "about"
@@ -93,7 +101,8 @@
       "about"
     ],
     "d-15": [
-      "about"
+      "about",
+      "link"
     ],
     "d-16": [
       "about"
@@ -108,7 +117,8 @@
       "about"
     ],
     "d-19": [
-      "name"
+      "name",
+      "link"
     ],
     "d-20": [
       "name",
@@ -117,7 +127,8 @@
     ],
     "d-21": [
       "name",
-      "about"
+      "about",
+      "link"
     ],
     "d-22": [
       "where",
@@ -197,7 +208,30 @@
     ],
     "o-10": [
       "cards"
-    ]
+    ],
+    "d-27": [
+      "name",
+      "about"
+    ],
+    "d-28": [
+      "about"
+    ],
+    "d-29": [
+      "name",
+      "about"
+    ],
+    "d-30": [],
+    "d-31": [
+      "link"
+    ],
+    "n-13": [],
+    "n-14": [],
+    "n-15": [],
+    "n-16": [],
+    "o-11": [],
+    "o-12": [],
+    "o-13": [],
+    "o-14": []
   },
   "errors": {
     "d-01": {
@@ -212,6 +246,10 @@
       "about": {
         "fp": 1,
         "fn": 1
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
       }
     },
     "d-02": {
@@ -324,6 +362,10 @@
       "about": {
         "fp": 0,
         "fn": 0
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
       }
     },
     "d-10": {
@@ -408,6 +450,10 @@
       "about": {
         "fp": 0,
         "fn": 0
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
       }
     },
     "d-16": {
@@ -464,6 +510,10 @@
       "about": {
         "fp": 1,
         "fn": 1
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
       }
     },
     "d-20": {
@@ -490,6 +540,10 @@
         "fn": 1
       },
       "about": {
+        "fp": 0,
+        "fn": 0
+      },
+      "link": {
         "fp": 0,
         "fn": 0
       }
@@ -694,6 +748,144 @@
       "cards": {
         "fp": 0,
         "fn": 0
+      }
+    },
+    "d-27": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      },
+      "link": {
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "d-28": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      },
+      "link": {
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "d-29": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      },
+      "link": {
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "d-30": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 1,
+        "fn": 1
+      },
+      "link": {
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "d-31": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 1,
+        "fn": 1
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-13": {
+      "cards": {
+        "fp": 3,
+        "fn": 3
+      }
+    },
+    "n-14": {
+      "cards": {
+        "fp": 2,
+        "fn": 4
+      }
+    },
+    "n-15": {
+      "cards": {
+        "fp": 3,
+        "fn": 3
+      }
+    },
+    "n-16": {
+      "cards": {
+        "fp": 4,
+        "fn": 4
+      }
+    },
+    "o-11": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
+      }
+    },
+    "o-12": {
+      "cards": {
+        "fp": 2,
+        "fn": 3
+      }
+    },
+    "o-13": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
+      }
+    },
+    "o-14": {
+      "cards": {
+        "fp": 4,
+        "fn": 3
       }
     }
   }
