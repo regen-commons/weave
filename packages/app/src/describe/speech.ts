@@ -93,12 +93,19 @@ export const wait: Wait = (then, milliseconds) => {
 };
 
 /**
- * How long a session may take, after the person's Stop, to hand over its last words. A recognizer
- * finishes the audio it has heard and then ends, usually well inside this. One that never ends,
- * or takes longer, is ended here with the words it has given, so Stop always finishes. Talk It
- * Out shows Finishing for the same length of time at most (DL-133).
+ * How long a session may take, after the person's Stop, to hand over its last words when it has
+ * already given some. A recognizer finishes the audio it has heard and then ends, usually well
+ * inside this. One that never ends, or takes longer, is ended here with the words it has given,
+ * so Stop always finishes (DL-133).
  */
 export const STOP_WAIT_MS = 2500;
+/**
+ * How long Stop waits instead while the recognizer has given no words at all. Some recognizers
+ * show nothing while the person talks and hand over every word only after Stop, as a slow phone
+ * or a far speech service can; ending them at STOP_WAIT_MS threw all the words away. Past this a
+ * session ends and says no speech came through. Talk It Out shows Finishing this long at most.
+ */
+export const STOP_WAIT_NO_WORDS_MS = 10000;
 
 /**
  * How long a session took, kept where the browser's own tools can read it and nowhere else:
@@ -132,14 +139,17 @@ export async function startSpeech(
     consent,
     signal,
     stopWait = STOP_WAIT_MS,
+    noWordsWait = STOP_WAIT_NO_WORDS_MS,
     later = wait,
   }: {
     speech?: SpeechConstructor | null;
     /** Required for `browser` and `cloud`: a session starts only while it says the person agreed to that mode. */
     consent?: SpeechConsent;
     signal?: AbortSignal;
-    /** How long the recognizer may take to end after Stop before the session is ended for it. */
+    /** How long the recognizer may take to end after Stop, once it has given words, before the session is ended for it. */
     stopWait?: number;
+    /** The same while it has given none. */
+    noWordsWait?: number;
     later?: Wait;
   } = {},
 ): Promise<{ stop(): void; dispose(): void }> {
@@ -164,6 +174,8 @@ export async function startSpeech(
   let startedAt: number | undefined;
   let stoppedAt: number | undefined;
   let heard = false;
+  /** The recognizer has given words, final or not, so the page has something to show and keep. */
+  let words = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
@@ -199,16 +211,28 @@ export async function startSpeech(
       const item = event.results[index];
       if (item) (item.isFinal ? final : interim).push(item[0]?.transcript ?? "");
     }
-    callbacks.result(final.join(" ").trim(), interim.join(" ").trim());
+    const finalText = final.join(" ").trim();
+    const interimText = interim.join(" ").trim();
+    if (finalText || interimText) words = true;
+    callbacks.result(finalText, interimText);
   };
   session.onerror = (event) => fail(typeof event?.error === "string" ? event.error : "unknown");
+  /**
+   * The end of a session the person stopped. One that brought no words says so, so the page always
+   * has a line to show: an empty box and an empty line looked like nothing happened.
+   */
+  const stopped = () => {
+    measure(SPEECH_MEASURES.stop, stoppedAt);
+    if (!words) return fail("no-speech");
+    dispose();
+    callbacks.end(true);
+  };
   session.onend = () => {
-    if (!disposed) {
-      const byPerson = requested;
-      if (byPerson) measure(SPEECH_MEASURES.stop, stoppedAt);
-      dispose();
-      callbacks.end(byPerson);
-    }
+    if (disposed) return;
+    if (requested) return stopped();
+    // Ended by itself, as after a pause. The page says listening stopped, with or without words.
+    dispose();
+    callbacks.end(false);
   };
   try {
     startedAt = now();
@@ -224,12 +248,15 @@ export async function startSpeech(
       stoppedAt = now();
       session.stop();
       // The recognizer ends by itself once it has handed over its last words. If it has not by
-      // the deadline, the session ends here: the words already given are with the page.
+      // the deadline, the session ends here: the words already given are with the page. While it
+      // has given none, ending would lose everything it is still to hand over, so Stop waits for
+      // longer before it gives up.
       stopWaiting = later(() => {
         if (disposed) return;
-        measure(SPEECH_MEASURES.stop, stoppedAt);
-        dispose();
-        callbacks.end(true);
+        if (words) return stopped();
+        stopWaiting = later(() => {
+          if (!disposed) stopped();
+        }, Math.max(0, noWordsWait - stopWait));
       }, stopWait);
     },
     dispose,
