@@ -81,4 +81,10 @@ test("the card page reads the ranking Funding sorts with, not the matcher's lead
   assert.match(block, /fundingFits\(catalogEntries\(bundle\), results\)/u);
   assert.doesNotMatch(block, /group === "lead"/u);
   assert.doesNotMatch(block, /Nothing in the catalog matches/u);
+  assert.match(block, /const waiting = loading \|\| ranking \|\| \(personalized && !results && !error\);/u, "no flash of a wrong line between the catalog and its ranking");
+  // At the top of the Matches step, the block holds its count line's room while it loads.
+  assert.match(
+    block,
+    /<CardGridSkeleton kind="funding" matched count=\{2\}[^>]*\/>\s*<p aria-hidden="true">\s*<span className="rc-skeleton" data-shape="hold">\s*\{fundingFitsLine\(/u,
+  );
 });
