@@ -214,7 +214,9 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
             document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
             compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
             fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
-          <Section id="team-funding" title="Funding That Fits"><FirstFunding subject={loadedDraft(saved, owner)} /></Section>
+          <Section id="team-funding" title="Funding That Fits">
+            <FirstFunding workspace={{ id: workspaceId, subject: loadedDraft(saved, owner) }} />
+          </Section>
       </Stack> : undefined} aside={<Panel>
         <Section id="saving-sharing" title="Saving And Sharing">
           <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>

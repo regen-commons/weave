@@ -8,6 +8,7 @@ import {
   catalogEntries,
   findEntry,
   fundingEyebrow,
+  fundingBackHref,
   legacyFundingHref,
   opportunityHref,
   parseBundle,
@@ -402,16 +403,20 @@ test("an address carries every chosen value, and one it could not mean is left o
   assert.equal(odd.sort, "", "an order it cannot mean leaves the list's own");
   assert.equal(readFundingFilters("closing=30&sort=closing").closing, "30", "Home's link to funds closing soon");
 });
-test("a record opened from a filtered list keeps every filter for the way back", () => {
-  const search = "?q=river&region=Africa&region=Asia&kind=grant&sort=closing&fixture=shared";
+test("a record opened from a filtered list keeps its workspace and filters for the way back", () => {
+  const workspace = "00000000-0000-4000-8000-000000000011";
+  const search = `?q=river&region=Africa&region=Asia&kind=grant&sort=closing&workspace=${workspace}&fixture=shared`;
   const kept = fundingSearch(search);
   assert.deepEqual(kept.getAll("region"), ["Africa", "Asia"]);
-  assert.equal(kept.get("fixture"), null, "only the funding filters travel");
+  assert.equal(kept.get("fixture"), null, "fixture state is handled separately");
+  assert.equal(kept.get("workspace"), workspace);
   const href = opportunityHref(entries.find((entry) => entry.program)!, search);
   const query = new URLSearchParams(href.split("?")[1]);
   assert.deepEqual(query.getAll("region"), ["Africa", "Asia"]);
   assert.equal(query.get("kind"), "grant");
+  assert.equal(query.get("workspace"), workspace);
   assert.ok(query.get("program"));
+  assert.equal(new URLSearchParams(fundingBackHref(query.toString()).split("?")[1]).get("workspace"), workspace);
 });
 // Found on production, 23 November 2026: just after a chip was removed, a card's link still carried
 // it (`&access=open`), because cards read the window's address, which the list writes after drawing.
@@ -429,7 +434,7 @@ test("a card's link drops a removed chip in the same drawing, from the choices i
   assert.equal(new URLSearchParams(search).get("fixture"), "shared", "the rest of the address stays");
   assert.equal(fundingListSearch(before, removed, false).includes("initiative"), false);
   const page = readFileSync(new URL("../src/pages/Funding.tsx", import.meta.url), "utf8");
-  assert.match(page, /const listSearch = fundingListSearch\(routeSearch\(\), filters, browsing\);/u);
+  assert.match(page, /const listSearch = fundingListSearch\(search, filters, browsing\);/u);
   assert.match(page, /<OpportunityCard\s+entry=\{entry\}\s+search=\{listSearch\}/u, "the list's cards take its address, not the window's");
 });
 

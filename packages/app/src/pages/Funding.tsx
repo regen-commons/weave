@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { uuid } from "@weave/api/account-contract";
 import { useDraft } from "../describe/use-draft.ts";
 import type { FixtureContext } from "../fixtures.ts";
 import { fundingFixture, teamFixture } from "../fixtures.ts";
@@ -8,13 +9,17 @@ import { applyFundingFacet, fundingFacets, fundingSorts, fundingVocabulary } fro
 import {
   emptyFundingFilters,
   filterFunding,
+  FUNDING_WORKSPACE,
   fundingListSearch,
   fundingOrder,
   readBrowsing,
   readFundingFilters,
+  readFundingWorkspace,
+  writeBrowsing,
   type FundingFilters as Filters,
 } from "../funding/select.ts";
-import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions } from "../funding/subject.ts";
+import { fundingSubject, NO_INITIATIVE, subjectLine, subjectOptions, workspaceChoiceId } from "../funding/subject.ts";
+import { useWorkspaceFunding } from "../funding/workspace.ts";
 import { detailsLine } from "../funding/details.ts";
 import { FIRST_FUNDS } from "../funding/first-funds-data.ts";
 import { firstPage, isFirstView } from "../funding/first-funds.ts";
@@ -39,33 +44,59 @@ import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 import { SuggestFund } from "../funding/SuggestFund.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { FUNDING_COMMONS } from "../links.ts";
+import { teamWorkspacePath } from "../routes.ts";
 /** How many cards the list holds at first, and how many each further batch adds. */
 const BATCH = 24;
 /** What the list counts: each program, and each funder whose programs are not researched yet. */
 const THINGS = "funds";
 
-export function Funding({ fixture }: { fixture?: FixtureContext }) {
+function selectFunding(workspaceId: string | null, browsing: boolean): void {
+  const params = new URLSearchParams(routeSearch());
+  if (workspaceId) params.set(FUNDING_WORKSPACE, workspaceId);
+  else params.delete(FUNDING_WORKSPACE);
+  writeBrowsing(browsing, params);
+  replaceRouteQuietly(`/funding${params.size ? `?${params}` : ""}`, true);
+}
+
+export function Funding({ fixture, search }: { fixture?: FixtureContext; search: string }) {
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
   );
   // Someone with an initiative can still browse without one, and then nothing is ranked (DL-129).
-  const [browsing, setBrowsing] = useState(() => readBrowsing(routeSearch()));
-  const catalog = useCatalog(example, undefined, { compare: !browsing });
-  // The fit is for one initiative, the one this tab is on. A browser can hold several (DL-112), so
-  // the page names it above the list and offers the others to compare with instead (DL-118).
+  const browsing = readBrowsing(search);
+  const workspaceId = browsing ? null : readFundingWorkspace(search);
+  const workspace = useWorkspaceFunding(workspaceId);
+  const workspaceCard = workspace.state === "ready" ? workspace.card : undefined;
+  const catalog = useCatalog(example, workspaceCard, {
+    compare: !browsing && (workspaceId === null || !!workspaceCard),
+  });
   const { draft } = useDraft();
-  const subject = fundingSubject(draft, useListedDrafts());
-  const comparing = catalog.subjectKnown ? subjectLine(subject, browsing) : null;
-  const subjectChoices = subjectOptions(subject);
+  const social = useSocial();
+  const workspaces = (social?.state.workspaces ?? []).flatMap((record) =>
+    record.group && uuid(record.workspaceId)
+      ? [{ id: workspaceChoiceId(record.workspaceId), name: record.name, workspaceId: record.workspaceId }]
+      : [],
+  );
+  const subject = fundingSubject(draft, useListedDrafts(), workspaces,
+    workspaceId === null ? undefined : { id: workspaceId, card: workspaceCard });
+  const comparing = workspace.state === "loading"
+    ? { before: "Opening the workspace to compare funding.", name: "", after: "" }
+    : workspace.state === "unavailable"
+      ? { before: workspace.message, name: "", after: "" }
+      : subjectLine(subject, browsing) ?? (workspaceCard
+        ? { before: "", name: workspaceCard.confirmed?.name ?? "", after: " has no description to compare with funding yet." }
+        : null);
+  const subjectChoices = subjectOptions(subject, workspaceId !== null || browsing);
   // The initiative's details for funding sit beside its name and open in a dialog (DL-131).
-  const detailed = !browsing && !!subject.current?.checked && !!draft.confirmed;
+  const details = !browsing && subject.current?.checked ? (workspaceCard ?? draft).funding.form : null;
+  const canEditDetails = workspaceId === null && !!details;
   const [editing, setEditing] = useState(false);
   const openInTab = useOpenDraft();
-  const social = useSocial();
   // The initiative last picked in Change Initiative, while it opens. The menu marks it at once, as the
   // Kind of group filter on Initiatives marks its choice before the list arrives.
   const [chosen, setChosen] = useState<string | null>(null);
+  const pendingDraft = useRef<string | null>(null);
   const [changeProblem, setChangeProblem] = useState("");
   const latest = useRef({ openInTab, social });
   useEffect(() => {
@@ -76,21 +107,34 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const [compareWith] = useState(() =>
     lastChoiceWins(
       (id) => latest.current.openInTab(id),
-      ({ problem }) => {
+      ({ id, problem }) => {
+        if (pendingDraft.current !== id || routePath() !== "/funding") return;
         if (problem) setChangeProblem(problem instanceof Error ? problem.message : "That initiative did not open. Try again.");
-        else latest.current.social?.refresh();
+        else {
+          selectFunding(null, false);
+          latest.current.social?.refresh();
+        }
+        pendingDraft.current = null;
         setChosen(null);
       },
     ),
   );
   function choose(id: string) {
     setChangeProblem("");
-    setBrowsing(id === NO_INITIATIVE);
-    if (id === NO_INITIATIVE || id === subject.current?.id) return;
+    setEditing(false);
+    const selectedWorkspace = workspaces.find((option) => option.id === id);
+    if (id === NO_INITIATIVE || selectedWorkspace || (id === draft.id && pendingDraft.current === null)) {
+      pendingDraft.current = null;
+      setChosen(null);
+      selectFunding(selectedWorkspace?.workspaceId ?? null, id === NO_INITIATIVE);
+      return;
+    }
+    if (id === subject.current?.id && pendingDraft.current === null) return;
+    pendingDraft.current = id;
     setChosen(id);
     compareWith(id);
   }
-  const [filters, setFilters] = useState<Filters>(() => readFundingFilters(routeSearch()));
+  const [filters, setFilters] = useState<Filters>(() => readFundingFilters(search));
   const [limit, setLimit] = useState(BATCH),
     [retried, setRetried] = useState(false);
   const state = fixture?.state;
@@ -120,8 +164,8 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   const added = useAddedFocus(Math.min(limit, selected.length));
   // With an initiative compared, the list's own order is its fit, which the ranking gives.
   const expectsFit = catalog.subjectKnown && catalog.personalized && !browsing;
-  const awaitingFit =
-    expectsFit && !catalog.results && !catalog.error && fundingOrder(filters.sort, true) === "fit";
+  const awaitingFit = workspace.state === "loading" ||
+    (expectsFit && !catalog.results && !catalog.error && fundingOrder(filters.sort, true) === "fit");
   // Funding's first cards are in its first draw, the same one the build's prerender draws (DL-140):
   // while the catalog loads, in the list's own first view. With an initiative compared they stay
   // until its ranking is ready, and the list then moves once, into its fit order.
@@ -143,9 +187,10 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
   );
   // The address for the choices in force, worked out as the page draws. The cards' links are built
   // from it in the same drawing, so a chip just removed is never still in a card's link.
-  const listSearch = fundingListSearch(routeSearch(), filters, browsing);
+  const listSearch = fundingListSearch(search, filters, browsing);
   useEffect(() => {
-    replaceRouteQuietly(`${routePath()}${listSearch ? `?${listSearch}` : ""}`);
+    if (routePath() === "/funding")
+      replaceRouteQuietly(`/funding${listSearch ? `?${listSearch}` : ""}`);
   }, [listSearch]);
   // How many funds, and when their sources were checked: as short as the Initiatives page's line.
   const summary = selected.length === entries.length ? `${entries.length} funds.` : `${selected.length} of ${entries.length} funds.`;
@@ -263,11 +308,17 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
                       size="sm"
                       align="end"
                       options={subjectChoices}
-                      value={browsing ? NO_INITIATIVE : (chosen ?? subject.current?.id)}
+                      value={chosen ?? (browsing ? NO_INITIATIVE : workspaceId !== null
+                        ? workspaceChoiceId(workspaceId) : subject.current?.id)}
                       onChange={choose}
                     />
                   )}
-                  {detailed && (
+                  {workspace.state === "unavailable" && uuid(workspaceId) && (
+                    <ButtonLink href={teamWorkspacePath(workspaceId)} variant="secondary" size="sm">
+                      Open Team Workspace
+                    </ButtonLink>
+                  )}
+                  {canEditDetails && (
                     <button
                       className="rc-button"
                       data-variant="secondary"
@@ -284,15 +335,15 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
               {comparing.before}
               {comparing.name && <strong>{comparing.name}</strong>}
               {comparing.after}
-              {detailed && (
+              {details && (
                 <>
                   <br />
-                  <span className="rc-meta">{detailsLine(draft.funding.form) ?? "No details for funding yet."}</span>
+                  <span className="rc-meta">{detailsLine(details) ?? "No details for funding yet."}</span>
                 </>
               )}
             </StatusLine>
           )}
-          {detailed && <FundingProfile open={editing} onClose={() => setEditing(false)} />}
+          {canEditDetails && <FundingProfile open={editing} onClose={() => setEditing(false)} />}
           {changeProblem && (
             <p className="rc-notice" data-tone="warning" role="alert">
               {changeProblem}
@@ -306,10 +357,10 @@ export function Funding({ fixture }: { fixture?: FixtureContext }) {
               The build's first view draws both too, so the list does not move (DL-104). The prompt
               keeps one wrapper before and after, so its words are drawn once and are not drawn again,
               later, when the draft opens; once it has, the device's flag no longer decides. */}
-          {(!catalog.subjectKnown || !catalog.personalized) && (
+          {workspaceId === null && (!catalog.subjectKnown || !catalog.personalized) && (
             <div data-unless-checked-card={catalog.subjectKnown ? undefined : ""}>{prompt}</div>
           )}
-          {!catalog.subjectKnown && <div data-if-checked-card="">{checkedRoom}</div>}
+          {workspaceId === null && !catalog.subjectKnown && <div data-if-checked-card="">{checkedRoom}</div>}
           {early ? (
             // The first cards, built into the app, while the catalog loads. The catalog's own first
             // cards are these, so it adds cards after them and moves none (DL-139, DL-140).

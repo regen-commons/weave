@@ -121,7 +121,7 @@ function content(route: Route, search: string, fixture?: FixtureContext) {
       return route.name === "partners" ? <ForThisAccount>{list}</ForThisAccount> : list;
     }
     case "funding":
-      return <Funding fixture={fixture} />;
+      return <Funding fixture={fixture} search={search} />;
     case "opportunity":
     case "initiative-detail":
       // Only a record opened from a link reaches here: over a page, it comes up as a sheet instead.
@@ -282,7 +282,8 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
   // was underneath. Opened from a link, it is a page of its own.
   const under = route?.sheet ? sheetBackground(route, currentVisit()) ?? undefined : undefined;
   const sheetRoute = under ? route : undefined;
-  const pagePath = under ? splitRoute(under.route).pathname : pathname;
+  const pageLocation = under ? splitRoute(under.route) : { pathname, search };
+  const pagePath = pageLocation.pathname;
   const pageRoute = under ? matchRoute(pagePath) : route;
   const [shown, setShown] = useState<Shown>();
   // Kept in step while rendering: the sheet on screen, until one closed by hand has left its route.
@@ -365,7 +366,7 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
         !(__WEAVE_PROTOTYPE__ && window.parent !== window) && <FixtureControls fixture={fixture} />
       }
     >
-      {pageRoute ? <Suspense fallback={null}>{content(pageRoute, search, fixture)}</Suspense> : <NotFound />}
+      {pageRoute ? <Suspense fallback={null}>{content(pageRoute, pageLocation.search, fixture)}</Suspense> : <NotFound />}
     </Page>
   );
 }

@@ -8,7 +8,8 @@ import { fundingSourceUrl } from "../funding/source.ts";
 import { programFund } from "../../../../dist/matching.mjs";
 import { FundSchema } from "../funding/contracts.ts";
 import { catalogEntries, findEntry, researchSnapshotDate } from "../funding/catalog.ts";
-import { readBrowsing } from "../funding/select.ts";
+import { readBrowsing, readFundingWorkspace } from "../funding/select.ts";
+import { useWorkspaceFunding } from "../funding/workspace.ts";
 import { deadlineSentence } from "../funding/deadline.ts";
 import { useCatalog } from "../funding/use-catalog.ts";
 import { fundingFixture, teamFixture, type FixtureContext } from "../fixtures.ts";
@@ -55,7 +56,12 @@ export function Opportunity({
   );
   // Opened from Funding with No initiative chosen, the fund is not compared either (DL-129).
   const browsing = readBrowsing(search);
-  const catalog = useCatalog(example, undefined, { compare: !browsing }),
+  const workspaceId = readFundingWorkspace(search);
+  const workspace = useWorkspaceFunding(browsing ? null : workspaceId);
+  const workspaceCard = workspace.state === "ready" ? workspace.card : undefined;
+  const catalog = useCatalog(example, workspaceCard, {
+    compare: !browsing && (workspaceId === null || !!workspaceCard),
+  }),
     device = useDraft(),
     // Another account's card keeps its answers to itself (DL-055).
     setAside = useSetAside();
@@ -114,7 +120,8 @@ export function Opportunity({
   const researchDate = researchSnapshotDate(catalog.bundle!.catalog);
   const asks = import.meta.env.DEV && example ? teamFixture(team) : null;
   // The next step depends on the person: describe the work first, then go to the funder.
-  const described = catalog.personalized;
+  const described = (workspaceId === null || !!workspaceCard) && catalog.personalized;
+  const funding = workspaceId === null ? device.draft.funding : workspaceCard?.funding;
   return (
     <DetailSheet title={title} state={sheet} presentation={presentation}>
       {(fixture?.state === "offline" || !navigator.onLine) && (
@@ -153,7 +160,7 @@ export function Opportunity({
         </p>
       )}
       <div className="rc-action-bar">
-        {!described && <DescribeDoor variant="primary" />}
+        {!described && workspaceId === null && <DescribeDoor variant="primary" />}
         {url && (
           <ButtonLink href={url} variant={described ? "primary" : "secondary"}>
             Open The Funder's Page
@@ -171,7 +178,8 @@ export function Opportunity({
         <Section className="rc-heading" data-size="section">
           Why It Fits
         </Section>
-        {catalog.ranking ? (
+        {workspaceCard?.confirmed && <p>Showing what fits <strong>{workspaceCard.confirmed.name}</strong>.</p>}
+        {workspace.state === "loading" || catalog.ranking ? (
           <LinesSkeleton label="Comparing your card on this device" lines={2} />
         ) : result ? (
           <>
@@ -189,18 +197,22 @@ export function Opportunity({
               ))}
             </ul>
             <p>
-              {device.draft.funding.form.goalMin || device.draft.funding.form.goalMax
+              {funding?.form.goalMin || funding?.form.goalMax
                 ? result.award
                 : "No funding goal provided. Award fit has not been assessed."}
             </p>
           </>
         ) : (
           <p>
-            {described && browsing
-              ? "No initiative chosen on Funding, so fit is not shown."
-              : described
-                ? "This record has not been compared with your card yet."
-                : "Describe your initiative to see how well this fits your work."}
+            {workspace.state === "unavailable"
+              ? workspace.message
+              : browsing
+                ? "No initiative chosen on Funding, so fit is not shown."
+                : described
+                  ? "This record has not been compared with your card yet."
+                  : workspaceId !== null
+                    ? "This workspace has no description to compare with funding yet."
+                    : "Describe your initiative to see how well this fits your work."}
           </p>
         )}
       </section>
@@ -237,15 +249,21 @@ export function Opportunity({
         </p>
         {conditions.map((condition) => {
           const key = `${fund.id}::${program!.id}::${condition.id}`,
-            answer = device.draft.funding.programAnswers[key];
+            answer = funding?.programAnswers[key];
           return (
             <div className="rc-field" key={condition.id}>
-              <label htmlFor={`condition-${condition.id}`}>{condition.requirement}</label>
+              {workspaceId !== null ? <p>{condition.requirement}</p> : (
+                <label htmlFor={`condition-${condition.id}`}>{condition.requirement}</label>
+              )}
               <p className="rc-hint">
                 {condition.kind === "priority" ? "Priority criterion" : "Prerequisite"}, checked{" "}
                 {fullDate(condition.checkedOn)}. Your answer is self-reported, not eligibility approval.
               </p>
-              {device.draft.confirmed && !setAside ? (
+              {workspaceId !== null ? (
+                <p>{!workspaceCard ? "Open the workspace to check its answer." : answer?.sourceCheckedOn === condition.checkedOn
+                  ? answer.answer === "yes" ? "Yes, according to the workspace’s records." : "The workspace answered no."
+                  : "No current answer from this workspace."}</p>
+              ) : device.draft.confirmed && !setAside ? (
                 <select
                   className="rc-input"
                   id={`condition-${condition.id}`}

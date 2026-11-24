@@ -72,6 +72,6 @@ test("the door holds its room until the draft opens, everywhere it is offered, a
     assert.doesNotMatch(page, /useDescribeDoor|door\.href|door\.label/u, file);
   }
   const funding = source("pages/Funding.tsx");
-  assert.match(funding, /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && \(\s*<div data-unless-checked-card=\{catalog\.subjectKnown \? undefined : ""\}>\{prompt\}<\/div>/u);
+  assert.match(funding, /\{workspaceId === null && \(!catalog\.subjectKnown \|\| !catalog\.personalized\) && \(\s*<div data-unless-checked-card=\{catalog\.subjectKnown \? undefined : ""\}>\{prompt\}<\/div>/u);
   assert.doesNotMatch(funding, /data-shape="room"[^>]*>\s*\{prompt\}/u);
 });

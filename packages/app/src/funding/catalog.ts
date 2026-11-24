@@ -10,7 +10,7 @@ import {
 import { validConditions } from "../../../../dist/matching.mjs";
 import { ACCESS } from "../../../../dist/domain.mjs";
 import type { IconName } from "../ui/icons.ts";
-import { BROWSING, FUNDING_QUERY, readBrowsing } from "./select.ts";
+import { BROWSING, FUNDING_QUERY, FUNDING_WORKSPACE, readBrowsing } from "./select.ts";
 
 export function parseBundle(catalog: unknown, rules: unknown, conditions: unknown): Bundle {
   const parsed = CatalogSchema.parse(catalog);
@@ -128,6 +128,8 @@ export function fundingSearch(search: string): URLSearchParams {
     if (value) result.set(key, value);
   }
   for (const key of FUNDING_QUERY.many) for (const value of source.getAll(key)) if (value) result.append(key, value);
+  const workspace = source.get(FUNDING_WORKSPACE);
+  if (workspace !== null) result.set(FUNDING_WORKSPACE, workspace);
   if (readBrowsing(search)) result.set(BROWSING.key, BROWSING.value);
   return result;
 }
