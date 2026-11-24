@@ -1,0 +1,389 @@
+{
+  "version": 1,
+  "dataset": "extraction-v1-holdout",
+  "authoring": "Written blind on 23 November 2026 by an agent that read no code or tests. Labels are the author's judgment of what a careful person would want each field or list to hold.",
+  "cases": [
+    {
+      "id": "h-desc-01",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "Riverbank Seed Library is a free seed lending library in Asheville, North Carolina. Members borrow heirloom seeds in spring and bring back seeds they save after harvest. We started in 2021 with a small grant from a family foundation in Chicago, and we now hold over 300 local varieties.",
+      "expected": {
+        "name": "Riverbank Seed Library",
+        "where": ["Asheville, North Carolina"],
+        "about": {
+          "includes": ["free seed lending library", "over 300 local varieties"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-02",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "hi um my name is dara and i run a a community bike repair shop out of a church basement in leeds we fix up donated bikes and give them to refugees and asylum seekers who need to get around the city and uh we also teach people to do their own repairs on saturday mornings",
+      "expected": {
+        "name": "",
+        "where": ["Leeds"],
+        "about": {
+          "includes": ["community bike repair shop", "refugees and asylum seekers"],
+          "excludes": ["my name is dara"]
+        }
+      }
+    },
+    {
+      "id": "h-desc-03",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "Somos a Rede Mangue Vivo. Fazemos replantio de manguezais e limpeza das margens dos rios, sempre junto com pescadores e marisqueiras. Trabalhamos em Recife e em Maceió, com mutirões uma vez por mês.",
+      "expected": {
+        "name": "Rede Mangue Vivo",
+        "where": ["Recife", "Maceió"],
+        "about": {
+          "includes": ["replantio de manguezais", "limpeza das margens dos rios"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-04",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "então é um grupo de mulheres aqui da zona norte de belo horizonte a gente faz pão de fermentação natural e vende na feira toda sexta e o dinheiro vai pra cozinha comunitária do bairro né e uh a gente tá precisando muito de um forno maior porque o nosso é pequeno demais",
+      "expected": {
+        "name": "",
+        "where": ["Belo Horizonte"],
+        "about": {
+          "includes": ["grupo de mulheres", "pão de fermentação natural"],
+          "excludes": ["precisando muito de um forno maior"]
+        }
+      }
+    },
+    {
+      "id": "h-desc-05",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "Semilla Abierta: herramienta de software libre para el registro de cosechas en cooperativas agrícolas, hecha por voluntarios y usada en todo el mundo.",
+      "expected": {
+        "name": "Semilla Abierta",
+        "where": ["Global"],
+        "about": {
+          "includes": ["herramienta de software libre", "registro de cosechas"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-06",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "bueno eh nosotros somos la red ixim somos familias campesinas de todo guatemala que guardamos semillas nativas de maíz y frijol y hacemos intercambios en las comunidades cada temporada de siembra",
+      "expected": {
+        "name": "Red Ixim",
+        "where": ["Guatemala"],
+        "about": {
+          "includes": ["semillas nativas de maíz", "intercambios en las comunidades"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-07",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "Fieldnotes Lab is a small participatory research group. We work with smallholder farmers to run soil carbon monitoring plots in Nakuru, Kenya and Arusha, Tanzania, and we share the results back at village meetings. Samples are analysed by our partner lab at a university in Edinburgh.",
+      "expected": {
+        "name": "Fieldnotes Lab",
+        "where": ["Nakuru, Kenya", "Arusha, Tanzania"],
+        "about": {
+          "includes": ["participatory research group", "soil carbon monitoring plots"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-08",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "so we're we're a worker cooperative um called loom and ladder and we we run natural dye and weaving workshops in the scottish borders and uh we sell the cloth to local shops and some of the wool comes from farms nearby",
+      "expected": {
+        "name": "Loom and Ladder",
+        "where": ["Scottish Borders"],
+        "about": {
+          "includes": ["natural dye and weaving workshops"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-09",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "Oi! Meu nome é Lúcia Ferraz e coordeno o Quintal das Abelhas, em Florianópolis, Santa Catarina. É um meliponário comunitário: criamos abelhas nativas sem ferrão e damos oficinas de meliponicultura para escolas públicas.",
+      "expected": {
+        "name": "Quintal das Abelhas",
+        "where": ["Florianópolis, Santa Catarina"],
+        "about": {
+          "includes": ["abelhas nativas sem ferrão", "para escolas públicas"],
+          "excludes": ["Lúcia Ferraz"]
+        }
+      }
+    },
+    {
+      "id": "h-desc-10",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "oi então é um curso online de agrofloresta chamado agrofloresta na prática as aulas são ao vivo pela internet e uh tem aluno do mundo todo e a gente também grava tudo pra quem não consegue assistir na hora",
+      "expected": {
+        "name": "Agrofloresta na Prática",
+        "where": ["Global"],
+        "about": {
+          "includes": ["curso online de agrofloresta", "ao vivo pela internet"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-11",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "Somos un colectivo de artistas y vecinos, todavía sin nombre. Pintamos murales comunitarios con jóvenes en Oaxaca de Juárez y en San Cristóbal de las Casas, Chiapas. Cada mural cuenta una historia del barrio que eligen los vecinos. Llevamos dos años y ya hicimos once murales. Nos hace falta pintura y andamios.",
+      "expected": {
+        "name": "",
+        "where": ["Oaxaca de Juárez", "San Cristóbal de las Casas, Chiapas"],
+        "about": {
+          "includes": ["murales comunitarios con jóvenes", "una historia del barrio"],
+          "excludes": ["Nos hace falta pintura y andamios"]
+        }
+      }
+    },
+    {
+      "id": "h-desc-12",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "hola soy Camila y bueno yo coordino Minga Verde que es una huerta urbana comunitaria en Medellín Colombia sembramos con niños y adultos mayores los sábados y lo que cosechamos se reparte entre las familias del barrio",
+      "expected": {
+        "name": "Minga Verde",
+        "where": ["Medellín, Colombia"],
+        "about": {
+          "includes": ["huerta urbana comunitaria", "niños y adultos mayores"],
+          "excludes": ["soy Camila"]
+        }
+      }
+    },
+    {
+      "id": "h-desc-13",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "hedgerow restoration on farms across wales, mostly volunteers + a couple of farmers, been going 6 yrs. we plant, lay and gap up old hedges so wildlife can move between fields. no official name yet lol. money comes from a trust in bristol but all the work is in wales",
+      "expected": {
+        "name": "",
+        "where": ["Wales"],
+        "about": {
+          "includes": ["hedgerow restoration on farms", "wildlife can move between fields"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-desc-14",
+      "split": "holdout",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "um okay so it's called Open Canopy it's an open source app for mapping street trees anyone can add a tree from their phone and uh and the data is free for cities to use we're all volunteers and it's used in cities all over the world now",
+      "expected": {
+        "name": "Open Canopy",
+        "where": ["Global"],
+        "about": {
+          "includes": ["app for mapping street trees", "free for cities to use"],
+          "excludes": []
+        }
+      }
+    },
+    {
+      "id": "h-need-01",
+      "split": "holdout",
+      "step": "needs",
+      "mode": "spoken",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "então a gente precisa de uma bomba d'água pra irrigação e também de mudas de árvores nativas uh e a gente pode dar mel em troca viu e por último alguém que entenda de contabilidade pra ajudar com as contas da associação",
+      "expected": {
+        "cards": ["bomba d'água", "mudas de árvores nativas", "contabilidade"]
+      }
+    },
+    {
+      "id": "h-need-02",
+      "split": "holdout",
+      "step": "needs",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "Things we need:\n- a chest freezer for the seed bank\n- volunteers for Saturday planting\n- a cargo bike\n- grant writing help\n- printed signs for the garden gate\n- advice on insurance",
+      "expected": {
+        "cards": ["chest freezer", "Saturday planting", "cargo bike", "grant writing help"]
+      }
+    },
+    {
+      "id": "h-need-03",
+      "split": "holdout",
+      "step": "needs",
+      "mode": "spoken",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "um so we need uh garden tools and seeds for the spring and also someone to lead a soap and candle making workshop for the kids and plus a van to get our veg to the market",
+      "expected": {
+        "cards": ["garden tools", "seeds for the spring", "candle making workshop", "van"]
+      }
+    },
+    {
+      "id": "h-need-04",
+      "split": "holdout",
+      "step": "needs",
+      "mode": "typed",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "Precisamos de máquinas de costura usadas, uma professora de corte e costura, tecido doado e um espaço maior pras oficinas",
+      "expected": {
+        "cards": ["máquinas de costura usadas", "corte e costura", "tecido doado", "espaço maior"]
+      }
+    },
+    {
+      "id": "h-need-05",
+      "split": "holdout",
+      "step": "needs",
+      "mode": "spoken",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "primero necesitamos un tanque para guardar agua de lluvia segundo eh capacitación en compostaje tercero computadoras para la biblioteca comunitaria cuarto un abogado que nos ayude con los papeles del terreno y quinto pintura para la escuela",
+      "expected": {
+        "cards": ["tanque", "capacitación en compostaje", "computadoras", "abogado"]
+      }
+    },
+    {
+      "id": "h-need-06",
+      "split": "holdout",
+      "step": "needs",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "Need: a pickup truck to haul compost, help with our website, and native wildflower seed. In return we can host volunteer days on our land.",
+      "expected": {
+        "cards": ["pickup truck", "help with our website", "native wildflower seed"]
+      }
+    },
+    {
+      "id": "h-offer-01",
+      "split": "holdout",
+      "step": "offers",
+      "mode": "spoken",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "we can offer um meeting space in our community hall and uh a bread oven people can use on weekends plus we've done a lot of grant writing so we could mentor other groups on that and also free compost",
+      "expected": {
+        "cards": ["meeting space", "bread oven", "grant writing", "free compost"]
+      }
+    },
+    {
+      "id": "h-offer-02",
+      "split": "holdout",
+      "step": "offers",
+      "mode": "typed",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "Podemos ofrecer:\nTalleres de compostaje\nPréstamo de herramientas\nSemillas criollas\nAsesoría legal para cooperativas\nTransporte los fines de semana",
+      "expected": {
+        "cards": ["Talleres de compostaje", "Préstamo de herramientas", "Semillas criollas", "Asesoría legal"]
+      }
+    },
+    {
+      "id": "h-offer-03",
+      "split": "holdout",
+      "step": "offers",
+      "mode": "spoken",
+      "language": "pt",
+      "source": "invented-blind",
+      "text": "bom a gente pode oferecer espaço no nosso galpão pra guardar ferramentas e também aulas de libras e um almoço comunitário todo domingo que qualquer um pode participar ah mas a gente precisa de voluntários tá",
+      "expected": {
+        "cards": ["espaço no nosso galpão", "aulas de libras", "almoço comunitário"]
+      }
+    },
+    {
+      "id": "h-offer-04",
+      "split": "holdout",
+      "step": "offers",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "We can lend out garden tools, give away seeds from our seed library, offer a bed and breakfast discount for visiting volunteers, and host a monthly repair café.",
+      "expected": {
+        "cards": ["garden tools", "seeds", "bed and breakfast", "repair café"]
+      }
+    },
+    {
+      "id": "h-offer-05",
+      "split": "holdout",
+      "step": "offers",
+      "mode": "spoken",
+      "language": "es",
+      "source": "invented-blind",
+      "text": "nosotros nosotros ofrecemos asesoría en apicultura y también miel para eventos y eh prestamos la camioneta los sábados y si alguien tiene un extractor de miel nos haría mucha falta",
+      "expected": {
+        "cards": ["asesoría en apicultura", "miel para eventos", "camioneta"]
+      }
+    },
+    {
+      "id": "h-offer-06",
+      "split": "holdout",
+      "step": "offers",
+      "mode": "typed",
+      "language": "en",
+      "source": "invented-blind",
+      "text": "we can offer carpentry help, use of our kiln & mentoring for new co-ops",
+      "expected": {
+        "cards": ["carpentry help", "kiln", "mentoring for new co-ops"]
+      }
+    }
+  ]
+}
