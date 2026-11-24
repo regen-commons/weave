@@ -133,6 +133,15 @@ direction, not a measured rate for real people's words. Every person and link in
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.
 
+### What better places would need (24 November 2026)
+
+Where you work is the field the holdout shows weakest (recall 0.06), and keyword rules cannot raise it without wrong places. Three reviews attacked three successive attempts to read places said in a sentence ("we grow vegetables in Accra, Ghana", "trabajamos en Oaxaca, México", "worldwide"). Each found dozens of sentences that gave someone else's place, a past or a wish, a firm or a pepper with a country's name, or a false Global: 85 of 112, then 73 of 81, then 67 of 83 even for the strictest version. A wrong place is worse than none, so no rule that widens Where was shipped. Their 290 sentences, and the attempt, are kept with the describe-flow session's notes. Better places need one of two things, a choice for the user:
+
+- **A vetted place list on the device**: towns and regions with their countries, so a place said without a capital or a country ("bristol", "belo horizonte minas gerais") is known to be one, and a country's name that is also a word or a person ("chile", "Jordan") is told apart by what is around it. It needs a named source with a licence that allows shipping it (for example GeoNames, CC BY 4.0, which would need attribution), a size budget, and the same review against attack sentences before it ships.
+- **The on-device model** (D32 in `docs/platform/open-decisions.md`): it reads a sentence's meaning, which keywords cannot, but it is not yet approved, its download sizes and devices are unproven, and its answers would need the same precision gate on this eval and on attack sentences.
+
+What did ship is the opposite direction: places the rules already gave wrongly are gone (`test/places-false.test.ts`).
+
 ## Labels
 
 `fund-relevance-v1-labels.json` holds 840 labels for the 40 initiatives in
