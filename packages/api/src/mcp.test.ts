@@ -52,7 +52,7 @@ const SNAPSHOT: PublicProjectSnapshot = {
   checkpoint: { completedAt: "2026-11-22T04:02:00.000000Z", offset: 0 },
 };
 
-function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; screening?: () => Promise<{ rules: unknown; conditions: unknown }>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null; limiter?: RateLimiter } = {}) {
+function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; screening?: () => Promise<{ rules: unknown; conditions: unknown }>; snapshot?: PublicProjectSnapshot | null | "down"; log?: McpLog; tools?: null; limiter?: RateLimiter; now?: () => number } = {}) {
   let loads = 0;
   const snapshot = over.snapshot === undefined ? SNAPSHOT : over.snapshot;
   const list = createPublicProjects({
@@ -66,7 +66,8 @@ function setup(over: { enabled?: boolean; catalog?: () => Promise<FundCatalog>; 
   const tools = over.tools === null ? null : createAgentTools({
     catalog: over.catalog ?? (async () => CATALOG), screening: over.screening, publicProjects: list.handler, findPublicProject: list.find, origin: "https://weave.example", now: () => NOW,
   });
-  const handler = createMcpHandler({ enabled: () => over.enabled ?? true, tools, log: over.log, limiter: over.limiter });
+  // The clock the log's durations are measured with. A test that asserts a duration passes its own.
+  const handler = createMcpHandler({ enabled: () => over.enabled ?? true, tools, log: over.log, limiter: over.limiter, now: over.now });
   return { handler, loads: () => loads };
 }
 
@@ -550,11 +551,11 @@ test("find_funds_for_initiative answers the largest input it accepts, and a cata
 });
 
 /** A handler over the small fixture catalog, so limit tests rank quickly. */
-function limitedSetup(limiter: RateLimiter, log?: McpLog) {
+function limitedSetup(limiter: RateLimiter, log?: McpLog, now?: () => number) {
   // Three real funds: enough for the rubric to rank, and quick.
   const whole = shipped("funders.json") as FundCatalog;
   const small = { ...whole, funds: whole.funds.filter(({ enrichment }) => enrichment?.programs?.length).slice(0, 3) };
-  return setup({ limiter, log, catalog: async () => small, screening: async () => ({ rules: { version: 1, rules: [] }, conditions: { version: 1, conditions: [] } }) });
+  return setup({ limiter, log, now, catalog: async () => small, screening: async () => ({ rules: { version: 1, rules: [] }, conditions: { version: 1, conditions: [] } }) });
 }
 const RANK = { description: "We restore wetlands along the river and train farmers in wetland restoration." };
 
@@ -640,7 +641,8 @@ test("one caller's requests are limited before they are read, and other callers 
 test("the ranking tool has the tightest limit per caller, and a ceiling across callers that refused calls cannot use up", async () => {
   let at = 0;
   const entries: Parameters<McpLog>[0][] = [];
-  const { handler } = limitedSetup(createRateLimiter({ now: () => at }), (entry) => entries.push(entry));
+  // The log measures with the same fake clock, so a refused call's duration is exactly 0 however busy the machine is.
+  const { handler } = limitedSetup(createRateLimiter({ now: () => at }), (entry) => entries.push(entry), () => at);
   const rank = async (address: string, args: unknown = RANK, legacyPath = false) => {
     const request = legacyPath
       ? legacy({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "find_funds_for_initiative", arguments: args } }, { "x-forwarded-for": address })
