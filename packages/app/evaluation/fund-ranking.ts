@@ -104,6 +104,8 @@ function appProject(row: RankingInitiative): Project {
     description: row.description,
     tags: [],
     asks: [],
+    // The MCP tool takes countries, not a card's typed places, so every path reads the same places here.
+    places: [],
     workCountries: row.workCountries,
     benefitCountries: row.benefitCountries,
     applicantBaseCountry: row.applicantBaseCountry,

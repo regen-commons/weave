@@ -15,7 +15,7 @@ const entries = catalogEntries(bundle);
 const now = new Date("2026-11-23T12:00:00Z");
 
 // The walkthrough's kind of card: typed in step one, working in Kenya, with Strong and Good fits
-// that each still need a check (an invitation route, a closed cycle, the geographic scope).
+// that each still need a check (an invitation route, a closed cycle, unconfirmed requirements).
 const card = (() => {
   const draft = confirmDraft(
     revise(newDraft(), {
@@ -53,14 +53,16 @@ test("Matches shows the funds Funding ranks first for the same card, where it us
   }
 });
 
-test("the count says how many may fit well, a scope check included, and never claims eligibility", () => {
+test("the count says how many may fit well, those still to check included, and never claims eligibility", () => {
   const all = fundingFits(entries, results, now, Number.POSITIVE_INFINITY);
   const strongOrGood = results.filter((result) => ["strong", "good"].includes(level(result.thematicFit.score) ?? ""));
   assert.equal(all.well, strongOrGood.length);
   assert.equal(all.possible, results.filter((result) => level(result.thematicFit.score) === "possible").length);
+  // Since DL-143 a program that names only other countries keeps half its fit, so the fits still to check
+  // here are invitation routes, closed cycles and unconfirmed requirements.
   assert.ok(
-    all.first.slice(0, all.well).some(({ result }) => result.readiness.status === "geography"),
-    "a Good fit that needs its geographic scope checked is counted",
+    all.first.slice(0, all.well).some(({ result }) => !["open", "inquiry"].includes(result.readiness.status)),
+    "a Strong or Good fit that still needs a check is counted",
   );
   assert.ok(all.first.every(({ result }) => level(result.thematicFit.score) !== "low"), "a fund with no shared topic is not a fit");
   const line = fundingFitsLine(all);

@@ -432,8 +432,9 @@ test("find_funds_for_initiative reads a Spanish or Portuguese description in the
     const ranked = result.structuredContent as unknown as Ranked;
     assert.ok(ranked.programs.length > 0, description);
     assert.ok(ranked.programs.every(({ fit }) => fit.score > 0 && fit.sharedTopics.length > 0));
-    // The shared topics are the catalog's English terms.
-    assert.ok(ranked.programs.some(({ fit }) => fit.sharedTopics.some((topic) => ["women", "fishers", "children", "families", "food"].includes(topic))));
+    // The shared topics are themes named in English, read from the Portuguese or Spanish words (DL-142, DL-143).
+    assert.ok(ranked.programs.some(({ fit }) => fit.sharedTopics.some((topic) =>
+      ["women and girls", "oceans and coasts", "young people", "farming and food", "education and skills"].includes(topic))));
     assert.match(ranked.note, /not eligibility/u);
     // The person's words are read, never returned.
     assert.equal(JSON.stringify(result).toLowerCase().includes("zorblatt"), false);
