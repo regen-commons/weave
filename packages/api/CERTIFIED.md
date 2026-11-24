@@ -372,6 +372,29 @@ The bridge, `/api/sign-in` and the consent function send `Server-Timing` with fi
 `runtime` (cold or warm), `prune`, `state`, `prime` (ready, primed, skipped or failed), `par`, `exchange`,
 `actor` and `authorize`. `prime` reads `late` when a start stopped waiting for it.
 
+### One response for /auth
+
+The bridge used to answer `/auth` with a redirect to `/interaction/:uid`, whose first step started the
+Certified authorization: one more browser round trip, 250 to 450 ms of a press (production, 24 November
+2026). Now oidc-provider finishes `/auth` exactly as before: it checks the client, return address,
+response type and PKCE challenge, saves the interaction, sets its `_interaction` and
+`_interaction_resume` cookies and redirects to `/interaction/:uid`. Then a post-middleware loads that
+interaction as stored (its issue time anchors the 280-second deadline), and for a login interaction of
+the bridge's own client without an email hint, it runs the same first step `/interaction/:uid` runs and
+replaces the redirect with Certified's address. Every cookie oidc-provider set stays on the response, and
+the bridge's state cookie is set only once Certified's address is in hand. The way back is unchanged:
+Certified returns to `/at/callback`, which sends the browser to `/interaction/:uid/complete` with those
+cookies.
+
+If the step fails before Certified is asked (reading the interaction or storing the binding), the
+response keeps oidc-provider's redirect, so the browser takes the old two steps and `/interaction/:uid`
+tries again and reports its own failure. If Certified itself fails, the failure is logged once and
+answered as `/interaction/:uid` answered it (400 `sign_in_failed`), without asking Certified a second
+time, and the unused binding is deleted. A start with an email hint always takes the two steps, so its
+single-use hint is spent in one place. `Server-Timing` reads
+`interaction;desc=joined`, `separate` or `failed`. The step needs a bridge deploy with
+`deploy-bridge.sh --prod`.
+
 The session checks behind `/api/account` also run together: `/auth/v1/user` beside the `account_access`
 predicate, and the list beside both. The user's answer is still judged first, then the predicate, then
 the list, so every outcome is the one the sequence gave. The database applies the access rule to the

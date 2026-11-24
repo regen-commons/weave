@@ -60,6 +60,88 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
   // Weave's callback recovers the person's task from its own browser-bound state and offers sign-in again.
   const recovery = `${recoveryOrigin(config)}/api/sign-in?error=sign_in_expired`;
   const expired = (res: ServerResponse, reason: BridgeExpiryReason) => { observer.expired(reason); redirect(res, recovery); };
+  type Interaction = Awaited<ReturnType<typeof provider.interactionDetails>>;
+  /**
+   * The first step of a login interaction: binds this browser to a Certified authorization request and
+   * returns Certified's address. Shared by `/interaction/:uid` and by `/auth` itself (below). Sets the
+   * browser cookie only once Certified's address is in hand. `stage` names the step for diagnostics.
+   */
+  async function startAtCertified(interaction: Interaction, res: ServerResponse, stage: (name: BridgeStartStage) => void): Promise<string> {
+    const timing = responseTiming(res);
+    // A deadline from a missing time would never pass, so an interaction without one cannot start.
+    if (!Number.isSafeInteger(interaction.iat)) throw new Error("interaction_time_missing");
+    const deadline = interaction.iat + RELYING_PARTY_WINDOW_SECONDS;
+    const state = random();
+    stage("browser_state");
+    await timing.time("state", () => store.put("browser:at", state, { uid: interaction.uid, deadline }, 600));
+    const emailHints = config.emailHints;
+    const hint = emailHints?.open(interaction.params.login_hint);
+    let email: string | undefined;
+    if (hint && emailHints) {
+      stage("email_hint");
+      email = await store.withLock(`email-hint:${hint.id}`, async () => {
+        if (await store.find("email-hint:used", hint.id)) return undefined;
+        await store.put("email-hint:used", hint.id, { used: true }, emailHints.lifetimeSeconds);
+        return hint.email;
+      });
+    }
+    stage("oauth_authorize");
+    // Costs nothing when the warm-up already readied Certified; otherwise it takes the place of the
+    // request Certified would refuse for want of a nonce.
+    const primeStarted = performance.now(), readiness = await primeWithin(certified.prime());
+    timing.add("prime", performance.now() - primeStarted, readiness);
+    let target: string;
+    try { target = String(await timing.time("par", () => certified.authorize(state, email))); }
+    catch (error) {
+      // No browser will hold this state: drop its binding rather than leave it for its ten minutes.
+      try { await store.remove("browser:at", state); } catch { /* It expires on its own; the failure to report is Certified's. */ }
+      throw error;
+    }
+    setCookie(res, "at", state);
+    return target;
+  }
+  /**
+   * Answers `/auth` and its interaction's first step in one response (24 November 2026). oidc-provider
+   * finishes `/auth` as always: it checks the request, saves the interaction, sets its `_interaction`
+   * cookies and redirects to `/interaction/:uid`. Only then, for a login interaction of this client
+   * without an email hint, this replaces that redirect with Certified's address, as `/interaction/:uid`
+   * would have, and keeps every cookie oidc-provider set. The way back is unchanged: Certified returns to
+   * `/at/callback`, which sends the browser to `/interaction/:uid/complete` with those cookies. A failure
+   * before Certified is asked (reading the interaction, storing the binding) leaves oidc-provider's redirect
+   * in place, so the browser takes the old two steps. A failure at Certified is reported and answered as
+   * `/interaction/:uid` answers it, without asking Certified a second time.
+   */
+  provider.use(async (ctx, next) => {
+    await next();
+    const created = ctx.method === "GET" && ctx.oidc?.route === "authorization" && ctx.status === 303
+      ? ctx.oidc.entities.Interaction : undefined;
+    if (!created || ctx.response.get("Location") !== `${config.issuer}/interaction/${created.uid}`) return;
+    const timing = responseTiming(ctx.res);
+    let stage: BridgeStartStage | undefined;
+    try {
+      // The interaction as stored: the record `/interaction/:uid` would read, with its issue time, which
+      // the copy in hand does not carry and the sign-in's deadline is counted from.
+      const started = await provider.Interaction.find(created.uid);
+      if (!started || started.params.client_id !== config.clientId || started.prompt.name !== "login" ||
+          started.params.login_hint !== undefined) return;
+      ctx.redirect(await startAtCertified(started, ctx.res, name => { stage = name; }));
+      timing.add("interaction", 0, "joined");
+    } catch (error) {
+      if (stage === "oauth_authorize") {
+        // Certified was asked and failed: report it once and answer as /interaction would, without a retry.
+        observer.startFailure(certifiedAuthorizationFailure(error));
+        observer.event("request_failed");
+        ctx.remove("Location");
+        ctx.status = 400;
+        ctx.type = "application/json";
+        ctx.body = { error: "sign_in_failed" };
+        timing.add("interaction", 0, "failed");
+        return;
+      }
+      // Not logged here: the browser goes on to `/interaction/:uid`, which tries again and reports its own failure.
+      timing.add("interaction", 0, "separate");
+    }
+  });
   const callback = provider.callback();
   const oidcRoutes = /^\/(auth(?:\/[A-Za-z0-9_-]+)?|token|jwks|\.well-known\/openid-configuration|session\/end(?:\/(?:confirm|success))?)$/;
   return async (req, res) => {
@@ -135,29 +217,8 @@ export async function createBridge(config: BridgeConfig, store: AuthStore, certi
         if (interaction.prompt.name === "login") {
           // Anchor to this interaction's authorization request, so revisiting this page cannot extend the
           // window. A replayed /auth request starts a new interaction and is not covered (see CERTIFIED.md).
-          const deadline = interaction.iat + RELYING_PARTY_WINDOW_SECONDS;
-          if (pastDeadline(deadline)) return expired(res, "deadline");
-          const state = random();
-          startStage = "browser_state";
-          await timing.time("state", () => store.put("browser:at", state, { uid: interaction.uid, deadline }, 600));
-          setCookie(res, "at", state);
-          const emailHints = config.emailHints;
-          const hint = emailHints?.open(interaction.params.login_hint);
-          let email: string | undefined;
-          if (hint && emailHints) {
-            startStage = "email_hint";
-            email = await store.withLock(`email-hint:${hint.id}`, async () => {
-              if (await store.find("email-hint:used", hint.id)) return undefined;
-              await store.put("email-hint:used", hint.id, { used: true }, emailHints.lifetimeSeconds);
-              return hint.email;
-            });
-          }
-          startStage = "oauth_authorize";
-          // Costs nothing when the warm-up already readied Certified; otherwise it takes the place of the
-          // request Certified would refuse for want of a nonce.
-          const primeStarted = performance.now(), readiness = await primeWithin(certified.prime());
-          timing.add("prime", performance.now() - primeStarted, readiness);
-          return redirect(res, String(await timing.time("par", () => certified.authorize(state, email))));
+          if (pastDeadline(interaction.iat + RELYING_PARTY_WINDOW_SECONDS)) return expired(res, "deadline");
+          return redirect(res, await startAtCertified(interaction, res, name => { startStage = name; }));
         }
         startStage = undefined;
         if (interaction.prompt.name === "consent") {
