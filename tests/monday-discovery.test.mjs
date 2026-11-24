@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {validateResearch} from '../scripts/research-validation.mjs';
 import {validConditions, checkConditions} from '../dist/matching.mjs';
 import {upcomingWindows} from '../dist/deadlines.mjs';
-import {auditCatalog, auditInput} from './helpers/audit-revisions.mjs';
+import {auditCatalog, auditInput, beforeDiscovery, inputBeforeDiscovery, discoveryArchive} from './helpers/audit-revisions.mjs';
 
 const read = path => JSON.parse(fs.readFileSync(new URL('../'+path, import.meta.url)));
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object'
@@ -15,6 +15,21 @@ const catalog=auditCatalog(read('dist/data/funders.json'));
 const proposals=read('research/discovery-2026-11-09.json');
 const archive=read('research/maintenance-history/monday-discovery-2026-11-09/preservation.json');
 const schema=read('dist/data/enrichment.schema.json');
+
+test('November 23 discovery preserves all prior records and expires the new Casa window', () => {
+  const current=read('dist/data/funders.json');
+  const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  assert.equal(digest(beforeDiscovery(current).funds),discoveryArchive.priorCatalogFundsSha256);
+  assert.equal(digest(inputBeforeDiscovery('research/supplemental-funders.json',read('research/supplemental-funders.json'))),discoveryArchive.priorManifestSha256);
+  const fund=current.funds.find(f=>f.id===discoveryArchive.fundId);
+  validateResearch(fund.enrichment,schema);
+  const id=discoveryArchive.addition.program.id;
+  assert.ok(upcomingWindows([fund],new Date('2026-11-24T12:00:00Z'),21).some(w=>w.program.id===id));
+  assert.ok(!upcomingWindows([fund],new Date('2026-11-26T21:00:01Z'),21).some(w=>w.program.id===id));
+  const corrupt=structuredClone(current);
+  corrupt.funds.find(f=>f.id===fund.id).enrichment.programs[0].award.max=1;
+  assert.throws(()=>beforeDiscovery(corrupt),/discovery may only append/);
+});
 
 test('Monday research preserves all 699 full records and every prior program/source revision', () => {
   assert.equal(proposals.status,'verified-proposals-not-applied');

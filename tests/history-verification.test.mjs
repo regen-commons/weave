@@ -8,7 +8,7 @@ import {checkConditions} from '../dist/matching.mjs';
 import {priorFundingRecord, verificationBaseline as baseline} from './helpers/prior-funding-record.mjs';
 const read = path => JSON.parse(fs.readFileSync(new URL('../'+path, import.meta.url)));
 const data = auditCatalog(read('dist/data/funders.json'));
-const intake = read('research/history-intake.json');
+const intake = auditInput('research/history-intake.json');
 const conditions = auditInput('research/program-conditions.json').conditions;
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object'
   ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;

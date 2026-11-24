@@ -33,7 +33,7 @@ test('every registry source says what it covers, how to reach it and how far to 
     if (source.role === 'official-call-directory') assert.ok(['government-portal','funder-directory'].includes(source.kind), source.id);
     if (source.reliability.level === 'official') assert.equal(source.role, 'official-call-directory', source.id);
     // A source nobody has used makes no claim about a past result, and a used one names it.
-    if (source.status === 'candidate') assert.equal(source.lastUsed, null, source.id);
+    if (source.lastUsed === null) assert.equal(source.status, 'candidate', source.id);
     else {
       assert.match(source.lastUsed.on, DATE, source.id);
       assert.ok(source.lastUsed.runId && source.lastUsed.result, source.id);

@@ -1,0 +1,657 @@
+{
+  "runId": "monday-discovery-2026-11-23-retry",
+  "baseCommit": "fbda326c42c103d0cabcccfc1842cea9525c6d22",
+  "fundId": "recTQD6Q18JaLesU1",
+  "priorFundRecord": {
+    "id": "recTQD6Q18JaLesU1",
+    "name": "Fundo Casa Socioambiental (Casa Socio-Environmental Fund, Brazil)",
+    "displayName": "Fundo Casa",
+    "program": "Chamada Simplificada: Apoio Direto a Iniciativas Comunitárias 2026",
+    "description": "Provides grassroots socio-environmental funding, including direct support to emerging and restarting community initiatives in Brazil.",
+    "descriptionBasis": "primary",
+    "sectors": [
+      "Climate & environment",
+      "Indigenous rights",
+      "Food & agriculture",
+      "Gender & racial equity"
+    ],
+    "regions": [
+      "Latin America & Caribbean"
+    ],
+    "approaches": [
+      "Grassroots organizing",
+      "Movements",
+      "Participatory",
+      "Solidarity",
+      "Regeneration",
+      "Justice",
+      "Rights",
+      "Trust",
+      "Power"
+    ],
+    "grantBands": [
+      "Micro"
+    ],
+    "website": "https://casa.org.br/en",
+    "evidenceUrl": "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/",
+    "additionalSources": [],
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "access": "closed",
+    "accessDetail": "Applications via CasaDigital closed July 14, 2026; results were due September 1.",
+    "amount": "Up to BRL 20,000 per initiative. BRL 2 million is the total call pool, not the individual grant maximum.",
+    "timing": "Applications via CasaDigital closed July 14, 2026; results were due September 1.",
+    "deadlineDate": "2026-07-14",
+    "deadlineInstant": null,
+    "verifiedOn": "2026-10-15",
+    "qualityFlags": [],
+    "fieldsFilled": 10,
+    "aliasNote": "",
+    "enrichment": {
+      "sourceRecordId": "recTQD6Q18JaLesU1",
+      "researchedOn": "2026-10-15",
+      "name": "Fundo Casa Socioambiental (Casa Socio-Environmental Fund, Brazil)",
+      "summary": "Provides grassroots socio-environmental funding, including direct support to emerging and restarting community initiatives in Brazil.",
+      "themes": [],
+      "regions": [],
+      "focus": [
+        "community-led environmental solutions",
+        "territorial rights",
+        "climate resilience",
+        "community livelihoods"
+      ],
+      "reviewStatus": "program_reviewed",
+      "programs": [
+        {
+          "id": "chamada-simplificada-apoio-direto-a-iniciativas-comunit-rias-2026",
+          "name": "Chamada Simplificada: Apoio Direto a Iniciativas Comunitárias 2026",
+          "instrument": "grant",
+          "focus": [
+            "community-led environmental solutions",
+            "territorial rights",
+            "climate resilience",
+            "community livelihoods"
+          ],
+          "beneficiaries": [
+            "Grassroots and traditional communities"
+          ],
+          "geography": {
+            "workCountries": [
+              "BR"
+            ],
+            "applicantCountries": [],
+            "scope": "Projects throughout Brazil.",
+            "exclusions": []
+          },
+          "applicants": {
+            "types": [
+              "nonprofit"
+            ],
+            "fiscalSponsorship": "unknown",
+            "requirements": [
+              "Nonprofit community-based organizations, associations, formalized collectives or community networks working in Brazil.",
+              "Priority for new or restarting initiatives."
+            ],
+            "exclusions": []
+          },
+          "award": {
+            "currency": "BRL",
+            "min": null,
+            "max": 20000,
+            "durationMonths": null,
+            "basis": "historical",
+            "note": "Up to BRL 20,000 per initiative. BRL 2 million is the total call pool, not the individual grant maximum."
+          },
+          "application": {
+            "route": "closed",
+            "url": "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/",
+            "opensOn": null,
+            "closesOn": "2026-07-14",
+            "deadlineInstant": null,
+            "note": "Applications via CasaDigital closed July 14, 2026; results were due September 1."
+          },
+          "costs": {
+            "supported": [
+              "Territorial governance, rights of people and nature, sustainable livelihoods, climate resilience, emergency response, capacity and public-policy participation"
+            ],
+            "excluded": []
+          },
+          "evidence": [
+            {
+              "fields": [
+                "programs.0.focus",
+                "programs.0.beneficiaries",
+                "programs.0.geography",
+                "programs.0.applicants",
+                "programs.0.award",
+                "programs.0.application",
+                "programs.0.costs"
+              ],
+              "url": "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/",
+              "note": "The public source states the specific terms paraphrased in this program; empty fields remain unverified.",
+              "checkedOn": "2026-10-15"
+            }
+          ],
+          "unknowns": [
+            "Full eligibility and fiscal sponsorship must be confirmed with the funder."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/",
+          "title": "Fundo Casa — simplified community call, June 2026",
+          "checkedOn": "2026-10-15"
+        }
+      ],
+      "evidence": [
+        {
+          "fields": [
+            "summary",
+            "focus"
+          ],
+          "url": "https://casa.org.br/chamada-simplificada-fundo-casa-vai-apoiar-ate-100-iniciativas-comunitarias-em-estagio-inicial-ou-em-retomada-de-atividades/",
+          "note": "Provides grassroots socio-environmental funding, including direct support to emerging and restarting community initiatives in Brazil.",
+          "checkedOn": "2026-10-15"
+        }
+      ],
+      "researchNotes": "The verified 2026 call is closed. Its individual BRL 20,000 ceiling is kept separate from the BRL 2 million total pool. Other Casa calls have separate terms."
+    },
+    "sourceWarnings": [],
+    "isPilot": false,
+    "displayProgramId": "chamada-simplificada-apoio-direto-a-iniciativas-comunit-rias-2026"
+  },
+  "addition": {
+    "sourceRecordId": "recTQD6Q18JaLesU1",
+    "program": {
+      "id": "casa-emergencial-incendios-2026",
+      "name": "Apoio Emergencial: Incêndios e Resiliência Climática 2026",
+      "instrument": "grant",
+      "focus": [
+        "Community fire response",
+        "Climate resilience"
+      ],
+      "beneficiaries": [
+        "Community and volunteer fire brigades"
+      ],
+      "geography": {
+        "workCountries": [
+          "BR"
+        ],
+        "applicantCountries": [],
+        "scope": "Brazilian biomes; applicant registration-country limits not separately stated.",
+        "exclusions": []
+      },
+      "applicants": {
+        "types": [
+          "Nonprofit community associations",
+          "Informal groups with nonprofit partner"
+        ],
+        "fiscalSponsorship": "accepted",
+        "requirements": [
+          "2025 institutional budget at most BRL 500,000; one proposal; certified brigade training and institutional documents.",
+          "Partner supplies CNPJ, institutional bank account and legal accountability; at most two sponsored groups, or one alongside its own project.",
+          "Community consent for outside proposers; partner declaration where applicable; Casa conduct policy commitment if selected. Recipients pay applicable taxes."
+        ],
+        "exclusions": [
+          "Outstanding Casa reporting obligations"
+        ]
+      },
+      "award": {
+        "currency": "BRL",
+        "min": 25000,
+        "max": 25000,
+        "durationMonths": 4,
+        "basis": "current_offer",
+        "note": "BRL 25,000 per project. BRL 350,000 total pool: up to 14 awards, eight Amazon and six other biomes; 90% initially, 10% after reporting."
+      },
+      "application": {
+        "route": "open",
+        "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+        "opensOn": "2026-11-23",
+        "closesOn": "2026-11-26",
+        "deadlineInstant": "2026-11-26T21:00:00Z",
+        "note": "Second window, 18:00 Brasília. First window November 16–20 retained here. Execution ends March 26, 2027; reporting April 26. Selection depends on remaining funds."
+      },
+      "costs": {
+        "supported": [
+          "Supplies, equipment, logistics, insurance and brigade allowances; management/technical services capped at 30%. Institutional regularization may use up to 10%."
+        ],
+        "excluded": [
+          "Transfers to personal accounts or full cash withdrawal."
+        ]
+      },
+      "evidence": [
+        {
+          "fields": [
+            "name",
+            "focus",
+            "beneficiaries",
+            "geography",
+            "applicants",
+            "award",
+            "application",
+            "costs",
+            "unknowns"
+          ],
+          "url": "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/",
+          "checkedOn": "2026-11-24",
+          "note": "Owner call and FAQ."
+        },
+        {
+          "fields": [
+            "application.url"
+          ],
+          "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+          "checkedOn": "2026-11-24",
+          "note": "Application form retrieved; not submitted."
+        }
+      ],
+      "unknowns": [
+        "Remaining funds; complete cost exclusions. Eligibility requires manual review."
+      ]
+    },
+    "sources": [
+      {
+        "url": "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/",
+        "title": "Casa emergency fire-response call 2026",
+        "checkedOn": "2026-11-24"
+      },
+      {
+        "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+        "title": "CasaDigital application",
+        "checkedOn": "2026-11-24"
+      }
+    ],
+    "researchContext": {
+      "candidateId": "casa-emergencial-incendios-2026",
+      "deadline": {
+        "timezone": "America/Sao_Paulo",
+        "dateBasis": "explicit"
+      },
+      "geography": {
+        "workScope": "Brazil",
+        "applicantScope": "Community associations or informal groups using a nonprofit partner; CNPJ and institutional bank account required.",
+        "countryArraysAreExhaustive": false
+      }
+    }
+  },
+  "priorCatalogFundsSha256": "26f7583b0ca9247be9b78a87b6eb299d48184d5680ffc0d25b83c327c68746de",
+  "priorManifestSha256": "a7d399eb6b9d8385a08f60414ddd3562aa430e4e501e90ff5fcfcb6668a0745a",
+  "priorTopLevel": {
+    "schemaVersion": 2,
+    "indexedOn": "2026-10-14",
+    "sourceUrl": "https://www.fito.network/funders-database",
+    "reviewedCount": 690,
+    "recordCount": 699,
+    "pilotCount": 30,
+    "baselineCount": 593,
+    "supplementalCount": 106,
+    "enrichedCount": 699,
+    "researchCounts": {
+      "not_a_funder": 18,
+      "program_reviewed": 658,
+      "source_reviewed": 14,
+      "unresolved": 9
+    },
+    "fieldCoverage": {
+      "focus": 687,
+      "eligibility": 600,
+      "numericAward": 187,
+      "currentNumericAward": 86,
+      "datedDeadline": 195,
+      "upcomingDatedDeadline": 17,
+      "applicationRoute": 555
+    },
+    "enrichmentSchema": "./enrichment.schema.json",
+    "researchCheckedOn": "2026-10-29",
+    "sourceWarningCount": 5,
+    "compiledAt": "2026-11-23T08:31:21.171930+00:00",
+    "followUpHistory": [
+      {
+        "passId": "policy-followup-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 349,
+        "previousResearchCounts": {
+          "not_a_funder": 15,
+          "program_reviewed": 229,
+          "source_reviewed": 322,
+          "unresolved": 15,
+          "unreachable": 12
+        },
+        "previousFieldCoverage": {
+          "focus": 564,
+          "eligibility": 198,
+          "numericAward": 61,
+          "currentNumericAward": 35,
+          "datedDeadline": 50,
+          "applicationRoute": 205
+        },
+        "programReviewsAdded": 193,
+        "sourcesRecovered": 12,
+        "outcomes": {
+          "overview_only": 138,
+          "program_terms_added": 193,
+          "identity_unresolved": 14,
+          "source_unavailable": 2,
+          "other_resource": 2
+        },
+        "reportUrl": "./data/research-followup-round-1.json"
+      },
+      {
+        "passId": "policy-followup-2-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 154,
+        "previousResearchCounts": {
+          "not_a_funder": 17,
+          "program_reviewed": 422,
+          "source_reviewed": 138,
+          "unresolved": 14,
+          "unreachable": 2
+        },
+        "previousFieldCoverage": {
+          "focus": 574,
+          "eligibility": 367,
+          "numericAward": 118,
+          "currentNumericAward": 60,
+          "datedDeadline": 110,
+          "upcomingDatedDeadline": 24,
+          "applicationRoute": 373
+        },
+        "programReviewsAdded": 73,
+        "sourcesRecovered": 6,
+        "outcomes": {
+          "overview_only": 70,
+          "identity_unresolved": 9,
+          "program_terms_added": 73,
+          "source_unavailable": 1,
+          "other_resource": 1
+        },
+        "reportUrl": "./data/research-followup-round-2.json"
+      },
+      {
+        "passId": "policy-followup-3-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 80,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 495,
+          "source_reviewed": 70,
+          "unresolved": 9,
+          "unreachable": 1
+        },
+        "previousFieldCoverage": {
+          "focus": 580,
+          "eligibility": 437,
+          "numericAward": 137,
+          "currentNumericAward": 64,
+          "datedDeadline": 131,
+          "upcomingDatedDeadline": 28,
+          "applicationRoute": 433
+        },
+        "programReviewsAdded": 29,
+        "sourcesRecovered": 1,
+        "outcomes": {
+          "overview_only": 42,
+          "identity_unresolved": 9,
+          "program_terms_added": 29
+        },
+        "reportUrl": "./data/research-followup-round-3.json"
+      },
+      {
+        "passId": "policy-followup-4-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 51,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 524,
+          "source_reviewed": 42,
+          "unresolved": 9
+        },
+        "previousFieldCoverage": {
+          "focus": 581,
+          "eligibility": 466,
+          "numericAward": 144,
+          "currentNumericAward": 65,
+          "datedDeadline": 137,
+          "upcomingDatedDeadline": 28,
+          "applicationRoute": 447
+        },
+        "programReviewsAdded": 11,
+        "sourcesRecovered": 0,
+        "outcomes": {
+          "overview_only": 31,
+          "identity_unresolved": 9,
+          "program_terms_added": 11
+        },
+        "reportUrl": "./data/research-followup-round-4.json"
+      },
+      {
+        "passId": "policy-followup-5-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 40,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 535,
+          "source_reviewed": 31,
+          "unresolved": 9
+        },
+        "previousFieldCoverage": {
+          "focus": 581,
+          "eligibility": 476,
+          "numericAward": 144,
+          "currentNumericAward": 65,
+          "datedDeadline": 138,
+          "upcomingDatedDeadline": 26,
+          "applicationRoute": 451
+        },
+        "programReviewsAdded": 5,
+        "sourcesRecovered": 0,
+        "outcomes": {
+          "overview_only": 26,
+          "identity_unresolved": 9,
+          "program_terms_added": 5
+        },
+        "reportUrl": "./data/research-followup-round-5.json"
+      },
+      {
+        "passId": "policy-followup-6-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 35,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 540,
+          "source_reviewed": 26,
+          "unresolved": 9
+        },
+        "previousFieldCoverage": {
+          "focus": 581,
+          "eligibility": 481,
+          "numericAward": 144,
+          "currentNumericAward": 65,
+          "datedDeadline": 138,
+          "upcomingDatedDeadline": 26,
+          "applicationRoute": 453
+        },
+        "programReviewsAdded": 2,
+        "sourcesRecovered": 0,
+        "outcomes": {
+          "overview_only": 24,
+          "identity_unresolved": 9,
+          "program_terms_added": 2
+        },
+        "reportUrl": "./data/research-followup-round-6.json"
+      },
+      {
+        "passId": "policy-followup-7-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 33,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 542,
+          "source_reviewed": 24,
+          "unresolved": 9
+        },
+        "previousFieldCoverage": {
+          "focus": 581,
+          "eligibility": 483,
+          "numericAward": 144,
+          "currentNumericAward": 65,
+          "datedDeadline": 138,
+          "upcomingDatedDeadline": 26,
+          "applicationRoute": 453
+        },
+        "programReviewsAdded": 4,
+        "sourcesRecovered": 0,
+        "outcomes": {
+          "overview_only": 20,
+          "identity_unresolved": 9,
+          "program_terms_added": 4
+        },
+        "reportUrl": "./data/research-followup-round-7.json"
+      },
+      {
+        "passId": "policy-followup-8-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 29,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 546,
+          "source_reviewed": 20,
+          "unresolved": 9
+        },
+        "previousFieldCoverage": {
+          "focus": 581,
+          "eligibility": 487,
+          "numericAward": 144,
+          "currentNumericAward": 65,
+          "datedDeadline": 138,
+          "upcomingDatedDeadline": 26,
+          "applicationRoute": 454
+        },
+        "programReviewsAdded": 5,
+        "sourcesRecovered": 0,
+        "outcomes": {
+          "overview_only": 15,
+          "identity_unresolved": 9,
+          "program_terms_added": 5
+        },
+        "reportUrl": "./data/research-followup-round-8.json"
+      },
+      {
+        "passId": "policy-followup-9-2026-10-15",
+        "checkedOn": "2026-10-15",
+        "targetCount": 24,
+        "previousResearchCounts": {
+          "not_a_funder": 18,
+          "program_reviewed": 551,
+          "source_reviewed": 15,
+          "unresolved": 9
+        },
+        "previousFieldCoverage": {
+          "focus": 581,
+          "eligibility": 492,
+          "numericAward": 144,
+          "currentNumericAward": 65,
+          "datedDeadline": 139,
+          "upcomingDatedDeadline": 26,
+          "applicationRoute": 455
+        },
+        "programReviewsAdded": 1,
+        "sourcesRecovered": 0,
+        "outcomes": {
+          "overview_only": 14,
+          "identity_unresolved": 9,
+          "program_terms_added": 1
+        },
+        "reportUrl": "./data/research-followup-round-9.json"
+      }
+    ],
+    "followUpSummary": {
+      "passId": "policy-followup-10-2026-10-15",
+      "checkedOn": "2026-10-15",
+      "targetCount": 23,
+      "previousResearchCounts": {
+        "not_a_funder": 18,
+        "program_reviewed": 552,
+        "source_reviewed": 14,
+        "unresolved": 9
+      },
+      "previousFieldCoverage": {
+        "focus": 581,
+        "eligibility": 493,
+        "numericAward": 144,
+        "currentNumericAward": 65,
+        "datedDeadline": 140,
+        "upcomingDatedDeadline": 26,
+        "applicationRoute": 456
+      },
+      "programReviewsAdded": 0,
+      "sourcesRecovered": 0,
+      "outcomes": {
+        "overview_only": 14,
+        "identity_unresolved": 9
+      }
+    }
+  },
+  "displayChanges": [
+    {
+      "field": "program",
+      "before": "Chamada Simplificada: Apoio Direto a Iniciativas Comunitárias 2026",
+      "after": "Apoio Emergencial: Incêndios e Resiliência Climática 2026"
+    },
+    {
+      "field": "access",
+      "before": "closed",
+      "after": "open"
+    },
+    {
+      "field": "accessDetail",
+      "before": "Applications via CasaDigital closed July 14, 2026; results were due September 1.",
+      "after": "Second window, 18:00 Brasília. First window November 16–20 retained here. Execution ends March 26, 2027; reporting April 26. Selection depends on remaining funds."
+    },
+    {
+      "field": "amount",
+      "before": "Up to BRL 20,000 per initiative. BRL 2 million is the total call pool, not the individual grant maximum.",
+      "after": "BRL 25,000 per project. BRL 350,000 total pool: up to 14 awards, eight Amazon and six other biomes; 90% initially, 10% after reporting."
+    },
+    {
+      "field": "timing",
+      "before": "Applications via CasaDigital closed July 14, 2026; results were due September 1.",
+      "after": "Second window, 18:00 Brasília. First window November 16–20 retained here. Execution ends March 26, 2027; reporting April 26. Selection depends on remaining funds."
+    },
+    {
+      "field": "deadlineDate",
+      "before": "2026-07-14",
+      "after": "2026-11-26"
+    },
+    {
+      "field": "deadlineInstant",
+      "before": null,
+      "after": "2026-11-26T21:00:00Z"
+    },
+    {
+      "field": "displayProgramId",
+      "before": "chamada-simplificada-apoio-direto-a-iniciativas-comunit-rias-2026",
+      "after": "casa-emergencial-incendios-2026"
+    }
+  ],
+  "intakeAddition": {
+    "id": "discovery-2026-11-23-close-the-gap",
+    "runId": "monday-discovery-2026-11-23-retry",
+    "name": "Close the Gap South Africa",
+    "discoveryUrl": "https://www.close-the-gap.org/south-africa",
+    "status": "non-cash-program",
+    "initialUnresolved": "Determine whether equipment support is a cash grant or a guaranteed free donation.",
+    "attemptedOn": "2026-11-24",
+    "officialSources": [
+      "https://www.close-the-gap.org/south-africa"
+    ],
+    "programs": [],
+    "findings": [
+      "Affordable pre-owned IT devices for social projects; no cash grant or guaranteed free donation established."
+    ],
+    "unresolved": [
+      "Pricing, availability and delivery require applicant review."
+    ]
+  }
+}
