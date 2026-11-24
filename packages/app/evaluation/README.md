@@ -158,7 +158,7 @@ the money pair N-05 failed on the old matchers.
 `extraction.ts` puts words through the app's own rules and checks what comes out. On
 the describe step the words fill Name, Where you work and About it (`structureWords`
 then `fillFields`, as Fill In The Fields runs them). On the needs and offers steps they
-become cards (`chunksFrom` and `keywordExtraction`, after `spokenList` for a recording).
+become cards (`chunksFrom` with the step's kind, which reads typed lists and pasted descriptions in `typed-list.ts`, and `keywordExtraction`, after `spokenList` for a recording).
 Only the keyword rules are measured: the browser's own model, which both steps try where
 a browser has one, is not. Each case says what a careful person would want there:
 
@@ -219,7 +219,7 @@ Portuguese names, and most lists typed with commas or said in Spanish. About it 
 the whole box, so it often held the speaker's own name ("my name is dara") and a
 need sentence. Since 24 November 2026 it leaves out the clauses that ask or offer and
 the speaker's introduction, never rewording what stays: About it is 1.00 / 1.00 in
-development and 0.93 / 0.93 on the holdout, and the other rates are unchanged. These are agent-written cases and agent-judged labels, so read them as a
+development and 0.93 / 0.93 on the holdout, and the other rates are unchanged. Since the same day a typed list makes a card for each item, and a pasted description makes cards only from its sentences that ask: cards are 0.84 / 0.82 in development (61 cases) and 0.69 / 0.51 on the holdout. These are agent-written cases and agent-judged labels, so read them as a
 direction, not a measured rate for real people's words. Every person and link in both
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.

@@ -596,7 +596,7 @@ export function intakeFixture(view: IntakeView, path: string) {
               "; Equipment for the nursery; Introductions to partners; Care for volunteers; A research template"
           : words,
       );
-      const chunks = chunksFrom(step.turns[0]!.text, step.turns[0]!.id);
+      const chunks = chunksFrom(step.turns[0]!.text, step.turns[0]!.id, kind);
       step = reconcile(step, keywordExtraction(chunks, kind));
       const allKept = !path.startsWith("/start/") || ["kept", "saved", "shared"].includes(view);
       if (allKept) {

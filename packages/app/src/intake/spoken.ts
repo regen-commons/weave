@@ -64,6 +64,17 @@ const DEPENDENT = String.raw`(?:because|since|that|which|who|where|when|if|as|un
 const CLOSING = /(?:(?<![\s,])[\s,]+(?:and|so|but|e))+[\s,]*$|(?<![\s,])[\s,]+$/iu;
 const LEADING = new RegExp(String.raw`^(?:${LEAD}|${LEAD_PT})[\s,:]*`, "iu");
 const ORDINAL_START = new RegExp(String.raw`^${ORDINAL}[\s,:]*`, "iu");
+/** "We have a truck", a short thing said to be had, which a "we can lend" straight after describes. */
+const HAVE_THING = new RegExp(String.raw`^${SUBJECT}(?:\s+have|${APOSTROPHE}ve\s+got)(?:\s+[\p{L}\p{M}'’-]+){1,4}$`, "iu");
+/**
+ * "We can lend" said straight after the thing, or after only "and", with no thing of its own after
+ * the verb: "we have a trailer we can lend on weekends" and "we have a trailer and we can lend it"
+ * lend the trailer, while "we can also teach cooking" is a new offer.
+ */
+const CAN_VERB = new RegExp(
+  String.raw`^${SUBJECT}${MODAL}\s+(?:${OFFER_ACTION}|${OFFER_VERB}|use)${END}(?:\s+(?:it|them|out|on|in|at|for|to|every|each|whenever|when|during|if|anytime|sometimes|most|any)${END}.*)?$`,
+  "iu",
+);
 
 /**
  * The spaces and commas between two words, matched whole from where they start. Matching a run
@@ -115,6 +126,7 @@ export function spokenLines(said: string): string[] {
   const lines: string[] = [];
   let carried = "";
   for (const sentence of words.split(/\r?\n+|;\s*|(?<=[.!?])\s+/u)) {
+    let previous = "";
     for (const raw of sentence.split(split)) {
       let piece = raw.replace(OPENING, "");
       if (counted) piece = piece.replace(ORDINAL_START, "");
@@ -127,7 +139,15 @@ export function spokenLines(said: string): string[] {
         carried = lead.trim() || carried;
         continue;
       }
+      // "We have a truck we can lend on weekends": the truck is the offer, and lending is what it is for.
+      // A lone "and" between them was a piece of its own and left nothing, so the two still meet here.
+      if (previous && HAVE_THING.test(previous) && CAN_VERB.test(raw.trim()) && lines.length) {
+        lines[lines.length - 1] = `${lines[lines.length - 1]} ${piece}`;
+        previous = "";
+        continue;
+      }
       lines.push(carried && !lead ? `${carried} ${piece}` : piece);
+      previous = piece;
       carried = "";
     }
   }
