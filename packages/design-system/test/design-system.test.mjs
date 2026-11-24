@@ -417,7 +417,7 @@ test("on a wide screen a step's map and its way forward share one bar at the foo
   assert.doesNotMatch(templates, /:has\(> \.rc-site-banner\)/);
   assert.match(templates, /\.rc-step-layout > \.rc-step-aside \{[^}]*inset-block-start: calc\(var\(--app-header-height\) \+ var\(--space-5\)\);/);
   assert.match(templates, /max-block-size: calc\(100dvh - var\(--app-header-height\) - var\(--step-bar-height\) - 2 \* var\(--space-5\)\);/);
-  assert.match(templates, /min-block-size: calc\(100dvh - var\(--site-banner-height\) - var\(--app-header-height\) - var\(--step-bar-height\)\);/);
+  assert.match(templates, /min-block-size: calc\(100svh - var\(--site-banner-height\) - var\(--app-header-height\) - var\(--step-bar-height\)\);/);
   assert.ok(wide(templates).includes(":root:has(.rc-step-bar:not(:empty)) { scroll-padding-block-end:"));
   // Each step's edge lies on the bar's top line, where it meets the page.
   assert.ok(wide(organisms).includes('.rc-step-bar > .rc-stepper > li[aria-current="step"] { border-block-start-color: var(--action); }'));
@@ -694,4 +694,13 @@ test("the site banner is the first line of the page header, which lets it scroll
   const home = PAGES.home;
   const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
   assert.match(header, /^<header class="rc-app-head">\s*<p class="rc-site-banner">[^<]*\.\s[^<]*\.<\/p>\s*<div class="rc-app-header">/);
+});
+
+test("the page and Home's hero fill the small viewport, so they never grow as a phone's address bar slides away", () => {
+  const templates = read("packages/design-system/css/templates.css");
+  const base = read("packages/design-system/css/base.css");
+  assert.match(base, /min-block-size: 100svh;/);
+  for (const rule of [/\.rc-page \{[^}]*min-block-size: 100svh;/u, /\.rc-home-hero \{[^}]*min-block-size: calc\(100svh /u, /\.rc-page-body \{[^}]*min-block-size: calc\(100svh /u]) assert.match(templates, rule);
+  // Nothing that sizes the page itself follows the dynamic viewport; overlays still may.
+  for (const line of templates.split("\n").filter((text) => /min-block-size:[^;]*dvh/u.test(text))) assert.fail(`resizes on scroll: ${line.trim()}`);
 });

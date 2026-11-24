@@ -4,14 +4,20 @@ import { test } from "node:test";
 import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { loadedDraft } from "../src/account/document.ts";
 import { confirmDraft, newDraft, pendingDetails, revise } from "../src/describe/contracts.ts";
-import { draftFromRecord, draftWithRecord } from "../src/initiative/import.ts";
+import { draftFromRecord, draftWithRecord, waitingSuggestions } from "../src/initiative/import.ts";
+import { privatePartnerQueries } from "../src/partners/certified-suggestions.ts";
+import { partnersWaitingLine } from "../src/social/words.ts";
+import { notSharedLine } from "../src/partners/use-network-matching.ts";
 import {
   cardName,
   cardRoute,
   cardStatus,
   chosenEntries,
   entryCount,
+  NOT_PUBLIC_LINE,
   openSteps,
+  PUBLISH_ACTION,
+  publicListingsLine,
   publicCard,
   publicKey,
   shareable,
@@ -155,7 +161,7 @@ test("a linked project decides where a save goes and what sharing and publishing
     line: "Not shared. Only your team sees your needs and offers.",
     waits: null,
   });
-  assert.deepEqual(open.publishing, { state: "off", line: "Not published.", waits: null });
+  assert.deepEqual(open.publishing, { state: "off", line: NOT_PUBLIC_LINE, waits: null });
   const editedInTeam = cardStatus(renamed, "saved", createSocialFixture("workspace", "2026-11-04").snapshot(), "signed-out");
   assert.equal(editedInTeam.unsaved, false, "a seeded workspace has no version to compare");
 
@@ -202,7 +208,7 @@ test("a linked project decides where a save goes and what sharing and publishing
     line: "Not shared. Only you see your needs and offers.",
     waits: null,
   });
-  assert.deepEqual(personal.publishing, { state: "off", line: "Not published.", waits: null });
+  assert.deepEqual(personal.publishing, { state: "off", line: NOT_PUBLIC_LINE, waits: null });
 });
 
 test("only open steps get a row, one step leads, and one line says what opens the rest", async () => {
@@ -312,7 +318,7 @@ test("sharing for matching and publishing each say what is out, who can see it, 
   assert.equal(withdrawing.state, "published", "the listing counts as public until Certified confirms");
   await example.checkAgain();
   const withdrawn = cardStatus(complete, "saved", example.snapshot(), "signed-out");
-  assert.equal(withdrawn.publishing?.line, "Not published.");
+  assert.equal(withdrawn.publishing?.line, NOT_PUBLIC_LINE);
   assert.equal(withdrawn.state, "shared");
   await example.stopSharing();
   assert.equal(cardStatus(complete, "saved", example.snapshot(), "signed-out").state, "saved");
@@ -394,4 +400,91 @@ test("linking reuses the project's verified details and keeps the needs, offers 
   assert.equal(cardRoute(fresh), "needs", "so the person goes straight to needs and offers");
   const started = draftWithRecord(revise(newDraft(), { composer: "a few words" }), ORCHARD_RECORD);
   assert.equal(started.confirmed?.name, ORCHARD_RECORD.name);
+});
+
+// Release blocker, 23 November 2026: a person signed in with Certified opened a project whose page named a
+// need and an offer, saw them on the card, and was told matching had none. The project page's suggestions
+// wait in pencil, the card counts as checked with them waiting, and partner suggestions compare kept
+// entries only. Partners For You now says the suggestions wait and must be kept, instead of saying none.
+test("a project's suggested needs and offers are not taken for none: Partners For You says to keep them", () => {
+  const fresh = draftWithRecord(newDraft(), ORCHARD_RECORD);
+  // Continuing past the needs and offers steps without keeping the suggestion is allowed.
+  const checked = revise(fresh, { needs: reviewStep(fresh.needs), offers: reviewStep(fresh.offers) });
+  assert.equal(intakeComplete(checked), true, "the card counts as checked");
+  const kept = (kind: "needs" | "offers") => checked[kind].items.filter(({ decision }) => decision === "kept");
+  assert.deepEqual(privatePartnerQueries("w1", 1, kept("needs"), kept("offers")), [], "so matching has nothing to compare");
+  const waiting = waitingSuggestions(checked);
+  assert.equal(waiting.length, 1, "while the project page's offer waits");
+  assert.equal(partnersWaitingLine(waiting), "Your project page suggests 1 offer. Keep it to see partners for it.");
+  assert.equal(partnersWaitingLine([{ kind: "needs" }, { kind: "offers" }]),
+    "Your project page suggests 1 need, 1 offer. Keep them to see partners for them.");
+  assert.equal(partnersWaitingLine([]), "", "with nothing waiting the list keeps its own line");
+  const source = readFileSync(new URL("../src/partners/CertifiedSuggestions.tsx", import.meta.url), "utf8");
+  assert.match(source, /!hasQueries \? \(waiting\.length \? \(/u, "the empty list speaks of the suggestions first");
+  assert.match(source, /<ButtonLink href=\{pathTo\(waiting\[0\]!\.kind\)\}/u, "and leads to where they are kept");
+  const partners = readFileSync(new URL("../src/partners/PartnerExperience.tsx", import.meta.url), "utf8");
+  assert.match(partners, /waiting=\{waitingSuggestions\(draft\)\}/u);
+});
+
+// Release blocker, 23 November 2026: a project from Certified read "Not published." beside Publish On
+// Certified. Publishing makes needs and offers public listings of the project; the project is already on
+// Certified. The row and its button now say which.
+test("a project already on Certified is never read as unpublished: the row and button name the needs and offers", () => {
+  assert.equal(NOT_PUBLIC_LINE, "Your project is on Certified. Its needs and offers are not public.");
+  assert.equal(PUBLISH_ACTION, "Publish Needs And Offers");
+  assert.equal(publicListingsLine(1), "1 need or offer public on Certified.");
+  assert.equal(publicListingsLine(3), "3 needs and offers public on Certified.");
+  for (const file of ["../src/social/LiveExposure.tsx", "../src/social/Share.tsx", "../src/initiative/status.ts"]) {
+    const source = readFileSync(new URL(file, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /Publish On Certified|"Not published\."/u, file);
+  }
+  const live = readFileSync(new URL("../src/social/LiveExposure.tsx", import.meta.url), "utf8");
+  assert.match(live, /count \? publicListingsLine\(count\) : NOT_PUBLIC_LINE/u);
+  assert.match(live, />\{PUBLISH_ACTION\}<\/button>/u);
+});
+
+// Release blocker, 23 November 2026, reproduced with the signed-in fixture: a saved card with one need
+// and one offer, neither shared for matching, read "share at least one open need or offer" under Partners
+// For You, which a person took for having none. The line now names them as theirs and private.
+test("saved needs and offers that are not shared are named as private, never as missing", () => {
+  const entry = (kind: "need" | "offer", over: Record<string, unknown> = {}) =>
+    ({ kind, entryId: `${kind}-${Math.random()}`, status: "open", sharing: "private", expiresAt: null, ...over }) as never;
+  assert.equal(notSharedLine([entry("need"), entry("offer")]), "Your need and offer are private. Share them for matching to find partners.");
+  assert.equal(notSharedLine([entry("need")]), "Your need is private. Share it for matching to find partners.");
+  assert.equal(notSharedLine([entry("need"), entry("need"), entry("offer")]),
+    "Your 2 needs and offer are private. Share them for matching to find partners.");
+  assert.equal(notSharedLine([entry("need", { sharing: "withdrawn" })]), "Your need is private. Share it for matching to find partners.",
+    "withdrawn is private again");
+  assert.equal(notSharedLine([entry("need", { sharing: "shared" }), entry("offer")]), "", "once one is shared, the search speaks for itself");
+  // Changed since sharing, or sharing that ended: each has its own line where it is listed, so this says nothing.
+  assert.equal(notSharedLine([entry("offer", { sharing: "needs_review" })]), "");
+  assert.equal(notSharedLine([entry("offer", { sharing: "shared", expiresAt: "2026-01-01T00:00:00Z" })]), "");
+  assert.equal(notSharedLine([entry("need", { status: "met" })]), "Add an open need or offer to find partners.");
+  assert.equal(notSharedLine([]), "Add an open need or offer to find partners.");
+  assert.equal(notSharedLine([entry("need"), entry("offer")], { team: true }),
+    "Your team's need and offer are not shared for matching. Share them for matching to find partners.");
+  assert.equal(notSharedLine([entry("need")], { readOnly: true }), "Your need is private.", "someone who can only read is not asked to share");
+  for (const file of ["../src/partners/PartnerExperience.tsx", "../src/partners/ExamplePartners.tsx"])
+    assert.doesNotMatch(readFileSync(new URL(file, import.meta.url), "utf8"), /share at least one open need or offer/u, file);
+  // Before the entries load, after a failed read, or for an earlier version, the list is empty and says nothing.
+  assert.match(readFileSync(new URL("../src/partners/PartnerExperience.tsx", import.meta.url), "utf8"),
+    /!network\.loading && state !== null && !stale && notSharedLine\(entries, \{ team, readOnly \}\)/u);
+});
+
+// The user's choice, 23 November 2026 ("One-tap share, clearly worded"): Partners For You names the private
+// entries and offers Share For Matching right there. It opens the same share step as Saving And Sharing,
+// which shows what other signed-in teams will see; nothing is shared until the person confirms there.
+test("Partners For You offers the share step beside the private entries, and says plainly when no team fits", () => {
+  const partners = readFileSync(new URL("../src/partners/PartnerExperience.tsx", import.meta.url), "utf8");
+  assert.match(partners, /onClick=\{\(\) => setSharing\(true\)\}>Share For Matching<\/button>/u, "one tap opens the step");
+  assert.match(partners, /<SavedMatching[^>]*presentation="sharing"/u, "the same step that shows what will be seen");
+  assert.match(partners, /onClose=\{\(\) => \{ setSharing\(false\); network\.refresh\(\); onShared\?\.\(\); \}\}/u, "and the results follow");
+  // So does the sharing row in Saving And Sharing, which would otherwise still read "Not shared".
+  const page = readFileSync(new URL("../src/pages/YourInitiative.tsx", import.meta.url), "utf8");
+  assert.match(page, /onShared=\{\(\) => setSharedVersion\(v => v \+ 1\)\}/u);
+  assert.match(page, /<LiveExposure[\s\S]*?refreshVersion=\{sharedVersion\}/u);
+  assert.match(readFileSync(new URL("../src/social/LiveExposure.tsx", import.meta.url), "utf8"), /version, online, team, refreshVersion\]/u);
+  assert.doesNotMatch(partners, /network\.mutate\(\{\s*action: "share"/u, "nothing is shared without the step's own confirmation");
+  const results = readFileSync(new URL("../src/partners/NetworkResults.tsx", import.meta.url), "utf8");
+  assert.match(results, /No team has shared a match for this yet\./u);
 });
