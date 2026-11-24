@@ -1,7 +1,6 @@
-import { fundingTopics } from "@weave/api/topics";
 import { COUNTRIES, US_STATES } from "../../../../dist/storage.mjs";
 import { FundingFormSchema, type FundingDetails, type FundingForm } from "./contracts.ts";
-import type { DeviceDraft } from "../describe/contracts.ts";
+import { DeviceDraftSchema, type DeviceDraft } from "../describe/contracts.ts";
 
 /** A detail for funding the matcher can take as typed: everything but the choices made by picking. */
 export type FundingFormField = Exclude<keyof FundingForm, "applicantType" | "fundingInstruments">;
@@ -33,6 +32,25 @@ export function keptAskWords(draft: Pick<DeviceDraft, "needs" | "offers">): stri
 }
 /** What Funding ranks: a card, its details for funding, and the words of its kept needs and offers. */
 export type FundingCard = Pick<DeviceDraft, "id" | "confirmed" | "funding"> & { readonly asks?: readonly string[] };
+/**
+ * What Funding ranks for a draft, as one string: the card, its details for funding as kept, and
+ * its kept needs' and offers' words. It changes when one of them does, and not while a box or
+ * the details dialog is being typed in, so only a kept change ranks the catalog again.
+ */
+export function fundingKey(draft: Pick<DeviceDraft, "id" | "confirmed" | "funding" | "needs" | "offers">): string {
+  return JSON.stringify({
+    id: draft.id,
+    confirmed: draft.confirmed,
+    funding: { ...draft.funding, editor: null },
+    asks: keptAskWords(draft),
+  });
+}
+/** The project a `fundingKey` names. Throws `FundingFormProblem` for details that cannot be kept. */
+export function projectFromKey(key: string) {
+  const { asks, ...card } = JSON.parse(key) as { asks: unknown };
+  const words = Array.isArray(asks) ? asks.filter((ask): ask is string => typeof ask === "string") : [];
+  return projectFrom({ ...DeviceDraftSchema.pick({ id: true, confirmed: true, funding: true }).parse(card), asks: words });
+}
 export function projectFrom(draft: FundingCard) {
   if (!draft.confirmed) return null;
   const form = FundingFormSchema.parse(draft.funding.form);
@@ -72,9 +90,10 @@ export function projectFrom(draft: FundingCard) {
     id: draft.id,
     name: draft.confirmed.name,
     description: draft.confirmed.description,
-    // The card shows no themes since DL-127. The rubric is given the catalog topics its words name
-    // in Portuguese or Spanish, and those its kept needs and offers name, as themes (DL-142).
-    tags: fundingTopics(draft.confirmed.description, draft.confirmed.themes, draft.asks),
+    // The person's own themes. A card has shown none since DL-127: the matcher adds the catalog
+    // topics its words name in Portuguese or Spanish, and those its kept needs and offers name (DL-142).
+    tags: draft.confirmed.themes,
+    asks: [...(draft.asks ?? [])],
     workCountries,
     benefitCountries,
     applicantBaseCountry: singleCountry(form.applicantBaseCountry, "applicantBaseCountry"),

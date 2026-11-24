@@ -14,7 +14,6 @@ import { evaluateCatalog, type Project } from "../src/funding/engine.ts";
 import { emptyFundingFilters, filterFunding } from "../src/funding/select.ts";
 import { createAgentTools, type FundCatalog } from "../../api/src/agent-tools.ts";
 import { parseAgentToolCall } from "../../api/src/agent-tools-contract.ts";
-import { fundingTopics } from "../../api/src/topics.ts";
 
 /** How many places of each path the snapshot keeps. */
 export const SNAPSHOT_DEPTH = 5;
@@ -93,14 +92,15 @@ export function validateRankingSet(data: unknown): RankingSet {
 
 /**
  * The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft
- * with no kept needs or offers, its themes the topics its description names in Portuguese or Spanish.
+ * with no kept needs or offers. The app's matcher (`evaluateCatalog`) adds the topics its words name.
  */
 function appProject(row: RankingInitiative): Project {
   return {
     id: row.id,
     name: row.name,
     description: row.description,
-    tags: fundingTopics(row.description),
+    tags: [],
+    asks: [],
     workCountries: row.workCountries,
     benefitCountries: row.benefitCountries,
     applicantBaseCountry: row.applicantBaseCountry,
@@ -168,9 +168,9 @@ export async function rankInitiative(data: RankingData, row: RankingInitiative):
   const liveConditions = validConditions(data.conditions, data.catalog.funds) && Array.isArray(conditionList) ? conditionList : null;
   const live = rankFunds(
     data.catalog.funds,
-    // The live site's own form, which defaults the currency to USD where the app leaves it blank, and
-    // whose themes are only those a person types.
-    normalizeProject({ ...appProject(row), tags: [], currency: undefined }),
+    // The live site's own form, which defaults the currency to USD where the app leaves it blank. It
+    // reads no topics into a card: its themes are only those a person types.
+    normalizeProject({ ...appProject(row), currency: undefined }),
     createLexicalIndex(data.catalog.funds),
     (data.rules as { rules: unknown[] }).rules,
     null,

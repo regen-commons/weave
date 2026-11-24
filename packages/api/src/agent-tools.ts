@@ -351,10 +351,11 @@ async function findFunds(sources: AgentToolSources, a: FindFundsArguments, now: 
   const places = [...a.workCountries, ...a.benefitCountries, a.applicantBaseCountry, a.registrationCountry].filter(Boolean);
   const unknown = places.find((code) => !r.COUNTRIES.includes(code));
   if (unknown) throw new AgentToolError("invalid_argument", `${unknown} is not a country code the catalog knows.`);
-  // The same shape the app gives the rubric, with the topics a Portuguese or Spanish description names
-  // added to the themes as the app adds them (topics.ts). Nothing here outlives this call.
+  // The same shape the app gives the rubric, with the catalog topics a Portuguese or Spanish description
+  // or theme names added to the themes, as the app's matcher adds them (topics.ts). Nothing here
+  // outlives this call.
   const project = {
-    id: "assistant", name: "", description: a.description, tags: fundingTopics(a.description, a.themes),
+    id: "assistant", name: "", description: a.description, tags: fundingTopics(a.description, a.themes, a.themes),
     workCountries: a.workCountries, benefitCountries: a.benefitCountries,
     applicantBaseCountry: a.applicantBaseCountry, registrationCountry: a.registrationCountry, applicantType: a.applicantType,
     fundingInstruments: [], goalMin: null, goalMax: null, currency: "", usWorkStates: [], usBenefitStates: [], programAnswers: {},

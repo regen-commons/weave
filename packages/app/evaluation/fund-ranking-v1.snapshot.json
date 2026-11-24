@@ -234,16 +234,16 @@
         {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
       ],
       "funding": [
-        {"id":"recin7AuNqQ3YfQIA::national-truth-and-healing-fund-not-yet-launched","name":"Decolonizing Wealth Project (Liberated Capital): National Truth and Healing Fund"},
         {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
         {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recin7AuNqQ3YfQIA::national-truth-and-healing-fund-not-yet-launched","name":"Decolonizing Wealth Project (Liberated Capital): National Truth and Healing Fund"},
         {"id":"recNEswnVuQFYHD4y::swift-spend-down-funding-status","name":"Swift Foundation: Swift spend-down funding status"},
         {"id":"recGrWuo2s6fUYukL::blaustein-group-general-and-project-grants","name":"Blaustein Philanthropic Group: Blaustein group general and project grants"}
       ],
       "mcp": [
-        {"id":"recin7AuNqQ3YfQIA::national-truth-and-healing-fund-not-yet-launched","name":"Decolonizing Wealth Project (Liberated Capital): National Truth and Healing Fund"},
         {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
         {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recin7AuNqQ3YfQIA::national-truth-and-healing-fund-not-yet-launched","name":"Decolonizing Wealth Project (Liberated Capital): National Truth and Healing Fund"},
         {"id":"recNEswnVuQFYHD4y::swift-spend-down-funding-status","name":"Swift Foundation: Swift spend-down funding status"},
         {"id":"recGrWuo2s6fUYukL::blaustein-group-general-and-project-grants","name":"Blaustein Philanthropic Group: Blaustein group general and project grants"}
       ]
