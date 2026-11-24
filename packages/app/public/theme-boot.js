@@ -22,6 +22,18 @@
     // No storage to read: the page holds the room for no checked card.
   }
 })();
+// It marks a visit the service worker does not control yet, a first visit, whose fonts are not stored.
+// The reading face is not preloaded (DL-057), so the browser would ask for it when card summaries
+// first need it and hold their text invisible for up to 100 ms before using the size-matched
+// fallback for the rest of the visit. base.css uses that fallback from the start instead. The worker
+// stores the faces, so later visits it controls read in Source Serif.
+(function () {
+  try {
+    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) document.documentElement.setAttribute("data-first-visit", "");
+  } catch (error) {
+    // No way to tell: the page asks for the face as before.
+  }
+})();
 // The first view is inert until the app replaces it. If the app's code never arrives, as on a first
 // visit that loses its connection, the view would stay dead to clicks, taps and screen readers, so
 // after a while its links work as plain links. The app takes the mark off as it starts.
