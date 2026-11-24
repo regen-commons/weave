@@ -30,6 +30,8 @@ declare module "*dist/storage.mjs" {
   export const COUNTRIES: string[];
   export const US_STATES: Record<string, string>;
   export const FUNDING_INSTRUMENTS: Record<string, string>;
+  /** The live site's own project form, which the fund ranking gate ranks its keyword path with. */
+  export function normalizeProject(input: unknown): unknown;
 }
 declare module "virtual:first-funds" {
   const file: import("./first-funds.ts").FirstFunds;

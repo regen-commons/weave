@@ -346,8 +346,10 @@ test("Talk it out says plainly where speech stands, and where it cannot work it 
     [talkControls("offer").action, talkControls("offer").label],
     ["set-up", "Set Up Speech"],
   );
-  assert.match(talkControls("offer").note, /Audio stays on this device/);
-  assert.match(talkControls("offer").note, /may download/, "it does not claim a download that may not happen");
+  // The setup's line waits for the press, so a phone's box is higher; the press then says what it does.
+  assert.equal(talkControls("offer").note, "", "nothing under Set Up Speech before it is pressed");
+  assert.match(talkControls("installing").note, /may download/, "it does not claim a download that may not happen");
+  assert.match(talkControls("ready", { setUpHere: true }).note, /Audio stays on this device/, "where the audio goes is said once speech works");
   for (const state of ["installing", "slow"] as const) {
     assert.equal(talkControls(state).action, "setting-up");
     assert.match(talkControls(state).note, /type/, "typing still works while it runs");

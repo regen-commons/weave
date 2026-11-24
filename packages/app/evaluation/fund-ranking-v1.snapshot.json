@@ -1,0 +1,468 @@
+{
+  "version": 1,
+  "dataset": "fund-ranking-v1",
+  "rankedAt": "2026-11-23T08:31:21.171Z",
+  "depth": 5,
+  "collation": "en-US",
+  "paths": {
+    "keyword": "Live site, keyword order: the shared rubric with keywords only and one result per fund, the order funding-commons shows unless a person turns on its optional model.",
+    "funding": "Weave Funding, Strongest fit: the order Funding opens in for an initiative. Thematic fit first, ties in the rubric's order, one result per program.",
+    "mcp": "MCP find_funds_for_initiative: strongest fit first, ties in the rubric's order, programs with no shared topic left out."
+  },
+  "initiatives": {
+    "fr-01": {
+      "name": "Listening to Nature Taraba",
+      "keyword": [
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"local-rufford::rufford-first","name":"The Rufford Foundation: First Rufford Small Grant"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recS2Rk0zuF9VWK6K::conservation-partnerships","name":"Synchronicity Earth: Conservation partnerships"},
+        {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"}
+      ],
+      "funding": [
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"local-rufford::rufford-first","name":"The Rufford Foundation: First Rufford Small Grant"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recS2Rk0zuF9VWK6K::conservation-partnerships","name":"Synchronicity Earth: Conservation partnerships"},
+        {"id":"local-undp-gef::undp-nigeria-icca-regular","name":"UNDP / GEF Small Grants Programme Nigeria: ICCA-GSI Phase 2: regular local grants"}
+      ],
+      "mcp": [
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"local-rufford::rufford-first","name":"The Rufford Foundation: First Rufford Small Grant"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recS2Rk0zuF9VWK6K::conservation-partnerships","name":"Synchronicity Earth: Conservation partnerships"},
+        {"id":"local-undp-gef::undp-nigeria-icca-regular","name":"UNDP / GEF Small Grants Programme Nigeria: ICCA-GSI Phase 2: regular local grants"}
+      ]
+    },
+    "fr-02": {
+      "name": "Rio Claro Mangrove Restoration",
+      "keyword": [
+        {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"},
+        {"id":"local-pollination::pollination-seed","name":"The Pollination Project: Seed grants"},
+        {"id":"local-walmart::walmart-spark-good-cycle3-2026","name":"Walmart: Spark Good Local Grants: cycle 3, 2026"},
+        {"id":"local-rufford::rufford-first","name":"The Rufford Foundation: First Rufford Small Grant"},
+        {"id":"recSZN9ckNi2cuE1y::beni-confiscati-alle-mafie-2026-initiative","name":"Fondazione Con Il Sud: Beni confiscati alle mafie: 2026 initiative"}
+      ],
+      "funding": [
+        {"id":"recB4EfLh3AZGu6SD::justtransition-integratedcapital-fund","name":"Justice Funders: Just Transition Integrated Capital Fund"},
+        {"id":"recgrpGdjVDL52eBe::regi-n-plateada-co-funded-2024-acceleration-financing-round","name":"Fundación Arturo & Enrica Sesana: Región Plateada: co-funded 2024 acceleration/financing round"},
+        {"id":"recrGWvqZUQHZb9c9::women-s-urgent-support-fund-round-2-2024","name":"Smallwood Trust: Women’s Urgent Support Fund: Round 2, 2024"},
+        {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"},
+        {"id":"local-pollination::pollination-seed","name":"The Pollination Project: Seed grants"}
+      ],
+      "mcp": [
+        {"id":"recB4EfLh3AZGu6SD::justtransition-integratedcapital-fund","name":"Justice Funders: Just Transition Integrated Capital Fund"},
+        {"id":"recgrpGdjVDL52eBe::regi-n-plateada-co-funded-2024-acceleration-financing-round","name":"Fundación Arturo & Enrica Sesana: Región Plateada: co-funded 2024 acceleration/financing round"},
+        {"id":"recrGWvqZUQHZb9c9::women-s-urgent-support-fund-round-2-2024","name":"Smallwood Trust: Women’s Urgent Support Fund: Round 2, 2024"}
+      ]
+    },
+    "fr-03": {
+      "name": "Youth-Led Restoration Along Lake Victoria",
+      "keyword": [
+        {"id":"rec1CG8NCVaa52Jc7::amazon-defenders-fund","name":"Amazon Watch: Amazon Defenders Fund"},
+        {"id":"recHux105H2B9MmlE::strategic-climate-equity-partner-grants","name":"Climate and Clean Energy Equity Fund: Strategic climate-equity partner grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recEn6o1ktUr4XVma::plastic-solutions-partnership-grants","name":"Plastic Solutions Fund (PSF): Plastic Solutions Fund partnership grantmaking"},
+        {"id":"rec4302FxdTsPbZXD::pie-grantmaking-financial-support","name":"Pool-Fund on International Energy (PIE): PIE grantmaking and financial support"}
+      ],
+      "funding": [
+        {"id":"recT5XdmTXbMjMS78::youth-climate-fund-for-zero-waste-2024-call","name":"UMI Fund: Youth Climate Fund for Zero Waste: 2024 call"},
+        {"id":"rec1CG8NCVaa52Jc7::amazon-defenders-fund","name":"Amazon Watch: Amazon Defenders Fund"},
+        {"id":"recHux105H2B9MmlE::strategic-climate-equity-partner-grants","name":"Climate and Clean Energy Equity Fund: Strategic climate-equity partner grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recEn6o1ktUr4XVma::plastic-solutions-partnership-grants","name":"Plastic Solutions Fund (PSF): Plastic Solutions Fund partnership grantmaking"}
+      ],
+      "mcp": [
+        {"id":"recT5XdmTXbMjMS78::youth-climate-fund-for-zero-waste-2024-call","name":"UMI Fund: Youth Climate Fund for Zero Waste: 2024 call"},
+        {"id":"rec1CG8NCVaa52Jc7::amazon-defenders-fund","name":"Amazon Watch: Amazon Defenders Fund"},
+        {"id":"recHux105H2B9MmlE::strategic-climate-equity-partner-grants","name":"Climate and Clean Energy Equity Fund: Strategic climate-equity partner grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recEn6o1ktUr4XVma::plastic-solutions-partnership-grants","name":"Plastic Solutions Fund (PSF): Plastic Solutions Fund partnership grantmaking"}
+      ]
+    },
+    "fr-04": {
+      "name": "Sulphur Creek Watershed Restoration",
+      "keyword": [
+        {"id":"local-cdfw::cdfw-mojave-tortoise-2026","name":"California Department of Fish and Wildlife: Mojave Desert Tortoise Recovery: 2026 call"},
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"},
+        {"id":"rec9ttY0jGlmSZgaw::louisiana-gulf-coast-grantmaking-project","name":"Deep South Center for Environmental Justice: Louisiana Gulf Coast Grantmaking Project"},
+        {"id":"local-usda-nrcs::nrcs-cig-classic","name":"USDA Natural Resources Conservation Service: Conservation Innovation Grants: Classic"},
+        {"id":"rec9FdEN4bn9T14tO::strategic-grantmaking-and-loi-policy","name":"John D. & Catherine T. MacArthur Foundation: Strategic grantmaking and LOI policy"}
+      ],
+      "funding": [
+        {"id":"rec9ttY0jGlmSZgaw::louisiana-gulf-coast-grantmaking-project","name":"Deep South Center for Environmental Justice: Louisiana Gulf Coast Grantmaking Project"},
+        {"id":"local-usda-nrcs::nrcs-cig-classic","name":"USDA Natural Resources Conservation Service: Conservation Innovation Grants: Classic"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"recin7AuNqQ3YfQIA::california-tribal-land-return-applications-closed","name":"Decolonizing Wealth Project (Liberated Capital): California Tribal Land Return"}
+      ],
+      "mcp": [
+        {"id":"rec9ttY0jGlmSZgaw::louisiana-gulf-coast-grantmaking-project","name":"Deep South Center for Environmental Justice: Louisiana Gulf Coast Grantmaking Project"},
+        {"id":"local-usda-nrcs::nrcs-cig-classic","name":"USDA Natural Resources Conservation Service: Conservation Innovation Grants: Classic"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"recin7AuNqQ3YfQIA::california-tribal-land-return-applications-closed","name":"Decolonizing Wealth Project (Liberated Capital): California Tribal Land Return"}
+      ]
+    },
+    "fr-05": {
+      "name": "Permacultura desde 0",
+      "keyword": [
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
+        {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"},
+        {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"}
+      ],
+      "funding": [
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
+        {"id":"local-cdfw::cdfw-mojave-tortoise-2026","name":"California Department of Fish and Wildlife: Mojave Desert Tortoise Recovery: 2026 call"}
+      ],
+      "mcp": []
+    },
+    "fr-06": {
+      "name": "Circular Supply Chain Traceability Platform",
+      "keyword": [
+        {"id":"local-github-secure-oss::github-secure-oss","name":"GitHub: Secure Open Source Fund"},
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+      ],
+      "funding": [
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"},
+        {"id":"local-github-secure-oss::github-secure-oss","name":"GitHub: Secure Open Source Fund"},
+        {"id":"local-milken-motsepe::milken-circular-2026","name":"Milken Institute / Motsepe Foundation: Milken-Motsepe Circular Economy Prize: 2026"},
+        {"id":"local-nten::nten-pizzigati","name":"NTEN: Antonio Pizzigati Prize for Software in the Public Interest"},
+        {"id":"recT5XdmTXbMjMS78::youth-climate-fund-for-zero-waste-2024-call","name":"UMI Fund: Youth Climate Fund for Zero Waste: 2024 call"}
+      ],
+      "mcp": [
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"},
+        {"id":"local-github-secure-oss::github-secure-oss","name":"GitHub: Secure Open Source Fund"},
+        {"id":"local-milken-motsepe::milken-circular-2026","name":"Milken Institute / Motsepe Foundation: Milken-Motsepe Circular Economy Prize: 2026"},
+        {"id":"local-nten::nten-pizzigati","name":"NTEN: Antonio Pizzigati Prize for Software in the Public Interest"},
+        {"id":"recT5XdmTXbMjMS78::youth-climate-fund-for-zero-waste-2024-call","name":"UMI Fund: Youth Climate Fund for Zero Waste: 2024 call"}
+      ]
+    },
+    "fr-07": {
+      "name": "CoolWalk Sofia",
+      "keyword": [
+        {"id":"local-nlnet::nlnet-restack-call2-2027","name":"NLnet Foundation: Restack: second call, January 2027"},
+        {"id":"local-mozilla::mozilla-independent-fellow-2027","name":"Mozilla Foundation: Independent Fellowship 2027–28"},
+        {"id":"local-gcc::gcc-digital-commons","name":"GCC: Digital Commons funding"},
+        {"id":"recp3Jnme6XxSq268::opportunity-grants","name":"Urgent Action Fund for Feminist Activism: Opportunity Grants"},
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"}
+      ],
+      "funding": [
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"},
+        {"id":"recDJ0b7Ie0Hih6hy::kresge-application-policy","name":"Kresge Foundation: Kresge application policy"},
+        {"id":"recpMD9fss1s2KqeR::free-to-play-first-national-round-2026","name":"Community Foundations of Canada: Free to Play: first national round 2026"},
+        {"id":"local-la-city-cultural-affairs::la-outdoor-festivals-2027-28","name":"Los Angeles Department of Cultural Affairs: Outdoor Festivals and Parades: 2027–28"},
+        {"id":"recrG5GIY2HQQPz54::nyc-leadership-for-equity","name":"Robert Sterling Clark Foundation: NYC Leadership for Equity"}
+      ],
+      "mcp": [
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"},
+        {"id":"recDJ0b7Ie0Hih6hy::kresge-application-policy","name":"Kresge Foundation: Kresge application policy"},
+        {"id":"recpMD9fss1s2KqeR::free-to-play-first-national-round-2026","name":"Community Foundations of Canada: Free to Play: first national round 2026"},
+        {"id":"local-la-city-cultural-affairs::la-outdoor-festivals-2027-28","name":"Los Angeles Department of Cultural Affairs: Outdoor Festivals and Parades: 2027–28"},
+        {"id":"recrG5GIY2HQQPz54::nyc-leadership-for-equity","name":"Robert Sterling Clark Foundation: NYC Leadership for Equity"}
+      ]
+    },
+    "fr-08": {
+      "name": "Loita Forests and Maasai Women Artisans",
+      "keyword": [
+        {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
+        {"id":"rec4YwL5PQtz6WusR::community-led-indigenous-partnership-grants","name":"Pawanka Fund: Community-led Indigenous partnership grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recQ2MxXoVrp9T1c8::navigator-fund-relationship-model","name":"Moonjelly Foundation: Navigator Fund relationship model"},
+        {"id":"recTUqGBxowGopxEV::nhp-project-support-wayfinder","name":"Native Hawaiian Philanthropy: NHP project support and Wayfinder Fund"}
+      ],
+      "funding": [
+        {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
+        {"id":"rec4YwL5PQtz6WusR::community-led-indigenous-partnership-grants","name":"Pawanka Fund: Community-led Indigenous partnership grants"},
+        {"id":"rec2gBA2AFVWAeiLU::ayni-2026-call","name":"Ayni Fund: Ayni 2026 call"},
+        {"id":"reclELHBM37wcMrzW::ayni-small-grants-2026","name":"International Indigenous Women’s Forum (FIMI): AYNI Small Grants 2026"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"}
+      ],
+      "mcp": [
+        {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
+        {"id":"rec4YwL5PQtz6WusR::community-led-indigenous-partnership-grants","name":"Pawanka Fund: Community-led Indigenous partnership grants"},
+        {"id":"rec2gBA2AFVWAeiLU::ayni-2026-call","name":"Ayni Fund: Ayni 2026 call"},
+        {"id":"reclELHBM37wcMrzW::ayni-small-grants-2026","name":"International Indigenous Women’s Forum (FIMI): AYNI Small Grants 2026"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"}
+      ]
+    },
+    "fr-09": {
+      "name": "Free Film Training Center",
+      "keyword": [
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"},
+        {"id":"recngyJvK8E46evcP::katapult-ocean-seed-to-series-b-impact-investment","name":"Katapult: Katapult Ocean: seed to Series B impact investment"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"rece79DyyxR5xz6Ik::legacy-rapid-fund","name":"Wikimedia Foundation: Rapid Fund"}
+      ],
+      "funding": [
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"},
+        {"id":"recngyJvK8E46evcP::katapult-ocean-seed-to-series-b-impact-investment","name":"Katapult: Katapult Ocean: seed to Series B impact investment"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"rece79DyyxR5xz6Ik::legacy-rapid-fund","name":"Wikimedia Foundation: Rapid Fund"}
+      ],
+      "mcp": [
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"},
+        {"id":"recngyJvK8E46evcP::katapult-ocean-seed-to-series-b-impact-investment","name":"Katapult: Katapult Ocean: seed to Series B impact investment"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"rece79DyyxR5xz6Ik::legacy-rapid-fund","name":"Wikimedia Foundation: Rapid Fund"}
+      ]
+    },
+    "fr-10": {
+      "name": "Sentir a Amazônia: jardim sensorial",
+      "keyword": [
+        {"id":"recKkrUEyYu4JTxvZ::general-project-grants-year-round-letter-of-intent","name":"Instituto Clima e Sociedade (iCS): General project grants: year-round letter of intent"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
+        {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
+      ],
+      "funding": [
+        {"id":"recKkrUEyYu4JTxvZ::general-project-grants-year-round-letter-of-intent","name":"Instituto Clima e Sociedade (iCS): General project grants: year-round letter of intent"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+      ],
+      "mcp": []
+    },
+    "fr-11": {
+      "name": "Propagación de especies nativas altoandinas",
+      "keyword": [
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
+        {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"},
+        {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"}
+      ],
+      "funding": [
+        {"id":"local-la-county-arts::la-county-ciag-2027","name":"Los Angeles County Department of Arts and Culture: Community Impact Arts Grant 2027–28"},
+        {"id":"local-la-county-arts::la-county-ogp-2027","name":"Los Angeles County Department of Arts and Culture: Organizational Grant Program 2027–29"},
+        {"id":"recaOrO8KmDZzmLEZ::alborada-ventures-2025-migrant-integration-financing","name":"Radical Flexibility Fund: Alborada Ventures: 2025 migrant-integration financing"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"}
+      ],
+      "mcp": [
+        {"id":"local-la-county-arts::la-county-ciag-2027","name":"Los Angeles County Department of Arts and Culture: Community Impact Arts Grant 2027–28"},
+        {"id":"local-la-county-arts::la-county-ogp-2027","name":"Los Angeles County Department of Arts and Culture: Organizational Grant Program 2027–29"},
+        {"id":"recaOrO8KmDZzmLEZ::alborada-ventures-2025-migrant-integration-financing","name":"Radical Flexibility Fund: Alborada Ventures: 2025 migrant-integration financing"}
+      ]
+    },
+    "fr-12": {
+      "name": "Community Composting Hub in Mérida",
+      "keyword": [
+        {"id":"recngyJvK8E46evcP::katapult-ocean-seed-to-series-b-impact-investment","name":"Katapult: Katapult Ocean: seed to Series B impact investment"},
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"recdHjcFXirt4pSTZ::education-partnerships-current-funding-access","name":"Central Square Foundation (CSF): Education partnerships: current funding access"},
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"},
+        {"id":"recrC1R2OMdg61MvQ::wkkf-ongoing-letters-of-inquiry","name":"W.K. Kellogg Foundation (WKKF): WKKF ongoing letters of inquiry"}
+      ],
+      "funding": [
+        {"id":"recdHjcFXirt4pSTZ::education-partnerships-current-funding-access","name":"Central Square Foundation (CSF): Education partnerships: current funding access"},
+        {"id":"recngyJvK8E46evcP::katapult-ocean-seed-to-series-b-impact-investment","name":"Katapult: Katapult Ocean: seed to Series B impact investment"},
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"},
+        {"id":"recrC1R2OMdg61MvQ::wkkf-ongoing-letters-of-inquiry","name":"W.K. Kellogg Foundation (WKKF): WKKF ongoing letters of inquiry"}
+      ],
+      "mcp": [
+        {"id":"recdHjcFXirt4pSTZ::education-partnerships-current-funding-access","name":"Central Square Foundation (CSF): Education partnerships: current funding access"},
+        {"id":"recngyJvK8E46evcP::katapult-ocean-seed-to-series-b-impact-investment","name":"Katapult: Katapult Ocean: seed to Series B impact investment"},
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"local-california-dwr::ca-urban-streams-2026","name":"California Department of Water Resources: Urban Streams Restoration Program: 2026 solicitation"},
+        {"id":"recrC1R2OMdg61MvQ::wkkf-ongoing-letters-of-inquiry","name":"W.K. Kellogg Foundation (WKKF): WKKF ongoing letters of inquiry"}
+      ]
+    },
+    "fr-13": {
+      "name": "Place-Based Environment Education Network",
+      "keyword": [
+        {"id":"recGrWuo2s6fUYukL::blaustein-group-general-and-project-grants","name":"Blaustein Philanthropic Group: Blaustein group general and project grants"},
+        {"id":"recaoWDJ9bgmtXQAM::final-local-essex-county-funding-round-2027","name":"New England Biolabs Foundation: Final local Essex County funding round: 2027"},
+        {"id":"recqd3f6mBVBdH2ID::seabury-family-grants","name":"The Seabury Foundation: Seabury Family Grants"},
+        {"id":"recDJ0b7Ie0Hih6hy::kresge-application-policy","name":"Kresge Foundation: Kresge application policy"},
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"}
+      ],
+      "funding": [
+        {"id":"local-table-mountain::table-mountain-small","name":"The Table Mountain Fund: Pride and Care: small grants"},
+        {"id":"recaoWDJ9bgmtXQAM::final-local-essex-county-funding-round-2027","name":"New England Biolabs Foundation: Final local Essex County funding round: 2027"},
+        {"id":"recqd3f6mBVBdH2ID::seabury-family-grants","name":"The Seabury Foundation: Seabury Family Grants"},
+        {"id":"recDJ0b7Ie0Hih6hy::kresge-application-policy","name":"Kresge Foundation: Kresge application policy"},
+        {"id":"recEHr45RGvwiObx6::learning-by-nature-student-climate-and-biodiversity-leadership-grants","name":"BC Parks Foundation: Learning by Nature Student Climate and Biodiversity Leadership Grants"}
+      ],
+      "mcp": [
+        {"id":"local-table-mountain::table-mountain-small","name":"The Table Mountain Fund: Pride and Care: small grants"},
+        {"id":"recaoWDJ9bgmtXQAM::final-local-essex-county-funding-round-2027","name":"New England Biolabs Foundation: Final local Essex County funding round: 2027"},
+        {"id":"recqd3f6mBVBdH2ID::seabury-family-grants","name":"The Seabury Foundation: Seabury Family Grants"},
+        {"id":"recDJ0b7Ie0Hih6hy::kresge-application-policy","name":"Kresge Foundation: Kresge application policy"},
+        {"id":"recEHr45RGvwiObx6::learning-by-nature-student-climate-and-biodiversity-leadership-grants","name":"BC Parks Foundation: Learning by Nature Student Climate and Biodiversity Leadership Grants"}
+      ]
+    },
+    "fr-14": {
+      "name": "Biocultural Heritage in the Cordillera Negra",
+      "keyword": [
+        {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"rec6wQIVWX6v3SjAi::climate-and-special-interest-partnerships","name":"Kreitman Foundation: Climate and special-interest partnerships"},
+        {"id":"recB4EfLh3AZGu6SD::justtransition-integratedcapital-fund","name":"Justice Funders: Just Transition Integrated Capital Fund"},
+        {"id":"rec0vSlKqMT1w9WyA::city-run-youth-climate-competitions","name":"Youth Climate Action Fund: City-run youth climate competitions"}
+      ],
+      "funding": [
+        {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recB4EfLh3AZGu6SD::justtransition-integratedcapital-fund","name":"Justice Funders: Just Transition Integrated Capital Fund"},
+        {"id":"rec0vSlKqMT1w9WyA::city-run-youth-climate-competitions","name":"Youth Climate Action Fund: City-run youth climate competitions"},
+        {"id":"local-iki::iki-small-grants-2027","name":"International Climate Initiative / GIZ: IKI Small Grants: eighth call 2027"}
+      ],
+      "mcp": [
+        {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recB4EfLh3AZGu6SD::justtransition-integratedcapital-fund","name":"Justice Funders: Just Transition Integrated Capital Fund"},
+        {"id":"rec0vSlKqMT1w9WyA::city-run-youth-climate-competitions","name":"Youth Climate Action Fund: City-run youth climate competitions"},
+        {"id":"local-iki::iki-small-grants-2027","name":"International Climate Initiative / GIZ: IKI Small Grants: eighth call 2027"}
+      ]
+    },
+    "fr-15": {
+      "name": "Cozinha Comunitária e Horta Escolar",
+      "keyword": [
+        {"id":"recKkrUEyYu4JTxvZ::general-project-grants-year-round-letter-of-intent","name":"Instituto Clima e Sociedade (iCS): General project grants: year-round letter of intent"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
+        {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
+      ],
+      "funding": [
+        {"id":"recKkrUEyYu4JTxvZ::general-project-grants-year-round-letter-of-intent","name":"Instituto Clima e Sociedade (iCS): General project grants: year-round letter of intent"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+      ],
+      "mcp": []
+    },
+    "fr-16": {
+      "name": "Radio Comunitaria de Pescadoras",
+      "keyword": [
+        {"id":"local-ardc::ardc-grants","name":"Amateur Radio Digital Communications: ARDC grants"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
+        {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
+      ],
+      "funding": [
+        {"id":"local-ardc::ardc-grants","name":"Amateur Radio Digital Communications: ARDC grants"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
+        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+      ],
+      "mcp": [
+        {"id":"local-ardc::ardc-grants","name":"Amateur Radio Digital Communications: ARDC grants"}
+      ]
+    },
+    "fr-17": {
+      "name": "Open Water Points Map",
+      "keyword": [
+        {"id":"local-floss-fund::floss-fund","name":"FLOSS/fund: Open-source sustainability funding"},
+        {"id":"local-futo::futo-microgrants","name":"FUTO: FUTO microgrants"},
+        {"id":"local-gcc::gcc-digital-commons","name":"GCC: Digital Commons funding"},
+        {"id":"local-geode-labs::geode-labs","name":"Geode Labs: Ethereum community infrastructure grants"},
+        {"id":"local-sovereign-tech::sovereign-tech-fund","name":"Sovereign Tech Agency: Sovereign Tech Fund"}
+      ],
+      "funding": [
+        {"id":"local-floss-fund::floss-fund","name":"FLOSS/fund: Open-source sustainability funding"},
+        {"id":"local-futo::futo-microgrants","name":"FUTO: FUTO microgrants"},
+        {"id":"local-gcc::gcc-digital-commons","name":"GCC: Digital Commons funding"},
+        {"id":"local-geode-labs::geode-labs","name":"Geode Labs: Ethereum community infrastructure grants"},
+        {"id":"local-sovereign-tech::sovereign-tech-fund","name":"Sovereign Tech Agency: Sovereign Tech Fund"}
+      ],
+      "mcp": [
+        {"id":"local-floss-fund::floss-fund","name":"FLOSS/fund: Open-source sustainability funding"},
+        {"id":"local-futo::futo-microgrants","name":"FUTO: FUTO microgrants"},
+        {"id":"local-gcc::gcc-digital-commons","name":"GCC: Digital Commons funding"},
+        {"id":"local-geode-labs::geode-labs","name":"Geode Labs: Ethereum community infrastructure grants"},
+        {"id":"local-sovereign-tech::sovereign-tech-fund","name":"Sovereign Tech Agency: Sovereign Tech Fund"}
+      ]
+    },
+    "fr-18": {
+      "name": "Murals for a Plastic-Free Accra",
+      "keyword": [
+        {"id":"recw3cebtq8K4YdD0::grantmaking-process","name":"Barr Foundation: Grantmaking process"},
+        {"id":"rec89DjJs1dqPyQ2g::arts-learning-education-and-employment-grants","name":"Lloyd A. Fry Foundation: Arts Learning, Education and Employment grants"},
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"},
+        {"id":"recD5mfbCpYYLj6Cb::endowments-loi-grant-process","name":"Heinz Endowments: Endowments LOI grant process"},
+        {"id":"recPzI2IDo42PIDqI::rbf-grant-requests","name":"Rockefeller Brothers Fund: RBF grant requests"}
+      ],
+      "funding": [
+        {"id":"recwNYbgyirnLcv6X::creation-fund-phasei","name":"National Performance Network: Creation Fund: PhaseI"},
+        {"id":"recT5XdmTXbMjMS78::youth-climate-fund-for-zero-waste-2024-call","name":"UMI Fund: Youth Climate Fund for Zero Waste: 2024 call"},
+        {"id":"recw3cebtq8K4YdD0::grantmaking-process","name":"Barr Foundation: Grantmaking process"},
+        {"id":"rec89DjJs1dqPyQ2g::arts-learning-education-and-employment-grants","name":"Lloyd A. Fry Foundation: Arts Learning, Education and Employment grants"},
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"}
+      ],
+      "mcp": [
+        {"id":"recwNYbgyirnLcv6X::creation-fund-phasei","name":"National Performance Network: Creation Fund: PhaseI"},
+        {"id":"recT5XdmTXbMjMS78::youth-climate-fund-for-zero-waste-2024-call","name":"UMI Fund: Youth Climate Fund for Zero Waste: 2024 call"},
+        {"id":"recw3cebtq8K4YdD0::grantmaking-process","name":"Barr Foundation: Grantmaking process"},
+        {"id":"rec89DjJs1dqPyQ2g::arts-learning-education-and-employment-grants","name":"Lloyd A. Fry Foundation: Arts Learning, Education and Employment grants"},
+        {"id":"recL861Z2dFguYZJ1::humanities-in-place","name":"Mellon Foundation: Humanities in Place"}
+      ]
+    },
+    "fr-19": {
+      "name": "Soil Testing for Coffee Cooperatives",
+      "keyword": [
+        {"id":"reccZG8TtBrCwLG7R::shell-foundation-clean-energy-partnerships","name":"Shell Foundation: Shell Foundation clean-energy partnerships"},
+        {"id":"recb5VpXOFbqvyiJD::sat-cfp1-2008-agricultural-small-grants","name":"Southern Africa Trust: CFP1/2008 agricultural small grants: closed 8 December 2008"},
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"local-zero-foodprint::zero-foodprint","name":"Zero Foodprint: Restore Grants: October 2026"},
+        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"}
+      ],
+      "funding": [
+        {"id":"recb5VpXOFbqvyiJD::sat-cfp1-2008-agricultural-small-grants","name":"Southern Africa Trust: CFP1/2008 agricultural small grants: closed 8 December 2008"},
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"local-zero-foodprint::zero-foodprint","name":"Zero Foodprint: Restore Grants: October 2026"},
+        {"id":"reccZG8TtBrCwLG7R::shell-foundation-clean-energy-partnerships","name":"Shell Foundation: Shell Foundation clean-energy partnerships"},
+        {"id":"recg4hjcfF8JGHSxi::enteric-fermentation-rd-accelerator","name":"Global Methane Hub (GMH): Enteric Fermentation R&D Accelerator"}
+      ],
+      "mcp": [
+        {"id":"recb5VpXOFbqvyiJD::sat-cfp1-2008-agricultural-small-grants","name":"Southern Africa Trust: CFP1/2008 agricultural small grants: closed 8 December 2008"},
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"local-zero-foodprint::zero-foodprint","name":"Zero Foodprint: Restore Grants: October 2026"},
+        {"id":"reccZG8TtBrCwLG7R::shell-foundation-clean-energy-partnerships","name":"Shell Foundation: Shell Foundation clean-energy partnerships"},
+        {"id":"recg4hjcfF8JGHSxi::enteric-fermentation-rd-accelerator","name":"Global Methane Hub (GMH): Enteric Fermentation R&D Accelerator"}
+      ]
+    },
+    "fr-20": {
+      "name": "Beekeeping Cooperative",
+      "keyword": [
+        {"id":"rec7h7mbGFBNdNWpM::rapid-response-support-arr","name":"Fondo de Acción Urgente de América Latina y el Caribe (Urgent Action Fund LAC): Apoyos de Respuesta Rápida (ARR)"},
+        {"id":"recLOzkrqFSKKa1bh::uaf-africa-rapid-response","name":"Urgent Action Fund–Africa (UAF-Africa): Rapid Response Grants"},
+        {"id":"rectDVJJYBCxo3Ahs::clare-strategic-giving","name":"Clare Foundation (New Zealand): Clare strategic giving"},
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"recYn5utG7XAVs30n::doria-open-call","name":"Doria Feminist Fund: Feminist collective grants"}
+      ],
+      "funding": [
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"rec7h7mbGFBNdNWpM::rapid-response-support-arr","name":"Fondo de Acción Urgente de América Latina y el Caribe (Urgent Action Fund LAC): Apoyos de Respuesta Rápida (ARR)"},
+        {"id":"recLOzkrqFSKKa1bh::uaf-africa-rapid-response","name":"Urgent Action Fund–Africa (UAF-Africa): Rapid Response Grants"},
+        {"id":"rectDVJJYBCxo3Ahs::clare-strategic-giving","name":"Clare Foundation (New Zealand): Clare strategic giving"},
+        {"id":"recYn5utG7XAVs30n::doria-open-call","name":"Doria Feminist Fund: Feminist collective grants"}
+      ],
+      "mcp": [
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"rec7h7mbGFBNdNWpM::rapid-response-support-arr","name":"Fondo de Acción Urgente de América Latina y el Caribe (Urgent Action Fund LAC): Apoyos de Respuesta Rápida (ARR)"},
+        {"id":"recLOzkrqFSKKa1bh::uaf-africa-rapid-response","name":"Urgent Action Fund–Africa (UAF-Africa): Rapid Response Grants"},
+        {"id":"rectDVJJYBCxo3Ahs::clare-strategic-giving","name":"Clare Foundation (New Zealand): Clare strategic giving"},
+        {"id":"recYn5utG7XAVs30n::doria-open-call","name":"Doria Feminist Fund: Feminist collective grants"}
+      ]
+    }
+  }
+}

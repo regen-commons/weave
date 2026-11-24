@@ -189,3 +189,38 @@ test("what the copy says about cloud speech is what the recorder and the server 
   assert.match(read("src/pages/Settings.tsx"), /deviceCloudConsent\(\)\.withdraw\(\)/u);
   assert.notEqual(CLOUD_SPEECH_KEY, BROWSER_SPEECH_KEY);
 });
+
+test("what the copy says about a connected assistant is what the MCP endpoint does", () => {
+  const section = DATA_POLICY.find(({ title }) => title === "An AI Assistant You Connect")!.body.join(" ");
+  // Everything the tool takes is named, not only the description.
+  assert.match(section, /sends Weave your description and any topics, countries and kind of applicant it adds/u);
+  assert.match(section, /on its server for that one answer, and does not store or log them/u);
+  assert.match(section, /What your assistant keeps is up to that assistant, not Weave/u);
+  assert.match(section, /This is separate from Weave's own assistant/u);
+  // Weave's own assistant is a different thing, and what is said of it still holds.
+  assert.match(policy, /The assistant sends no words to a cloud model/u);
+  // The endpoint offers the tool the copy describes, and tells the assistant the same thing.
+  const contract = read("../api/src/agent-tools-contract.ts");
+  assert.match(contract, /name: "find_funds_for_initiative"/u);
+  assert.match(contract, /it is not stored, logged or shared/u);
+  // Its log line carries a tool's name, how the call ended and how long it took: no arguments, so no description.
+  const http = read("../api/src/mcp-http.ts");
+  assert.match(http, /export type McpLog = \(entry: \{ tool: string; outcome: [^;]+; ms: number \}\) => void;/u);
+  assert.match(read("../api/src/mcp.ts"), /log: \(entry\) => console\.log\(JSON\.stringify\(\{ event: "mcp_tool", \.\.\.entry \}\)\),/u);
+  for (const argument of ["description", "themes", "work_countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"])
+    assert.match(contract, new RegExp(`"${argument}"`, "u"), argument);
+  assert.match(contract, /fields\(input, \["description", "themes", "work_countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"\]\)/u,
+    "the tool takes these and nothing else, which is what the copy lists");
+  // The count the copy mentions is kept in memory, by address.
+  assert.match(section, /counts requests by network address in its memory\. It does not save those counts/u);
+  assert.match(read("../api/src/mcp-limit.ts"), /const callers = new Map<string, Count>\(\);/u);
+  // This reads the source for the obvious ways to keep something. The behaviour itself, that a description never
+  // reaches the answer or the log, is tested where the code runs, in @weave/api's mcp.test.ts.
+  assert.match(read("../api/src/mcp.test.ts"), /a description never reaches the log or the console through the configured handler/u);
+  // Nothing in the code that ranks, or that calls it, writes anywhere: no database, no file, no outbound request.
+  assert.doesNotMatch(http, /console\.|writeFile|postgres|\bfetch\(/u);
+  const tools = read("../api/src/agent-tools.ts");
+  assert.doesNotMatch(tools, /\bfetch\(|writeFile|postgres|console\.|localStorage|\bsql`/u);
+  // The other tools only read what is already public, as the copy says.
+  assert.match(section, /search the fund list and the public initiatives, which anyone can read/u);
+});

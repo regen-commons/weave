@@ -20,6 +20,12 @@
  *   logs nothing (`src/describe/speech-cloud.ts`, `@weave/api` transcribe). The device keeps the
  *   time and length of each recording sent, and nothing of its content
  *   (`src/describe/speech-cloud-log.ts`).
+ * - Someone's own AI assistant can read Weave's public data through `/api/mcp`. One of its tools takes
+ *   a description, topics, countries and kind of applicant that the assistant sends, and ranks the fund
+ *   list on Weave's server for that one answer; none of it is stored or logged
+ *   (`find_funds_for_initiative` in `@weave/api` agent-tools, and the log line in `@weave/api` mcp-http).
+ *   The server counts requests by address in memory only (`@weave/api` mcp-limit). This is not Weave's
+ *   own assistant, which still sends no words to a cloud model.
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
@@ -96,6 +102,14 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     body: [
       "The assistant reads your words on this device, with keyword rules or a model already built into your browser, and only after you choose it. The assistant sends no words to a cloud model.",
       "Places are kept as you wrote them, with no map lookup.",
+    ],
+  },
+  {
+    title: "An AI Assistant You Connect",
+    body: [
+      "You can connect your own AI assistant, such as Claude, to Weave. This is separate from Weave's own assistant. It can then search the fund list and the public initiatives, which anyone can read.",
+      "If you ask it to find funds for your initiative, it sends Weave your description and any topics, countries and kind of applicant it adds. Weave compares them with the fund list on its server for that one answer, and does not store or log them. What your assistant keeps is up to that assistant, not Weave.",
+      "To limit misuse, the server counts requests by network address in its memory. It does not save those counts.",
     ],
   },
   {

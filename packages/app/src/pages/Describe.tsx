@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
-import { MAX_FILE_BYTES, newDraft, revise, type FieldKey, type RecordForm } from "../describe/contracts.ts";
+import { MAX_FILE_BYTES, newDraft, revise, type DeviceDraft, type FieldKey, type RecordForm } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import {
   FieldsProblem,
@@ -39,7 +39,7 @@ import { DescribeExamples } from "./DescribeExamples.tsx";
 import { useSocialFixture } from "../social/context.tsx";
 import { publicFacts } from "../social/words.ts";
 import { fullDate } from "../home.ts";
-import { publicCard } from "../initiative/status.ts";
+import { afterInitiative, publicCard } from "../initiative/status.ts";
 import { Facts } from "../ui/Facts.tsx";
 import { useAccountDoor } from "../account/door.tsx";
 
@@ -322,8 +322,9 @@ export function Describe({
   }
   function next(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    let card: DeviceDraft;
     try {
-      controller.change(continueDescribe);
+      card = controller.change(continueDescribe);
     } catch (error) {
       // The press comes from the Step bar or a phone's dock, away from where the problem is. One
       // about a field is written at that field, which takes the focus, so the answer can be typed
@@ -339,7 +340,8 @@ export function Describe({
       );
       return;
     }
-    navigate(fixtureHref(pathTo("needs"), routeSearch(), import.meta.env.DEV));
+    // Back to the card when its needs and offers are still checked, otherwise on to needs.
+    navigate(fixtureHref(pathTo(afterInitiative(card)), routeSearch(), import.meta.env.DEV));
   }
   const offline = view === "offline" || !navigator.onLine;
   // Talking leads while nothing is written yet. After that Continue is the one filled button.
@@ -417,10 +419,9 @@ export function Describe({
             </p>
           )}
           {import.meta.env.DEV && fixture && view && <DescribeExamples key={view} view={view} />}
-          {!linked && <section className="rc-stack" aria-labelledby="describe-talk">
-            <Heading level={2} size="section" id="describe-talk">
-              Say It In Your Own Words
-            </Heading>
+          {/* No heading of its own: the page's title already asks, and on a phone a second heading
+              pushed the box to the fold (DL-127). */}
+          {!linked && <div className="rc-stack">
             {/* What to say, in the order the fields under the box are filled (DL-127). */}
             <p>
               {!talksHere(speech.state)
@@ -463,7 +464,7 @@ export function Describe({
               />
               {files}
             </div>
-          </section>}
+          </div>}
           <form className="rc-form" data-width="full" id={FIELDS_ID} noValidate inert={!ready || undefined} onSubmit={next} onKeyDown={moveOnEnter}>
             <Heading level={2} size="section">
               Your Initiative

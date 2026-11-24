@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { completeLink } from "../src/describe/forms.ts";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { ABOUT_LIMIT, DeviceDraftSchema, EMPTY_INITIATIVE, addAnswer, newDraft, revise, type DeviceDraft, type Initiative } from "../src/describe/contracts.ts";
@@ -186,7 +187,7 @@ test("typing alone makes a card: the four fields, one Continue, and plain words 
   const tooLong = editFields(newDraft(), { name: "Orchard circle", where: "", about: "a".repeat(ABOUT_LIMIT + 1), links: "" });
   assert.throws(() => continueDescribe(tooLong), /400 characters/);
   const badLink = editFields(newDraft(), { name: "Orchard circle", where: "", about: "", links: "example" });
-  assert.throws(() => continueDescribe(badLink), /complete http or https link/);
+  assert.throws(() => continueDescribe(badLink), /Use a web address, such as example\.org\./);
   // Changing a field after Continue asks for Continue again, and the route says so.
   const edited = editFields(card, { ...fieldsForm(card), name: "Orchard learning circle" });
   assert.equal(edited.confirmed, null);
@@ -424,4 +425,20 @@ test("the one link field keeps its own slot: clearing it leaves it empty, and ty
   const oneLine = { ...start, links: "https://example.org/one https://example.org/two" };
   assert.equal(mainLink(oneLine), "https://example.org/one");
   assert.deepEqual(otherLinks(oneLine), ["https://example.org/two"]);
+});
+
+test("a bare address is taken as typed, with https:// in front, and what is not an address is still refused", () => {
+  const card = (links: string) =>
+    continueDescribe(editFields(newDraft(), { name: "Orchard circle", where: "", about: "", links })).confirmed!.links;
+  assert.deepEqual(card("orchardcircle.example.org"), ["https://orchardcircle.example.org"]);
+  assert.deepEqual(card("  www.example.org/seeds?season=dry  "), ["https://www.example.org/seeds?season=dry"]);
+  assert.deepEqual(card("http://example.org"), ["http://example.org"], "a link with its own scheme is kept as typed");
+  assert.deepEqual(card("https://example.org/a"), ["https://example.org/a"]);
+  for (const typed of ["example", "name@example.org", "mailto:name@example.org", "//example.org", "ftp://example.org", "https://user:secret@example.org"])
+    assert.throws(() => card(typed), (error) => error instanceof FieldsProblem && error.field === "links", typed);
+  assert.equal(completeLink(""), "");
+  assert.equal(completeLink("Example.ORG"), "https://Example.ORG");
+  // The field keeps what the person typed; the card holds the address it opens.
+  const typed = editFields(newDraft(), { name: "Orchard circle", where: "", about: "", links: "orchardcircle.example.org" });
+  assert.equal(mainLink(fieldsForm(typed)), "orchardcircle.example.org");
 });

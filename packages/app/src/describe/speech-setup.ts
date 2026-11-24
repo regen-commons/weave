@@ -374,15 +374,18 @@ export function talkControls(
       return SILENT;
     case "none":
       return { ...SILENT, note: touch ? KEYBOARD_MIC : NO_SPEECH };
+    // The button says what it does, and its line waits for the press: before it, the line kept the
+    // box at the fold on a phone. Its room is kept all the same, so nothing moves as speech is
+    // found on load or when the setup starts (DL-127).
     case "offer":
+      return { ...SILENT, action: "set-up", label: "Set Up Speech" };
+    case "installing":
       return {
         ...SILENT,
-        action: "set-up",
-        label: "Set Up Speech",
-        note: "Your browser may download speech files for this language first. Audio stays on this device.",
+        action: "setting-up",
+        label: "Setting Up Speech",
+        note: "Your browser may download speech files for this language. You can type while you wait.",
       };
-    case "installing":
-      return { ...SILENT, action: "setting-up", label: "Setting Up Speech", note: "Downloading and setting up. You can type while you wait." };
     case "slow":
       return {
         ...SILENT,
