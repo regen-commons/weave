@@ -78,11 +78,31 @@ and callback addresses are public configuration; credentials belong in secret st
 This isolated proof used its own keys, relying-party credentials and database.
 The shared test now uses the stable issuer described above.
 
-Vercel detects `packages/api/server.ts` as a Node server. Deploy with
-`packages/api` as the project root, workspace source enabled, and
-`bunx bun@1.4.2 install --frozen-lockfile --filter @weave/api` from the workspace
-root. The proof used an allowlisted
-source upload with the workspace manifests, lockfile and bridge code. The function
+Deploy the bridge with `packages/api/scripts/deploy-bridge.sh` from a clean
+checkout of the commit to release: a preview by default, or with `--prod` a
+production deployment that is not yet on the domain (`--skip-domain`). Set `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` for `weave-certified-preview`
+first. The script installs from the lockfile, runs the typecheck and the bridge
+and sign-in tests, builds the bridge as Vercel Build Output with
+`scripts/build-bridge.mjs`, and uploads only that with `vercel deploy --prebuilt`.
+The output is one Node 26 function, `index.func`, holding the same listener as
+`server.ts` bundled with its libraries by the workspace's esbuild, and a route
+that sends every path to it. Nothing is installed, built or detected on Vercel,
+no `vercel.json` is involved, and the project's settings and environment
+variables are left as they are. They still reach the function at run time.
+
+Earlier deploys relied on Vercel detecting `packages/api/server.ts` as a Node
+server, with an allowlisted source upload. On 24 November 2026 a CLI deploy of
+the whole repository built without error but served no function, so every path
+answered Vercel's 404 until it was rolled back. A deployment's own address
+cannot show the sign-in itself, because the bridge answers only its issuer's
+host. A 421 with `Cache-Control: no-store`, or 503 `sign_in_unavailable` where
+that environment has no issuer, shows that the bridge is running. Vercel's
+`NOT_FOUND` shows that it is not. Then `vercel promote <url>` moves the domain to
+the staged production deployment without rebuilding it. Never promote a preview
+and never use the dashboard's Redeploy for this project: Vercel rebuilds both
+from the `packages/api` source, which is how the bridge once had no function.
+After promoting, expect 200 from `/client-metadata.json` and 204 with
+`Server-Timing` from `/warm`, and roll back if either is wrong. The function
 requires the stable issuer Host and an HTTPS forwarding header. It discards
 incoming forwarding metadata and caps requests per instance. Each warm instance
 keeps up to two database connections. Expired state is rejected by the database
