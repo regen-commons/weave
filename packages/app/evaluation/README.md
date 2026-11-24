@@ -21,8 +21,9 @@ Fourteen initiatives are paraphrased from public Certified project records (each
 its `sourceUri`, and no person's name), and six are invented in the same style to add
 Portuguese, Spanish, software, art and a one-line card. Countries and applicant types
 are assumed where a record does not say. No initiative has themes: a card confirmed on
-the describe step holds none since DL-127, so every path ranks the description alone,
-as the app does. Every path ranks as of the catalog's `compiledAt`, so the result
+the describe step holds none since DL-127. Funding and the MCP tool rank the description
+with the catalog topics its Portuguese or Spanish words name (DL-142), as the app does,
+and the live site ranks it alone. Every path ranks as of the catalog's `compiledAt`, so the result
 depends only on the code and the catalog, and moves on when the catalog does.
 
 ```sh
@@ -145,6 +146,15 @@ typed description becomes a card, and a recording becomes a few long cards that 
 hold several items, their titles cut at 140 characters. Link is filled from a full
 address such as `https://mangrove-futures.example.org`, but not from a bare domain such
 as "greengoods.app" or from one said aloud.
+
+### What better places would need (24 November 2026)
+
+Where you work is the field the holdout shows weakest (recall 0.06), and keyword rules cannot raise it without wrong places. Three reviews attacked three successive attempts to read places said in a sentence ("we grow vegetables in Accra, Ghana", "trabajamos en Oaxaca, México", "worldwide"). Each found dozens of sentences that gave someone else's place, a past or a wish, a firm or a pepper with a country's name, or a false Global: 85 of 112, then 73 of 81, then 67 of 83 even for the strictest version. A wrong place is worse than none, so no rule that widens Where was shipped. Their 290 sentences, and the attempt, are kept with the describe-flow session's notes. Better places need one of two things, a choice for the user:
+
+- **A vetted place list on the device**: towns and regions with their countries, so a place said without a capital or a country ("bristol", "belo horizonte minas gerais") is known to be one, and a country's name that is also a word or a person ("chile", "Jordan") is told apart by what is around it. It needs a named source with a licence that allows shipping it (for example GeoNames, CC BY 4.0, which would need attribution), a size budget, and the same review against attack sentences before it ships.
+- **The on-device model** (D32 in `docs/platform/open-decisions.md`): it reads a sentence's meaning, which keywords cannot, but it is not yet approved, its download sizes and devices are unproven, and its answers would need the same precision gate on this eval and on attack sentences.
+
+What did ship is the opposite direction: places the rules already gave wrongly are gone (`test/places-false.test.ts`).
 
 ## Labels
 

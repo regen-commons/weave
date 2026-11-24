@@ -53,7 +53,7 @@ As built, `get_project` returns the same card `search_projects` does, found by a
 
 `find_funds_for_initiative` takes a description and optional details (countries, applicant type, funding range) and returns the catalog rubric's ranked programs with the reasons and what still needs checking.
 
-As built, it takes the description, optional themes, countries and the kind of applicant, and returns programs with at least one specific topic in common, strongest fit first, each with its next step and the open checks from the catalog's screening data. It takes no funding range yet.
+As built, it takes the description, optional themes, countries and the kind of applicant, and returns programs with at least one specific topic in common, strongest fit first, each with its next step and the open checks from the catalog's screening data. A Portuguese or Spanish description is read in the catalog's English topics, as Funding reads it ([DL-142](../../packages/design-system/decision-log.md#dl-142-funding-reads-portuguese-and-spanish-words-as-the-catalogs-topics)). It takes no funding range yet.
 
 This is the first tool where a person's own words reach Weave's server. In the app the same ranking runs on the device, and that is a stated privacy position ([spec 12](05-technical-spec.md#12-security-and-privacy)). The tool would rank in memory, store nothing and log nothing, and its description would tell the assistant so. It still changes what Weave's server sees, so it is its own decision ([D39](open-decisions.md#agent-access)). The on-device alternative is WebMCP, below.
 
