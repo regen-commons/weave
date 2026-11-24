@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { z } from "zod";
+import { z } from "../src/validation.ts";
 import {
   accessSign,
   awardLabel,

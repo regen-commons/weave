@@ -32,50 +32,54 @@ export const URGENCY = {
   ongoing: "Ongoing",
 } as const;
 export const STATUS = { open: "Open", met: "Met", withdrawn: "Withdrawn", expired: "Expired" } as const;
+// Classic Zod's `.finite()` did nothing: a number schema already refuses Infinity and NaN.
 const AmountSchema = z
   .strictObject({
-    min: z.number().finite().nonnegative().nullable(),
-    max: z.number().finite().nonnegative().nullable(),
-    currency: z.string().regex(/^[A-Z]{3}$/),
+    min: z.nullable(z.number().check(z.nonnegative())),
+    max: z.nullable(z.number().check(z.nonnegative())),
+    currency: z.string().check(z.regex(/^[A-Z]{3}$/)),
   })
-  .refine(
-    (value) =>
-      (value.min !== null || value.max !== null) &&
-      (value.min === null || value.max === null || value.min <= value.max),
-    "Add an amount or range in order.",
+  .check(
+    z.refine(
+      (value) =>
+        (value.min !== null || value.max !== null) &&
+        (value.min === null || value.max === null || value.min <= value.max),
+      "Add an amount or range in order.",
+    ),
   );
 export const AskSuggestionSchema = z
   .strictObject({
-    title: z.string().trim().min(1).max(140),
-    description: z.string().max(600).nullable(),
-    capitalForms: z.array(CapitalFormSchema).max(8),
-    amount: AmountSchema.nullable(),
-    timeframe: z.string().max(200).nullable(),
-    urgency: UrgencySchema.nullable(),
+    title: z.string().check(z.trim(), z.minLength(1), z.maxLength(140)),
+    description: z.nullable(z.string().check(z.maxLength(600))),
+    capitalForms: z.array(CapitalFormSchema).check(z.maxLength(8)),
+    amount: z.nullable(AmountSchema),
+    timeframe: z.nullable(z.string().check(z.maxLength(200))),
+    urgency: z.nullable(UrgencySchema),
     placeScope: ScopeSchema,
-    exchangeTerms: z.array(ExchangeTermSchema).min(1).max(5),
-    purpose: z.string().max(400).nullable(),
-    capacity: z.string().max(200).nullable(),
-    audience: z.string().max(200).nullable(),
+    exchangeTerms: z.array(ExchangeTermSchema).check(z.minLength(1), z.maxLength(5)),
+    purpose: z.nullable(z.string().check(z.maxLength(400))),
+    capacity: z.nullable(z.string().check(z.maxLength(200))),
+    audience: z.nullable(z.string().check(z.maxLength(200))),
     status: StatusSchema,
   })
-  .refine(
-    (value) =>
-      new Set(value.capitalForms).size === value.capitalForms.length &&
-      new Set(value.exchangeTerms).size === value.exchangeTerms.length,
-    "Choose each kind and term once.",
-  )
-  .refine(
-    (value) => !value.exchangeTerms.includes("open") || value.exchangeTerms.length === 1,
-    "Open to anything includes the other terms.",
-  )
-  .refine(
-    (value) => value.amount === null || value.capitalForms.includes("financial"),
-    "Amounts belong to Financial support.",
+  .check(
+    z.refine(
+      (value) =>
+        new Set(value.capitalForms).size === value.capitalForms.length &&
+        new Set(value.exchangeTerms).size === value.exchangeTerms.length,
+      "Choose each kind and term once.",
+    ),
+    z.refine(
+      (value) => !value.exchangeTerms.includes("open") || value.exchangeTerms.length === 1,
+      "Open to anything includes the other terms.",
+    ),
+    z.refine(
+      (value) => value.amount === null || value.capitalForms.includes("financial"),
+      "Amounts belong to Financial support.",
+    ),
   );
-export const AskSchema = AskSuggestionSchema.refine(
-  (value) => value.capitalForms.length > 0,
-  "Choose at least one kind of support.",
+export const AskSchema = AskSuggestionSchema.check(
+  z.refine((value) => value.capitalForms.length > 0, "Choose at least one kind of support."),
 );
 export type AskFields = z.infer<typeof AskSuggestionSchema>;
 export const EMPTY_ASK: AskFields = {
@@ -93,65 +97,67 @@ export const EMPTY_ASK: AskFields = {
   status: "open",
 };
 export const AskFormSchema = z.strictObject({
-  title: z.string().max(140),
-  description: z.string().max(600),
-  capitalForms: z.array(CapitalFormSchema).max(8),
-  amountMin: z.string().max(60),
-  amountMax: z.string().max(60),
-  currency: z.string().max(3),
-  timeframe: z.string().max(200),
+  title: z.string().check(z.maxLength(140)),
+  description: z.string().check(z.maxLength(600)),
+  capitalForms: z.array(CapitalFormSchema).check(z.maxLength(8)),
+  amountMin: z.string().check(z.maxLength(60)),
+  amountMax: z.string().check(z.maxLength(60)),
+  currency: z.string().check(z.maxLength(3)),
+  timeframe: z.string().check(z.maxLength(200)),
   urgency: z.union([UrgencySchema, z.literal("")]),
   placeScope: ScopeSchema,
-  exchangeTerms: z.array(ExchangeTermSchema).max(5),
-  purpose: z.string().max(400),
-  capacity: z.string().max(200),
-  audience: z.string().max(200),
+  exchangeTerms: z.array(ExchangeTermSchema).check(z.maxLength(5)),
+  purpose: z.string().check(z.maxLength(400)),
+  capacity: z.string().check(z.maxLength(200)),
+  audience: z.string().check(z.maxLength(200)),
   status: StatusSchema,
 });
 export type AskForm = z.infer<typeof AskFormSchema>;
 /** A kept entry may have no kind of support on the device. `AskSchema` is the rule for sharing one. */
 export const AskItemSchema = z.strictObject({
-  id: z.string().uuid(),
-  sourceKey: z.string().max(100).nullable(),
+  id: z.uuid(),
+  sourceKey: z.nullable(z.string().check(z.maxLength(100))),
   fingerprint: z.string(),
   decision: z.enum(["pencil", "kept", "removed"]),
-  decisionBeforeRemove: z.enum(["pencil", "kept"]).nullable().default(null),
+  decisionBeforeRemove: z._default(z.nullable(z.enum(["pencil", "kept"])), null),
   value: AskSuggestionSchema,
 });
 export type AskItem = z.infer<typeof AskItemSchema>;
 export const AskStepSchema = z
   .strictObject({
-    mode: z.enum(["conversation", "manual"]).default("conversation"),
+    mode: z._default(z.enum(["conversation", "manual"]), "conversation"),
     turns: z.array(TurnSchema),
-    composer: z.string().max(20000),
-    answerEdits: z.record(z.string().uuid(), z.string().max(20000)),
+    composer: z.string().check(z.maxLength(20000)),
+    answerEdits: z.record(z.uuid(), z.string().check(z.maxLength(20000))),
     attachments: z.array(AttachmentSchema),
-    links: z.array(LinkSchema).max(6),
-    pendingLink: z.string().max(2048),
+    links: z.array(LinkSchema).check(z.maxLength(6)),
+    pendingLink: z.string().check(z.maxLength(2048)),
     items: z.array(AskItemSchema),
-    editor: z.strictObject({ id: z.string().uuid().nullable(), form: AskFormSchema }).nullable(),
-    inputVersion: z.number().int().nonnegative(),
-    builtVersion: z.number().int().nonnegative().nullable(),
-    reviewedVersion: z.number().int().nonnegative().nullable(),
-    heard: z.number().int().nonnegative(),
-    omitted: z.number().int().nonnegative(),
+    editor: z.nullable(z.strictObject({ id: z.nullable(z.uuid()), form: AskFormSchema })),
+    inputVersion: z.int().check(z.nonnegative()),
+    builtVersion: z.nullable(z.int().check(z.nonnegative())),
+    reviewedVersion: z.nullable(z.int().check(z.nonnegative())),
+    heard: z.int().check(z.nonnegative()),
+    omitted: z.int().check(z.nonnegative()),
     moneyNudgeSeen: z.boolean(),
-    lastBuild: z
-      .strictObject({
+    lastBuild: z.nullable(
+      z.strictObject({
         engine: z.enum(["keywords", "browser"]),
         fallback: z.boolean(),
-        unreadFiles: z.number().int().nonnegative(),
+        unreadFiles: z.int().check(z.nonnegative()),
         files: z.array(FileReadSchema),
-      })
-      .nullable(),
+      }),
+    ),
   })
-  .refine(
-    (step) => step.items.filter((item) => item.decision !== "removed").length <= STORED_ASK_LIMIT,
-    "Four is the limit.",
-  )
-  .refine(
-    (step) => new Set(step.items.map((item) => item.id)).size === step.items.length,
-    "Card identities must be unique.",
+  .check(
+    z.refine(
+      (step) => step.items.filter((item) => item.decision !== "removed").length <= STORED_ASK_LIMIT,
+      "Four is the limit.",
+    ),
+    z.refine(
+      (step) => new Set(step.items.map((item) => item.id)).size === step.items.length,
+      "Card identities must be unique.",
+    ),
   );
 export type AskStep = z.infer<typeof AskStepSchema>;
 export function emptyAskStep(): AskStep {
@@ -176,15 +182,19 @@ export function emptyAskStep(): AskStep {
 }
 export const AskExtractionSchema = z
   .strictObject({
-    items: z.array(z.strictObject({ sourceKey: z.string().max(100), value: AskSuggestionSchema })).max(ASK_LIMIT),
-    heard: z.number().int().nonnegative(),
+    items: z
+      .array(z.strictObject({ sourceKey: z.string().check(z.maxLength(100)), value: AskSuggestionSchema }))
+      .check(z.maxLength(ASK_LIMIT)),
+    heard: z.int().check(z.nonnegative()),
   })
-  .refine(
-    (result) => result.items.length === Math.min(result.heard, ASK_LIMIT),
-    "Return every heard card up to the four-card limit.",
+  .check(
+    z.refine(
+      (result) => result.items.length === Math.min(result.heard, ASK_LIMIT),
+      "Return every heard card up to the four-card limit.",
+    ),
   );
 export type AskExtraction = z.infer<typeof AskExtractionSchema>;
-export const AskChunkSchema = z.strictObject({ key: z.string().max(100), text: z.string() });
+export const AskChunkSchema = z.strictObject({ key: z.string().check(z.maxLength(100)), text: z.string() });
 export type AskChunk = z.infer<typeof AskChunkSchema>;
 export function parseExtraction(value: unknown, chunks: AskChunk[]): AskExtraction {
   const result = AskExtractionSchema.parse(value);

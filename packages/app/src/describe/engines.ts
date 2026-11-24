@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "../validation.ts";
 import { modelConstraint, SuggestionSchema, type DeviceDraft, type Initiative } from "./contracts.ts";
 
 export interface BrowserSession {
@@ -58,7 +58,7 @@ export async function browserExtract(
 export async function browserExtractUsing<T>(
   text: string,
   signal: AbortSignal,
-  contract: z.ZodType<T>,
+  contract: z.ZodMiniType<T>,
   task: string,
   factory = browserFactory(),
 ): Promise<T> {

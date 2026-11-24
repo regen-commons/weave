@@ -17,20 +17,20 @@ export const LensSchema = z.enum(["art_culture", "research", "technology", "plac
 export const DerivedKeySchema = z.enum(["stage", "lenses", "themes", "beneficiaries", "languages"]);
 export type DerivedKey = z.infer<typeof DerivedKeySchema>;
 export const SuggestionSchema = z.strictObject({
-  name: z.string().max(200),
-  locations: z.array(z.string().min(1).max(120)).max(8),
+  name: z.string().check(z.maxLength(200)),
+  locations: z.array(z.string().check(z.minLength(1), z.maxLength(120))).check(z.maxLength(8)),
   isGlobal: z.boolean(),
-  description: z.string().max(800),
-  links: z.array(LinkSchema).max(6),
-  stage: StageSchema.nullable(),
-  lenses: z.array(LensSchema).max(5),
-  themes: z.array(z.string().max(60)).max(10),
-  beneficiaries: z.array(z.string().max(80)).max(6),
-  languages: z.array(z.string().regex(/^[a-z]{2}$/)).max(6),
-  confidence: z.number().min(0).max(1),
+  description: z.string().check(z.maxLength(800)),
+  links: z.array(LinkSchema).check(z.maxLength(6)),
+  stage: z.nullable(StageSchema),
+  lenses: z.array(LensSchema).check(z.maxLength(5)),
+  themes: z.array(z.string().check(z.maxLength(60))).check(z.maxLength(10)),
+  beneficiaries: z.array(z.string().check(z.maxLength(80))).check(z.maxLength(6)),
+  languages: z.array(z.string().check(z.regex(/^[a-z]{2}$/))).check(z.maxLength(6)),
+  confidence: z.number().check(z.gte(0), z.lte(1)),
 });
-export const InitiativeSchema = SuggestionSchema.extend({
-  name: z.string().trim().min(1, "Add a name for your initiative.").max(200),
+export const InitiativeSchema = z.extend(SuggestionSchema, {
+  name: z.string().check(z.trim(), z.minLength(1, "Add a name for your initiative."), z.maxLength(200)),
 });
 export type Initiative = z.infer<typeof SuggestionSchema>;
 export const DERIVED_LABELS: Record<DerivedKey, string> = {
@@ -61,30 +61,34 @@ export const EMPTY_INITIATIVE: Initiative = {
   languages: [],
   confidence: 0,
 };
-export const PublicEditsSchema = SuggestionSchema.pick({
-  name: true,
-  description: true,
-  locations: true,
-  isGlobal: true,
-  links: true,
-}).partial();
-export const DerivedEditsSchema = SuggestionSchema.pick({
-  stage: true,
-  lenses: true,
-  themes: true,
-  beneficiaries: true,
-  languages: true,
-}).partial();
+export const PublicEditsSchema = z.partial(
+  z.pick(SuggestionSchema, {
+    name: true,
+    description: true,
+    locations: true,
+    isGlobal: true,
+    links: true,
+  }),
+);
+export const DerivedEditsSchema = z.partial(
+  z.pick(SuggestionSchema, {
+    stage: true,
+    lenses: true,
+    themes: true,
+    beneficiaries: true,
+    languages: true,
+  }),
+);
 export const RunSchema = z.strictObject({
-  id: z.string().uuid(),
+  id: z.uuid(),
   step: z.enum(["initiative", "needs", "offers"]),
   engine: z.enum(["keywords", "browser", "fixture"]),
-  model: z.string().max(80),
-  at: z.string().datetime(),
-  words: z.number().int().min(0),
+  model: z.string().check(z.maxLength(80)),
+  at: z.iso.datetime(),
+  words: z.int().check(z.gte(0)),
   cloudWords: z.literal(0),
   status: z.enum(["complete", "failed", "cancelled"]),
-  latencyMs: z.number().int().min(0),
+  latencyMs: z.int().check(z.gte(0)),
 });
 export type AiRun = z.infer<typeof RunSchema>;
 /**
@@ -96,32 +100,32 @@ export const ABOUT_LIMIT = 400;
 export const FieldKeySchema = z.enum(["name", "where", "about", "links"]);
 export type FieldKey = z.infer<typeof FieldKeySchema>;
 export const RecordFormSchema = z.strictObject({
-  name: z.string().max(200),
-  where: z.string().max(2000),
-  about: z.string().max(800),
-  links: z.string().max(14000),
+  name: z.string().check(z.maxLength(200)),
+  where: z.string().check(z.maxLength(2000)),
+  about: z.string().check(z.maxLength(800)),
+  links: z.string().check(z.maxLength(14000)),
 });
 export type RecordForm = z.infer<typeof RecordFormSchema>;
 export const ReviewEditorSchema = z.strictObject({
-  value: z.string().max(20000),
-  lenses: z.array(LensSchema).max(5),
+  value: z.string().check(z.maxLength(20000)),
+  lenses: z.array(LensSchema).check(z.maxLength(5)),
   wasKept: z.boolean(),
 });
 export type ReviewEditor = z.infer<typeof ReviewEditorSchema>;
 const AccountBindingSchema = z.strictObject({
-  id: z.string().uuid(),
-  owner: z.string().uuid(),
-  revision: z.number().int().nonnegative(),
-  contentKey: z.string().max(60000),
+  id: z.uuid(),
+  owner: z.uuid(),
+  revision: z.int().check(z.nonnegative()),
+  contentKey: z.string().check(z.maxLength(60000)),
 });
 const AccountSyncSchema = z.strictObject({
-  saved: AccountBindingSchema.nullable(),
-  pending: AccountBindingSchema.extend({ requestId: z.string().uuid() }).nullable(),
+  saved: z.nullable(AccountBindingSchema),
+  pending: z.nullable(z.extend(AccountBindingSchema, { requestId: z.uuid() })),
   /**
    * IDs of saved cards deleted from the account. The draft keeps its own ID, so device state
    * keyed by it stays attached, but a Save never reuses a retired ID.
    */
-  retired: z.array(z.string().uuid()).max(20).optional(),
+  retired: z.optional(z.array(z.uuid()).check(z.maxLength(20))),
 });
 /**
  * As many characters as a draft's words can hold once stored. The box takes far fewer by typing
@@ -132,54 +136,57 @@ const AccountSyncSchema = z.strictObject({
 export const STORED_SAID_LIMIT = 2_000_000;
 export const DeviceDraftSchema = z.strictObject({
   version: z.literal(1),
-  id: z.string().uuid(),
-  revision: z.number().int().min(0),
+  id: z.uuid(),
+  revision: z.int().check(z.gte(0)),
   /**
    * A random mark for this exact revision. Two tabs that change the same revision in the same
    * millisecond write the same number and time, and only this tells their versions apart (DL-112).
    * Drafts stored before it have none.
    */
-  mark: z.string().uuid().optional(),
-  inputVersion: z.number().int().min(0),
-  updatedAt: z.string().datetime(),
-  pendingLink: z.string().max(2048),
-  answerEdits: z.record(z.string().uuid(), z.string().max(20000)),
+  mark: z.optional(z.uuid()),
+  inputVersion: z.int().check(z.gte(0)),
+  updatedAt: z.iso.datetime(),
+  pendingLink: z.string().check(z.maxLength(2048)),
+  answerEdits: z.record(z.uuid(), z.string().check(z.maxLength(20000))),
   reviewEdits: z.partialRecord(DerivedKeySchema, ReviewEditorSchema),
-  composer: z.string().max(STORED_SAID_LIMIT),
+  composer: z.string().check(z.maxLength(STORED_SAID_LIMIT)),
   turns: z.array(TurnSchema),
-  links: z.array(LinkSchema).max(6),
+  links: z.array(LinkSchema).check(z.maxLength(6)),
   attachments: z.array(AttachmentSchema),
-  proposal: SuggestionSchema.nullable(),
-  proposalVersion: z.number().int().nullable(),
+  proposal: z.nullable(SuggestionSchema),
+  proposalVersion: z.nullable(z.int()),
   publicEdits: PublicEditsSchema,
   derivedEdits: DerivedEditsSchema,
   kept: z.array(DerivedKeySchema),
   removed: z.array(DerivedKeySchema),
   assistant: z.enum(["keywords", "browser", "none"]),
   assistantPromptDismissed: z.boolean(),
-  lastBuild: z
-    .strictObject({
+  lastBuild: z.nullable(
+    z.strictObject({
       engine: z.enum(["keywords", "browser", "manual"]),
-      unreadFiles: z.number().int().min(0),
-      sourceCharacters: z.number().int().min(0),
-      files: z.array(FileReadSchema).default([]),
+      unreadFiles: z.int().check(z.gte(0)),
+      sourceCharacters: z.int().check(z.gte(0)),
+      files: z._default(z.array(FileReadSchema), []),
       fallback: z.boolean(),
-    })
-    .nullable(),
-  confirmed: InitiativeSchema.nullable(),
-  form: RecordFormSchema.nullable(),
+    }),
+  ),
+  confirmed: z.nullable(InitiativeSchema),
+  form: z.nullable(RecordFormSchema),
   /**
    * The fields that still hold what Weave filled in from the person's words. A field leaves the
    * list when the person changes it, and a later fill never writes over one that left (DL-110).
    */
-  filled: z.array(FieldKeySchema).max(4).default([]),
+  filled: z._default(z.array(FieldKeySchema).check(z.maxLength(4)), []),
   runs: z.array(RunSchema),
   mode: z.enum(["conversation", "fields"]),
-  needs: AskStepSchema.default(emptyAskStep),
-  offers: AskStepSchema.default(emptyAskStep),
-  funding: FundingDetailsSchema.default(emptyFundingDetails),
-  partnerLeads: z.array(z.string().regex(/^[a-z0-9-]+:[a-z0-9-]+$/u).max(100)).max(200).default([]),
-  account: AccountSyncSchema.default(() => ({ saved: null, pending: null })),
+  needs: z._default(AskStepSchema, emptyAskStep),
+  offers: z._default(AskStepSchema, emptyAskStep),
+  funding: z._default(FundingDetailsSchema, emptyFundingDetails),
+  partnerLeads: z._default(
+    z.array(z.string().check(z.regex(/^[a-z0-9-]+:[a-z0-9-]+$/u), z.maxLength(100))).check(z.maxLength(200)),
+    [],
+  ),
+  account: z._default(AccountSyncSchema, () => ({ saved: null, pending: null })),
 });
 export type DeviceDraft = z.infer<typeof DeviceDraftSchema>;
 
@@ -290,7 +297,7 @@ export function confirmDraft(draft: DeviceDraft): DeviceDraft {
     throw new Error("Keep, change or remove each detail in pencil before continuing.");
   return revise(draft, { confirmed: fields });
 }
-export function modelConstraint(contract: z.ZodType = SuggestionSchema): Record<string, unknown> {
+export function modelConstraint(contract: z.ZodMiniType = SuggestionSchema): Record<string, unknown> {
   const schema: Record<string, unknown> = z.toJSONSchema(contract);
   const removeLengths = (value: unknown): void => {
     if (value && typeof value === "object") {
