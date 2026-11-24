@@ -80,6 +80,20 @@ test("the list starts with a page the HTML has read, once, and only the page it 
   assert.equal(takeReadFirstPage("/api/public-projects", holder), undefined, "a page that does not read as one is never drawn");
 });
 
+test("every other page leaves at once, before it reads the document or the device's storage", () => {
+  for (const pathname of ["/", "/funding", "/start/initiative", "/initiatives/abc"]) {
+    const touched: string[] = [];
+    runInNewContext(firstPageScript(), {
+      window: {},
+      document: { getElementById: () => { touched.push("document"); return null; } },
+      location: { pathname, search: "" },
+      localStorage: { getItem: () => { touched.push("storage"); return null; } },
+      fetch: () => { touched.push("fetch"); return Promise.resolve(new Response("{}")); },
+    });
+    assert.deepEqual(touched, [], pathname);
+  }
+});
+
 test("the HTML leaves every other first page to the app", () => {
   for (const search of ["?q=river", "?organizationType=ngo", "?sort=name"])
     assert.equal(load("/initiatives", { search }).asked.length, 0, `${search} is the app's to ask for`);
