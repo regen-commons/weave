@@ -18,6 +18,7 @@
     { "path": "/api/project-index-refresh", "schedule": "0 4 * * *" }
   ],
   "rewrites": [
+    { "source": "/api/feedback", "destination": "/api/router?__route=feedback" },
     { "source": "/api/health", "destination": "/api/router?__route=health" },
     { "source": "/api/matching", "destination": "/api/router?__route=matching" },
     { "source": "/api/mcp", "destination": "/api/router?__route=mcp" },

@@ -222,6 +222,8 @@ components:
   action-dark: { backgroundColor: "{colors.forest-400}", textColor: "{colors.loam-950}" }
   action-hover: { backgroundColor: "{colors.forest-800}", textColor: "{colors.soil-100}" }
   action-hover-dark: { backgroundColor: "{colors.forest-300}", textColor: "{colors.loam-950}" }
+  feedback: { backgroundColor: "{colors.copper-700}", textColor: "{colors.soil-50}" }
+  feedback-dark: { backgroundColor: "{colors.copper-400}", textColor: "{colors.loam-950}" }
   danger: { backgroundColor: "{colors.madder-700}", textColor: "{colors.soil-100}" }
   danger-dark: { backgroundColor: "{colors.madder-400}", textColor: "{colors.loam-950}" }
   danger-hover: { backgroundColor: "{colors.madder-800}", textColor: "{colors.soil-100}" }

@@ -10,6 +10,7 @@ import { BottomNav } from "./BottomNav.tsx";
 import { DockContext, StepBarContext } from "./dock.ts";
 import { Breadcrumbs } from "./Breadcrumbs.tsx";
 import { Footer } from "./Footer.tsx";
+import { Feedback } from "../feedback/Feedback.tsx";
 import { InformationDialog, type Information } from "./InformationDialog.tsx";
 import { Mycelium } from "./Mycelium.tsx";
 import { SessionEndedNotice, useSessionEndedNotice } from "../account/SessionEndedNotice.tsx";
@@ -97,6 +98,8 @@ export function Page({
           {after}
         </Footer>
         {!form && <BottomNav pathname={pathname} />}
+        {/* After the page's own content and navigation, so the keyboard reaches it last (DL-145). */}
+        <Feedback pathname={pathname} form={form} />
         <InformationDialog
           runs={runs}
           information={information}

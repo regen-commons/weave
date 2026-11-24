@@ -16,6 +16,7 @@ type Handler = (request: Request) => Response | Promise<Response>;
  * function for a method it does not export) and how to load its handlers.
  */
 export const ENDPOINTS = {
+  feedback: { methods: ["POST"], load: () => import("./feedback.ts") },
   health: { methods: ["GET"], load: () => import("./health.ts") },
   "initiatives-page": { methods: ["GET", "HEAD"], load: () => import("./initiatives-page.ts") },
   matching: { methods: ["POST"], load: () => import("./matching.ts") },

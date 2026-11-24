@@ -225,3 +225,28 @@ test("what the copy says about a connected assistant is what the MCP endpoint do
   // The other tools only read what is already public, as the copy says.
   assert.match(section, /search the fund list and the public initiatives, which anyone can read/u);
 });
+
+test("what the copy says about feedback is what the sheet and the server do", () => {
+  const section = DATA_POLICY.find(({ title }) => title === "Feedback")!.body.join(" ");
+  assert.match(section, /sends what you write, the kinds of feedback you pick and the address of the page you are on, without its search or filters/u);
+  assert.match(section, /passes it to the Regen Commons website, which keeps it privately for the Regen Commons stewards/u);
+  assert.match(section, /Your network address is not passed on\. Weave does not keep your feedback\. When the website does not confirm it, Weave logs the website's answer code and nothing else/u);
+  assert.match(section, /counts feedback by network address in its memory\. It does not save those counts/u);
+  // The sheet sends the three fields and the hidden one, and the page's path, which has no query.
+  const send = read("src/feedback/send.ts");
+  assert.match(send, /JSON\.stringify\(\{ message: draft\.message, categories, page_path: draft\.pathname, \[FEEDBACK\.honeypot\]: draft\.honeypot \}\)/u);
+  assert.match(read("src/App.tsx"), /const \{ pathname, search \} = splitRoute\(location\);/u);
+  // The server sends the website the feedback alone, with two headers of its own and no cookie, to one address.
+  const server = read("../api/src/feedback.ts");
+  assert.match(server, /headers: \{ "Content-Type": "application\/json", "Idempotency-Key": requestId \},\s*body: JSON\.stringify\(feedback\),\s*redirect: "error",\s*credentials: "omit",/u);
+  assert.match(read("../api/src/feedback-contract.ts"), /upstream: "https:\/\/regencommons\.com\/api\/feedback",/u);
+  assert.match(read("../api/src/feedback-contract.ts"), /return \{ message: text, categories: \[\.\.\.new Set\(categories\)\], page_path: page \};/u);
+  // Its one log line is the website's status, and it writes nowhere.
+  assert.match(server, /log = \(status\) => console\.warn\(JSON\.stringify\(\{ event: "feedback_upstream", status \}\)\)/u);
+  assert.equal((server.match(/console\./gu) ?? []).length, 1);
+  assert.doesNotMatch(server, /writeFile|postgres|localStorage|\bsql`/u);
+  // The count is kept in memory, by address.
+  assert.match(server, /limiter\.caller\(`feedback \$\{callerAddress\(request\)\}`/u);
+  assert.match(read("../api/src/mcp-limit.ts"), /const callers = new Map<string, Count>\(\);/u);
+  assert.match(read("../api/src/feedback.test.ts"), /only the feedback leaves: no cookie, no header of the person's, no redirect followed, one fixed address/u);
+});

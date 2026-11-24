@@ -794,3 +794,39 @@ a.rc-save-status:active { color: var(--on-surface); }
 .rc-record-row[data-layout="actions"] > .rc-record-text { flex: 1 1 var(--tile-card-min-width); }
 .rc-record-row[data-layout="actions"] > .rc-action-bar { flex: none; gap: var(--space-2); }
 .rc-record-row[data-layout="actions"] + .rc-record-row[data-layout="actions"] { padding-block-start: var(--space-4); border-block-start: var(--border-thin) solid var(--line-subtle); }
+
+/* Feedback tab: the website's copper tab on the window's right edge, half way down, on every page, so
+   feedback is one press from anywhere. It opens the feedback sheet in place. It sits in the middle of
+   the edge, clear of the app bar, a phone's tab bar and dock, and a wide screen's Step bar. Its words
+   run down the edge, so the box's own sides are physical here: in vertical text its inline axis is
+   the window's height. `data-from="wide"` leaves it out on a phone, where it would sit over a step's
+   fields. */
+.rc-feedback-tab {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  z-index: var(--layer-sticky);
+  translate: 0 -50%;
+  writing-mode: vertical-rl;
+  padding: var(--space-4) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  background: var(--feedback);
+  color: var(--on-feedback);
+  font: var(--type-label-md);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+}
+@media (width < 56.25rem) {
+  .rc-feedback-tab { padding: var(--space-3) var(--space-1); font: var(--type-label-sm); }
+  .rc-feedback-tab[data-from="wide"] { display: none; }
+}
+@media (hover: hover) {
+  .rc-feedback-tab:hover { padding-right: var(--space-3); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rc-feedback-tab { transition: padding var(--duration-fast) var(--ease-out); }
+}
+@media (forced-colors: active) {
+  .rc-feedback-tab { border: var(--border-thin) solid ButtonText; }
+}

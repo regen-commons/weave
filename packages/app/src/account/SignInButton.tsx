@@ -5,7 +5,7 @@ import { accountMessage, accountRequest } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { useAccountDoor } from "./door.tsx";
 import { continueToCertified } from "./sign-in.ts";
-import { warmProjectConsent, warmSignIn } from "./warm.ts";
+import { warmProjectConsent, warmSignIn, warmSignInOnIntent } from "./warm.ts";
 import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { pathTo } from "../routes.ts";
 
@@ -24,7 +24,8 @@ import { pathTo } from "../routes.ts";
  * as the check says nobody is signed in, or cannot be made.
  *
  * Shown to someone signed out, it readies sign-in on the server (`warm.ts`), and again when the
- * pointer or the keyboard reaches it after a long wait, so the press does not meet a cold start.
+ * pointer or the keyboard reaches it after a short wait, so the press meets neither a cold start nor
+ * a stale nonce at Certified.
  */
 export function SignInButton({
   variant = "primary",
@@ -62,7 +63,7 @@ export function SignInButton({
     // starts that function now too. The account fixture answers it with a stand-in error, so not there.
     if (!state?.fixture && (thenProjects || window.location.pathname === pathTo("your-initiatives"))) warmProjectConsent();
   }, [offered, thenProjects, state?.fixture]);
-  const warm = offered ? warmSignIn : undefined;
+  const warm = offered ? warmSignInOnIntent : undefined;
   async function signIn() {
     if (busy) return;
     if (import.meta.env.DEV && example) return openDoor("certified");

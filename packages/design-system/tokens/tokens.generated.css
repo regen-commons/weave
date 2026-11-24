@@ -214,6 +214,8 @@
   --on-action: var(--soil-100);
   --action-hover: var(--forest-800);
   --on-action-hover: var(--soil-100);
+  --feedback: var(--copper-700);
+  --on-feedback: var(--soil-50);
   --danger: var(--madder-700);
   --on-danger: var(--soil-100);
   --danger-hover: var(--madder-800);
@@ -324,6 +326,8 @@
   --on-action: var(--loam-950);
   --action-hover: var(--forest-300);
   --on-action-hover: var(--loam-950);
+  --feedback: var(--copper-400);
+  --on-feedback: var(--loam-950);
   --danger: var(--madder-400);
   --on-danger: var(--loam-950);
   --danger-hover: var(--madder-300);
@@ -430,6 +434,8 @@
     --on-action: var(--loam-950);
     --action-hover: var(--forest-300);
     --on-action-hover: var(--loam-950);
+    --feedback: var(--copper-400);
+    --on-feedback: var(--loam-950);
     --danger: var(--madder-400);
     --on-danger: var(--loam-950);
     --danger-hover: var(--madder-300);

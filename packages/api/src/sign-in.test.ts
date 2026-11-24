@@ -236,20 +236,20 @@ test("a start gives the bridge a head start without waiting for it", async () =>
   assert.equal((await broken.POST(f.post("/funding"))).status, 200);
 });
 
-test("the bridge is woken by one bounded read of its public discovery document, at most once in 30 seconds", async () => {
+test("the bridge is woken by one bounded read of its warm address, at most once in 30 seconds", async () => {
   const calls: { url: string; init: RequestInit }[] = [];
   let now = 1_000_000, cancelled = 0, answer: () => Promise<Response> = async () =>
     ({ body: { cancel: async () => { cancelled++; } } }) as unknown as Response;
   const wake = bridgeWarmer("https://bridge.example.test", async (url, init) => { calls.push({ url: String(url), init: init! }); return answer(); }, () => now);
   await Promise.all([wake(), wake(), wake()]);
   assert.equal(calls.length, 1, "pages that ask together share one request");
-  assert.equal(calls[0]!.url, "https://bridge.example.test/.well-known/openid-configuration");
+  assert.equal(calls[0]!.url, "https://bridge.example.test/warm");
   assert.equal(calls[0]!.init.method, undefined, "a read, never a write");
   assert.equal(calls[0]!.init.body, undefined);
   assert.equal(calls[0]!.init.redirect, "manual", "it follows the bridge nowhere");
-  assert.deepEqual(calls[0]!.init.headers, { Accept: "application/json" }, "no cookie, token or address of the person's goes with it");
+  assert.deepEqual(calls[0]!.init.headers, { Accept: "*/*" }, "no cookie, token or address of the person's goes with it");
   assert.ok(calls[0]!.init.signal instanceof AbortSignal, "it cannot hang the function");
-  assert.equal(cancelled, 1, "the document is not read");
+  assert.equal(cancelled, 1, "the answer is not read");
   now += 29_000;
   await wake();
   assert.equal(calls.length, 1);
@@ -438,6 +438,7 @@ async function bridgeChain(run: (scenario: {
   let callbacks = 0, bridge: RequestListener | undefined;
   const certified: CertifiedClient = {
     metadata: { scope: "atproto" }, jwks: { keys: [] },
+    async prime() { return "ready" as const; },
     async authorize(state) { return new URL(`https://certified.example.test/authorize?state=${state}`); },
     async callback(params) {
       callbacks++;

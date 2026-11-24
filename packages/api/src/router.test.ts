@@ -11,6 +11,7 @@ const ORIGIN = "https://weave.example";
 
 test("each shared endpoint keeps the methods its own function exported", () => {
   assert.deepEqual(Object.fromEntries(Object.entries(ENDPOINTS).map(([name, { methods }]) => [name, [...methods]])), {
+    feedback: ["POST"],
     health: ["GET"],
     "initiatives-page": ["GET", "HEAD"],
     matching: ["POST"],

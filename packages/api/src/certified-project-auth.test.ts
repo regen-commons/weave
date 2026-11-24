@@ -49,7 +49,17 @@ function memoryStore(transactionalLocks = false) {
 function jwt(claims: Record<string, unknown>) {
   return [Buffer.from('{"alg":"ES256"}').toString("base64url"), Buffer.from(JSON.stringify(claims)).toString("base64url"), "testsig"].join(".");
 }
-async function fixture(transactionalLocks = false) {
+interface Readying {
+  /** Stands in for the SDK's resolver, so the primer can ready Certified. */
+  resolve?: () => Promise<{ metadata: { issuer: string; pushed_authorization_request_endpoint?: string } }>;
+  primeFetch?: typeof fetch;
+  /** Sees the options of every client the auth makes. */
+  made?: (options: NodeOAuthClientOptions) => void;
+  /** Holds actor resolution until the test lets it go. */
+  actorGate?: Promise<void>;
+  order?: string[];
+}
+async function fixture(transactionalLocks = false, readying: Readying = {}) {
   const { store, rows } = memoryStore(transactionalLocks);
   const fake = {
     allowed: true,
@@ -67,8 +77,14 @@ async function fixture(transactionalLocks = false) {
   const auth = await createCertifiedProjectAuth({
     origin, cgsOrigin, signingKeys: [key], store,
     allowsDid: () => fake.allowed,
-    async resolveActor() { fake.actorsResolved++; return fake.actor; },
+    ...(readying.primeFetch ? { primeFetch: readying.primeFetch } : {}),
+    async resolveActor() {
+      readying.order?.push("actor");
+      await readying.actorGate;
+      fake.actorsResolved++; return fake.actor;
+    },
     makeClient(options) {
+      readying.made?.(options);
       const sdk = new NodeOAuthClient(options);
       const session = {
         get did() { return fake.issuedDid; },
@@ -86,7 +102,9 @@ async function fixture(transactionalLocks = false) {
       return {
         clientMetadata: sdk.clientMetadata,
         jwks: sdk.jwks,
+        ...(readying.resolve ? { oauthResolver: { resolve: readying.resolve } } : {}),
         async authorize(input, params) {
+          readying.order?.push("authorize");
           assert.equal(input, issuer);
           assert.equal(params?.prompt, "consent");
           fake.scope = params?.scope ?? "";
@@ -516,4 +534,64 @@ test("the pinned OAuth SDK performs PAR, PKCE, DID resolution and the scoped DPo
   const result = await f.auth.proxyServiceRequest(f.command(), f.actor.did, sdkMembership, { method: "GET" });
   assert.deepEqual(await result?.json(), { groups: [] });
   assert.equal(f.control.proxyCalls, 1);
+});
+
+test("every client shares one set of Certified caches, and a start readies Certified while the session is checked", async () => {
+  const made: NodeOAuthClientOptions[] = [], order: string[] = [];
+  let releaseActor!: () => void;
+  const actorGate = new Promise<void>(resolve => { releaseActor = resolve; });
+  const f = await fixture(false, {
+    made: options => made.push(options), order, actorGate,
+    resolve: async () => ({ metadata: { issuer, pushed_authorization_request_endpoint: `${issuer}/oauth/par` } }),
+    primeFetch: async () => {
+      order.push("prime");
+      return new Response(null, { status: 400, headers: { "DPoP-Nonce": "n".repeat(43) } });
+    },
+  });
+  const pending = f.auth.consent(f.cmd({ action: "membership" }));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(order, ["actor", "prime"], "readying starts before the session check ends");
+  releaseActor();
+  const started = await pending;
+  assert.equal(started.status, 200);
+  assert.deepEqual(order, ["actor", "prime", "authorize"]);
+  assert.match(started.headers.get("server-timing") ?? "", /^actor;dur=\d+, prime;dur=\d+, par;dur=\d+$/u);
+
+  // The callback and a later attempt use the same caches, so the nonce readied above is still there.
+  const back = await f.auth.callback(f.oauth(binding(started)));
+  assert.equal(projectStatus(back), "ready");
+  assert.match(back.headers.get("server-timing") ?? "", /^exchange;dur=\d+, state;dur=\d+$/u);
+  await f.start("create-project");
+  assert.ok(made.length >= 4);
+  for (const options of made) {
+    assert.equal(options.dpopNonceCache, made[0]!.dpopNonceCache);
+    assert.equal(options.authorizationServerMetadataCache, made[0]!.authorizationServerMetadataCache);
+    assert.equal(options.protectedResourceMetadataCache, made[0]!.protectedResourceMetadataCache);
+  }
+  assert.equal(await made[0]!.dpopNonceCache!.get(issuer), "n".repeat(43));
+  assert.equal(order.filter(step => step === "prime").length, 1, "a cached nonce is not asked for again");
+  assert.equal(await f.auth.prime(), "ready");
+});
+
+test("readying Certified never decides a consent: refused sessions, finishes and failures answer as before", async () => {
+  let primes = 0;
+  const f = await fixture(false, {
+    resolve: async () => { throw Error("discovery-down"); },
+    primeFetch: async () => { primes++; return new Response(null, { status: 400 }); },
+  });
+  // Certified's metadata cannot be read: the start still goes ahead, and its PAR fetches what it needs.
+  assert.equal((await f.auth.consent(f.cmd({ action: "membership" }))).status, 200);
+  assert.equal(await f.auth.prime(), "failed");
+  // No session: refused, with timing and nothing started.
+  f.fake.actor = null;
+  const refused = await f.auth.consent(f.cmd({ action: "membership" }));
+  assert.equal(refused.status, 401);
+  assert.deepEqual(await refused.json(), { error: "sign_in_required" });
+  assert.match(refused.headers.get("server-timing") ?? "", /^actor;dur=\d+$/u);
+  // A finish readies nothing.
+  f.fake.actor = { did, sessionId: "weave-session" };
+  const resolvedBefore = f.fake.actorsResolved;
+  assert.equal((await f.auth.consent(f.cmd({ action: "finish" }))).status, 403);
+  assert.equal(f.fake.actorsResolved, resolvedBefore + 1);
+  assert.equal(primes, 0, "nothing is sent to a PAR endpoint the metadata never named");
 });

@@ -44,6 +44,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, and a card started from a Certified project |
 | `src/social/` | Shared initiative/project screens, the live account and project adapter, sharing/publication dialogs, and development-only example services. Reminders and account deletion remain examples. |
 | `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development; and the public Certified project list on Initiatives and Home, with the starter sources as its fallback |
+| `src/feedback/` | The Feedback tab and sheet on every page, and what it sends to `/api/feedback` (DL-145) |
 | `src/funding/` | Validated catalog release, local scoring, optional funding details and example team coverage |
 | `api/` | One-line Vercel entry files that re-export `@weave/api` handlers |
 | `dev/` | The dev server's `/api` bridge, which answers the way Vercel does, the font preloads, the theme colours and the theme's first-paint script (`public/theme-boot.js`) that the dev server and the build add to `index.html`, the link previews: one copy of `index.html` for each section and `share/records.json` for the record pages (DL-136), written by the build, and the installed app's manifest with its shortcuts and its install-sheet screenshots (`public/install/screens/`, captured from a build with no example data) |
