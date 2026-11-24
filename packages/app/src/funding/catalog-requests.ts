@@ -17,6 +17,10 @@ export const ProjectSchema = z.object({
   name: z.string(),
   description: z.string(),
   tags: z.array(z.string()),
+  /** The words of the kept needs and offers, which the matcher reads for topics (DL-142). */
+  asks: z.array(z.string()),
+  /** Where you work, as the card says it, read for fit only (DL-143). */
+  places: z.array(z.string()),
   workCountries: z.array(z.string()),
   benefitCountries: z.array(z.string()),
   applicantBaseCountry: z.string(),

@@ -21,8 +21,10 @@ Fourteen initiatives are paraphrased from public Certified project records (each
 its `sourceUri`, and no person's name), and six are invented in the same style to add
 Portuguese, Spanish, software, art and a one-line card. Countries and applicant types
 are assumed where a record does not say. No initiative has themes: a card confirmed on
-the describe step holds none since DL-127, so every path ranks the description alone,
-as the app does. Every path ranks as of the catalog's `compiledAt`, so the result
+the describe step holds none since DL-127. Funding and the MCP tool rank the description
+with the catalog topics its Portuguese or Spanish words name (DL-142), as the app does,
+and grade fit by the themes and places both sides name (DL-143); the live site ranks the
+description alone, with the rubric's count of shared words. Every path ranks as of the catalog's `compiledAt`, so the result
 depends only on the code and the catalog, and moves on when the catalog does.
 
 ```sh
@@ -65,6 +67,92 @@ model and can differ by machine; the live site as deployed, which runs the rubri
 `codex/funding-commons-demo` rather than this branch's; and the order of Funding That
 Fits on an initiative's page, which takes the leads from the same Funding order.
 
+## Must-match suite
+
+`must-match.ts` checks that Weave matches the pairs its purpose says it must, and keeps
+out the keyword traps it must not fall into. `must-match-v1.json` holds 31 pairs
+built from real public initiatives: Green Goods and Tech and Sun from their owners'
+public-safe profiles and public repositories, and the rest from the public Certified
+projects in `../../api/evaluation/partner-real-v1-corpus.json` and `fund-ranking-v1.json`.
+`test/must-match-eval.test.ts` runs it in CI, and every pair marked `gate` must hold.
+
+```sh
+bun run --filter @weave/app eval:must-match             # the current matchers
+bun run --filter @weave/app eval:must-match -- --before # what shipped before DL-143 and DL-144
+```
+
+### The rubric
+
+A pair is written, and judged, against these rules. They come from the
+[PRD](../../../docs/platform/04-prd.md) and the
+[matching contract](../../../docs/platform/05-technical-spec.md#72-cross-initiative-matching-r12-r16),
+not from what any matcher returns.
+
+1. **Complement, not keywords** (PRD goal 2, R12). A need meets an offer or a capability
+   that could answer it, and an offer meets a need or work that could use it. Sharing a
+   theme alone is not a match, and repeating a word ("recording", "monitoring") is not
+   one either.
+2. **Roles from the persona table** (PRD section 4). A tool builder needs communities to
+   pilot with, and ecosystem grants. A research group needs place-based partners. Art and
+   culture joins a place's work. A place-based community needs money, tools, research,
+   skills and stories. A funder's program fits the initiatives that do what it funds.
+3. **The kind of support has to be one the other side can give.** Money comes only from
+   someone who funds others, so a public project that does not say it funds anyone never
+   answers a need for money. Social capital (communities, pilots) comes from places;
+   intellectual capital (a record, a method) from tools and research.
+4. **What an initiative does, and where it works, come first.** Its field of work, as its
+   own first sentence says it, outweighs the tools it uses (internet, an app) and the
+   examples it lists. A fund program that names the initiative's country or region fits
+   better; one that names only other places is a caution to check, never an exclusion.
+5. **Evidence stays honest** (R12). Public work is an inferred capability or a potential
+   use of an offer, never a confirmed offer. Every result says what links the two sides,
+   keeps what is unknown, and fit is never eligibility.
+6. **Words count in every language Weave reads.** A Portuguese or Spanish need or card
+   is judged by what it means, as an English one is.
+
+Each pair names its persona, the need or offer it reads, what must or must not rank and
+how far down (three for Partners for you, which shows three per entry; five for the
+Partners page; ten for Funding's first screen), and a reason in these terms: which need
+meets which offer or capability, the kind of support, the field and the place. Kinds of
+check:
+
+| Field | Holds when |
+|---|---|
+| `must` | every named program or project is within the first `within` |
+| `mustNot` | none of them is |
+| `anyOf` | at least one is, where several fit equally |
+| `none` | nothing is suggested at all |
+| `onlyCountries` | every suggestion names one of these countries |
+| `first` (fund programs) | the program fits this initiative better than every other in `among` |
+
+A pair marked `should` is reported and not gated, with its reason saying why.
+
+### What it shows, and what it does not
+
+On 24 November 2026: 30 of 31 pairs hold, and all 30 gated pairs, on the current
+matchers; 14 of 31 held on the matchers before DL-143 and DL-144. The one that does not
+hold is F-04, a `should`: NGI Zero Commons ranks 21st for Green Goods, sharing one field
+(open source and public goods) with a closed call. N-03 also held on the old matchers: it
+guards the money rule rather than showing a fix. The keyword-trap pairs N-01 and N-02 and
+the money pair N-05 failed on the old matchers.
+
+- An agent wrote the pairs against the rubric, and the matchers were changed while the
+  suite was written, so it is development data: it proves the anchor case and the traps,
+  not precision in general. Nothing held out measures the new partner ranking yet: the
+  partner-real-v2 runner and the safety gates score the word matcher
+  (`rankPartnerMatches`) only. Adding `rankPartners` as an engine there is the next step.
+- N-04 checks place with the same country reader the scope rule uses, so it proves the
+  rule is applied, not that the reader is right; `src/themes.test.ts` covers the reader.
+- One pair was changed after a run. P-07 first named one community monitoring project;
+  seven fit equally, so it asks for any of them. Its reason says so.
+- Green Goods' Certified record and Tech and Sun's were not read from the live index:
+  their public records here are written from their owners' public-safe profiles and
+  public repositories. Partners for you searches the projects its snapshot holds (the
+  80 most recently fetched); the suite ranks against all 142.
+- Green Goods' 400-character About leaves out that its work becomes an onchain record.
+  With that one public fact (`green-goods-public`), Gitcoin, the Ecosystem Support Program
+  and Filecoin Open Grants rank 2nd to 5th; without it they are Possible fits around 40th.
+
 ## Extraction
 
 `extraction.ts` puts words through the app's own rules and checks what comes out. On
@@ -75,8 +163,8 @@ Only the keyword rules are measured: the browser's own model, which both steps t
 a browser has one, is not. Each case says what a careful person would want there:
 
 - **Name**: the initiative's name only where the words state one, never a person's.
-  Case, accents and punctuation do not count. A name where none was stated is a false
-  positive.
+  Case, accents and punctuation do not count, and a case may list other ways of writing
+  the same name, such as "Tech & Sun". A name where none was stated is a false positive.
 - **Where you work**: each place said, scored place by place; Global for worldwide or
   online work.
 - **About it**: must hold every `includes` phrase and none of the `excludes`, such as a
@@ -85,13 +173,15 @@ a browser has one, is not. Each case says what a careful person would want there
 - **Cards**: one per need or offer, scored by key phrase as whole words. Two items in
   one card match neither, and a card for the other list is a false positive. A key
   inside another key is refused, since no card could meet it.
+- **Link**: the website, on the cases that name one. `https://`, `www.` and a trailing
+  slash do not count.
 
 Each field gets precision and recall, overall and by typed or spoken words and by
 language.
 
 | Split | Cases | Who wrote it | Runs |
 |---|---|---|---|
-| `extraction-v1.json` (development) | 48: 26 describe, 12 needs, 10 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases | CI, in `test/extraction-eval.test.ts` |
+| `extraction-v1.json` (development) | 61: 31 describe, 16 needs, 14 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases; Green Goods and Tech and Sun from their owner's profile | CI, in `test/extraction-eval.test.ts` |
 | `extraction-v1-holdout.json` | 26: 14 describe, 6 needs, 6 offers | Another agent that read no code or tests | By hand only |
 
 ```sh
@@ -125,12 +215,35 @@ places are paired; the rules were the same and so were the numbers.)
 
 What the holdout shows: the rules never invent a name or a place, but they miss most
 places said in sentences ("in Leeds", "in Belo Horizonte"), most Spanish and many
-Portuguese names, and most lists typed with commas or said in Spanish. About it keeps
-the whole box, so it often holds the speaker's own name ("my name is dara") and a
-need sentence. These are agent-written cases and agent-judged labels, so read them as a
+Portuguese names, and most lists typed with commas or said in Spanish. About it kept
+the whole box, so it often held the speaker's own name ("my name is dara") and a
+need sentence. Since 24 November 2026 it leaves out the clauses that ask or offer and
+the speaker's introduction, never rewording what stays: About it is 1.00 / 1.00 in
+development and 0.93 / 0.93 on the holdout, and the other rates are unchanged. These are agent-written cases and agent-judged labels, so read them as a
 direction, not a measured rate for real people's words. Every person and link in both
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.
+
+The one exception is Green Goods and Tech and Sun, two real projects included with their
+owner's consent. Their 12 typed and spoken cases (`owner-profile-2026-11-23`) are written
+from the public-safe facts of the owner's profile and leave out everything the owner
+marked private; Tech and Sun's place is Awka only, for now. With those cases and d-31
+added on 23 November, development (61 cases) scores Name 1.00 / 0.73, Where you work
+1.00 / 0.41, About it 0.87 / 0.87, Link 1.00 / 0.33 and Cards 0.56 / 0.53. The owner's
+longer texts lose most of the cards: on the needs and offers steps, each sentence of a
+typed description becomes a card, and a recording becomes a few long cards that each
+hold several items, their titles cut at 140 characters. Link is filled from a full
+address such as `https://mangrove-futures.example.org`, but not from a bare domain such
+as "greengoods.app" or from one said aloud.
+
+### What better places would need (24 November 2026)
+
+Where you work is the field the holdout shows weakest (recall 0.06), and keyword rules cannot raise it without wrong places. Three reviews attacked three successive attempts to read places said in a sentence ("we grow vegetables in Accra, Ghana", "trabajamos en Oaxaca, México", "worldwide"). Each found dozens of sentences that gave someone else's place, a past or a wish, a firm or a pepper with a country's name, or a false Global: 85 of 112, then 73 of 81, then 67 of 83 even for the strictest version. A wrong place is worse than none, so no rule that widens Where was shipped. Their 290 sentences, and the attempt, are kept with the describe-flow session's notes. Better places need one of two things, a choice for the user:
+
+- **A vetted place list on the device**: towns and regions with their countries, so a place said without a capital or a country ("bristol", "belo horizonte minas gerais") is known to be one, and a country's name that is also a word or a person ("chile", "Jordan") is told apart by what is around it. It needs a named source with a licence that allows shipping it (for example GeoNames, CC BY 4.0, which would need attribution), a size budget, and the same review against attack sentences before it ships.
+- **The on-device model** (D32 in `docs/platform/open-decisions.md`): it reads a sentence's meaning, which keywords cannot, but it is not yet approved, its download sizes and devices are unproven, and its answers would need the same precision gate on this eval and on attack sentences.
+
+What did ship is the opposite direction: places the rules already gave wrongly are gone (`test/places-false.test.ts`).
 
 ## Labels
 
@@ -149,33 +262,52 @@ maybe and 614 doesn't. They reported that most "doesn't" notes were written by r
 from a program's focus and geography rather than pair by pair, so those notes are
 hints only. No metric counts a draft.
 
+`fund-relevance-owner-v1-labels.json` holds the pairs for **Green Goods** and **Tech and
+Sun**, two real projects whose owner grades every pair in person. They are included with
+their owner's consent, in public-safe form built only from their public docs (the Green
+Goods repository, MIT, and the Tech and Sun documentation, CC BY-SA 4.0), as an exception
+to the rule that fixtures describe invented initiatives: `fund-relevance-owner-v1.json`
+gives each one's source. Their pool is Funding's first 20 and the live site's first 10,
+plus the funds their profile expected to fit or not that Weave did not rank high, so a
+missed match can count. No agent graded them: every pair waits, ungraded, for the owner.
+
 To review, export a spreadsheet outside the repository, grade the rows you judge, and
-import it:
+import it. `--labels` picks the file by its dataset name; the first is the default:
 
 ```sh
-bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # drafts and confirmations beside each row
-bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # neither, to judge unprompted
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # Weave's ranks, drafts and confirmations beside each row
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # none of them, to judge unprompted
+bun run --filter @weave/app eval:labels -- --export ~/sample.csv --blind --initiatives rel-001,rel-009
+bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --export ~/owner.csv
 bun run --filter @weave/app eval:labels -- --import ~/weave-review.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --import ~/owner.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:labels -- --add-pool   # after a ranking change: new candidates, ungraded (add --labels for the owner's file)
 bun run --filter @weave/app eval:funds -- --record-baseline
 ```
 
 Each row shows the initiative's words and places, the program's focus, who it serves,
-its geography and kind of funding, its draft and any confirmation already made. "Your
-grade" always starts blank: fill it in (fits, maybe or doesn't) for the rows you judge,
-and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
+its geography and kind of funding, where Weave ranked it on Funding and the live site, its
+draft and any confirmation already made. "Your grade" always starts blank: fill it in with
+strong, possible or wrong (fits, maybe and doesn't are read the same way) for the rows you
+judge, and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
 saved back with semicolons reads the same. The import confirms exactly the rows you
 graded, under your name and the day, keeps the draft each one answered beside it, and
 leaves every other row as it was. It refuses a row for a pair the file does not hold,
-a pair graded twice, an agent as reviewer, and a grade on a pair someone else already
-confirmed, unless you add `--replace`, when the note records whose grade it replaced.
-A sheet can be shared out in parts: import each part as it comes back. Commit the label
-file with the new baseline in the same pull request, and say who judged. An agent never
-runs the import.
+a graded row whose "program" cell is not its program id's name (an edited id would move
+the grade to another pair; if the catalog renamed a program since the sheet was made, add
+`--renamed`), a pair graded twice, an agent as reviewer, and a grade on a pair someone
+else already confirmed, unless you add `--replace`, when the note records whose grade it
+replaced. The reviewer's name is written into the public label file, so use the name or
+handle the person agreed to. A sheet can be shared out in parts: import each part as it
+comes back. Commit the label file with the new baseline in the same pull request, and say
+who judged. An agent never runs the import.
 
 The file holds one grade per pair. Who judges is still to be decided. A blind sheet
 avoids leaning on the drafts; to have two people judge, give the second a blind sheet,
 compare their grades outside the file, and import the grade they agree on.
 
-A catalog change can drop a program a draft names. That draft counts for nothing, so CI
-only warns; rebuild the pool before it is reviewed. A confirmed label for a program the
+A ranking change can bring programs into a first five that the file does not hold:
+`--add-pool` adds them as ungraded drafts. A catalog change can drop a program a draft
+names. That draft counts for nothing, so CI only warns; rebuild the pool before it is
+reviewed. A confirmed label for a program the
 catalog no longer holds fails by name.

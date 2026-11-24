@@ -41,18 +41,22 @@ const LANGUAGES = ["en", "pt", "es", "fr", "sw"];
 
 /**
  * One initiative as a card confirmed on the describe step holds it. It has no themes: the step has
- * offered none since DL-127, so every path ranks the description alone, and the MCP call and the live
- * site's form are given none either.
+ * offered none since DL-127, and the MCP call and the live site's form are given none either. The app
+ * and the MCP tool add the catalog topics a Portuguese or Spanish description names (DL-142); the live
+ * site ranks the description alone.
  */
 export type RankingInitiative = {
   id: string;
-  source: "certified" | "invented";
+  /** "owner": a real project whose owner agreed to its public-safe description being used here. */
+  source: "certified" | "invented" | "owner";
   sourceUri?: string;
   language: string;
   name: string;
   description: string;
   workCountries: string[];
   benefitCountries: string[];
+  /** Where you work as the card says it, for a person reading a review sheet. Ranking reads the countries. */
+  where?: string;
   usWorkStates?: string[];
   usBenefitStates?: string[];
   applicantBaseCountry: string;
@@ -74,7 +78,7 @@ export function validateRankingSet(data: unknown): RankingSet {
   const ids = new Set<string>();
   for (const row of set.initiatives) {
     if (!row || typeof row !== "object" || !text(row.id) || ids.has(row.id)) throw Error("invalid_ranking_initiative");
-    if (!["certified", "invented"].includes(row.source) || (row.source === "certified" && !text(row.sourceUri)))
+    if (!["certified", "invented", "owner"].includes(row.source) || (row.source !== "invented" && !text(row.sourceUri)))
       throw Error("invalid_ranking_source");
     if (!LANGUAGES.includes(row.language) || !text(row.name) || !text(row.description)) throw Error("invalid_ranking_initiative");
     // The MCP tool refuses a description under 40 characters, and every path must rank the same words.
@@ -89,13 +93,19 @@ export function validateRankingSet(data: unknown): RankingSet {
   return set;
 }
 
-/** The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft. */
+/**
+ * The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft
+ * with no kept needs or offers. The app's matcher (`evaluateCatalog`) adds the topics its words name.
+ */
 function appProject(row: RankingInitiative): Project {
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     tags: [],
+    asks: [],
+    // The MCP tool takes countries, not a card's typed places, so every path reads the same places here.
+    places: [],
     workCountries: row.workCountries,
     benefitCountries: row.benefitCountries,
     applicantBaseCountry: row.applicantBaseCountry,
@@ -163,7 +173,8 @@ export async function rankInitiative(data: RankingData, row: RankingInitiative):
   const liveConditions = validConditions(data.conditions, data.catalog.funds) && Array.isArray(conditionList) ? conditionList : null;
   const live = rankFunds(
     data.catalog.funds,
-    // The live site's own form, which defaults the currency to USD where the app leaves it blank.
+    // The live site's own form, which defaults the currency to USD where the app leaves it blank. It
+    // reads no topics into a card: its themes are only those a person types.
     normalizeProject({ ...appProject(row), currency: undefined }),
     createLexicalIndex(data.catalog.funds),
     (data.rules as { rules: unknown[] }).rules,
@@ -337,7 +348,8 @@ const AGENT = /^agent:/iu;
 export type FundLabel = {
   initiative: string;
   documentId: string;
-  grade: Grade;
+  /** Null only on a draft nobody has graded yet, such as a pair waiting for its owner's own judgment. */
+  grade: Grade | null;
   /** Only a person can confirm a label. An agent's label is a draft, whoever wrote it. */
   status: "draft" | "confirmed";
   /** Who wrote the label, or for a confirmed one the person who confirmed it. */
@@ -364,7 +376,8 @@ export function validateLabels(data: unknown, set: RankingSet, documents?: Reado
   const unknown: string[] = [];
   for (const label of file.labels) {
     if (!label || typeof label !== "object" || !ids.has(label.initiative) || !text(label.documentId)) throw Error("invalid_label");
-    if (!Object.hasOwn(GRADES, label.grade) || !["draft", "confirmed"].includes(label.status) || !text(label.by)) throw Error("invalid_label");
+    if (!["draft", "confirmed"].includes(label.status) || !text(label.by)) throw Error("invalid_label");
+    if (label.grade === null ? label.status !== "draft" : !Object.hasOwn(GRADES, label.grade)) throw Error("invalid_label");
     if (label.status === "confirmed" && (AGENT.test(label.by.trim()) || !/^\d{4}-\d{2}-\d{2}$/u.test(label.confirmedOn ?? "")))
       throw Error("invalid_confirmation");
     if (label.draft !== undefined && (label.status !== "confirmed" || !Object.hasOwn(GRADES, label.draft.grade) || !text(label.draft.by)))
@@ -392,7 +405,8 @@ export function confirmedGrades(labels: LabelSet): Map<string, Map<string, Grade
   for (const label of labels.labels) {
     if (label.status !== "confirmed") continue;
     if (!out.has(label.initiative)) out.set(label.initiative, new Map());
-    out.get(label.initiative)!.set(label.documentId, label.grade);
+    // validateLabels refuses a confirmed label without a grade.
+    out.get(label.initiative)!.set(label.documentId, label.grade!);
   }
   return out;
 }
@@ -494,9 +508,10 @@ export const FILES = {
 export const RANKING_SETS: Readonly<Record<string, URL>> = {
   "fund-ranking-v1": FILES.set,
   "fund-relevance-v1": new URL("fund-relevance-v1.json", HERE),
+  "fund-relevance-owner-v1": new URL("fund-relevance-owner-v1.json", HERE),
 };
 /** Label files the gate reads. A person's confirmations in them are what the metrics count. */
-export const LABEL_FILES: URL[] = [new URL("fund-relevance-v1-labels.json", HERE)];
+export const LABEL_FILES: URL[] = [new URL("fund-relevance-v1-labels.json", HERE), new URL("fund-relevance-owner-v1-labels.json", HERE)];
 
 /** A file that is not there reads as null; one that is there and does not parse is an error, never "missing". */
 async function readOptional(url: URL): Promise<unknown> {

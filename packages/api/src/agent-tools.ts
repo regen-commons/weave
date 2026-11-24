@@ -4,6 +4,8 @@
 import type { AgentToolCall, FindFundsArguments, GetFundArguments, GetProjectArguments, SearchFundsArguments, SearchProjectsArguments } from "./agent-tools-contract.ts";
 import type { FindPublicProject } from "./public-projects-http.ts";
 import { parsePublicProjectPage, type PublicProjectCard, type PublicProjectPage } from "./public-projects-contract.ts";
+import { fundingTopics } from "./topics.ts";
+import { withFundFit, type RubricResult } from "./fund-fit.ts";
 
 /** A fund as the catalog file holds it. Only the fields the tools read are named. */
 export type CatalogFund = {
@@ -322,7 +324,7 @@ function fitResult(d: Domain, value: unknown, origin: string) {
   };
 }
 
-const FIT_NOTE = "Fit grades shared topics only, from keywords. It is not eligibility and not a chance of funding. Check each program's own page.";
+const FIT_NOTE = "Fit grades shared topics only: the field of work weighs most, then the people served, then the tools used. It rises where a program names a country sent, and falls, as a caution, where it names only other countries or names countries when none are sent. It is not eligibility and not a chance of funding. Check each program's own page.";
 
 async function findFunds(sources: AgentToolSources, a: FindFundsArguments, now: Date) {
   const { catalog, d } = await loadCatalog(sources);
@@ -350,9 +352,11 @@ async function findFunds(sources: AgentToolSources, a: FindFundsArguments, now: 
   const places = [...a.workCountries, ...a.benefitCountries, a.applicantBaseCountry, a.registrationCountry].filter(Boolean);
   const unknown = places.find((code) => !r.COUNTRIES.includes(code));
   if (unknown) throw new AgentToolError("invalid_argument", `${unknown} is not a country code the catalog knows.`);
-  // The same shape the app gives the rubric. Nothing here outlives this call.
+  // The same shape the app gives the rubric, with the catalog topics a Portuguese or Spanish description
+  // or theme names added to the themes, as the app's matcher adds them (topics.ts). Nothing here
+  // outlives this call.
   const project = {
-    id: "assistant", name: "", description: a.description, tags: a.themes,
+    id: "assistant", name: "", description: a.description, tags: fundingTopics(a.description, a.themes, a.themes),
     workCountries: a.workCountries, benefitCountries: a.benefitCountries,
     applicantBaseCountry: a.applicantBaseCountry, registrationCountry: a.registrationCountry, applicantType: a.applicantType,
     fundingInstruments: [], goalMin: null, goalMax: null, currency: "", usWorkStates: [], usBenefitStates: [], programAnswers: {},
@@ -368,6 +372,8 @@ async function findFunds(sources: AgentToolSources, a: FindFundsArguments, now: 
       ranked.set(catalog, prepared = { entries, index: r.createLexicalIndex(catalog.funds) });
     }
     results = r.rankFunds(prepared.entries, project, prepared.index, rules, null, now, conditions);
+    // Funding's fit, read from what the description is about and where it works (DL-143), as the app reads it.
+    if (Array.isArray(results)) results = withFundFit(project, results as RubricResult[]);
   } catch {
     // A catalog record the rubric cannot read fails here. The error is not passed on: it could quote the description.
     throw new AgentToolError("catalog_unavailable", "The fund catalog could not be ranked. Try again later.");

@@ -263,6 +263,8 @@ const GOES_ON = words("we we're we’re i i'm i’m our it it's it’s they also
 const NOT_NAMED = words(
   "rural urban local remote online several many various different multiple two three four communities community",
   "villages village schools towns cities areas regions places countries cloud internet field countryside",
+  // Kinds of place, never which one: "Refugee Camps", "five counties of Kenya".
+  "counties districts provinces camps settlements shelters hospitals clinics prisons slums",
 );
 /**
  * What an initiative works in that is not a place: "we work in education", "our work is in
@@ -279,6 +281,11 @@ const NOT_WHERE = words(
   "aquaculture livestock dairy horticulture beekeeping recycling waste plastics carbon forests oceans marine wildlife",
   "ecology environment communications marketing sales operations teams shifts pairs groups partnerships sectors",
   "borders disciplines generations cultures",
+  // Where people find an initiative online, said with "en" or "in" as a place is: "Estamos en Facebook".
+  "facebook instagram whatsapp youtube tiktok linkedin twitter telegram zoom google discord slack",
+  "quechua aymara guarani nahuatl creole patois pidgin wolof",
+  // "We work in support of Ukraine", "in memory of", "in honour of": a cause, not a place.
+  "support memory honour honor solidarity",
   "swahili kiswahili hindi german chinese mandarin yoruba igbo hausa zulu amharic italian dutch russian japanese korean turkish",
 );
 /** A word before a country that is part of its name as said, with no comma between: "Western Kenya". */
@@ -286,7 +293,7 @@ const PART_OF = words("north south east west northern southern eastern western c
 
 /** Regions the browser names that are not places a person works in, and names people say that it does not list. */
 const NOT_COUNTRIES = new Set(["ZZ", "XA", "XB", "QO", "EZ", "UN"]);
-const ALSO_SAID = "usa|uk|uae|drc|england|scotland|wales|ivory coast|congo|burma|turkey|czech republic|palestine|cape verde|east timor|swaziland|macedonia";
+const ALSO_SAID = "usa|uk|uae|drc|england|scotland|wales|ivory coast|congo|burma|turkey|czech republic|palestine|cape verde|east timor|swaziland|macedonia|kinshasa|brazzaville";
 let countryNames: Set<string> | undefined;
 /**
  * Country names in English and in lower case, as the browser lists them. A place said without a
@@ -303,9 +310,17 @@ function countries(): Set<string> {
       for (let second = 65; second <= 90; second++) {
         const code = String.fromCharCode(first, second);
         const name = NOT_COUNTRIES.has(code) ? undefined : regions.of(code);
-        // "Myanmar (Burma)", "Congo - Kinshasa", "Hong Kong SAR China", "Bosnia & Herzegovina", "Côte d’Ivoire".
-        for (const part of name?.replace(/ SAR China$/u, "").split(/[ \t]*[()][ \t]*|[ \t]+-[ \t]+/u) ?? [])
-          if (part.trim()) names.add(part.trim().toLocaleLowerCase().replaceAll("’", "'").replaceAll("&", "and").replaceAll(".", ""));
+        if (!name) continue;
+        // "Hong Kong SAR China" is Hong Kong, "Myanmar (Burma)" is Myanmar and Burma, "Congo - Kinshasa"
+        // is Congo, and "Cocos (Keeling) Islands" is Cocos Islands. Only whole names are kept, so
+        // "islands" or "keeling" alone is never a country.
+        const plain = name.replace(/ SAR China$/u, "");
+        const forms = [
+          plain.replace(/[ \t]*\([^()]*\)[ \t]*/gu, " ").replace(/[ \t]+-[ \t]+.*$/u, "").trim(),
+          plain.match(/^[^()]+\(([^()]+)\)$/u)?.[1]?.trim() ?? "",
+        ];
+        for (const form of forms)
+          if (form) names.add(form.toLocaleLowerCase().replaceAll("’", "'").replaceAll("&", "and").replaceAll(".", ""));
       }
   } catch {
     // Left with the names above.
@@ -324,8 +339,48 @@ function countryIn(lower: readonly string[]): { start: number; end: number } | n
 /** A spoken place as it would be written: a capital on each word that has none, joining words apart. */
 const titledPlace = (parts: readonly string[]) =>
   parts
-    .map((word, index) => (/\p{Lu}/u.test(word) || (index > 0 && PARTICLE.test(word)) ? word : word.replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase())))
+    .map((word, index) =>
+      // "Rio de Janeiro", "Bosnia and Herzegovina": joining words keep their small letter.
+      /\p{Lu}/u.test(word) || (index > 0 && (PARTICLE.test(word) || /^(?:and|y|e)$/u.test(word)))
+        ? word
+        : word.replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase()),
+    )
     .join(" ");
+/** Words before a country that make one name with it, with no comma between: "New Mexico", "Lake Chad", "Mount Kenya". */
+const ONE_NAME = words("new nueva nuevo nova novo lake lago gulf golfo mount monte");
+/** Words before "of" that make one place with the country after it: "Republic of Ireland", "the coast of Kenya", "Estado de México". */
+const OF_HEAD = words(
+  "republic bay isle island kingdom state province region sea coast interior",
+  "república estado ciudad cidade provincia província región região reino bahía baía isla ilha costa norte sur sul este oeste leste centro",
+);
+/** A word with a hyphen that describes a country rather than naming a part of it: "war-torn", "drought-hit", "post-war". */
+const DESCRIBES =
+  /^(?:\p{Ll}[\p{L}\p{M}]*-(?:torn|hit|affected|stricken|ravaged|prone|ridden|struck|damaged|scarred|battered|plagued|held|occupied|controlled|speaking)|post-\p{Ll}[\p{L}\p{M}]*)$/u;
+/** Parts said with the country that holds them, "Scotland, UK" or "Georgia, USA": one place, not a list of two. */
+const HELD: readonly (readonly [string, string])[] = [
+  ["england|scotland|wales|gibraltar|jersey|guernsey|isle of man|bermuda|cayman islands|falkland islands|anguilla|montserrat|british virgin islands", "uk|united kingdom"],
+  ["georgia|puerto rico|guam|american samoa|northern mariana islands", "usa|united states"],
+  ["hong kong|macao", "china"],
+  ["kinshasa", "drc|congo"],
+  ["brazzaville", "congo"],
+  ["greenland|faroe islands", "denmark"],
+  ["canary islands", "spain"],
+  ["french guiana|guadeloupe|martinique|réunion|mayotte|new caledonia|french polynesia", "france"],
+  ["aruba|curaçao|sint maarten|caribbean netherlands", "netherlands"],
+  ["christmas island|norfolk island", "australia"],
+  ["cook islands|niue|tokelau", "new zealand"],
+  ["åland islands", "finland"],
+];
+const heldBy = (part: string, whole: string) => HELD.some(([parts, wholes]) => parts.split("|").includes(part) && wholes.split("|").includes(whole));
+/** Words after a country said without capitals that make it another place or a firm: "the niger delta", "kenya power", "jordan valley". */
+const NOT_THE_COUNTRY = words("delta valley basin state city power bank airways airlines telecom post railways plateau highlands coast");
+/** Words after a country written with capitals that make it a firm, an event or a building: "the Ghana Commercial Bank", "the Kenya Seed Fair". */
+const INSTITUTION = words(
+  "bank commercial power airways airlines telecom seed fair hall pavilion fund foundation university hospital school college council",
+  "ministry embassy society association club company group ltd inc corporation authority board climate challenge",
+);
+/** Country names that are also an everyday word: "chile farming" is not Chile. */
+const COMMON_WORDS = words("chile china jersey turkey cuba chad jordan georgia niger guinea mali peru malta jamaica panama");
 
 interface SpokenPlace {
   place: string;
@@ -349,6 +404,8 @@ function spokenPlace(rest: string, afterThe = false): SpokenPlace | null {
   /** The words a comma came before. */
   const breaks = new Set<number>();
   let list = false;
+  /** The word the place stopped at, when a word ended it. */
+  let endedAt = "";
   for (const [index, token] of tokens.entries()) {
     const lower = token.toLocaleLowerCase();
     if (token === ",") {
@@ -368,6 +425,7 @@ function spokenPlace(rest: string, afterThe = false): SpokenPlace | null {
       (capital && !joins && !/^\p{Lu}/u.test(token));
     if (!/^[.;:!?\n]$/u.test(token) && !/^\p{L}/u.test(token)) return null;
     if (ends) {
+      endedAt = token;
       const next = tokens[index + 1];
       const after = next?.toLocaleLowerCase() ?? "";
       list =
@@ -380,8 +438,24 @@ function spokenPlace(rest: string, afterThe = false): SpokenPlace | null {
     if (said.length === SPOKEN_PLACE_READ) break;
     said.push(token);
   }
+  // A possessive that ends the words names someone's thing, not a place: "Georgia's garden", "Kenya
+  // Power's depot". One inside a place's name stays: "Cox's Bazar", "Kenya's Rift Valley".
+  if (/['’]s$/iu.test(said.at(-1) ?? "")) return null;
+  // "the Democratic Republic of the Congo", "the University of the West Indies": the words stopped
+  // at "of the", short of the place they name.
+  if (endedAt.toLocaleLowerCase() === "the" && /^of$/iu.test(said.at(-1) ?? "")) return null;
+  // "hospitals across kenya": a place does not run across another.
+  if (said.some((word) => /^(?:across|throughout)$/iu.test(word))) return null;
   const found = countryIn(said.map((word) => word.toLocaleLowerCase()));
+  // "the Ghana Commercial Bank", "the Kenya Seed Fair": a country that starts a firm's or an event's name.
+  if (found && capital && said.slice(found.end).some((word) => INSTITUTION.has(word.toLocaleLowerCase()))) return null;
   if (found && !capital) {
+    const next = (said[found.end] ?? endedAt).toLocaleLowerCase() || undefined;
+    // "the niger delta", "kenya power offices", "jordan valley": another place, or a firm.
+    if (next && NOT_THE_COUNTRY.has(next)) return null;
+    // "chile farming": a country's name that is also a word, said before what it names.
+    if (found.start === 0 && found.end - found.start === 1 && COMMON_WORDS.has(said[0]!.toLocaleLowerCase()) && !/^\p{Lu}/u.test(said[0]!) && next && NOT_WHERE.has(next))
+      return null;
     // Another country straight after the first is a list: "kenya uganda tanzania".
     if (countryIn(said.slice(found.end).map((word) => word.toLocaleLowerCase()))?.start === 0) list = true;
     said = said.slice(0, found.end);
@@ -397,8 +471,28 @@ function spokenPlace(rest: string, afterThe = false): SpokenPlace | null {
   const shouted = said.some((word, index) => doubted.includes(lower[index]!) && /^\p{Lu}{2,}$/u.test(word));
   const known = (capital && !shouted) || !!found;
   if (afterThe && !known) return null;
-  // "nairobi kenya" is written "Nairobi, Kenya"; "western kenya" has no comma to add.
-  if (found && found.start > 0 && !PART_OF.has(lower[found.start - 1]!)) breaks.add(found.start);
+  // "Kenya, Uganda, Rwanda": a country, a comma and another country are a list, not a place and its region.
+  if (found && found.start === 0 && breaks.has(found.end) && countryIn(lower.slice(found.end))?.start === 0) {
+    const second = countryIn(lower.slice(found.end))!;
+    const part = lower.slice(found.start, found.end).join(" ");
+    const whole = lower.slice(found.end, found.end + second.end).join(" ");
+    // "Scotland, UK" and "Georgia, USA" are a part and its country, as written; "Panama, Panama" is one place said twice.
+    if (whole !== part && !heldBy(part, whole)) list = true;
+  }
+  const prior = found && found.start > 0 ? lower[found.start - 1]! : "";
+  // "the university of ghana", "parts of kenya": a country after "of" makes one place with the word
+  // before only when that word names a place, as in "Gulf of Mexico" or "north of Kenya".
+  if (found && found.start > 1 && PARTICLE.test(prior)) {
+    const head = lower[found.start - 2]!;
+    if (!OF_HEAD.has(head) && !ONE_NAME.has(head) && !PART_OF.has(head)) return null;
+  }
+  // "war-torn South Sudan", "drought-hit northern kenya": the word describes the country and is no part of the place.
+  if (found && found.start >= 1 && DESCRIBES.test(said[0]!) && lower.slice(1, found.start).every((word) => PART_OF.has(word))) {
+    said = said.slice(1);
+    return { place: titledPlace(said), list, known, country: true };
+  }
+  // "nairobi kenya" is written "Nairobi, Kenya"; "western kenya", "new jersey" and "gulf of mexico" have no comma to add.
+  if (found && found.start > 0 && !PART_OF.has(prior) && !ONE_NAME.has(prior) && !PARTICLE.test(prior)) breaks.add(found.start);
   const segments: string[][] = [[]];
   for (const [index, word] of said.entries()) {
     if (breaks.has(index) && segments.at(-1)!.length) segments.push([]);

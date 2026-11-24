@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
-import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
+import type { PartnerEntry } from "@weave/api/partner-matcher";
+import type { RankedPartnerMatch } from "@weave/api/partner-ranking";
 import { AccountFailure } from "../account/client.ts";
 import { Card, CardGrid } from "../ui/Card.tsx";
 import { availabilityUnknownForAll, entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
@@ -36,7 +37,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   const heading = useId();
   const [loaded, setLoaded] = useState<SnapshotState | null>(null);
   const [ranked, setRanked] = useState<{
-    snapshot: PublicEvidenceSnapshot; queries: typeof queries; matches: PartnerMatch[];
+    snapshot: PublicEvidenceSnapshot; queries: typeof queries; matches: RankedPartnerMatch[];
   } | null>(null);
   const hasQueries = queries.length > 0;
   useEffect(() => {
@@ -74,7 +75,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   useEffect(() => {
     if (!snapshot) return;
     const input = [workspaceId, queries, snapshot.evidence] as const;
-    const show = (matches: PartnerMatch[]) => setRanked({ snapshot, queries, matches });
+    const show = (matches: RankedPartnerMatch[]) => setRanked({ snapshot, queries, matches });
     let worker: Worker | undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     const stop = () => {
@@ -87,7 +88,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
     };
     try {
       worker = new Worker(new URL("./certified-suggestions-worker.ts", import.meta.url), { type: "module" });
-      worker.onmessage = ({ data }: MessageEvent<PartnerMatch[]>) => {
+      worker.onmessage = ({ data }: MessageEvent<RankedPartnerMatch[]>) => {
         stop();
         show(data);
       };

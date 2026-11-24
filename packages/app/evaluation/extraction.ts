@@ -15,9 +15,17 @@ import { candidateChunks, chunksFrom, keywordExtraction } from "../src/intake/ke
 import { spokenList } from "../src/intake/spoken.ts";
 import { answerStep, reconcile } from "../src/intake/state.ts";
 
-export const FIELDS = ["name", "where", "about", "cards"] as const;
+export const FIELDS = ["name", "where", "about", "link", "cards"] as const;
 export type Field = (typeof FIELDS)[number];
-type DescribeExpected = { name: string; where: string[]; about: { includes: string[]; excludes: string[] } };
+type DescribeExpected = {
+  name: string;
+  /** Other ways of writing the same name that are just as right, such as "Tech & Sun". */
+  nameAlternatives?: string[];
+  where: string[];
+  about: { includes: string[]; excludes: string[] };
+  /** Website or main link, scored only where the case names one ("" for none): "greengoods.app" matches "https://greengoods.app/". */
+  link?: string;
+};
 type CardsExpected = { cards: string[] };
 export type ExtractionCase = {
   id: string;
@@ -56,6 +64,8 @@ export function validateCorpus(data: unknown, split: "development" | "holdout"):
     if (row.step === "describe") {
       if (typeof expected.name !== "string" || !isList(expected.where) || !expected.about || !isList(expected.about.includes)
         || !expected.about.includes.length || !isList(expected.about.excludes)) throw Error("invalid_extraction_expected");
+      if ((expected.link !== undefined && typeof expected.link !== "string") || (expected.nameAlternatives !== undefined && !isList(expected.nameAlternatives)))
+        throw Error("invalid_extraction_expected");
       // A phrase the label asks for must be in the words, or no rule could ever find it.
       for (const phrase of [...expected.about.includes, ...expected.about.excludes])
         if (!holds(row.text, phrase)) throw Error(`phrase_not_in_text: ${row.id} "${phrase}"`);
@@ -66,7 +76,8 @@ export function validateCorpus(data: unknown, split: "development" | "holdout"):
       for (const card of expected.cards)
         if (expected.cards.some((other) => other !== card && holds(other, card))) throw Error(`overlapping_keys: ${row.id} "${card}"`);
     }
-    const key = fold(row.text);
+    // One text may be read on all three steps, as a person can say it all once; never twice on one step.
+    const key = `${row.step}\n${fold(row.text)}`;
     if (words.has(key)) throw Error(`duplicate_text: ${row.id}`);
     ids.add(row.id);
     words.add(key);
@@ -74,7 +85,7 @@ export function validateCorpus(data: unknown, split: "development" | "holdout"):
   return corpus;
 }
 
-export type Described = { name: string; where: string[]; about: string };
+export type Described = { name: string; where: string[]; about: string; link: string };
 
 /**
  * The describe step's fill, as Fill In The Fields runs it (pages/Describe.tsx), with the keyword rules
@@ -84,7 +95,10 @@ export async function readDescribe(text: string): Promise<Described> {
   const draft: DeviceDraft = changeSaid(newDraft(), text);
   const result = await structureWords(draft, new AbortController().signal, { keywords: (source) => readKeywordSource(source), engines: [] });
   const form = fieldsForm(fillFields(draft, result.suggestion, result.lastBuild, saidText(draft)).draft);
-  return { name: form.name.trim(), where: form.where.split(/;\s*/u).map((place) => place.trim()).filter(Boolean), about: form.about.trim() };
+  return {
+    name: form.name.trim(), where: form.where.split(/;\s*/u).map((place) => place.trim()).filter(Boolean),
+    about: form.about.trim(), link: form.links.trim(),
+  };
 }
 
 /** A needs or offers list, as the step makes it: a recording is first split into one line per item. */
@@ -122,7 +136,8 @@ export async function scoreCase(row: ExtractionCase, read: Readers = APP_READERS
   if (row.step === "describe") {
     const expected = row.expected as DescribeExpected;
     const got = await read.describe(row.text);
-    const named = !!got.name, wanted = !!expected.name, same = fold(got.name) === fold(expected.name);
+    const named = !!got.name, wanted = !!expected.name;
+    const same = [expected.name, ...(expected.nameAlternatives ?? [])].some((name) => fold(got.name) === fold(name));
     result.fields.name = {
       passed: same, expected: quote(expected.name), observed: quote(got.name),
       count: { tp: named && wanted && same ? 1 : 0, fp: named && !(wanted && same) ? 1 : 0, fn: wanted && !(named && same) ? 1 : 0 },
@@ -141,6 +156,14 @@ export async function scoreCase(row: ExtractionCase, read: Readers = APP_READERS
       observed: quote(got.about),
       count: { tp: good ? 1 : 0, fp: got.about && !good ? 1 : 0, fn: good ? 0 : 1 },
     };
+    if (expected.link !== undefined) {
+      const site = (link: string) => link.toLowerCase().replace(/^https?:\/\//u, "").replace(/^www\./u, "").replace(/\/+$/u, "");
+      const has = !!got.link, wants = !!expected.link, match = site(got.link) === site(expected.link);
+      result.fields.link = {
+        passed: match, expected: quote(expected.link), observed: quote(got.link),
+        count: { tp: has && wants && match ? 1 : 0, fp: has && !(wants && match) ? 1 : 0, fn: wants && !(has && match) ? 1 : 0 },
+      };
+    }
   } else {
     const keys = (row.expected as CardsExpected).cards;
     const cards = await read.cards(row.text, row.step, row.mode);
@@ -211,7 +234,8 @@ export function gate(corpus: ExtractionCorpus, result: Evaluation, floor: Floor 
   const fell: string[] = [];
   for (const field of FIELDS)
     for (const rate of ["precision", "recall"] as const) {
-      const was = floor.summary[field][rate], now = result.summary[field][rate];
+      // A field the floor was recorded without has nothing to hold yet.
+      const was = floor.summary[field]?.[rate] ?? null, now = result.summary[field][rate];
       if (was !== null && (now ?? 0) + 1e-9 < was) fell.push(`${field} ${rate} fell from ${show(was)} to ${show(now)}.`);
     }
   const broke: string[] = [], improved: string[] = [];

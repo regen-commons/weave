@@ -32,8 +32,15 @@ const evidenceContext: Record<NetworkMatch["evidenceKind"], string> = {
   potential_use: "Your offer could support the work described here. The source gives no confirmed need.",
 };
 
+/** One reason a match rests on: shared words, related wording, or what links the two sides (DL-144). */
+export type MatchReason = { readonly type: "shared_terms" | "related_terms" | "complement"; readonly terms: readonly string[] };
+/** How each kind of reason opens its sentence. */
+export function reasonLead(type: MatchReason["type"]): string {
+  return type === "related_terms" ? "Related wording: " : type === "complement" ? "What links you: " : "Shared topics include ";
+}
+
 /** What supports one match and what to check: dates, why it fits, shared topics and what is unknown. */
-export function MatchDetails({ match }: { match: NetworkMatch }) {
+export function MatchDetails({ match }: { match: Omit<NetworkMatch, "reasons"> & { reasons: readonly MatchReason[] } }) {
   const evidence = match.evidence;
   return (
     <>
@@ -46,7 +53,7 @@ export function MatchDetails({ match }: { match: NetworkMatch }) {
       )}
       <p>{evidenceContext[match.evidenceKind]}</p>
       {match.reasons.map(({ type, terms }) => <p className="rc-meta" key={`${type}:${terms.join(", ")}`}>
-        {type === "related_terms" ? "Related wording: " : "Shared topics include "}{terms.join(", ")}.
+        {reasonLead(type)}{terms.join(", ")}.
       </p>)}
       {!!match.unknowns.length && <p className="rc-meta">Details to check include {match.unknowns.join(", ")}.</p>}
       {match.reciprocal && <p className="rc-meta">This initiative has a match in both directions.</p>}

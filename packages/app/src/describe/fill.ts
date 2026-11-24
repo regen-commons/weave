@@ -131,23 +131,51 @@ const POINTER = new Set(
     .join(" ")
     .split(" "),
 );
+/** A sentence that opens by pointing somewhere: "See", "Visit", "Check out", "Veja", "Acesse", "Visita", "Mira". */
+const POINTS =
+  /^(?:(?:you[ \t]+can[ \t]+)?(?:see|visit|check[ \t]+out|find[ \t]+(?:us|more|out[ \t]+more)[ \t]+(?:at|on)|read[ \t]+more[ \t]+(?:at|on)|more[ \t]+(?:at|on)|follow[ \t]+us[ \t]+(?:at|on)|veja|visite|acesse|conheça|saiba[ \t]+mais[ \t]+em|mais[ \t]+em|visita|visítanos|visitanos|mira|conoce|más[ \t]+en|síguenos[ \t]+en))(?![\p{L}\p{M}])/iu;
+/** What a pointer's tail names: something to read at the link, never what the initiative does. */
+const INFO =
+  "more|info|information|details|hours|updates|news|schedule|calendar|map|maps|menu|photos|pictures|videos|events|dates|times|prices|contact|contacts|directions|programme|program|agenda|más|mais|información|informacion|informação|informações|informacao|informacoes|detalles|detalhes|novedades|novidades|horarios|horários|mapa|mapas|fotos|eventos|calendario|calendário|contacto|contato|contatos";
+/**
+ * What may follow the link in a sentence that only points at it: "for more", "for our planting
+ * maps", "para más información". Up to four words that end in something to read there; "for free
+ * repair workshops" says what the initiative does and stays. Each word starts after a space, so
+ * no long word can be cut up in more than one way.
+ */
+const POINTER_TAIL = new RegExp(String.raw`^(?:for|para|pour)(?:[ \t]+[\p{L}\p{M}'’-]+){0,3}[ \t]+(?:${INFO})$`, "iu");
 /**
  * About it without the sentences that only point at a link the card holds, such as "See
- * https://example.org for more." A sentence that says something beside its link is kept whole,
- * and so is one whose link the card does not hold, since it is then the only place the link is.
+ * https://example.org for more." or "See https://example.org for our planting maps.": the link
+ * field now says where to look. A sentence that says something beside its link is kept whole ("Visit
+ * https://example.org to see the garden we run in Maputo"), and so is one whose link the card does
+ * not hold, since it is then the only place the link is. About it is never emptied by this.
  */
 export function withoutLinkPointers(text: string, links: readonly string[]): string {
   if (!links.length) return text;
   const held = new Set(links.map((link) => link.trim()));
-  return text
-    .split(/(?<=[.!?])\s+/u)
-    .filter((sentence) => {
-      const found = [...sentence.matchAll(/https?:\/\/[^\s<>"']+/giu)].map((match) => match[0].replace(/[.,;:!?)\]]+$/u, ""));
-      if (!found.length || !found.every((link) => held.has(link))) return true;
-      const rest = sentence.replace(/https?:\/\/[^\s<>"']+/giu, " ").toLocaleLowerCase().match(/[\p{L}\p{M}:]+/gu) ?? [];
-      return !rest.every((word) => POINTER.has(word));
-    })
-    .join(" ");
+  const sentences = text.split(/(?<=[.!?])\s+/u);
+  const holdsOnlyHeld = (sentence: string) => {
+    const found = [...sentence.matchAll(/https?:\/\/[^\s<>"']+/giu)].map((match) => match[0].replace(/[.,;:!?)\]]+$/u, ""));
+    return found.length > 0 && found.every((link) => held.has(link));
+  };
+  const onlyPointerWords = (sentence: string) =>
+    (sentence.replace(/https?:\/\/[^\s<>"']+/giu, " ").toLocaleLowerCase().match(/[\p{L}\p{M}:]+/gu) ?? []).every((word) => POINTER.has(word));
+  // "See <link> for our planting maps.": a pointer, the link, and a short tail without a verb.
+  const pointsWithTail = (sentence: string) => {
+    const opening = sentence.trim().match(POINTS);
+    if (!opening) return false;
+    const tail = sentence.trim().slice(opening[0].length).replace(/https?:\/\/[^\s<>"']+/giu, " ").trim();
+    // Its end marks, walking back, so a long run of them costs only its length.
+    let end = tail.length;
+    while (end > 0 && ".!?".includes(tail[end - 1]!)) end--;
+    const words = tail.slice(0, end).trim();
+    return !words || POINTER_TAIL.test(words);
+  };
+  const plain = sentences.filter((sentence) => !holdsOnlyHeld(sentence) || !onlyPointerWords(sentence));
+  const tailed = plain.filter((sentence) => !holdsOnlyHeld(sentence) || !pointsWithTail(sentence));
+  // The pointer with a tail is left out only when something else is left: About it is never emptied by it.
+  return (tailed.join(" ").trim() ? tailed : plain).join(" ");
 }
 
 /** What a fill did, so the page can say it in one line. */
