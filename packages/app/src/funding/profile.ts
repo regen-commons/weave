@@ -1,6 +1,7 @@
 import { COUNTRIES, US_STATES } from "../../../../dist/storage.mjs";
 import { FundingFormSchema, type FundingDetails, type FundingForm } from "./contracts.ts";
 import { DeviceDraftSchema, type DeviceDraft } from "../describe/contracts.ts";
+import { keptAsks } from "../intake/finish.ts";
 
 /** A detail for funding the matcher can take as typed: everything but the choices made by picking. */
 export type FundingFormField = Exclude<keyof FundingForm, "applicantType" | "fundingInstruments">;
@@ -25,9 +26,9 @@ const codes = (text: string) => [
  * suggestion still in pencil is not on the card, so it is not read (DL-110).
  */
 export function keptAskWords(draft: Pick<DeviceDraft, "needs" | "offers">): string[] {
-  return [...draft.needs.items, ...draft.offers.items]
-    .filter((item) => item.decision === "kept")
-    .flatMap(({ value }) => [value.title, value.description, value.purpose, value.audience])
+  return (["needs", "offers"] as const)
+    .flatMap((kind) => keptAsks(draft, kind))
+    .flatMap((ask) => [ask.title, ask.description, ask.purpose, ask.audience])
     .filter((words): words is string => !!words?.trim());
 }
 /** What Funding ranks: a card, its details for funding, and the words of its kept needs and offers. */

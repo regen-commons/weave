@@ -57,6 +57,11 @@ test("an English card with no kept needs or offers reaches the rubric exactly as
   assert.deepEqual(rubricProject(project), before);
 });
 
+test("an older card's own themes are kept first, and a Portuguese one is read too, as the MCP tool reads it", () => {
+  const older = { ...english, confirmed: { ...english.confirmed!, themes: ["água", "seed saving"] } };
+  assert.deepEqual(rubricProject(projectFrom(older)!).tags, ["água", "seed saving", "water"]);
+});
+
 const item = (title: string, decision: AskItem["decision"], over: Partial<AskItem["value"]> = {}): AskItem => ({
   id: crypto.randomUUID(),
   sourceKey: null,

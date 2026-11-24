@@ -23,19 +23,27 @@ test("a word with an everyday second meaning counts only in the phrase that sett
     ["Trabajamos con pueblos indígenas contra la violencia de género.", ["peoples", "indigenous", "violence", "gender"]],
   ] as const)
     assert.deepEqual(fundingTopics(text), wanted, text);
-  for (const text of [
-    "La violencia mata a las mujeres.", // mata, "kills"
-    "Una especie de escuela abierta.", // una especie de, "a kind of"
-    "Fixing the deficiencias of the old pump.", // deficiencias, "shortcomings"
-    "Rotação de culturas no sítio.", // culturas, "crops"
-    "Visitamos los pueblos cada mes.", // pueblos, "villages"
-    "El cura del pueblo nos presta la sala.", // cura, "priest"
-    "Tocamos géneros musicales distintos.", // géneros, "kinds"
-    "Comunidades da Cordillera Negra.", // negra, a colour and a place
-  ])
-    assert.ok(!namedTopics(text).has("forest") && !namedTopics(text).has("species") && !namedTopics(text).has("disability")
-      && !namedTopics(text).has("culture") && !namedTopics(text).has("peoples") && !namedTopics(text).has("healing")
-      && !namedTopics(text).has("gender"), text);
+  for (const [text, wrong] of [
+    ["La violencia mata a las mujeres.", "forest"], // mata, "kills"
+    ["Una especie de escuela abierta.", "species"], // una especie de, "a kind of"
+    ["Buscamos apoyo en especie o en efectivo.", "species"], // en especie, "in kind"
+    ["Doações em espécie para a cozinha.", "species"],
+    ["Fixing the deficiencias of the old pump.", "disability"], // deficiencias, "shortcomings"
+    ["Rotação de culturas no sítio.", "culture"], // culturas, "crops"
+    ["Visitamos los pueblos cada mes.", "peoples"], // pueblos, "villages"
+    ["El cura del pueblo nos presta la sala.", "healing"], // cura, "priest"
+    ["Tocamos géneros musicales distintos.", "gender"], // géneros, "kinds"
+    ["Un festival de géneros musicales.", "gender"],
+    ["Doação de gêneros alimentícios.", "gender"], // gêneros alimentícios, "foodstuffs"
+    ["Reparamos artes de pesca.", "arts"], // artes de pesca, "fishing gear"
+    ["Um ambiente acolhedor para as crianças.", "environment"], // ambiente, "a setting"
+    ["Lo haremos a toda costa.", "coastal"], // a toda costa, "at all costs"
+    ["Comunidades da Cordillera Negra.", "black"], // negra, a colour and a place
+  ] as const)
+    assert.ok(!namedTopics(text).has(wrong), `${text} does not read as ${wrong}`);
+  // The phrase that settles the word still names its topic.
+  assert.deepEqual(fundingTopics("Reparamos artes de pesca."), ["fisheries"]);
+  assert.deepEqual(fundingTopics("Educação sobre o meio ambiente."), ["education", "environment"]);
 });
 
 test("an English description is left to the rubric, so its own words weigh as they always have", () => {

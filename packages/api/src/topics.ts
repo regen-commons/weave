@@ -11,13 +11,15 @@
  *
  * Words are written folded, in lower case without accents. A word names one topic only, so one
  * word never counts as two shared topics while the catalog is written in English. Left out:
- * - a word that is also English, which the rubric reads already, as itself (rural, digital,
- *   inclusion), or which means something else in English (familiar, medicinal, fauna);
+ * - a word spelled like a common English word, which the rubric reads already, as itself (rural,
+ *   digital, inclusion), or which means something else in English (familiar, medicinal, fauna);
  * - a word with an everyday second meaning (mata, "kills"; cura, "priest"; deficiencias,
- *   "shortcomings"; pueblos, "villages"; generos, "kinds"; negra, a colour), which counts only in a
- *   phrase that settles it, such as mata atlantica, pueblos indigenas or violencia de genero;
- * - a phrase that names something else (Costa Rica, El Niño, una especie de). Spanish "a costa de"
- *   ("at the expense of") still reads as coastal, because Portuguese "a costa de" is "the coast of".
+ *   "shortcomings"; pueblos, "villages"; generos, "kinds"; ambiente, "setting"; negra, a colour),
+ *   which counts only in a phrase that settles it, such as mata atlantica, pueblos indigenas,
+ *   violencia de genero or meio ambiente;
+ * - a phrase that names something else (Costa Rica, El Niño, una especie de, en especie, artes de
+ *   pesca, generos alimenticios). Spanish "a costa de" ("at the expense of") still reads as coastal,
+ *   because Portuguese "a costa de" is "the coast of".
  * Topics are subjects of work, never places or kinds of organization, and a reading is never an
  * eligibility decision.
  */
@@ -40,7 +42,7 @@ export const TOPIC_WORDS: Readonly<Record<string, string>> = {
   ocean: "mar mares oceano oceanos marinho marinha marinhos marinhas marinos marinas maritimo maritima",
   coastal: "costa costeiro costeira costeiros costeiras costero costera costeros costeras litoral litorais litorales",
   fishers: "pescador pescadora pescadores pescadoras",
-  fisheries: "pesca pescas pesqueiro pesqueira pesqueiros pesqueiras pesquero pesquera pesqueros pesqueras pesqueria pesquerias",
+  fisheries: "pesca pescas pesqueiro pesqueira pesqueiros pesqueiras pesquero pesquera pesqueros pesqueras pesqueria pesquerias artes_de_pesca",
   forest:
     "floresta florestas florestal florestais bosque bosques forestal forestales selva selvas matas mata_atlantica mata_nativa mata_ciliar reflorestamento reflorestar reforestacion reforestar",
   restoration: "restaurar restauracao restauracoes restauracion restauramos restauram restauran restaurando",
@@ -59,7 +61,7 @@ export const TOPIC_WORDS: Readonly<Record<string, string>> = {
   territorial: "territorio territorios territoriais territoriales",
   // Climate, energy and waste
   environmental: "ambiental ambientais ambientales",
-  environment: "ambiente ambientes",
+  environment: "meio_ambiente medio_ambiente",
   climate: "clima climas climatico climatica climaticos climaticas",
   adaptation: "adaptacao adaptacion",
   mitigation: "mitigacao mitigacion",
@@ -166,7 +168,9 @@ export const TOPIC_WORDS: Readonly<Record<string, string>> = {
  */
 export const OTHER_MEANINGS: readonly string[] = [
   "costa rica", "costa do marfim", "costa de marfil", "mar del plata", "en la paz", "el nino", "la nina",
-  "especie de", "rotacao de culturas", "culturas agricolas", "consorcio de culturas",
+  "especie de", "en especie", "em especie", "a toda costa", "rotacao de culturas", "culturas agricolas",
+  "consorcio de culturas", "de generos alimenticios", "de genero alimenticio", "de generos musicales",
+  "de genero musical", "de generos musicais", "artes de pesca",
 ];
 
 /**
