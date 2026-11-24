@@ -8,8 +8,13 @@
 // It also marks Home before the body is drawn. index.html carries Home's first view as HTML (drawn at
 // build time, dev/prerender.ts), and the server sends the same file for addresses without a page of
 // their own, so the design system's base.css shows that view only on a page marked as Home.
+// Home's address with `projectConsent` is where Certified's permission screen sends a person back to.
+// That is not Home but a wait while the app finishes, so the page is marked as returning, and
+// base.css shows the loading view index.html carries for it instead of Home's first view.
 (function () {
-  if (location.pathname === "/") document.documentElement.setAttribute("data-home", "");
+  if (location.pathname !== "/") return;
+  if (/[?&]projectConsent=/.test(location.search || "")) document.documentElement.setAttribute("data-returning", "");
+  else document.documentElement.setAttribute("data-home", "");
 })();
 // It marks, too, whether this device's draft held a checked card when it was last open: a flag the
 // app keeps, with nothing of the card in it (src/describe/checked-hint.ts). Until the draft opens, a

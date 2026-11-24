@@ -31,8 +31,10 @@ keepRecordFirstView(root);
 // the list starts from, so its first draw has the same cards and asks for none.
 keepServedFirstPage(document);
 retireFirstView(root, routePath());
-// The app has started, so the note for a page whose script never ran is not needed.
+// The app has started, so the note for a page whose script never ran is not needed, nor, away from
+// a return from Certified, the loading view index.html carries for one.
 document.querySelector("[data-app-fallback]")?.remove();
+if (!document.documentElement.hasAttribute("data-returning")) document.querySelector("[data-returning-view]")?.remove();
 
 createRoot(root).render(
   <StrictMode>
