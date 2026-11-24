@@ -1006,7 +1006,7 @@ Given up: a recognizer slower than 2.5 seconds loses whatever it would have corr
 
 **Revised 23 November 2026** (user report on production: "after I clicked stop nothing was transcribed or showed with no clear error"). The deadline assumed the words were already on the page. A recognizer that shows nothing while the person talks and hands over every word only after Stop lost all of them at 2.5 seconds, and the describe step then said nothing at all.
 
-- **No words yet, a longer wait.** While a recognizer has given no words, Stop waits up to 10 seconds for them, and Finishing shows that long at most. Once it has given words, the 2.5 second deadline is as before.
+- **No words yet, a longer wait.** Where a recognizer had shown no words by the time Stop was pressed, Stop waits up to 10 seconds for them, and Finishing shows that long at most. Where it had shown words, the 2.5 second deadline is as before. A browser that answers Stop with its own "aborted" is taken as having stopped.
 - **Stop always says something.** A session the person stopped that brought no words ends with "No speech was heard. Check your microphone and try again, or type in the box." on every step. The browser ending a session by itself with its own "aborted" now says so, and cloud speech stopped before the microphone was ready says nothing was recorded or sent. No way a session can end leaves the status line empty. The [proof](../../docs/platform/prototype/proof/speech-stop/README.md) has the replays before and after.
 
 From Krug: every press gets an answer where the person is looking. From Dirksen: say what is happening while the person waits.
