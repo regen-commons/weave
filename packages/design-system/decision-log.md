@@ -1094,3 +1094,11 @@ DL-139 showed the built-in first cards once the page knew no initiative was comp
 With an initiative compared, the first cards stay until the ranking is ready, and the list then moves once into its fit order. DL-139 had swapped them for loading shapes while the ranking ran, which would have been cards, then shapes, then cards. A filtered list still waits in the shape of a card with a fit line.
 
 The first draw and the prerender pick the same cards for the same day: the soonest-closing calls still open. On a later day than the build, a call among them that has closed since is left out, so the page's first draw can drop a card the prerendered page still showed. A fresh build each day keeps the two the same.
+
+## DL-141: Funding That Fits shows Funding's own first fits, and says how many may fit
+
+**Status:** user decision, 23 November 2026 ("Lets go ahead and do 1, 2, 3, 4 and 5", item 1 of the describe flow walkthrough). Amends DL-129 where it had Your Initiative's Funding That Fits take its two research leads.
+
+The walkthrough found Matches saying "Nothing in the catalog matches this card yet" while Funding listed a Strong fit and several Good fits for the same card. The block showed only the matcher's research leads, which need a research priority of 30 and a fit of 60 with nothing left to check, so a fund on an invitation route, with a closed cycle or with a geographic scope to confirm never appeared. On 23 November, five sample cards working in Brazil, Kenya, the United States and Indonesia had no research leads at all and between 3 and 26 Strong or Good fits each, so the block was empty for every one.
+
+Funding That Fits, on an initiative's page and a team workspace, now shows the first two funds in Funding's own fit order, each card with its fit line and the one thing it still needs checked, and under them one line: "26 funds may fit this card well. Each needs a check with the funder." A card with only one-topic fits says how many share a topic with it, and one with none says that no fund shares a topic with it yet. The words say may fit and a check, never eligible. The block reads the same function Funding sorts with (`fundingFits`), so the two cannot disagree again. A fund that shares no topic (Low fit) or was not assessed is not counted as a fit.

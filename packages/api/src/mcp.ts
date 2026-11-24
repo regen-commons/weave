@@ -4,6 +4,7 @@
 // including the description find_funds_for_initiative ranks.
 import { createAgentTools, type FundCatalog } from "./agent-tools.ts";
 import { createMcpHandler } from "./mcp-http.ts";
+import { createRateLimiter } from "./mcp-limit.ts";
 import { findPublicProject, GET as publicProjects } from "./public-projects.ts";
 
 /** Weave's public address, for the links results carry. */
@@ -34,5 +35,6 @@ function fundScreening(): Promise<{ rules: unknown; conditions: unknown }> {
 export const { POST, GET, DELETE } = createMcpHandler({
   enabled: () => process.env.WEAVE_MCP_ENABLED === "true",
   tools: createAgentTools({ catalog: fundCatalog, screening: fundScreening, publicProjects, findPublicProject, origin: PUBLIC_ORIGIN }),
+  limiter: createRateLimiter(),
   log: (entry) => console.log(JSON.stringify({ event: "mcp_tool", ...entry })),
 });
