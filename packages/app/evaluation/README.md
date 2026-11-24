@@ -76,8 +76,8 @@ Only the keyword rules are measured: the browser's own model, which both steps t
 a browser has one, is not. Each case says what a careful person would want there:
 
 - **Name**: the initiative's name only where the words state one, never a person's.
-  Case, accents and punctuation do not count. A name where none was stated is a false
-  positive.
+  Case, accents and punctuation do not count, and a case may list other ways of writing
+  the same name, such as "Tech & Sun". A name where none was stated is a false positive.
 - **Where you work**: each place said, scored place by place; Global for worldwide or
   online work.
 - **About it**: must hold every `includes` phrase and none of the `excludes`, such as a
@@ -86,13 +86,15 @@ a browser has one, is not. Each case says what a careful person would want there
 - **Cards**: one per need or offer, scored by key phrase as whole words. Two items in
   one card match neither, and a card for the other list is a false positive. A key
   inside another key is refused, since no card could meet it.
+- **Link**: the website, on the cases that name one. `https://`, `www.` and a trailing
+  slash do not count.
 
 Each field gets precision and recall, overall and by typed or spoken words and by
 language.
 
 | Split | Cases | Who wrote it | Runs |
 |---|---|---|---|
-| `extraction-v1.json` (development) | 48: 26 describe, 12 needs, 10 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases | CI, in `test/extraction-eval.test.ts` |
+| `extraction-v1.json` (development) | 61: 31 describe, 16 needs, 14 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases; Green Goods and Tech and Sun from their owner's profile | CI, in `test/extraction-eval.test.ts` |
 | `extraction-v1-holdout.json` | 26: 14 describe, 6 needs, 6 offers | Another agent that read no code or tests | By hand only |
 
 ```sh
@@ -135,6 +137,18 @@ direction, not a measured rate for real people's words. Every person and link in
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.
 
+The one exception is Green Goods and Tech and Sun, two real projects included with their
+owner's consent. Their 12 typed and spoken cases (`owner-profile-2026-11-23`) are written
+from the public-safe facts of the owner's profile and leave out everything the owner
+marked private; Tech and Sun's place is Awka only, for now. With those cases and d-31
+added on 23 November, development (61 cases) scores Name 1.00 / 0.73, Where you work
+1.00 / 0.41, About it 0.87 / 0.87, Link 1.00 / 0.33 and Cards 0.56 / 0.53. The owner's
+longer texts lose most of the cards: on the needs and offers steps, each sentence of a
+typed description becomes a card, and a recording becomes a few long cards that each
+hold several items, their titles cut at 140 characters. Link is filled from a full
+address such as `https://mangrove-futures.example.org`, but not from a bare domain such
+as "greengoods.app" or from one said aloud.
+
 ### What better places would need (24 November 2026)
 
 Where you work is the field the holdout shows weakest (recall 0.06), and keyword rules cannot raise it without wrong places. Three reviews attacked three successive attempts to read places said in a sentence ("we grow vegetables in Accra, Ghana", "trabajamos en Oaxaca, México", "worldwide"). Each found dozens of sentences that gave someone else's place, a past or a wish, a firm or a pepper with a country's name, or a false Global: 85 of 112, then 73 of 81, then 67 of 83 even for the strictest version. A wrong place is worse than none, so no rule that widens Where was shipped. Their 290 sentences, and the attempt, are kept with the describe-flow session's notes. Better places need one of two things, a choice for the user:
@@ -161,33 +175,52 @@ maybe and 614 doesn't. They reported that most "doesn't" notes were written by r
 from a program's focus and geography rather than pair by pair, so those notes are
 hints only. No metric counts a draft.
 
+`fund-relevance-owner-v1-labels.json` holds the pairs for **Green Goods** and **Tech and
+Sun**, two real projects whose owner grades every pair in person. They are included with
+their owner's consent, in public-safe form built only from their public docs (the Green
+Goods repository, MIT, and the Tech and Sun documentation, CC BY-SA 4.0), as an exception
+to the rule that fixtures describe invented initiatives: `fund-relevance-owner-v1.json`
+gives each one's source. Their pool is Funding's first 20 and the live site's first 10,
+plus the funds their profile expected to fit or not that Weave did not rank high, so a
+missed match can count. No agent graded them: every pair waits, ungraded, for the owner.
+
 To review, export a spreadsheet outside the repository, grade the rows you judge, and
-import it:
+import it. `--labels` picks the file by its dataset name; the first is the default:
 
 ```sh
-bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # drafts and confirmations beside each row
-bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # neither, to judge unprompted
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # Weave's ranks, drafts and confirmations beside each row
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # none of them, to judge unprompted
+bun run --filter @weave/app eval:labels -- --export ~/sample.csv --blind --initiatives rel-001,rel-009
+bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --export ~/owner.csv
 bun run --filter @weave/app eval:labels -- --import ~/weave-review.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --import ~/owner.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:labels -- --add-pool   # after a ranking change: new candidates, ungraded (add --labels for the owner's file)
 bun run --filter @weave/app eval:funds -- --record-baseline
 ```
 
 Each row shows the initiative's words and places, the program's focus, who it serves,
-its geography and kind of funding, its draft and any confirmation already made. "Your
-grade" always starts blank: fill it in (fits, maybe or doesn't) for the rows you judge,
-and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
+its geography and kind of funding, where Weave ranked it on Funding and the live site, its
+draft and any confirmation already made. "Your grade" always starts blank: fill it in with
+strong, possible or wrong (fits, maybe and doesn't are read the same way) for the rows you
+judge, and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
 saved back with semicolons reads the same. The import confirms exactly the rows you
 graded, under your name and the day, keeps the draft each one answered beside it, and
 leaves every other row as it was. It refuses a row for a pair the file does not hold,
-a pair graded twice, an agent as reviewer, and a grade on a pair someone else already
-confirmed, unless you add `--replace`, when the note records whose grade it replaced.
-A sheet can be shared out in parts: import each part as it comes back. Commit the label
-file with the new baseline in the same pull request, and say who judged. An agent never
-runs the import.
+a graded row whose "program" cell is not its program id's name (an edited id would move
+the grade to another pair; if the catalog renamed a program since the sheet was made, add
+`--renamed`), a pair graded twice, an agent as reviewer, and a grade on a pair someone
+else already confirmed, unless you add `--replace`, when the note records whose grade it
+replaced. The reviewer's name is written into the public label file, so use the name or
+handle the person agreed to. A sheet can be shared out in parts: import each part as it
+comes back. Commit the label file with the new baseline in the same pull request, and say
+who judged. An agent never runs the import.
 
 The file holds one grade per pair. Who judges is still to be decided. A blind sheet
 avoids leaning on the drafts; to have two people judge, give the second a blind sheet,
 compare their grades outside the file, and import the grade they agree on.
 
-A catalog change can drop a program a draft names. That draft counts for nothing, so CI
-only warns; rebuild the pool before it is reviewed. A confirmed label for a program the
+A ranking change can bring programs into a first five that the file does not hold:
+`--add-pool` adds them as ungraded drafts. A catalog change can drop a program a draft
+names. That draft counts for nothing, so CI only warns; rebuild the pool before it is
+reviewed. A confirmed label for a program the
 catalog no longer holds fails by name.

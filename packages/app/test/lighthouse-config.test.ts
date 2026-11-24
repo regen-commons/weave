@@ -24,12 +24,11 @@ test("every address Lighthouse visits has exactly one performance budget, and ev
     assert.ok(urls.some((address) => new RegExp(entry.matchingUrlPattern, "u").test(address)), entry.matchingUrlPattern);
 });
 
-test("accessibility is 100 everywhere, best practices at least today's 96, and SEO on the public pages only", () => {
+test("accessibility and best practices are 100 everywhere, and SEO on the public pages only", () => {
   for (const address of urls) {
     const score = (category: string) => matching(category)(address)[0]?.assertions[category]![1].minScore;
     assert.equal(score("categories:accessibility"), 1, `accessibility ${address}`);
-    // 96 while the intake state module's own Zod import trips the script policy; see e2e/README.md. Raise it to 1 once fixed.
-    assert.ok((score("categories:best-practices") ?? 0) >= 0.96, `best practices ${address}`);
+    assert.equal(score("categories:best-practices"), 1, `best practices ${address}`);
     const seo = matching("categories:seo")(address).length;
     // The private pages are kept out of search on purpose.
     assert.equal(seo, PRIVATE.some((path) => address.endsWith(path)) ? 0 : 1, `SEO ${address}`);

@@ -48,18 +48,12 @@ person's browser does.
 - **`screenshots.spec.ts`**: the flow's five key steps at 360 and 1280, against the
   pictures in `screenshots/`, with the background growth hidden.
 - **`../lighthouserc.json`**: Lighthouse 13.6 on mobile, the median of three runs, on seven
-  routes. Accessibility must be 100 everywhere, best practices at least 96, SEO 100 on the
+  routes. Accessibility and best practices must be 100 everywhere, SEO 100 on the
   public pages (the private ones are kept out of search on purpose), layout shift at most
   0.1, and each route's performance at least its budget. Largest contentful paint over 2 s,
   the PRD's bar, is a warning for now. `test/lighthouse-config.test.ts`, in the ordinary
   app tests, fails if an address loses its budget, since Lighthouse CI drops a budget whose
   pattern matches nothing without a word.
-
-Best practices is 96 rather than 100 because `src/intake/state.ts` imports Zod directly
-rather than through `src/validation.ts`, so a parse can run before Zod is told not to
-compile code, and the content security policy blocks its probe, which Chrome logs as an
-issue. Production is still 100 because that change has not reached it. Once the import is
-fixed, set the budget back to 1.
 
 | Route | Budget | Local, one run | GitHub, median of 3 (two runs) | LCP on GitHub |
 |---|---:|---:|---:|---:|
