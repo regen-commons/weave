@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { performance } from "node:perf_hooks";
 import { uuid, type SignInResult } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
 import { boundedJson, RENEWAL_SECONDS, sessionCookies } from "./account-http.ts";
@@ -6,6 +7,7 @@ import { accountRuntime } from "./account-runtime.ts";
 import type { SignInStore } from "./sign-in-store.ts";
 import { signInEmail, type certifiedEmailHints } from "./certified/email-hint.ts";
 import { serverTiming, withServerTiming } from "./certified/server-timing.ts";
+import type { supabaseDirect } from "./sign-in-direct.ts";
 
 const nonce = () => randomBytes(32).toString("base64url");
 const tasks = new Set(["/", "/settings", "/start/initiative", "/start/initiative/check", "/start/needs", "/start/offers", "/start/finish", "/your-initiative", "/your-initiatives", "/partners", "/funding", "/initiatives"]);
@@ -30,9 +32,11 @@ export function errorReturn(params: URLSearchParams): Exclude<SignInResult, "sig
 }
 interface Options { origin: string; secureCookies: boolean; store: SignInStore; provider: AccountProvider; emailHints?: ReturnType<typeof certifiedEmailHints>;
   /** Wakes the identity bridge. It never rejects and is never needed for a sign-in to work. */
-  warmBridge?: () => Promise<void> }
+  warmBridge?: () => Promise<void>;
+  /** Asks Supabase for the bridge address itself (`sign-in-direct.ts`). It never rejects. */
+  toBridge?: ReturnType<typeof supabaseDirect> }
 /** Callback establishes identity only. Save and Load remain separate account commands. */
-export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints, warmBridge }: Options) {
+export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints, warmBridge, toBridge }: Options) {
   const cookies = sessionCookies(secureCookies);
   const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff" };
   const finish = (path: string, status: SignInResult, session: string[] = []) => {
@@ -72,11 +76,20 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         const redirect = provider.signInUrl(createHash("sha256").update(verifier).digest("base64url"), callback,
           email ? emailHints?.seal(email) : undefined);
         const previous = cookies.binding(request);
-        await timing.time("state", async () => {
-          if (previous) await store.take(previous);
-          await store.put(id, { verifier, state, returnTo });
-        });
-        return withServerTiming(new Response(JSON.stringify({ redirect }), { status: 200,
+        // The attempt is stored as before; Supabase is asked at the same time. Its answer is only used
+        // once the attempt is safely stored, and a failed store fails the start as it always has.
+        const asked = performance.now();
+        const [direct] = await Promise.all([
+          toBridge ? toBridge(redirect, callback).then(target => {
+            timing.add("supabase", performance.now() - asked, target ? "direct" : "fallback");
+            return target;
+          }) : Promise.resolve(undefined),
+          timing.time("state", async () => {
+            if (previous) await store.take(previous);
+            await store.put(id, { verifier, state, returnTo });
+          }),
+        ]);
+        return withServerTiming(new Response(JSON.stringify({ redirect: direct ?? redirect }), { status: 200,
           headers: { ...headers, "Content-Type": "application/json", "Set-Cookie": cookies.pending(id, 600) } }), timing);
       } catch (error) {
         const known = error instanceof AccountError ? error : new AccountError(503, "sign_in_unavailable");

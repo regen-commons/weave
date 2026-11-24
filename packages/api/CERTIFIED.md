@@ -78,11 +78,31 @@ and callback addresses are public configuration; credentials belong in secret st
 This isolated proof used its own keys, relying-party credentials and database.
 The shared test now uses the stable issuer described above.
 
-Vercel detects `packages/api/server.ts` as a Node server. Deploy with
-`packages/api` as the project root, workspace source enabled, and
-`bunx bun@1.4.2 install --frozen-lockfile --filter @weave/api` from the workspace
-root. The proof used an allowlisted
-source upload with the workspace manifests, lockfile and bridge code. The function
+Deploy the bridge with `packages/api/scripts/deploy-bridge.sh` from a clean
+checkout of the commit to release: a preview by default, or with `--prod` a
+production deployment that is not yet on the domain (`--skip-domain`). Set `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` for `weave-certified-preview`
+first. The script installs from the lockfile, runs the typecheck and the bridge
+and sign-in tests, builds the bridge as Vercel Build Output with
+`scripts/build-bridge.mjs`, and uploads only that with `vercel deploy --prebuilt`.
+The output is one Node 26 function, `index.func`, holding the same listener as
+`server.ts` bundled with its libraries by the workspace's esbuild, and a route
+that sends every path to it. Nothing is installed, built or detected on Vercel,
+no `vercel.json` is involved, and the project's settings and environment
+variables are left as they are. They still reach the function at run time.
+
+Earlier deploys relied on Vercel detecting `packages/api/server.ts` as a Node
+server, with an allowlisted source upload. On 24 November 2026 a CLI deploy of
+the whole repository built without error but served no function, so every path
+answered Vercel's 404 until it was rolled back. A deployment's own address
+cannot show the sign-in itself, because the bridge answers only its issuer's
+host. A 421 with `Cache-Control: no-store`, or 503 `sign_in_unavailable` where
+that environment has no issuer, shows that the bridge is running. Vercel's
+`NOT_FOUND` shows that it is not. Then `vercel promote <url>` moves the domain to
+the staged production deployment without rebuilding it. Never promote a preview
+and never use the dashboard's Redeploy for this project: Vercel rebuilds both
+from the `packages/api` source, which is how the bridge once had no function.
+After promoting, expect 200 from `/client-metadata.json` and 204 with
+`Server-Timing` from `/warm`, and roll back if either is wrong. The function
 requires the stable issuer Host and an HTTPS forwarding header. It discards
 incoming forwarding metadata and caps requests per instance. Each warm instance
 keeps up to two database connections. Expired state is rejected by the database
@@ -324,6 +344,25 @@ most once in 30 seconds for each instance. The database connection it opens clos
 so the gain is the warm function, the finished role check and the woken bridge, not a held connection. It stores no attempt, sets no cookie, sends nothing of the person's to the bridge and
 answers `{"warm": true}` whether or not either step worked. A start wakes the bridge the same way without
 waiting for it. Sign-in works the same when the warm request is blocked or fails.
+
+### Straight to the bridge
+
+A start used to send the browser to Supabase's `/auth/v1/authorize`, whose only answer is a redirect to the
+bridge's `/auth`. That hop cost 330 to 790 ms of the press (production, 24 November 2026), while Supabase
+itself took 120 to 170 ms. The answer sets no sign-in cookie, only Cloudflare's `__cf_bm`: Supabase keeps
+the flow under the state in its redirect and the PKCE challenge Weave sent. So `/api/sign-in` now asks for
+that URL itself (`sign-in-direct.ts`), at the same time as it stores the attempt, and sends the browser
+straight to the bridge.
+
+The answer is used only when it is a 302 or 303 to the configured bridge's HTTPS `/auth` with exactly one
+`redirect_to`, equal to this attempt's callback and state, one `redirect_uri` equal to Supabase's own
+callback, `response_type=code`, and one `client_id` and `state`. The request sends no cookie and nothing
+of the browser's, and nothing from the answer reaches the browser. Anything else (a Cloudflare challenge,
+an error, a refusal, another return address, or no answer within 450 ms) returns Supabase's own URL, as
+before, and that instance then sends browsers to Supabase themselves for a minute, so a slow Supabase
+costs one start its wait, not every start. The attempt cookie, its stored state, the PKCE verifier and the callback's checks are unchanged.
+`Server-Timing` reads `supabase;desc=direct` or `supabase;desc=fallback`. A Weave without a bridge
+asks nothing.
 
 ### Readying Certified
 
