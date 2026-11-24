@@ -4,7 +4,7 @@ import type { RequestListener } from "node:http";
 const events = ["started", "stopped", "start_failed", "stop_failed", "cleanup_succeeded",
   "cleanup_failed", "provider_error", "request_failed"] as const;
 type BridgeEvent = typeof events[number];
-const routes = ["discovery", "keys", "authorization", "token", "certified_callback", "interaction", "end_session", "unknown"] as const;
+const routes = ["discovery", "keys", "authorization", "token", "certified_callback", "interaction", "end_session", "warm", "unknown"] as const;
 type BridgeRoute = typeof routes[number];
 const startStages = ["interaction_details", "browser_state", "email_hint", "oauth_discovery",
   "oauth_state", "oauth_authorize", "authorize_redirect"] as const;
@@ -64,6 +64,7 @@ function routeLabel(raw: string | undefined): BridgeRoute {
   if (path === "/jwks" || path === "/at-jwks.json") return "keys";
   if (path === "/token") return "token";
   if (path === "/at/callback") return "certified_callback";
+  if (path === "/warm") return "warm";
   if (/^\/auth(?:\/[A-Za-z0-9_-]+)?$/.test(path ?? "")) return "authorization";
   if (/^\/interaction\/[A-Za-z0-9_-]+(?:\/complete)?$/.test(path ?? "")) return "interaction";
   if (/^\/session\/end(?:\/(?:confirm|success))?$/.test(path ?? "")) return "end_session";

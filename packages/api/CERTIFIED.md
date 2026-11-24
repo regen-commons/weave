@@ -319,11 +319,38 @@ A sign-in that met cold functions took about 6.3 seconds from the press to Certi
 bridge's first redirects, where it loads its libraries, opens its database and reads its keys. So a page
 that shows Sign In to someone signed out first posts `{"warm": true}` to `/api/sign-in`. The handler
 applies the same origin and JSON rules as a start, runs the sign-in store's one-time role check for that
-function instance, and reads the bridge's public discovery document once, with an eight-second limit, at
+function instance, and asks the bridge's `/warm` address once, with an eight-second limit, at
 most once in 30 seconds for each instance. The database connection it opens closes after ten idle seconds,
 so the gain is the warm function, the finished role check and the woken bridge, not a held connection. It stores no attempt, sets no cookie, sends nothing of the person's to the bridge and
 answers `{"warm": true}` whether or not either step worked. A start wakes the bridge the same way without
 waiting for it. Sign-in works the same when the warm request is blocked or fails.
+
+### Readying Certified
+
+Warm, the bridge's `/interaction` step still took about a second, and 1.5 seconds after a quiet spell
+(production, 24 November 2026). It made four requests to Certified one after another: protected-resource
+metadata, authorization-server metadata, a pushed authorization request (PAR) refused with
+`use_dpop_nonce`, and the PAR again. The SDK keeps metadata and nonces for 60 seconds, and the project
+client began every attempt with empty caches.
+
+`certified/oauth-prime.ts` gives each function instance one set of caches, shared by every client it
+makes: metadata for five minutes (Certified serves it with `max-age=300`) and DPoP nonces for the SDK's 60
+seconds (Certified accepts one for two to three). Its primer resolves the metadata through the SDK, so it
+is validated as a sign-in validates it, and posts an empty form to Certified's PAR endpoint, which answers
+400 with a fresh `DPoP-Nonce` before it looks up any client. It sends no client, state or credential,
+only ever to Certified's own HTTPS PAR endpoint, never rejects, and makes no request when a nonce is
+cached, and after a failure it waits 20 seconds before asking again, so no caller can make it ask at will.
+A stale nonce costs what it always did: Certified answers `use_dpop_nonce` and the SDK retries once. A
+start waits for readying at most 1.5 seconds; past that it goes on and its PAR fetches what it needs.
+
+The bridge's `GET /warm` primes and answers 204, and its login step primes before the PAR, which costs
+nothing when the warm-up got there first. The project consent start primes while the session is checked,
+its warm request primes too, and its callback and restored sessions share the caches. Sign In asks again
+when a pointer or keyboard reaches it 45 seconds after the last warm-up, so the nonce is fresh at the press.
+
+The bridge, `/api/sign-in` and the consent function send `Server-Timing` with fixed labels only:
+`runtime` (cold or warm), `prune`, `state`, `prime` (ready, primed, skipped or failed), `par`, `exchange`,
+`actor` and `authorize`. `prime` reads `late` when a start stopped waiting for it.
 
 The session checks behind `/api/account` also run together: `/auth/v1/user` beside the `account_access`
 predicate, and the list beside both. The user's answer is still judged first, then the predicate, then

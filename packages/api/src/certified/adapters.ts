@@ -5,6 +5,7 @@ import { AuthStore } from "./store.ts";
 import { CERTIFIED_ISSUER, identitySubject } from "./identity.ts";
 import type { SigningMaterial } from "./keys.ts";
 import { allowlistedOAuthError, type BridgeStartFailure, type BridgeStartStage } from "./operations.ts";
+import { certifiedOAuthCaches, certifiedPrimer, type CertifiedOAuthCaches, type PrimeOutcome } from "./oauth-prime.ts";
 
 export function oidcAdapter(store: AuthStore): AdapterFactory {
   return model => ({
@@ -28,6 +29,8 @@ export function oidcAdapter(store: AuthStore): AdapterFactory {
 export interface CertifiedClient {
   authorize(state: string, email?: string): Promise<URL>;
   callback(params: URLSearchParams): Promise<{ state: string | null; subject: string }>;
+  /** Readies Certified's metadata and a DPoP nonce for the next `authorize`. Never rejects. */
+  prime(): Promise<PrimeOutcome>;
   metadata: unknown;
   jwks: unknown;
 }
@@ -77,8 +80,10 @@ export function certifiedEmailRedirect(authorization: URL, email: string | undef
   target.search = new URLSearchParams({ client_id: clientId, request_uri: requestUri, prompt: "login", login_hint: email }).toString();
   return target;
 }
-export async function createCertifiedClient(store: AuthStore, signing: SigningMaterial, issuer: string): Promise<CertifiedClient> {
+export async function createCertifiedClient(store: AuthStore, signing: SigningMaterial, issuer: string,
+  caches: CertifiedOAuthCaches = certifiedOAuthCaches()): Promise<CertifiedClient> {
   const client = new NodeOAuthClient({
+    ...caches,
     clientMetadata: {
       client_id: `${issuer}/client-metadata.json`, client_name: "Weave",
       redirect_uris: [`${issuer}/at/callback`], jwks_uri: `${issuer}/at-jwks.json`,
@@ -111,9 +116,11 @@ export async function createCertifiedClient(store: AuthStore, signing: SigningMa
         ...(input instanceof Request ? [input.signal] : []),
       ]) }),
   });
+  const prime = certifiedPrimer({ caches, resolve: signal => client.oauthResolver.resolve(CERTIFIED_ISSUER, { signal }) });
   return {
     metadata: client.clientMetadata,
     jwks: client.jwks,
+    prime,
     async authorize(state, email) {
       const authorization = await client.authorize(CERTIFIED_ISSUER, {
         state, scope: "atproto", ...(email ? { prompt: "login" } : {}),

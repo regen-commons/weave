@@ -38,9 +38,11 @@ const WAKE_EVERY_MS = 30_000;
 /**
  * Wakes the identity bridge before a sign-in needs it. Its first request after a quiet spell loads its
  * libraries, opens its database and reads its keys, which took the first redirect of a sign-in several
- * seconds. This asks for its public discovery document, which starts all of that. It sends nothing of
- * the person's, reads nothing back and never fails a sign-in: the bridge works the same without it.
- * One function instance asks at most once in 30 seconds, however many pages ask it to.
+ * seconds. This asks for its `/warm` address, which starts all of that and readies Certified's metadata
+ * and a DPoP nonce, so the step that sends the person to Certified makes one request there, not four.
+ * (A bridge without that address still starts, and answers 404.) It sends nothing of the person's,
+ * reads nothing back and never fails a sign-in: the bridge works the same without it. One function
+ * instance asks at most once in 30 seconds, however many pages ask it to.
  */
 export function bridgeWarmer(bridge: string | undefined, request: typeof fetch = fetch, now: () => number = Date.now) {
   let last = Number.NEGATIVE_INFINITY, pending: Promise<void> | undefined;
@@ -51,8 +53,8 @@ export function bridgeWarmer(bridge: string | undefined, request: typeof fetch =
     last = now();
     const wake = (async () => {
       try {
-        const response = await request(`${bridge}/.well-known/openid-configuration`, {
-          headers: { Accept: "application/json" }, redirect: "manual", credentials: "omit", signal: AbortSignal.timeout(8000),
+        const response = await request(`${bridge}/warm`, {
+          headers: { Accept: "*/*" }, redirect: "manual", credentials: "omit", signal: AbortSignal.timeout(8000),
         });
         // The document is not read. Dropping it is not waited for, so it cannot outlast the limit above.
         void response.body?.cancel().catch(() => {});

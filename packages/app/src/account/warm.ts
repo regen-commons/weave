@@ -2,6 +2,11 @@ import { accountRequest } from "./client.ts";
 
 /** A function instance and the bridge stay warm for some minutes. Asking more often only adds requests. */
 const WARM_EVERY_MS = 4 * 60_000;
+/**
+ * What the warm-up readies at Certified, a DPoP nonce, is kept for a minute. A pointer or keyboard that
+ * reaches Sign In asks again once this long has passed, so the press that follows finds it fresh.
+ */
+const INTENT_EVERY_MS = 45_000;
 
 /**
  * Readies sign-in before it is pressed. The first press after a quiet spell used to wait several
@@ -15,18 +20,22 @@ export function createSignInWarmer(
   now: () => number = Date.now,
 ) {
   let last = Number.NEGATIVE_INFINITY;
-  return (): void => {
-    if (now() - last < WARM_EVERY_MS) return;
+  const after = (every: number) => (): void => {
+    if (now() - last < every) return;
     last = now();
     void request({ warm: true }).catch(() => {
       // Nothing was readied, so the next sight of Sign In may ask again.
       last = Number.NEGATIVE_INFINITY;
     });
   };
+  /** `sight` for Sign In coming into view; `intent` for a pointer or keyboard reaching it. */
+  return { sight: after(WARM_EVERY_MS), intent: after(INTENT_EVERY_MS) };
 }
 
 /** One for the page, shared by every Sign In button on it. */
-export const warmSignIn = createSignInWarmer();
+const signInWarmer = createSignInWarmer();
+export const warmSignIn = signInWarmer.sight;
+export const warmSignInOnIntent = signInWarmer.intent;
 
 /**
  * Readies project access the same way. Signing in goes straight on to Certified's permission screen
@@ -34,4 +43,4 @@ export const warmSignIn = createSignInWarmer();
  * spell, before the page could leave for Certified. A Sign In on screen asks this function to start
  * too, so by the time the person is back from signing in it is ready. The request starts no consent.
  */
-export const warmProjectConsent = createSignInWarmer((body) => accountRequest("", body, "/api/certified-project-consent"));
+export const warmProjectConsent = createSignInWarmer((body) => accountRequest("", body, "/api/certified-project-consent")).sight;
