@@ -29,6 +29,11 @@
  *   (`find_funds_for_initiative` in `@weave/api` agent-tools, and the log line in `@weave/api` mcp-http).
  *   The server counts requests by address in memory only (`@weave/api` mcp-limit). This is not Weave's
  *   own assistant, which still sends no words to a cloud model.
+ * - The Feedback tab sends the message, the kinds picked and the page's path under /weave, never its
+ *   query, to `/api/feedback`. Weave's server passes those three to the Regen Commons website's
+ *   `/api/feedback` with no cookie, header or address of the person's, keeps nothing, logs only the
+ *   website's status when it did not confirm, and counts posts by address in memory only
+ *   (`src/feedback/send.ts`, `@weave/api` feedback).
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
@@ -114,6 +119,14 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
       "You can connect your own AI assistant, such as Claude, to Weave. This is separate from Weave's own assistant. It can then search the fund list and the public initiatives, which anyone can read.",
       "If you ask it to find funds for your initiative, it sends Weave your description and any topics, countries and kind of applicant it adds. Weave compares them with the fund list on its server for that one answer, and does not store or log them. What your assistant keeps is up to that assistant, not Weave.",
       "To limit misuse, the server counts requests by network address in its memory. It does not save those counts.",
+    ],
+  },
+  {
+    title: "Feedback",
+    body: [
+      "The Feedback tab sends what you write, the kinds of feedback you pick and the address of the page you are on, without its search or filters. Nothing else from Weave or this device goes with it, and you do not need to sign in.",
+      "Weave's server passes it to the Regen Commons website, which keeps it privately for the Regen Commons stewards, with the website's own feedback. Your network address is not passed on. Weave does not keep your feedback. When the website does not confirm it, Weave logs the website's answer code and nothing else.",
+      "To limit misuse, Weave's server counts feedback by network address in its memory. It does not save those counts.",
     ],
   },
   {

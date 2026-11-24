@@ -150,6 +150,11 @@
       "source": "./src/transcribe-contract.ts",
       "default": "./dist/transcribe-contract.js"
     },
+    "./feedback-contract": {
+      "types": "./src/feedback-contract.ts",
+      "source": "./src/feedback-contract.ts",
+      "default": "./dist/feedback-contract.js"
+    },
     "./router": {
       "types": "./src/router.ts",
       "source": "./src/router.ts",

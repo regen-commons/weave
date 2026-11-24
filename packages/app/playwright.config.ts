@@ -6,6 +6,11 @@ import { defineConfig, devices } from "@playwright/test";
 // Its own port, apart from the app-production launch server (4790), so a test never meets a server started
 // before the last build: the preview server keeps the record page it read when it started.
 const port = Number(process.env.WEAVE_E2E_PORT ?? 4796);
+/**
+ * Where the feedback test's stand-in for the Regen Commons website listens (e2e/feedback.spec.ts). The server
+ * posts feedback only there: off Vercel it never posts to the live website.
+ */
+export const FEEDBACK_UPSTREAM_PORT = port + 3;
 
 export default defineConfig({
   testDir: "e2e",
@@ -42,6 +47,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `node e2e/serve.mjs ${port}`,
+    env: { WEAVE_FEEDBACK_UPSTREAM: `http://127.0.0.1:${FEEDBACK_UPSTREAM_PORT}/api/feedback` },
     url: `http://localhost:${port}/`,
     reuseExistingServer: false,
     timeout: 120_000,

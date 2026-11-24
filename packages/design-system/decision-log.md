@@ -1180,3 +1180,11 @@ A project that complements an entry without sharing its words appears when it ha
 A reason names only what the passage shown and the project's title support, and a project that complements an entry without sharing its words needs, in that passage, the field the entry itself names, two fields of its initiative, or one and the same country. A project counts as a funder only where a sentence says it funds others, never where it seeks investors. The page of a public project reads its fit the same way, so the two never disagree.
 
 Measured on the must-match suite's real projects: Green Goods' need for communities to pilot with and its app both find Tech and Sun first, and Tech and Sun's need for a record of what the hub delivers finds Green Goods first. Three bioacoustic projects the word matcher put in Green Goods' first three for its app and its pilots are out of them, and a need for money alone finds nothing where the word matcher offered five projects that only said "community".
+
+## DL-145: Feedback is one press from every page, and goes to the stewards with the website's
+
+**Status:** user request, 24 November 2026.
+
+Weave has the website's Feedback tab: a copper tab on the window's right edge, half way down, on every page (`rc-feedback-tab`). It is clear of the app bar, a phone's tab bar and Dock and a wide screen's Step bar. On a phone a focused step leaves it out (`data-from="wide"`), where it would sit over the step's fields. It comes last in the keyboard's order, after the footer.
+
+It opens a feedback sheet in place, so a person stays on their page, with the website's fields: a message of 3 to 5,000 characters, the website's seven kinds of feedback, and a hidden field a form filler fills. Weave's server passes it to the website's own `/api/feedback`, so Weave's feedback lands in the stewards' desk with the website's. The page's address goes with it under `/weave`, such as `/weave/funding`, so stewards can tell Weave's from the website's, and never its query. Where Weave cannot pass it on, the sheet keeps the words and links to the website's form. The colour pair is its own role, `--feedback` and `--on-feedback`, because copper is not a section accent (DL-050).
