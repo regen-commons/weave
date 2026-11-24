@@ -212,7 +212,7 @@ test("a review opens on the first step still missing, and a group member reads w
   assert.equal(exposureLabel("share", undefined), "Share for matching");
   assert.equal(exposureLabel("share", "on"), "Change or stop sharing");
   assert.equal(exposureLabel("share", "changed"), "Share the changes");
-  assert.equal(exposureLabel("publish", "off"), "Publish on Certified");
+  assert.equal(exposureLabel("publish", "off"), "Publish needs and offers");
   assert.equal(exposureLabel("publish", "on"), "Change or withdraw");
   assert.equal(exposureLabel("publish", "changed"), "Publish again");
   assert.equal(exposureLabel("publish", "withdrawing"), "Check again");

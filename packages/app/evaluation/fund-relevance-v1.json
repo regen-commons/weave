@@ -1,0 +1,684 @@
+{
+  "version": 1,
+  "dataset": "fund-relevance-v1",
+  "purpose": "Forty real initiatives for relevance labels: each one is a public Certified project record, its description the passages Weave lists publicly, verbatim. A person judges whether each program in its pool fits.",
+  "authoring": "Built on 23 November 2026 from packages/api/evaluation/partner-real-v1-corpus.json (collected 19 November 2026). Countries are assumed from the places the passages name, and left empty where they name none; applicant type is unknown for all. No themes, as a card confirmed on the describe step holds none since DL-127. The 40 were read for names of people before use.",
+  "initiatives": [
+    {
+      "id": "rel-001",
+      "source": "certified",
+      "sourceUri": "at://did:plc:car2bhnsobazchx5qybz422e/org.hypercerts.collection/3modh4ydw622l",
+      "language": "en",
+      "name": "Connecting Global Carbon Data with Local Community Knowledges in Indonesia",
+      "description": "Mapping the carbon sequestration potential of global biodiversity hotspots like the Amazon, the Indonesian archipelago and the Congo Basin is of critical interest to climate science, climate policy, and climate finance. But the carbon conversation is alien to forest dwelling communities; their priorities are first and foremost livelihoods that are at risk from extraction, the climate crisis, and lack of legal territorial rights.",
+      "workCountries": [
+        "ID"
+      ],
+      "benefitCountries": [
+        "ID"
+      ],
+      "applicantBaseCountry": "ID",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-002",
+      "source": "certified",
+      "sourceUri": "at://did:plc:zkytqkqobeplet72qdculnqc/org.hypercerts.collection/3mmykralbmk2q",
+      "language": "en",
+      "name": "Restoring Mesei, Cultural Taro Patches, in Ollei, Palau",
+      "description": "The Mesei System: Restoring Our Mother In Ollei village, the mesei—a traditional taro patch system—has sustained our community for generations.",
+      "workCountries": [
+        "PW"
+      ],
+      "benefitCountries": [
+        "PW"
+      ],
+      "applicantBaseCountry": "PW",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-004",
+      "source": "certified",
+      "sourceUri": "at://did:plc:hcveolwpx2vx2s4lw2tkmjsq/org.hypercerts.collection/3mlmaj3jiqs2u",
+      "language": "en",
+      "name": "Agave Agroforestry and Jaguar Coexistence in Sonora",
+      "description": "Project Summary La Tierra del Jaguar seeks to reverse the effects of land degradation and climate change while improving ecosystem health, quality of life, and financial stability of communities in the Sahuaripa watershed.",
+      "workCountries": [
+        "MX"
+      ],
+      "benefitCountries": [
+        "MX"
+      ],
+      "applicantBaseCountry": "MX",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-005",
+      "source": "certified",
+      "sourceUri": "at://did:plc:xalqolt4g5qdrvanfxjrlozd/org.hypercerts.collection/3mn6fh4lb622q",
+      "language": "en",
+      "name": "Digital forest watch: Mai-Ndombe ecosystem recovery",
+      "description": "Problem Statement Mai-Ndombe faces increasing environmental degradation caused by illegal logging, slash-and-burn agriculture, charcoal production, and weak environmental governance.",
+      "workCountries": [
+        "CD"
+      ],
+      "benefitCountries": [
+        "CD"
+      ],
+      "applicantBaseCountry": "CD",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-009",
+      "source": "certified",
+      "sourceUri": "at://did:plc:j7dgtlqp6ajxwyhl3me3irzd/org.hypercerts.collection/3mrkfx6zoj22t",
+      "language": "en",
+      "name": "Listening to Nature Taraba",
+      "description": "A community-led biodiversity monitoring project in Taraba State, Nigeria, using AudioMoth bioacoustic sensors to document wildlife, engage youth and faith communities, and generate evidence for nature conservation and environmental stewardship. Listening to Nature Taraba is a community-led biodiversity monitoring project implemented by EcoUnity Initiative in Zing Local Government Area of Taraba State, Nigeria.",
+      "workCountries": [
+        "NG"
+      ],
+      "benefitCountries": [
+        "NG"
+      ],
+      "applicantBaseCountry": "NG",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-012",
+      "source": "certified",
+      "sourceUri": "at://did:plc:cpoagodpqrgs4t7thi5z37uf/org.hypercerts.collection/3mpxu6dnfbk2q",
+      "language": "en",
+      "name": "Rio Claro Mangrove Restoration",
+      "description": "Community volunteers are replanting mangroves along the Rio Claro estuary and tracking the wildlife that returns. Since January our team of 14 local volunteers has planted over 3,000 mangrove seedlings across two hectares of degraded shoreline.",
+      "workCountries": [],
+      "benefitCountries": [],
+      "applicantBaseCountry": "",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-015",
+      "source": "certified",
+      "sourceUri": "at://did:plc:lcsyy6cbao2mt5aiij4chmrg/org.hypercerts.collection/3mlej4zsugc2u",
+      "language": "en",
+      "name": "PLANT THE RAIN - Water-Harvesting Native Food Forest Fund Raiser",
+      "description": "We work in the public neighborhood commons of the urban built environment within the Sonoran Desert where the majority of the sponge-like dryland ecosystem has been replaced by bare earth, asphalt, concrete, and buildings that drain rain and stormwater, instead of retaining, r... Plant the Rain, Cool Our Cities – Help Us Raise $100K to Transform Asphalt Deserts into Urban Food Oases!",
+      "workCountries": [
+        "US"
+      ],
+      "benefitCountries": [
+        "US"
+      ],
+      "usWorkStates": [
+        "AZ"
+      ],
+      "usBenefitStates": [
+        "AZ"
+      ],
+      "applicantBaseCountry": "US",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-016",
+      "source": "certified",
+      "sourceUri": "at://did:plc:ly7shayqhcpcmuwd6enmvemr/org.hypercerts.collection/3mms7km5se22q",
+      "language": "en",
+      "name": "From mining land to food forest in Halle",
+      "description": "Since 2018, our small team has been building community-based organic farming from the ground up—entirely community-funded and community-driven. Across the city of Halle (Saale) and Saalekreis district, we grow nutritious food, distribute it locally, and pursue the way of a real bond of solidarity...",
+      "workCountries": [
+        "DE"
+      ],
+      "benefitCountries": [
+        "DE"
+      ],
+      "applicantBaseCountry": "DE",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-020",
+      "source": "certified",
+      "sourceUri": "at://did:plc:hvc4ljxb3pdg5xsikvfyk2xd/org.hypercerts.collection/3mnchw6p7f22q",
+      "language": "en",
+      "name": "Community Environmental training and awareness on proper waste management.",
+      "description": "Liberia's coastline is facing growing environmental challenges. Plastic pollution, poor waste management practices, coastal erosion, flooding, and the impacts of climate change are threatening marine ecosystems, public health, and the livelihoods of thousands of people living in coastal communities.",
+      "workCountries": [
+        "LR"
+      ],
+      "benefitCountries": [
+        "LR"
+      ],
+      "applicantBaseCountry": "LR",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-021",
+      "source": "certified",
+      "sourceUri": "at://did:plc:4hsbckpeyyv37kmqb2ffuudv/org.hypercerts.collection/3mmbxwnzisc2q",
+      "language": "en",
+      "name": "Youth-Led Restoration Along Lake Victoria Basin in Samia Sub-county, Busia.",
+      "description": "Growing up along the Lake Victoria Basin in Busijo Village, Samia Sub-county, Busia County, Kenya, I witnessed how environmental degradation, pollution, deforestation, and changing weather patterns continue to affect fishing and rural communities that depend closely on nature. Streams that once f...",
+      "workCountries": [
+        "KE"
+      ],
+      "benefitCountries": [
+        "KE"
+      ],
+      "applicantBaseCountry": "KE",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-022",
+      "source": "certified",
+      "sourceUri": "at://did:plc:6aajecmhrgo3z2a3e6akyzlw/org.hypercerts.collection/3mn3i2sofdk2q",
+      "language": "en",
+      "name": "Restoring Batwa Land Stewardship Through Regenerative Farming in Nyamirama",
+      "description": "Restoring Batwa Land Stewardship Through Regenerative Farming in Nyamirama This project takes place in Nyamirama Sector, on land where Batwa families continue to live with a deep memory of what was once a forest landscape.",
+      "workCountries": [
+        "RW"
+      ],
+      "benefitCountries": [
+        "RW"
+      ],
+      "applicantBaseCountry": "RW",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-023",
+      "source": "certified",
+      "sourceUri": "at://did:plc:z2gcvdysqzipcazlt7vslio5/org.hypercerts.collection/3mn5vlm5rr22q",
+      "language": "en",
+      "name": "Women-Led Agriculture & Soil Recovery Initiative in Lubok Pusaka",
+      "description": "Lubok Pusaka is one of thousands of villages affected by the devastating Sumatra floods that struck three provinces Aceh, North Sumatra, and West Sumatra in November 2025. Located in a remote area of North Aceh, the village is difficult to access.",
+      "workCountries": [
+        "ID"
+      ],
+      "benefitCountries": [
+        "ID"
+      ],
+      "applicantBaseCountry": "ID",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-029",
+      "source": "certified",
+      "sourceUri": "at://did:plc:bjanoewpyvalp6bc5i27fa44/org.hypercerts.collection/3mqmhokblf22m",
+      "language": "en",
+      "name": "Voices of the Wetland Flyway:Youth-Led Bioacoustic Monitoring and Bird Species Identifica",
+      "description": "AYOWECCA Uganda will train 12–15 Indigenous youth in Tororo District to deploy AudioMoth bioacoustic sensors across restored wetland sites, segment raw recordings into audio chunks, and identify migratory bird species by call through hands-on workshops led by local ornithology and bioacoustics exper Voices of the Wetland Flyway",
+      "workCountries": [
+        "UG"
+      ],
+      "benefitCountries": [
+        "UG"
+      ],
+      "applicantBaseCountry": "UG",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-037",
+      "source": "certified",
+      "sourceUri": "at://did:plc:fecxqglqlbrlh65bpp6oj3sb/org.hypercerts.collection/3moitedz2tk2i",
+      "language": "en",
+      "name": "Restoration of Sulphur Creek Watershed at Wilbur Hot Springs",
+      "description": "Wilbur Hot Springs in Colusa County, California is located on revered land which was historically inhabited by the Patwin and Pomo tribes for many thousands of years. Featuring 1,800 acres with mineral-rich medicinal waters, the site is now being actively restored after decades of extractive mini...",
+      "workCountries": [
+        "US"
+      ],
+      "benefitCountries": [
+        "US"
+      ],
+      "usWorkStates": [
+        "CA"
+      ],
+      "usBenefitStates": [
+        "CA"
+      ],
+      "applicantBaseCountry": "US",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-041",
+      "source": "certified",
+      "sourceUri": "at://did:plc:mg6oi3wrljykvvykjs7z2gvy/org.hypercerts.collection/3mn43dwqqok2q",
+      "language": "en",
+      "name": "Sofia's rivers: from sewage channels to community spaces",
+      "description": "Rivers of Sofia: Reclaiming Our City's Waterways Once neglected and treated as sewage channels, Sofia's rivers are undergoing a remarkable transformation.",
+      "workCountries": [
+        "BG"
+      ],
+      "benefitCountries": [
+        "BG"
+      ],
+      "applicantBaseCountry": "BG",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-046",
+      "source": "certified",
+      "sourceUri": "at://did:plc:pal4dr6rzskwd4mzng7kw53z/org.hypercerts.collection/3mn5r4sdaus2q",
+      "language": "en",
+      "name": "\"Permacultura desde 0\" free regenerative education for Latin America",
+      "description": "Permacultura desde 0: Free Regenerative Education in Spanish The Problem: Quality permaculture education exists behind two barriers: language and price.",
+      "workCountries": [],
+      "benefitCountries": [],
+      "applicantBaseCountry": "",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-047",
+      "source": "certified",
+      "sourceUri": "at://did:plc:rwdssa7fxcmyrdgkdnrru5im/org.hypercerts.collection/3mn6mcgd6yk2q",
+      "language": "en",
+      "name": "The Viable Marketplace",
+      "description": "Most of the harm we do to living systems is hidden inside ordinary transactions. A usable chair goes to landfill because reselling it is a hassle.",
+      "workCountries": [],
+      "benefitCountries": [],
+      "applicantBaseCountry": "",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-048",
+      "source": "certified",
+      "sourceUri": "at://did:plc:o5smenza33jk3rj62z5nvl7g/org.hypercerts.collection/3mn4qv2a7gk2q",
+      "language": "en",
+      "name": "Food Sovereignty for Batswana Elders",
+      "description": "Food Sovereignty for Batswana Elders is a six-month regenerative agriculture and indigenous knowledge project that supports 15 Batswana elders in establishing and strengthening home-based food gardens rooted in African indigenous crops, traditional ecological knowledge, and community resilience. The project emerges from the insights gathered through Living Treasures of Bophirima, a community-led research initiative that documented, archived, and celebrated the indigenous knowledge systems, cultural practices, oral histories, and environmental wisdom of Batswana elders resulting in a book and documentary.",
+      "workCountries": [
+        "BW"
+      ],
+      "benefitCountries": [
+        "BW"
+      ],
+      "applicantBaseCountry": "BW",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-049",
+      "source": "certified",
+      "sourceUri": "at://did:plc:zwnp2gzpbiurn6rb5glvx7mo/org.hypercerts.collection/3myl55fgedk2t",
+      "language": "es",
+      "name": "Evaluación y Servicios Ecosistémicos del Arbolado Urbano en la UAM Xochimilco",
+      "description": "El presente estudio cuantifica y evalúa el estado del arbolado urbano en la Universidad Autónoma Metropolitana, Unidad Xochimilco (uam-x), incluyendo el Predio “Las Ánimas”, cibac y Clínicas estomatológicas. El objetivo principal fue caracterizar la estructura, diversidad y servicios ecosistémicos",
+      "workCountries": [
+        "MX"
+      ],
+      "benefitCountries": [
+        "MX"
+      ],
+      "applicantBaseCountry": "MX",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-053",
+      "source": "certified",
+      "sourceUri": "at://did:plc:xmtbyav6djilhvuwk6yvxndf/org.hypercerts.collection/3mmetsqbncs2q",
+      "language": "en",
+      "name": "Mauritius circular economy supply chain traceability platform",
+      "description": "Project Description: TechCycle Traceability Intelligence Platform TechCycle is a cloud-based Traceability Intelligence Platform engineered to solve the data integrity and regulatory tracking crisis in circular supply chains.",
+      "workCountries": [
+        "MU"
+      ],
+      "benefitCountries": [
+        "MU"
+      ],
+      "applicantBaseCountry": "MU",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-054",
+      "source": "certified",
+      "sourceUri": "at://did:plc:7xkd2ocj5kg34hxp75eqcq2h/org.hypercerts.collection/3mn7em5xelk2q",
+      "language": "en",
+      "name": "Digital watershed defense network, Peru's macro north",
+      "description": "COMMUNITY DIGITAL WATER MONITOR Line of Action: Democratic Strengthening, Civic Resilience, and Territorial Technological Sovereignty",
+      "workCountries": [
+        "PE"
+      ],
+      "benefitCountries": [
+        "PE"
+      ],
+      "applicantBaseCountry": "PE",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-059",
+      "source": "certified",
+      "sourceUri": "at://did:plc:3kg7uuwmdew6z26elrgla52l/org.hypercerts.collection/3mn6226fnyk2q",
+      "language": "fr",
+      "name": "La Ligne Verte: Grand-Bassam neighborhood cleanup and mapping",
+      "description": "La Ligne Verte est l'infrastructure citoyenne de GreenPill Côte d'Ivoire pour la régénération environnementale. Son slogan : Rends ton quartier zo et prends tes points.",
+      "workCountries": [
+        "CI"
+      ],
+      "benefitCountries": [
+        "CI"
+      ],
+      "applicantBaseCountry": "CI",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-062",
+      "source": "certified",
+      "sourceUri": "at://did:plc:iaoufcz4ilvxibp3yonsuckf/org.hypercerts.collection/3mn6wlfp6ak2q",
+      "language": "es",
+      "name": "Middle Beef",
+      "description": "Middle Beef conecta inversionistas con medieros ganaderos en ciclos formalizados de engorda regenerativa de 12 a 15 meses en Jesús Carranza, Veracruz, México. Opera bajo contratos de aparcería pecuaria y asociación en participación, con reparto 50/50 de la utilidad del ciclo y trazabilidad SINIGA.",
+      "workCountries": [
+        "MX"
+      ],
+      "benefitCountries": [
+        "MX"
+      ],
+      "applicantBaseCountry": "MX",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-065",
+      "source": "certified",
+      "sourceUri": "at://did:plc:hskfhwdnelg5mhhjqcr5z7u2/org.hypercerts.collection/3mmzbur6zy22q",
+      "language": "es",
+      "name": "Brotes del Espinal: semillas para una generación arraigada en la naturaleza",
+      "description": "Nuestra misión ‘Brotes del Espinal’ es un programa comunitario de educación ambiental que tiende un puente entre el aula y el bosque vivo.",
+      "workCountries": [
+        "AR"
+      ],
+      "benefitCountries": [
+        "AR"
+      ],
+      "applicantBaseCountry": "AR",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-077",
+      "source": "certified",
+      "sourceUri": "at://did:plc:othky2rxhwd6aevcphycijcn/org.hypercerts.collection/3mmxjcur3cs2q",
+      "language": "en",
+      "name": "Kelp Gardeners: Restoring Ecosystems - Kaitiakitanga, Mātauranga, & Science",
+      "description": "The Kelp Gardeners Pipi (project) Kelp Gardeners: Restoring Ecosystems through Kaitiakitanga, Mātauranga, and Science",
+      "workCountries": [
+        "NZ"
+      ],
+      "benefitCountries": [
+        "NZ"
+      ],
+      "applicantBaseCountry": "NZ",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-084",
+      "source": "certified",
+      "sourceUri": "at://did:plc:twghptap4nbvuz5a3jvfxmmh/org.hypercerts.collection/3mmwj5gyo3c2q",
+      "language": "es",
+      "name": "Rescate de saberes ancestrales para la resilicancia climatica en Madriz",
+      "description": "Los municipios de Totogalpa y San Lucas, se encuentran ubicados en el departamento de madriz Nicaragua, que se caracteriza por ubicarse en el corredor seco del pais, su poblacion de origen indigena Chorotega, se dedica como principal forma de vida a la agricultura de subsistencia, el relieve es v...",
+      "workCountries": [
+        "NI"
+      ],
+      "benefitCountries": [
+        "NI"
+      ],
+      "applicantBaseCountry": "NI",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-085",
+      "source": "certified",
+      "sourceUri": "at://did:plc:zphmada2qkoddrb5etwsbiuo/org.hypercerts.collection/3mtkxk6rqtc2g",
+      "language": "en",
+      "name": "CoolWalk Sofia: Outdoor Thermal Environment Experiment in Sofia",
+      "description": "CoolWalk Sofia 2026: Building a Climate-Resilient City Sofia is heating up—and KyoLink Bulgaria, Sofia Municipality, and The Collective Foundation are taking action.",
+      "workCountries": [
+        "BG"
+      ],
+      "benefitCountries": [
+        "BG"
+      ],
+      "applicantBaseCountry": "BG",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-089",
+      "source": "certified",
+      "sourceUri": "at://did:plc:6l5dxrsjyejlcdxid3ogyz7k/org.hypercerts.collection/3mrt7mv4ly22t",
+      "language": "en",
+      "name": "Biocultural Heritage Conservation and Climate Resilience in the Shansha Population Center",
+      "description": "This youth-led initiative preserves biocultural heritage and strengthens climate resilience in mountain communities by documenting ancestral knowledge, using Wikimedia Commons, and deploying AudioMoth sensors for participatory biodiversity monitoring. The project emerged from the observation that, in the mountain communities of the Cordillera Negra in Áncash, Peru, knowledge of medicinal plants and traditional land-management practices was rapidly disappearing due to the migration of young people and the aging of the male and female knowledge keepers who preserve this heritage.",
+      "workCountries": [
+        "PE"
+      ],
+      "benefitCountries": [
+        "PE"
+      ],
+      "applicantBaseCountry": "PE",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-094",
+      "source": "certified",
+      "sourceUri": "at://did:plc:aqvfy4qsrxwixogtr4xessgf/org.hypercerts.collection/3mn62xc4i7k2q",
+      "language": "en",
+      "name": "Restoring Loita's forests with Maasai women artisans",
+      "description": "Maasai Treasures CBO Empowering Women, Preserving Culture, and Regenerating Indigenous Landscapes in Loita, Narok County, Kenya",
+      "workCountries": [
+        "KE"
+      ],
+      "benefitCountries": [
+        "KE"
+      ],
+      "applicantBaseCountry": "KE",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-097",
+      "source": "certified",
+      "sourceUri": "at://did:plc:x57uajdntnsfunrsesu3qbql/org.hypercerts.collection/3mmou4swl3k2q",
+      "language": "en",
+      "name": "Magnolia recovery and forest restoration in the Colombian Andes",
+      "description": "Fundación ProAves is a Colombian conservation organisation working to protect biodiversity and restore threatened ecosystems through science-based conservation, long-term land stewardship, and strong community participation. Our work focuses on some of Colombia’s most endangered and biodiverse la...",
+      "workCountries": [
+        "CO"
+      ],
+      "benefitCountries": [
+        "CO"
+      ],
+      "applicantBaseCountry": "CO",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-108",
+      "source": "certified",
+      "sourceUri": "at://did:plc:4g7gyu6ztbecacef4nfpv5hr/org.hypercerts.collection/3mlluaoxcxs2u",
+      "language": "en",
+      "name": "The Dignity Project: Vrygrond waste value chain empowering dignity agents",
+      "description": "Greenpill Cape Town: Transforming Challenges into Opportunity Greenpill Cape Town empowers grassroots communities through Web3 education, regenerative projects, and digital infrastructure.",
+      "workCountries": [
+        "ZA"
+      ],
+      "benefitCountries": [
+        "ZA"
+      ],
+      "applicantBaseCountry": "ZA",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-110",
+      "source": "certified",
+      "sourceUri": "at://did:plc:ee5vjozxf4wrdw6i32wlkb2q/org.hypercerts.collection/3mmvirkg2mk2q",
+      "language": "en",
+      "name": "The S.N.A.I.L Network- A Place Based Environment Education Program",
+      "description": "Bringing Environmental Education to Life Across India Imagine a classroom where students learn about their local environment through stories, art, reference books, and by getting involved in hands- on conservation activities.",
+      "workCountries": [
+        "IN"
+      ],
+      "benefitCountries": [
+        "IN"
+      ],
+      "applicantBaseCountry": "IN",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-114",
+      "source": "certified",
+      "sourceUri": "at://did:plc:5fwoptbxz63m5357lpjlb5qi/org.hypercerts.collection/3mn5uzbham22q",
+      "language": "en",
+      "name": "Community composting hub in Mérida, Venezuela",
+      "description": "The \"Community Composting Project\" is an initiative promoted by the organization Regenera Club Venezuela in the city of Mérida, Venezuela. This project takes place weekly within the spaces of the Faculty of Forest and Environmental Sciences at the University of Los Andes (ULA) in Mérida, VE.",
+      "workCountries": [
+        "VE"
+      ],
+      "benefitCountries": [
+        "VE"
+      ],
+      "applicantBaseCountry": "VE",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-117",
+      "source": "certified",
+      "sourceUri": "at://did:plc:26jsl6jlrtovqkncq3tc2vsu/org.hypercerts.collection/3mmz7jbtqos2q",
+      "language": "es",
+      "name": "Rizomas de Vida: mangrove restoration and women's knowledge in Ecuador",
+      "description": "Plataforma de Co-creación de Conocimientos Mujeres Recolectoras y Pescadoras de Territorios Marino Costeros Rizomas de Vida tiene tres componenes: encuentros academicos y de saberes locales a traves de la Escuela de Mujeres Rizomas de Vida, la creación de Espacios Familiares y Colectivos de CUida... Plataforma de Co-creación de Conocimientos Mujeres Recolectoras y Pescadoras de Territorios Marino Costeros Rizomas de Vida tiene tres componenes: encuentros academicos y de saberes locales a traves de la Escuela de Mujeres Rizomas de Vida, la creación de Espacios Familiares y Colectivos de CUidado de la Vida Hermos y Sabrosos y el fortalecimiento de la REDMANGLAR Internacional.",
+      "workCountries": [
+        "EC"
+      ],
+      "benefitCountries": [
+        "EC"
+      ],
+      "applicantBaseCountry": "EC",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-118",
+      "source": "certified",
+      "sourceUri": "at://did:plc:3v7ar73ujlld4hwjvs4o2lau/org.hypercerts.collection/3mnev6ftn2c2q",
+      "language": "en",
+      "name": "Building a Free Film Training Center",
+      "description": "Every powerful movement starts with a single voice, but not everyone has the tools to make their voice heard. High-quality film education and cinematic gear are locked behind expensive university walls or restricted to wealthy areas.",
+      "workCountries": [],
+      "benefitCountries": [],
+      "applicantBaseCountry": "",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-121",
+      "source": "certified",
+      "sourceUri": "at://did:plc:xjyotv77ltcoskf6ds4gdmyo/org.hypercerts.collection/3mmrp52gfvs2q",
+      "language": "pt",
+      "name": "Ecoturismo e cura: jardim sensorial amazônico de Santarém",
+      "description": "O projeto Sentir a Amazônia- Jardim sensorial é um resgate aos valores dos ancestrais da Amazônia, A Amazônia possui uma das maiores biodiversidades do mundo, incluindo uma rica variedade de plantas medicinais utilizadas por comunidades tradicionais há séculos.",
+      "workCountries": [
+        "BR"
+      ],
+      "benefitCountries": [
+        "BR"
+      ],
+      "applicantBaseCountry": "BR",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-123",
+      "source": "certified",
+      "sourceUri": "at://did:plc:viubfq2bbu7n36vgtbnchlio/org.hypercerts.collection/3mmhmf66fhc2q",
+      "language": "es",
+      "name": "Propagación de especies nativas para los bosques Altoandinos",
+      "description": "La restauración ecológica en la Reserva Guanacas inició con la conservación de un predio familiar de 120 hectáreas hoy protege más de 800 hectáreas destinadas a la restauración y fortalecimiento de corredores biológicos. La pérdida de especies nativas, nacimientos de agua y fauna asociada, causad...",
+      "workCountries": [
+        "CO"
+      ],
+      "benefitCountries": [
+        "CO"
+      ],
+      "applicantBaseCountry": "CO",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-128",
+      "source": "certified",
+      "sourceUri": "at://did:plc:g4newcwlrvugtbajcjcson5r/org.hypercerts.collection/3mn43zcyfss2q",
+      "language": "es",
+      "name": "Regenerative yerba mate and forest corridors in southern Paraguay",
+      "description": "Reserva DejaVú es un emprendimiento familiar ubicado en la Selva Paranaense del sur de Paraguay que, desde 2010, trabaja junto a pequeños agricultores y familias rurales para enfrentar la pérdida de biodiversidad causada por la deforestación, el monocultivo, la degradación de suelos y el uso inte... Reserva DejaVú es un emprendimiento familiar ubicado en la Selva Paranaense del sur de Paraguay que, desde 2010, trabaja junto a pequeños agricultores y familias rurales para enfrentar la pérdida de biodiversidad causada por la deforestación, el monocultivo, la degradación de suelos y el uso intensivo de agroquímicos.",
+      "workCountries": [
+        "PY"
+      ],
+      "benefitCountries": [
+        "PY"
+      ],
+      "applicantBaseCountry": "PY",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-133",
+      "source": "certified",
+      "sourceUri": "at://did:plc:zjrlqiw6ktf63rc6aqjflqcn/org.hypercerts.collection/3mn5rg362s22q",
+      "language": "en",
+      "name": "Orang Seletar craft revival and coastal stewardship",
+      "description": "Connecting Women, Culture, and Coastal Ecosystems The indigenous Orang Laut Seletar live near mangroves and have developed a strong system of knowledge about their environment, which they use to sustainably access essential supplies from coastal ecosystems for everyday use and for spiritual and cultural practices.",
+      "workCountries": [
+        "MY"
+      ],
+      "benefitCountries": [
+        "MY"
+      ],
+      "applicantBaseCountry": "MY",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    },
+    {
+      "id": "rel-139",
+      "source": "certified",
+      "sourceUri": "at://did:plc:ulpb4m6t2jnr6oj6hwcihaby/org.hypercerts.collection/3mmhoxxz6322q",
+      "language": "es",
+      "name": "Restoring San Antonio's drylands, Tamaulipas",
+      "description": "El proyecto de restauración del Ejido San Antonio se desarrolla en el municipio de Jaumave, Tamaulipas, México, dentro de un ecosistema semiárido caracterizado por matorral xerófilo y zonas con alta vulnerabilidad a la degradación del suelo, erosión y escasez de agua. Durante años, la comunidad ha enfrentado los efectos de las sequías prolongadas, la pérdida de cobertura vegetal y el deterioro de los recursos naturales, lo que ha afectado tanto el equilibrio ecológico como las actividades productivas locales.",
+      "workCountries": [
+        "MX"
+      ],
+      "benefitCountries": [
+        "MX"
+      ],
+      "applicantBaseCountry": "MX",
+      "registrationCountry": "",
+      "applicantType": "unknown"
+    }
+  ]
+}

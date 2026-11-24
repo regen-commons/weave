@@ -1,0 +1,994 @@
+{
+  "dataset": "extraction-v1-holdout",
+  "cases": 26,
+  "summary": {
+    "name": {
+      "precision": 1,
+      "recall": 0.5,
+      "cases": 14,
+      "passed": 9
+    },
+    "where": {
+      "precision": 1,
+      "recall": 0.0588,
+      "cases": 14,
+      "passed": 1
+    },
+    "about": {
+      "precision": 0.6429,
+      "recall": 0.6429,
+      "cases": 14,
+      "passed": 9
+    },
+    "cards": {
+      "precision": 0.6207,
+      "recall": 0.4186,
+      "cases": 12,
+      "passed": 2
+    }
+  },
+  "byMode": {
+    "spoken": {
+      "name": {
+        "precision": 1,
+        "recall": 0.4,
+        "cases": 7,
+        "passed": 4
+      },
+      "where": {
+        "precision": null,
+        "recall": 0,
+        "cases": 7,
+        "passed": 0
+      },
+      "about": {
+        "precision": 0.5714,
+        "recall": 0.5714,
+        "cases": 7,
+        "passed": 4
+      },
+      "cards": {
+        "precision": 0.7143,
+        "recall": 0.4762,
+        "cases": 6,
+        "passed": 2
+      }
+    },
+    "typed": {
+      "name": {
+        "precision": 1,
+        "recall": 0.6,
+        "cases": 7,
+        "passed": 5
+      },
+      "where": {
+        "precision": 1,
+        "recall": 0.1,
+        "cases": 7,
+        "passed": 1
+      },
+      "about": {
+        "precision": 0.7143,
+        "recall": 0.7143,
+        "cases": 7,
+        "passed": 5
+      },
+      "cards": {
+        "precision": 0.5333,
+        "recall": 0.3636,
+        "cases": 6,
+        "passed": 0
+      }
+    }
+  },
+  "byLanguage": {
+    "en": {
+      "name": {
+        "precision": 1,
+        "recall": 1,
+        "cases": 6,
+        "passed": 6
+      },
+      "where": {
+        "precision": 1,
+        "recall": 0.1429,
+        "cases": 6,
+        "passed": 1
+      },
+      "about": {
+        "precision": 0.8333,
+        "recall": 0.8333,
+        "cases": 6,
+        "passed": 5
+      },
+      "cards": {
+        "precision": 0.625,
+        "recall": 0.4545,
+        "cases": 6,
+        "passed": 1
+      }
+    },
+    "es": {
+      "name": {
+        "precision": null,
+        "recall": 0,
+        "cases": 4,
+        "passed": 1
+      },
+      "where": {
+        "precision": null,
+        "recall": 0,
+        "cases": 4,
+        "passed": 0
+      },
+      "about": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "cases": 4,
+        "passed": 2
+      },
+      "cards": {
+        "precision": 0.5,
+        "recall": 0.2727,
+        "cases": 3,
+        "passed": 0
+      }
+    },
+    "pt": {
+      "name": {
+        "precision": 1,
+        "recall": 0.3333,
+        "cases": 4,
+        "passed": 2
+      },
+      "where": {
+        "precision": null,
+        "recall": 0,
+        "cases": 4,
+        "passed": 0
+      },
+      "about": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "cases": 4,
+        "passed": 2
+      },
+      "cards": {
+        "precision": 0.7143,
+        "recall": 0.5,
+        "cases": 3,
+        "passed": 1
+      }
+    }
+  },
+  "byStep": {
+    "describe": {
+      "name": {
+        "precision": 1,
+        "recall": 0.5,
+        "cases": 14,
+        "passed": 9
+      },
+      "where": {
+        "precision": 1,
+        "recall": 0.0588,
+        "cases": 14,
+        "passed": 1
+      },
+      "about": {
+        "precision": 0.6429,
+        "recall": 0.6429,
+        "cases": 14,
+        "passed": 9
+      },
+      "cards": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      }
+    },
+    "needs": {
+      "name": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      },
+      "where": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      },
+      "about": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      },
+      "cards": {
+        "precision": 0.625,
+        "recall": 0.4545,
+        "cases": 6,
+        "passed": 1
+      }
+    },
+    "offers": {
+      "name": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      },
+      "where": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      },
+      "about": {
+        "precision": null,
+        "recall": null,
+        "cases": 0,
+        "passed": 0
+      },
+      "cards": {
+        "precision": 0.6154,
+        "recall": 0.381,
+        "cases": 6,
+        "passed": 1
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "h-desc-01",
+      "step": "describe",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "\"Riverbank Seed Library\"",
+          "observed": "\"Riverbank Seed Library\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": true,
+          "expected": "\"Asheville, North Carolina\"",
+          "observed": "\"Asheville, North Carolina\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"free seed lending library\", \"over 300 local varieties\"",
+          "observed": "\"Riverbank Seed Library is a free seed lending library in Asheville, North Carolina. Members borrow heirloom seeds in spring and bring back seeds they save after harvest. We started in 2021 with a small grant from a family foundation in Chicago, and we now hold over 300 local varieties.\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-02",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "en",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "nothing",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Leeds\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": false,
+          "expected": "includes \"community bike repair shop\", \"refugees and asylum seekers\", leaves out \"my name is dara\"",
+          "observed": "\"hi um my name is dara and i run a a community bike repair shop out of a church basement in leeds we fix up donated bikes and give them to refugees and asylum seekers who need to get around the city and uh we also teach people to do their own repairs on saturday mornings\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-03",
+      "step": "describe",
+      "mode": "typed",
+      "language": "pt",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "\"Rede Mangue Vivo\"",
+          "observed": "\"Rede Mangue Vivo\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Recife; Maceió\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"replantio de manguezais\", \"limpeza das margens dos rios\"",
+          "observed": "\"Somos a Rede Mangue Vivo. Fazemos replantio de manguezais e limpeza das margens dos rios, sempre junto com pescadores e marisqueiras. Trabalhamos em Recife e em Maceió, com mutirões uma vez por mês.\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-04",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "pt",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "nothing",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Belo Horizonte\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": false,
+          "expected": "includes \"grupo de mulheres\", \"pão de fermentação natural\", leaves out \"precisando muito de um forno maior\"",
+          "observed": "\"então é um grupo de mulheres aqui da zona norte de belo horizonte a gente faz pão de fermentação natural e vende na feira toda sexta e o dinheiro vai pra cozinha comunitária do bairro né e uh a gente tá precisando muito de um forno maior porque o nosso é pequeno demais\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-05",
+      "step": "describe",
+      "mode": "typed",
+      "language": "es",
+      "fields": {
+        "name": {
+          "passed": false,
+          "expected": "\"Semilla Abierta\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Global\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"herramienta de software libre\", \"registro de cosechas\"",
+          "observed": "\"Semilla Abierta: herramienta de software libre para el registro de cosechas en cooperativas agrícolas, hecha por voluntarios y usada en todo el mundo.\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-06",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "es",
+      "fields": {
+        "name": {
+          "passed": false,
+          "expected": "\"Red Ixim\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Guatemala\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"semillas nativas de maíz\", \"intercambios en las comunidades\"",
+          "observed": "\"bueno eh nosotros somos la red ixim somos familias campesinas de todo guatemala que guardamos semillas nativas de maíz y frijol y hacemos intercambios en las comunidades cada temporada de siembra\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-07",
+      "step": "describe",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "\"Fieldnotes Lab\"",
+          "observed": "\"Fieldnotes Lab\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Nakuru, Kenya; Arusha, Tanzania\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"participatory research group\", \"soil carbon monitoring plots\"",
+          "observed": "\"Fieldnotes Lab is a small participatory research group. We work with smallholder farmers to run soil carbon monitoring plots in Nakuru, Kenya and Arusha, Tanzania, and we share the results back at village meetings. Samples are analysed by our partner lab at a university in Edinburgh.\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-08",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "en",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "\"Loom and Ladder\"",
+          "observed": "\"Loom and Ladder\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Scottish Borders\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"natural dye and weaving workshops\"",
+          "observed": "\"so we're we're a worker cooperative um called loom and ladder and we we run natural dye and weaving workshops in the scottish borders and uh we sell the cloth to local shops and some of the wool comes from farms nearby\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-09",
+      "step": "describe",
+      "mode": "typed",
+      "language": "pt",
+      "fields": {
+        "name": {
+          "passed": false,
+          "expected": "\"Quintal das Abelhas\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Florianópolis, Santa Catarina\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": false,
+          "expected": "includes \"abelhas nativas sem ferrão\", \"para escolas públicas\", leaves out \"Lúcia Ferraz\"",
+          "observed": "\"Oi! Meu nome é Lúcia Ferraz e coordeno o Quintal das Abelhas, em Florianópolis, Santa Catarina. É um meliponário comunitário: criamos abelhas nativas sem ferrão e damos oficinas de meliponicultura para escolas públicas.\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-10",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "pt",
+      "fields": {
+        "name": {
+          "passed": false,
+          "expected": "\"Agrofloresta na Prática\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Global\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"curso online de agrofloresta\", \"ao vivo pela internet\"",
+          "observed": "\"oi então é um curso online de agrofloresta chamado agrofloresta na prática as aulas são ao vivo pela internet e uh tem aluno do mundo todo e a gente também grava tudo pra quem não consegue assistir na hora\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-11",
+      "step": "describe",
+      "mode": "typed",
+      "language": "es",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "nothing",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Oaxaca de Juárez; San Cristóbal de las Casas, Chiapas\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2
+          }
+        },
+        "about": {
+          "passed": false,
+          "expected": "includes \"murales comunitarios con jóvenes\", \"una historia del barrio\", leaves out \"Nos hace falta pintura y andamios\"",
+          "observed": "\"Somos un colectivo de artistas y vecinos, todavía sin nombre. Pintamos murales comunitarios con jóvenes en Oaxaca de Juárez y en San Cristóbal de las Casas, Chiapas. Cada mural cuenta una historia del barrio que eligen los vecinos. Llevamos dos años y ya hicimos once murales. Nos hace falta pintura y andamios.\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-12",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "es",
+      "fields": {
+        "name": {
+          "passed": false,
+          "expected": "\"Minga Verde\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Medellín, Colombia\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": false,
+          "expected": "includes \"huerta urbana comunitaria\", \"niños y adultos mayores\", leaves out \"soy Camila\"",
+          "observed": "\"hola soy Camila y bueno yo coordino Minga Verde que es una huerta urbana comunitaria en Medellín Colombia sembramos con niños y adultos mayores los sábados y lo que cosechamos se reparte entre las familias del barrio\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-13",
+      "step": "describe",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "nothing",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Wales\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"hedgerow restoration on farms\", \"wildlife can move between fields\"",
+          "observed": "\"hedgerow restoration on farms across wales, mostly volunteers + a couple of farmers, been going 6 yrs. we plant, lay and gap up old hedges so wildlife can move between fields. no official name yet lol. money comes from a trust in bristol but all the work is in wales\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-desc-14",
+      "step": "describe",
+      "mode": "spoken",
+      "language": "en",
+      "fields": {
+        "name": {
+          "passed": true,
+          "expected": "\"Open Canopy\"",
+          "observed": "\"Open Canopy\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "where": {
+          "passed": false,
+          "expected": "\"Global\"",
+          "observed": "nothing",
+          "count": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "about": {
+          "passed": true,
+          "expected": "includes \"app for mapping street trees\", \"free for cities to use\"",
+          "observed": "\"um okay so it's called Open Canopy it's an open source app for mapping street trees anyone can add a tree from their phone and uh and the data is free for cities to use we're all volunteers and it's used in cities all over the world now\"",
+          "count": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-need-01",
+      "step": "needs",
+      "mode": "spoken",
+      "language": "pt",
+      "fields": {
+        "cards": {
+          "passed": true,
+          "expected": "\"bomba d'água\", \"mudas de árvores nativas\", \"contabilidade\"",
+          "observed": "\"Então a gente precisa de uma bomba d'água pra irrigação\", \"De mudas de árvores nativas\", \"A gente pode dar mel em troca viu e por último alguém que entenda de contabilidade pra ajudar com as contas da associação\"",
+          "count": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-need-02",
+      "step": "needs",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"chest freezer\", \"Saturday planting\", \"cargo bike\", \"grant writing help\"",
+          "observed": "\"Things we need:\", \"A chest freezer for the seed bank\", \"Volunteers for Saturday planting\", \"A cargo bike\"",
+          "count": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-need-03",
+      "step": "needs",
+      "mode": "spoken",
+      "language": "en",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"garden tools\", \"seeds for the spring\", \"candle making workshop\", \"van\"",
+          "observed": "\"Garden tools and seeds for the spring\", \"Someone to lead a soap and candle making workshop for the kids\", \"A van to get our veg to the market\"",
+          "count": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "h-need-04",
+      "step": "needs",
+      "mode": "typed",
+      "language": "pt",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"máquinas de costura usadas\", \"corte e costura\", \"tecido doado\", \"espaço maior\"",
+          "observed": "\"Máquinas de costura usadas\", \"Uma professora de corte e costura, tecido doado e um espaço maior pras oficinas\"",
+          "count": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "h-need-05",
+      "step": "needs",
+      "mode": "spoken",
+      "language": "es",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"tanque\", \"capacitación en compostaje\", \"computadoras\", \"abogado\"",
+          "observed": "\"Primero necesitamos un tanque para guardar agua de lluvia segundo eh capacitación en compostaje tercero computadoras para la biblioteca comu\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 4
+          }
+        }
+      }
+    },
+    {
+      "id": "h-need-06",
+      "step": "needs",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"pickup truck\", \"help with our website\", \"native wildflower seed\"",
+          "observed": "\"Need: a pickup truck to haul compost\", \"Help with our website, and native wildflower seed.\", \"In return we can host volunteer days on our land.\"",
+          "count": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "h-offer-01",
+      "step": "offers",
+      "mode": "spoken",
+      "language": "en",
+      "fields": {
+        "cards": {
+          "passed": true,
+          "expected": "\"meeting space\", \"bread oven\", \"grant writing\", \"free compost\"",
+          "observed": "\"Meeting space in our community hall\", \"A bread oven people can use on weekends\", \"We've done a lot of grant writing so we could mentor other groups on that\", \"Free compost\"",
+          "count": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "h-offer-02",
+      "step": "offers",
+      "mode": "typed",
+      "language": "es",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"Talleres de compostaje\", \"Préstamo de herramientas\", \"Semillas criollas\", \"Asesoría legal\"",
+          "observed": "\"Podemos ofrecer:\", \"Talleres de compostaje\", \"Préstamo de herramientas\", \"Semillas criollas\"",
+          "count": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "h-offer-03",
+      "step": "offers",
+      "mode": "spoken",
+      "language": "pt",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"espaço no nosso galpão\", \"aulas de libras\", \"almoço comunitário\"",
+          "observed": "\"Bom a gente pode oferecer espaço no nosso galpão pra guardar ferramentas\", \"Aulas de libras e almoço comunitário todo domingo que qualquer pode participar mas a gente precisa de voluntários tá\"",
+          "count": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "h-offer-04",
+      "step": "offers",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"garden tools\", \"seeds\", \"bed and breakfast\", \"repair café\"",
+          "observed": "\"Lend out garden tools, give away seeds from our seed library, offer a bed and breakfast discount for visiting volunteers, and host a monthly\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 4
+          }
+        }
+      }
+    },
+    {
+      "id": "h-offer-05",
+      "step": "offers",
+      "mode": "spoken",
+      "language": "es",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"asesoría en apicultura\", \"miel para eventos\", \"camioneta\"",
+          "observed": "\"Nosotros nosotros ofrecemos asesoría en apicultura y también miel para eventos y eh prestamos la camioneta los sábados y si alguien tiene un\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "h-offer-06",
+      "step": "offers",
+      "mode": "typed",
+      "language": "en",
+      "fields": {
+        "cards": {
+          "passed": false,
+          "expected": "\"carpentry help\", \"kiln\", \"mentoring for new co-ops\"",
+          "observed": "\"Carpentry help, use of our kiln & mentoring for new co-ops\"",
+          "count": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 3
+          }
+        }
+      }
+    }
+  ]
+}

@@ -135,6 +135,22 @@ export function withModuleHints(html: string, files: readonly string[], base: st
   return html.replace("</head>", () => `${tags}  </head>`);
 }
 
+/**
+ * Where Certified's permission screen sends a person back to (the callback adds `projectConsent`
+ * to Home's address). The app shows a loading view there until it has finished, and index.html
+ * carries that view, drawn at build time, so it shows from the first paint instead of Home.
+ */
+export const RETURNING_PATH = "/?projectConsent=ready";
+
+const FALLBACK_NOTE = "<p data-app-fallback>";
+
+/** index.html with the returning view beside the root, shown only on a page marked as returning. */
+export function withReturningView(html: string, view: string): string {
+  if (html.split(FALLBACK_NOTE).length !== 2) throw new Error(`The page must have exactly one ${FALLBACK_NOTE}.`);
+  if (!view.trim()) throw new Error("The returning view came out empty.");
+  return html.replace(FALLBACK_NOTE, () => `<div data-returning-view>${view}</div>\n    ${FALLBACK_NOTE}`);
+}
+
 /** The line the drawing process writes its result on, so nothing else it prints is read as the result. */
 export const RESULT_MARK = "@@weave-first-views@@";
 
@@ -188,7 +204,7 @@ export function prerender(): Plugin {
       // The page with an empty root, for addresses whose page is drawn in the browser alone, such
       // as the record pages GET /api/record-page writes, so they never carry Home's first view.
       this.emitFile({ type: "asset", fileName: SHELL_FILE, source: shell });
-      const views = await drawFirstViews(root, FIRST_VIEWS.map((view) => view.path));
+      const views = await drawFirstViews(root, [...FIRST_VIEWS.map((view) => view.path), RETURNING_PATH]);
       for (const { path, file } of FIRST_VIEWS) {
         const route = matchRoute(path);
         if (!route) throw new Error(`${path} is not a route.`);
@@ -198,6 +214,8 @@ export function prerender(): Plugin {
         if (existing?.type === "asset" && typeof existing.source === "string") existing.source = page(existing.source);
         else this.emitFile({ type: "asset", fileName: file, source: page(unlistedPage(shell)) });
       }
+      // Home's file alone: Certified sends a person back to Home's address.
+      if (home.type === "asset" && typeof home.source === "string") home.source = withReturningView(home.source, views[RETURNING_PATH]!);
     },
   };
 }

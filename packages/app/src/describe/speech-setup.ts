@@ -1,6 +1,7 @@
 import { CLOUD_SPEECH } from "@weave/api/transcribe-contract";
 import { speechConstructor, speechStatus, wait, type SpeechConstructor, type SpeechMode, type SpeechProblem, type Wait } from "./speech.ts";
 import { cloudSpeechAvailable } from "./speech-cloud.ts";
+import { deviceSpeechRecord, isBrave, type BrowserSpeechRecord } from "./speech-fallback.ts";
 export type { Wait } from "./speech.ts";
 
 /**
@@ -10,17 +11,23 @@ export type { Wait } from "./speech.ts";
  * send the audio to the browser vendor; otherwise no talking, and on a touch screen a line about
  * the keyboard's own microphone key. Weave downloads no model.
  *
- * Since 23 November 2026 there is one more step before "no talking": where the browser has no
- * speech recognition at all and the server has cloud speech switched on, a person who agrees can
+ * Since 23 November 2026 there is one more step before "no talking": where the browser cannot turn
+ * speech into text itself and the server has cloud speech switched on, a person who agrees can
  * record what they say and have the recording turned into text by the provider the notice names
- * (`speech-cloud.ts`). That is the only case in which Weave records or sends audio.
+ * (`speech-cloud.ts`). The browser cannot when it has no speech recognition at all, or when its own
+ * speech service cannot work here: Brave, or a failure this device noted (`speech-fallback.ts`).
+ * That is the only case in which Weave records or sends audio.
  */
 export type SpeechSetupState =
   /** The browser has not answered yet, so nothing about speech shows. */
   | "checking"
   /** This browser has no speech recognition at all, as in Firefox, and cloud speech is not on offer. */
   | "none"
-  /** No speech recognition at all, but the page can record and cloud speech is on. Talking asks first. */
+  /**
+   * The browser cannot turn speech into text itself, the page can record and cloud speech is on:
+   * no speech recognition at all, or a speech service that cannot work here (`speech-fallback.ts`).
+   * Talking asks first.
+   */
   | "cloud"
   /** No speech on this device for this language, but the browser has its own speech service. Talking asks first. */
   | "browser"
@@ -112,6 +119,8 @@ export function speechSetupStore({
   later = wait,
   touch = touchPrimary(),
   cloud = cloudSpeechAvailable,
+  record = deviceSpeechRecord(),
+  brave = isBrave,
 }: {
   /** null: a browser with no speech recognition at all. */
   speech?: SpeechConstructor | null;
@@ -120,10 +129,15 @@ export function speechSetupStore({
   touch?: boolean;
   /**
    * Whether cloud speech can be offered: the browser can record and the server has it on. Asked
-   * only where the browser has no speech recognition at all, so no other browser calls the
-   * server. A failure to answer counts as no.
+   * only where the browser cannot turn speech into text itself: it has no speech recognition at
+   * all, or its own speech service cannot work here (Brave, or a failure this device noted). A
+   * failure to answer counts as no.
    */
   cloud?: () => Promise<boolean>;
+  /** Whether the browser's own speech service has worked on this device (`speech-fallback.ts`). */
+  record?: BrowserSpeechRecord;
+  /** Whether this is Brave, whose recognizer has no speech service behind it. */
+  brave?: () => Promise<boolean>;
 } = {}): SpeechSetupStore {
   const states = new Map<string, SpeechSetupState>();
   const asking = new Set<string>();
@@ -135,6 +149,36 @@ export function speechSetupStore({
     states.set(language, next);
     for (const listener of listeners) listener();
   };
+  /** Languages asked about again while an answer was on its way, so the later answer wins. */
+  const again = new Set<string>();
+  const offerCloud = () => cloud().catch(() => false);
+  const check = (language: string) => {
+    if (underWay(language)) return;
+    if (asking.has(language)) {
+      again.add(language);
+      return;
+    }
+    asking.add(language);
+    void speechSupport(language, speech)
+      .then(async (support): Promise<SpeechSetupState> => {
+        if (support === "none") return (await offerCloud()) ? "cloud" : "none";
+        // The browser's own service cannot work here, so cloud speech is offered in its place,
+        // with its own agreement. Where cloud speech is off, the browser's service stays on offer.
+        if (support === "browser" && (record.state() === "failed" || (await brave().catch(() => false))))
+          return (await offerCloud()) ? "cloud" : "browser";
+        return support;
+      })
+      .then((support) => {
+        asking.delete(language);
+        if (again.delete(language)) return check(language);
+        if (!underWay(language)) publish(language, support);
+      });
+  };
+  // A failure noted, here or in another tab, or forgotten, changes what Talk It Out offers. A
+  // language still waiting for its first answer is asked again too, so no answer from before stands.
+  record.subscribe(() => {
+    for (const language of new Set([...states.keys(), ...asking])) check(language);
+  });
   return {
     state,
     touch,
@@ -142,16 +186,7 @@ export function speechSetupStore({
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    check(language) {
-      if (asking.has(language) || underWay(language)) return;
-      asking.add(language);
-      void speechSupport(language, speech)
-        .then(async (support) => (support === "none" && (await cloud().catch(() => false)) ? "cloud" : support))
-        .then((support) => {
-          asking.delete(language);
-          if (!underWay(language)) publish(language, support);
-        });
-    },
+    check,
     setUp(language) {
       const current = state(language);
       if (!speech || (current !== "offer" && current !== "failed")) return;
@@ -187,6 +222,8 @@ export interface TalkControls {
 
 /** Said in one plain line where the browser cannot turn speech into text. The typed path is the same box. */
 export const NO_SPEECH = "This browser cannot turn speech into text here. You can type instead.";
+/** Under Set Up Speech until it is pressed: the box works whatever the setup does. */
+export const TYPE_INSTEAD = "You can also type in the box below.";
 /**
  * Said instead on a touch screen, where many keyboards have their own microphone key. Not every
  * keyboard has one, so the line says "if". The keyboard's dictation is the phone's, not Weave's.
@@ -250,14 +287,18 @@ export const SPEECH_SETTING = {
   withdraw: "Stop Using Browser Speech",
   cloudAgreed: `Where this browser cannot turn speech into text, Weave sends your recording to ${CLOUD_SPEECH.provider} to turn it into text. Weave does not keep it.`,
   withdrawCloud: "Stop Using Cloud Speech",
+  /** A failure this device noted put cloud speech in the place of the browser's own speech service. */
+  failed: "Your browser's speech service did not answer on this device, so Talk It Out offers cloud speech instead where Weave has it on.",
+  useBrowserAgain: "Use Browser Speech Again",
 } as const;
 
 /**
  * The one line Settings says about speech: each agreement in force, or that Weave asks first.
  * It is one status line, so withdrawing an agreement is heard as the line it leaves behind.
  */
-export const speechSettingLine = (browser: boolean, cloud: boolean): string =>
-  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed].filter(Boolean).join(" ") || SPEECH_SETTING.notAgreed;
+export const speechSettingLine = (browser: boolean, cloud: boolean, failed = false): string =>
+  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed, failed && SPEECH_SETTING.failed].filter(Boolean).join(" ") ||
+  SPEECH_SETTING.notAgreed;
 
 /**
  * What Settings says about the recordings this device has sent, from the device's own record
@@ -374,15 +415,18 @@ export function talkControls(
       return SILENT;
     case "none":
       return { ...SILENT, note: touch ? KEYBOARD_MIC : NO_SPEECH };
+    // The button says what it does, and what the setup does waits for the press. The line's room is
+    // kept, so nothing moves as speech is found on load or when the setup starts, and until the
+    // press it holds a line that is true whatever the setup does (DL-127).
     case "offer":
+      return { ...SILENT, action: "set-up", label: "Set Up Speech", note: TYPE_INSTEAD };
+    case "installing":
       return {
         ...SILENT,
-        action: "set-up",
-        label: "Set Up Speech",
-        note: "Your browser may download speech files for this language first. Audio stays on this device.",
+        action: "setting-up",
+        label: "Setting Up Speech",
+        note: "Your browser may download speech files for this language. You can type while you wait.",
       };
-    case "installing":
-      return { ...SILENT, action: "setting-up", label: "Setting Up Speech", note: "Downloading and setting up. You can type while you wait." };
     case "slow":
       return {
         ...SILENT,
@@ -408,6 +452,16 @@ export function talkControls(
     case "ready":
       return { ...SILENT, action: "talk", label: "Talk It Out", note: setUpHere ? "Speech is ready. Audio stays on this device." : "", language: !setUpHere, mode };
   }
+}
+
+/**
+ * Whether the button's place is held, unseen, while the browser has not answered yet: on load, or
+ * while a newly chosen language is asked about. Almost every answer brings a button, which on a
+ * phone takes a row of its own, so the box under it would move when it came (DL-110, DL-127).
+ * The second Talk It Out on a page shows nothing until talking works, so it holds nothing.
+ */
+export function holdsTalkRoom(state: SpeechSetupState, { asking = false, secondary = false }: { asking?: boolean; secondary?: boolean } = {}): boolean {
+  return !secondary && (state === "checking" || asking);
 }
 
 /**
@@ -451,6 +505,12 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
     // Also how a session ends when Stop brought no words at all (`speech.ts`).
     case "no-speech":
       return "No speech was heard. Check your microphone and try again, or type in the box.";
+    // Stop came before the browser opened the microphone, as while it still asks about it.
+    case "no-microphone":
+      return "The microphone did not turn on. Allow it if your browser asks, then try again, or type in the box.";
+    // The browser's own service failed before it ever worked here, and cloud speech can take its place.
+    case "browser-failed":
+      return `This browser's speech service did not answer. Press Talk It Out to send a recording to ${CLOUD_SPEECH.company} instead, after Weave asks, or type in the box.`;
     case "network":
       return mode === "browser"
         ? `Your browser's speech service could not be reached. ${instead}`

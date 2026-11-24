@@ -733,9 +733,15 @@
 /* The box fills the width it is given, so a line holds more words (DL-127). */
 .rc-voice-input > .rc-field { max-inline-size: none; }
 .rc-voice-slot > .rc-button[data-size="lg"] { flex: 1 1 100%; justify-content: center; min-block-size: var(--space-9); }
+/* Until the browser answers, a room holds the button's place at the button's size, so the button
+   arrives without moving the line beside it or the box under it (DL-110). */
+.rc-voice-slot > .rc-skeleton[data-shape="room"] { display: flex; flex: 1 1 100%; }
+.rc-voice-slot > .rc-skeleton[data-shape="room"] > .rc-button[data-size="lg"] { flex: 1 1 auto; justify-content: center; min-block-size: var(--space-9); }
 /* On a wide screen the action is a large button of its own width, not a bar across the column. */
 @container (min-width: 56.25rem) {
   .rc-voice-slot > .rc-button[data-size="lg"] { flex: 0 1 auto; min-inline-size: var(--space-11); min-block-size: var(--control-lg-height); }
+  .rc-voice-slot > .rc-skeleton[data-shape="room"] { flex: 0 1 auto; }
+  .rc-voice-slot > .rc-skeleton[data-shape="room"] > .rc-button[data-size="lg"] { min-inline-size: var(--space-11); min-block-size: var(--control-lg-height); }
 }
 .rc-voice-transcript { min-block-size: var(--space-7); font: var(--type-reading-lg); white-space: pre-wrap; overflow-wrap: anywhere; }
 .rc-review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min-width)), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }

@@ -8,7 +8,7 @@ import { pictureFaces } from "./record-image-fonts.ts";
 import { recordPicture } from "./record-image-http.ts";
 import { createRecordPageHandler, TEMPLATE_FILES } from "./record-page-http.ts";
 
-const template = once((request) => builtFile(TEMPLATE_FILES, request));
+const template = once(() => builtFile(TEMPLATE_FILES));
 
 const serve = createRecordPageHandler({
   template,

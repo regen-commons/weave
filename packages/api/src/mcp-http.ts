@@ -4,6 +4,7 @@
 // It reads no cookie, sets none and takes no sign-in, so it can only ever answer with public data.
 import { AGENT_TOOLS, AgentToolArgumentError, parseAgentToolCall } from "./agent-tools-contract.ts";
 import { AgentToolError, type AgentTools } from "./agent-tools.ts";
+import { callerAddress, MCP_LIMITS, type RateLimiter } from "./mcp-limit.ts";
 
 export const MCP_MODERN_VERSION = "2026-07-28";
 /** The revisions that open with `initialize`, newest first. */
@@ -76,12 +77,14 @@ function headerText(value: string | null): string | null {
 const TOOL_ANNOTATIONS = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
 const toolList = () => AGENT_TOOLS.map((tool) => ({ ...tool, annotations: TOOL_ANNOTATIONS }));
 
-export type McpLog = (entry: { tool: string; outcome: "ok" | "refused" | "failed"; ms: number }) => void;
+export type McpLog = (entry: { tool: string; outcome: "ok" | "refused" | "failed" | "limited"; ms: number }) => void;
 export type McpOptions = {
   /** Off unless this returns true. Off, the route answers 404 like a path that does not exist. */
   enabled(): boolean;
   /** Null when the tools could not be set up; calls then fail with a stable message. */
   tools: AgentTools | null;
+  /** Counts requests and tool calls against MCP_LIMITS. Left out, nothing is limited here. */
+  limiter?: RateLimiter;
   /** Records the tool's name, how the call ended and how long it took. Never its arguments. */
   log?: McpLog;
   now?: () => number;
@@ -92,12 +95,18 @@ export function createMcpHandler(options: McpOptions) {
 
   /** A tool's failure is a result the assistant can read, not a protocol error. */
   const toolFailure = (message: string) => ({ content: [{ type: "text", text: message }], isError: true });
-  async function callTool(params: JsonObject): Promise<JsonObject | { unknownTool: string }> {
+  const RANKING = "find_funds_for_initiative";
+  const limited = (retryAfterSeconds: number) => toolFailure(`rate_limited: Too many calls. Try again in ${retryAfterSeconds} seconds.`);
+  async function callTool(params: JsonObject, caller: string): Promise<JsonObject | { unknownTool: string }> {
     const name = params.name;
     if (typeof name !== "string" || !AGENT_TOOLS.some((tool) => tool.name === name))
       return { unknownTool: typeof name === "string" ? name.slice(0, 60) : "" };
     const started = now();
-    const done = (outcome: "ok" | "refused" | "failed") => options.log?.({ tool: name, outcome, ms: now() - started });
+    const done = (outcome: "ok" | "refused" | "failed" | "limited") => options.log?.({ tool: name, outcome, ms: now() - started });
+    const limiter = options.limiter;
+    // One caller's own count comes first, before the arguments are read, so a refused call costs only this.
+    const own = name === RANKING ? limiter?.caller(`ranking:${caller}`, MCP_LIMITS.ranking) : undefined;
+    if (own && !own.ok) { done("limited"); return limited(own.retryAfterSeconds); }
     let call;
     try { call = parseAgentToolCall(name, params.arguments); }
     catch (error) {
@@ -105,6 +114,12 @@ export function createMcpHandler(options: McpOptions) {
       return toolFailure(error instanceof AgentToolArgumentError ? error.message : "The arguments could not be read.");
     }
     if (!options.tools) { done("failed"); return toolFailure("tools_unavailable: Weave's tools are not available right now."); }
+    // The ceilings everyone shares count only calls that will run, so calls the checks above refuse cannot
+    // use up what others are allowed. The widest is taken first, so a call it refuses spends nothing narrower.
+    for (const shared of [() => limiter?.ceiling("tools", MCP_LIMITS.toolsAll), () => name === RANKING ? limiter?.ceiling("ranking", MCP_LIMITS.rankingAll) : undefined]) {
+      const decision = shared();
+      if (decision && !decision.ok) { done("limited"); return limited(decision.retryAfterSeconds); }
+    }
     try {
       const value = await options.tools(call);
       done("ok");
@@ -143,7 +158,7 @@ export function createMcpHandler(options: McpOptions) {
     if (method === "tools/call") {
       if (typeof params.name !== "string" || headerText(request.headers.get("mcp-name")) !== params.name)
         return failure(400, id, CODE.headerMismatch, "The Mcp-Name header must match the tool's name.");
-      const outcome = await callTool(params);
+      const outcome = await callTool(params, callerAddress(request));
       return "unknownTool" in outcome
         ? failure(400, id, CODE.invalidParams, `Unknown tool: ${outcome.unknownTool}`)
         : result(outcome);
@@ -171,7 +186,7 @@ export function createMcpHandler(options: McpOptions) {
     if (method === "ping") return result({});
     if (method === "tools/list") return result({ tools: toolList() });
     if (method === "tools/call") {
-      const outcome = await callTool(params);
+      const outcome = await callTool(params, callerAddress(request));
       return "unknownTool" in outcome
         ? json(200, { jsonrpc: "2.0", id, error: { code: CODE.invalidParams, message: `Unknown tool: ${outcome.unknownTool}` } })
         : result(outcome);
@@ -186,6 +201,11 @@ export function createMcpHandler(options: McpOptions) {
     // the transport requires; this server reads no cookie either way.
     const origin = request.headers.get("origin");
     if (origin !== null && origin !== new URL(request.url).origin) return failure(403, null, CODE.notAllowed, "Origin not allowed.");
+    // One caller's requests are counted before the body is read, and after the Origin check, so another
+    // site's page cannot spend a visitor's count.
+    const within = options.limiter?.caller(`request:${callerAddress(request)}`, MCP_LIMITS.caller);
+    if (within && !within.ok)
+      return failure(429, null, CODE.notAllowed, `Too many requests. Try again in ${within.retryAfterSeconds} seconds.`, undefined, { "Retry-After": String(within.retryAfterSeconds) });
     if (request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== "application/json")
       return failure(415, null, CODE.invalidRequest, "The request must be JSON.");
     const body = await boundedBody(request);

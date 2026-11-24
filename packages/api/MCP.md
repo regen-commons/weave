@@ -32,14 +32,19 @@ the public project list to be on (`WEAVE_PUBLIC_PROJECTS_ENABLED`). Turning eith
 adding a Firewall rate limit rule for `/api/mcp`, are the maintainer's steps
 ([D40](../../docs/platform/open-decisions.md#agent-access)).
 
-Two things come before the switch, and neither has been done:
+The switch is on for Preview and Production (23 November 2026). Two things were meant to come first, and
+both are done:
 
-- **A preview deployment that answers the route.** The compiled function imports the catalog's code
-  (`dist/domain.mjs`) and data (`dist/data/funders.json`) from the repository root, outside the Weave
-  project's root directory. Local builds find them; whether Vercel's file tracing ships them is unproven.
-  If it does not, the fund tools answer `catalog_unavailable` and the project tools keep working.
-- **The rate limit rule.** The endpoint has no limit of its own. A fund search reads the whole catalog in
-  memory on each call, so the Firewall rule is what bounds the cost of an unauthenticated caller.
+- **A preview deployment that answers the route: done for four tools.** The compiled function imports
+  the catalog's code and data from the repository root, outside the Weave project's root directory. On a
+  preview of `develop` on 23 November 2026, `tools/list`, `search_funds` and `get_fund` answered with
+  catalog data, so those files ship. `find_funds_for_initiative` reads three more files the same way
+  (`dist/matching.mjs`, `dist/data/eligibility-rules.json`, `dist/data/program-conditions.json`) and had
+  not been called on a deployment when this was written. If one is missing it answers
+  `catalog_unavailable` and the other tools keep working.
+- **The Firewall rate limit rule: done.** "Rate limit MCP" was published on 23 November 2026, on the
+  user's word. It is described under [Limits](#limits). The endpoint's own limit bounds one function
+  instance; the rule is what bounds a caller across instances, before a function runs.
 
 ## Adding it to an assistant
 
@@ -56,6 +61,61 @@ Other assistants take the same address in their custom connector or MCP server s
 Start the app's dev server with the switch on, on a port no other session uses, then point a client at
 `http://localhost:<port>/api/mcp`. The fund tools answer from the committed catalog. The project tools
 answer `projects_unavailable` unless the local server has the project index configured.
+
+## Limits
+
+Two layers, because neither is enough alone.
+
+**In the function** (`src/mcp-limit.ts`, values in `MCP_LIMITS`), counted per function instance in fixed
+one-minute windows. A caller is one client address, or one /64 network for IPv6.
+
+| What | Limit |
+|---|---|
+| Any request from one caller | 120 a minute, answered `429` with `Retry-After` before the body is read |
+| `find_funds_for_initiative` from one caller | 10 a minute |
+| `find_funds_for_initiative` calls that run, from everyone | 30 a minute |
+| All tool calls that run, from everyone | 300 a minute |
+
+A tool call over its limit gets an answer the assistant can read: `rate_limited: Too many calls. Try again
+in N seconds.` The address is the one Vercel sets in `x-forwarded-for`, which a caller cannot choose. The
+per-caller numbers are loose on purpose: an assistant service calls from a few shared addresses for all
+its users. A call the argument checks refuse counts against its own caller only, never against the two
+ceilings everyone shares.
+
+What this layer does and does not do:
+
+- It bounds the tool work one instance does in a minute. The two shared ceilings are kept apart from the
+  per-caller counts and are never forgotten.
+- Each instance counts alone, so the real ceiling is the limit times the instances running, and a count
+  is lost when an instance stops.
+- An instance remembers 5,000 callers. Past that the oldest count is forgotten, so someone with thousands
+  of addresses gets fresh per-caller counts. The shared ceilings still hold.
+- Three addresses are enough to use up a shared ceiling with real calls (three times 10 rankings), and
+  the Firewall rule would not stop them. Others then wait up to a minute. That is the price of bounding
+  the work while leaving room for assistant services that share addresses.
+- It does not stop a flood from reaching the function. The Firewall rule does that.
+
+**At the Vercel Firewall**, one rate limit rule, which the Hobby plan allows (one per project, fixed
+window of 10 seconds to 10 minutes, keyed by address, counted per region). It cannot be written in
+`vercel.json`, whose `mitigate` supports only `challenge` and `deny`, so it lives in the weave project's
+Firewall settings. The rule as published on 23 November 2026:
+
+- Name: `Rate limit MCP`.
+- It applies when either of two groups of conditions holds:
+  - the method is `POST` and the path is `/api/mcp`;
+  - the method is `POST`, the path is `/api/router` and the query has `__route=mcp`.
+  The second group is there because `/api/mcp` is rewritten to the shared router
+  ([How it is deployed](#how-it-is-deployed)), whose own address can be called directly. A rule on the
+  public path alone would let a caller go around it.
+- Then: rate limit, fixed window, 60 seconds, 120 requests, keyed by IP, action rate limit, which answers
+  429 Too Many Requests.
+
+To change it, use the dashboard: the weave project, Firewall, then the rule, then Review Changes and
+Publish. Keep both condition groups.
+
+Do not use Challenge as the action, or Attack Mode on this path: assistants are not browsers and cannot
+pass a challenge. The rule cannot tell one tool from another, which is why the ranking tool's tighter
+limit lives in the function.
 
 ## How it is deployed
 

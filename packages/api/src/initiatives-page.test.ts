@@ -127,6 +127,11 @@ test("the page goes with its cards, cached at the CDN, and with the build's skel
     assert.ok(Date.now() - started < 1000, "within the deadline");
   }
   assert.ok(LIST_LOOKUP_TIMEOUT_MS <= 1000, "a short wait, stated");
+  // A list that answers but is off or empty leaves the page as the build drew it, and that is not kept either.
+  for (const answer of [page([], { status: "off", checkedAt: null, total: 0 }), page([], { total: 0 })]) {
+    const left = await handler(async () => answer).serve(new Request(`${ORIGIN}/api/initiatives-page`));
+    assert.deepEqual([left.status, left.headers.get("cache-control"), left.headers.get("cdn-cache-control"), await left.text()], [200, "no-store", null, BUILT]);
+  }
   // Cards that cannot be drawn (here a date that is no date) leave the page as the build drew it, not an error.
   const broken = { ...page([card(1)]) };
   broken.projects = [{ ...broken.projects[0]!, sharedAt: "not a date" }];

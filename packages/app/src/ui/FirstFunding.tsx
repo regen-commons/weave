@@ -1,25 +1,35 @@
 import { useCatalog, type FundingSubject } from "../funding/use-catalog.ts";
 import { catalogEntries } from "../funding/catalog.ts";
-import { compareFit } from "../funding/fit.ts";
+import { fundingFits, fundingFitsLine } from "../funding/select.ts";
 import { CardGrid } from "./Card.tsx";
 import { CardGridSkeleton } from "./CardSkeleton.tsx";
 import { OpportunityCard } from "./OpportunityCard.tsx";
 import { ButtonLink } from "./ButtonLink.tsx";
+
+/**
+ * Funding That Fits on an initiative's own page: the two strongest fits in Funding's own order, each
+ * with its fit line and what it still needs checking, and how many more may fit (DL-141). It reads
+ * the ranking Funding sorts with (`fundingFits`), so the two never disagree.
+ */
 export function FirstFunding({ subject }: { subject?: FundingSubject }) {
-  const { bundle, results, loading, ranking, error, retry } = useCatalog(undefined, subject);
-  const entries = bundle ? catalogEntries(bundle) : [];
-  // Research leads, strongest fit first as on Funding; equal fits keep research priority's order.
-  const first =
-    results
-      ?.map((result, priority) => ({ result, place: { score: result.thematicFit.score, priority } }))
-      .filter(({ result }) => result.group === "lead")
-      .sort((a, b) => compareFit(a.place, b.place))
-      .slice(0, 2)
-      .map(({ result }) => result) ?? [];
+  const { bundle, results, loading, ranking, error, retry, personalized } = useCatalog(undefined, subject);
+  const fits = bundle && results ? fundingFits(catalogEntries(bundle), results) : null;
+  // A checked card is compared as soon as the catalog is here; until its ranking lands it is still
+  // loading, never "not compared", even for the moment between the two.
+  const waiting = loading || ranking || (personalized && !results && !error);
   return (
     <>
-      {loading || ranking ? (
-        <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding on this device" />
+      {waiting ? (
+        // The two cards' shapes and the count line's room, so the block is its loaded height and
+        // what follows it on the page does not move when the ranking lands (DL-108).
+        <>
+          <CardGridSkeleton kind="funding" matched count={2} label="Comparing your card with funding on this device" />
+          <p aria-hidden="true">
+            <span className="rc-skeleton" data-shape="hold">
+              {fundingFitsLine({ well: 26, possible: 0 })}
+            </span>
+          </p>
+        </>
       ) : error ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">
@@ -29,19 +39,19 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
             </button>
           </div>
         </section>
-      ) : first.length ? (
-        <CardGrid>
-          {first.map((result) => {
-            const entry = entries.find((value) => value.id === result.documentId)!;
-            return (
+      ) : fits && fits.first.length ? (
+        <>
+          <CardGrid>
+            {fits.first.map(({ entry, result }) => (
               <li key={entry.id}>
                 <OpportunityCard entry={entry} result={result} level={3} />
               </li>
-            );
-          })}
-        </CardGrid>
+            ))}
+          </CardGrid>
+          <p>{fundingFitsLine(fits)}</p>
+        </>
       ) : (
-        <p>Nothing in the catalog matches this card yet.</p>
+        <p>{fits ? fundingFitsLine(fits) : "This card is not compared with funding yet."}</p>
       )}
       <ButtonLink href="/funding" variant="secondary">
         Browse All Funding

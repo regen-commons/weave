@@ -1,9 +1,13 @@
 /* Templates: page layouts. Phone first. Columns are added as space allows. */
+/* Heights that fill the window use the small viewport (svh), the window with a phone browser's
+   address bar shown. The dynamic viewport (dvh) grows as the bar slides away during a scroll, and a
+   page or Home's hero sized by it grew with it, so what was on screen shifted upwards mid-scroll.
+   Overlays keep dvh: they should fit what is visible as it changes. */
 .rc-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto auto;
-  min-block-size: 100dvh;
+  min-block-size: 100svh;
   /* The app draws to the screen's edges, so the page keeps clear of a notch at either side when
      a phone is turned. */
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
@@ -68,8 +72,8 @@
   .rc-page:has(> .rc-dock:not(:empty)) { padding-block-end: calc(var(--dock-height) + env(safe-area-inset-bottom)); }
   /* Between the two bars a short page fills the window that is left, and no more, so what closes
      it is in view above the tab bar or the dock. */
-  .rc-page:has(> .rc-bottom-nav) > .rc-page-body { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
-  .rc-page:has(> .rc-dock:not(:empty)) > .rc-page-body { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--dock-height) - env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-bottom-nav) > .rc-page-body { min-block-size: calc(100svh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-dock:not(:empty)) > .rc-page-body { min-block-size: calc(100svh - var(--site-banner-height) - var(--app-header-height) - var(--dock-height) - env(safe-area-inset-bottom)); }
 }
 /* A large desktop gives the page, the app bar and the footer more of its width, so a list holds
    four cards across (DL-077). */
@@ -85,7 +89,7 @@
   isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--step-bar-height));
+  min-block-size: calc(100svh - var(--site-banner-height) - var(--app-header-height) - var(--step-bar-height));
 }
 
 /* One line of words in a bar of a known height, which the page body and the header's sticky
@@ -273,12 +277,12 @@
   justify-items: center;
   align-content: center;
   gap: var(--space-3);
-  min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height));
+  min-block-size: calc(100svh - var(--site-banner-height) - var(--app-header-height));
   padding-block: var(--space-5) var(--space-6);
   text-align: center;
 }
 @media (width < 56.25rem) {
-  .rc-page:has(> .rc-bottom-nav) .rc-home-hero { min-block-size: calc(100dvh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
+  .rc-page:has(> .rc-bottom-nav) .rc-home-hero { min-block-size: calc(100svh - var(--site-banner-height) - var(--app-header-height) - var(--bottom-nav-height) - env(safe-area-inset-bottom)); }
 }
 .rc-home-hero > .rc-heading { max-inline-size: var(--list-width); font: var(--type-headline-lg); }
 /* The website's hero accent: the italic word in the section's colour, with a faint copper ghost

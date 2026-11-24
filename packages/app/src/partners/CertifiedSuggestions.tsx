@@ -13,15 +13,22 @@ import { requestPublicEvidence } from "./matching-client.ts";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { projectAddress } from "./public-project.ts";
+import { pathTo } from "../routes.ts";
+import { partnersWaitingLine, waitingAction } from "../social/words.ts";
 
 type SnapshotState = { workspaceId: string } & (
   | { status: "ready"; snapshot: PublicEvidenceSnapshot }
   | { status: "error"; code: string }
 );
 
-export function CertifiedSuggestions({ workspaceId, queries, compact, online, onAccessLost }: {
+export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compact, online, onAccessLost }: {
   workspaceId: string;
   queries: readonly PartnerEntry[];
+  /**
+   * Suggestions from the project page still in pencil. Partner suggestions compare kept needs and
+   * offers only, so with none kept these say why the list is empty and where to keep them.
+   */
+  waiting?: readonly { kind: "needs" | "offers" }[];
   compact: boolean;
   online: boolean;
   onAccessLost?: (code: string) => void;
@@ -102,7 +109,14 @@ export function CertifiedSuggestions({ workspaceId, queries, compact, online, on
   return (
     <section className="rc-stack" aria-labelledby={heading}>
       <Heading id={heading} className="rc-heading" data-size="section">Partners For You</Heading>
-      {!hasQueries ? <p>Keep an open need or offer to see suggestions.</p>
+      {!hasQueries ? (waiting.length ? (
+        <>
+          <p>{partnersWaitingLine(waiting)}</p>
+          <div className="rc-action-bar">
+            <ButtonLink href={pathTo(waiting[0]!.kind)} variant="secondary" size="sm">{waitingAction(waiting)}</ButtonLink>
+          </div>
+        </>
+      ) : <p>Keep an open need or offer to see suggestions.</p>)
         : !online ? <p>Reconnect to check public Certified evidence.</p>
         : current?.status === "error" ? (
           <p role="status">{["not_found", "project_not_found", "workspace_access_required"].includes(current.code)

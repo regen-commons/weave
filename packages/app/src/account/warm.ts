@@ -27,3 +27,11 @@ export function createSignInWarmer(
 
 /** One for the page, shared by every Sign In button on it. */
 export const warmSignIn = createSignInWarmer();
+
+/**
+ * Readies project access the same way. Signing in goes straight on to Certified's permission screen
+ * for the account's projects, and that start waited over a second for its own function after a quiet
+ * spell, before the page could leave for Certified. A Sign In on screen asks this function to start
+ * too, so by the time the person is back from signing in it is ready. The request starts no consent.
+ */
+export const warmProjectConsent = createSignInWarmer((body) => accountRequest("", body, "/api/certified-project-consent"));
