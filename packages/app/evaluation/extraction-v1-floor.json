@@ -1,0 +1,700 @@
+{
+  "dataset": "extraction-v1",
+  "recordedOn": "2026-11-23",
+  "corpusHash": "387aafa2297279bb7e0481c3fe396e4bb575e6653bf9b58715c11315e8dda5b9",
+  "summary": {
+    "name": {
+      "precision": 1,
+      "recall": 0.8095,
+      "cases": 26,
+      "passed": 22
+    },
+    "where": {
+      "precision": 1,
+      "recall": 0.5,
+      "cases": 26,
+      "passed": 15
+    },
+    "about": {
+      "precision": 0.9231,
+      "recall": 0.9231,
+      "cases": 26,
+      "passed": 24
+    },
+    "cards": {
+      "precision": 0.8837,
+      "recall": 0.7917,
+      "cases": 22,
+      "passed": 17
+    }
+  },
+  "passing": {
+    "d-01": [
+      "name",
+      "where"
+    ],
+    "d-02": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-03": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-04": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-05": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-06": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-07": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-08": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-09": [
+      "name",
+      "about"
+    ],
+    "d-10": [
+      "about"
+    ],
+    "d-11": [
+      "name",
+      "about"
+    ],
+    "d-12": [
+      "name",
+      "about"
+    ],
+    "d-13": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-14": [
+      "name",
+      "about"
+    ],
+    "d-15": [
+      "about"
+    ],
+    "d-16": [
+      "about"
+    ],
+    "d-17": [
+      "name",
+      "about"
+    ],
+    "d-18": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-19": [
+      "name"
+    ],
+    "d-20": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-21": [
+      "name",
+      "about"
+    ],
+    "d-22": [
+      "where",
+      "about"
+    ],
+    "d-23": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-24": [
+      "name",
+      "about"
+    ],
+    "d-25": [
+      "name",
+      "where",
+      "about"
+    ],
+    "d-26": [
+      "name",
+      "where",
+      "about"
+    ],
+    "n-01": [],
+    "n-02": [
+      "cards"
+    ],
+    "n-03": [
+      "cards"
+    ],
+    "n-04": [
+      "cards"
+    ],
+    "n-05": [
+      "cards"
+    ],
+    "n-06": [
+      "cards"
+    ],
+    "n-07": [],
+    "n-08": [
+      "cards"
+    ],
+    "n-09": [
+      "cards"
+    ],
+    "n-10": [
+      "cards"
+    ],
+    "n-11": [],
+    "n-12": [
+      "cards"
+    ],
+    "o-01": [
+      "cards"
+    ],
+    "o-02": [
+      "cards"
+    ],
+    "o-03": [],
+    "o-04": [
+      "cards"
+    ],
+    "o-05": [
+      "cards"
+    ],
+    "o-06": [
+      "cards"
+    ],
+    "o-07": [
+      "cards"
+    ],
+    "o-08": [],
+    "o-09": [
+      "cards"
+    ],
+    "o-10": [
+      "cards"
+    ]
+  },
+  "errors": {
+    "d-01": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 1,
+        "fn": 1
+      }
+    },
+    "d-02": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-03": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-04": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-05": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-06": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-07": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-08": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-09": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-10": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-11": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-12": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 2
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-13": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-14": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-15": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-16": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-17": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-18": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-19": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 1,
+        "fn": 1
+      }
+    },
+    "d-20": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-21": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-22": {
+      "name": {
+        "fp": 0,
+        "fn": 1
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-23": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-24": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 1
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-25": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "d-26": {
+      "name": {
+        "fp": 0,
+        "fn": 0
+      },
+      "where": {
+        "fp": 0,
+        "fn": 0
+      },
+      "about": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-01": {
+      "cards": {
+        "fp": 1,
+        "fn": 2
+      }
+    },
+    "n-02": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-03": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-04": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-05": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-06": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-07": {
+      "cards": {
+        "fp": 1,
+        "fn": 3
+      }
+    },
+    "n-08": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-09": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-10": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "n-11": {
+      "cards": {
+        "fp": 1,
+        "fn": 2
+      }
+    },
+    "n-12": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-01": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-02": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-03": {
+      "cards": {
+        "fp": 1,
+        "fn": 3
+      }
+    },
+    "o-04": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-05": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-06": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-07": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-08": {
+      "cards": {
+        "fp": 1,
+        "fn": 0
+      }
+    },
+    "o-09": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "o-10": {
+      "cards": {
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  }
+}

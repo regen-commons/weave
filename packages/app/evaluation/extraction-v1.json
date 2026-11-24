@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "dataset": "extraction-v1",
+  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent.",
+  "rubric": "Labels say what a careful person would want each field or list to hold, not what the rules do today. Name: the initiative's name only where the words state one, otherwise empty; never a person's name. Where you work: only places the words say the initiative works in, each as one entry; Global for worldwide or online-anywhere work. About it: must contain every includes phrase and none of the excludes phrases. Cards: one per need or offer said, in order; each key phrase must appear in its own card's title, and a list never holds what belongs to the other list.",
+  "cases": [
+    {
+      "id": "d-01", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "walkthrough-2026-11-23",
+      "text": "We are Orchard Learning Circle, based in Upper Valley, Brazil. We teach families to graft and care for fruit trees, and we run a seed swap every season. We need tools.",
+      "expected": { "name": "Orchard Learning Circle", "where": ["Upper Valley, Brazil"], "about": { "includes": ["teach families to graft"], "excludes": ["We need tools"] } }
+    },
+    {
+      "id": "d-02", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "app-tests",
+      "text": "Riverside Seed Library is a volunteer group in Porto Alegre, Brazil. We run seed swaps and growing workshops for families.",
+      "expected": { "name": "Riverside Seed Library", "where": ["Porto Alegre, Brazil"], "about": { "includes": ["run seed swaps and growing workshops"], "excludes": [] } }
+    },
+    {
+      "id": "d-03", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "app-tests",
+      "text": "Families share what they learn about the orchard and its water.",
+      "expected": { "name": "", "where": [], "about": { "includes": ["share what they learn about the orchard"], "excludes": [] } }
+    },
+    {
+      "id": "d-04", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "um hi so we're called the river keepers and we're based in nairobi kenya we clean up the nairobi river with young people every saturday",
+      "expected": { "name": "River Keepers", "where": ["Nairobi, Kenya"], "about": { "includes": ["clean up the nairobi river"], "excludes": [] } }
+    },
+    {
+      "id": "d-05", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "app-tests",
+      "text": "name river keepers location nairobi kenya description we restore the riverbank with schools",
+      "expected": { "name": "River Keepers", "where": ["Nairobi, Kenya"], "about": { "includes": ["restore the riverbank with schools"], "excludes": [] } }
+    },
+    {
+      "id": "d-06", "split": "development", "step": "describe", "mode": "typed", "language": "pt", "source": "invented",
+      "text": "Somos a Horta Comunitária Vila Nova, em Recife, Pernambuco. Cultivamos alimentos com as famílias do bairro e oferecemos oficinas para crianças.",
+      "expected": { "name": "Horta Comunitária Vila Nova", "where": ["Recife, Pernambuco"], "about": { "includes": ["Cultivamos alimentos com as famílias"], "excludes": [] } }
+    },
+    {
+      "id": "d-07", "split": "development", "step": "describe", "mode": "typed", "language": "es", "source": "invented",
+      "text": "Somos el Colectivo Semillas del Sur, en Temuco, Chile. Guardamos semillas nativas y enseñamos agroecología a jóvenes mapuche.",
+      "expected": { "name": "Colectivo Semillas del Sur", "where": ["Temuco, Chile"], "about": { "includes": ["Guardamos semillas nativas"], "excludes": [] } }
+    },
+    {
+      "id": "d-08", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "My name is Grace and I coordinate the Kibera Green Hub in Nairobi. We turn plastic waste into building blocks.",
+      "expected": { "name": "Kibera Green Hub", "where": ["Nairobi"], "about": { "includes": ["turn plastic waste into building blocks"], "excludes": [] } }
+    },
+    {
+      "id": "d-09", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "app-tests",
+      "text": "Green Lagos Collective plants street trees with schools. We are based in Lagos, and our funders are based in London.",
+      "expected": { "name": "Green Lagos Collective", "where": ["Lagos"], "about": { "includes": ["plants street trees with schools"], "excludes": [] } }
+    },
+    {
+      "id": "d-10", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "Open Seed Map is an open-source tool used by seed libraries worldwide to share what they hold.",
+      "expected": { "name": "Open Seed Map", "where": ["Global"], "about": { "includes": ["open-source tool used by seed libraries"], "excludes": [] } }
+    },
+    {
+      "id": "d-11", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "We run online courses in regenerative design for people anywhere in the world.",
+      "expected": { "name": "", "where": ["Global"], "about": { "includes": ["online courses in regenerative design"], "excludes": [] } }
+    },
+    {
+      "id": "d-12", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "Tide Line Studio is an artist collective in Lisbon, Portugal and Dakar, Senegal. We make films about coastal communities.",
+      "expected": { "name": "Tide Line Studio", "where": ["Lisbon, Portugal", "Dakar, Senegal"], "about": { "includes": ["make films about coastal communities"], "excludes": [] } }
+    },
+    {
+      "id": "d-13", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "We are the Andes Water Network, working across Peru. We train communities to monitor springs.",
+      "expected": { "name": "Andes Water Network", "where": ["Peru"], "about": { "includes": ["train communities to monitor springs"], "excludes": [] } }
+    },
+    {
+      "id": "d-14", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "app-tests",
+      "text": "Rooftop Harvest\nWe grow vegetables on rooftops in Accra, Ghana, and sell them at the market.",
+      "expected": { "name": "Rooftop Harvest", "where": ["Accra, Ghana"], "about": { "includes": ["grow vegetables on rooftops"], "excludes": [] } }
+    },
+    {
+      "id": "d-15", "split": "development", "step": "describe", "mode": "spoken", "language": "pt", "source": "invented",
+      "text": "olá somos a cooperativa sementes da terra a gente trabalha em belo horizonte minas gerais com agricultura urbana nas escolas",
+      "expected": { "name": "Cooperativa Sementes da Terra", "where": ["Belo Horizonte, Minas Gerais"], "about": { "includes": ["agricultura urbana nas escolas"], "excludes": [] } }
+    },
+    {
+      "id": "d-16", "split": "development", "step": "describe", "mode": "spoken", "language": "es", "source": "invented",
+      "text": "hola somos la red de huertas escolares trabajamos en medellín colombia con escuelas públicas sembrando huertas con los niños",
+      "expected": { "name": "Red de Huertas Escolares", "where": ["Medellín, Colombia"], "about": { "includes": ["sembrando huertas con los niños"], "excludes": [] } }
+    },
+    {
+      "id": "d-17", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "we're a group of neighbours in bristol and we look after the community orchard on the hill",
+      "expected": { "name": "", "where": ["Bristol"], "about": { "includes": ["look after the community orchard"], "excludes": [] } }
+    },
+    {
+      "id": "d-18", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "so it's called wild coast rangers and we work in cape town south africa we protect the shoreline and teach kids about the ocean",
+      "expected": { "name": "Wild Coast Rangers", "where": ["Cape Town, South Africa"], "about": { "includes": ["protect the shoreline"], "excludes": [] } }
+    },
+    {
+      "id": "d-19", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "At Mangrove Futures, we replant mangroves with fishing families in Lamu, Kenya. See https://mangrove-futures.example.org for our planting maps.",
+      "expected": { "name": "Mangrove Futures", "where": ["Lamu, Kenya"], "about": { "includes": ["replant mangroves with fishing families"], "excludes": ["https://mangrove-futures.example.org"] } }
+    },
+    {
+      "id": "d-20", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "Harvest Hands is a cooperative of small farmers in Kumasi, Ghana. We share tools and sell our produce together.",
+      "expected": { "name": "Harvest Hands", "where": ["Kumasi, Ghana"], "about": { "includes": ["share tools and sell our produce"], "excludes": [] } }
+    },
+    {
+      "id": "d-21", "split": "development", "step": "describe", "mode": "typed", "language": "es", "source": "invented",
+      "text": "Nuestro proyecto se llama Agua Viva. Trabajamos en Oaxaca, México, restaurando manantiales con las comunidades.",
+      "expected": { "name": "Agua Viva", "where": ["Oaxaca, México"], "about": { "includes": ["restaurando manantiales con las comunidades"], "excludes": [] } }
+    },
+    {
+      "id": "d-22", "split": "development", "step": "describe", "mode": "typed", "language": "pt", "source": "invented",
+      "text": "O Coletivo Mãos na Terra ensina compostagem em escolas públicas.",
+      "expected": { "name": "Coletivo Mãos na Terra", "where": [], "about": { "includes": ["ensina compostagem em escolas públicas"], "excludes": [] } }
+    },
+    {
+      "id": "d-23", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "um we're we're the seed savers of ojai and we're based in ojai california we keep heirloom seeds alive",
+      "expected": { "name": "Seed Savers of Ojai", "where": ["Ojai, California"], "about": { "includes": ["keep heirloom seeds alive"], "excludes": [] } }
+    },
+    {
+      "id": "d-24", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "we restore wetlands with farmers in botswana and our group is called delta guardians",
+      "expected": { "name": "Delta Guardians", "where": ["Botswana"], "about": { "includes": ["restore wetlands with farmers"], "excludes": [] } }
+    },
+    {
+      "id": "d-25", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "we work in schools and clinics teaching first aid to teenagers",
+      "expected": { "name": "", "where": [], "about": { "includes": ["teaching first aid to teenagers"], "excludes": [] } }
+    },
+    {
+      "id": "d-26", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
+      "text": "We're in Kampala. We teach coding to girls after school.",
+      "expected": { "name": "", "where": ["Kampala"], "about": { "includes": ["teach coding to girls"], "excludes": [] } }
+    },
+    {
+      "id": "n-01", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "walkthrough-2026-11-23",
+      "text": "Fruit tree seedlings, a water pump and help with grafting",
+      "expected": { "cards": ["fruit tree seedlings", "water pump", "help with grafting"] }
+    },
+    {
+      "id": "n-02", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "invented",
+      "text": "We need tools. We need volunteers for planting days. We need funding for fencing.",
+      "expected": { "cards": ["tools", "volunteers for planting days", "funding for fencing"] }
+    },
+    {
+      "id": "n-03", "split": "development", "step": "needs", "mode": "spoken", "language": "en", "source": "app-tests",
+      "text": "we need seedlings and a meeting room and also some funding for fencing",
+      "expected": { "cards": ["seedlings", "meeting room", "funding for fencing"] }
+    },
+    {
+      "id": "n-04", "split": "development", "step": "needs", "mode": "spoken", "language": "en", "source": "app-tests",
+      "text": "we need seedlings and we can offer a workshop",
+      "expected": { "cards": ["seedlings"] }
+    },
+    {
+      "id": "n-05", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "invented",
+      "text": "- compost\n- a greenhouse\n- someone to keep our accounts",
+      "expected": { "cards": ["compost", "greenhouse", "keep our accounts"] }
+    },
+    {
+      "id": "n-06", "split": "development", "step": "needs", "mode": "spoken", "language": "pt", "source": "invented",
+      "text": "precisamos de mudas e também precisamos de uma estufa e alguém para cuidar das redes sociais",
+      "expected": { "cards": ["mudas", "estufa", "redes sociais"] }
+    },
+    {
+      "id": "n-07", "split": "development", "step": "needs", "mode": "spoken", "language": "es", "source": "invented",
+      "text": "necesitamos semillas y también herramientas y alguien que nos ayude con la contabilidad",
+      "expected": { "cards": ["semillas", "herramientas", "contabilidad"] }
+    },
+    {
+      "id": "n-08", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "app-tests",
+      "text": "Land and water rights for the community garden",
+      "expected": { "cards": ["land and water rights"] }
+    },
+    {
+      "id": "n-09", "split": "development", "step": "needs", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "we need three things first a van second a cold room and third someone who knows grant writing",
+      "expected": { "cards": ["van", "cold room", "grant writing"] }
+    },
+    {
+      "id": "n-10", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "invented",
+      "text": "We need a projector for our film nights in the village hall.",
+      "expected": { "cards": ["projector"] }
+    },
+    {
+      "id": "n-11", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "describe-flow-notes",
+      "text": "seedlings and a water pump",
+      "expected": { "cards": ["seedlings", "water pump"] }
+    },
+    {
+      "id": "n-12", "split": "development", "step": "needs", "mode": "typed", "language": "es", "source": "invented",
+      "text": "Necesitamos un local para las reuniones. También buscamos voluntarios para la siembra.",
+      "expected": { "cards": ["local para las reuniones", "voluntarios para la siembra"] }
+    },
+    {
+      "id": "o-01", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "walkthrough-2026-11-23",
+      "text": "Workshops on seed saving.",
+      "expected": { "cards": ["workshops on seed saving"] }
+    },
+    {
+      "id": "o-02", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "app-tests",
+      "text": "I can teach composting and I can lend a tiller plus we offer seeds",
+      "expected": { "cards": ["teach composting", "lend a tiller", "seeds"] }
+    },
+    {
+      "id": "o-03", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "invented",
+      "text": "We can lend tools, host volunteers on weekends and share our seed collection.",
+      "expected": { "cards": ["lend tools", "host volunteers", "seed collection"] }
+    },
+    {
+      "id": "o-04", "split": "development", "step": "offers", "mode": "spoken", "language": "pt", "source": "invented",
+      "text": "oferecemos oficinas de compostagem e também podemos oferecer mudas nativas",
+      "expected": { "cards": ["oficinas de compostagem", "mudas nativas"] }
+    },
+    {
+      "id": "o-05", "split": "development", "step": "offers", "mode": "typed", "language": "es", "source": "invented",
+      "text": "Ofrecemos talleres de cerámica. Podemos prestar nuestro horno a otros colectivos.",
+      "expected": { "cards": ["talleres de cerámica", "horno"] }
+    },
+    {
+      "id": "o-06", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "we can offer a workshop on water mapping and we need a projector",
+      "expected": { "cards": ["workshop on water mapping"] }
+    },
+    {
+      "id": "o-07", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "invented",
+      "text": "Mapping skills\nA meeting space in the evenings\nStories from elders for school projects",
+      "expected": { "cards": ["mapping skills", "meeting space", "stories from elders"] }
+    },
+    {
+      "id": "o-08", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "invented",
+      "text": "we have a truck we can lend on weekends and we also share our kitchen for community dinners",
+      "expected": { "cards": ["truck", "kitchen"] }
+    },
+    {
+      "id": "o-09", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "invented",
+      "text": "Free legal advice on land tenure for small farmers",
+      "expected": { "cards": ["legal advice on land tenure"] }
+    },
+    {
+      "id": "o-10", "split": "development", "step": "offers", "mode": "typed", "language": "pt", "source": "invented",
+      "text": "Oferecemos aulas de música para crianças. Temos um espaço para eventos.",
+      "expected": { "cards": ["aulas de música", "espaço para eventos"] }
+    }
+  ]
+}
