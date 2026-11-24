@@ -9,7 +9,7 @@ import { SuggestionSchema } from "../describe/contracts.ts";
 import { AskSchema } from "../intake/contracts.ts";
 import { z } from "../validation.ts";
 
-const revision = z.number().int().nonnegative();
+const revision = z.int().check(z.nonnegative());
 const entryRef = z.object({
   kind: z.enum(["need", "offer"]),
   entryId: z.uuid(),
@@ -17,7 +17,7 @@ const entryRef = z.object({
   shareVersion: revision,
 });
 const reviewFields = z.object({
-  summary: SuggestionSchema.pick({
+  summary: z.pick(SuggestionSchema, {
     name: true,
     description: true,
     locations: true,
@@ -25,7 +25,7 @@ const reviewFields = z.object({
     lenses: true,
     themes: true,
   }),
-  entries: z.array(entryRef.extend({ value: AskSchema })),
+  entries: z.array(z.extend(entryRef, { value: AskSchema })),
 });
 function parseReview(data: unknown) {
   const review = parseMatchingPreview(data);

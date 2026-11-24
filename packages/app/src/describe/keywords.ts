@@ -39,12 +39,12 @@ const THEMES = [
 ];
 export const SourceSchema = z.strictObject({
   text: z.string(),
-  unreadFiles: z.number().int().min(0),
+  unreadFiles: z.int().check(z.gte(0)),
   files: z.array(FileReadSchema),
 });
-export const KeywordResultSchema = SourceSchema.extend({
+export const KeywordResultSchema = z.extend(SourceSchema, {
   suggestion: SuggestionSchema,
-  words: z.number().int().min(0),
+  words: z.int().check(z.gte(0)),
 });
 export type KeywordResult = z.infer<typeof KeywordResultSchema>;
 export type CollectedSource = z.infer<typeof SourceSchema>;
