@@ -95,6 +95,68 @@ test("words a recognizer hands over only after Stop, later than the Stop deadlin
   assert.deepEqual(heard, ["result:We are River Keepers, based in Nairobi", "end:true"], "the words arrive, then the person's Stop ends it");
 });
 
+test("words that only begin to arrive near the usual deadline are all kept", async () => {
+  // Found in review: Stop with nothing shown, then the first words at 2.4 s and the rest at 3 s.
+  const { speech, sessions } = recognizer();
+  const { heard, callbacks } = page();
+  const time = clock();
+  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  handle.stop();
+  time.pass(STOP_WAIT_MS - 100);
+  sessions[0]?.say("We are River", false);
+  time.pass(600);
+  sessions[0]?.say("We are River Keepers in Nairobi");
+  sessions[0]?.onend?.();
+  assert.deepEqual(heard, ["result:We are River", "result:We are River Keepers in Nairobi", "end:true"]);
+});
+
+test("a recognizer that hands over words after Stop and never ends is ended at the longest wait, with them", async () => {
+  const { speech, sessions } = recognizer();
+  const { heard, callbacks } = page();
+  const time = clock();
+  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  handle.stop();
+  time.pass(5000);
+  sessions[0]?.say("We restore the riverbank");
+  time.pass(STOP_WAIT_NO_WORDS_MS - 5000);
+  assert.deepEqual(heard, ["result:We restore the riverbank", "end:true"]);
+  assert.equal(sessions[0]?.aborted, 1);
+});
+
+test("leaving the page while Stop waits for words ends the session with nothing more said", async () => {
+  const { speech, sessions } = recognizer();
+  const { heard, callbacks } = page();
+  const time = clock();
+  const handle = await startSpeech("browser", "en-US", callbacks, { speech, consent: memoryConsent(true), later: time.later });
+  handle.stop();
+  time.pass(STOP_WAIT_MS + 1000);
+  handle.dispose();
+  time.pass(STOP_WAIT_NO_WORDS_MS);
+  sessions[0]?.say("too late");
+  assert.deepEqual(heard, [], "the page went away; it is told nothing");
+  assert.equal(sessions[0]?.aborted, 1);
+});
+
+test("words revised to nothing count as none, and a browser answering Stop with aborted is still the person's Stop", async () => {
+  const revised = recognizer();
+  const blank = page();
+  const first = await startSpeech("browser", "en-US", blank.callbacks, { speech: revised.speech, consent: memoryConsent(true), later: clock().later });
+  revised.sessions[0]?.say("um", false);
+  revised.sessions[0]?.say("", true);
+  first.stop();
+  revised.sessions[0]?.onend?.();
+  assert.deepEqual(blank.heard.slice(-2), ["error:no-speech", "end:false"]);
+
+  const answered = recognizer();
+  const stopping = page();
+  const second = await startSpeech("browser", "en-US", stopping.callbacks, { speech: answered.speech, consent: memoryConsent(true), later: clock().later });
+  answered.sessions[0]?.say("We grow seedlings");
+  second.stop();
+  answered.sessions[0]?.onerror?.({ error: "aborted" });
+  answered.sessions[0]?.onend?.();
+  assert.deepEqual(stopping.heard, ["result:We grow seedlings", "end:true"], "the page goes on with the words, as after any Stop");
+});
+
 test("a recognizer that already gave words still ends at the usual deadline, with them", async () => {
   const { speech, sessions } = recognizer();
   const { heard, callbacks } = page();

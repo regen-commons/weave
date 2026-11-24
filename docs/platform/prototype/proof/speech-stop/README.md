@@ -61,7 +61,16 @@ Step 1 at 360 by 780 and 1280 by 900, light and dark, started and stopped with t
 - A forced failure: the no-speech line above, focus on Talk It Out.
 
 Also at 360 and 1280, light: words while talking, cloud speech stopped before the microphone was
-ready, and Needs with late words.
+ready, and Needs and Offers with late words.
+
+## Second review
+
+A fresh reviewer read the change and found nothing blocking. Three edge cases it found were fixed
+before merge, each with a test: words that only began to arrive near 2.5 s were cut off; words a
+recognizer revised to nothing still counted as words; and a browser answering the person's Stop
+with "aborted" would have shown as a failure. One change of behavior stays: words typed before
+Talk It Out, followed by silence and Stop, now get the no-speech line instead of filling the
+fields; Fill In The Fields still fills them.
 
 ## Not proven
 
