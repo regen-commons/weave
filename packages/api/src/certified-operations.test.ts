@@ -108,11 +108,16 @@ test("Certified start failures retain safe stage and status without leaking SDK 
     ]) {
       sdkFailure = failure;
       failBrowserState = failure === null;
+      // A failure at Certified is answered by /auth itself; one before Certified goes on to /interaction,
+      // which tries again. Either way the person gets one sign_in_failed and one diagnostic.
       const started = await fetch(`${issuer}/auth?${params}`, { redirect: "manual" });
       const location = started.headers.get("location");
-      assert.ok(location?.startsWith(`${issuer}/interaction/`));
-      const cookie = started.headers.getSetCookie().map(value => value.split(";", 1)[0]).join("; ");
-      const response = await fetch(location!, { headers: { Cookie: cookie }, redirect: "manual" });
+      let response = started;
+      if (location) {
+        assert.ok(location.startsWith(`${issuer}/interaction/`));
+        const cookie = started.headers.getSetCookie().map(value => value.split(";", 1)[0]).join("; ");
+        response = await fetch(location, { headers: { Cookie: cookie }, redirect: "manual" });
+      } else assert.notEqual(failure, null, "a state store failure falls back to /interaction");
       assert.equal(response.status, 400);
       assert.deepEqual(await response.json(), { error: "sign_in_failed" });
     }

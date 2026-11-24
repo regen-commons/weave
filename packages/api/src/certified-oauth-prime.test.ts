@@ -250,12 +250,12 @@ test("the bridge's warm address primes Certified, and its start primes before th
     const params = new URLSearchParams({ client_id: "weave", redirect_uri: redirectUri, response_type: "code", scope: "openid",
       state: "synthetic-relying-party-state", prompt: "login", code_challenge_method: "S256",
       code_challenge: createHash("sha256").update("synthetic-verifier").digest("base64url") });
+    // /auth now answers with Certified's address itself (see the joined-start tests in sign-in.test.ts).
     const started = await fetch(`${origin}/auth?${params}`, { redirect: "manual" });
-    const cookie = started.headers.getSetCookie().map(value => value.split(";", 1)[0]).join("; ");
-    const interaction = await fetch(started.headers.get("location")!, { headers: { Cookie: cookie }, redirect: "manual" });
-    assert.equal(interaction.status, 303);
-    assert.ok(interaction.headers.get("location")?.startsWith("https://auth.certified.one/oauth/authorize"));
+    assert.equal(started.status, 303);
+    assert.ok(started.headers.get("location")?.startsWith("https://auth.certified.one/oauth/authorize"));
     assert.deepEqual(order, ["prime", "authorize"]);
-    assert.match(interaction.headers.get("server-timing") ?? "", /^state;dur=\d+, prime;desc=ready;dur=\d+, par;dur=\d+$/u);
+    assert.match(started.headers.get("server-timing") ?? "",
+      /^state;dur=\d+, prime;desc=ready;dur=\d+, par;dur=\d+, interaction;desc=joined;dur=0$/u);
   } finally { server.close(); server.closeAllConnections(); }
 });
