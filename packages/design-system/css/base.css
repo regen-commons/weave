@@ -11,7 +11,7 @@
 
 :where(body) {
   margin: 0;
-  min-block-size: 100dvh;
+  min-block-size: 100svh;
   font: var(--type-body-md);
   overflow-wrap: anywhere;
 }
@@ -29,6 +29,10 @@
    it was drawn for). Home's is also what a server sends for addresses it has no page of its own for,
    so it shows only at Home, which the page marks before its body is drawn (data-home). */
 :root:not([data-home]) [data-first-view="/"] { display: none; }
+/* The loading view for a person coming back from a permission screen, drawn at build time beside
+   the root, shows only on a page marked as returning; the app takes it away as it draws its own. */
+[data-returning-view] { display: none; }
+:root[data-returning] [data-returning-view] { display: block; }
 /* A page that changes with whether this device's draft holds a checked card draws the room for each
    until the draft opens. The page marks before its body is drawn what the device last knew
    (data-checked-card), and only that room shows, so nothing moves when the draft opens (DL-104). */

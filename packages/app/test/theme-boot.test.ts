@@ -34,6 +34,7 @@ function boot(stored: () => string | null, pathname = "/", page: { root?: unknow
     getElementById: (id: string) => (id === "root" ? page.root ?? null : null),
   };
   vm.runInNewContext(BOOT, {
+    URLSearchParams,
     document,
     location: { pathname },
     localStorage: { getItem: (key: string) => (key === THEME_KEY ? stored() : null) },
@@ -110,7 +111,8 @@ test("a visit the service worker does not control yet is marked a first visit, a
       querySelectorAll: () => [],
       getElementById: () => null,
     };
-    vm.runInNewContext(BOOT, { document, navigator, location: { pathname: "/funding" }, localStorage: { getItem: () => null }, setTimeout: () => 0 });
+    vm.runInNewContext(BOOT, {
+    URLSearchParams, document, navigator, location: { pathname: "/funding" }, localStorage: { getItem: () => null }, setTimeout: () => 0 });
     return "data-first-visit" in marks;
   };
   assert.equal(marked({ serviceWorker: { controller: null } }), true, "not controlled yet");
@@ -119,4 +121,30 @@ test("a visit the service worker does not control yet is marked a first visit, a
   // The mark only swaps the reading face for its size-matched fallback.
   const base = read("../../design-system/css/base.css");
   assert.ok(base.includes(':root[data-first-visit] { --font-serif: "Source Serif 4 Fallback", Georgia, serif; }'));
+});
+
+test("Home's address coming back from Certified is marked as returning, not Home, so its loading view shows", () => {
+  const marks = (pathname: string, search: string) => {
+    const set: Record<string, string> = {};
+    const document = {
+      documentElement: { dataset: {}, setAttribute: (name: string, value: string) => void (set[name] = value) },
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      getElementById: () => null,
+    };
+    vm.runInNewContext(BOOT, {
+    URLSearchParams, document, navigator: {}, location: { pathname, search }, localStorage: { getItem: () => null }, setTimeout: () => 0 });
+    return { home: "data-home" in set, returning: "data-returning" in set };
+  };
+  assert.deepEqual(marks("/", "?projectConsent=ready"), { home: false, returning: true });
+  assert.deepEqual(marks("/", "?projectConsent=denied&x=1"), { home: false, returning: true });
+  assert.deepEqual(marks("/", ""), { home: true, returning: false });
+  assert.deepEqual(marks("/", "?q=projectConsent"), { home: true, returning: false });
+  // Only a projectConsent parameter of its own, as the app reads it, not the words inside another's value.
+  assert.deepEqual(marks("/", "?next=a?projectConsent=1"), { home: true, returning: false });
+  assert.deepEqual(marks("/", "?projectConsent"), { home: false, returning: true });
+  assert.deepEqual(marks("/funding", "?projectConsent=ready"), { home: false, returning: false });
+  const base = read("../../design-system/css/base.css");
+  assert.ok(base.includes("[data-returning-view] { display: none; }"));
+  assert.ok(base.includes(":root[data-returning] [data-returning-view] { display: block; }"));
 });
