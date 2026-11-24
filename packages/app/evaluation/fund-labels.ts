@@ -75,6 +75,8 @@ function programViews(data: RankingData): Map<string, ProgramView> {
   }
   return views;
 }
+/** Each program's name as a sheet shows it, so an import can tell a row whose program id was edited. */
+export const programNames = (data: RankingData): Map<string, string> => new Map([...programViews(data)].map(([id, view]) => [id, view.name]));
 
 /** The spreadsheet a person reviews, one row per label, in the file's order (each initiative's pool in ranking order). */
 export function exportCsv(labels: LabelSet, set: RankingSet, data: RankingData, options: { blind?: boolean; initiatives?: ReadonlySet<string>; ranks?: Ranks } = {}): string {
@@ -121,9 +123,13 @@ export function readGrade(value: string): Grade | null {
  * Confirms the rows a person graded, under their name and the day. A row left blank keeps what it had.
  * A row for a pair the file does not hold is refused, so a sheet for another file cannot be imported, and
  * so is a pair graded twice. Changing another person's confirmation needs `replace`, and its note then
- * says whose grade it replaced. Grading one's own confirmation the same way again changes nothing.
+ * says whose grade it replaced. Grading one's own confirmation the same way again changes nothing. Given the
+ * programs' names, a graded row whose "program" cell is not its program id's name is refused too: an edited id
+ * would otherwise move the grade to another pair the file holds.
  */
-export function importCsv(labels: LabelSet, csv: string, reviewer: string, on: string, options: { replace?: boolean } = {}): { labels: LabelSet; confirmed: number } {
+export function importCsv(
+  labels: LabelSet, csv: string, reviewer: string, on: string, options: { replace?: boolean; programs?: ReadonlyMap<string, string> } = {},
+): { labels: LabelSet; confirmed: number } {
   const person = reviewer.trim();
   if (!person || /^agent:/iu.test(person)) throw Error("reviewer_must_be_a_person");
   if (!/^\d{4}-\d{2}-\d{2}$/u.test(on)) throw Error("invalid_date");
@@ -131,6 +137,7 @@ export function importCsv(labels: LabelSet, csv: string, reviewer: string, on: s
   const at = (name: (typeof HEADERS)[number]) => header?.indexOf(name) ?? -1;
   const [initiative, program, grade, note] = [at("initiative"), at("program id"), at("your grade"), at("your note")];
   if (initiative < 0 || program < 0 || grade < 0 || note < 0) throw Error("csv_missing_columns");
+  const programName = at("program");
   const index = new Map(labels.labels.map((label, i) => [`${label.initiative}\n${label.documentId}`, i]));
   const next: FundLabel[] = labels.labels.map((label) => ({ ...label }));
   const seen = new Set<number>();
@@ -141,6 +148,11 @@ export function importCsv(labels: LabelSet, csv: string, reviewer: string, on: s
     if (i === undefined) throw Error(`unknown_pair: ${read(initiative)} ${read(program)}`);
     const judged = readGrade(read(grade));
     if (!judged) continue;
+    if (options.programs && programName >= 0) {
+      const named = (options.programs.get(read(program)) ?? read(program)).trim(), shown = read(programName).trim();
+      if (shown !== named)
+        throw Error(`program_changed: ${read(initiative)} ${read(program)} is "${named}", but the row says "${shown}"; fix the row, or if the catalog renamed it since the sheet was made, import with --renamed`);
+    }
     if (seen.has(i)) throw Error(`pair_graded_twice: ${read(initiative)} ${read(program)}`);
     seen.add(i);
     const before = next[i]!, words = read(note).trim();
@@ -241,7 +253,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } else if (importFrom) {
     const reviewer = option("--reviewer");
     if (!reviewer) throw Error("--import needs --reviewer \"Your Name\"");
-    const result = importCsv(labels, await readFile(importFrom, "utf8"), reviewer, option("--on") ?? new Date().toLocaleDateString("sv-SE"), { replace: process.argv.includes("--replace") });
+    const result = importCsv(labels, await readFile(importFrom, "utf8"), reviewer, option("--on") ?? new Date().toLocaleDateString("sv-SE"), {
+      replace: process.argv.includes("--replace"), programs: process.argv.includes("--renamed") ? undefined : programNames(data),
+    });
     validateLabels(result.labels, set, new Set(data.names.keys()));
     await writeFile(file, serializeLabels(result.labels));
     const total = result.labels.labels.filter((label) => label.status === "confirmed").length;

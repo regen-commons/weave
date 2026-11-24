@@ -139,7 +139,7 @@ owner's consent. Their 12 typed and spoken cases (`owner-profile-2026-11-23`) ar
 from the public-safe facts of the owner's profile and leave out everything the owner
 marked private; Tech and Sun's place is Awka only, for now. With those cases and d-31
 added on 23 November, development (61 cases) scores Name 1.00 / 0.73, Where you work
-1.00 / 0.41, About it 0.87 / 0.87, Link 1.00 / 0.33 and Cards 0.58 / 0.54. The owner's
+1.00 / 0.41, About it 0.87 / 0.87, Link 1.00 / 0.33 and Cards 0.56 / 0.53. The owner's
 longer texts lose most of the cards: on the needs and offers steps, each sentence of a
 typed description becomes a card, and a recording becomes a few long cards that each
 hold several items, their titles cut at 140 characters. Link is filled from a full
@@ -181,7 +181,8 @@ bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  
 bun run --filter @weave/app eval:labels -- --export ~/sample.csv --blind --initiatives rel-001,rel-009
 bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --export ~/owner.csv
 bun run --filter @weave/app eval:labels -- --import ~/weave-review.csv --reviewer "Your Name"
-bun run --filter @weave/app eval:labels -- --add-pool   # after a ranking change: new candidates, ungraded
+bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --import ~/owner.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:labels -- --add-pool   # after a ranking change: new candidates, ungraded (add --labels for the owner's file)
 bun run --filter @weave/app eval:funds -- --record-baseline
 ```
 
@@ -193,11 +194,14 @@ judge, and add "your note" if you like. The sheet opens in a spreadsheet as UTF-
 saved back with semicolons reads the same. The import confirms exactly the rows you
 graded, under your name and the day, keeps the draft each one answered beside it, and
 leaves every other row as it was. It refuses a row for a pair the file does not hold,
-a pair graded twice, an agent as reviewer, and a grade on a pair someone else already
-confirmed, unless you add `--replace`, when the note records whose grade it replaced.
-A sheet can be shared out in parts: import each part as it comes back. Commit the label
-file with the new baseline in the same pull request, and say who judged. An agent never
-runs the import.
+a graded row whose "program" cell is not its program id's name (an edited id would move
+the grade to another pair; if the catalog renamed a program since the sheet was made, add
+`--renamed`), a pair graded twice, an agent as reviewer, and a grade on a pair someone
+else already confirmed, unless you add `--replace`, when the note records whose grade it
+replaced. The reviewer's name is written into the public label file, so use the name or
+handle the person agreed to. A sheet can be shared out in parts: import each part as it
+comes back. Commit the label file with the new baseline in the same pull request, and say
+who judged. An agent never runs the import.
 
 The file holds one grade per pair. Who judges is still to be decided. A blind sheet
 avoids leaning on the drafts; to have two people judge, give the second a blind sheet,

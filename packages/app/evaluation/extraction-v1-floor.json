@@ -1,7 +1,7 @@
 {
   "dataset": "extraction-v1",
   "recordedOn": "2026-11-23",
-  "corpusHash": "f4e855645c48a2bdaf4b5675d29ee0145cf1c0f4e1d7435e4a6c78fc9cf34aff",
+  "corpusHash": "b57e89ca2906d57a3262411d5f6b1de35dd421de13f3e4efa840ce239a94ba9e",
   "summary": {
     "name": {
       "precision": 1,
@@ -24,12 +24,12 @@
     "link": {
       "precision": 1,
       "recall": 0.3333,
-      "cases": 6,
-      "passed": 2
+      "cases": 10,
+      "passed": 6
     },
     "cards": {
-      "precision": 0.5775,
-      "recall": 0.5395,
+      "precision": 0.5634,
+      "recall": 0.5263,
       "cases": 30,
       "passed": 17
     }
@@ -37,7 +37,8 @@
   "passing": {
     "d-01": [
       "name",
-      "where"
+      "where",
+      "link"
     ],
     "d-02": [
       "name",
@@ -76,7 +77,8 @@
     ],
     "d-09": [
       "name",
-      "about"
+      "about",
+      "link"
     ],
     "d-10": [
       "about"
@@ -99,7 +101,8 @@
       "about"
     ],
     "d-15": [
-      "about"
+      "about",
+      "link"
     ],
     "d-16": [
       "about"
@@ -124,7 +127,8 @@
     ],
     "d-21": [
       "name",
-      "about"
+      "about",
+      "link"
     ],
     "d-22": [
       "where",
@@ -242,6 +246,10 @@
       "about": {
         "fp": 1,
         "fn": 1
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
       }
     },
     "d-02": {
@@ -354,6 +362,10 @@
       "about": {
         "fp": 0,
         "fn": 0
+      },
+      "link": {
+        "fp": 0,
+        "fn": 0
       }
     },
     "d-10": {
@@ -436,6 +448,10 @@
         "fn": 1
       },
       "about": {
+        "fp": 0,
+        "fn": 0
+      },
+      "link": {
         "fp": 0,
         "fn": 0
       }
@@ -524,6 +540,10 @@
         "fn": 1
       },
       "about": {
+        "fp": 0,
+        "fn": 0
+      },
+      "link": {
         "fp": 0,
         "fn": 0
       }
@@ -846,8 +866,8 @@
     },
     "o-11": {
       "cards": {
-        "fp": 3,
-        "fn": 2
+        "fp": 4,
+        "fn": 3
       }
     },
     "o-12": {

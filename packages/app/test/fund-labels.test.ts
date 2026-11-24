@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { addPool, addPrograms, csvCell, exportCsv, importCsv, parseCsv, readGrade, serializeLabels } from "../evaluation/fund-labels.ts";
+import { addPool, addPrograms, csvCell, exportCsv, importCsv, parseCsv, programNames, readGrade, serializeLabels } from "../evaluation/fund-labels.ts";
 import { LABEL_FILES, gateMetrics, loadRankingData, loadRankingSet, measure, rankSet, validateLabels, type LabelSet } from "../evaluation/fund-ranking.ts";
 
 const setup = (async () => {
@@ -119,12 +119,27 @@ test("Green Goods and Tech and Sun are their owner's to grade: real, public-safe
   for (const label of labels.labels)
     if (label.status === "draft") assert.deepEqual([label.grade, label.by], [null, "agent: pool"], "no agent grades the owner's projects");
     else assert.ok(!/^agent:/u.test(label.by) && label.grade !== null);
-  // Each pool holds Weave's first 20 on Funding, so the owner's grades reach every first five.
+  // Each pool holds Weave's first 20 on Funding and the live site's first 10, so the owner's grades reach every first five.
   const ranked = await rankSet(data, set);
   for (const [id, paths] of ranked) {
     const held = new Set(labels.labels.filter((label) => label.initiative === id).map((label) => label.documentId));
-    assert.ok(paths.funding.slice(0, 20).every((place) => held.has(place.id)), id);
+    const missing = [...paths.funding.slice(0, 20), ...paths.keyword.slice(0, 10)].filter((place) => !held.has(place.id)).map((place) => place.id);
+    assert.deepEqual(missing, [], `${id}: the ranking now puts programs first that the owner has no row for; run \`bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --add-pool\` and commit the file`);
   }
+});
+
+test("a graded row whose program id was edited is refused, so a grade cannot move to another pair", async () => {
+  const { labels, data, set } = await setup;
+  const [header, first, second] = parseCsv(exportCsv(labels, set, data));
+  const column = (name: string) => header!.indexOf(name);
+  assert.equal(first![column("initiative")], second![column("initiative")]);
+  const moved = first!.map((value, j) => (j === column("program id") ? second![j]! : j === column("your grade") ? "strong" : value));
+  const sheet = [header!, moved].map((r) => r.map(csvCell).join(",")).join("\n");
+  assert.throws(() => importCsv(labels, sheet, "Ana Reviewer", "2026-11-25", { programs: programNames(data) }), /^Error: program_changed: /u);
+  // The same row with its own id imports.
+  const kept = first!.map((value, j) => (j === column("your grade") ? "strong" : value));
+  const own = [header!, kept].map((r) => r.map(csvCell).join(",")).join("\n");
+  assert.equal(importCsv(labels, own, "Ana Reviewer", "2026-11-25", { programs: programNames(data) }).confirmed, 1);
 });
 
 test("the pool grows with the ranking, never twice, and an ungraded pair can only be a draft", async () => {

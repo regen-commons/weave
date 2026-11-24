@@ -1,13 +1,13 @@
 {
   "version": 1,
   "dataset": "extraction-v1",
-  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent. Added on 23 November 2026: Green Goods and Tech and Sun (owner-profile-2026-11-23), two real projects included with their owner's consent in public-safe form, an exception to the invented-cases rule; their gold comes from the owner profile. Every gold here was written before the rules ran on it. Also: Link golds on d-19 and on a new case, d-31, so a full link the rules read today is held too.",
+  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent. Added on 23 November 2026: Green Goods and Tech and Sun (owner-profile-2026-11-23), two real projects included with their owner's consent in public-safe form, an exception to the invented-cases rule; their gold comes from the owner profile. Every gold here was written before the rules ran on it. Also: Link golds on d-19 and on a new case, d-31, so a full link the rules read today is held too, and an empty one on d-01, d-09, d-15 and d-21, so a link where the words give none counts against precision.",
   "rubric": "Labels say what a careful person would want each field or list to hold, not what the rules do today. Name: the initiative's name only where the words state one, otherwise empty; never a person's name. Where you work: only places the words say the initiative works in, each as one entry; Global for worldwide or online-anywhere work. About it: must contain every includes phrase and none of the excludes phrases. Cards: one per need or offer said, in order; each key phrase must appear in its own card's title, and a list never holds what belongs to the other list.",
   "cases": [
     {
       "id": "d-01", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "walkthrough-2026-11-23",
       "text": "We are Orchard Learning Circle, based in Upper Valley, Brazil. We teach families to graft and care for fruit trees, and we run a seed swap every season. We need tools.",
-      "expected": { "name": "Orchard Learning Circle", "where": ["Upper Valley, Brazil"], "about": { "includes": ["teach families to graft"], "excludes": ["We need tools"] } }
+      "expected": { "name": "Orchard Learning Circle", "where": ["Upper Valley, Brazil"], "about": { "includes": ["teach families to graft"], "excludes": ["We need tools"] }, "link": "" }
     },
     {
       "id": "d-02", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "app-tests",
@@ -47,7 +47,7 @@
     {
       "id": "d-09", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "app-tests",
       "text": "Green Lagos Collective plants street trees with schools. We are based in Lagos, and our funders are based in London.",
-      "expected": { "name": "Green Lagos Collective", "where": ["Lagos"], "about": { "includes": ["plants street trees with schools"], "excludes": [] } }
+      "expected": { "name": "Green Lagos Collective", "where": ["Lagos"], "about": { "includes": ["plants street trees with schools"], "excludes": [] }, "link": "" }
     },
     {
       "id": "d-10", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
@@ -77,7 +77,7 @@
     {
       "id": "d-15", "split": "development", "step": "describe", "mode": "spoken", "language": "pt", "source": "invented",
       "text": "olá somos a cooperativa sementes da terra a gente trabalha em belo horizonte minas gerais com agricultura urbana nas escolas",
-      "expected": { "name": "Cooperativa Sementes da Terra", "where": ["Belo Horizonte, Minas Gerais"], "about": { "includes": ["agricultura urbana nas escolas"], "excludes": [] } }
+      "expected": { "name": "Cooperativa Sementes da Terra", "where": ["Belo Horizonte, Minas Gerais"], "about": { "includes": ["agricultura urbana nas escolas"], "excludes": [] }, "link": "" }
     },
     {
       "id": "d-16", "split": "development", "step": "describe", "mode": "spoken", "language": "es", "source": "invented",
@@ -107,7 +107,7 @@
     {
       "id": "d-21", "split": "development", "step": "describe", "mode": "typed", "language": "es", "source": "invented",
       "text": "Nuestro proyecto se llama Agua Viva. Trabajamos en Oaxaca, México, restaurando manantiales con las comunidades.",
-      "expected": { "name": "Agua Viva", "where": ["Oaxaca, México"], "about": { "includes": ["restaurando manantiales con las comunidades"], "excludes": [] } }
+      "expected": { "name": "Agua Viva", "where": ["Oaxaca, México"], "about": { "includes": ["restaurando manantiales con las comunidades"], "excludes": [] }, "link": "" }
     },
     {
       "id": "d-22", "split": "development", "step": "describe", "mode": "typed", "language": "pt", "source": "invented",
@@ -292,7 +292,7 @@
     {
       "id": "o-11", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
       "text": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, like planting trees, sorting waste, keeping solar panels running or teaching classes. Members log the work with photos, even offline or over Telegram, and the people it served confirm it. We work globally, and our first community is a solar hub in Awka, Nigeria. We need funding for development and community support, an experienced founder as a mentor, introductions to aligned funders and diaspora groups, and evaluators to help define credible evidence. We can offer our open-source app, onboarding and training for stewards, and reports funders can read. You can find us at greengoods.app.",
-      "expected": { "cards": ["open-source app", "training for stewards", "reports funders can read"] }
+      "expected": { "cards": ["our open-source app", "training for stewards", "reports funders can read"] }
     },
     {
       "id": "o-12", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",

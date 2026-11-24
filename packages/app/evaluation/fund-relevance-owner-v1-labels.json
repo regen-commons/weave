@@ -3,7 +3,7 @@
   "dataset": "fund-relevance-owner-v1-labels",
   "initiatives": "fund-relevance-owner-v1",
   "question": "Is this program a strong match for the project, a possible one, or wrong for it? strong: its documented purpose clearly covers what the project does and nothing documented rules it out. possible: part of it matches, or the place or applicant rules are unclear. wrong: a different purpose, or the documented place or applicant rules clearly exclude it. Relevance, not eligibility.",
-  "pool": "For each project, the first 20 programs Weave Funding ranks and the first 10 the live site ranks, without repeats. Pairs added later, when the ranking changes, say so in their note.",
+  "pool": "For each project, the first 20 programs Weave Funding ranks and the first 10 the live site ranks, without repeats, and the funds the owner's profile named as fitting or not that Weave ranked lower. Pairs added later, when the ranking changes, say so in their note.",
   "drafting": "No agent graded these pairs: each is waiting for the owner's own grade. A pair counts only once the owner confirms it.",
   "labels": [
     {"initiative":"owner-green-goods","documentId":"local-gcc::gcc-digital-commons","grade":null,"status":"draft","by":"agent: pool","note":"In the pool from 2026-11-23."},
