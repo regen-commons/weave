@@ -297,14 +297,3 @@ export function confirmDraft(draft: DeviceDraft): DeviceDraft {
     throw new Error("Keep, change or remove each detail in pencil before continuing.");
   return revise(draft, { confirmed: fields });
 }
-export function modelConstraint(contract: z.ZodMiniType = SuggestionSchema): Record<string, unknown> {
-  const schema: Record<string, unknown> = z.toJSONSchema(contract);
-  const removeLengths = (value: unknown): void => {
-    if (value && typeof value === "object") {
-      delete (value as Record<string, unknown>).maxLength;
-      for (const child of Object.values(value)) removeLengths(child);
-    }
-  };
-  removeLengths(schema);
-  return schema;
-}
