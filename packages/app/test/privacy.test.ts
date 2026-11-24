@@ -207,9 +207,10 @@ test("what the copy says about a connected assistant is what the MCP endpoint do
   const http = read("../api/src/mcp-http.ts");
   assert.match(http, /export type McpLog = \(entry: \{ tool: string; outcome: [^;]+; ms: number \}\) => void;/u);
   assert.match(read("../api/src/mcp.ts"), /log: \(entry\) => console\.log\(JSON\.stringify\(\{ event: "mcp_tool", \.\.\.entry \}\)\),/u);
-  for (const argument of ["description", "themes", "work_countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"])
+  // "countries" is another name for work_countries, which the copy's "countries" covers.
+  for (const argument of ["description", "themes", "work_countries", "countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"])
     assert.match(contract, new RegExp(`"${argument}"`, "u"), argument);
-  assert.match(contract, /fields\(input, \["description", "themes", "work_countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"\]\)/u,
+  assert.match(contract, /fields\(input, \["description", "themes", "work_countries", "countries", "benefit_countries", "applicant_base_country", "registration_country", "applicant_type", "limit"\]\)/u,
     "the tool takes these and nothing else, which is what the copy lists");
   // The count the copy mentions is kept in memory, by address.
   assert.match(section, /counts requests by network address in its memory\. It does not save those counts/u);
