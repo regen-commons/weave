@@ -14,7 +14,7 @@ import { waitingSuggestions } from "../initiative/import.ts";
 import { strongestFirst, projectLinkLine } from "../initiative/list.ts";
 import { useProjectLink } from "../initiative/use-project-link.ts";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
-import { cardName, cardRoute, openSteps } from "../initiative/status.ts";
+import { cardName, cardRoute, onlyInitiativeWaits, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
@@ -73,9 +73,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const link = useProjectLink();
   // Only steps that are open get a row, and only the next one gets the filled button.
   const steps = openSteps(status, project?.workspace ?? null);
-  // What follows the record on a phone. On a wide screen it sits under the card, with Saving and
-  // sharing beside both for the length of the page.
-  const below = (
+  // What the step is for comes first: funding that fits the card, then partners for it. Saving and
+  // sharing sits beside them on a wide screen and follows them on a phone, and the card comes
+  // after, under its own heading (DL-113, 23 November 2026).
+  const results = (
     <Stack wide>
       {(view === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
@@ -99,9 +100,6 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           </div>
         </section>
       )}
-      <Section id="finish-partners" title="Partners For You">
-        {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
-      </Section>
       <Section
         id="finish-funding"
         title="Funding That Fits"
@@ -145,6 +143,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
             </div>
           </>
         )}
+      </Section>
+      <Section id="finish-partners" title="Partners For You">
+        {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
       </Section>
     </Stack>
   );
@@ -191,7 +192,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
           <p>
             {hasDraft(draft)
               ? waitingLine(waiting, false) ||
-                "Check your initiative, needs and offers first. Your words are still on this device."
+                (onlyInitiativeWaits(draft)
+                  ? "Your initiative changed. Check it once more to see your matches. Your needs and offers are still checked."
+                  : "Check your initiative, needs and offers first. Your words are still on this device.")
               : "Describe your initiative and your card appears here."}
           </p>
           <div className="rc-action-bar">
@@ -204,7 +207,23 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
         <>
           <StepLayout
             wide
-            more={below}
+            more={
+              <Section id="finish-card" title="Your Card">
+                {/* Suggestions from the project page wait off the card, which shows kept entries only. */}
+                {waiting.length > 0 && (
+                  <StatusLine
+                    actions={
+                      <ButtonLink href={pathTo("needs")} variant="secondary" size="sm">
+                        {waitingAction(waiting)}
+                      </ButtonLink>
+                    }
+                  >
+                    {waitingLine(waiting, true)}
+                  </StatusLine>
+                )}
+                <InitiativeRecord named={false} fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
+              </Section>
+            }
             aside={
               <Panel>
                 <Section id="saving-sharing" title="Saving And Sharing">
@@ -297,19 +316,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               </Panel>
             }
           >
-            {/* Suggestions from the project page wait off the card, which shows kept entries only. */}
-            {waiting.length > 0 && (
-              <StatusLine
-                actions={
-                  <ButtonLink href={pathTo("needs")} variant="secondary" size="sm">
-                    {waitingAction(waiting)}
-                  </ButtonLink>
-                }
-              >
-                {waitingLine(waiting, true)}
-              </StatusLine>
-            )}
-            <InitiativeRecord named={false} fields={draft.confirmed!} needs={keptAsks(draft, "needs")} offers={keptAsks(draft, "offers")} />
+            {results}
           </StepLayout>
         </>
       )}
