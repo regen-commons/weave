@@ -117,6 +117,56 @@
         "financial": "2026-11-22"
       },
       "result": "English. One lead held (USPF challenge, reported open, official page not found); no open-source grant call found. Material support not searched."
+    },
+    {
+      "id": "climate-restoration/BR",
+      "lastSearchedOn": "2026-11-24",
+      "runId": "monday-discovery-2026-11-23-retry",
+      "forms": {
+        "financial": "2026-11-24",
+        "material": "2026-11-24"
+      },
+      "result": "All listed languages searched for money and material support; deadline sweeps completed. FUNBIO and Recaatingar surfaced; Casa emergency call found in registry sweep and proposed. Other binding terms incomplete."
+    },
+    {
+      "id": "community-energy-digital-inclusion/ZA",
+      "lastSearchedOn": "2026-11-24",
+      "runId": "monday-discovery-2026-11-23-retry",
+      "forms": {
+        "financial": "2026-11-24",
+        "material": "2026-11-24"
+      },
+      "result": "All listed languages searched for money and material support; deadline sweeps completed. Services SETA funding surfaced; no new community energy grant verified."
+    },
+    {
+      "id": "culture-community-education/global",
+      "lastSearchedOn": "2026-11-24",
+      "runId": "monday-discovery-2026-11-23-retry",
+      "forms": {
+        "financial": "2026-11-24",
+        "material": "2026-11-24"
+      },
+      "result": "All listed languages searched for money and material support; deadline sweeps completed. Culture Moves Europe and Cultural Bridge surfaced; binding calls not reviewed."
+    },
+    {
+      "id": "open-source-public-goods/BR",
+      "lastSearchedOn": "2026-11-24",
+      "runId": "monday-discovery-2026-11-23-retry",
+      "forms": {
+        "financial": "2026-11-24",
+        "material": "2026-11-24"
+      },
+      "result": "All listed languages searched for money and material support; deadline sweeps completed. CGI/FAPESP software-livre call found; CGI announcement and FAPESP notice retrieved, detailed eligibility unreviewed."
+    },
+    {
+      "id": "climate-restoration/ZA",
+      "lastSearchedOn": "2026-11-24",
+      "runId": "monday-discovery-2026-11-23-retry",
+      "forms": {
+        "financial": "2026-11-24",
+        "material": "2026-11-24"
+      },
+      "result": "All listed languages searched for money and material support; deadline sweeps completed. UNDP Northern Cape ICCA-GSI call followed to owner; no new open round established."
     }
   ]
 }

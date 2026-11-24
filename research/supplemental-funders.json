@@ -19335,6 +19335,121 @@
         "candidateId": "history-lead-063",
         "batchId": "history-verification-2026-10-29"
       }
+    },
+    {
+      "sourceRecordId": "recTQD6Q18JaLesU1",
+      "program": {
+        "id": "casa-emergencial-incendios-2026",
+        "name": "Apoio Emergencial: Incêndios e Resiliência Climática 2026",
+        "instrument": "grant",
+        "focus": [
+          "Community fire response",
+          "Climate resilience"
+        ],
+        "beneficiaries": [
+          "Community and volunteer fire brigades"
+        ],
+        "geography": {
+          "workCountries": [
+            "BR"
+          ],
+          "applicantCountries": [],
+          "scope": "Brazilian biomes; applicant registration-country limits not separately stated.",
+          "exclusions": []
+        },
+        "applicants": {
+          "types": [
+            "Nonprofit community associations",
+            "Informal groups with nonprofit partner"
+          ],
+          "fiscalSponsorship": "accepted",
+          "requirements": [
+            "2025 institutional budget at most BRL 500,000; one proposal; certified brigade training and institutional documents.",
+            "Partner supplies CNPJ, institutional bank account and legal accountability; at most two sponsored groups, or one alongside its own project.",
+            "Community consent for outside proposers; partner declaration where applicable; Casa conduct policy commitment if selected. Recipients pay applicable taxes."
+          ],
+          "exclusions": [
+            "Outstanding Casa reporting obligations"
+          ]
+        },
+        "award": {
+          "currency": "BRL",
+          "min": 25000,
+          "max": 25000,
+          "durationMonths": 4,
+          "basis": "current_offer",
+          "note": "BRL 25,000 per project. BRL 350,000 total pool: up to 14 awards, eight Amazon and six other biomes; 90% initially, 10% after reporting."
+        },
+        "application": {
+          "route": "open",
+          "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+          "opensOn": "2026-11-23",
+          "closesOn": "2026-11-26",
+          "deadlineInstant": "2026-11-26T21:00:00Z",
+          "note": "Second window, 18:00 Brasília. First window November 16–20 retained here. Execution ends March 26, 2027; reporting April 26. Selection depends on remaining funds."
+        },
+        "costs": {
+          "supported": [
+            "Supplies, equipment, logistics, insurance and brigade allowances; management/technical services capped at 30%. Institutional regularization may use up to 10%."
+          ],
+          "excluded": [
+            "Transfers to personal accounts or full cash withdrawal."
+          ]
+        },
+        "evidence": [
+          {
+            "fields": [
+              "name",
+              "focus",
+              "beneficiaries",
+              "geography",
+              "applicants",
+              "award",
+              "application",
+              "costs",
+              "unknowns"
+            ],
+            "url": "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/",
+            "checkedOn": "2026-11-24",
+            "note": "Owner call and FAQ."
+          },
+          {
+            "fields": [
+              "application.url"
+            ],
+            "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+            "checkedOn": "2026-11-24",
+            "note": "Application form retrieved; not submitted."
+          }
+        ],
+        "unknowns": [
+          "Remaining funds; complete cost exclusions. Eligibility requires manual review."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://casa.org.br/chamadas/apoio-emergencial-incendios-e-resiliencia-climatica-2026/",
+          "title": "Casa emergency fire-response call 2026",
+          "checkedOn": "2026-11-24"
+        },
+        {
+          "url": "https://bd.casa.org.br/CasaDigital/Create?chamadaId=71",
+          "title": "CasaDigital application",
+          "checkedOn": "2026-11-24"
+        }
+      ],
+      "researchContext": {
+        "candidateId": "casa-emergencial-incendios-2026",
+        "deadline": {
+          "timezone": "America/Sao_Paulo",
+          "dateBasis": "explicit"
+        },
+        "geography": {
+          "workScope": "Brazil",
+          "applicantScope": "Community associations or informal groups using a nonprofit partner; CNPJ and institutional bank account required.",
+          "countryArraysAreExhaustive": false
+        }
+      }
     }
   ]
 }
