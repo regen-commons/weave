@@ -444,22 +444,28 @@ export function talkHold(
  * what the browser reported, and every line keeps typing open. Talk It Out stays where it was, so
  * the page does not move and the focus stays on the button; pressing it again tries again. On a
  * touch screen, a service that cannot be reached or will not work here also points to the
- * keyboard's microphone key. An empty answer means nothing to say, as when the page itself
- * stopped the session.
+ * keyboard's microphone key. Every code has a line: a session the page itself ends never reaches
+ * the page, so whatever does reach it is news to the person, and an empty line read as nothing
+ * having happened (23 November 2026).
  */
 export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = false): string {
   const instead = touch
     ? "If your keyboard has a microphone key, you can use it, or type in the box."
     : "Your words are still here, and you can type in the box.";
   switch (problem) {
+    // The browser ended the session itself, as some phones do when another app takes the microphone.
     case "aborted":
-      return "";
+      return "Your browser stopped listening. Press Talk It Out to try again, or type in the box.";
+    // Cloud speech only: Stop came while the browser was still asking about the microphone.
+    case "stopped-early":
+      return "The microphone was not ready, so nothing was recorded or sent. Try again, or type in the box.";
     case "not-allowed":
       return "Your browser did not allow the microphone here. Your words are still here, and you can type in the box.";
     case "audio-capture":
       return "Your browser could not use a microphone. Check that one is connected, or type in the box.";
+    // Also how a session ends when Stop brought no words at all (`speech.ts`).
     case "no-speech":
-      return "No speech was heard. Press Talk It Out to try again, or type in the box.";
+      return "No speech was heard. Check your microphone and try again, or type in the box.";
     case "network":
       return mode === "browser"
         ? `Your browser's speech service could not be reached. ${instead}`

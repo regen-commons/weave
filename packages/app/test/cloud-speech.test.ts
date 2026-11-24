@@ -362,7 +362,7 @@ test("a recording stops by itself at the time limit or before it outgrows what t
   assert.deepEqual(two.heard, ["result:We grow seedlings|", "end:true"]);
 });
 
-test("Stop before the microphone answers ends quietly, and leaving the page drops the recording", async () => {
+test("Stop before the microphone answers ends at once and says nothing was recorded, and leaving the page drops the recording", async () => {
   // The browser is still asking about the microphone when Stop is pressed.
   let grant: (stream: { getTracks(): { stop(): void }[] }) => void = () => {};
   const track = { stopped: 0, stop() { this.stopped++; } };
@@ -373,12 +373,12 @@ test("Stop before the microphone answers ends quietly, and leaving the page drop
   const handle = await startCloudSpeech("en-US", callbacks, { consent: memoryConsent(true), recorder, devices: waiting, send, status: async () => ON });
   assert.equal(cloudSession.view().phase, "starting", "nothing is recorded yet, and Talk It Out says so");
   handle.stop();
-  assert.deepEqual(heard, ["error:aborted", "end:false"], "ended at once, whether or not the browser ever answers");
+  assert.deepEqual(heard, ["error:stopped-early", "end:false"], "ended at once, whether or not the browser ever answers");
   assert.equal(cloudSession.view().phase, "idle");
   grant({ getTracks: () => [track] });
   await settle();
-  assert.deepEqual(heard, ["error:aborted", "end:false"], "a late answer ends nothing twice");
-  assert.equal(speechProblem("aborted", "cloud"), "", "nothing to say: the person stopped it themselves");
+  assert.deepEqual(heard, ["error:stopped-early", "end:false"], "a late answer ends nothing twice");
+  assert.match(speechProblem("stopped-early", "cloud"), /nothing was recorded or sent/u, "a person who spoke while the browser asked is told why no words came");
   assert.equal(track.stopped, 1, "the microphone is let go at once");
   assert.equal(recorders.length, 0);
   assert.equal(requests.length, 0);
