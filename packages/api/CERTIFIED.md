@@ -359,8 +359,17 @@ The answer is used only when it is a 302 or 303 to the configured bridge's HTTPS
 callback, `response_type=code`, and one `client_id` and `state`. The request sends no cookie and nothing
 of the browser's, and nothing from the answer reaches the browser. Anything else (a Cloudflare challenge,
 an error, a refusal, another return address, or no answer within 450 ms) returns Supabase's own URL, as
-before, and that instance then sends browsers to Supabase themselves for a minute, so a slow Supabase
-costs one start its wait, not every start. The attempt cookie, its stored state, the PKCE verifier and the callback's checks are unchanged.
+before. After two such starts in a row, that instance sends browsers to Supabase themselves for a minute,
+so a slow Supabase costs two starts their wait, not every start. One slow call alone does not pause it:
+on 24 November 2026 a new instance's first call took 359 to 421 ms, and with a pause after one failure a
+single call past the limit sent the next minute of presses through the browser's Supabase hop.
+
+The sign-in warm-up (`{"warm": true}`) also opens the instance's connection to Supabase, with
+`GET /auth/v1/health` and the publishable key. It sends no cookie, no body and nothing of any person's,
+starts no flow, and its answer is not read. One instance asks at most once in three seconds, with a
+two-second limit. A start already under way when a pause begins does not extend it or count toward the
+next. Node keeps an idle connection only a few seconds, so this helps most when a pointer or
+the keyboard reaches Sign In a moment before the press. The attempt cookie, its stored state, the PKCE verifier and the callback's checks are unchanged.
 `Server-Timing` reads `supabase;desc=direct` or `supabase;desc=fallback`. A Weave without a bridge
 asks nothing.
 

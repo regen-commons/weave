@@ -33,10 +33,12 @@ export function errorReturn(params: URLSearchParams): Exclude<SignInResult, "sig
 interface Options { origin: string; secureCookies: boolean; store: SignInStore; provider: AccountProvider; emailHints?: ReturnType<typeof certifiedEmailHints>;
   /** Wakes the identity bridge. It never rejects and is never needed for a sign-in to work. */
   warmBridge?: () => Promise<void>;
+  /** Opens the connection to Supabase for direct starts (`sign-in-direct.ts`). It never rejects. */
+  warmSupabase?: () => Promise<void>;
   /** Asks Supabase for the bridge address itself (`sign-in-direct.ts`). It never rejects. */
   toBridge?: ReturnType<typeof supabaseDirect> }
 /** Callback establishes identity only. Save and Load remain separate account commands. */
-export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints, warmBridge, toBridge }: Options) {
+export function createSignInHandlers({ origin, secureCookies, store, provider, emailHints, warmBridge, warmSupabase, toBridge }: Options) {
   const cookies = sessionCookies(secureCookies);
   const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff" };
   const finish = (path: string, status: SignInResult, session: string[] = []) => {
@@ -58,7 +60,8 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
         // starts no attempt, sets no cookie and says nothing about whether any of it worked.
         if (body.warm === true) {
           if (Object.keys(body).length !== 1) throw new AccountError(400, "invalid_data");
-          await Promise.allSettled([timing.time("store", async () => store.ready?.()), timing.time("bridge", async () => warmBridge?.())]);
+          await Promise.allSettled([timing.time("store", async () => store.ready?.()), timing.time("bridge", async () => warmBridge?.()),
+            timing.time("supabase", async () => warmSupabase?.())]);
           return withServerTiming(new Response(JSON.stringify({ warm: true }), { status: 200, headers: { ...headers, "Content-Type": "application/json" } }), timing);
         }
         const returnTo = returnTask(body.returnTo);

@@ -4,7 +4,7 @@ import { WEAVE_APP_ORIGIN, WEAVE_BRIDGE_ORIGIN } from "./certified/bridge-config
 import { cipherFromSecret } from "./certified/crypto.ts";
 import { certifiedEmailHints } from "./certified/email-hint.ts";
 import { postgresSignInStore } from "./sign-in-store.ts";
-import { supabaseDirect } from "./sign-in-direct.ts";
+import { supabaseDirect, supabaseWarmer } from "./sign-in-direct.ts";
 
 export function accountConfiguration(env: NodeJS.ProcessEnv) {
   if (env.WEAVE_ACCOUNTS_ENABLED !== "true") return null;
@@ -75,6 +75,8 @@ function createRuntime(config: NonNullable<ReturnType<typeof accountConfiguratio
     emailHints: config.emailHints,
     warmBridge: bridgeWarmer(config.bridge),
     toBridge: supabaseDirect(config.bridge),
+    // Only a Weave that starts directly needs Supabase's connection open ahead of the press.
+    warmSupabase: config.bridge ? supabaseWarmer(config.supabase, config.key) : undefined,
     provider: createSupabaseAccountProvider(config.supabase, config.key),
     store: postgresSignInStore(sql, config.cipher) };
 }
