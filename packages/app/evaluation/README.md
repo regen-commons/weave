@@ -125,9 +125,11 @@ places are paired; the rules were the same and so were the numbers.)
 
 What the holdout shows: the rules never invent a name or a place, but they miss most
 places said in sentences ("in Leeds", "in Belo Horizonte"), most Spanish and many
-Portuguese names, and most lists typed with commas or said in Spanish. About it keeps
-the whole box, so it often holds the speaker's own name ("my name is dara") and a
-need sentence. These are agent-written cases and agent-judged labels, so read them as a
+Portuguese names, and most lists typed with commas or said in Spanish. About it kept
+the whole box, so it often held the speaker's own name ("my name is dara") and a
+need sentence. Since 24 November 2026 it leaves out the clauses that ask or offer and
+the speaker's introduction, never rewording what stays: About it is 1.00 / 1.00 in
+development and 0.93 / 0.93 on the holdout, and the other rates are unchanged. These are agent-written cases and agent-judged labels, so read them as a
 direction, not a measured rate for real people's words. Every person and link in both
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.
