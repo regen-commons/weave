@@ -122,9 +122,9 @@ export default defineConfig(({ mode }) => {
       ...(prototype ? [] : [fontPreloads(), themeColor(), firstPage(), linkPreviews(), prerender()]),
       ...(prototype ? [] : [VitePWA({
         registerType: "autoUpdate",
-        // Deferred, so the register script never holds up the first paint. It registers the
-        // worker on the window's load event either way.
-        injectRegister: "script-defer",
+        // The app registers the worker itself, once the page has loaded and the browser is idle
+        // (src/register-worker.ts), so registering never lands in start-up's busy moments.
+        injectRegister: false,
         manifest: appManifest(tokens.themes.light.surface),
         workbox: {
           // The plugin turns these on for autoUpdate only when it injects the register
