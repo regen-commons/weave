@@ -264,6 +264,11 @@ export function namedTopics(text: string): Set<string> {
   return new Set([...english, ...other]);
 }
 
+/** The catalog topics a text names in Portuguese or Spanish words only. */
+export function translatedTopics(text: string): Set<string> {
+  return readTopics(text).other;
+}
+
 /**
  * The themes a card is ranked with: its own themes first, then each catalog topic its description
  * names in Portuguese or Spanish, or that the words of its kept needs and offers name in any of the

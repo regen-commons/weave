@@ -1,4 +1,5 @@
-import { rankPartnerMatches, type ProjectEvidence } from "@weave/api/partner-matcher";
+import type { ProjectEvidence } from "@weave/api/partner-matcher";
+import { rankPartners } from "@weave/api/partner-ranking";
 import { projectPassages, projectSlug, projectUriOf } from "@weave/api/public-projects-contract";
 import { privatePartnerQueries, projectSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
 import { requestPublicProjects, type PublicProjectCard } from "./public-projects.ts";
@@ -76,10 +77,11 @@ type Entry = Parameters<typeof privatePartnerQueries>[2][number];
  */
 export function projectFit(
   card: PublicProjectCard,
-  initiative: { id: string; revision: number; needs: readonly Entry[]; offers: readonly Entry[] },
+  initiative: { id: string; revision: number; needs: readonly Entry[]; offers: readonly Entry[]; card?: unknown },
   now = Date.now(),
 ): ProjectSuggestion | null {
-  const queries = privatePartnerQueries(initiative.id, initiative.revision, initiative.needs, initiative.offers);
+  // Ranked as Partners for you ranks, with the card read for what the initiative does (DL-144), so the two never disagree.
+  const queries = privatePartnerQueries(initiative.id, initiative.revision, initiative.needs, initiative.offers, initiative.card);
   if (!queries.length) return null;
   const evidence: ProjectEvidence[] = projectPassages(card).map((passage, index) => ({
     id: `${card.uri}#card-${index}`,
@@ -97,6 +99,6 @@ export function projectFit(
     extractionVersion: "public-card",
     kind: "work",
   }));
-  const matches = rankPartnerMatches({ queries, publicEvidence: evidence, now, limitPerEntryAndKind: 1 });
+  const matches = rankPartners({ queries, publicEvidence: evidence, now, limitPerEntryAndKind: 1 });
   return projectSuggestions(matches, queries)[0] ?? { id: card.uri, name: card.name, fits: [], passages: [] };
 }

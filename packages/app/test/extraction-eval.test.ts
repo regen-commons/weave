@@ -170,7 +170,7 @@ test("every file case's gold is in its document, and the reader reads the files 
 // give what the page's readers give on everything else, or a PDF case would measure rules the page does not run.
 test("the eval's PDF path gives what the page's own readers give, on every case without a PDF", async () => {
   const corpus = await development;
-  const { askStepOf, attachmentOf, nodeCards, nodeKeywords, readCards, readDescribe } = await import("../evaluation/extraction.ts");
+  const { askStepOf, attachmentOf, nodeCards, nodeKeywords, readCards, readDescribe, readStepCards } = await import("../evaluation/extraction.ts");
   const { reconcile } = await import("../src/intake/state.ts");
   let fileCards = 0;
   for (const row of corpus.cases) {
@@ -181,7 +181,9 @@ test("the eval's PDF path gives what the page's own readers give, on every case 
       continue;
     }
     const step = askStepOf(row.text, row.step, row.mode, files);
-    const page = await readCards(row.text, row.step, row.mode, files);
+    const page = await readStepCards(row.text, row.step, row.mode, files);
+    // The words-only reader that typed-list.test.ts reads gives the same cards too.
+    if (row.mode !== "file") assert.deepEqual(readCards(row.text, row.step, row.mode), page, `${row.id} words only`);
     assert.deepEqual(reconcile(step, await nodeCards(step, row.step)).items.map((item) => item.value.title), page, row.id);
     if (row.file && !row.text) fileCards += page.length;
   }

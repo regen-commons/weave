@@ -178,10 +178,10 @@ export function Opportunity({
             <FitLine result={result} />
             <p>{result.readiness.label}</p>
             <p className="rc-meta">
-              Keyword matching with the existing Funding Commons rubric. No model has downloaded.
+              Compared on this device from what your card and this program each describe. No model has downloaded.
             </p>
             {result.thematicFit.evidenceTerms.length > 0 && (
-              <p>Shared topics: {result.thematicFit.evidenceTerms.join(", ")}</p>
+              <p>In common: {result.thematicFit.evidenceTerms.join(", ")}</p>
             )}
             <ul className="rc-reasons">
               {result.activeLimits.map((limit, index) => (

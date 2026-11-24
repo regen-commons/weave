@@ -157,19 +157,30 @@ export function askStepOf(text: string, kind: AskKind, mode: ExtractionCase["mod
  * uses it only where there is a PDF, and a test keeps it equal to the page's own on every case without one.
  */
 export async function nodeCards(step: AskStep, kind: AskKind): Promise<AskExtraction> {
-  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id));
+  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id, kind));
   for (const file of step.attachments) {
     const source = await collectSource({ turns: [], composer: "", attachments: [file] }, readerFor([file]));
-    chunks.push(...chunksFrom(source.text, file.id));
+    chunks.push(...chunksFrom(source.text, file.id, kind));
   }
   return keywordExtraction(candidateChunks(chunks, step), kind);
 }
 
 /** A needs or offers list, as the step makes it: the page's own reader (`extractAsks`, without the browser's model), then its reconcile. */
-export async function readCards(text: string, kind: AskKind, mode: ExtractionCase["mode"], files: readonly Attachment[] = []): Promise<string[]> {
+export async function readStepCards(text: string, kind: AskKind, mode: ExtractionCase["mode"], files: readonly Attachment[] = []): Promise<string[]> {
   const step = askStepOf(text, kind, mode, files);
   const extraction = files.some(isPdf) ? await nodeCards(step, kind) : (await extractAsks(step, kind, new AbortController().signal, false)).extraction;
   return reconcile(step, extraction).items.map((item) => item.value.title);
+}
+
+/**
+ * Typed or spoken words alone, through the keyword rules in step, with no file: what `test/typed-list.test.ts`
+ * reads, one card list at a time. The eval scores through `readStepCards`, and a test holds the two equal on
+ * every typed and spoken case.
+ */
+export function readCards(text: string, kind: AskKind, mode: "typed" | "spoken"): string[] {
+  const step = askStepOf(text, kind, mode);
+  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id, kind));
+  return reconcile(step, keywordExtraction(candidateChunks(chunks, step), kind)).items.map((item) => item.value.title);
 }
 
 /** What the page's reader makes of a case's file, the same reader both steps use. */
@@ -208,7 +219,7 @@ export type Readers = {
   describe(text: string, files: readonly Attachment[]): Promise<Described>;
   cards(text: string, kind: AskKind, mode: ExtractionCase["mode"], files: readonly Attachment[]): Promise<string[]> | string[];
 };
-export const APP_READERS: Readers = { describe: readDescribe, cards: readCards };
+export const APP_READERS: Readers = { describe: readDescribe, cards: readStepCards };
 
 /** One to one: each expected item takes at most one observed item, the first unused one `matches` accepts. */
 function pair<T>(expected: readonly T[], observed: readonly string[], matches: (seen: string, want: T) => boolean): number {

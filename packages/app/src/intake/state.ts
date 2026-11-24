@@ -214,7 +214,7 @@ export const ASK_FORM_PROBLEM = "Add a title. Check amounts, currency and terms.
  */
 export function askFormProblem(error: unknown): { field: AskFormField | null; message: string } {
   if (error instanceof AskFieldError) return { field: error.field, message: error.message };
-  if (error instanceof z.ZodError) {
+  if (error instanceof z.core.$ZodError) {
     const issue = error.issues[0];
     const [first, second] = issue?.path ?? [];
     if (first === "title") return { field: "title", message: "Add a title." };

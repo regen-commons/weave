@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "../validation.ts";
 import { PublicEditsSchema, SuggestionSchema, type Initiative, type RecordForm } from "./contracts.ts";
 export const formFrom = (fields: Initiative): RecordForm => ({
   name: fields.name,
@@ -20,7 +20,7 @@ export function completeLink(typed: string): string {
 const typedLinks = (text: string): string[] => text.split(/\s+/u).filter(Boolean).map(completeLink);
 export function parseRecordForm(form: RecordForm) {
   const isGlobal = /^(global|worldwide|em todo o mundo)$/iu.test(form.where.trim());
-  return PublicEditsSchema.required().parse({
+  return z.required(PublicEditsSchema).parse({
     name: form.name,
     description: form.about,
     locations: isGlobal

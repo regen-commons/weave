@@ -2,16 +2,16 @@ import type { Evaluation } from "./contracts.ts";
 
 /**
  * How well a program's own documented purpose matches an initiative's own words, in four plain
- * levels (DL-129). It reads the shared rubric's thematic fit, a score from 0 to 100 that the app
- * uses unchanged. Fit is about topics only: it never says whether anyone may apply.
+ * levels (DL-129). It reads Funding's fit, a score from 0 to 100 on the rubric's scale, worked out
+ * from the fields of work, people and places both name (DL-143). Fit is about topics and place
+ * only: it never says whether anyone may apply.
  */
 export type FundingFit = "strong" | "good" | "possible" | "low";
 
 /**
- * The lowest score of each level. The app matches on keywords, where the rubric grades distinct
- * specific shared topics: none 0, one 30, two 50, three 65, then 75, 80 and 85. Each floor falls
- * between two of those grades, so a level is a count of shared topics: three or more, two, one,
- * none. Measured against 119 public project descriptions and all 771 programs (DL-129).
+ * The lowest score of each level (DL-129). Since DL-143 one field of work in common scores 40, a
+ * Good fit; a field and the program's own country, or two fields, 60 and more, a Strong one; a field
+ * named only as an example, people or tools alone stay Possible or Low.
  */
 export const FIT_FLOORS: Readonly<Record<FundingFit, number>> = { strong: 60, good: 40, possible: 20, low: 0 };
 
@@ -24,13 +24,14 @@ export function fundingFit(score: number | null): FundingFit | null {
   return "low";
 }
 
-/** What a fit line explains on request: which topics it rests on, and what it is not. */
+/** What a fit line explains on request: the fields and places it rests on, and what it is not. */
 export function fitExplanation(result: Pick<Evaluation, "thematicFit">): string {
   const topics = result.thematicFit.evidenceTerms;
+  // Since DL-143 these are the fields of work, people and places both sides name, field first.
   const basis = topics.length
-    ? `Shared topics: ${topics.slice(0, 5).join(", ")}.`
-    : "No specific topics in common with your description.";
-  return `${basis} Worked out on this device from keywords. Fit is not eligibility.`;
+    ? `In common: ${topics.slice(0, 5).join(", ")}.`
+    : "No field of work or place in common with your card.";
+  return `${basis} Worked out on this device from what your card and the program each describe. Fit is not eligibility.`;
 }
 
 /** A program's place when the list is ordered by fit: its score, and its place in research priority. */
