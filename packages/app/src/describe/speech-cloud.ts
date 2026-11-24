@@ -427,9 +427,10 @@ export async function startCloudSpeech(
   void begin();
   return {
     stop: () => {
-      // Stop before the browser has opened the microphone ends at once and quietly: nothing was
-      // recorded, so there is nothing to send and nothing to say.
-      if (phase === "starting") fail("aborted");
+      // Stop before the browser has opened the microphone ends at once: nothing was recorded, so
+      // there is nothing to send. The page says so, because a person who spoke while the browser
+      // was still asking about the microphone expects their words, and an empty line said nothing.
+      if (phase === "starting") fail("stopped-early");
       else finish();
     },
     dispose,

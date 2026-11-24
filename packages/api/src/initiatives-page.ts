@@ -9,11 +9,8 @@ import { PUBLIC_ORIGIN } from "./page-preview.ts";
 import { GET as publicProjects } from "./public-projects.ts";
 import { parsePublicProjectPage, type PublicProjectPage } from "./public-projects-contract.ts";
 
-// A copy not in the function's bundle is read from Weave's public site, never from the address a
-// request names: the page is kept for the instance and cached, so it must not follow a request's Host.
-const site = new Request(`${PUBLIC_ORIGIN}/`);
-const template = once(() => builtFile(LIST_PAGE_FILE, site));
-const fallback = once(() => builtFile(LIST_PAGE_FALLBACK_FILES, site));
+const template = once(() => builtFile(LIST_PAGE_FILE));
+const fallback = once(() => builtFile(LIST_PAGE_FALLBACK_FILES));
 
 /** The list's first page, through its own handler, so the cards are the ones the list answers with. */
 async function firstPage(): Promise<PublicProjectPage> {
