@@ -51,7 +51,7 @@ const describeCase = (text: string, expected: Partial<{ name: string; where: str
 });
 const cardsCase = (text: string, keys: string[]): ExtractionCase => ({ id: "x", split: "development", step: "needs", mode: "typed", language: "en", source: "test", text, expected: { cards: keys } });
 const giving = (describe: Partial<Described>, cards: string[] = []): Readers => ({
-  describe: async () => ({ name: "", where: [], about: "", ...describe }),
+  describe: async () => ({ name: "", where: [], about: "", link: "", ...describe }),
   cards: () => cards,
 });
 
@@ -68,6 +68,19 @@ test("scoring: a name is right only when it is the initiative's, and each place 
   assert.deepEqual([twice.fields.where!.passed, twice.fields.where!.count], [false, { tp: 1, fp: 1, fn: 1 }]);
   const about = await scoreCase(describeCase(text, { includes: ["run seed swaps"], excludes: ["volunteer group"] }), giving({ about: text }));
   assert.equal(about.fields.about!.passed, false, "About it held a phrase the label leaves out");
+});
+
+test("scoring: another way of writing the name is as right, and a link counts only where the case names one", async () => {
+  const text = "Tech and Sun builds solar hubs and runs seed swaps. See https://www.greengoods.app/ for more.";
+  const base = describeCase(text, { name: "Tech and Sun" });
+  const as = (extra: object): ExtractionCase => ({ ...base, expected: { ...(base.expected as object), ...extra } as ExtractionCase["expected"] });
+  assert.equal((await scoreCase(as({ nameAlternatives: ["Tech & Sun"] }), giving({ name: "Tech & Sun" }))).fields.name!.passed, true);
+  assert.equal((await scoreCase(base, giving({ name: "Tech & Sun" }))).fields.name!.passed, false, "only a listed alternative counts");
+  // The protocol, "www." and a trailing slash do not count; a link where the case names none is a false positive.
+  assert.deepEqual((await scoreCase(as({ link: "greengoods.app" }), giving({ link: "https://www.greengoods.app/" }))).fields.link!.count, { tp: 1, fp: 0, fn: 0 });
+  assert.deepEqual((await scoreCase(as({ link: "" }), giving({ link: "https://greengoods.app" }))).fields.link!.count, { tp: 0, fp: 1, fn: 0 });
+  assert.deepEqual((await scoreCase(as({ link: "greengoods.app" }), giving({}))).fields.link!.count, { tp: 0, fp: 0, fn: 1 });
+  assert.equal((await scoreCase(base, giving({ link: "https://greengoods.app" }))).fields.link, undefined, "not scored where the case names no link");
 });
 
 test("scoring: two items in one card match neither, and a key is a whole word", async () => {

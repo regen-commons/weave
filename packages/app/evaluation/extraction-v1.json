@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dataset": "extraction-v1",
-  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent.",
+  "authoring": "Development cases written on 23 November 2026 by the agent that built the runner, after reading the describe and intake rules, so they are regression evidence, not an unbiased estimate. Sources: the describe-flow walkthrough of 23 November 2026 (walkthrough-2026-11-23), the describe-flow hand-over notes (describe-flow-notes), examples the app's own tests use (app-tests), and invented cases in the same style. Every name, person and link is invented, in both splits; places are real. The holdout is in extraction-v1-holdout.json, written blind by another agent. Added on 23 November 2026: Green Goods and Tech and Sun (owner-profile-2026-11-23), two real projects included with their owner's consent in public-safe form, an exception to the invented-cases rule; their gold comes from the owner profile. Every gold here was written before the rules ran on it. Also: Link golds on d-19 and on a new case, d-31, so a full link the rules read today is held too.",
   "rubric": "Labels say what a careful person would want each field or list to hold, not what the rules do today. Name: the initiative's name only where the words state one, otherwise empty; never a person's name. Where you work: only places the words say the initiative works in, each as one entry; Global for worldwide or online-anywhere work. About it: must contain every includes phrase and none of the excludes phrases. Cards: one per need or offer said, in order; each key phrase must appear in its own card's title, and a list never holds what belongs to the other list.",
   "cases": [
     {
@@ -97,7 +97,7 @@
     {
       "id": "d-19", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
       "text": "At Mangrove Futures, we replant mangroves with fishing families in Lamu, Kenya. See https://mangrove-futures.example.org for our planting maps.",
-      "expected": { "name": "Mangrove Futures", "where": ["Lamu, Kenya"], "about": { "includes": ["replant mangroves with fishing families"], "excludes": ["https://mangrove-futures.example.org"] } }
+      "expected": { "name": "Mangrove Futures", "where": ["Lamu, Kenya"], "about": { "includes": ["replant mangroves with fishing families"], "excludes": ["https://mangrove-futures.example.org"] }, "link": "https://mangrove-futures.example.org" }
     },
     {
       "id": "d-20", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "invented",
@@ -243,6 +243,71 @@
       "id": "o-10", "split": "development", "step": "offers", "mode": "typed", "language": "pt", "source": "invented",
       "text": "Oferecemos aulas de música para crianças. Temos um espaço para eventos.",
       "expected": { "cards": ["aulas de música", "espaço para eventos"] }
+    },
+    {
+      "id": "d-27", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, like planting trees, sorting waste, keeping solar panels running or teaching classes. Members log the work with photos, even offline or over Telegram, and the people it served confirm it. We work globally, and our first community is a solar hub in Awka, Nigeria. We need funding for development and community support, an experienced founder as a mentor, introductions to aligned funders and diaspora groups, and evaluators to help define credible evidence. We can offer our open-source app, onboarding and training for stewards, and reports funders can read. You can find us at greengoods.app.",
+      "expected": { "name": "Green Goods", "where": ["Global"], "about": { "includes": ["record and review their regenerative work"], "excludes": ["We need funding for development"] }, "link": "greengoods.app" }
+    },
+    {
+      "id": "d-28", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "okay so green goods is um it's an open source app and it helps community groups like plan and record and review the work they do so planting trees sorting waste keeping solar panels running teaching classes that kind of thing people log it with photos even when they're offline or just over telegram and then the people it actually helped confirm it was done we work globally really our first community is a solar hub in awka in nigeria so what we need is uh funding for development and for supporting communities an experienced founder who could mentor us introductions to funders who get it and to diaspora groups and um evaluators to help us figure out what credible evidence looks like and what we can offer is the app itself it's open source onboarding and training for stewards and reports that funders can actually read you can find us at green goods dot app",
+      "expected": { "name": "Green Goods", "where": ["Global"], "about": { "includes": ["record and review the work they do"], "excludes": ["what we need is uh funding"] }, "link": "greengoods.app" }
+    },
+    {
+      "id": "d-29", "split": "development", "step": "describe", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "Tech and Sun builds free, solar-powered hubs in Nigeria where students, creatives and builders get steady power, internet and a place to learn and work. Our first hub is a shipping container at Nnamdi Azikiwe University in Awka, Nigeria, and a second site in Enugu is next. We need funding to keep the Awka hub running, funding to build the second hub, work opportunities for our members, and engineers to check our hub design. We can offer free desk space with power and internet, workshops on digital skills, Web3 and climate, and our open-source hub blueprint so others can build their own. Find us at techandsun.com.",
+      "expected": { "name": "Tech and Sun", "nameAlternatives": ["Tech & Sun"], "where": ["Awka, Nigeria"], "about": { "includes": ["builds free, solar-powered hubs in Nigeria"], "excludes": ["We need funding to keep the Awka hub running"] }, "link": "techandsun.com" }
+    },
+    {
+      "id": "d-30", "split": "development", "step": "describe", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "so um tech and sun we basically build these solar powered hubs in nigeria free spaces where students and creatives and builders can come and get steady power and internet and somewhere to actually work you know our first one is a shipping container at nnamdi azikiwe university in awka and the next one is going to be in enugu so what we need right now is uh money to keep the awka hub running like the batteries and the starlink and the stewards and then funding to build the second hub and um work opportunities for our members like gigs and engineers who can check our design properly and what we can offer is free desk space with power and internet workshops on digital skills and web3 and climate and our hub blueprint it's open source so anyone can build their own you can find us at tech and sun dot com",
+      "expected": { "name": "Tech and Sun", "nameAlternatives": ["Tech & Sun"], "where": ["Awka, Nigeria"], "about": { "includes": ["build these solar powered hubs in nigeria"], "excludes": ["money to keep the awka hub running"] }, "link": "techandsun.com" }
+    },
+    {
+      "id": "d-31", "split": "development", "step": "describe", "mode": "typed", "language": "pt", "source": "invented",
+      "text": "A Rede Quintal Verde ensina moradores a cultivar hortas em quintais de Recife, Pernambuco. Veja nossos mapas em https://quintalverde.example.org/mapas.",
+      "expected": { "name": "Rede Quintal Verde", "where": ["Recife, Pernambuco"], "about": { "includes": ["ensina moradores a cultivar hortas em quintais"], "excludes": ["https://quintalverde.example.org/mapas"] }, "link": "https://quintalverde.example.org/mapas" }
+    },
+    {
+      "id": "n-13", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, like planting trees, sorting waste, keeping solar panels running or teaching classes. Members log the work with photos, even offline or over Telegram, and the people it served confirm it. We work globally, and our first community is a solar hub in Awka, Nigeria. We need funding for development and community support, an experienced founder as a mentor, introductions to aligned funders and diaspora groups, and evaluators to help define credible evidence. We can offer our open-source app, onboarding and training for stewards, and reports funders can read. You can find us at greengoods.app.",
+      "expected": { "cards": ["funding for development", "experienced founder", "introductions to aligned funders", "evaluators"] }
+    },
+    {
+      "id": "n-14", "split": "development", "step": "needs", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "okay so green goods is um it's an open source app and it helps community groups like plan and record and review the work they do so planting trees sorting waste keeping solar panels running teaching classes that kind of thing people log it with photos even when they're offline or just over telegram and then the people it actually helped confirm it was done we work globally really our first community is a solar hub in awka in nigeria so what we need is uh funding for development and for supporting communities an experienced founder who could mentor us introductions to funders who get it and to diaspora groups and um evaluators to help us figure out what credible evidence looks like and what we can offer is the app itself it's open source onboarding and training for stewards and reports that funders can actually read you can find us at green goods dot app",
+      "expected": { "cards": ["funding for development", "experienced founder", "introductions to funders", "evaluators"] }
+    },
+    {
+      "id": "n-15", "split": "development", "step": "needs", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "Tech and Sun builds free, solar-powered hubs in Nigeria where students, creatives and builders get steady power, internet and a place to learn and work. Our first hub is a shipping container at Nnamdi Azikiwe University in Awka, Nigeria, and a second site in Enugu is next. We need funding to keep the Awka hub running, funding to build the second hub, work opportunities for our members, and engineers to check our hub design. We can offer free desk space with power and internet, workshops on digital skills, Web3 and climate, and our open-source hub blueprint so others can build their own. Find us at techandsun.com.",
+      "expected": { "cards": ["keep the Awka hub running", "build the second hub", "work opportunities", "engineers"] }
+    },
+    {
+      "id": "n-16", "split": "development", "step": "needs", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "so um tech and sun we basically build these solar powered hubs in nigeria free spaces where students and creatives and builders can come and get steady power and internet and somewhere to actually work you know our first one is a shipping container at nnamdi azikiwe university in awka and the next one is going to be in enugu so what we need right now is uh money to keep the awka hub running like the batteries and the starlink and the stewards and then funding to build the second hub and um work opportunities for our members like gigs and engineers who can check our design properly and what we can offer is free desk space with power and internet workshops on digital skills and web3 and climate and our hub blueprint it's open source so anyone can build their own you can find us at tech and sun dot com",
+      "expected": { "cards": ["keep the awka hub running", "build the second hub", "work opportunities", "engineers"] }
+    },
+    {
+      "id": "o-11", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, like planting trees, sorting waste, keeping solar panels running or teaching classes. Members log the work with photos, even offline or over Telegram, and the people it served confirm it. We work globally, and our first community is a solar hub in Awka, Nigeria. We need funding for development and community support, an experienced founder as a mentor, introductions to aligned funders and diaspora groups, and evaluators to help define credible evidence. We can offer our open-source app, onboarding and training for stewards, and reports funders can read. You can find us at greengoods.app.",
+      "expected": { "cards": ["open-source app", "training for stewards", "reports funders can read"] }
+    },
+    {
+      "id": "o-12", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "okay so green goods is um it's an open source app and it helps community groups like plan and record and review the work they do so planting trees sorting waste keeping solar panels running teaching classes that kind of thing people log it with photos even when they're offline or just over telegram and then the people it actually helped confirm it was done we work globally really our first community is a solar hub in awka in nigeria so what we need is uh funding for development and for supporting communities an experienced founder who could mentor us introductions to funders who get it and to diaspora groups and um evaluators to help us figure out what credible evidence looks like and what we can offer is the app itself it's open source onboarding and training for stewards and reports that funders can actually read you can find us at green goods dot app",
+      "expected": { "cards": ["the app itself", "training for stewards", "reports that funders"] }
+    },
+    {
+      "id": "o-13", "split": "development", "step": "offers", "mode": "typed", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "Tech and Sun builds free, solar-powered hubs in Nigeria where students, creatives and builders get steady power, internet and a place to learn and work. Our first hub is a shipping container at Nnamdi Azikiwe University in Awka, Nigeria, and a second site in Enugu is next. We need funding to keep the Awka hub running, funding to build the second hub, work opportunities for our members, and engineers to check our hub design. We can offer free desk space with power and internet, workshops on digital skills, Web3 and climate, and our open-source hub blueprint so others can build their own. Find us at techandsun.com.",
+      "expected": { "cards": ["free desk space", "workshops on digital skills", "hub blueprint"] }
+    },
+    {
+      "id": "o-14", "split": "development", "step": "offers", "mode": "spoken", "language": "en", "source": "owner-profile-2026-11-23",
+      "text": "so um tech and sun we basically build these solar powered hubs in nigeria free spaces where students and creatives and builders can come and get steady power and internet and somewhere to actually work you know our first one is a shipping container at nnamdi azikiwe university in awka and the next one is going to be in enugu so what we need right now is uh money to keep the awka hub running like the batteries and the starlink and the stewards and then funding to build the second hub and um work opportunities for our members like gigs and engineers who can check our design properly and what we can offer is free desk space with power and internet workshops on digital skills and web3 and climate and our hub blueprint it's open source so anyone can build their own you can find us at tech and sun dot com",
+      "expected": { "cards": ["free desk space", "workshops on digital skills", "hub blueprint"] }
     }
   ]
 }

@@ -75,8 +75,8 @@ Only the keyword rules are measured: the browser's own model, which both steps t
 a browser has one, is not. Each case says what a careful person would want there:
 
 - **Name**: the initiative's name only where the words state one, never a person's.
-  Case, accents and punctuation do not count. A name where none was stated is a false
-  positive.
+  Case, accents and punctuation do not count, and a case may list other ways of writing
+  the same name, such as "Tech & Sun". A name where none was stated is a false positive.
 - **Where you work**: each place said, scored place by place; Global for worldwide or
   online work.
 - **About it**: must hold every `includes` phrase and none of the `excludes`, such as a
@@ -85,13 +85,15 @@ a browser has one, is not. Each case says what a careful person would want there
 - **Cards**: one per need or offer, scored by key phrase as whole words. Two items in
   one card match neither, and a card for the other list is a false positive. A key
   inside another key is refused, since no card could meet it.
+- **Link**: the website, on the cases that name one. `https://`, `www.` and a trailing
+  slash do not count.
 
 Each field gets precision and recall, overall and by typed or spoken words and by
 language.
 
 | Split | Cases | Who wrote it | Runs |
 |---|---|---|---|
-| `extraction-v1.json` (development) | 48: 26 describe, 12 needs, 10 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases | CI, in `test/extraction-eval.test.ts` |
+| `extraction-v1.json` (development) | 61: 31 describe, 16 needs, 14 offers; en, pt, es; typed and spoken | The agent that built the runner, after reading the rules, from the describe-flow walkthrough and hand-over notes, the app's tests and invented cases; Green Goods and Tech and Sun from their owner's profile | CI, in `test/extraction-eval.test.ts` |
 | `extraction-v1-holdout.json` | 26: 14 describe, 6 needs, 6 offers | Another agent that read no code or tests | By hand only |
 
 ```sh
@@ -131,6 +133,18 @@ need sentence. These are agent-written cases and agent-judged labels, so read th
 direction, not a measured rate for real people's words. Every person and link in both
 splits is invented; places are real. A label names a place as fully as the words do, so
 "Oaxaca de Juárez" and "San Cristóbal de las Casas, Chiapas" are both whole answers.
+
+The one exception is Green Goods and Tech and Sun, two real projects included with their
+owner's consent. Their 12 typed and spoken cases (`owner-profile-2026-11-23`) are written
+from the public-safe facts of the owner's profile and leave out everything the owner
+marked private; Tech and Sun's place is Awka only, for now. With those cases and d-31
+added on 23 November, development (61 cases) scores Name 1.00 / 0.73, Where you work
+1.00 / 0.41, About it 0.87 / 0.87, Link 1.00 / 0.33 and Cards 0.58 / 0.54. The owner's
+longer texts lose most of the cards: on the needs and offers steps, each sentence of a
+typed description becomes a card, and a recording becomes a few long cards that each
+hold several items, their titles cut at 140 characters. Link is filled from a full
+address such as `https://mangrove-futures.example.org`, but not from a bare domain such
+as "greengoods.app" or from one said aloud.
 
 ## Labels
 
