@@ -114,13 +114,19 @@
         {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"}
       ],
       "funding": [
-        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
-        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
-        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
-        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"},
-        {"id":"local-cdfw::cdfw-mojave-tortoise-2026","name":"California Department of Fish and Wildlife: Mojave Desert Tortoise Recovery: 2026 call"}
+        {"id":"local-seeding-future::seeding-future-2027","name":"Seeding The Future Foundation / Welthungerhilfe: Global Food System Challenge: 2027"},
+        {"id":"recLO2MrB5qYtgi5l::raf-general-grantmaking","name":"Regenerative Agriculture Foundation: RAF general grantmaking"},
+        {"id":"local-people-powered::people-powered-cda-2027","name":"People Powered: Climate Democracy Accelerator: March 2027 cohort"},
+        {"id":"local-climate-collective::ai-nature-accelerator","name":"Climate Collective: AI x Nature Accelerator"},
+        {"id":"rec0ean6CkrBpBXS6::acumen-patient-capital","name":"Acumen: Patient Capital investments"}
       ],
-      "mcp": []
+      "mcp": [
+        {"id":"local-seeding-future::seeding-future-2027","name":"Seeding The Future Foundation / Welthungerhilfe: Global Food System Challenge: 2027"},
+        {"id":"recLO2MrB5qYtgi5l::raf-general-grantmaking","name":"Regenerative Agriculture Foundation: RAF general grantmaking"},
+        {"id":"local-people-powered::people-powered-cda-2027","name":"People Powered: Climate Democracy Accelerator: March 2027 cohort"},
+        {"id":"local-climate-collective::ai-nature-accelerator","name":"Climate Collective: AI x Nature Accelerator"},
+        {"id":"rec0ean6CkrBpBXS6::acumen-patient-capital","name":"Acumen: Patient Capital investments"}
+      ]
     },
     "fr-06": {
       "name": "Circular Supply Chain Traceability Platform",
@@ -228,13 +234,19 @@
         {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
       ],
       "funding": [
-        {"id":"recKkrUEyYu4JTxvZ::general-project-grants-year-round-letter-of-intent","name":"Instituto Clima e Sociedade (iCS): General project grants: year-round letter of intent"},
-        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
-        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
-        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
-        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+        {"id":"recin7AuNqQ3YfQIA::national-truth-and-healing-fund-not-yet-launched","name":"Decolonizing Wealth Project (Liberated Capital): National Truth and Healing Fund"},
+        {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
+        {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recNEswnVuQFYHD4y::swift-spend-down-funding-status","name":"Swift Foundation: Swift spend-down funding status"},
+        {"id":"recGrWuo2s6fUYukL::blaustein-group-general-and-project-grants","name":"Blaustein Philanthropic Group: Blaustein group general and project grants"}
       ],
-      "mcp": []
+      "mcp": [
+        {"id":"recin7AuNqQ3YfQIA::national-truth-and-healing-fund-not-yet-launched","name":"Decolonizing Wealth Project (Liberated Capital): National Truth and Healing Fund"},
+        {"id":"rec3ZVYYpsqvE8qjo::mino-niibi-fund-for-indigenous-cultures","name":"The Cultural Conservancy (TCC): Mino-Niibi Fund for Indigenous Cultures"},
+        {"id":"recxmWk9XCOOqAGIH::a-team-food-land-grants","name":"A Team Foundation (UK): Food and land grants"},
+        {"id":"recNEswnVuQFYHD4y::swift-spend-down-funding-status","name":"Swift Foundation: Swift spend-down funding status"},
+        {"id":"recGrWuo2s6fUYukL::blaustein-group-general-and-project-grants","name":"Blaustein Philanthropic Group: Blaustein group general and project grants"}
+      ]
     },
     "fr-11": {
       "name": "Propagación de especies nativas altoandinas",
@@ -246,16 +258,18 @@
         {"id":"local-cfh::cfh-project-grants","name":"Conservation, Food and Health Foundation: Conservation, Food and Health project grants"}
       ],
       "funding": [
-        {"id":"local-la-county-arts::la-county-ciag-2027","name":"Los Angeles County Department of Arts and Culture: Community Impact Arts Grant 2027–28"},
-        {"id":"local-la-county-arts::la-county-ogp-2027","name":"Los Angeles County Department of Arts and Culture: Organizational Grant Program 2027–29"},
-        {"id":"recaOrO8KmDZzmLEZ::alborada-ventures-2025-migrant-integration-financing","name":"Radical Flexibility Fund: Alborada Ventures: 2025 migrant-integration financing"},
-        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
-        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"}
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"reckq9YI0Vpjvidtt::samdhana-small-grants","name":"Samdhana Institute: Small grants for grassroots environmental action"},
+        {"id":"recjbh1I6Fav4CHcG::oilwatch-ggf-small-grants-programme-2026","name":"Global Greengrants Fund: Oilwatch–GGF Small Grants Programme 2026"}
       ],
       "mcp": [
-        {"id":"local-la-county-arts::la-county-ciag-2027","name":"Los Angeles County Department of Arts and Culture: Community Impact Arts Grant 2027–28"},
-        {"id":"local-la-county-arts::la-county-ogp-2027","name":"Los Angeles County Department of Arts and Culture: Organizational Grant Program 2027–29"},
-        {"id":"recaOrO8KmDZzmLEZ::alborada-ventures-2025-migrant-integration-financing","name":"Radical Flexibility Fund: Alborada Ventures: 2025 migrant-integration financing"}
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"},
+        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
+        {"id":"local-funbio::funbio-floresta-viva-sao-francisco-2026","name":"Fundo Brasileiro para a Biodiversidade (FUNBIO): Floresta Viva: Águas do São Francisco, Edital 04/2026"},
+        {"id":"reckq9YI0Vpjvidtt::samdhana-small-grants","name":"Samdhana Institute: Small grants for grassroots environmental action"},
+        {"id":"recjbh1I6Fav4CHcG::oilwatch-ggf-small-grants-programme-2026","name":"Global Greengrants Fund: Oilwatch–GGF Small Grants Programme 2026"}
       ]
     },
     "fr-12": {
@@ -340,13 +354,19 @@
         {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
       ],
       "funding": [
-        {"id":"recKkrUEyYu4JTxvZ::general-project-grants-year-round-letter-of-intent","name":"Instituto Clima e Sociedade (iCS): General project grants: year-round letter of intent"},
-        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
-        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
-        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
-        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+        {"id":"recrC1R2OMdg61MvQ::wkkf-ongoing-letters-of-inquiry","name":"W.K. Kellogg Foundation (WKKF): WKKF ongoing letters of inquiry"},
+        {"id":"recCvkEOPreDPUIz9::cages-early-years-community","name":"CAGES Foundation: Early Years Community Grants"},
+        {"id":"recaoWDJ9bgmtXQAM::international-conservation-grants","name":"New England Biolabs Foundation: International conservation grants"},
+        {"id":"reciJ2vBOeJMProix::children-and-youth-grantmaking","name":"The Grable Foundation: Children and youth grantmaking"},
+        {"id":"rec01JcunIGky0zBC::impact-on-urban-health-partnership-conversation","name":"Guy’s & St Thomas’ Charity (Guy’s & St Thomas’ Foundation): Impact on Urban Health: partnership conversation"}
       ],
-      "mcp": []
+      "mcp": [
+        {"id":"recrC1R2OMdg61MvQ::wkkf-ongoing-letters-of-inquiry","name":"W.K. Kellogg Foundation (WKKF): WKKF ongoing letters of inquiry"},
+        {"id":"recCvkEOPreDPUIz9::cages-early-years-community","name":"CAGES Foundation: Early Years Community Grants"},
+        {"id":"recaoWDJ9bgmtXQAM::international-conservation-grants","name":"New England Biolabs Foundation: International conservation grants"},
+        {"id":"reciJ2vBOeJMProix::children-and-youth-grantmaking","name":"The Grable Foundation: Children and youth grantmaking"},
+        {"id":"rec01JcunIGky0zBC::impact-on-urban-health-partnership-conversation","name":"Guy’s & St Thomas’ Charity (Guy’s & St Thomas’ Foundation): Impact on Urban Health: partnership conversation"}
+      ]
     },
     "fr-16": {
       "name": "Radio Comunitaria de Pescadoras",
@@ -358,14 +378,18 @@
         {"id":"local-celo::celo-proof-of-ship","name":"Celo: Proof of Ship"}
       ],
       "funding": [
-        {"id":"local-ardc::ardc-grants","name":"Amateur Radio Digital Communications: ARDC grants"},
-        {"id":"local-arbitrum-foundation::arbifuel","name":"Arbitrum Foundation: ArbiFuel: gas sponsorship"},
-        {"id":"local-arbitrum-foundation::arbitrum-security-2026","name":"Arbitrum Foundation: Arbitrum Security Program"},
-        {"id":"recMeowpS3NjVI8E9::azim-premji-ngo-grants","name":"Azim Premji Foundation: Grants to not-for-profit organisations"},
-        {"id":"local-cdfw::cdfw-golden-mussel-delta-2026","name":"California Department of Fish and Wildlife: Delta golden mussel decontamination and control sites, 2026"}
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"rectDVJJYBCxo3Ahs::clare-strategic-giving","name":"Clare Foundation (New Zealand): Clare strategic giving"},
+        {"id":"recKAiFPhplFSH3pj::restricted-partner-grants","name":"Connexus-International gGmbH: Restricted partner grants"},
+        {"id":"recG2BGwKm8uh2Tkm::women-supporting-women","name":"Dalia Association: Women Supporting Women"},
+        {"id":"reclhUeTX3iYWZ8Rf::humancapability-partner-grants","name":"Human Capability Foundation: Human Capability partner grants"}
       ],
       "mcp": [
-        {"id":"local-ardc::ardc-grants","name":"Amateur Radio Digital Communications: ARDC grants"}
+        {"id":"recEgjzHqv4pOCtGZ::jafowa-invited-round-2025","name":"Network of European Foundations (NEF): JAFOWA invited farmer-organisation round 2025"},
+        {"id":"rectDVJJYBCxo3Ahs::clare-strategic-giving","name":"Clare Foundation (New Zealand): Clare strategic giving"},
+        {"id":"recKAiFPhplFSH3pj::restricted-partner-grants","name":"Connexus-International gGmbH: Restricted partner grants"},
+        {"id":"recG2BGwKm8uh2Tkm::women-supporting-women","name":"Dalia Association: Women Supporting Women"},
+        {"id":"reclhUeTX3iYWZ8Rf::humancapability-partner-grants","name":"Human Capability Foundation: Human Capability partner grants"}
       ]
     },
     "fr-17": {

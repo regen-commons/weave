@@ -421,6 +421,24 @@ test("find_funds_for_initiative ranks the catalog by shared topics and says what
   assert.deepEqual(again.structuredContent, result.structuredContent);
 });
 
+test("find_funds_for_initiative reads a Spanish or Portuguese description in the catalog's topics, and returns none of its words", async () => {
+  const { handler } = shippedSetup();
+  // Invented words. Before DL-142 neither shared a topic with any program, so neither got an answer.
+  for (const description of [
+    "Una radio hecha por pescadoras artesanales en Chiloé. Capacitamos a mujeres jóvenes en periodismo y cuidamos la costa. Zorblatt.",
+    "Uma cozinha comunitária que cultiva uma horta com a escola do bairro, onde crianças e famílias aprendem alimentação saudável. Zorblatt.",
+  ]) {
+    const result = await call(handler, "find_funds_for_initiative", { description, limit: 5 });
+    const ranked = result.structuredContent as unknown as Ranked;
+    assert.ok(ranked.programs.length > 0, description);
+    // Shared topics are the catalog's English terms, never the person's own words.
+    assert.ok(ranked.programs.every(({ fit }) => fit.score > 0 && fit.sharedTopics.length > 0 && fit.sharedTopics.every((topic) => /^[a-z]+$/u.test(topic))));
+    assert.ok(ranked.programs.some(({ fit }) => fit.sharedTopics.some((topic) => ["women", "fishers", "children", "families", "food"].includes(topic))));
+    assert.match(ranked.note, /not eligibility/u);
+    assert.equal(JSON.stringify(result).toLowerCase().includes("zorblatt"), false);
+  }
+});
+
 test("find_funds_for_initiative refuses what it cannot rank, before the catalog is read", async () => {
   const { handler } = setup({ catalog: async () => { throw Error("the catalog must not be read"); } });
   const refusals: unknown[] = [

@@ -14,6 +14,7 @@ import { evaluateCatalog, type Project } from "../src/funding/engine.ts";
 import { emptyFundingFilters, filterFunding } from "../src/funding/select.ts";
 import { createAgentTools, type FundCatalog } from "../../api/src/agent-tools.ts";
 import { parseAgentToolCall } from "../../api/src/agent-tools-contract.ts";
+import { fundingTopics } from "../../api/src/topics.ts";
 
 /** How many places of each path the snapshot keeps. */
 export const SNAPSHOT_DEPTH = 5;
@@ -41,8 +42,9 @@ const LANGUAGES = ["en", "pt", "es", "fr", "sw"];
 
 /**
  * One initiative as a card confirmed on the describe step holds it. It has no themes: the step has
- * offered none since DL-127, so every path ranks the description alone, and the MCP call and the live
- * site's form are given none either.
+ * offered none since DL-127, and the MCP call and the live site's form are given none either. The app
+ * and the MCP tool add the catalog topics a Portuguese or Spanish description names (DL-142); the live
+ * site ranks the description alone.
  */
 export type RankingInitiative = {
   id: string;
@@ -89,13 +91,16 @@ export function validateRankingSet(data: unknown): RankingSet {
   return set;
 }
 
-/** The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft. */
+/**
+ * The card the app ranks: the shape `projectFrom` in src/funding/profile.ts gives a confirmed draft
+ * with no kept needs or offers, its themes the topics its description names in Portuguese or Spanish.
+ */
 function appProject(row: RankingInitiative): Project {
   return {
     id: row.id,
     name: row.name,
     description: row.description,
-    tags: [],
+    tags: fundingTopics(row.description),
     workCountries: row.workCountries,
     benefitCountries: row.benefitCountries,
     applicantBaseCountry: row.applicantBaseCountry,
@@ -163,8 +168,9 @@ export async function rankInitiative(data: RankingData, row: RankingInitiative):
   const liveConditions = validConditions(data.conditions, data.catalog.funds) && Array.isArray(conditionList) ? conditionList : null;
   const live = rankFunds(
     data.catalog.funds,
-    // The live site's own form, which defaults the currency to USD where the app leaves it blank.
-    normalizeProject({ ...appProject(row), currency: undefined }),
+    // The live site's own form, which defaults the currency to USD where the app leaves it blank, and
+    // whose themes are only those a person types.
+    normalizeProject({ ...appProject(row), tags: [], currency: undefined }),
     createLexicalIndex(data.catalog.funds),
     (data.rules as { rules: unknown[] }).rules,
     null,

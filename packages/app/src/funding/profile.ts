@@ -1,3 +1,4 @@
+import { fundingTopics } from "@weave/api/topics";
 import { COUNTRIES, US_STATES } from "../../../../dist/storage.mjs";
 import { FundingFormSchema, type FundingDetails, type FundingForm } from "./contracts.ts";
 import type { DeviceDraft } from "../describe/contracts.ts";
@@ -20,7 +21,19 @@ const codes = (text: string) => [
       .filter(Boolean),
   ),
 ];
-export function projectFrom(draft: Pick<DeviceDraft, "id" | "confirmed" | "funding">) {
+/**
+ * The words of the needs and offers the person kept, which Funding reads for the card's topics. A
+ * suggestion still in pencil is not on the card, so it is not read (DL-110).
+ */
+export function keptAskWords(draft: Pick<DeviceDraft, "needs" | "offers">): string[] {
+  return [...draft.needs.items, ...draft.offers.items]
+    .filter((item) => item.decision === "kept")
+    .flatMap(({ value }) => [value.title, value.description, value.purpose, value.audience])
+    .filter((words): words is string => !!words?.trim());
+}
+/** What Funding ranks: a card, its details for funding, and the words of its kept needs and offers. */
+export type FundingCard = Pick<DeviceDraft, "id" | "confirmed" | "funding"> & { readonly asks?: readonly string[] };
+export function projectFrom(draft: FundingCard) {
   if (!draft.confirmed) return null;
   const form = FundingFormSchema.parse(draft.funding.form);
   const countries = (text: string, field: FundingFormField) => {
@@ -59,7 +72,9 @@ export function projectFrom(draft: Pick<DeviceDraft, "id" | "confirmed" | "fundi
     id: draft.id,
     name: draft.confirmed.name,
     description: draft.confirmed.description,
-    tags: draft.confirmed.themes,
+    // The card shows no themes since DL-127. The rubric is given the catalog topics its words name
+    // in Portuguese or Spanish, and those its kept needs and offers name, as themes (DL-142).
+    tags: fundingTopics(draft.confirmed.description, draft.confirmed.themes, draft.asks),
     workCountries,
     benefitCountries,
     applicantBaseCountry: singleCountry(form.applicantBaseCountry, "applicantBaseCountry"),

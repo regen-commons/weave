@@ -40,6 +40,11 @@
       "source": "./src/matching-contract.ts",
       "default": "./dist/matching-contract.js"
     },
+    "./topics": {
+      "types": "./src/topics.ts",
+      "source": "./src/topics.ts",
+      "default": "./dist/topics.js"
+    },
     "./partner-matcher": {
       "types": "./src/partner-matcher.ts",
       "source": "./src/partner-matcher.ts",

@@ -21,8 +21,9 @@ Fourteen initiatives are paraphrased from public Certified project records (each
 its `sourceUri`, and no person's name), and six are invented in the same style to add
 Portuguese, Spanish, software, art and a one-line card. Countries and applicant types
 are assumed where a record does not say. No initiative has themes: a card confirmed on
-the describe step holds none since DL-127, so every path ranks the description alone,
-as the app does. Every path ranks as of the catalog's `compiledAt`, so the result
+the describe step holds none since DL-127. Funding and the MCP tool rank the description
+with the catalog topics its Portuguese or Spanish words name (DL-142), as the app does,
+and the live site ranks it alone. Every path ranks as of the catalog's `compiledAt`, so the result
 depends only on the code and the catalog, and moves on when the catalog does.
 
 ```sh
