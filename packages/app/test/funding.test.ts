@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { z } from "zod";
+import { z } from "../src/validation.ts";
 import {
   accessSign,
   awardLabel,
@@ -150,7 +150,7 @@ test("a snapshot with no usable research date says so instead of inventing one",
     "2026-11-15",
   );
 });
-test("each program uses the unchanged rubric and full-corpus IDF; best results match the live engine", () => {
+test("each program uses the unchanged rubric and full-corpus IDF; every result but fit matches the live engine (DL-143)", () => {
   const project = projectFrom(draft())!;
   const app = evaluateCatalog(bundle, project, at);
   const live = z
@@ -169,7 +169,11 @@ test("each program uses the unchanged rubric and full-corpus IDF; best results m
   assert.equal(app.length, 772);
   for (const expected of live) {
     const actual = app.find((row) => row.documentId === expected.documentId)!;
-    assert.deepEqual(actual, expected);
+    // Readiness, research priority and screening are the rubric's own; only fit is Funding's.
+    const { thematicFit, ...rest } = actual;
+    const { thematicFit: rubricFit, ...rubricRest } = expected;
+    assert.deepEqual(rest, rubricRest);
+    assert.equal(thematicFit.score === null, rubricFit.score === null, "a program the rubric cannot assess stays unassessed");
   }
   assert.ok(app.every((row) => Number.isFinite(row.score)));
 });

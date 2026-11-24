@@ -62,7 +62,8 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
   const queries = useMemo(() => linkedId ? privatePartnerQueries(linkedId, active?.revision ?? 0,
     draft.needs.items.filter(({ decision }) => decision === "kept"),
     draft.offers.items.filter(({ decision }) => decision === "kept"),
-  ) : [], [linkedId, active, draft.needs.items, draft.offers.items]);
+    draft.confirmed,
+  ) : [], [linkedId, active, draft.needs.items, draft.offers.items, draft.confirmed]);
   const compact = mode === "preview";
   // Why there are no partner suggestions yet, and what opens them.
   const unlinkedLine = project?.group && !linkedId

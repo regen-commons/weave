@@ -5,7 +5,7 @@ const RequestSchema = z.strictObject({
   kind: z.enum(["needs", "offers"]),
   chunks: z.array(AskChunkSchema),
   // Which message this is, so the reply can name it and the page can keep this worker.
-  id: z.number().int(),
+  id: z.int(),
 });
 self.onmessage = (event: MessageEvent<unknown>) => {
   const id = (event.data as { id?: unknown } | null)?.id;

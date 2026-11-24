@@ -93,8 +93,17 @@ export type McpOptions = {
 export function createMcpHandler(options: McpOptions) {
   const now = options.now ?? Date.now;
 
-  /** A tool's failure is a result the assistant can read, not a protocol error. */
-  const toolFailure = (message: string) => ({ content: [{ type: "text", text: message }], isError: true });
+  /**
+   * A tool's failure is a result the assistant can read, not a protocol error. Its code and message are in
+   * the structured result too, so a client that reads only that sees the failure, never an empty answer.
+   */
+  const toolFailure = (message: string) => {
+    const at = message.indexOf(": ");
+    return {
+      content: [{ type: "text", text: message }], isError: true,
+      structuredContent: { error: { code: message.slice(0, at), message: message.slice(at + 2) } },
+    };
+  };
   const RANKING = "find_funds_for_initiative";
   const limited = (retryAfterSeconds: number) => toolFailure(`rate_limited: Too many calls. Try again in ${retryAfterSeconds} seconds.`);
   async function callTool(params: JsonObject, caller: string): Promise<JsonObject | { unknownTool: string }> {
@@ -111,7 +120,8 @@ export function createMcpHandler(options: McpOptions) {
     try { call = parseAgentToolCall(name, params.arguments); }
     catch (error) {
       done("refused");
-      return toolFailure(error instanceof AgentToolArgumentError ? error.message : "The arguments could not be read.");
+      // Coded like every other failure, so a caller can tell a refused argument from a tool that could not run.
+      return toolFailure(error instanceof AgentToolArgumentError ? `invalid_argument: ${error.message}` : "internal_error: The arguments could not be read.");
     }
     if (!options.tools) { done("failed"); return toolFailure("tools_unavailable: Weave's tools are not available right now."); }
     // The ceilings everyone shares count only calls that will run, so calls the checks above refuse cannot

@@ -2,31 +2,50 @@
 // they fill Name, Where you work and About it, and on the needs and offers steps they become cards. Each
 // case says what a careful person would want there. CI scores the development split and fails when any
 // field's precision or recall falls below what it scored when the floor was recorded, or when a case that
-// passed then fails now. The holdout, written blind by another agent, runs by hand.
+// passed then fails now. The holdout, written blind by another agent, runs by hand. Files a person adds go
+// through the same reader the page uses, and a file the app keeps but cannot read counts as misses.
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { newDraft, type DeviceDraft } from "../src/describe/contracts.ts";
 import { changeSaid, fieldsForm, fillFields, saidText } from "../src/describe/fill.ts";
-import { readKeywordSource } from "../src/describe/keywords.ts";
+import { keywordExtract } from "../src/describe/keyword-client.ts";
+import { collectSource, fromSource } from "../src/describe/keywords.ts";
+import { readPdfText, type PdfLibrary } from "../src/describe/pdf-core.ts";
+import type { Attachment } from "../src/describe/source-contracts.ts";
 import { structureWords } from "../src/describe/structure.ts";
-import { emptyAskStep, type AskKind } from "../src/intake/contracts.ts";
+import { emptyAskStep, type AskExtraction, type AskKind, type AskStep } from "../src/intake/contracts.ts";
+import { extractAsks } from "../src/intake/extract-client.ts";
 import { candidateChunks, chunksFrom, keywordExtraction } from "../src/intake/keywords.ts";
 import { spokenList } from "../src/intake/spoken.ts";
 import { answerStep, reconcile } from "../src/intake/state.ts";
 
-export const FIELDS = ["name", "where", "about", "cards"] as const;
+export const FIELDS = ["name", "where", "about", "link", "cards"] as const;
 export type Field = (typeof FIELDS)[number];
-type DescribeExpected = { name: string; where: string[]; about: { includes: string[]; excludes: string[] } };
+type DescribeExpected = {
+  name: string;
+  /** Other ways of writing the same name that are just as right, such as "Tech & Sun". */
+  nameAlternatives?: string[];
+  where: string[];
+  about: { includes: string[]; excludes: string[] };
+  /** Website or main link, scored only where the case names one ("" for none): "greengoods.app" matches "https://greengoods.app/". */
+  link?: string;
+};
 type CardsExpected = { cards: string[] };
+/** What a file is, as the reader sees it: a scanned PDF is a PDF with no text layer. */
+export const FORMATS = ["md", "txt", "pdf", "pdf-image", "docx"] as const;
+export type Format = (typeof FORMATS)[number];
 export type ExtractionCase = {
   id: string;
   split: "development" | "holdout";
   step: "describe" | "needs" | "offers";
-  mode: "typed" | "spoken";
+  /** "file": the person added `file` and typed `text`, often nothing, beside it. */
+  mode: "typed" | "spoken" | "file";
   language: "en" | "pt" | "es";
   source: string;
   text: string;
+  file?: string;
+  format?: Format;
   expected: DescribeExpected | CardsExpected;
 };
 export type ExtractionCorpus = { version: 1; dataset: string; authoring: string; rubric?: string; cases: ExtractionCase[] };
@@ -50,23 +69,31 @@ export function validateCorpus(data: unknown, split: "development" | "holdout"):
   const ids = new Set<string>(), words = new Set<string>();
   for (const row of corpus.cases) {
     if (!row || typeof row !== "object" || !isText(row.id) || ids.has(row.id) || row.split !== split) throw Error("invalid_extraction_case");
-    if (!["describe", "needs", "offers"].includes(row.step) || !["typed", "spoken"].includes(row.mode)) throw Error("invalid_extraction_case");
-    if (!["en", "pt", "es"].includes(row.language) || !isText(row.source) || !isText(row.text)) throw Error("invalid_extraction_case");
+    if (!["describe", "needs", "offers"].includes(row.step) || !["typed", "spoken", "file"].includes(row.mode)) throw Error("invalid_extraction_case");
+    const file = row.mode === "file";
+    if (file !== (isText(row.file) && (FORMATS as readonly string[]).includes(row.format ?? ""))) throw Error(`invalid_extraction_file: ${row.id}`);
+    // A scanned PDF is still a .pdf; every other format is its extension.
+    if (file && row.file!.slice(row.file!.lastIndexOf(".") + 1) !== row.format!.replace(/-image$/u, "")) throw Error(`invalid_extraction_file: ${row.id}`);
+    if (!["en", "pt", "es"].includes(row.language) || !isText(row.source) || (!file && !isText(row.text)) || typeof row.text !== "string")
+      throw Error("invalid_extraction_case");
     const expected = row.expected as Partial<DescribeExpected & CardsExpected>;
     if (row.step === "describe") {
       if (typeof expected.name !== "string" || !isList(expected.where) || !expected.about || !isList(expected.about.includes)
         || !expected.about.includes.length || !isList(expected.about.excludes)) throw Error("invalid_extraction_expected");
-      // A phrase the label asks for must be in the words, or no rule could ever find it.
-      for (const phrase of [...expected.about.includes, ...expected.about.excludes])
+      if ((expected.link !== undefined && typeof expected.link !== "string") || (expected.nameAlternatives !== undefined && !isList(expected.nameAlternatives)))
+        throw Error("invalid_extraction_expected");
+      // A phrase the label asks for must be in the words, or no rule could ever find it. A file's words are checked against the file itself, in the test.
+      if (!file) for (const phrase of [...expected.about.includes, ...expected.about.excludes])
         if (!holds(row.text, phrase)) throw Error(`phrase_not_in_text: ${row.id} "${phrase}"`);
     } else {
       if (!isList(expected.cards) || expected.cards.length > 4 || expected.cards.some((card) => !isText(card))) throw Error("invalid_extraction_expected");
-      for (const card of expected.cards) if (!holds(row.text, card)) throw Error(`phrase_not_in_text: ${row.id} "${card}"`);
+      if (!file) for (const card of expected.cards) if (!holds(row.text, card)) throw Error(`phrase_not_in_text: ${row.id} "${card}"`);
       // A key inside another key could never be met: the card holding the longer one holds both.
       for (const card of expected.cards)
         if (expected.cards.some((other) => other !== card && holds(other, card))) throw Error(`overlapping_keys: ${row.id} "${card}"`);
     }
-    const key = fold(row.text);
+    // One text may be read on all three steps, as a person can say it all once; never twice on one step.
+    const key = `${row.step}\n${row.file ?? ""}\n${fold(row.text)}`;
     if (words.has(key)) throw Error(`duplicate_text: ${row.id}`);
     ids.add(row.id);
     words.add(key);
@@ -74,37 +101,125 @@ export function validateCorpus(data: unknown, split: "development" | "holdout"):
   return corpus;
 }
 
-export type Described = { name: string; where: string[]; about: string };
+export type Described = { name: string; where: string[]; about: string; link: string };
 
 /**
- * The describe step's fill, as Fill In The Fields runs it (pages/Describe.tsx), with the keyword rules
- * alone: the browser's own model, which the page also tries where it has one, is not measured here.
+ * PDF text through the app's own reader (`pdf-core.ts`), with PDF.js's build for Node in place of the page's
+ * Worker: the same text extraction, page by page.
  */
-export async function readDescribe(text: string): Promise<Described> {
-  const draft: DeviceDraft = changeSaid(newDraft(), text);
-  const result = await structureWords(draft, new AbortController().signal, { keywords: (source) => readKeywordSource(source), engines: [] });
+let pdfjs: Promise<PdfLibrary> | undefined;
+export async function nodePdfReader(file: Blob, signal: AbortSignal) {
+  pdfjs ??= import("pdfjs-dist/legacy/build/pdf.mjs").then((api) => ({
+    getDocument: (options: Record<string, unknown>) => api.getDocument({ ...options, verbosity: 0 }) as unknown as ReturnType<PdfLibrary["getDocument"]>,
+  }));
+  return readPdfText(file, signal, await pdfjs);
+}
+const isPdf = (file: Attachment) => file.type === "application/pdf" || /\.pdf$/iu.test(file.name);
+
+/** A file as the page's reader leaves it: read, read in part, or kept and not read. */
+export type FileStatus = "read" | "partial" | "unread";
+const readerFor = (files: readonly Attachment[]) => (files.some(isPdf) ? nodePdfReader : undefined);
+
+/**
+ * The describe step's keyword reading, describe/keyword-client.ts's steps, with PDF.js's Node build reading a
+ * PDF. The page's own reader needs its worker for a PDF, so the eval uses this one only where there is a PDF; a
+ * test keeps the two equal on every case without one.
+ */
+export const nodeKeywords = async (draft: DeviceDraft) => fromSource(draft, await collectSource(draft, readerFor(draft.attachments)));
+
+/**
+ * The describe step's fill, as Fill In The Fields runs it (pages/Describe.tsx), with the keyword rules alone:
+ * the browser's own model, which the page also tries where it has one, is not measured here. The page's own
+ * keyword reader (`keywordExtract`) reads the words and files, except for a PDF, which `nodeKeywords` reads.
+ * Any file but text, Markdown or a PDF with a text layer is kept and not read, as on the page.
+ */
+export async function readDescribe(
+  text: string, files: readonly Attachment[] = [], keywords = files.some(isPdf) ? nodeKeywords : keywordExtract,
+): Promise<Described> {
+  const draft: DeviceDraft = { ...changeSaid(newDraft(), text), attachments: [...files] };
+  const result = await structureWords(draft, new AbortController().signal, { keywords, engines: [] });
   const form = fieldsForm(fillFields(draft, result.suggestion, result.lastBuild, saidText(draft)).draft);
-  return { name: form.name.trim(), where: form.where.split(/;\s*/u).map((place) => place.trim()).filter(Boolean), about: form.about.trim() };
+  return {
+    name: form.name.trim(), where: form.where.split(/;\s*/u).map((place) => place.trim()).filter(Boolean),
+    about: form.about.trim(), link: form.links.trim(),
+  };
 }
 
-/** A needs or offers list, as the step makes it: a recording is first split into one line per item. */
+/** A needs or offers step holding the words and files, as the page builds one: a recording is first split into one line per item. */
+export function askStepOf(text: string, kind: AskKind, mode: ExtractionCase["mode"], files: readonly Attachment[] = []): AskStep {
+  const step: AskStep = { ...emptyAskStep(), attachments: [...files] };
+  return text.trim() ? answerStep(step, kind, mode === "spoken" ? spokenList(text) : text, mode === "spoken" ? "voice" : "typed") : step;
+}
+
+/**
+ * A needs or offers step's keyword reading, intake/extract-client.ts's steps, with PDF.js's Node build reading a
+ * PDF: each file's words are cut into candidate cards beside the typed ones. As on the describe step, the eval
+ * uses it only where there is a PDF, and a test keeps it equal to the page's own on every case without one.
+ */
+export async function nodeCards(step: AskStep, kind: AskKind): Promise<AskExtraction> {
+  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id, kind));
+  for (const file of step.attachments) {
+    const source = await collectSource({ turns: [], composer: "", attachments: [file] }, readerFor([file]));
+    chunks.push(...chunksFrom(source.text, file.id, kind));
+  }
+  return keywordExtraction(candidateChunks(chunks, step), kind);
+}
+
+/** A needs or offers list, as the step makes it: the page's own reader (`extractAsks`, without the browser's model), then its reconcile. */
+export async function readStepCards(text: string, kind: AskKind, mode: ExtractionCase["mode"], files: readonly Attachment[] = []): Promise<string[]> {
+  const step = askStepOf(text, kind, mode, files);
+  const extraction = files.some(isPdf) ? await nodeCards(step, kind) : (await extractAsks(step, kind, new AbortController().signal, false)).extraction;
+  return reconcile(step, extraction).items.map((item) => item.value.title);
+}
+
+/**
+ * Typed or spoken words alone, through the keyword rules in step, with no file: what `test/typed-list.test.ts`
+ * reads, one card list at a time. The eval scores through `readStepCards`, and a test holds the two equal on
+ * every typed and spoken case.
+ */
 export function readCards(text: string, kind: AskKind, mode: "typed" | "spoken"): string[] {
-  const step = answerStep(emptyAskStep(), kind, mode === "spoken" ? spokenList(text) : text, mode === "spoken" ? "voice" : "typed");
-  const turn = step.turns[0]!;
-  return reconcile(step, keywordExtraction(candidateChunks(chunksFrom(turn.text, turn.id), step), kind)).items.map((item) => item.value.title);
+  const step = askStepOf(text, kind, mode);
+  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id, kind));
+  return reconcile(step, keywordExtraction(candidateChunks(chunks, step), kind)).items.map((item) => item.value.title);
+}
+
+/** What the page's reader makes of a case's file, the same reader both steps use. */
+export async function fileStatus(file: Attachment): Promise<FileStatus> {
+  return (await collectSource({ turns: [], composer: "", attachments: [file] }, readerFor([file]))).files[0]?.status ?? "unread";
+}
+
+const TYPES: Record<string, string> = {
+  md: "text/markdown", txt: "text/plain", pdf: "application/pdf",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+/** A case's file as the page holds one it was given: its name, its type as a browser reports it, and its bytes. */
+export async function attachmentOf(path: string): Promise<Attachment> {
+  const bytes = await readFile(new URL(`files/${path}`, new URL("./", import.meta.url)));
+  const name = path.split("/").pop()!;
+  const type = TYPES[name.slice(name.lastIndexOf(".") + 1)] ?? "";
+  // A fixed ID per file, so a run is the same every time.
+  const id = createHash("sha256").update(path).digest("hex").replace(/^(.{8})(.{4})(.{3})(.{3})(.{12}).*$/u, "$1-$2-4$3-8$4-$5");
+  return { id, name, type, bytes: bytes.byteLength, blob: new Blob([bytes], { type }) };
 }
 
 /** Counts for one field: true positives, false positives and false negatives. */
 type Count = { tp: number; fp: number; fn: number };
 export type CaseResult = {
   id: string; step: ExtractionCase["step"]; mode: ExtractionCase["mode"]; language: ExtractionCase["language"];
+  /** "typed" or "spoken" for words, otherwise the file's format. */
+  format: Format | "typed" | "spoken";
+  /** A file case's file, and whether the page's reader read it. */
+  file?: { name: string; status: FileStatus };
   /** Each scored field, whether it was right, and what the rules gave. */
   fields: Partial<Record<Field, { passed: boolean; expected: string; observed: string; count: Count }>>;
 };
 
 /** Where the words go. Tests pass their own, so the scoring is proven apart from what the rules do today. */
-export type Readers = { describe(text: string): Promise<Described>; cards(text: string, kind: AskKind, mode: "typed" | "spoken"): Promise<string[]> | string[] };
-export const APP_READERS: Readers = { describe: readDescribe, cards: readCards };
+export type Readers = {
+  describe(text: string, files: readonly Attachment[]): Promise<Described>;
+  cards(text: string, kind: AskKind, mode: ExtractionCase["mode"], files: readonly Attachment[]): Promise<string[]> | string[];
+};
+export const APP_READERS: Readers = { describe: readDescribe, cards: readStepCards };
 
 /** One to one: each expected item takes at most one observed item, the first unused one `matches` accepts. */
 function pair<T>(expected: readonly T[], observed: readonly string[], matches: (seen: string, want: T) => boolean): number {
@@ -118,11 +233,15 @@ function pair<T>(expected: readonly T[], observed: readonly string[], matches: (
 
 /** Scores one case. A card matches a key only when no other key of the case is in it too: two items in one card is a miss. */
 export async function scoreCase(row: ExtractionCase, read: Readers = APP_READERS): Promise<CaseResult> {
-  const result: CaseResult = { id: row.id, step: row.step, mode: row.mode, language: row.language, fields: {} };
+  const format = row.mode === "file" ? row.format! : row.mode;
+  const result: CaseResult = { id: row.id, step: row.step, mode: row.mode, language: row.language, format, fields: {} };
+  const files = row.file ? [await attachmentOf(row.file)] : [];
+  if (row.file) result.file = { name: row.file, status: await fileStatus(files[0]!) };
   if (row.step === "describe") {
     const expected = row.expected as DescribeExpected;
-    const got = await read.describe(row.text);
-    const named = !!got.name, wanted = !!expected.name, same = fold(got.name) === fold(expected.name);
+    const got = await read.describe(row.text, files);
+    const named = !!got.name, wanted = !!expected.name;
+    const same = [expected.name, ...(expected.nameAlternatives ?? [])].some((name) => fold(got.name) === fold(name));
     result.fields.name = {
       passed: same, expected: quote(expected.name), observed: quote(got.name),
       count: { tp: named && wanted && same ? 1 : 0, fp: named && !(wanted && same) ? 1 : 0, fn: wanted && !(named && same) ? 1 : 0 },
@@ -141,9 +260,17 @@ export async function scoreCase(row: ExtractionCase, read: Readers = APP_READERS
       observed: quote(got.about),
       count: { tp: good ? 1 : 0, fp: got.about && !good ? 1 : 0, fn: good ? 0 : 1 },
     };
+    if (expected.link !== undefined) {
+      const site = (link: string) => link.toLowerCase().replace(/^https?:\/\//u, "").replace(/^www\./u, "").replace(/\/+$/u, "");
+      const has = !!got.link, wants = !!expected.link, match = site(got.link) === site(expected.link);
+      result.fields.link = {
+        passed: match, expected: quote(expected.link), observed: quote(got.link),
+        count: { tp: has && wants && match ? 1 : 0, fp: has && !(wants && match) ? 1 : 0, fn: wants && !(has && match) ? 1 : 0 },
+      };
+    }
   } else {
     const keys = (row.expected as CardsExpected).cards;
-    const cards = await read.cards(row.text, row.step, row.mode);
+    const cards = await read.cards(row.text, row.step, row.mode, files);
     const tp = pair(keys, cards, (card, key) => holds(card, key) && !keys.some((other) => fold(other) !== fold(key) && holds(card, other)));
     result.fields.cards = {
       passed: tp === keys.length && cards.length === keys.length,
@@ -172,9 +299,12 @@ const summarize = (rows: CaseResult[]): Summary => Object.fromEntries(FIELDS.map
 export async function evaluate(corpus: ExtractionCorpus, read: Readers = APP_READERS) {
   const rows: CaseResult[] = [];
   for (const row of corpus.cases) rows.push(await scoreCase(row, read));
-  const by = <K extends "mode" | "language" | "step">(key: K) =>
+  const by = <K extends "mode" | "language" | "step" | "format">(key: K) =>
     Object.fromEntries([...new Set(rows.map((row) => row[key]))].sort().map((value) => [value, summarize(rows.filter((row) => row[key] === value))]));
-  return { dataset: corpus.dataset, cases: rows.length, summary: summarize(rows), byMode: by("mode"), byLanguage: by("language"), byStep: by("step"), rows };
+  return {
+    dataset: corpus.dataset, cases: rows.length, summary: summarize(rows), byMode: by("mode"), byLanguage: by("language"), byStep: by("step"),
+    byFormat: by("format"), rows,
+  };
 }
 export type Evaluation = Awaited<ReturnType<typeof evaluate>>;
 
@@ -188,6 +318,11 @@ export type Floor = {
   dataset: string; recordedOn: string; corpusHash: string; summary: Summary;
   passing: Record<string, Field[]>;
   errors: Record<string, Partial<Record<Field, { fp: number; fn: number }>>>;
+  /**
+   * Each file case's file as the reader left it. A file that stops being read is held apart from the fields:
+   * where a document asks for no cards, an unread file would otherwise look like a fix.
+   */
+  files?: Record<string, FileStatus>;
 };
 export const RECORD_COMMAND = "bun run --filter @weave/app eval:extraction -- --record";
 const hashOf = (corpus: ExtractionCorpus) => createHash("sha256").update(JSON.stringify(corpus.cases)).digest("hex");
@@ -199,8 +334,10 @@ export function floorOf(corpus: ExtractionCorpus, result: Evaluation, recordedOn
     errors: Object.fromEntries(result.rows.map((row) => [row.id, Object.fromEntries(
       FIELDS.flatMap((field) => (row.fields[field] ? [[field, { fp: row.fields[field].count.fp, fn: row.fields[field].count.fn }]] : [])),
     )])),
+    files: Object.fromEntries(result.rows.flatMap((row) => (row.file ? [[row.id, row.file.status]] : []))),
   };
 }
+const READ_RANK: Record<FileStatus, number> = { unread: 0, partial: 1, read: 2 };
 
 const show = (value: number | null) => (value === null ? "none" : value.toFixed(3));
 
@@ -211,7 +348,8 @@ export function gate(corpus: ExtractionCorpus, result: Evaluation, floor: Floor 
   const fell: string[] = [];
   for (const field of FIELDS)
     for (const rate of ["precision", "recall"] as const) {
-      const was = floor.summary[field][rate], now = result.summary[field][rate];
+      // A field the floor was recorded without has nothing to hold yet.
+      const was = floor.summary[field]?.[rate] ?? null, now = result.summary[field][rate];
       if (was !== null && (now ?? 0) + 1e-9 < was) fell.push(`${field} ${rate} fell from ${show(was)} to ${show(now)}.`);
     }
   const broke: string[] = [], improved: string[] = [];
@@ -226,6 +364,11 @@ export function gate(corpus: ExtractionCorpus, result: Evaluation, floor: Floor 
       if (worse) broke.push(`  ${row.id} ${field} (${row.mode}, ${row.language}): wanted ${now.expected}; got ${now.observed}.`);
       if (!before && now.passed && row.id in floor.passing) improved.push(`${row.id} ${field}`);
     }
+  for (const row of result.rows) {
+    const was = floor.files?.[row.id];
+    if (row.file && was && READ_RANK[row.file.status] < READ_RANK[was])
+      broke.push(`  ${row.id} file (${row.format}, ${row.language}): ${row.file.name} was ${was} when the floor was recorded and is ${row.file.status} now.`);
+  }
   // Cases added since the floor was recorded have no "before"; their rates still count in the summary.
   const stale = floor.corpusHash !== hashOf(corpus);
   if (!fell.length && !broke.length)
@@ -282,6 +425,7 @@ export function table(result: Evaluation): string {
     line("all", result.summary),
     ...Object.entries(result.byMode).map(([mode, summary]) => line(mode, summary)),
     ...Object.entries(result.byLanguage).map(([language, summary]) => line(language, summary)),
+    ...Object.entries(result.byFormat).filter(([format]) => format !== "typed" && format !== "spoken").map(([format, summary]) => line(`file ${format}`, summary)),
   ].join("\n");
 }
 

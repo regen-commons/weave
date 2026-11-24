@@ -1,4 +1,5 @@
 import { fundingTopics } from "@weave/api/topics";
+import { withFundFit, type RubricResult } from "@weave/api/fund-fit";
 import { z } from "../validation.ts";
 import { createLexicalIndex, rankFunds } from "../../../../dist/matching.mjs";
 import { EvaluationSchema, type Bundle, type Evaluation } from "./contracts.ts";
@@ -11,10 +12,13 @@ export type Project = NonNullable<ReturnType<typeof projectFrom>>;
  * (DL-142), as the MCP tool reads them. The reading happens here, where ranking runs off the
  * page, so the word lists never load with a page.
  */
-export function rubricProject({ asks, ...project }: Project) {
+export function rubricProject({ asks, places: _places, ...project }: Project) {
   return { ...project, tags: fundingTopics(project.description, project.tags, [...project.tags, ...asks]) };
 }
-/** Reuse the authoritative rubric, with the full corpus IDF and one result per program. */
+/**
+ * Reuse the authoritative rubric, with the full corpus IDF and one result per program, for readiness and
+ * research priority; Funding's fit is read from the card's themes and places over its results (DL-143).
+ */
 export function evaluateCatalog(bundle: Bundle, project: Project, now = new Date()): Evaluation[] {
   const funds = bundle.catalog.funds.flatMap((fund) =>
     fund.enrichment.programs.length
@@ -24,14 +28,16 @@ export function evaluateCatalog(bundle: Bundle, project: Project, now = new Date
         }))
       : [fund],
   );
+  const rubric = rubricProject(project);
   const results = rankFunds(
     funds,
-    rubricProject(project),
+    rubric,
     createLexicalIndex(bundle.catalog.funds),
     bundle.rules,
     null,
     now,
     bundle.conditions,
   );
-  return z.array(EvaluationSchema).parse(results);
+  // Fit reads what the card is about and where it works, not how many words it shares (DL-143).
+  return z.array(EvaluationSchema).parse(withFundFit({ ...rubric, asks: project.asks, places: project.places }, results as RubricResult[]));
 }

@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { catalogEntries, parseBundle } from "../src/funding/catalog.ts";
 import { evaluateCatalog, rubricProject } from "../src/funding/engine.ts";
 import { fundingFit } from "../src/funding/fit.ts";
+import { readThemes } from "@weave/api/themes";
 import { fundingKey, keptAskWords, projectFrom, projectFromKey } from "../src/funding/profile.ts";
 import { fundingFits, fundingFitsLine } from "../src/funding/select.ts";
 import { confirmDraft, EMPTY_INITIATIVE, newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
@@ -44,7 +45,9 @@ test("a Portuguese or Spanish card is ranked on the catalog topics its words nam
     const results = evaluateCatalog(bundle, project, now);
     const well = results.filter((result) => ["strong", "good"].includes(fundingFit(result.thematicFit.score) ?? ""));
     assert.ok(well.length > 0, `${draft.confirmed!.name} has funds that may fit it well`);
-    for (const result of well) assert.ok(result.thematicFit.evidenceTerms.some((term) => (topics as readonly string[]).includes(term)));
+    // Fit names the themes both sides share (DL-143), read from the card's own Portuguese or Spanish words.
+    const named = [...readThemes(draft.confirmed!.description).values()].map(({ theme }) => theme.label);
+    for (const result of well) assert.ok(result.thematicFit.evidenceTerms.some((term) => named.includes(term)), result.documentId);
     const line = fundingFitsLine(fundingFits(entries, results, now, Number.POSITIVE_INFINITY));
     assert.match(line, /^\d+ funds? may fit this card well\. (Each|It) needs a check with the funder\.$/u);
     assert.doesNotMatch(line, /eligib/iu, "a fit is never an eligibility decision");
@@ -53,7 +56,8 @@ test("a Portuguese or Spanish card is ranked on the catalog topics its words nam
 
 test("an English card with no kept needs or offers reaches the rubric exactly as before", () => {
   const project = projectFrom(english)!;
-  const { asks: _asks, ...before } = project;
+  // Its places are read for fit only (DL-143), so the rubric never sees them.
+  const { asks: _asks, places: _places, ...before } = project;
   assert.deepEqual(rubricProject(project), before);
 });
 

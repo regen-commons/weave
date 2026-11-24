@@ -151,9 +151,10 @@ function ProjectFitPanel({ card }: { card: PublicProjectCard }) {
             revision: 0,
             needs: draft.needs.items.filter(({ decision }) => decision === "kept"),
             offers: draft.offers.items.filter(({ decision }) => decision === "kept"),
+            card: draft.confirmed,
           })
         : null,
-    [own, card, draft.id, draft.needs.items, draft.offers.items],
+    [own, card, draft.id, draft.needs.items, draft.offers.items, draft.confirmed],
   );
   if (!fit)
     return (

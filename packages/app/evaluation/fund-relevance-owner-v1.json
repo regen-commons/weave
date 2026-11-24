@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "dataset": "fund-relevance-owner-v1",
+  "purpose": "Two real projects whose owner judges every candidate fund: the first relevance labels a person confirms in full.",
+  "authoring": "Written on 23 November 2026 from public sources only: the Green Goods README and docs (greenpill-dev-guild/green-goods, MIT) and the Tech and Sun documentation and website (Greenpill9ja/tas-documentation, CC BY-SA 4.0; Greenpill9ja/tas-website). They are real projects, included with their owner's consent in public-safe form, as an exception to the rule that fixtures describe invented initiatives. Nothing from private documents, figures, pilots or people is used. Tech and Sun's place is Awka only, as the owner chose; its second hub is planned.",
+  "initiatives": [
+    {
+      "id": "owner-green-goods",
+      "source": "owner",
+      "sourceUri": "https://github.com/greenpill-dev-guild/green-goods",
+      "language": "en",
+      "name": "Green Goods",
+      "description": "Green Goods is an open-source app that helps community groups plan, record and review their regenerative work, such as planting trees, sorting waste, keeping solar panels running or teaching classes. Members log the work with photos, offline or by chat, and the people it served confirm it was done. That shared record helps supporters see what happened and fund what comes next.",
+      "workCountries": [],
+      "benefitCountries": [],
+      "applicantBaseCountry": "",
+      "registrationCountry": "",
+      "applicantType": "unknown",
+      "where": "Global"
+    },
+    {
+      "id": "owner-tech-and-sun",
+      "source": "owner",
+      "sourceUri": "https://github.com/Greenpill9ja/tas-documentation",
+      "language": "en",
+      "name": "Tech and Sun",
+      "description": "Tech and Sun builds free, solar-powered hubs in Nigeria where students, creatives and builders get steady power, internet and a place to learn and work. Our first hub is a converted shipping container at Nnamdi Azikiwe University in Awka. We run workshops on digital skills, Web3 and climate, and we share our hub design as an open blueprint so other communities can build their own.",
+      "workCountries": [
+        "NG"
+      ],
+      "benefitCountries": [
+        "NG"
+      ],
+      "applicantBaseCountry": "NG",
+      "registrationCountry": "",
+      "applicantType": "unknown",
+      "where": "Awka, Nigeria"
+    }
+  ]
+}

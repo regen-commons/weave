@@ -6,10 +6,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { newDraft, revise } from "../src/describe/contracts.ts";
-import { fieldsForm, fillFields } from "../src/describe/fill.ts";
+import { fieldsForm, fillFields, withoutLinkPointers } from "../src/describe/fill.ts";
 import { collectSource, fromSource, keywordSuggestion } from "../src/describe/keywords.ts";
 import { statedName } from "../src/describe/names.ts";
 import { statedWhere } from "../src/describe/places.ts";
+import { chunksFrom } from "../src/intake/keywords.ts";
+import { initiativeWords } from "../src/describe/about.ts";
 
 /** Well under a second, with room for a slow machine. */
 const LIMIT_MS = 500;
@@ -82,6 +84,36 @@ test("the place rules make one bounded pass, on 20,000 spaces, on line ends, and
     quick("a place, then prose", () => statedWhere(`We are a seed library in Porto Alegre, Brazil. ${prose(2_000_000)}`, "")),
     { locations: ["Porto Alegre, Brazil"], isGlobal: false },
   );
+});
+
+test("About it reads a full box of run-on speech as quickly as a short one (24 November 2026)", () => {
+  quick("a run-on box of clauses", () => initiativeWords("we swim at the lake and ".repeat(90_000)));
+  quick("a run-on box of asks", () => initiativeWords("we need a boat and ".repeat(110_000)));
+  quick("a box of sentences", () => initiativeWords("We need tools. ".repeat(130_000)));
+  quick("a box of spaces", () => initiativeWords(`My name is${spaces}Dara and ${spaces}we swim.`));
+  quick("a sentence ending in a long run of marks", () => initiativeWords(`we swim and we need a boat${"?".repeat(20_000)}`));
+  quick("a sentence ending in a long run of commas", () => initiativeWords(`we swim and we need a boat${",".repeat(20_000)}`));
+  // One long word after "for" took seconds to read as a pointer's tail in a first draft of this rule.
+  quick("a pointer before one long word", () => withoutLinkPointers(`See https://x.example.org for ${"a".repeat(300)}1.`, ["https://x.example.org"]));
+});
+
+test("a needs or offers box read as a list is as quick on a full box as on a short one (24 November 2026)", () => {
+  const box = (piece: string) => piece.repeat(Math.ceil(20_000 / piece.length)).slice(0, 20_000);
+  for (const [label, text] of [
+    ["commas", box("seedlings, ")],
+    ["and a", box("seedlings and a ")],
+    ["an Oxford list", box("We need tools, a shed and a van, and a pump. ")],
+    ["end marks", `We need seedlings, a pump and a van${"!".repeat(20_000)}`],
+    ["one long word", `We need ${"a".repeat(20_000)}, and a pump`],
+    ["sentences that describe", box("Riverbend Seed Library lends seeds to gardeners. We need a freezer. ")],
+    // A run of spaces, tabs or no-break spaces is matched only from where it starts.
+    ["a run of spaces", `We need seedlings${" ".repeat(20_000)}and a pump`],
+    ["a run of tabs", `seedlings${"\t".repeat(20_000)}x`],
+    ["a run of no-break spaces", `We need seedlings, tools${"\u00a0".repeat(20_000)}and more`],
+  ] as const) {
+    quick(`needs: ${label}`, () => chunksFrom(text, "speed", "needs"));
+    quick(`offers: ${label}`, () => chunksFrom(text, "speed", "offers"));
+  }
 });
 
 test("the whole keyword fill of a full box finishes quickly", async () => {

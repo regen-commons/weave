@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { revise } from "../describe/contracts.ts";
-import { MAX_FILE_BYTES, type Turn } from "../describe/source-contracts.ts";
+import type { Turn } from "../describe/source-contracts.ts";
 import { startSpeech } from "../describe/speech.ts";
 import type { SpeechSetupStore } from "../describe/speech-setup.ts";
 import type { BrowserSpeechConsent } from "../describe/speech-consent.ts";
@@ -25,7 +25,6 @@ import { closeAskReader, extractAsks, warmAskReader } from "../intake/extract-cl
 import { spokenList } from "../intake/spoken.ts";
 import {
   activeItems,
-  addStepFiles,
   askFormProblem,
   changeStep,
   commitPending,
@@ -202,8 +201,8 @@ function AskSection({
   const unsettled = useRef("");
   // Stop pressed before the recognizer has started is kept, and applied once it has.
   const stopWanted = useRef(false);
-  const fileInput = useRef<HTMLInputElement>(null);
-  const addFiles = useRef<HTMLButtonElement>(null);
+  // Where the focus goes once the last file attached to an earlier draft is removed.
+  const title = useRef<HTMLHeadingElement>(null);
   const update = (change: (step: Step) => Step) =>
     controller.change((current) => revise(current, { [kind]: change(current[kind]) }))[kind];
   const full = activeItems(step).length >= ASK_LIMIT;
@@ -493,22 +492,6 @@ function AskSection({
     } else if (mic.current) mic.current.stop();
     else stopWanted.current = true;
   }
-  function files(input: HTMLInputElement) {
-    const selected = [...(input.files ?? [])];
-    if (!selected.length) return;
-    try {
-      const attachments = selected.map((file) => {
-        if (file.size > MAX_FILE_BYTES) throw new Error();
-        return { id: crypto.randomUUID(), name: file.name, type: file.type, bytes: file.size, blob: file };
-      });
-      update((current) => addStepFiles(current, attachments));
-      void addToList();
-    } catch {
-      setNotice("No files were added. Each file must be 25 MB or smaller and have a name under 256 characters.");
-    } finally {
-      input.value = "";
-    }
-  }
   function openEditor(item: AskItem) {
     setEditorError("");
     update((current) => changeStep(current, { editor: { id: item.id, form: formFromAsk(item.value) } }));
@@ -536,7 +519,7 @@ function AskSection({
     // Inert until this device's draft has opened, so nothing typed or pressed lands in a blank list.
     <section className="rc-panel" aria-labelledby={part("title")} inert={!ready || undefined}>
       <div className="rc-ask-head">
-        <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1}>
+        <h2 className="rc-heading" data-size="section" id={part("title")} tabIndex={-1} ref={title}>
           {need ? "Your Needs" : "Your Offers"}
         </h2>
         {/* Not a live region: each change to the list says what happened in the status line, so the
@@ -617,29 +600,8 @@ function AskSection({
           {hint}
         </p>
       )}
-      <div className="rc-action-bar">
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          data-size="sm"
-          type="button"
-          ref={addFiles}
-          disabled={held || full}
-          onClick={() => fileInput.current?.click()}
-        >
-          Add Files
-        </button>
-        {/* The button opens the file picker directly. The input itself is not drawn. */}
-        <input
-          ref={fileInput}
-          type="file"
-          hidden
-          multiple
-          tabIndex={-1}
-          aria-label={need ? "Add files to your needs" : "Add files to your offers"}
-          onChange={(event) => files(event.currentTarget)}
-        />
-      </div>
+      {/* No file makes a need or offer card yet, so files are added on step 1 only (24 November 2026).
+          Files a draft already holds here still show, and can be removed. */}
       <AttachmentList
         files={step.attachments}
         links={step.links}
@@ -649,7 +611,7 @@ function AskSection({
         onRemoveLink={(url) =>
           update((current) => changeStep(current, { links: current.links.filter((link) => link !== url) }))
         }
-        afterLast={addFiles}
+        afterLast={title}
       />
       {/* A card's details are changed over the page, so the list under it stays where it is. */}
       <TaskDialog

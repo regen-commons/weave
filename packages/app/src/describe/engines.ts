@@ -1,5 +1,5 @@
-import type { z } from "zod";
-import { modelConstraint, SuggestionSchema, type DeviceDraft, type Initiative } from "./contracts.ts";
+import type { z } from "../validation.ts";
+import { SuggestionSchema, type DeviceDraft, type Initiative } from "./contracts.ts";
 
 export interface BrowserSession {
   prompt(
@@ -58,7 +58,7 @@ export async function browserExtract(
 export async function browserExtractUsing<T>(
   text: string,
   signal: AbortSignal,
-  contract: z.ZodType<T>,
+  contract: z.ZodMiniType<T>,
   task: string,
   factory = browserFactory(),
 ): Promise<T> {
@@ -78,6 +78,8 @@ export async function browserExtractUsing<T>(
   });
   let lastError: unknown;
   try {
+    // Zod's JSON Schema code loads only here, so the app's start-up does not carry it.
+    const { modelConstraint } = await import("./model-constraint.ts");
     for (let attempt = 0; attempt < 2; attempt++) {
       signal.throwIfAborted();
       const result = await session.prompt(

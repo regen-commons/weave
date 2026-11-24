@@ -2,6 +2,7 @@ import { COUNTRIES, US_STATES } from "../../../../dist/storage.mjs";
 import { FundingFormSchema, type FundingDetails, type FundingForm } from "./contracts.ts";
 import { DeviceDraftSchema, type DeviceDraft } from "../describe/contracts.ts";
 import { keptAsks } from "../intake/finish.ts";
+import { z } from "../validation.ts";
 
 /** A detail for funding the matcher can take as typed: everything but the choices made by picking. */
 export type FundingFormField = Exclude<keyof FundingForm, "applicantType" | "fundingInstruments">;
@@ -50,7 +51,7 @@ export function fundingKey(draft: Pick<DeviceDraft, "id" | "confirmed" | "fundin
 export function projectFromKey(key: string) {
   const { asks, ...card } = JSON.parse(key) as { asks: unknown };
   const words = Array.isArray(asks) ? asks.filter((ask): ask is string => typeof ask === "string") : [];
-  return projectFrom({ ...DeviceDraftSchema.pick({ id: true, confirmed: true, funding: true }).parse(card), asks: words });
+  return projectFrom({ ...z.pick(DeviceDraftSchema, { id: true, confirmed: true, funding: true }).parse(card), asks: words });
 }
 export function projectFrom(draft: FundingCard) {
   if (!draft.confirmed) return null;
@@ -95,6 +96,8 @@ export function projectFrom(draft: FundingCard) {
     // topics its words name in Portuguese or Spanish, and those its kept needs and offers name (DL-142).
     tags: draft.confirmed.themes,
     asks: [...(draft.asks ?? [])],
+    // Where you work, read for fit only: typed places are never mapped into eligibility facts (DL-143).
+    places: [...draft.confirmed.locations],
     workCountries,
     benefitCountries,
     applicantBaseCountry: singleCountry(form.applicantBaseCountry, "applicantBaseCountry"),

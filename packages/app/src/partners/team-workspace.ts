@@ -86,7 +86,7 @@ export function documentCard(document: AccountDocument): { fields: Initiative; n
 }
 
 export function teamPartnerQueries(saved: SavedInitiative | null) {
-  return saved ? privatePartnerQueries(saved.id, saved.revision, saved.document.needs, saved.document.offers) : [];
+  return saved ? privatePartnerQueries(saved.id, saved.revision, saved.document.needs, saved.document.offers, saved.document.initiative) : [];
 }
 
 export async function startTeamAccess(workspaceId: string, storage: Storage) {

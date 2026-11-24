@@ -48,7 +48,9 @@ export async function extractAsks(step: AskStep, kind: AskKind, signal: AbortSig
     (file) => file.type === "application/pdf" || /\.pdf$/iu.test(file.name),
   );
   const pdfReader = hasPdf ? (await import("../describe/pdf.ts")).readPdfText : undefined;
-  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id));
+  const chunks = step.turns.flatMap((turn) => chunksFrom(turn.text, turn.id, kind));
+  // Every word read counts, also those in sentences that make no card ("Green Goods is an app …").
+  const read = step.turns.map((turn) => turn.text);
   const files = [];
   let unreadFiles = 0;
   for (const attachment of step.attachments) {
@@ -57,12 +59,13 @@ export async function extractAsks(step: AskStep, kind: AskKind, signal: AbortSig
       pdfReader,
       signal,
     );
-    chunks.push(...chunksFrom(source.text, attachment.id));
+    chunks.push(...chunksFrom(source.text, attachment.id, kind));
+    read.push(source.text);
     files.push(...source.files);
     unreadFiles += source.unreadFiles;
   }
   const candidates = candidateChunks(chunks, step);
-  const words = countWords(chunks.map((chunk) => chunk.text).join(" "));
+  const words = countWords(read.join(" "));
   const started = performance.now();
   let extraction = await keywordWorker(candidates, kind, signal);
   const attempts: Array<{

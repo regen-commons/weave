@@ -11,10 +11,18 @@ export const continueButton = (page: Page) => page.getByRole("button", { name: "
 /** The cards on a list: its own items, not the lists inside each card. */
 export const cards = (page: Page, list: "Your needs" | "Your offers") => page.locator(`ul[aria-label="${list}"] > li`);
 
-/** Types into a step's box and adds what it says, as a person does with the keyboard. */
+/**
+ * Types into a step's box and adds what it says, as a person does with the keyboard. The step is
+ * inert until this device's draft has opened, which no person can type into; a fill made sooner is
+ * lost when the draft opens, so this waits for the step first and checks the words are there.
+ */
 export async function addTyped(page: Page, words: string) {
-  await box(page).fill(words);
-  await page.getByRole("button", { name: "Add To List" }).click();
+  const step = page.locator('section[aria-labelledby="ask-needs-title"], section[aria-labelledby="ask-offers-title"]');
+  await expect(step).toHaveCount(1);
+  await expect(step).not.toHaveAttribute("inert");
+  await step.locator("textarea.rc-voice-transcript").fill(words);
+  await expect(step.locator("textarea.rc-voice-transcript")).toHaveValue(words);
+  await step.getByRole("button", { name: "Add To List" }).click();
 }
 
 /** Step 1 by typing, through Fill In The Fields, to the needs step. */

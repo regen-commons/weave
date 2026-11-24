@@ -19,14 +19,16 @@ export const ProjectSchema = z.object({
   tags: z.array(z.string()),
   /** The words of the kept needs and offers, which the matcher reads for topics (DL-142). */
   asks: z.array(z.string()),
+  /** Where you work, as the card says it, read for fit only (DL-143). */
+  places: z.array(z.string()),
   workCountries: z.array(z.string()),
   benefitCountries: z.array(z.string()),
   applicantBaseCountry: z.string(),
   registrationCountry: z.string(),
   applicantType: z.enum(["unknown", "nonprofit", "informal", "individual", "business", "university", "public-body"]),
   fundingInstruments: z.array(z.enum(["grant", "prize", "investment", "fellowship", "scholarship"])),
-  goalMin: z.number().nullable(),
-  goalMax: z.number().nullable(),
+  goalMin: z.nullable(z.number()),
+  goalMax: z.nullable(z.number()),
   currency: z.string(),
   usWorkStates: z.array(z.string()),
   usBenefitStates: z.array(z.string()),
@@ -37,7 +39,7 @@ export const ProjectSchema = z.object({
 const SourcesSchema = z.object({ catalog: z.string(), rules: z.string(), conditions: z.string() });
 export type CatalogSources = z.infer<typeof SourcesSchema>;
 
-const asked = { id: z.number().int(), sources: SourcesSchema, retry: z.boolean() };
+const asked = { id: z.int(), sources: SourcesSchema, retry: z.boolean() };
 export const CatalogRequestSchema = z.discriminatedUnion("kind", [
   z.object({ ...asked, kind: z.literal("bundle") }),
   z.object({ ...asked, kind: z.literal("closing-soon"), now: z.iso.datetime() }),

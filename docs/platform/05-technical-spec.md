@@ -1047,7 +1047,12 @@ The workspace prototype uses a small static catalog of attributed public facts. 
 browser-local lexical pass compares each kept, open need with candidate evidence
 and each kept, open offer with publicly stated requests for contributions.
 Matching requires a shared topic. Capital overlap breaks otherwise equal topic
-counts, and known place or exchange-term conflicts exclude a result. Keep one
+counts, and known place or exchange-term conflicts exclude a result. Partners for you
+also reads each entry with its initiative and each project as a whole, and ranks on
+complementarity: the role the entry asks for, fields and place in common, and money
+only from projects that fund others. A project can then appear without repeating the
+entry's words, always as inferred evidence
+([DL-144](../../packages/design-system/decision-log.md#dl-144-partners-for-you-matches-on-complementarity)). Keep one
 candidate per ask, using the strongest applicable evidence, and group the results
 by evidence type. Show the shared terms and source. A local requirement with
 unknown public scope is marked for checking, and an unverified scope cannot
@@ -1065,7 +1070,7 @@ evaluation remains later work.
 
 ### 7.3 Opportunity solo score (R13)
 
-Reuse the existing Funding Commons rubric unchanged: thematic fit (0 to 100 from shared specific terms and semantic similarity with the published anchors), readiness (next practical check) and research priority (purpose, geography, access, award points with the documented caps). The initiative's eligibility details map onto the existing project fields (work countries, benefit countries, applicant base, registration, applicant type, funding instruments, goal range). Program condition answers remain per initiative and per source date.
+Reuse the existing Funding Commons rubric unchanged: thematic fit (0 to 100 from shared specific terms and semantic similarity with the published anchors), readiness (next practical check) and research priority (purpose, geography, access, award points with the documented caps). Weave's Funding and its MCP tool keep the rubric's readiness and research priority, and grade fit from the themes and places the initiative and each program name, over the rubric's results: the field of work first, then the people served, then the tools used, with the program's own country or region raising it ([DL-143](../../packages/design-system/decision-log.md#dl-143-fundings-fit-reads-what-an-initiative-does-and-where-it-works)). The live site keeps the rubric's own fit. The initiative's eligibility details map onto the existing project fields (work countries, benefit countries, applicant base, registration, applicant type, funding instruments, goal range). Program condition answers remain per initiative and per source date.
 
 Step 5's [catalog adapter](../../packages/app/src/funding/catalog.ts) validates the committed release and retains all 699 funders, 727 researched programs and 41 overview records: 768 browseable entries. The app imports the root matching modules without moving or copying them, preserving the live site. [Local evaluation](../../packages/app/src/funding/engine.ts) uses the full corpus index and the unchanged rubric for each program; parity tests compare the live engine's best results. The current adapter supplies keyword evidence only. Semantic downloads remain behind the existing runtime, hosting and CSP gates; no score is invented for visitors.
 
