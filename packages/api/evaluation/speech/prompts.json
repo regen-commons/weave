@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "note": "What a person reads aloud for a scripted clip, in the three shapes Weave hears: describing an initiative, listing needs and listing offers. Every name is invented. A speaker may say it in their own way; the reference transcript is then what they said, not this text. Swahili prompts are left for a Swahili speaker to write, so they sound like Swahili and not like a translation.",
+  "prompts": [
+    { "id": "en-describe-1", "language": "en", "shape": "describe", "text": "We are River Keepers, a youth group based in Nairobi, Kenya. Every Saturday we clean the river and plant trees along its banks." },
+    { "id": "en-describe-2", "language": "en", "shape": "describe", "text": "Our project is called Rooftop Harvest. We grow vegetables on rooftops in Accra and sell them at the market on Fridays." },
+    { "id": "en-describe-3", "language": "en", "shape": "describe", "text": "I coordinate a community bike repair shop in Leeds. We fix donated bikes and give them to people who need to get around the city." },
+    { "id": "en-needs-1", "language": "en", "shape": "needs", "text": "We need native seedlings, a water pump and someone to help us with the accounts." },
+    { "id": "en-needs-2", "language": "en", "shape": "needs", "text": "First a van to carry the harvest, second a cold room, and third some help writing grant applications." },
+    { "id": "en-offers-1", "language": "en", "shape": "offers", "text": "We can lend tools on weekends, teach composting, and share seeds from our seed library." },
+    { "id": "pt-describe-1", "language": "pt-BR", "shape": "describe", "text": "Somos a Horta Comunitária Vila Nova, em Recife. Cultivamos alimentos com as famílias do bairro e damos oficinas para crianças." },
+    { "id": "pt-describe-2", "language": "pt-BR", "shape": "describe", "text": "O nosso grupo se chama Mãos na Terra. A gente ensina compostagem nas escolas públicas de Belo Horizonte." },
+    { "id": "pt-describe-3", "language": "pt-BR", "shape": "describe", "text": "Criamos abelhas nativas sem ferrão em Florianópolis e levamos as colmeias para as escolas mostrarem às crianças." },
+    { "id": "pt-needs-1", "language": "pt-BR", "shape": "needs", "text": "Precisamos de mudas nativas, de uma estufa e de alguém para cuidar das redes sociais." },
+    { "id": "pt-needs-2", "language": "pt-BR", "shape": "needs", "text": "A gente precisa de máquinas de costura usadas e de um espaço maior para as oficinas." },
+    { "id": "pt-offers-1", "language": "pt-BR", "shape": "offers", "text": "Oferecemos aulas de música para crianças e podemos emprestar o nosso galpão para eventos." },
+    { "id": "es-describe-1", "language": "es", "shape": "describe", "text": "Somos el Colectivo Semillas del Sur, en Temuco, Chile. Guardamos semillas nativas y enseñamos agroecología a jóvenes." },
+    { "id": "es-describe-2", "language": "es", "shape": "describe", "text": "Nuestro proyecto se llama Agua Viva. Trabajamos en Oaxaca restaurando manantiales con las comunidades de la sierra." },
+    { "id": "es-describe-3", "language": "es", "shape": "describe", "text": "Somos una huerta urbana comunitaria en Medellín. Sembramos con niños y adultos mayores los sábados." },
+    { "id": "es-needs-1", "language": "es", "shape": "needs", "text": "Necesitamos semillas, herramientas y alguien que nos ayude con la contabilidad." },
+    { "id": "es-needs-2", "language": "es", "shape": "needs", "text": "Primero un tanque para guardar agua de lluvia, segundo capacitación en compostaje y tercero computadoras para la biblioteca." },
+    { "id": "es-offers-1", "language": "es", "shape": "offers", "text": "Ofrecemos talleres de cerámica y podemos prestar nuestro horno a otros colectivos." }
+  ]
+}
