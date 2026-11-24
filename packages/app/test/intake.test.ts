@@ -637,12 +637,18 @@ test("the needs and offers page counts its lists and says what dashed means", ()
 test("the page says when words still wait for cards", () => {
   assert.equal(
     cardsNote(answerStep(emptyAskStep(), "needs", "Native seedlings")),
-    "Your words or files changed. Press Add To List to read them, then continue.",
+    "Your words changed. Press Add To List to read them, then continue.",
   );
   const made = seed();
   assert.equal(cardsNote(made), "");
   const stale = commitPending(changeStep(made, { composer: "New words" }, true), "needs");
-  assert.equal(cardsNote(stale), "Your words or files changed. Press Add To List to read them, then continue.");
+  assert.equal(cardsNote(stale), "Your words changed. Press Add To List to read them, then continue.");
+  // Files are named only when the step holds some, as a draft from an earlier build may.
+  const file = { id: crypto.randomUUID(), name: "list.txt", type: "text/plain", bytes: 4, blob: new Blob(["list"]) };
+  assert.equal(
+    cardsNote(changeStep(stale, { attachments: [file] }, true)),
+    "Your words or files changed. Press Add To List to read them, then continue.",
+  );
   assert.equal(cardsNote(changeStep(stale, { mode: "manual" })), "");
 });
 
@@ -676,7 +682,7 @@ test("each step's Continue keeps every pencil entry in its list, and an empty li
   });
   assert.deepEqual(blocker(commitPending(changeStep(needs, { composer: "New words" }), "needs")), {
     where: "talk",
-    message: "Your words or files changed. Press Add To List to read them, then continue.",
+    message: "Your words changed. Press Add To List to read them, then continue.",
   });
   // Typing in the box is not a change to the list, so clearing it lets the page continue.
   assert.equal(continueStep(changeStep(changeStep(needs, { composer: "Half a thought" }), { composer: "" })).ok, true);
