@@ -37,12 +37,14 @@ export function pencilHint(step: AskStep): string {
 
 /**
  * What to say when words or files were added and have not been read into the list yet, as after
- * a reading that failed. Add To List reads them again. Empty when the list is current.
+ * a reading that failed. Add To List reads them again. Empty when the list is current. Files are
+ * named only when the step holds some: they are added on the describe step now, and only a draft
+ * from an earlier build has files here.
  */
 export function cardsNote(step: AskStep): string {
   const hasSource = step.turns.length > 0 || step.attachments.length > 0;
   if (step.mode !== "conversation" || !hasSource || step.builtVersion === step.inputVersion) return "";
-  return "Your words or files changed. Press Add To List to read them, then continue.";
+  return `Your ${step.attachments.length ? "words or files" : "words"} changed. Press Add To List to read them, then continue.`;
 }
 
 /** Why a list cannot continue yet, and the part of its section that holds the unfinished work. */
