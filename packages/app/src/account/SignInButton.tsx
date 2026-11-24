@@ -58,9 +58,10 @@ export function SignInButton({
   useEffect(() => {
     if (!offered) return;
     warmSignIn();
-    // Signing in goes on to project access, so its function starts now too.
-    warmProjectConsent();
-  }, [offered]);
+    // A sign-in that goes on to project access (one asking for projects, or any from Your Initiatives)
+    // starts that function now too. The account fixture answers it with a stand-in error, so not there.
+    if (!state?.fixture && (thenProjects || window.location.pathname === pathTo("your-initiatives"))) warmProjectConsent();
+  }, [offered, thenProjects, state?.fixture]);
   const warm = offered ? warmSignIn : undefined;
   async function signIn() {
     if (busy) return;

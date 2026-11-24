@@ -18,7 +18,7 @@ const WARM_BODY_LIMIT = 64;
 export async function isWarmRequest(request: Request): Promise<boolean> {
   if (request.method !== "POST") return false;
   if (request.headers.get("origin") !== new URL(request.url).origin) return false;
-  if (request.headers.get("content-type")?.split(";")[0]?.trim() !== "application/json") return false;
+  if (request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== "application/json") return false;
   const length = Number(request.headers.get("content-length") ?? Number.NaN);
   if (!Number.isFinite(length) || length > WARM_BODY_LIMIT) return false;
   try {
