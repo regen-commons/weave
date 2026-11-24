@@ -48,20 +48,12 @@ person's browser does.
 - **`screenshots.spec.ts`**: the flow's five key steps at 360 and 1280, against the
   pictures in `screenshots/`, with the background growth hidden.
 - **`../lighthouserc.json`**: Lighthouse 13.6 on mobile, the median of three runs, on seven
-  routes. Accessibility must be 100 everywhere, best practices at least 96, SEO 100 on the
+  routes. Accessibility and best practices must be 100 everywhere, SEO 100 on the
   public pages (the private ones are kept out of search on purpose), layout shift at most
   0.1, and each route's performance at least its budget. Largest contentful paint over 2 s,
   the PRD's bar, is a warning for now. `test/lighthouse-config.test.ts`, in the ordinary
   app tests, fails if an address loses its budget, since Lighthouse CI drops a budget whose
   pattern matches nothing without a word.
-
-Best practices is 96 rather than 100 because Zod probes `Function("")` to decide whether
-it may compile code, the content security policy blocks the probe, and Chrome logs an
-issue. `src/validation.ts` turns the probe off with `z.config({ jitless: true })`, but the
-app's `package.json` lists only `src/main.tsx` and CSS under `sideEffects`, so the build
-drops that call: no built file contains it, and the page's Zod config has no `jitless`.
-Production is still 100 because the parse that trips it has not reached it. Once
-`./src/validation.ts` is in `sideEffects`, set the budget back to 1.
 
 | Route | Budget | Local, one run | GitHub, median of 3 (two runs) | LCP on GitHub |
 |---|---:|---:|---:|---:|
