@@ -44,18 +44,18 @@
         {"id":"recSZN9ckNi2cuE1y::beni-confiscati-alle-mafie-2026-initiative","name":"Fondazione Con Il Sud: Beni confiscati alle mafie: 2026 initiative"}
       ],
       "funding": [
-        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
         {"id":"recS2Rk0zuF9VWK6K::conservation-partnerships","name":"Synchronicity Earth: Conservation partnerships"},
         {"id":"recaoWDJ9bgmtXQAM::international-conservation-grants","name":"New England Biolabs Foundation: International conservation grants"},
-        {"id":"recaoWDJ9bgmtXQAM::final-local-essex-county-funding-round-2027","name":"New England Biolabs Foundation: Final local Essex County funding round: 2027"},
-        {"id":"recpC95lYtpJnklTW::van-tienhoven-nature-protection-grants","name":"Van Tienhoven Foundation: Van Tienhoven nature-protection grants"}
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recVgs480kGsRUJX8::11th-hour-project-grantmaking","name":"Schmidt Family Foundation: 11 th Hour Project grantmaking"},
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"}
       ],
       "mcp": [
-        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
         {"id":"recS2Rk0zuF9VWK6K::conservation-partnerships","name":"Synchronicity Earth: Conservation partnerships"},
         {"id":"recaoWDJ9bgmtXQAM::international-conservation-grants","name":"New England Biolabs Foundation: International conservation grants"},
-        {"id":"recaoWDJ9bgmtXQAM::final-local-essex-county-funding-round-2027","name":"New England Biolabs Foundation: Final local Essex County funding round: 2027"},
-        {"id":"recpC95lYtpJnklTW::van-tienhoven-nature-protection-grants","name":"Van Tienhoven Foundation: Van Tienhoven nature-protection grants"}
+        {"id":"recXGvyBoEq7aWuGe::clua-alliance-grantmaking","name":"Climate and Land Use Alliance (CLUA): CLUA alliance grantmaking"},
+        {"id":"recVgs480kGsRUJX8::11th-hour-project-grantmaking","name":"Schmidt Family Foundation: 11 th Hour Project grantmaking"},
+        {"id":"recu4Uz6BAlTZmsjv::2027-global-climate-challenge","name":"MIT Solve: 2027 Global Climate Challenge"}
       ]
     },
     "fr-03": {
@@ -213,17 +213,17 @@
       ],
       "funding": [
         {"id":"recpw4qdfUAaI8McW::prolongar-garabatos-resource-access-2021","name":"Prolongar Foundation: Garabatos: free learning-resource access (2021)"},
-        {"id":"rectuYzEGH4GA6Nbb::battery-powered-information-paradox-fall-2025","name":"Battery Foundation (Battery Powered): Battery Powered: Information Paradox, Fall 2025"},
         {"id":"rec6CaoLQP7toDdP1::ingfoundation-organizational-grantmaking","name":"Ing Foundation: Ing Foundation organizational grantmaking"},
         {"id":"recJz756lSH51oLOG::protecting-thesacred-historical2018-call","name":"Seeds of Wisdom: Protecting the Sacred: historical 2018 call"},
-        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"}
+        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"},
+        {"id":"recsqcafpMRd6NMlv::fondation-de-france-project-support","name":"Fondation de France: Fondation de France project support"}
       ],
       "mcp": [
         {"id":"recpw4qdfUAaI8McW::prolongar-garabatos-resource-access-2021","name":"Prolongar Foundation: Garabatos: free learning-resource access (2021)"},
-        {"id":"rectuYzEGH4GA6Nbb::battery-powered-information-paradox-fall-2025","name":"Battery Foundation (Battery Powered): Battery Powered: Information Paradox, Fall 2025"},
         {"id":"rec6CaoLQP7toDdP1::ingfoundation-organizational-grantmaking","name":"Ing Foundation: Ing Foundation organizational grantmaking"},
         {"id":"recJz756lSH51oLOG::protecting-thesacred-historical2018-call","name":"Seeds of Wisdom: Protecting the Sacred: historical 2018 call"},
-        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"}
+        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"},
+        {"id":"recsqcafpMRd6NMlv::fondation-de-france-project-support","name":"Fondation de France: Fondation de France project support"}
       ]
     },
     "fr-10": {
@@ -383,15 +383,15 @@
         {"id":"rec6CaoLQP7toDdP1::ingfoundation-organizational-grantmaking","name":"Ing Foundation: Ing Foundation organizational grantmaking"},
         {"id":"recUmLyPZkexRFsnR","name":"Fundación TAAP"},
         {"id":"recpw4qdfUAaI8McW::prolongar-garabatos-resource-access-2021","name":"Prolongar Foundation: Garabatos: free learning-resource access (2021)"},
-        {"id":"rectuYzEGH4GA6Nbb::battery-powered-information-paradox-fall-2025","name":"Battery Foundation (Battery Powered): Battery Powered: Information Paradox, Fall 2025"},
-        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"}
+        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"},
+        {"id":"recdtH2oqZYE8SM0X::chw-partner-project-grants-fy2024-reported-policy","name":"Children’s Helpers Worldwide (CHW): CHW partner-project grants: FY2024 reported policy"}
       ],
       "mcp": [
         {"id":"rec6CaoLQP7toDdP1::ingfoundation-organizational-grantmaking","name":"Ing Foundation: Ing Foundation organizational grantmaking"},
         {"id":"recUmLyPZkexRFsnR","name":"Fundación TAAP"},
         {"id":"recpw4qdfUAaI8McW::prolongar-garabatos-resource-access-2021","name":"Prolongar Foundation: Garabatos: free learning-resource access (2021)"},
-        {"id":"rectuYzEGH4GA6Nbb::battery-powered-information-paradox-fall-2025","name":"Battery Foundation (Battery Powered): Battery Powered: Information Paradox, Fall 2025"},
-        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"}
+        {"id":"rec1dixbBd0lNXPfC::hewlett-foundation-general-grantmaking-policy","name":"William & Flora Hewlett Foundation: Hewlett Foundation general grantmaking policy"},
+        {"id":"recdtH2oqZYE8SM0X::chw-partner-project-grants-fy2024-reported-policy","name":"Children’s Helpers Worldwide (CHW): CHW partner-project grants: FY2024 reported policy"}
       ]
     },
     "fr-17": {

@@ -34,8 +34,9 @@ test("the suite is still the one the rubric wrote: Green Goods and Tech and Sun 
 
 test("the previous matchers fail the suite where the anchor case said they did", async () => {
   const before = new Map(runMustMatch(await data, "before").map((result) => [result.id, result.pass]));
-  // Tech and Sun's energy funds ranked below internet funds; Green Goods' record offer never reached Tech and Sun.
-  for (const id of ["F-01", "F-02", "P-02", "P-03"]) assert.equal(before.get(id), false, id);
+  // Tech and Sun's energy funds ranked below internet funds; Green Goods' record offer never reached Tech and Sun;
+  // bioacoustic projects reached Green Goods on shared words; a need for money met projects that do not fund.
+  for (const id of ["F-01", "F-02", "P-02", "P-03", "N-01", "N-02", "N-05"]) assert.equal(before.get(id), false, id);
 });
 
 test("a pair the suite cannot judge is refused by name", () => {

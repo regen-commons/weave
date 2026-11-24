@@ -97,13 +97,13 @@ test("without an initiative compared, Funding is never ordered by fit", () => {
   assert.deepEqual(unranked.map((entry) => entry.id), byName.map((entry) => entry.id));
 });
 
-test("a fit line names the shared topics it rests on, says where it was worked out and that it is not eligibility", () => {
+test("a fit line names the fields and places it rests on, says where it was worked out and that it is not eligibility", () => {
   const shared = fitExplanation({
-    thematicFit: { score: 65, band: "relevant", label: "Relevant themes", evidenceTerms: ["forest", "water", "agroecology"] },
+    thematicFit: { score: 60, band: "relevant", label: "Relevant themes", evidenceTerms: ["energy access", "Nigeria"] },
   });
-  assert.equal(shared, "Shared topics: forest, water, agroecology. Worked out on this device from keywords. Fit is not eligibility.");
+  assert.equal(shared, "In common: energy access, Nigeria. Worked out on this device from what your card and the program each describe. Fit is not eligibility.");
   const none = fitExplanation({ thematicFit: { score: 0, band: "limited", label: "Limited thematic overlap", evidenceTerms: [] } });
-  assert.match(none, /^No specific topics in common with your description\./u);
+  assert.match(none, /^No field of work or place in common with your card\./u);
   assert.match(none, /Fit is not eligibility\.$/u);
 });
 

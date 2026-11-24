@@ -70,7 +70,7 @@ Fits on an initiative's page, which takes the leads from the same Funding order.
 ## Must-match suite
 
 `must-match.ts` checks that Weave matches the pairs its purpose says it must, and keeps
-out the keyword traps it must not fall into. `must-match-v1.json` holds about 30 pairs
+out the keyword traps it must not fall into. `must-match-v1.json` holds 31 pairs
 built from real public initiatives: Green Goods and Tech and Sun from their owners'
 public-safe profiles and public repositories, and the rest from the public Certified
 projects in `../../api/evaluation/partner-real-v1-corpus.json` and `fund-ranking-v1.json`.
@@ -129,14 +129,20 @@ A pair marked `should` is reported and not gated, with its reason saying why.
 
 ### What it shows, and what it does not
 
-On 24 November 2026: 29 of 30 pairs hold, and all 29 gated pairs, on the current
-matchers; 16 of 30 held on the matchers before DL-143 and DL-144. The one that does not
-hold is F-04, a `should`: NGI Zero Commons ranks 22nd for Green Goods, sharing one field
-(open source and public goods) with a closed call.
+On 24 November 2026: 30 of 31 pairs hold, and all 30 gated pairs, on the current
+matchers; 14 of 31 held on the matchers before DL-143 and DL-144. The one that does not
+hold is F-04, a `should`: NGI Zero Commons ranks 21st for Green Goods, sharing one field
+(open source and public goods) with a closed call. N-03 also held on the old matchers: it
+guards the money rule rather than showing a fix. The keyword-trap pairs N-01 and N-02 and
+the money pair N-05 failed on the old matchers.
 
 - An agent wrote the pairs against the rubric, and the matchers were changed while the
   suite was written, so it is development data: it proves the anchor case and the traps,
-  not precision in general. Rerun the partner-real-v2 holdout for that.
+  not precision in general. Nothing held out measures the new partner ranking yet: the
+  partner-real-v2 runner and the safety gates score the word matcher
+  (`rankPartnerMatches`) only. Adding `rankPartners` as an engine there is the next step.
+- N-04 checks place with the same country reader the scope rule uses, so it proves the
+  rule is applied, not that the reader is right; `src/themes.test.ts` covers the reader.
 - One pair was changed after a run. P-07 first named one community monitoring project;
   seven fit equally, so it asks for any of them. Its reason says so.
 - Green Goods' Certified record and Tech and Sun's were not read from the live index:

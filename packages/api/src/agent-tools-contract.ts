@@ -121,11 +121,12 @@ export const AGENT_TOOLS: readonly AgentToolDefinition[] = [
   {
     name: "find_funds_for_initiative",
     title: "Find Funds For An Initiative",
-    description: "Rank Weave's catalog of funding programs for an initiative you describe, using the same published rubric "
-      + "Weave's Funding page uses. Fit is graded from the specific topics the description and a program's documented purpose "
-      + "share. Each result also says how the program can be approached and what must still be checked with the funder, "
+    description: "Rank Weave's catalog of funding programs for an initiative you describe, the way Weave's Funding page "
+      + "ranks them. Fit is graded from what the description and a program's documented purpose have in common: the field "
+      + "of work first, then the people served, then the tools used, and higher where the program names a country sent. "
+      + "Each result also says how the program can be approached and what must still be checked with the funder, "
       + "including a published requirement that may conflict with the details sent. Fit "
-      + "is about topics only: it is never a decision that someone may apply or will be funded. The description is read on "
+      + "is about topics and place only: it is never a decision that someone may apply or will be funded. The description is read on "
       + "Weave's server to work out this one answer, then discarded: it is not stored, logged or shared. Send only what "
       + "the person is content to send, and leave out names and contact details. " + QUOTED,
     inputSchema: {

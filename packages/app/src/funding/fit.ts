@@ -24,13 +24,14 @@ export function fundingFit(score: number | null): FundingFit | null {
   return "low";
 }
 
-/** What a fit line explains on request: which topics it rests on, and what it is not. */
+/** What a fit line explains on request: the fields and places it rests on, and what it is not. */
 export function fitExplanation(result: Pick<Evaluation, "thematicFit">): string {
   const topics = result.thematicFit.evidenceTerms;
+  // Since DL-143 these are the fields of work, people and places both sides name, field first.
   const basis = topics.length
-    ? `Shared topics: ${topics.slice(0, 5).join(", ")}.`
-    : "No specific topics in common with your description.";
-  return `${basis} Worked out on this device from keywords. Fit is not eligibility.`;
+    ? `In common: ${topics.slice(0, 5).join(", ")}.`
+    : "No field of work or place in common with your card.";
+  return `${basis} Worked out on this device from what your card and the program each describe. Fit is not eligibility.`;
 }
 
 /** A program's place when the list is ordered by fit: its score, and its place in research priority. */

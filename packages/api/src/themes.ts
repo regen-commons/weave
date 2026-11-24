@@ -76,7 +76,7 @@ const ROWS: readonly Row[] = [
   ["commons", "open source and public goods", "field",
     "open source, opensource, free software, floss, public goods, public good, digital public goods, digital commons, knowledge commons, commons, open knowledge, open data, open hardware, open science, digital public infrastructure, open infrastructure, open technology, developer tools"],
   ["web3", "web3 and blockchain", "field",
-    "blockchain, web3, ethereum, crypto, cryptocurrency, onchain, on chain, dao, smart contract, token, tokenized, defi, refi, decentralized, decentralised, nft, filecoin, ipfs, celo, hypercert, attestation, layer 2, wallet, decentralized storage, decentralized science"],
+    "blockchain, web3, ethereum, crypto, cryptocurrency, onchain, on chain, daos, smart contract, token, tokenized, defi, refi, decentralized, decentralised, nft, filecoin, ipfs, celo, hypercert, attestation, layer 2, wallet, decentralized storage, decentralized science"],
   ["staking", "staking and validators", "field",
     "staking, staking infrastructure, validator, distributed validators, home stakers, node operators, community staking, ethereum staking, ethereum community staking"],
   ["rights-online", "digital rights and security", "field",
@@ -98,14 +98,14 @@ const ROWS: readonly Row[] = [
   ["peace", "peace and safety", "field",
     "peace, peacebuilding, peace building, conflict, violence, safety"],
   ["media", "media and journalism", "field",
-    "journalism, journalist, media, community radio, radio station, radio programme, radio program, radio show, news, podcast, broadcasting, documentary"],
+    "journalism, journalist, news media, independent media, community media, local media, media literacy, public interest media, community radio, radio station, radio programme, radio program, radio show, news, podcast, broadcasting, documentary"],
   ["transport", "transport", "field",
     "transport, transportation, mobility, bicycle, cycling, bike, public transit"],
   ["animals", "animal welfare", "field", "animal welfare, animal, animals"],
   ["spirit", "care and spirit", "field",
     "spiritual, spirituality, faith, ceremony, care work, caregiving, healing"],
   ["youth", "young people", "people",
-    "youth, young people, children, child, kids, adolescent, teenager, student, young"],
+    "youth, young people, children, child, kids, adolescent, teenager, young"],
   ["women", "women and girls", "people",
     "women, woman, girls, gender, feminist, mother, gender equality, gender justice, gender equity"],
   ["indigenous", "Indigenous peoples", "people",
@@ -129,7 +129,7 @@ export const themeById = (id: string): Theme | undefined => BY_ID.get(id);
 const OTHER_MEANINGS = [
   "track record", "record label", "world record", "on record", "for the record", "public record",
   "sound recording", "audio recording", "power dynamics", "people power", "power of", "art of", "state of the art",
-  "work of art", "field of study", "case study", "case studies", "native species", "native plants", "native trees",
+  "work of art", "field of study", "case study", "case studies",
   "climate of", "health check", "data protection", "tool kit", "evidence based", "evidence backed", "evidence informed",
   "evidence driven", "research based", "data driven", "amateur radio", "ecosystem health", "ocean health", "river health",
 ];
@@ -145,14 +145,41 @@ function wordMatches(token: string, word: string): boolean {
   return word.endsWith("y") && token === `${word.slice(0, -1)}ies`;
 }
 
-type Phrase = { readonly words: readonly string[]; readonly theme: string };
+/** One phrase and every theme that lists it: "fisheries" names farming and food, and oceans and coasts. */
+type Phrase = { readonly words: readonly string[]; readonly themes: readonly string[] };
 let phrases: Phrase[] | undefined;
 function phraseList(): Phrase[] {
-  // Longest first, so "open source" is read before "source" could be, and a word read by a longer
-  // phrase is not read again by a shorter one.
-  return (phrases ??= ROWS.flatMap(([id, , , list]) =>
-    list.split(",").map((phrase) => ({ words: tokens(phrase), theme: id })).filter(({ words }) => words.length),
-  ).sort((a, b) => b.words.length - a.words.length));
+  if (phrases) return phrases;
+  const byText = new Map<string, { words: string[]; themes: string[] }>();
+  for (const [id, , , list] of ROWS)
+    for (const phrase of list.split(",")) {
+      const words = tokens(phrase);
+      if (!words.length) continue;
+      const key = words.join(" ");
+      const seen = byText.get(key);
+      if (seen) { if (!seen.themes.includes(id)) seen.themes.push(id); } else byText.set(key, { words, themes: [id] });
+    }
+  return (phrases = [...byText.values()]);
+}
+/** The forms a token may take as a phrase's word: itself and the singular it may be a plural of. */
+const stems = (token: string) => {
+  const forms = [token];
+  if (token.endsWith("ies") && token.length > 4) forms.push(`${token.slice(0, -3)}y`);
+  if (token.endsWith("es") && token.length > 4) forms.push(token.slice(0, -2));
+  if (token.endsWith("s") && token.length > 3) forms.push(token.slice(0, -1));
+  return forms;
+};
+/** Phrases by length, then by their first word, so each position is tried only against phrases that can start there. */
+let index: Map<number, Map<string, Phrase[]>> | undefined;
+function phraseIndex() {
+  if (index) return index;
+  index = new Map();
+  for (const phrase of phraseList()) {
+    const byFirst = index.get(phrase.words.length) ?? new Map<string, Phrase[]>();
+    index.set(phrase.words.length, byFirst);
+    byFirst.set(phrase.words[0]!, [...(byFirst.get(phrase.words[0]!) ?? []), phrase]);
+  }
+  return index;
 }
 const otherMeanings = OTHER_MEANINGS.map(tokens);
 /**
@@ -173,12 +200,17 @@ let topicThemes: Map<string, string> | undefined;
 function themeOfTopic(topic: string): string | undefined {
   if (!topicThemes) {
     topicThemes = new Map();
-    for (const { words, theme } of phraseList()) if (words.length === 1 && !topicThemes.has(words[0]!)) topicThemes.set(words[0]!, theme);
+    for (const { words, themes } of phraseList()) if (words.length === 1 && !topicThemes.has(words[0]!)) topicThemes.set(words[0]!, themes[0]!);
   }
   return TOPIC_THEMES[topic] ?? topicThemes.get(topic) ?? topicThemes.get(topic.replace(/s$/u, ""));
 }
 
-const NEGATIONS = new Set(["without", "not", "no", "non", "never", "nor"]);
+/**
+ * Words that deny what follows ("without crypto", "not a solar project"). Only the word just before a
+ * phrase counts, past an article, so "non-profit education" and "no-till farming" keep their themes.
+ */
+const NEGATIONS = new Set(["without", "not", "no", "never", "nor"]);
+const ARTICLES = new Set(["a", "an", "the", "any"]);
 /**
  * Teaching words that name a means when another word names what is taught: "investor training",
  * "watershed mapping training", "caregiver workshops". Their field is investment, water or care, not
@@ -194,15 +226,17 @@ const TEACHING_AFTER = new Set((
  * Where a list of examples starts in a sentence. Its themes illustrate the sentence's subject:
  * "an app for groups doing regenerative work, such as planting trees or keeping solar panels running".
  */
-const EXAMPLES = /,\s*(?:like|e\.g\.|from)\s|\b(?:such as|for example|for instance|e\.g\.|including|among them|tales como|tais como|por ejemplo|por exemplo|como por ejemplo|incluyendo|incluindo)\b/iu;
+const EXAMPLES = /,\s*(?:like|from)\s|\b(?:such as|for example|for instance|including|among them|tales como|tais como|por ejemplo|por exemplo|como por ejemplo|incluyendo|incluindo)\b/iu;
 /**
  * Where the subjects of teaching start: "workshops on digital skills, Web3 and climate". Teaching
  * about climate is education, not climate work, so those subjects weigh as examples do. The list ends
  * at the next ", and" or the sentence's end.
  */
-const TAUGHT = /\b(?:workshops?|training|trainings|courses?|classes|lessons|sessions|bootcamps?|curriculum|talleres|oficinas|cursos|aulas)\s+(?:on|about|in|de|sobre|em)\s/iu;
+const TAUGHT = /\b(?:(?:workshops?|courses?|classes|lessons|sessions|bootcamps?|curriculum|talleres|oficinas|cursos|aulas)\s+(?:on|about|de|sobre|em)|(?:training|trainings)\s+(?:on|about|in|de|sobre|em))\s/iu;
 const TAUGHT_END = /,\s*(?:and|y|e)\s/iu;
-const SENTENCES = /(?<!\b(?:e\.g|i\.e|etc|dr|dra|sr|sra|prof))[.!?;\n]+/iu;
+const SENTENCES = /(?<!\b(?:etc|dr|dra|sr|sra|prof))[.!?;\n]+/iu;
+/** Abbreviations whose full stops are not sentence ends; "e.g." opens an example list as "for example" does. */
+const ABBREVIATIONS: readonly (readonly [RegExp, string])[] = [[/\be\.\s?g\.,?/giu, "for example"], [/\bi\.\s?e\.,?/giu, "that is"]];
 
 type Found = Map<string, { words: Set<string>; example: boolean; lead: boolean }>;
 function readPart(text: string, example: boolean, found: Found, lead = false) {
@@ -219,16 +253,27 @@ function readPart(text: string, example: boolean, found: Found, lead = false) {
   for (const other of otherMeanings)
     for (let i = 0; i + other.length <= list.length; i++)
       if (other.every((word, at) => list[i + at] === word)) for (let at = 0; at < other.length; at++) used[i + at] = true;
-  for (const { words, theme } of phraseList()) {
-    for (let i = 0; i + words.length <= list.length; i++) {
-      if (used.slice(i, i + words.length).some(Boolean)) continue;
-      if (!words.every((word, at) => wordMatches(list[i + at]!, word))) continue;
-      for (let at = 0; at < words.length; at++) used[i + at] = true;
-      const before = list.slice(Math.max(0, i - 2), i);
-      if (before.some((word) => NEGATIONS.has(word))) continue;
+  const free = (from: number, length: number) => {
+    for (let at = from; at < from + length; at++) if (used[at]) return false;
+    return true;
+  };
+  // Longest phrases first, so "open source" is read before "source" could be, and a word read by a
+  // longer phrase is not read again by a shorter one.
+  const byLength = phraseIndex();
+  for (const length of [...byLength.keys()].sort((a, b) => b - a)) {
+    const byFirst = byLength.get(length)!;
+    for (let i = 0; i + length <= list.length; i++) {
+      if (!free(i, length)) continue;
+      const candidates = stems(list[i]!).flatMap((form) => byFirst.get(form) ?? []);
+      const phrase = candidates.find(({ words }) => words.every((word, at) => wordMatches(list[i + at]!, word)));
+      if (!phrase) continue;
+      for (let at = 0; at < length; at++) used[i + at] = true;
+      let before = i - 1;
+      while (before >= 0 && ARTICLES.has(list[before]!)) before--;
+      if (before >= 0 && NEGATIONS.has(list[before]!)) continue;
       const previous = list[i - 1];
-      const means = words.length === 1 && TEACHING.has(list[i]!) && previous !== undefined && !TEACHING_AFTER.has(previous);
-      note(theme, list.slice(i, i + words.length).join(" "), example || means);
+      const means = length === 1 && TEACHING.has(list[i]!) && previous !== undefined && !TEACHING_AFTER.has(previous);
+      for (const theme of phrase.themes) note(theme, list.slice(i, i + length).join(" "), example || means);
     }
   }
   // Portuguese and Spanish words, through the catalog topics they name.
@@ -247,7 +292,8 @@ const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 export function readThemes(text: string, name = ""): Map<string, ThemeReading> {
   const found: Found = new Map();
   const own = name.trim() ? new RegExp(`(?<![\\p{L}\\p{N}])${escape(name.trim())}(?![\\p{L}\\p{N}])`, "giu") : null;
-  const read = own ? text.slice(0, 6000).replace(own, " ") : text.slice(0, 6000);
+  let read = own ? text.slice(0, 6000).replace(own, " ") : text.slice(0, 6000);
+  for (const [pattern, words] of ABBREVIATIONS) read = read.replace(pattern, words);
   const sentences = read.split(SENTENCES).filter((sentence) => /[\p{L}\p{N}]/u.test(sentence));
   sentences.forEach((sentence, index) => {
     const lead = index === 0;

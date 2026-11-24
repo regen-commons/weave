@@ -15,8 +15,9 @@
  * - a program focused on the initiative's field fits better than one that funds it among many
  *   others: up to 40% of the fit depends on how many of the program's fields the initiative shares;
  * - where the program names the country the initiative works in, or limits itself to its region,
- *   the fit rises; where it names only other countries, it falls by half, as a caution to check and
- *   never as a decision. Place adds nothing without a shared topic.
+ *   the fit rises; where it names only other countries, it falls by half, and where the initiative
+ *   names no place at all, by a quarter: a caution to check, never a decision. Place adds nothing
+ *   without a shared topic.
  *
  * The score keeps the rubric's scale and Funding's four levels (DL-129): Strong 60 and up, Good 40
  * to 59, Possible 20 to 39, Low under 20. One field in common is a Good fit, a field and the
@@ -82,8 +83,11 @@ const FOCUS = 0.4;
 const EXAMPLE_SHARE = 0.25;
 /** A theme named after the first sentence, which says what the work is, weighs three quarters. */
 const LATER_SHARE = 0.75;
-/** A program that names only other countries, or only other regions, keeps this share of its fit. */
-const ELSEWHERE = { country: 0.5, region: 0.75 } as const;
+/**
+ * A program that names only other countries, or only other regions, keeps this share of its fit, and one
+ * limited to named countries keeps the last share for a card that names no place.
+ */
+const ELSEWHERE = { country: 0.5, region: 0.75, unknown: 0.75 } as const;
 /** Place counts only once something topical is shared. */
 const PLACE_FLOOR = 20;
 /** Words the rubric shares that say what a program uses or how, not what it funds. */
@@ -112,6 +116,15 @@ function programThemes(id: string, text: string) {
 const themedWord = (word: string, readings: Iterable<ThemeReading>) =>
   [...readings].some(({ words }) => words.some((phrase) => phrase.split(" ").some((part) => part.startsWith(word) || word.startsWith(part))));
 
+/** Who an ask is for: "to local schools", "for our volunteers". "Funding for solar batteries" names no one. */
+const AUDIENCE = /\s(?:to|for|para|pour)\s+(?:(?:our|the|local|young|small|rural|other|their|its|nuestr[oa]s?|nossos?|nossas?|las?|los|os|as)\s+)*(?:volunteers?|members?|schools?|students?|farmers?|communit(?:y|ies)|women|girls|youth|children|people|groups?|families|builders|residents|neighbou?rs|stewards|teachers|elders|users|organi[sz]ations|partners|escuelas|escolas|comunidades|mujeres|mulheres|jovens|j[oó]venes|ni[nñ]os|crian[cç]as|voluntari[oa]s)\b/iu;
+const strength = (reading: ThemeReading) => (reading.lead ? 2 : reading.example ? 0 : 1);
+/** Keeps the stronger reading of a theme: a lead over a later mention, a later mention over an example. */
+function keep(themes: Map<string, ThemeReading>, id: string, reading: ThemeReading) {
+  const seen = themes.get(id);
+  if (!seen || strength(reading) > strength(seen)) themes.set(id, reading);
+}
+
 export type InitiativeReading = {
   readonly themes: Map<string, ThemeReading>;
   readonly countries: ReadonlySet<string>;
@@ -125,11 +138,11 @@ export function readInitiative(project: FitProject): InitiativeReading {
   // A kept need or offer says exactly what the person asks for or gives: its themes are the subject. Who it
   // is for ("seedlings to local schools", "training for our volunteers") is its audience, read as an example.
   for (const ask of project.asks ?? []) {
-    const audience = ask.search(/\s(?:to|for|para|pour)\s/iu);
-    const [what, whom] = audience > 0 ? [ask.slice(0, audience), ask.slice(audience)] : [ask, ""];
-    for (const [id, reading] of readThemes(what))
-      if (!own.has(id) || !own.get(id)!.lead) own.set(id, { ...reading, example: reading.example, lead: !reading.example });
-    for (const [id, reading] of readThemes(whom)) if (!own.has(id)) own.set(id, { ...reading, example: true, lead: false });
+    const at = ask.search(AUDIENCE);
+    const [what, whom] = at > 0 ? [ask.slice(0, at), ask.slice(at)] : [ask, ""];
+    // An ask's subject is read as a lead; nothing it adds weakens what the description already says.
+    for (const [id, reading] of readThemes(what)) keep(own, id, { ...reading, lead: !reading.example });
+    for (const [id, reading] of readThemes(whom)) keep(own, id, { ...reading, example: true, lead: false });
   }
   const places = namedPlaces([project.description, ...(project.places ?? [])].join(". "));
   const countries = new Set([...(project.workCountries ?? []), ...(project.benefitCountries ?? []), ...places.countries]);
@@ -184,6 +197,9 @@ export function fundFit(initiative: InitiativeReading, result: RubricResult): Th
   const theirCountries = result.program?.geography?.workCountries ?? [];
   const theirRegions = (result.fund.regions ?? []).filter((region): region is Region => regionNames.has(region));
   const scope = `${result.program?.geography?.scope ?? ""} ${text}`;
+  // A program limited to named countries, for a card that names none, is a scope to check: unknown
+  // geography is not proof of local fit (spec 7.2).
+  if (!initiative.countries.size && !initiative.regions.size && theirCountries.length) factor = ELSEWHERE.unknown;
   if (initiative.countries.size || initiative.regions.size) {
     const here = theirCountries.filter((code) => initiative.countries.has(code));
     if (theirCountries.length && here.length) {

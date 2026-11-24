@@ -42,18 +42,37 @@ const REGION_WORDS: readonly (readonly [string, Region])[] = [
   ["middle east", "Middle East"], ["oceania", "Oceania"], ["pacific islands", "Oceania"],
   ["north america", "North America"],
 ];
-/** Demonyms and other names Intl.DisplayNames does not give. */
+/** Demonyms and other names Intl.DisplayNames does not give, or gives in a longer form. */
 const EXTRA_NAMES: Readonly<Record<string, string>> = {
   nigerian: "NG", kenyan: "KE", ghanaian: "GH", brazilian: "BR", brasileira: "BR", brasileiro: "BR", colombian: "CO",
   mexican: "MX", peruvian: "PE", chilean: "CL", argentinian: "AR", argentine: "AR", indonesian: "ID",
   "united states": "US", usa: "US", uk: "GB", "united kingdom": "GB", britain: "GB", england: "GB",
   scotland: "GB", wales: "GB", ugandan: "UG", tanzanian: "TZ", rwandan: "RW", "south african": "ZA", ethiopian: "ET",
-  philippine: "PH", filipino: "PH", vietnamese: "VN", "ivory coast": "CI", congo: "CD", drc: "CD",
+  philippine: "PH", filipino: "PH", vietnamese: "VN", "ivory coast": "CI", drc: "CD",
+  myanmar: "MM", burma: "MM", bosnia: "BA", "bosnia and herzegovina": "BA", "hong kong": "HK", macau: "MO", macao: "MO",
+  trinidad: "TT", "trinidad and tobago": "TT", palestine: "PS", palestinian: "PS", gaza: "PS", "west bank": "PS",
 };
-let names: Map<string, string> | undefined;
-function countryNames(): Map<string, string> {
+/**
+ * Country names that are also everyday words in English, Portuguese or Spanish, or parts of other
+ * places: "reunião" is a meeting, "gana" wins, "granada" a city, "chile" a pepper only sometimes, so
+ * these are not read. Guinea is read only on its own, never in Papua New Guinea or "guinea fowl".
+ */
+const NOT_PLACES = new Set([
+  "reunion", "reuniao", "gana", "granada", "chad", "jordan", "georgia", "niger", "turkey", "jersey", "guernsey", "man",
+  "mali", "peru", "dominica", "panama", "malta", "china",
+]);
+/** Phrases whose words would otherwise read as a country: their words are not read. */
+const OTHER_PLACES: Readonly<Record<string, string | null>> = {
+  "papua new guinea": "PG", "new guinea": "PG", "south sudan": "SS", "niger delta": "NG", "new mexico": "US", "new england": "US",
+  "guinea fowl": null, "guinea pig": null, "guinea pigs": null,
+};
+/** Longer names first, so "south sudan" is read before "sudan" and "papua new guinea" before "guinea". */
+let names: (readonly [string, string])[] | undefined;
+const key = (name: string) => fold(name).replace(/&/gu, " and ").replace(/\([^)]*\)/gu, " ").replace(/\bsar china\b/gu, " ")
+  .replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+function countryNames(): (readonly [string, string])[] {
   if (names) return names;
-  names = new Map(Object.entries(EXTRA_NAMES));
+  const found = new Map<string, string>(Object.entries(EXTRA_NAMES));
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (const language of ["en", "pt", "es"]) {
     let display: Intl.DisplayNames;
@@ -62,27 +81,50 @@ function countryNames(): Map<string, string> {
       const code = a + b;
       if (!regionsByCountry.has(code)) continue;
       const name = display.of(code);
-      if (name && name !== code) {
-        const key = fold(name).replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-        // Short or common-word names would read ordinary words as countries.
-        if (key.length >= 4 && !["chad", "jersey", "guernsey", "georgia", "jordan", "niger", "turkey", "china"].includes(key) && !names.has(key))
-          names.set(key, code);
-      }
+      if (!name || name === code) continue;
+      const named = key(name);
+      if (named.length >= 4 && !NOT_PLACES.has(named) && !found.has(named)) found.set(named, code);
     }
   }
-  // Names that are also common words count only written as a name, which fold cannot see; these two are kept
-  // because they are rarely words in an initiative's description.
-  names.set("china", "CN");
-  return names;
+  // Kept despite a second meaning, because a description rarely uses the word otherwise.
+  found.set("china", "CN");
+  found.set("peru", "PE");
+  found.set("mali", "ML");
+  return (names = [...found].sort((x, y) => y[0].length - x[0].length));
 }
 
 export type NamedPlaces = { readonly countries: ReadonlySet<string>; readonly regions: ReadonlySet<Region> };
 /** The countries and catalog regions a text names. "Niger" is not read inside "Nigeria". */
+/** Every name read, by its words: a country's code, a region, or null for a phrase that names neither. */
+let lookup: { names: Map<string, { country?: string; region?: Region } | null>; longest: number } | undefined;
+function placeLookup() {
+  if (lookup) return lookup;
+  const names = new Map<string, { country?: string; region?: Region } | null>();
+  for (const [name, code] of countryNames()) names.set(name, { country: code });
+  for (const [name, region] of REGION_WORDS) if (!names.has(name)) names.set(name, { region });
+  for (const [name, code] of Object.entries(OTHER_PLACES)) names.set(name, code ? { country: code } : null);
+  return (lookup = { names, longest: Math.max(...[...names.keys()].map((name) => name.split(" ").length)) });
+}
+/**
+ * The countries and catalog regions a text names. The longest name at each place is read, so "south sudan" is
+ * not read as Sudan, "papua new guinea" not as Guinea, and "Niger" never inside "Nigeria".
+ */
 export function namedPlaces(text: string): NamedPlaces {
-  const words = ` ${fold(text.slice(0, 6000)).replace(/[^\p{L}\p{N}]+/gu, " ").trim()} `;
+  const words = key(text.slice(0, 6000)).split(" ").filter(Boolean);
+  const { names, longest } = placeLookup();
   const countries = new Set<string>(), regions = new Set<Region>();
-  for (const [name, code] of countryNames()) if (words.includes(` ${name} `)) countries.add(code);
-  for (const [name, region] of REGION_WORDS) if (words.includes(` ${name} `)) regions.add(region);
+  for (let i = 0; i < words.length;) {
+    let read = 0;
+    for (let length = Math.min(longest, words.length - i); length > 0 && !read; length--) {
+      const name = words.slice(i, i + length).join(" ");
+      if (!names.has(name)) continue;
+      const place = names.get(name);
+      if (place?.country) countries.add(place.country);
+      if (place?.region) regions.add(place.region);
+      read = length;
+    }
+    i += read || 1;
+  }
   return { countries, regions };
 }
 

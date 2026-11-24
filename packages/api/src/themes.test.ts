@@ -81,3 +81,37 @@ test("a theme named only as an example weighs a quarter, so a tool's examples do
   assert.ok(fundFit(app, program("a", ["Solar energy access"])).score! < 20);
   assert.ok(fundFit(app, program("b", ["Open source", "Public goods"])).score! >= 40);
 });
+
+test("review findings: everyday words are not countries, and longer place names are read whole", () => {
+  const read = (text: string) => [...namedPlaces(text).countries].sort();
+  assert.deepEqual(read("Fazemos uma reunião mensal no Ceará"), []);
+  assert.deepEqual(read("La comunidad gana tierra en Granada"), []);
+  assert.deepEqual(read("We raise guinea fowl"), []);
+  assert.deepEqual(read("Reefs of Papua New Guinea"), ["PG"]);
+  assert.deepEqual(read("Refugees from South Sudan"), ["SS"]);
+  assert.deepEqual(read("Myanmar, Bosnia and Herzegovina, Hong Kong and Trinidad and Tobago"), ["BA", "HK", "MM", "TT"]);
+});
+
+test("review findings: e.g. opens an example list, negation reaches one word, and one phrase can name two themes", () => {
+  assert.deepEqual(ids("An app for community groups, e.g. tree planting and solar panels."), { technology: "lead", forests: "example", energy: "example" });
+  assert.deepEqual(ids("A non-profit education group doing no-till farming."), { education: "lead", farming: "lead" });
+  assert.deepEqual(ids("Not a solar project."), {});
+  assert.deepEqual(ids("Small-scale fisheries."), { farming: "lead", ocean: "lead" });
+  assert.deepEqual(ids("We hold weekly sessions in the forest, planting trees."), { forests: "lead" });
+  // Portuguese "dão" (they give) is not a DAO, and Spanish "media" (half) is not journalism.
+  assert.deepEqual(ids("Mulheres que dão oficinas em media hectárea"), { women: "lead" });
+});
+
+test("review findings: an ask's audience is read as such only when it names people, and never weakens a reading", () => {
+  const program = (id: string, focus: string[]): RubricResult => ({
+    documentId: id, fund: {}, program: { focus, beneficiaries: [], geography: { workCountries: [], scope: "" } },
+    thematicFit: { version: "rubric", score: 50, band: "partial", label: "", evidenceTerms: [] },
+  });
+  const solar = program("solar", ["Solar energy access"]);
+  const card = { description: "A community garden.", tags: [] };
+  const fit = (asks: string[]) => fundFit(readInitiative({ ...card, asks }), solar).score!;
+  assert.equal(fit(["Funding for solar batteries"]), fit(["Solar batteries"]));
+  const later = { description: "A community garden. We also keep solar inverters running.", tags: [] };
+  assert.equal(fundFit(readInitiative({ ...later, asks: ["Spare parts, such as solar inverters"] }), solar).score,
+    fundFit(readInitiative({ ...later, asks: [] }), solar).score);
+});
