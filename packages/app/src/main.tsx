@@ -30,9 +30,14 @@ keepRecordFirstView(root);
 // The Initiatives page from the server arrives with its first cards drawn, and their page as JSON, which
 // the list starts from, so its first draw has the same cards and asks for none.
 keepServedFirstPage(document);
-retireFirstView(root, routePath());
-// The app has started, so the note for a page whose script never ran is not needed.
+// On a return from Certified the root holds Home's view, which must not show even for a frame before
+// the app draws: it is retired as a view drawn for another address, which clears it at once.
+const returning = document.documentElement.hasAttribute("data-returning");
+retireFirstView(root, returning ? "/?projectConsent" : routePath());
+// The app has started, so the note for a page whose script never ran is not needed, nor, away from
+// a return from Certified, the loading view index.html carries for one.
 document.querySelector("[data-app-fallback]")?.remove();
+if (!returning) document.querySelector("[data-returning-view]")?.remove();
 
 createRoot(root).render(
   <StrictMode>

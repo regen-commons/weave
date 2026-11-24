@@ -202,8 +202,8 @@ test("a checked card stays checked: the suggestions wait beside it and nothing l
     "Your project page suggests 1 need, 1 offer. They are not on your card until you keep them.",
   );
   assert.equal(waitingLine([{ kind: "needs" }], true), "Your project page suggests 1 need. It is not on your card until you keep it.");
-  assert.equal(waitingAction(waitingSuggestions(linked)), "Check the suggestions");
-  assert.equal(waitingAction([{ kind: "needs" }]), "Check the suggestion");
+  assert.equal(waitingAction(waitingSuggestions(linked)), "Check The Suggestions");
+  assert.equal(waitingAction([{ kind: "needs" }]), "Check The Suggestion");
   // Saving and sharing carry on with the kept entries only.
   assert.deepEqual(accountDocument(linked).needs, accountDocument(saved).needs);
   assert.deepEqual(accountDocument(linked).offers, accountDocument(saved).offers);

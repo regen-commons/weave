@@ -72,6 +72,34 @@ with "aborted" would have shown as a failure. One change of behavior stays: word
 Talk It Out, followed by silence and Stop, now get the no-speech line instead of filling the
 fields; Fill In The Fields still fills them.
 
+## Brave, and cloud speech in the service's place
+
+The reporter was on Brave on a computer. Brave 156.1.98.60 was run here with a throwaway profile
+and the browser's fake microphone, in a visible window:
+
+- With the microphone prompt left unanswered, a session fires no `start` and no `audiostart`, and
+  `stop()` ends it at once with no words and no error. That is the reported case. Before #220 the
+  page said nothing; with #220 it said "No speech was heard", which was not true either.
+- With the microphone allowed, `audiostart` comes after about 1.6 s and the session fails with
+  `network` about 0.1 s later. Brave's own tracker has kept this open since 2019
+  ([brave-browser#2802](https://github.com/brave/brave-browser/issues/2802)).
+- `navigator.brave.isBrave()` is there, and `SpeechRecognition.available()` answers `unavailable`.
+
+Not checked here: Brave on a phone, and Brave with a real microphone and a person's voice.
+
+Then the fallback, class **local** (production build, a scripted recognizer with no speech service
+behind it, HeadlessChrome 159), at 360 by 780 and 1280 by 900, light and dark, by keyboard:
+
+| Case | After Stop | The next press |
+|---|---|---|
+| Brave (`isBrave()` true) | Talk It Out is cloud speech from the start, "Weave can turn a recording of your voice into text with Cloudflare. It asks first." | The cloud speech notice |
+| Audio for 3.8 s, nothing back, no error, the second time | "This browser's speech service did not answer. Press Talk It Out to send a recording to Cloudflare instead, after Weave asks, or type in the box." Talk It Out switches to cloud speech | The cloud speech notice |
+| `network` 1.8 s in | The same line and switch | The cloud speech notice |
+| Microphone never opened | "The microphone did not turn on. Allow it if your browser asks, then try again, or type in the box." | The browser's service again |
+
+Nothing was recorded or sent in any of these: the only call to `/api/transcribe` was the status
+question.
+
 ## Not proven
 
 - Which recognizer the reporter used, and why it gave no words in time. Their browser and device

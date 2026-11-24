@@ -5,7 +5,7 @@ import { accountMessage, accountRequest } from "./client.ts";
 import { useAccount } from "./context.tsx";
 import { useAccountDoor } from "./door.tsx";
 import { continueToCertified } from "./sign-in.ts";
-import { warmSignIn } from "./warm.ts";
+import { warmProjectConsent, warmSignIn } from "./warm.ts";
 import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { pathTo } from "../routes.ts";
 
@@ -56,8 +56,12 @@ export function SignInButton({
   // Only where a press would go to Certified: accounts on, nobody signed in, and not the example world.
   const offered = !!state?.available && !state.user && !(import.meta.env.DEV && example);
   useEffect(() => {
-    if (offered) warmSignIn();
-  }, [offered]);
+    if (!offered) return;
+    warmSignIn();
+    // A sign-in that goes on to project access (one asking for projects, or any from Your Initiatives)
+    // starts that function now too. The account fixture answers it with a stand-in error, so not there.
+    if (!state?.fixture && (thenProjects || window.location.pathname === pathTo("your-initiatives"))) warmProjectConsent();
+  }, [offered, thenProjects, state?.fixture]);
   const warm = offered ? warmSignIn : undefined;
   async function signIn() {
     if (busy) return;

@@ -1,3 +1,7 @@
 dist/
 public/brand/
 dist-prototype/
+# Interface check output (e2e/README.md)
+test-results/
+playwright-report/
+.lighthouseci/
