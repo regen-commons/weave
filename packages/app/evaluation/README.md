@@ -149,20 +149,33 @@ maybe and 614 doesn't. They reported that most "doesn't" notes were written by r
 from a program's focus and geography rather than pair by pair, so those notes are
 hints only. No metric counts a draft.
 
+`fund-relevance-owner-v1-labels.json` holds the pairs for **Green Goods** and **Tech and
+Sun**, two real projects whose owner grades every pair in person. They are included with
+their owner's consent, in public-safe form built only from their public docs (the Green
+Goods repository, MIT, and the Tech and Sun documentation, CC BY-SA 4.0), as an exception
+to the rule that fixtures describe invented initiatives: `fund-relevance-owner-v1.json`
+gives each one's source. Their pool is Funding's first 20 and the live site's first 10,
+plus the funds their profile expected to fit or not that Weave did not rank high, so a
+missed match can count. No agent graded them: every pair waits, ungraded, for the owner.
+
 To review, export a spreadsheet outside the repository, grade the rows you judge, and
-import it:
+import it. `--labels` picks the file by its dataset name; the first is the default:
 
 ```sh
-bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # drafts and confirmations beside each row
-bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # neither, to judge unprompted
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv          # Weave's ranks, drafts and confirmations beside each row
+bun run --filter @weave/app eval:labels -- --export ~/weave-review.csv --blind  # none of them, to judge unprompted
+bun run --filter @weave/app eval:labels -- --export ~/sample.csv --blind --initiatives rel-001,rel-009
+bun run --filter @weave/app eval:labels -- --labels fund-relevance-owner-v1-labels --export ~/owner.csv
 bun run --filter @weave/app eval:labels -- --import ~/weave-review.csv --reviewer "Your Name"
+bun run --filter @weave/app eval:labels -- --add-pool   # after a ranking change: new candidates, ungraded
 bun run --filter @weave/app eval:funds -- --record-baseline
 ```
 
 Each row shows the initiative's words and places, the program's focus, who it serves,
-its geography and kind of funding, its draft and any confirmation already made. "Your
-grade" always starts blank: fill it in (fits, maybe or doesn't) for the rows you judge,
-and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
+its geography and kind of funding, where Weave ranked it on Funding and the live site, its
+draft and any confirmation already made. "Your grade" always starts blank: fill it in with
+strong, possible or wrong (fits, maybe and doesn't are read the same way) for the rows you
+judge, and add "your note" if you like. The sheet opens in a spreadsheet as UTF-8, and one
 saved back with semicolons reads the same. The import confirms exactly the rows you
 graded, under your name and the day, keeps the draft each one answered beside it, and
 leaves every other row as it was. It refuses a row for a pair the file does not hold,
@@ -176,6 +189,8 @@ The file holds one grade per pair. Who judges is still to be decided. A blind sh
 avoids leaning on the drafts; to have two people judge, give the second a blind sheet,
 compare their grades outside the file, and import the grade they agree on.
 
-A catalog change can drop a program a draft names. That draft counts for nothing, so CI
-only warns; rebuild the pool before it is reviewed. A confirmed label for a program the
+A ranking change can bring programs into a first five that the file does not hold:
+`--add-pool` adds them as ungraded drafts. A catalog change can drop a program a draft
+names. That draft counts for nothing, so CI only warns; rebuild the pool before it is
+reviewed. A confirmed label for a program the
 catalog no longer holds fails by name.

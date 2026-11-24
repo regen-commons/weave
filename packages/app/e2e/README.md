@@ -55,11 +55,13 @@ person's browser does.
   app tests, fails if an address loses its budget, since Lighthouse CI drops a budget whose
   pattern matches nothing without a word.
 
-Best practices is 96 rather than 100 because `src/intake/state.ts` imports Zod directly
-rather than through `src/validation.ts`, so a parse can run before Zod is told not to
-compile code, and the content security policy blocks its probe, which Chrome logs as an
-issue. Production is still 100 because that change has not reached it. Once the import is
-fixed, set the budget back to 1.
+Best practices is 96 rather than 100 because Zod probes `Function("")` to decide whether
+it may compile code, the content security policy blocks the probe, and Chrome logs an
+issue. `src/validation.ts` turns the probe off with `z.config({ jitless: true })`, but the
+app's `package.json` lists only `src/main.tsx` and CSS under `sideEffects`, so the build
+drops that call: no built file contains it, and the page's Zod config has no `jitless`.
+Production is still 100 because the parse that trips it has not reached it. Once
+`./src/validation.ts` is in `sideEffects`, set the budget back to 1.
 
 | Route | Budget | Local, one run | GitHub, median of 3 (two runs) | LCP on GitHub |
 |---|---:|---:|---:|---:|

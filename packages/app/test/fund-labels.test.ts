@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { csvCell, exportCsv, importCsv, parseCsv, readGrade, serializeLabels } from "../evaluation/fund-labels.ts";
+import { addPool, addPrograms, csvCell, exportCsv, importCsv, parseCsv, readGrade, serializeLabels } from "../evaluation/fund-labels.ts";
 import { LABEL_FILES, gateMetrics, loadRankingData, loadRankingSet, measure, rankSet, validateLabels, type LabelSet } from "../evaluation/fund-ranking.ts";
 
 const setup = (async () => {
@@ -106,4 +106,40 @@ test("a note that opened with a formula character comes back as written", async 
   const row = first!.map((value, j) => (j === header!.indexOf("your grade") ? "doesnt" : j === header!.indexOf("your note") ? "-outside scope" : value));
   const sheet = [header!, row].map((r) => r.map(csvCell).join(",")).join("\n");
   assert.equal(importCsv(labels, sheet, "Ana Reviewer", "2026-11-25").labels.labels[0]!.note, "-outside scope");
+});
+
+test("Green Goods and Tech and Sun are their owner's to grade: real, public-safe, and every pair waits for a person", async () => {
+  const raw = JSON.parse(await readFile(LABEL_FILES[1]!, "utf8")) as LabelSet;
+  const [data, set] = await Promise.all([loadRankingData(), loadRankingSet(raw.initiatives)]);
+  const labels = validateLabels(raw, set, new Set(data.names.keys()));
+  assert.deepEqual(set.initiatives.map((row) => [row.id, row.source, row.sourceUri, row.where]), [
+    ["owner-green-goods", "owner", "https://github.com/greenpill-dev-guild/green-goods", "Global"],
+    ["owner-tech-and-sun", "owner", "https://github.com/Greenpill9ja/tas-documentation", "Awka, Nigeria"],
+  ]);
+  for (const label of labels.labels)
+    if (label.status === "draft") assert.deepEqual([label.grade, label.by], [null, "agent: pool"], "no agent grades the owner's projects");
+    else assert.ok(!/^agent:/u.test(label.by) && label.grade !== null);
+  // Each pool holds Weave's first 20 on Funding, so the owner's grades reach every first five.
+  const ranked = await rankSet(data, set);
+  for (const [id, paths] of ranked) {
+    const held = new Set(labels.labels.filter((label) => label.initiative === id).map((label) => label.documentId));
+    assert.ok(paths.funding.slice(0, 20).every((place) => held.has(place.id)), id);
+  }
+});
+
+test("the pool grows with the ranking, never twice, and an ungraded pair can only be a draft", async () => {
+  const { labels, data, set } = await setup;
+  const ranked = await rankSet(data, { ...set, initiatives: set.initiatives.slice(0, 1) });
+  const id = set.initiatives[0]!.id;
+  // A pair the ranking now puts first but the file does not hold yet.
+  const missing = { ...labels, labels: labels.labels.filter((label) => !(label.initiative === id && label.documentId === ranked.get(id)!.funding[0]!.id)) };
+  const grown = addPool(missing, ranked, "2026-11-24");
+  assert.equal(grown.added, 1);
+  assert.deepEqual(grown.labels.labels.at(-1), { initiative: id, documentId: ranked.get(id)!.funding[0]!.id, grade: null, status: "draft", by: "agent: pool", note: "In the pool from 2026-11-24." });
+  assert.equal(addPool(grown.labels, ranked, "2026-11-24").added, 0);
+  assert.equal(addPrograms(labels, id, [labels.labels[0]!.documentId, labels.labels[0]!.documentId], "x").added, 0, "held pairs stay as they are");
+  const broken = structuredClone(labels);
+  Object.assign(broken.labels[0]!, { grade: null, status: "confirmed", by: "Ana Reviewer", confirmedOn: "2026-11-25" });
+  assert.throws(() => validateLabels(broken, set), { message: "invalid_label" });
+  assert.deepEqual(["Strong", "possible", "WRONG"].map(readGrade), ["fits", "maybe", "doesnt"]);
 });
