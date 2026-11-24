@@ -7,6 +7,7 @@ import {
   DISCARD_RECORDING,
   recordingLabel,
   holdsTalkRoom,
+  type SpeechSetupState,
   talkControls,
   talkHold,
 } from "../describe/speech-setup.ts";
@@ -97,15 +98,25 @@ export function TalkItOut({
 }) {
   const id = useId();
   const [choosing, setChoosing] = useState(false);
-  const [agreeing, setAgreeing] = useState(false);
+  // The agreement sheet asks about one way of talking. If what Talk It Out offers changes while it is
+  // open, as when another tab notes a failed speech service, it closes and nothing is agreed.
+  const [agreeingFor, setAgreeingFor] = useState<SpeechSetupState | null>(null);
+  if (agreeingFor !== null && agreeingFor !== speech.state) setAgreeingFor(null);
+  const agreeing = agreeingFor !== null;
   const [focused, setFocused] = useState(false);
+  // A session keeps the way of talking it started with, so the button and the line describe it even
+  // if the offer for the next press changes while it listens.
+  const [held, setHeld] = useState<SpeechSetupState | null>(null);
+  if (listening && held === null) setHeld(speech.state);
+  if (!listening && held !== null) setHeld(null);
+  const state = listening && held !== null ? held : speech.state;
   // Stop was pressed here. The page ends listening only when the recognizer has handed over its
   // last words, which can take a moment, so the button says Finishing from the press itself.
   const [stopPressed, setStopPressed] = useState(false);
   if (stopPressed && !listening) setStopPressed(false);
   // Where a recording is made (cloud speech), its session says where it stands: still opening the
   // microphone, recording, or on its way, which the time limit can bring about with no press at all.
-  const cloud = speech.state === "cloud";
+  const cloud = state === "cloud";
   const session = useSyncExternalStore(cloudSession.subscribe, cloudSession.view);
   const recording = cloud && listening ? session : null;
   const stopping = listening && (stopPressed || recording?.phase === "sending");
@@ -135,7 +146,7 @@ export function TalkItOut({
   useEffect(() => {
     if (listening && box.current) box.current.scrollTop = box.current.scrollHeight;
   }, [listening, value]);
-  const controls = talkControls(speech.state, {
+  const controls = talkControls(state, {
     listening,
     stopping,
     starting: recording?.phase === "starting",
@@ -148,7 +159,7 @@ export function TalkItOut({
   const names = new Intl.DisplayNames(["en"], { type: "language" });
   const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
   const hold = talkHold(controls.action, { working, disabled, focused });
-  const talk = controls.agreement ? () => setAgreeing(true) : onStart;
+  const talk = controls.agreement ? () => setAgreeingFor(speech.state) : onStart;
   // Each way of talking that leaves the device has its own notice, and its own agreement behind it.
   const notice = cloud ? CLOUD_SPEECH_NOTICE : BROWSER_SPEECH_NOTICE;
   const stop = () => {
@@ -323,7 +334,7 @@ export function TalkItOut({
         </div>
       </TaskDialog>
       {/* Asked before the first use on a device. Nothing listens until the person agrees. */}
-      <TaskDialog title={notice.title} open={agreeing} onClose={() => setAgreeing(false)}>
+      <TaskDialog title={notice.title} open={agreeing} onClose={() => setAgreeingFor(null)}>
         <div className="rc-stack">
           {notice.body.map((line) => (
             <p key={line}>{line}</p>
@@ -335,13 +346,13 @@ export function TalkItOut({
               type="button"
               onClick={() => {
                 speech.consent.agree();
-                setAgreeing(false);
+                setAgreeingFor(null);
                 onStart();
               }}
             >
               {notice.agree}
             </button>
-            <button className="rc-button" data-variant="quiet" type="button" onClick={() => setAgreeing(false)}>
+            <button className="rc-button" data-variant="quiet" type="button" onClick={() => setAgreeingFor(null)}>
               {notice.decline}
             </button>
           </div>

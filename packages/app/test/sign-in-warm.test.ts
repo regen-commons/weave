@@ -31,3 +31,12 @@ test("a warm request that fails is silent and lets the next sight of Sign In ask
   warm();
   assert.equal(calls, 2);
 });
+
+test("a Sign In that goes on to project access readies that too, and not in the account fixture", async () => {
+  const { readFileSync } = await import("node:fs");
+  const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
+  const warm = read("../src/account/warm.ts");
+  assert.match(warm, /export const warmProjectConsent = createSignInWarmer\(\(body\) => accountRequest\("", body, "\/api\/certified-project-consent"\)\);/u);
+  const button = read("../src/account/SignInButton.tsx");
+  assert.match(button, /if \(!offered\) return;\s*warmSignIn\(\);[\s\S]*?if \(!state\?\.fixture && \(thenProjects \|\| window\.location\.pathname === pathTo\("your-initiatives"\)\)\) warmProjectConsent\(\);/u);
+});

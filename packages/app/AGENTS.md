@@ -118,8 +118,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
   speech on the device, its own speech service may be used, only after the person
   agrees to a notice that it may send their voice away, and never as a silent
   fallback (`src/describe/speech-consent.ts`, 19 November 2026). Where the browser has
-  no speech recognition at all and the server has cloud speech on, a person who agrees
-  to its own notice can record, and the recording goes once through `/api/transcribe`
+  no speech recognition at all, or its own speech service cannot work here (Brave, or a
+  failure this device noted in `src/describe/speech-fallback.ts`), and the server has
+  cloud speech on, a person who agrees to its own notice can record, and the recording goes once through `/api/transcribe`
   to the provider the notice names (`src/describe/speech-cloud.ts`, 23 November 2026).
   That module is the only place the app records or sends audio, and a test fails if
   another does. No example records or sends anything: an example of cloud speech shows
@@ -147,6 +148,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | Any change | `bun run --filter @weave/app test` and `bun run --filter @weave/app typecheck` |
 | Before push | `bun run ci`, which builds and tests every package and the live site |
 | Anything people see | Start the `app` server in `.claude/launch.json` (`bun run --filter @weave/app dev`, port 5173) and check 360 px and 1280 px in both themes, with the keyboard, then run the five-minute review |
+| The describe flow, a route or a screen's layout | After building the API and the app, `bun run --filter @weave/app e2e`: the flows, axe and, in CI, screenshots, as [e2e/README.md](e2e/README.md) says |
 
 The tests check the route table, that every `rc-` class, form of capital and icon
 exists in the design system, that there are no inline styles, raw values or app CSS

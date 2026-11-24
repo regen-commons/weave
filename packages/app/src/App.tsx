@@ -4,7 +4,7 @@ import { AccountProvider, useAccount } from "./account/context.tsx";
 import { ForThisAccount } from "./account/SetAside.tsx";
 import { useSetAside } from "./account/set-aside.ts";
 import { accountKey } from "./account/document.ts";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { readFixtures, EXAMPLE_SUBJECT, type FixtureContext } from "./fixtures.ts";
 import { DraftProvider } from "./describe/context.tsx";
 import { useDraft } from "./describe/use-draft.ts";
@@ -202,6 +202,20 @@ function useDrawnLocation(): string {
   return ready ? target : drawn;
 }
 
+/**
+ * The wait after Certified's permission screen. index.html carries this same view, drawn at build
+ * time (dev/prerender.ts), so it shows from the first paint; it is taken away before this one paints.
+ */
+function Returning() {
+  useLayoutEffect(() => {
+    document.querySelector("[data-returning-view]")?.remove();
+  }, []);
+  return <div className="rc-page"><main className="rc-main" id="main" tabIndex={-1}>
+    <NarrowLayout><Heading level={1} size="page">Returning To Weave</Heading>
+      <DraftSkeleton label="Finishing Certified permissions" /></NarrowLayout>
+  </main></div>;
+}
+
 export function App() {
   const location = useDrawnLocation();
   const { pathname, search } = splitRoute(location);
@@ -232,10 +246,7 @@ export function App() {
     import.meta.env.DEV && new URLSearchParams(routeSearch()).has("fixture")
       ? readFixtures(routeSearch())
       : undefined;
-  if (returning) return <div className="rc-page"><main className="rc-main" id="main" tabIndex={-1}>
-    <NarrowLayout><Heading level={1} size="page">Returning To Weave</Heading>
-      <DraftSkeleton label="Finishing Certified permissions" /></NarrowLayout>
-  </main></div>;
+  if (returning) return <Returning />;
   return (
     <DraftProvider fixture={fixture}>
       <AccountProvider fixture={!!fixture}>

@@ -1080,6 +1080,14 @@ A browser with no speech recognition, such as Firefox, got one line saying it co
 
 Given up: on these browsers a person sees no words until they stop, and must trust the count. A recording that fails to arrive is dropped and not tried again, so "sent once" stays true and nothing is kept; the person records again.
 
+**Revised 23 November 2026**, asked for through the orchestrating session after the user's report from Brave (Talk It Out gave no words). The owner's own confirmation of this widening is still to be recorded. A browser whose own speech service cannot work here also gets cloud speech, with the same notice and agreement.
+
+- **Brave, from the first press.** Brave has a recognizer with no speech service behind it. Checked in Brave 156: while Brave asks about the microphone nothing starts, and Stop ends the session with no words and no error; once the microphone is allowed, the session fails with `network` about two seconds in. Brave says who it is (`navigator.brave.isBrave()`), so Talk It Out offers cloud speech straight away.
+- **Any other browser, after its service failed here.** Before that service ever gave words on this device: a session that fails with `network` while the device is online, or with `service-not-allowed`, or two sessions that each had audio for three seconds and gave nothing back by Stop (one may be a person thinking). The status line says "This browser's speech service did not answer. Press Talk It Out to send a recording to Cloudflare instead, after Weave asks, or type in the box.", and the next press offers cloud speech with its agreement. Once the service has given words here, a failure is taken as a passing one. Settings says when cloud speech stands in for the browser's service, and Use Browser Speech Again, or Stop Using Cloud Speech, forgets the failure. A session keeps the way of talking it started with, and an agreement sheet that is open when the offer changes closes with nothing agreed.
+- **The microphone that never opened is its own problem.** Stop before the browser opened the microphone says "The microphone did not turn on. Allow it if your browser asks, then try again, or type in the box.", and counts against nothing: cloud speech needs the same microphone.
+
+Given up: a person who stays silent for three seconds twice on the first tries of a working service is offered cloud speech next time; Use Browser Speech Again in Settings brings the service back. The device keeps one word about the browser's service (`speech-fallback.ts`), and the data policy says so.
+
 From Krug: say where things go before the press that sends them. From Dirksen: say what is happening while the person waits.
 
 ## DL-139: Funding's first cards come with the page, and a list ranked by fit waits for its ranking
