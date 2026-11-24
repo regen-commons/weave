@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { STOP_WAIT_MS } from "../describe/speech.ts";
+import { STOP_WAIT_NO_WORDS_MS } from "../describe/speech.ts";
 import { CLOUD_FINISH_MS, cloudSession } from "../describe/speech-cloud.ts";
 import {
   BROWSER_SPEECH_NOTICE,
@@ -109,12 +109,12 @@ export function TalkItOut({
   const session = useSyncExternalStore(cloudSession.subscribe, cloudSession.view);
   const recording = cloud && listening ? session : null;
   const stopping = listening && (stopPressed || recording?.phase === "sending");
-  // A session ends inside STOP_WAIT_MS of its Stop, or inside CLOUD_FINISH_MS where a recording
-  // is sent. If the page is still listening after that, the press did not reach a session, so
-  // Stop comes back and can be pressed again.
+  // A session ends inside STOP_WAIT_NO_WORDS_MS of its Stop, or inside CLOUD_FINISH_MS where a
+  // recording is sent. If the page is still listening after that, the press did not reach a
+  // session, so Stop comes back and can be pressed again.
   useEffect(() => {
     if (!stopPressed) return;
-    const timer = setTimeout(() => setStopPressed(false), (cloud ? CLOUD_FINISH_MS : STOP_WAIT_MS) + 500);
+    const timer = setTimeout(() => setStopPressed(false), (cloud ? CLOUD_FINISH_MS : STOP_WAIT_NO_WORDS_MS) + 500);
     return () => clearTimeout(timer);
   }, [stopPressed, cloud]);
   // Cloud speech shows no words while it records, so the box's label counts the time instead.

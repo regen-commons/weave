@@ -110,6 +110,7 @@ test("a recognizer that ends by itself after a pause is told apart from the pers
   const handle = await startSpeech("browser", "en-US", stopped.callbacks, { speech, consent: memoryConsent(true) });
   handle.stop();
   assert.equal(sessions[1]?.stopped, 1);
+  sessions[1]?.say("We grow seedlings");
   sessions[1]?.onend?.();
   assert.deepEqual(stopped.heard.ends, [true]);
   handle.stop();
