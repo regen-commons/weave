@@ -61,20 +61,21 @@ compile code, and the content security policy blocks its probe, which Chrome log
 issue. Production is still 100 because that change has not reached it. Once the import is
 fixed, set the budget back to 1.
 
-| Route | Performance budget | Local, 23 November 2026 | LCP |
-|---|---:|---:|---:|
-| Home | 85 | 94 | 1.0 s |
-| Initiatives | 70 | 84 | 4.2 s |
-| Funding | 85 | 97 | 0.9 s |
-| A fund | 90 | 98 | 0.9 s |
-| Describe | 90 | 96 | 0.9 s |
-| Your Initiatives | 90 | 99 | 0.9 s |
-| Settings | 90 | 99 | 0.9 s |
+| Route | Budget | Local, one run | GitHub, median of 3 (two runs) | LCP on GitHub |
+|---|---:|---:|---:|---:|
+| Home | 85 | 94 | 99 | 0.9 s |
+| Initiatives | 75 | 84 | 86 | 4.1 s |
+| Funding | 85 | 97 | 99 | 0.9 s (3.2 s once) |
+| A fund | 85 | 98 | 99, 85 | 0.9 s (3.8 s once) |
+| Describe | 90 | 96 | 99 | 0.9 s |
+| Your Initiatives | 90 | 99 | 100 | 0.9 s |
+| Settings | 90 | 99 | 100 | 0.9 s |
 
-The local numbers are one run each on a busy machine. The budgets leave about ten points
-for a runner's noise; raise each one toward its median once a few runs on GitHub have
-shown how much they move, and toward 100 as the pages improve. Initiatives is the one far
-from the 2 s bar.
+Measured on 23 November 2026. One GitHub run had Funding's and a fund page's largest paint
+at 3 to 4 s and the fund page at 85, and the next had both at 0.9 s, so a runner can swing
+a route by about 15 points; the budgets sit below that. Raise each toward its median once
+more runs have shown the spread, and toward 100 as the pages improve. Initiatives is the
+one far from the 2 s bar.
 
 ## When a picture changes
 

@@ -35,9 +35,9 @@
           "assertions": { "categories:seo": ["error", { "minScore": 1, "aggregationMethod": "median-run" }] }
         },
         { "matchingUrlPattern": "^http://localhost:4800/$", "assertions": { "categories:performance": ["error", { "minScore": 0.85, "aggregationMethod": "median-run" }] } },
-        { "matchingUrlPattern": "/initiatives$", "assertions": { "categories:performance": ["error", { "minScore": 0.7, "aggregationMethod": "median-run" }] } },
+        { "matchingUrlPattern": "/initiatives$", "assertions": { "categories:performance": ["error", { "minScore": 0.75, "aggregationMethod": "median-run" }] } },
         { "matchingUrlPattern": "/funding$", "assertions": { "categories:performance": ["error", { "minScore": 0.85, "aggregationMethod": "median-run" }] } },
-        { "matchingUrlPattern": "/funding/local-nlnet$", "assertions": { "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median-run" }] } },
+        { "matchingUrlPattern": "/funding/local-nlnet$", "assertions": { "categories:performance": ["error", { "minScore": 0.85, "aggregationMethod": "median-run" }] } },
         { "matchingUrlPattern": "/start/initiative$", "assertions": { "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median-run" }] } },
         { "matchingUrlPattern": "/your-initiatives$", "assertions": { "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median-run" }] } },
         { "matchingUrlPattern": "/settings$", "assertions": { "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median-run" }] } }
