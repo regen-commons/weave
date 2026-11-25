@@ -82,6 +82,7 @@ test("the sheet sends the page's path, never its query, keeps one key per set of
   // Page's pathname is the route's path alone, with its query split off.
   const app = read("src/App.tsx");
   assert.match(app, /const \{ pathname, search \} = splitRoute\(location\);/u);
-  assert.match(app, /const pagePath = under \? splitRoute\(under\.route\)\.pathname : pathname;/u);
+  assert.match(app, /const pageLocation = under \? splitRoute\(under\.route\) : \{ pathname, search \};/u);
+  assert.match(app, /const pagePath = pageLocation\.pathname;/u);
   assert.match(app, /<Page\s+pathname=\{pagePath\}/u);
 });

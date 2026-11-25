@@ -128,46 +128,49 @@ export function useCatalog(example?: Bundle, subject?: FundingSubject, { compare
   const setAside = useSetAside();
   const draft = subject ?? (setAside ? { ...device.draft, confirmed: null } : device.draft);
   const { bundle, loading, failed, attempt, retry } = useCatalogBundle(example);
-  const [results, setResults] = useState<Evaluation[] | null>(null);
-  const [rankError, setRankError] = useState("");
-  const [ranking, setRanking] = useState(false);
-  const subjectKey = fundingKey(draft);
+  const [rank, setRank] = useState<{
+    bundle: Bundle;
+    subjectKey: string;
+    attempt: number;
+    results?: Evaluation[];
+    error?: string;
+  }>();
+  const subjectKey = compare ? fundingKey(draft) : "";
+  // Drop earlier results in the same render as a change of subject or loss of workspace access.
+  const current = compare && rank?.bundle === bundle && rank?.subjectKey === subjectKey &&
+    rank?.attempt === attempt ? rank : undefined;
   useEffect(() => {
     const abort = new AbortController();
-    setResults(null);
-    setRanking(false);
-    setRankError("");
+    setRank(undefined);
     if (!bundle || !compare) return;
+    const request = { bundle, subjectKey, attempt };
     let project;
     try {
       project = projectFromKey(subjectKey);
     } catch {
-      setRankError(
-        "Your saved funding details need checking. The unranked catalog is available; change those details to continue.",
-      );
+      setRank({ ...request,
+        error: "Your saved funding details need checking. The unranked catalog is available; change those details to continue.",
+      });
       return;
     }
     if (!project || !project.description.trim()) return;
-    setRanking(true);
+    setRank(request);
     void rankCatalog(bundle, project, abort.signal)
       .then((value) => {
-        if (!abort.signal.aborted) setResults(value);
+        if (!abort.signal.aborted) setRank({ ...request, results: value });
       })
       .catch(() => {
         if (!abort.signal.aborted)
-          setRankError("The local matcher could not finish. The unranked catalog is available; try again.");
-      })
-      .finally(() => {
-        if (!abort.signal.aborted) setRanking(false);
+          setRank({ ...request, error: "The local matcher could not finish. The unranked catalog is available; try again." });
       });
     return () => abort.abort();
   }, [bundle, subjectKey, attempt, compare]);
   return {
     bundle,
-    results,
-    error: (failed ? "The catalog could not load. Your initiative and filter choices are still here." : "") || rankError,
+    results: current?.results ?? null,
+    error: failed ? "The catalog could not load. Your initiative and filter choices are still here." : current?.error ?? "",
     loading,
-    ranking,
+    ranking: !!current && !current.results && !current.error,
     retry,
     personalized: hasCheckedCard(draft),
     /** Whether the card to compare with is known yet. Until the device draft opens, `personalized` is a guess. */

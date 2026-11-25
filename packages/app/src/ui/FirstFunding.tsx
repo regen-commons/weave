@@ -1,6 +1,6 @@
 import { useCatalog, type FundingSubject } from "../funding/use-catalog.ts";
 import { catalogEntries } from "../funding/catalog.ts";
-import { fundingFits, fundingFitsLine } from "../funding/select.ts";
+import { fundingFits, fundingFitsLine, workspaceFundingSearch } from "../funding/select.ts";
 import { CardGrid } from "./Card.tsx";
 import { CardGridSkeleton } from "./CardSkeleton.tsx";
 import { OpportunityCard } from "./OpportunityCard.tsx";
@@ -11,7 +11,9 @@ import { ButtonLink } from "./ButtonLink.tsx";
  * with its fit line and what it still needs checking, and how many more may fit (DL-141). It reads
  * the ranking Funding sorts with (`fundingFits`), so the two never disagree.
  */
-export function FirstFunding({ subject }: { subject?: FundingSubject }) {
+export function FirstFunding({ workspace }: { workspace?: { subject: FundingSubject; id: string } }) {
+  const subject = workspace?.subject;
+  const search = workspace ? workspaceFundingSearch(workspace.id) : undefined;
   const { bundle, results, loading, ranking, error, retry, personalized } = useCatalog(undefined, subject);
   const fits = bundle && results ? fundingFits(catalogEntries(bundle), results) : null;
   // A checked card is compared as soon as the catalog is here; until its ranking lands it is still
@@ -44,7 +46,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
           <CardGrid>
             {fits.first.map(({ entry, result }) => (
               <li key={entry.id}>
-                <OpportunityCard entry={entry} result={result} level={3} />
+                <OpportunityCard entry={entry} search={search} result={result} level={3} />
               </li>
             ))}
           </CardGrid>
@@ -53,7 +55,7 @@ export function FirstFunding({ subject }: { subject?: FundingSubject }) {
       ) : (
         <p>{fits ? fundingFitsLine(fits) : "This card is not compared with funding yet."}</p>
       )}
-      <ButtonLink href="/funding" variant="secondary">
+      <ButtonLink href={search ? `/funding?${search}` : "/funding"} variant="secondary">
         Browse All Funding
       </ButtonLink>
     </>
