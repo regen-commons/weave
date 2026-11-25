@@ -3,17 +3,13 @@
 //
 // A browser that cannot turn speech into text records the person's voice, only after they agree
 // to a notice that names the provider, and posts the recording here once (the owner's decision of
-// 23 November 2026). The recording goes to the provider and nowhere else. Nothing about it is
-// stored or logged here: not the audio, not the words, not who sent it.
+// 23 November 2026). Audio and words go only through the provider and are never stored or logged.
 //
-// It is off until WEAVE_CLOUD_SPEECH_ENABLED=true with WEAVE_CLOUDFLARE_ACCOUNT_ID and
-// WEAVE_CLOUDFLARE_AI_TOKEN set, and then GET answers `enabled: true` and the app offers it.
-// It needs no sign-in, because describing an initiative comes before one. What bounds its use is
-// the size of one recording, the same-origin and agreement checks below, and the provider's
-// daily allowance, which on Cloudflare's Workers Free plan fails closed when used up and on its
-// Paid plan is billed instead. It keeps no count of its own.
+// It needs no sign-in, because describing an initiative comes before one. Every real provider
+// call needs a reservation against the connection's quota and Weave's shared daily quota.
 import { CLOUD_SPEECH, TRANSCRIPT_LIMIT, type SpeechFailure, type SpeechStatus } from "./transcribe-contract.ts";
 import { createCloudflareSpeech, createSyntheticSpeech, SpeechError, whisperLanguage, type SpeechProvider } from "./transcribe-provider.ts";
+import { configuredSpeechQuota, type SpeechQuota } from "./transcribe-quota.ts";
 
 /** Reads at most `limit` bytes of a request body, and gives up on one that arrives too slowly. */
 async function boundedBytes(request: Request, limit: number, timeoutMs: number): Promise<Uint8Array> {
@@ -58,29 +54,34 @@ async function boundedBytes(request: Request, limit: number, timeoutMs: number):
 
 export function createTranscribeHandlers({
   provider,
+  quota,
   maxSeconds = CLOUD_SPEECH.maxSeconds,
   maxBytes = CLOUD_SPEECH.maxBytes,
   uploadTimeoutMs = 20000,
 }: {
   /** null: cloud speech is off or not configured. */
   provider: SpeechProvider | null;
+  quota: SpeechQuota | null;
   maxSeconds?: number;
   maxBytes?: number;
   /**
-   * How long the recording may take to arrive. With the provider's 30 seconds this keeps one
-   * request under a minute, inside the app's own wait and a function's time limit.
+   * How long the recording may take to arrive. The quota and provider waits keep the total
+   * inside the app's own wait and the function's time limit.
    */
   uploadTimeoutMs?: number;
 }) {
-  const answer = (status: number, body: unknown) =>
-    Response.json(body, { status, headers: { "Cache-Control": "no-store", ...(status === 405 ? { Allow: "GET, POST" } : {}) } });
+  const answer = (status: number, body: unknown, headers?: Record<string, string>) =>
+    Response.json(body, { status, headers: { "Cache-Control": "no-store", ...headers } });
   const refuse = (error: unknown) => {
     const known = error instanceof SpeechError ? error : new SpeechError(502, "speech_failed");
-    return answer(known.status, { error: known.code satisfies SpeechFailure });
+    return answer(known.status, { error: known.code satisfies SpeechFailure }, {
+      ...(known.status === 405 ? { Allow: "GET, POST" } : {}),
+      ...(known.retryAt === undefined ? {} : { "Retry-After": new Date(known.retryAt).toUTCString() }),
+    });
   };
   return {
     GET(): Response {
-      return answer(200, { enabled: provider !== null, maxSeconds, maxBytes } satisfies SpeechStatus);
+      return answer(200, { enabled: provider !== null && quota !== null, maxSeconds, maxBytes } satisfies SpeechStatus);
     },
     async POST(request: Request): Promise<Response> {
       try {
@@ -95,8 +96,18 @@ export function createTranscribeHandlers({
         const language = tag === null ? null : whisperLanguage(tag);
         if (language === undefined) throw new SpeechError(400, "invalid_language");
         // Checked before the body is read, so a browser is told at once and sends nothing more.
-        if (!provider) throw new SpeechError(503, "speech_unavailable");
+        if (!provider || !quota) throw new SpeechError(503, "speech_unavailable");
         const audio = await boundedBytes(request, maxBytes, uploadTimeoutMs);
+        request.signal.throwIfAborted();
+        const reservation = await quota(request).catch(() => {
+          throw new SpeechError(503, "speech_unavailable");
+        });
+        if (!reservation.allowed) {
+          const code = reservation.limit === "caller" ? "speech_caller_limited" : "speech_limit_reached";
+          throw new SpeechError(429, code, reservation.retryAt);
+        }
+        // Keep the reservation even if the call fails or is cancelled. It may already have cost work.
+        request.signal.throwIfAborted();
         const { text } = await provider.transcribe(audio, { language, signal: request.signal });
         return answer(200, { text: text.slice(0, TRANSCRIPT_LIMIT) });
       } catch (error) {
@@ -111,8 +122,12 @@ export function createTranscribeHandlers({
  * cloud speech off and says nothing about why. The synthetic provider answers local runs only:
  * never where VERCEL is set, as on every deployment, and never in a production build.
  */
-export function configuredSpeech(env: Record<string, string | undefined> = process.env): SpeechProvider | null {
-  if (env.WEAVE_CLOUD_SPEECH_FIXTURE === "true" && !env.VERCEL && env.NODE_ENV !== "production") return createSyntheticSpeech();
+function usesSpeechFixture(env: NodeJS.ProcessEnv): boolean {
+  return env.WEAVE_CLOUD_SPEECH_FIXTURE === "true" && !env.VERCEL && env.NODE_ENV !== "production";
+}
+
+export function configuredSpeech(env: NodeJS.ProcessEnv = process.env): SpeechProvider | null {
+  if (usesSpeechFixture(env)) return createSyntheticSpeech();
   if (env.WEAVE_CLOUD_SPEECH_ENABLED !== "true") return null;
   const accountId = env.WEAVE_CLOUDFLARE_ACCOUNT_ID ?? "";
   const token = env.WEAVE_CLOUDFLARE_AI_TOKEN ?? "";
@@ -120,9 +135,8 @@ export function configuredSpeech(env: Record<string, string | undefined> = proce
   return createCloudflareSpeech({ accountId, token });
 }
 
-export function GET(): Response {
-  return createTranscribeHandlers({ provider: configuredSpeech() }).GET();
-}
-export function POST(request: Request): Promise<Response> {
-  return createTranscribeHandlers({ provider: configuredSpeech() }).POST(request);
-}
+const handlers = createTranscribeHandlers({
+  provider: configuredSpeech(),
+  quota: usesSpeechFixture(process.env) ? async () => ({ allowed: true }) : configuredSpeechQuota(),
+});
+export const { GET, POST } = handlers;

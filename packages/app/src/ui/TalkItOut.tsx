@@ -7,6 +7,7 @@ import {
   DISCARD_RECORDING,
   recordingLabel,
   holdsTalkRoom,
+  speechProblem,
   type SpeechSetupState,
   talkControls,
   talkHold,
@@ -48,6 +49,7 @@ export function TalkItOut({
   working,
   onAction,
   onCancel,
+  speechLimitNotice,
   status,
   statusId,
   problem,
@@ -77,6 +79,8 @@ export function TalkItOut({
   working: boolean;
   onAction(): void;
   onCancel(): void;
+  /** When cloud speech can be tried again, beside the microphone where it is visible after Stop. */
+  speechLimitNotice?: string;
   /** One line about what the action did. */
   status: string;
   statusId?: string;
@@ -118,6 +122,7 @@ export function TalkItOut({
   // microphone, recording, or on its way, which the time limit can bring about with no press at all.
   const cloud = state === "cloud";
   const session = useSyncExternalStore(cloudSession.subscribe, cloudSession.view);
+  const cooldown = useSyncExternalStore(cloudSession.subscribe, cloudSession.cooldown);
   const recording = cloud && listening ? session : null;
   const stopping = listening && (stopPressed || recording?.phase === "sending");
   // A session ends inside STOP_WAIT_NO_WORDS_MS of its Stop, or inside CLOUD_FINISH_MS where a
@@ -159,6 +164,7 @@ export function TalkItOut({
   const names = new Intl.DisplayNames(["en"], { type: "language" });
   const languages = [...new Set([...LANGUAGES, ...navigator.languages, language])];
   const hold = talkHold(controls.action, { working, disabled, focused });
+  const retryPending = cloud && cooldown !== null && controls.action === "talk";
   const talk = controls.agreement ? () => setAgreeingFor(speech.state) : onStart;
   // Each way of talking that leaves the device has its own notice, and its own agreement behind it.
   const notice = cloud ? CLOUD_SPEECH_NOTICE : BROWSER_SPEECH_NOTICE;
@@ -167,7 +173,7 @@ export function TalkItOut({
     onStop();
   };
   const press =
-    hold !== "free"
+    hold !== "free" || retryPending
       ? undefined
       : controls.action === "stop" ? stop : controls.action === "talk" ? talk : controls.action === "set-up" ? speech.setUp : undefined;
   // Under way: setting up speech, or finishing the words after Stop. The button waits in place.
@@ -197,7 +203,8 @@ export function TalkItOut({
             // reader told both would say "Stop, pressed" (WCAG 4.1.2).
             // Under way or held, the button keeps the focus, which a disabled button would drop.
             aria-busy={underWay || undefined}
-            aria-disabled={hold === "held" || undefined}
+            aria-disabled={hold === "held" || retryPending || undefined}
+            aria-describedby={retryPending ? `${id}-speech-note` : undefined}
             disabled={hold === "disabled"}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -215,8 +222,8 @@ export function TalkItOut({
               <progress aria-label="Setting up speech on this device" />
             </div>
           )}
-          <p className="rc-meta" role="status">
-            {controls.note}
+          <p className="rc-meta" role="status" id={`${id}-speech-note`}>
+            {retryPending ? speechProblem(cooldown.problem, "cloud", speech.touch, cooldown.retryAt) : cloud && !listening && speechLimitNotice ? speechLimitNotice : controls.note}
           </p>
           {/* The language choice shows where it can help and there is room: not while a longer line explains a setup. */}
           {controls.language && (

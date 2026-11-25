@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { revise } from "../describe/contracts.ts";
+import { cloudSession } from "../describe/speech-cloud.ts";
 import type { Turn } from "../describe/source-contracts.ts";
-import { startSpeech } from "../describe/speech.ts";
+import { startSpeech, type SpeechProblem } from "../describe/speech.ts";
 import type { SpeechSetupStore } from "../describe/speech-setup.ts";
 import type { BrowserSpeechConsent } from "../describe/speech-consent.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
-import { speechMode, speechNotStarted, speechPaused, speechProblem } from "../describe/speech-setup.ts";
+import { isCloudSpeechLimit, speechMode, speechNotStarted, speechPaused, speechProblem } from "../describe/speech-setup.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { draftText, previewFields } from "../describe/view.ts";
 import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext, type SpeechExample } from "../fixtures.ts";
@@ -183,6 +184,7 @@ function AskSection({
   const one = need ? "Need" : "Offer";
   const part = (name: string) => `ask-${kind}-${name}`;
   const [notice, setNotice] = useState("");
+  const [speechLimitNotice, setSpeechLimitNotice] = useState("");
   const [editorError, setEditorError] = useState("");
   const [editorField, setEditorField] = useState<AskFormField | null>(null);
   const [busy, setBusy] = useState(false);
@@ -393,8 +395,15 @@ function AskSection({
   }
   async function talk() {
     setNotice("");
+    setSpeechLimitNotice("");
     const mode = speechMode(speech.state);
     if (!mode) return;
+    const showSpeechProblem = (code: SpeechProblem, retryAt?: number) => {
+      if (cloudSession.rememberLimit(code, retryAt)) return;
+      const message = speechProblem(code, mode, speech.touch, retryAt);
+      if (isCloudSpeechLimit(code)) setSpeechLimitNotice(message);
+      else setNotice(message);
+    };
     const base = controller.getSnapshot().draft[kind].composer;
     heardAfter.current = base;
     // An example pretends to listen, in a development-only branch that production drops.
@@ -405,7 +414,7 @@ function AskSection({
         return;
       }
       if (outcome) {
-        setNotice(speechProblem(outcome, mode, speech.touch));
+        showSpeechProblem(outcome);
         return;
       }
       setListening(true);
@@ -456,9 +465,9 @@ function AskSection({
               update((current) => changeStep(current, { composer: [base, final].filter(Boolean).join(" ") }));
             }
           },
-          error: (code) => {
+          error: (code, retryAt) => {
             failed = true;
-            setNotice(speechProblem(code, mode, speech.touch));
+            showSpeechProblem(code, retryAt);
           },
           end: (requested) => {
             // A session cut off at Stop's deadline ends with its last words unsettled; they are kept.
@@ -553,6 +562,7 @@ function AskSection({
         working={busy}
         onAction={() => void addToList()}
         onCancel={() => task.current?.abort()}
+        speechLimitNotice={speechLimitNotice}
         status={busy ? "Reading your words on this device." : notice || stale || (full ? ASK_LIMIT_HELP : "")}
         // Why Continue stopped here takes the same line, which is always there, so it pushes nothing down.
         problem={blocker?.message}
