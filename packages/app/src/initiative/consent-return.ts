@@ -2,13 +2,13 @@ import { record, uuid } from "@weave/api/account-contract";
 import { accountRequest } from "../account/client.ts";
 import { teamWorkspacePath } from "../routes.ts";
 
-export type ProjectConsentAction = "membership" | "create-project" | "workspace-members" | "add-member" | "publish-support" | "withdraw-support";
+export type ProjectConsentAction = "membership" | "create-project" | "workspace-members" | "add-member" | "publish-support" | "withdraw-support" | "publish-initiative";
 export type ConsentTask = { kind: "directory"; action: ProjectConsentAction } | { kind: "team"; workspaceId: string };
 type Outcome = "ready" | "denied" | "failed";
 export type ConsentReturn = ConsentTask & { result: Outcome };
 const pending = "weave-certified-project-return";
 const legacy = ["weave-project-actions-return", "weave-team-membership-return"];
-const actions: readonly string[] = ["membership", "create-project", "workspace-members", "add-member", "publish-support", "withdraw-support"];
+const actions: readonly string[] = ["membership", "create-project", "workspace-members", "add-member", "publish-support", "withdraw-support", "publish-initiative"];
 
 /** The newest explicit task owns the callback. Older task receipts cannot race it. */
 export function beginConsentReturn(storage: Storage, task: ConsentTask) {

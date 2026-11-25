@@ -10,7 +10,7 @@ export interface AskCardItem {
   readonly title: string;
   readonly description?: string | undefined;
   /** One line of terms, such as where and on what terms, or when it was listed. */
-  readonly terms: string;
+  readonly terms?: string | undefined;
   readonly capitals: readonly string[];
 }
 
@@ -45,8 +45,9 @@ export function AskCards({ kind, items, label, Heading }: {
         <li key={item.key}>
           <article className="rc-card rc-ask-card" data-kind={kind}>
             <Heading className="rc-ask-title">{item.title}</Heading>
-            {item.description && <p>{item.description}</p>}
-            <p className="rc-ask-terms">{item.terms}</p>
+            {/* A description that only repeats the title says nothing more. */}
+            {item.description && item.description.trim() !== item.title.trim() && <p>{item.description}</p>}
+            {item.terms && <p className="rc-ask-terms">{item.terms}</p>}
             <div className="rc-ask-foot">
               {item.capitals.length ? (
                 <ul className="rc-tag-list" aria-label="Kinds of support">

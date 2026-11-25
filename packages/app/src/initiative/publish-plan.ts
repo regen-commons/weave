@@ -1,28 +1,24 @@
 import { record, uuid } from "@weave/api/account-contract";
 import type { DeviceDraft } from "../describe/contracts.ts";
 import { publicListingReview, type PublicReview } from "../partners/public-support-state.ts";
+import { TID } from "./tid.ts";
 
 /**
- * The public finish to the intake (QA notes, 25 November 2026): the person chooses needs and offers,
- * signs in with Certified, chooses one of their projects, sees exactly what will be public and where,
- * and confirms once. Weave then runs the reviewed publications and shows each entry's result.
+ * The public finish to the intake (DL-148, revised 25 November 2026: "put the whole draft on Certified").
+ * The person sees their initiative as its public page will show it, then confirms once. Weave then creates
+ * a personal Certified project from the draft (unless the card is already linked to one), keeps a private
+ * copy as its workspace, has the server review each need and offer, checks that each review is exactly
+ * what was previewed, and publishes them.
  *
- * Signing in and Certified's permission screens leave the page, so the plan is kept in the tab's own
- * storage, under the draft's ID, until it is finished or abandoned. It holds no words of the draft:
- * the draft stays in the device's store and the public fields come back from the server's review.
- * Each prepared listing keeps the request ID its publication is sent with, so every retry of one
- * confirmation sends the same request and the server answers it once (support-publication.ts).
+ * Signing in and Certified's permission screen leave the page, so the plan is kept in the tab's own storage
+ * under the draft's ID until it is finished or abandoned. It keeps what was previewed and the record keys
+ * the project and its place are created at, chosen before anything is sent, so a retried creation names
+ * the same records and can never make a second project. Each prepared listing keeps the request ID its
+ * publication is sent with, so a retry sends the same request and the server answers it once.
  */
 
 export type PublishKind = "need" | "offer";
 export interface PublishEntry { readonly kind: PublishKind; readonly entryId: string }
-
-/** A kept need or offer on the card, and whether it can be made public as it stands. */
-export interface PublishCandidate extends PublishEntry {
-  readonly title: string;
-  /** A public listing names at least one kind of support, as the server requires. */
-  readonly publishable: boolean;
-}
 
 /** One listing the server reviewed, with the request its one publication is sent with. */
 export interface PreparedListing extends PublishEntry {
@@ -47,15 +43,38 @@ export interface ListingResult extends PublishEntry {
   readonly problem: string | null;
 }
 
+/** A need or offer exactly as the preview showed it: the fields its public listing carries. */
+export interface PreviewListing extends PublishEntry {
+  readonly title: string;
+  readonly description: string | null;
+  readonly capitalForms: readonly string[];
+}
+
+/** The personal Certified project to create from the draft, with the record keys its one creation uses. */
+export interface ProjectCreation {
+  readonly requestId: string;
+  readonly projectRkey: string;
+  /** The key of its place record, or null where the draft names no place. */
+  readonly locationRkey: string | null;
+  readonly title: string;
+  readonly description: string;
+  readonly place: string | null;
+}
+
 export interface PublishPlan {
-  readonly version: 1;
+  readonly version: 2;
   readonly draftId: string;
   /** The account the plan belongs to: null until the person signs in, then theirs alone. */
   readonly owner: string | null;
-  readonly selected: readonly PublishEntry[];
-  readonly prepared: readonly PreparedListing[];
-  /** Set once the person confirmed. From then on the plan only retries the same requests or checks them. */
+  /** What the person saw and confirmed. A review that differs from it stops the publication. */
+  readonly preview: readonly PreviewListing[];
+  /** The project to create, or null to publish to the project the card is linked to. */
+  readonly creation: ProjectCreation | null;
+  /** The project the listings go to, once created or known. */
+  readonly projectUri: string | null;
+  /** Set by the one confirmation. From then on the plan goes on by itself, after Certified's screens too. */
   readonly confirmed: boolean;
+  readonly prepared: readonly PreparedListing[];
   readonly results: readonly ListingResult[];
   /** Kept until this time, in milliseconds, so an abandoned plan does not reopen days later. */
   readonly until: number;
@@ -66,24 +85,56 @@ export const PLAN_LIFETIME_MS = 60 * 60_000;
 const key = (draftId: string) => `weave-publish-plan/${draftId}`;
 type PlanStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-/** The kept needs and offers of a card, in the card's order, each with whether it can be published. */
-export function publishCandidates(draft: Pick<DeviceDraft, "needs" | "offers">): PublishCandidate[] {
-  return (["needs", "offers"] as const).flatMap((list) =>
-    draft[list].items
-      .filter((item) => item.decision === "kept")
-      .map((item) => ({
-        kind: list === "needs" ? "need" as const : "offer" as const,
-        entryId: item.id,
-        title: item.value.title,
-        publishable: item.value.capitalForms.length > 0,
-      })),
-  );
+/**
+ * The draft's kept needs and offers as their public listings will read, in the card's order, and the ones
+ * left out because a listing needs at least one kind of support.
+ */
+export function publishPreview(draft: Pick<DeviceDraft, "needs" | "offers">): { listings: PreviewListing[]; withoutKind: PublishEntry[] } {
+  const kept = (["needs", "offers"] as const).flatMap((list) =>
+    draft[list].items.filter((item) => item.decision === "kept").map((item) => ({ list, item })));
+  const listings: PreviewListing[] = [], withoutKind: PublishEntry[] = [];
+  for (const { list, item } of kept) {
+    const kind = list === "needs" ? "need" as const : "offer" as const;
+    if (!item.value.capitalForms.length) { withoutKind.push({ kind, entryId: item.id }); continue; }
+    const description = typeof item.value.description === "string" && item.value.description.trim() ? item.value.description : null;
+    listings.push({ kind, entryId: item.id, title: item.value.title, description, capitalForms: [...item.value.capitalForms] });
+  }
+  return { listings, withoutKind };
+}
+
+const graphemes = new Intl.Segmenter();
+/** The longest project name Certified takes, in characters as a reader counts them. A card's name can be longer. */
+export const PROJECT_NAME_LIMIT = 80;
+/** Whether a card's name fits a Certified project record: 1 to 80 characters (graphemes), 800 bytes, one line. */
+export function projectNameFits(name: string): boolean {
+  const value = name.trim();
+  return !!value && !/\p{Cc}/u.test(value) && new TextEncoder().encode(value).length <= 800
+    && [...graphemes.segment(value)].length <= PROJECT_NAME_LIMIT;
+}
+/** The card's places as one line of up to 120 characters, keeping whole places only. */
+function placeLine(locations: readonly string[]): string | null {
+  let line = "";
+  for (const location of locations.map((item) => item.replace(/\s+/gu, " ").trim()).filter(Boolean)) {
+    const next = line ? `${line}, ${location}` : location;
+    if (next.length > 120) break;
+    line = next;
+  }
+  return line || null;
+}
+
+/** The project Weave creates from the draft: its confirmed name, description and places, as the card shows them. */
+export function projectFromDraft(draft: Pick<DeviceDraft, "confirmed">, keys: () => string, requestId: string = crypto.randomUUID()): ProjectCreation | null {
+  const card = draft.confirmed;
+  if (!card || !projectNameFits(card.name)) return null;
+  const place = placeLine(card.locations);
+  return { requestId, projectRkey: keys(), locationRkey: place ? keys() : null, title: card.name.trim(), description: card.description.trim(), place };
 }
 
 export const sameEntry = (a: PublishEntry, b: PublishEntry) => a.kind === b.kind && a.entryId === b.entryId;
 
-export function newPlan(draftId: string, owner: string | null, selected: readonly PublishEntry[], now = Date.now()): PublishPlan {
-  return { version: 1, draftId, owner, selected: [...selected], prepared: [], confirmed: false, results: [], until: now + PLAN_LIFETIME_MS };
+export function newPlan(draftId: string, owner: string | null, preview: readonly PreviewListing[], creation: ProjectCreation | null,
+  projectUri: string | null = null, now = Date.now()): PublishPlan {
+  return { version: 2, draftId, owner, preview: [...preview], creation, projectUri, confirmed: false, prepared: [], results: [], until: now + PLAN_LIFETIME_MS };
 }
 
 const entry = (value: unknown): PublishEntry => {
@@ -100,11 +151,26 @@ export function readPlan(storage: PlanStorage | undefined, draftId: string, now 
   if (!text) return null;
   try {
     const value = record(JSON.parse(text));
-    if (value.version !== 1 || value.draftId !== draftId || typeof value.until !== "number" || value.until <= now
+    if (value.version !== 2 || value.draftId !== draftId || typeof value.until !== "number" || value.until <= now
       || (value.owner !== null && !uuid(value.owner)) || typeof value.confirmed !== "boolean"
-      || !Array.isArray(value.selected) || !Array.isArray(value.prepared) || !Array.isArray(value.results)
-      || value.selected.length > 50 || value.prepared.length > 50 || value.results.length > 50) throw Error("invalid_plan");
-    const selected = value.selected.map(entry);
+      || !Array.isArray(value.preview) || !Array.isArray(value.prepared) || !Array.isArray(value.results)
+      || value.preview.length > 50 || value.prepared.length > 50 || value.results.length > 50
+      || (value.projectUri !== null && (typeof value.projectUri !== "string" || !value.projectUri.startsWith("at://")))) throw Error("invalid_plan");
+    const preview = value.preview.map((input): PreviewListing => {
+      const item = record(input);
+      if (typeof item.title !== "string" || (item.description !== null && typeof item.description !== "string")
+        || !Array.isArray(item.capitalForms) || item.capitalForms.some((form) => typeof form !== "string")) throw Error("invalid_plan");
+      return { ...entry(item), title: item.title, description: item.description as string | null, capitalForms: [...item.capitalForms] as string[] };
+    });
+    const creation = value.creation === null ? null : (() => {
+      const item = record(value.creation);
+      if (!uuid(item.requestId) || typeof item.projectRkey !== "string" || !TID.test(item.projectRkey)
+        || (item.locationRkey !== null && (typeof item.locationRkey !== "string" || !TID.test(item.locationRkey)))
+        || typeof item.title !== "string" || typeof item.description !== "string"
+        || (item.place !== null && typeof item.place !== "string") || (item.place === null) !== (item.locationRkey === null)) throw Error("invalid_plan");
+      return { requestId: item.requestId, projectRkey: item.projectRkey, locationRkey: item.locationRkey as string | null,
+        title: item.title, description: item.description, place: item.place as string | null };
+    })();
     const prepared = value.prepared.map((input): PreparedListing => {
       const item = record(input);
       const savedRevision = item.savedRevision, entryRevision = item.entryRevision;
@@ -125,7 +191,8 @@ export function readPlan(storage: PlanStorage | undefined, draftId: string, now 
         || (item.problem !== null && typeof item.problem !== "string")) throw Error("invalid_plan");
       return { ...entry(item), title: item.title, state: item.state as ListingState, problem: item.problem as string | null };
     });
-    return { version: 1, draftId, owner: value.owner as string | null, selected, prepared, confirmed: value.confirmed, results, until: value.until };
+    return { version: 2, draftId, owner: value.owner as string | null, preview, creation, projectUri: value.projectUri as string | null,
+      confirmed: value.confirmed, prepared, results, until: value.until };
   } catch {
     clearPlan(storage, draftId);
     return null;
@@ -155,30 +222,36 @@ export function adoptPlan(plan: PublishPlan | null, owner: string | null): Publi
   return plan.owner === owner ? plan : null;
 }
 
-/** What the person does next, from what the plan holds and what Weave knows now. */
-export type PublishStep = "choose" | "sign-in" | "project" | "group" | "prepare" | "review" | "results";
+/**
+ * What the dialog does next. Before the confirmation it shows the preview (or asks to sign in first);
+ * after it, it goes on by itself: create the project, link the card to it, keep the private copy as its
+ * workspace, have each listing reviewed, then publish them.
+ */
+export type PublishStep = "preview" | "sign-in" | "create" | "link" | "save" | "review" | "publish" | "done";
 
-export function publishStep(plan: PublishPlan | null, now: {
+export function nextStep(plan: PublishPlan | null, now: {
   readonly signedIn: boolean;
-  /** The Certified project the card is linked to, if any. */
-  readonly project: { readonly uri: string; readonly group: string | null } | null;
+  /** The Certified project the card is linked to now, if any. */
+  readonly linked: string | null;
+  /** The card is saved, unchanged since, as that project's workspace. */
+  readonly workspace: boolean;
 }): PublishStep {
-  if (!plan || !plan.selected.length) return "choose";
-  if (plan.confirmed) return "results";
+  if (!plan?.confirmed) return now.signedIn || !plan ? "preview" : "sign-in";
   if (!now.signedIn) return "sign-in";
-  if (!now.project) return "project";
-  if (now.project.group) return "group";
-  return plan.prepared.length === plan.selected.length ? "review" : "prepare";
+  if (plan.creation && !plan.projectUri) return "create";
+  if (plan.projectUri && now.linked !== plan.projectUri) return "link";
+  if (!now.workspace) return "save";
+  if (plan.prepared.length < plan.preview.length) return "review";
+  if (plan.results.length < plan.prepared.length) return "publish";
+  return "done";
 }
 
-/**
- * Whether the prepared reviews can still be confirmed: every one is for the card's saved revision and
- * the project the card is linked to now, and none has lapsed. Otherwise the preview is prepared again,
- * so an unreviewed revision can never be published.
- */
-export function reviewsCurrent(plan: PublishPlan, saved: { readonly revision: number } | null, projectUri: string | null, now = Date.now()): boolean {
-  return !!saved && !!projectUri && plan.prepared.length === plan.selected.length && plan.prepared.every((item) =>
-    item.savedRevision === saved.revision && item.review.record.projectUri === projectUri && Date.parse(item.reviewExpiresAt) > now + 15_000);
+/** True when the server's review of a listing is exactly what the preview showed, so nothing unseen is published. */
+export function matchesPreview(prepared: PreparedListing, preview: readonly PreviewListing[]): boolean {
+  const seen = preview.find((item) => sameEntry(item, prepared));
+  const { record: listing } = prepared.review;
+  return !!seen && listing.kind === seen.kind && listing.title === seen.title && (listing.description ?? null) === seen.description
+    && listing.capitalForms.length === seen.capitalForms.length && listing.capitalForms.every((form) => seen.capitalForms.includes(form));
 }
 
 /** The exact publication request for one prepared listing. Retrying sends this again, unchanged. */

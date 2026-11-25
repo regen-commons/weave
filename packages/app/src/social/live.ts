@@ -254,7 +254,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       const account = await options.refreshAccount(); checked();
       service.syncAccount(account);
     },
-    async linkProject(uri, signal) {
+    async linkProject(uri, signal, linkOptions) {
       signal?.throwIfAborted();
       // Linking writes the project's details into the tab's card, so another account's card is refused before anything is asked.
       if (setAside()) throw new AnotherAccountsCard();
@@ -272,7 +272,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       else if (result.status !== "unlinked" && result.status !== "pending") throw Error("The project could not be linked.");
       // Publish selection only after the reviewed device update is durable. Its host may
       // remove the link task as soon as state.project appears.
-      const linkedDraft = options.controller.change(current => draftWithRecord(current, chosen));
+      // A project made from this card already says what the card says, and its page suggests nothing new.
+      const linkedDraft = linkOptions?.keepCard ? before : options.controller.change(current => draftWithRecord(current, chosen));
       await options.controller.settled(); checked(); signal?.throwIfAborted();
       const current = options.controller.getSnapshot();
       if (current.draft !== linkedDraft) throw Error("Your device card changed. Review it before choosing this project again.");

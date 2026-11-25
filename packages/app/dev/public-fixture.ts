@@ -6,10 +6,21 @@
  */
 import { createPublicInitiative } from "../../api/src/public-initiative.ts";
 import { createPublicProjects } from "../../api/src/public-projects-http.ts";
-import { FIXTURE_PUBLIC_PROJECT_URI, fixturePublicListings } from "./matching-fixture.ts";
+import { FIXTURE_PUBLIC_PROJECT_URI, fixtureListedProjects, fixturePublicListings } from "./matching-fixture.ts";
 
 const [, , repo, , rkey] = FIXTURE_PUBLIC_PROJECT_URI.split("/");
 const facts = { organizationTypes: ["community-group"], workScopes: ["food-systems", "education"] };
+const sourceUrl = (uri: string) => {
+  const [, , did, collection, key] = uri.split("/");
+  return `https://api.hypercerts.dev/xrpc/com.atproto.repo.getRecord?repo=${did}&collection=${collection}&rkey=${key}`;
+};
+/** A project made from a draft, once the public list has picked it up (`/__fixture`, refresh-public-list). */
+const created = () => fixtureListedProjects().map((item) => ({
+  uri: item.uri, name: item.title, passages: item.description ? [item.description] : [], sharedAt: item.createdAt,
+  checkedAt: new Date().toISOString(), sourceUrl: sourceUrl(item.uri),
+  ...(item.place ? { place: item.place.name } : {}),
+  organizationTypes: [], workScopes: [],
+}));
 const project = () => ({
   uri: FIXTURE_PUBLIC_PROJECT_URI,
   name: "Garden commons (fixture)",
@@ -28,7 +39,7 @@ export const publicProjectsFixture = createPublicProjects({
   // A fresh copy for every request, so the dev server never holds a list across fixture changes.
   reader: async () => ({
     load: async () => ({
-      cards: [{ ...project(), ...facts, text: project().passages.join(" ") }],
+      cards: [{ ...project(), ...facts }, ...created()].map((card) => ({ ...card, text: card.passages.join(" ") })),
       checkpoint: { completedAt: new Date().toISOString(), offset: 0 },
     }),
     close: async () => {},
@@ -37,14 +48,17 @@ export const publicProjectsFixture = createPublicProjects({
 
 export const publicInitiativeFixture = createPublicInitiative({
   reader: async () => ({
-    load: async (uri) => uri === FIXTURE_PUBLIC_PROJECT_URI
-      ? { project: { ...project(), ...facts },
-        listings: fixturePublicListings(uri).map((listing) => ({ kind: listing.record.kind, uri: listing.uri, cid: listing.cid, record: listing.record })) }
-      : null,
+    load: async (uri) => {
+      const found = uri === FIXTURE_PUBLIC_PROJECT_URI ? { ...project(), ...facts } : created().find((item) => item.uri === uri);
+      return found
+        ? { project: found, listings: fixturePublicListings(uri).map((listing) => ({ kind: listing.record.kind, uri: listing.uri, cid: listing.cid, record: listing.record })) }
+        : null;
+    },
     close: async () => {},
   }),
   // The publisher's links as its organization record would give them: one labelled, one with only an address.
-  links: () => async () => [
+  // Only the garden's repository has an organization record; an account's own repository has none.
+  links: () => async (did) => did !== repo ? [] : [
     { label: "Garden commons website (fixture)", url: "https://garden.example.org/" },
     { label: "garden.example.org", url: "https://garden.example.org/volunteer" },
   ],

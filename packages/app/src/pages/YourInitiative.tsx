@@ -250,11 +250,11 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                       <StatusLine
                         actions={
                           <button className="rc-button" data-variant="primary" data-size="sm" type="button" onClick={() => setPublishing(true)}>
-                            Review And Publish
+                            Make It Public
                           </button>
                         }
                       >
-                        Public: choose needs and offers to publish to your Certified project, for anyone to read.
+                        Public: put your initiative and its needs and offers on Certified, for anyone to read.
                       </StatusLine>
                     </>
                   )}

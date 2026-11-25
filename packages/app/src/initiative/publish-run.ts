@@ -3,7 +3,7 @@ import { record } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
 import { publicListingReview } from "../partners/public-support-state.ts";
 import {
-  listingResult, publishCommand, sameEntry,
+  listingResult, matchesPreview, publishCommand, sameEntry,
   type ListingResult, type PreparedListing, type PublishEntry, type PublishPlan,
 } from "./publish-plan.ts";
 
@@ -36,7 +36,7 @@ export async function prepareListings(
   saved: { readonly revision: number },
   requests: PublishRequests,
   signal: AbortSignal,
-  only: readonly PublishEntry[] = plan.selected,
+  only: readonly PublishEntry[] = plan.preview,
 ): Promise<PublishPlan> {
   const matching = await requests.matchingState(workspaceId, signal);
   signal.throwIfAborted();
@@ -58,16 +58,45 @@ export async function prepareListings(
     const lapses = record(answer).reviewExpiresAt;
     if (review.record.kind !== entry.kind || typeof lapses !== "string" || !Number.isFinite(Date.parse(lapses)))
       throw new PreviewProblem("Weave could not check the preview. Nothing was published. Try again.");
-    prepared.push({ kind: entry.kind, entryId: entry.entryId, review, requestId: crypto.randomUUID(),
-      savedRevision: saved.revision, entryRevision: entry.revision, reviewExpiresAt: lapses });
+    const item: PreparedListing = { kind: entry.kind, entryId: entry.entryId, review, requestId: crypto.randomUUID(),
+      savedRevision: saved.revision, entryRevision: entry.revision, reviewExpiresAt: lapses };
+    // The server builds the public record from the saved card. It must be what the person saw, or nothing is published.
+    if (!matchesPreview(item, plan.preview))
+      throw new PreviewProblem("What Weave would publish differs from what you saw, because the card changed. Look at it again before making it public. Nothing was published.");
+    prepared.push(item);
   }
   const again = (item: PublishEntry) => only.some((entry) => sameEntry(entry, item));
   return {
     ...plan,
     prepared: [...plan.prepared.filter((item) => !again(item)), ...prepared],
     results: plan.results.filter((item) => !again(item)),
-    confirmed: false,
   };
+}
+
+/**
+ * Creates the personal Certified project from the draft, at the record keys the plan chose before anything
+ * was sent. A retry sends the same request, and the server answers with the project it already made, so
+ * there is never a second one. Certified's permission is asked for by the caller when the server says so.
+ */
+export async function createProject(plan: PublishPlan, requests: PublishRequests, signal: AbortSignal): Promise<PublishPlan> {
+  const creation = plan.creation;
+  if (!creation || plan.projectUri) return plan;
+  let answer: Record<string, unknown>;
+  try {
+    answer = await requests.project({ action: "create_personal_project", requestId: creation.requestId, projectRkey: creation.projectRkey,
+      ...(creation.locationRkey && creation.place ? { locationRkey: creation.locationRkey, place: creation.place } : {}),
+      title: creation.title, description: creation.description }, signal);
+  } catch (error) {
+    if (error instanceof AccountFailure && error.code === "project_consent_required") throw error;
+    if (error instanceof AccountFailure && error.code === "project_conflict")
+      throw new PreviewProblem("Certified already holds a different record at the address Weave chose. Nothing was published. Start again to choose a new one.");
+    throw new PreviewProblem("Certified did not confirm the new project. Nothing was published. Try again: the same request is sent, so no second project is made.");
+  }
+  const value = record(answer);
+  if (value.status !== "created" || typeof value.projectUri !== "string"
+    || !value.projectUri.startsWith("at://") || !value.projectUri.endsWith(`/org.hypercerts.collection/${creation.projectRkey}`))
+    throw new PreviewProblem("Certified did not confirm the new project. Nothing was published. Try again.");
+  return { ...plan, projectUri: value.projectUri };
 }
 
 function reviewRefusal(code: string): string {

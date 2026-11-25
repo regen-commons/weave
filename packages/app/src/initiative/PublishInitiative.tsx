@@ -5,35 +5,42 @@ import { activeInitiative } from "../account/active-initiative.ts";
 import { AccountFailure, accountMessage } from "../account/client.ts";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { useDraft } from "../describe/use-draft.ts";
-import { publicReviewFacts } from "../partners/public-support-state.ts";
+import { initialsOf } from "../partners/public-initiative.ts";
+import { projectAddress } from "../partners/public-project.ts";
 import { teamWorkspacePath } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
-import { ProjectStep } from "../social/Project.tsx";
+import { AskCards } from "../ui/AskCards.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
-import { Facts } from "../ui/Facts.tsx";
+import { Media } from "../ui/Media.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
+import { beginEditorHandoff, editorStorage, PROJECT_EDITORS } from "./editor-handoff.ts";
+import { possibleDuplicate, type PossibleDuplicate } from "./possible-duplicate.ts";
 import { ConsentButton } from "./ProjectConsent.tsx";
-import { useCardStatus } from "./use-card-status.ts";
 import {
-  adoptPlan, clearPlan, needsPermission, newPlan, publishCandidates, publishStep, readPlan, resultLine, resultsSummary,
-  reviewsCurrent, sameEntry, unfinished, writePlan, type PublishEntry, type PublishPlan,
+  adoptPlan, clearPlan, needsPermission, newPlan, nextStep, PROJECT_NAME_LIMIT, projectFromDraft, projectNameFits, publishPreview, readPlan,
+  resultLine, resultsSummary, sameEntry, unfinished, writePlan, type PublishPlan, type PublishStep,
 } from "./publish-plan.ts";
-import { browserRequests, checkListings, prepareListings, PreviewProblem, publishListings } from "./publish-run.ts";
-
-/** Where public listings go and who reads them, said before anything is chosen (QA notes, 25 November 2026). */
-export const PUBLIC_DESTINATION = [
-  { term: "Where it goes", value: "A Certified project you choose. Weave adds each need or offer you pick to that project's repository as a public listing." },
-  { term: "Who can see it", value: "Anyone, in Weave and in other apps that read Certified projects." },
-  { term: "What Certified keeps", value: "The project's name, description and place are written on Certified and edited there. Weave shows them and does not change them." },
-] as const;
+import { browserRequests, checkListings, createProject, prepareListings, PreviewProblem, publishListings } from "./publish-run.ts";
+import { newTid } from "./tid.ts";
+import { useCardStatus } from "./use-card-status.ts";
 
 const tabStorage = () => { try { return window.sessionStorage; } catch { return undefined; } };
-const kindLabel = (kind: "need" | "offer") => (kind === "need" ? "What you need" : "What you can offer");
+/** What each step after the confirmation says while it runs. */
+const WORKING: Partial<Record<PublishStep, string>> = {
+  create: "Creating your project on Certified",
+  link: "Linking your card to it",
+  save: "Keeping a private copy in your Weave account",
+  review: "Checking each listing against what you saw",
+  publish: "Publishing your needs and offers",
+};
+const RUNS: readonly PublishStep[] = ["create", "link", "save", "review", "publish"];
 
 /**
- * The public finish to the intake: choose needs and offers, sign in with Certified, choose a project,
- * prepare the exact preview, confirm once, and see each listing's result. The plan survives sign-in and
- * Certified's permission screens in the tab's own storage (`publish-plan.ts`).
+ * Make It Public (DL-148, revised 25 November 2026): the card as its public page will read, where it goes,
+ * a warning where it may already exist on Certified or Ma Earth, and one confirmation. After it, Weave
+ * creates a personal Certified project from the card unless one is linked, keeps a private copy as its
+ * workspace, checks each listing against the preview and publishes them, going on by itself after
+ * Certified's sign-in and permission screens. Ma Earth is a handoff with the details to copy.
  */
 export function PublishInitiative({ open, onClose, onPublished }: { open: boolean; onClose(): void; onPublished(): void }) {
   const { draft, controller } = useDraft();
@@ -43,248 +50,278 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
   const owner = account.state?.user?.id ?? null;
   const live = social?.mode === "live" ? social : null;
   const project = live?.state.project ?? null;
-  // The project as Certified supplied it, for the fields Weave shows and never changes.
-  const projectRecord = project ? [...(live?.state.records ?? []), ...(live?.state.workspaces ?? [])].find((item) => item.uri === project.uri) ?? null : null;
+  const saved = activeInitiative(draft.account.saved, owner ?? undefined);
   const [plan, setPlan] = useState<PublishPlan | null>(() => adoptPlan(readPlan(tabStorage(), draft.id), owner));
-  const [choice, setChoice] = useState<readonly PublishEntry[]>(plan?.selected ?? []);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [duplicate, setDuplicate] = useState<PossibleDuplicate | null>(null);
+  const [different, setDifferent] = useState(false);
+  const [maEarth, setMaEarth] = useState(false);
+  const [copied, setCopied] = useState(false);
   const task = useRef<AbortController | null>(null);
+  const preview = useMemo(() => publishPreview(draft), [draft]);
+  const card = draft.confirmed;
   useEffect(() => {
-    // A plan made before sign-in becomes this account's. Another account's plan is left alone, unshown.
     const stored = readPlan(tabStorage(), draft.id);
     const next = adoptPlan(stored, owner);
     if (next && stored && next.owner !== stored.owner) writePlan(tabStorage(), next);
     setPlan(next);
-    setChoice(next?.selected ?? []);
   }, [draft.id, owner, open]);
   useEffect(() => () => task.current?.abort(), []);
-  const candidates = useMemo(() => publishCandidates(draft), [draft]);
+  // Before Weave creates a project, it looks for one this card may already be: the account's own, or a public one.
+  const own = useMemo(() => [...(live?.state.records ?? []), ...(live?.state.workspaces ?? [])], [live?.state.records, live?.state.workspaces]);
+  useEffect(() => {
+    if (!open || project || !card?.name.trim() || plan?.confirmed) return;
+    const lookup = new AbortController();
+    void possibleDuplicate({ name: card.name, links: card.links }, own, lookup.signal)
+      .then((found) => { if (!lookup.signal.aborted) setDuplicate(found); }, () => {});
+    return () => lookup.abort();
+  }, [open, project, card?.name, card?.links, own, plan?.confirmed]);
   const keep = (next: PublishPlan) => { setPlan(next); writePlan(tabStorage(), next); };
-  const step = publishStep(plan, { signedIn: !!owner, project });
-  const saved = activeInitiative(draft.account.saved, owner ?? undefined);
+  const workspace = !!saved && !status.unsaved && !!project && project.workspaceId === saved.id;
+  const step = nextStep(plan, { signedIn: !!owner, linked: project?.uri ?? null, workspace });
 
-  async function run(action: (signal: AbortSignal) => Promise<void>) {
-    if (busy) return;
+  /** Runs the step the plan is at. The effect below runs the next one, until it is done or something stops it. */
+  async function advance() {
+    if (busy || !plan || !live || !owner) return;
     const current = new AbortController(); task.current = current;
-    setBusy(true); setProblem("");
-    try { await action(current.signal); }
-    catch (error) {
-      if (!current.signal.aborted)
-        setProblem(error instanceof AccountFailure ? accountMessage(error) : error instanceof Error ? error.message : accountMessage(error));
-    } finally { if (task.current === current) { task.current = null; setBusy(false); } }
+    setBusy(true); setProblem(""); setConsent(false);
+    try {
+      const signal = current.signal;
+      if (step === "create") keep(await createProject(plan, browserRequests, signal));
+      else if (step === "link") {
+        if (!plan.projectUri) throw new PreviewProblem("Weave lost track of the project. Start again. Nothing was published.");
+        await live.service.reload();
+        await live.service.linkProject(plan.projectUri, signal, { keepCard: !!plan.creation });
+        live.refresh();
+        if (live.service.snapshot().project?.uri !== plan.projectUri)
+          throw new PreviewProblem("The project could not be linked to your card yet. Try again. Nothing was published.");
+      } else if (step === "save") {
+        await live.service.save("", "private");
+        live.refresh();
+      } else if (step === "review") {
+        const now = activeInitiative(controller.getSnapshot().draft.account.saved, owner);
+        if (!now || live.service.snapshot().project?.workspaceId !== now.id)
+          throw new PreviewProblem("Your card was saved privately, but it is not the project's workspace yet. Open it from Your Initiatives, then try again. Nothing was published.");
+        keep(await prepareListings(plan, now.id, { revision: now.revision }, browserRequests, signal));
+      } else if (step === "publish") {
+        if (!project?.workspaceId) throw new PreviewProblem("The project's workspace is not ready. Try again. Nothing was published.");
+        const result = await publishListings(plan, project.workspaceId, browserRequests, signal, keep);
+        if (result.results.some((item) => item.state === "published")) onPublished();
+      }
+    } catch (error) {
+      if (current.signal.aborted) return;
+      if (error instanceof AccountFailure && error.code === "project_consent_required") setConsent(true);
+      else setProblem(error instanceof AccountFailure ? accountMessage(error) : error instanceof Error ? error.message : accountMessage(error));
+    } finally {
+      if (task.current === current) { task.current = null; setBusy(false); }
+    }
   }
-  function begin() {
-    const selected = candidates.filter((item) => item.publishable && choice.some((entry) => sameEntry(entry, item)))
-      .map(({ kind, entryId }) => ({ kind, entryId }));
-    const next = newPlan(draft.id, owner, selected);
+  useEffect(() => {
+    if (open && !busy && !problem && !consent && RUNS.includes(step)) void advance();
+  }, [open, step, busy, problem, consent]);
+
+  /** The one confirmation. Signed out it keeps the card's place, so the dialog reopens after Certified's sign-in. */
+  function confirm() {
+    if (!card || busy || !preview.listings.length || (!project && !projectNameFits(card.name))) return;
+    const creation = project ? null : projectFromDraft(draft, () => newTid());
+    const next = { ...newPlan(draft.id, owner, preview.listings, creation, project?.uri ?? null), confirmed: !!owner };
     if (!writePlan(tabStorage(), next) && !owner) {
-      setProblem("This browser could not keep your choice while you sign in. Allow this site to store data, then try again.");
+      setProblem("This browser could not keep your card's place while you sign in. Allow this site to store data, then try again.");
       return;
     }
     setPlan(next);
   }
-  /** Saves the card privately as the project's workspace only when it is not that already, then reviews each choice. */
-  const prepare = (only?: readonly PublishEntry[]) => run(async (signal) => {
-    if (!plan || !live || !owner || !project || project.group) return;
-    let current = activeInitiative(controller.getSnapshot().draft.account.saved, owner);
-    if (status.unsaved || !current || live.service.snapshot().project?.workspaceId !== current.id) {
-      await live.service.save("", "private");
-      live.refresh();
-      current = activeInitiative(controller.getSnapshot().draft.account.saved, owner);
-    }
-    const workspaceId = live.service.snapshot().project?.workspaceId;
-    if (!current || workspaceId !== current.id)
-      throw new PreviewProblem("Your card was saved privately, but it is not this project's workspace in Weave yet. Open it from Your Initiatives, then try again. Nothing was published.");
-    keep(await prepareListings(plan, current.id, { revision: current.revision }, browserRequests, signal, only));
-  });
-  const publish = () => run(async (signal) => {
-    if (!plan || !project?.workspaceId) return;
-    const result = await publishListings(plan, project.workspaceId, browserRequests, signal, keep);
-    if (result.results.some((item) => item.state === "published")) onPublished();
-  });
-  const check = () => run(async (signal) => {
-    if (!plan || !project?.workspaceId) return;
-    const result = await checkListings(plan, project.workspaceId, browserRequests, signal, keep);
-    if (result.results.some((item) => item.state === "published")) onPublished();
-  });
+  function check() {
+    if (busy || !plan || !project?.workspaceId) return;
+    const current = new AbortController(); task.current = current;
+    setBusy(true); setProblem("");
+    void checkListings(plan, project.workspaceId, browserRequests, current.signal, keep)
+      .then((result) => { if (result.results.some((item) => item.state === "published")) onPublished(); })
+      .catch(() => setProblem("The listings could not be checked. Try again."))
+      .finally(() => { if (task.current === current) { task.current = null; setBusy(false); } });
+  }
   function finish() {
     clearPlan(tabStorage(), draft.id);
-    setPlan(null); setChoice([]); setProblem("");
+    setPlan(null); setProblem(""); setConsent(false); setDifferent(false);
     onClose();
   }
+  const details = card ? [card.name, card.locations.join(", "), card.description].filter(Boolean) : [];
+  async function openMaEarth() {
+    if (!owner || busy) return;
+    const current = new AbortController(); task.current = current;
+    setBusy(true); setProblem("");
+    try {
+      await beginEditorHandoff({ controller, storage: editorStorage(() => window.sessionStorage), owner, editor: "maearth", signal: current.signal,
+        isCurrent: () => task.current === current, navigate: (target) => window.location.assign(target) });
+    } catch (error) {
+      if (!current.signal.aborted) setProblem(error instanceof Error ? error.message : "Ma Earth could not be opened. Try again.");
+    } finally {
+      if (task.current === current) { task.current = null; setBusy(false); }
+    }
+  }
 
-  const current = plan && saved && project ? reviewsCurrent(plan, saved, project.uri) : false;
-  const waiting = plan ? plan.prepared.filter((item) => !plan.results.some((result) => sameEntry(result, item))) : [];
-  const lapsed = plan ? plan.results.filter((result) => result.state === "review_lapsed") : [];
-  const followUp = plan ? unfinished(plan.results).some((result) => result.state !== "review_lapsed" && result.state !== "conflict") : false;
+  // A possible duplicate needs the person's word that this is a different initiative before a new project is made.
+  const blocked = !!duplicate && !different && !project;
+  // Certified takes a shorter project name than a card can hold; the card is changed first, never cut here.
+  const longName = !!card && !project && !projectNameFits(card.name);
+  const page = plan?.projectUri ? projectAddress(plan.projectUri) : project ? projectAddress(project.uri) : null;
   return (
     <TaskDialog title="Make It Public" open={open} onClose={onClose} blockClose={busy}>
       <div className="rc-stack" aria-busy={busy}>
-        {step === "choose" && (
+        {maEarth ? (
           <>
-            <Facts items={PUBLIC_DESTINATION} />
-            <fieldset className="rc-choice-group">
-              <legend>Needs and offers to make public</legend>
-              {candidates.length === 0 && <p className="rc-meta">Your card has no needs or offers yet.</p>}
-              {candidates.map((item) => {
-                const chosen = choice.some((entry) => sameEntry(entry, item));
-                return (
-                  <label className="rc-choice" key={`${item.kind}/${item.entryId}`}>
-                    <input className="rc-check" type="checkbox" checked={chosen} disabled={!item.publishable || busy}
-                      onChange={(event) => setChoice((previous) => event.target.checked
-                        ? [...previous, { kind: item.kind, entryId: item.entryId }]
-                        : previous.filter((entry) => !sameEntry(entry, item)))} />
-                    <span className="rc-choice-text">
-                      <span className="rc-choice-title">{item.title}</span>
-                      <span className="rc-choice-note">
-                        {item.publishable ? kindLabel(item.kind) : `${kindLabel(item.kind)}. Add a kind of support to make it public.`}
-                      </span>
-                    </span>
-                  </label>
-                );
-              })}
-            </fieldset>
-            <p className="rc-meta">Nothing is public until you see the exact listings and confirm them.</p>
+            <p>Ma Earth makes its own project page, so Weave cannot create it there. Copy your details, create the project on Ma Earth, then come back and link it to this card.</p>
+            <div className="rc-surface rc-stack" data-level="raised" aria-label="Your details">
+              {details.map((line, index) => <p key={index}>{line}</p>)}
+            </div>
             <div className="rc-action-bar">
-              <button className="rc-button" data-variant="primary" type="button" disabled={!choice.length || busy} onClick={begin}>
-                Continue
+              <button className="rc-button" data-variant="secondary" type="button"
+                onClick={() => void navigator.clipboard?.writeText(details.join("\n\n")).then(() => setCopied(true), () => setCopied(false))}>
+                Copy Details
               </button>
-            </div>
-          </>
-        )}
-        {step === "sign-in" && (
-          <>
-            <p>Sign in with Certified to choose the project these go to. Your card and your choice stay on this device while you sign in.</p>
-            <p className="rc-meta">Signing in only says who you are. It saves and publishes nothing.</p>
-            <div className="rc-action-bar">
-              <SignInButton />
-              <button className="rc-button" data-variant="quiet" type="button" onClick={() => { clearPlan(tabStorage(), draft.id); setPlan(null); }}>Change The Choice</button>
-            </div>
-          </>
-        )}
-        {step === "project" && (
-          live?.consent ? (
-            <>
-              <p>Allow Weave to read your Certified projects, so you can choose the one these go to. Certified asks you on its own page and brings you back.</p>
-              <div className="rc-action-bar"><ConsentButton action="membership" /></div>
-            </>
-          ) : (
-            <>
-              <p>Choose the Certified project these needs and offers belong to. Linking it adds its name, description and place to this card on this device. Nothing is public yet.</p>
-              <ProjectStep onDone={() => undefined} onCancel={onClose} />
-            </>
-          )
-        )}
-        {step === "group" && project && (
-          <>
-            <p>{project.name} is a group project. Its needs and offers are published from its team workspace, where teammates review them first.</p>
-            {project.workspaceId && (
-              <div className="rc-action-bar">
-                <ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="primary">Open Team Workspace</ButtonLink>
-              </div>
-            )}
-          </>
-        )}
-        {step === "prepare" && project && (
-          <>
-            <Facts items={[
-              { term: "Project", value: `${project.name}, your personal project on Certified` },
-              { term: "First", value: "Weave saves this card privately as the project's workspace in your Weave account, so it can publish these listings and later withdraw them. Only you can see the workspace." },
-              { term: "Then", value: "You see exactly what will be public. Nothing is public until you confirm." },
-            ]} />
-            <div className="rc-action-bar">
-              <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy)} onClick={() => void prepare()}>
-                <span>Prepare The Public Preview</span>
-                {busy && <span className="rc-spinner" aria-hidden="true" />}
-              </button>
-            </div>
-          </>
-        )}
-        {step === "review" && plan && project && (
-          <>
-            <p><strong>Anyone can read these listings.</strong> Withdrawing one later cannot erase copies other apps have already made.</p>
-            <section className="rc-stack" aria-labelledby="publish-destination">
-              <h3 className="rc-heading" data-size="section" id="publish-destination">Destination</h3>
-              <Facts items={[
-                { term: "Certified project", value: project.name },
-                { term: "Repository", value: waiting[0]?.review.destination ?? project.uri.split("/")[2] ?? "" },
-                { term: "Project address", value: project.uri },
-              ]} />
-            </section>
-            <section className="rc-stack" aria-labelledby="publish-project">
-              <h3 className="rc-heading" data-size="section" id="publish-project">From Certified, Not Changed By Weave</h3>
-              <Facts items={[
-                { term: "Name", value: project.name },
-                ...(projectRecord?.description ? [{ term: "Description", value: projectRecord.description }] : []),
-                ...(projectRecord?.locations.length ? [{ term: "Place", value: projectRecord.locations.join(", ") }] : []),
-              ]} />
-            </section>
-            <section className="rc-stack" aria-labelledby="publish-listings">
-              <h3 className="rc-heading" data-size="section" id="publish-listings">
-                {`Published By Weave: ${waiting.length} ${waiting.length === 1 ? "Listing" : "Listings"}`}
-              </h3>
-              <ul className="rc-stack">
-                {waiting.map((item) => (
-                  <li key={`${item.kind}/${item.entryId}`}>
-                    <Facts items={publicReviewFacts(item.review).filter((fact) => fact.term !== "Certified project")} />
-                  </li>
-                ))}
-              </ul>
-            </section>
-            {current ? (
-              <div className="rc-action-bar">
-                <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy)} onClick={() => void publish()}>
-                  <span>{`Publish ${waiting.length} ${waiting.length === 1 ? "Listing" : "Listings"}`}</span>
+              {owner ? (
+                <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy)} onClick={() => void openMaEarth()}>
+                  <span>{`Open ${PROJECT_EDITORS.maearth.name}`}</span>
                   {busy && <span className="rc-spinner" aria-hidden="true" />}
                 </button>
-              </div>
-            ) : (
-              <>
-                <p className="rc-notice" data-tone="warning" role="status">
-                  This preview is out of date: it lapsed, or the saved card changed since. Prepare it again to see what would be public now.
-                </p>
-                <div className="rc-action-bar">
-                  <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy)} onClick={() => void prepare(waiting)}>
-                    <span>Prepare It Again</span>
-                    {busy && <span className="rc-spinner" aria-hidden="true" />}
-                  </button>
-                </div>
-              </>
+              ) : (
+                <SignInButton>Sign In To Continue</SignInButton>
+              )}
+              <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={() => setMaEarth(false)}>Back</button>
+            </div>
+            {copied && <p className="rc-meta" role="status">Copied. Paste them into Ma Earth.</p>}
+          </>
+        ) : project?.group ? (
+          <>
+            <p>{`${project.name} is a group project. Its needs and offers are published from its team workspace, where teammates review them first.`}</p>
+            {project.workspaceId && (
+              <div className="rc-action-bar"><ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="primary">Open Team Workspace</ButtonLink></div>
             )}
           </>
-        )}
-        {step === "results" && plan && (
+        ) : step === "done" && plan ? (
           <>
-            <p role="status">{resultsSummary(plan.results, plan.prepared.length)}</p>
+            <p role="status"><strong>{`${card?.name ?? "Your initiative"} is public on Certified.`}</strong> {resultsSummary(plan.results, plan.prepared.length)}</p>
+            {/* Weave's public pages come from its list of public projects, which takes in new ones once a day. */}
+            {plan.creation && <p>Anyone can read it on Certified now. Its page in Weave's list of initiatives appears after the list's next daily update.</p>}
             <ul className="rc-ask-summary" aria-label="Each listing">
               {plan.prepared.map((item) => {
                 const result = plan.results.find((entry) => sameEntry(entry, item));
-                return (
-                  <li key={`${item.kind}/${item.entryId}`}>
-                    <strong>{item.review.record.title}</strong>
-                    <p className="rc-meta">{kindLabel(item.kind)}</p>
-                    <p>{result ? resultLine(result) : "Not sent yet."}</p>
-                  </li>
-                );
+                return <li key={`${item.kind}/${item.entryId}`}><strong>{item.review.record.title}</strong><p>{result ? resultLine(result) : "Not sent yet."}</p></li>;
               })}
             </ul>
             <div className="rc-action-bar">
-              {needsPermission(plan.results) && <ConsentButton action="publish-support" />}
-              {followUp && (
-                <button className="rc-button" data-variant="secondary" type="button" {...busyProps(busy)} onClick={() => void check()}>
+              {page && !plan.creation && <ButtonLink href={page} variant="primary">See Its Public Page</ButtonLink>}
+              {needsPermission(plan.results) && <ConsentButton action="publish-initiative" />}
+              {unfinished(plan.results).some((result) => result.state !== "review_lapsed" && result.state !== "conflict") && (
+                <button className="rc-button" data-variant="secondary" type="button" {...busyProps(busy)} onClick={check}>
                   <span>Check Again</span>
                   {busy && <span className="rc-spinner" aria-hidden="true" />}
-                </button>
-              )}
-              {lapsed.length > 0 && (
-                <button className="rc-button" data-variant="secondary" type="button" disabled={busy} onClick={() => void prepare(lapsed)}>
-                  Prepare The Preview Again
                 </button>
               )}
               <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={finish}>Done</button>
             </div>
           </>
+        ) : plan?.confirmed && step !== "sign-in" ? (
+          <>
+            <ol className="rc-stack" aria-label="Making it public">
+              {RUNS.filter((item) => item !== "create" || plan.creation).map((item) => (
+                <li key={item} aria-current={item === step ? "step" : undefined}>
+                  {item === step ? <strong>{WORKING[item]}</strong> : <span className="rc-meta">{WORKING[item]}</span>}
+                </li>
+              ))}
+            </ol>
+            {busy && <p className="rc-visually-hidden" role="status">{WORKING[step]}</p>}
+            {consent && (
+              <>
+                <p>Certified asks you once to let Weave create the project and add its needs and offers. It opens its own page, then brings you back here.</p>
+                <div className="rc-action-bar"><ConsentButton action="publish-initiative" /></div>
+              </>
+            )}
+            {problem && (
+              <div className="rc-action-bar">
+                <button className="rc-button" data-variant="secondary" type="button" onClick={() => setProblem("")}>Try Again</button>
+                <button className="rc-button" data-variant="quiet" type="button" onClick={finish}>Stop</button>
+              </div>
+            )}
+          </>
+        ) : card ? (
+          <>
+            <p>
+              {project
+                ? `Weave adds these needs and offers to ${project.name}, your project on Certified. Anyone can read them. The project's name, description and place stay as they are on Certified.`
+                : "Weave creates a personal project on Certified from your card, in your own Certified account, and adds these needs and offers to it. Anyone can read them, in Weave and in other apps."}
+            </p>
+            {longName && (
+              <p className="rc-notice" data-tone="warning">{`Certified takes a project name of up to ${PROJECT_NAME_LIMIT} characters. Shorten your initiative's name in your card, then make it public.`}</p>
+            )}
+            {/* The warning stays once answered, so the answer can be changed. */}
+            {duplicate && !project && (
+              <section className="rc-notice" data-tone="warning" aria-labelledby="publish-duplicate">
+                <div className="rc-notice-body">
+                  <p className="rc-notice-title" id="publish-duplicate">{`This may already be on Certified: ${duplicate.name}`}</p>
+                  <p>{`${duplicate.byline} Making it public again would create a second project.`}</p>
+                  <div className="rc-action-bar">
+                    {duplicate.where === "yours" && live && (
+                      <button className="rc-button" data-variant="secondary" type="button" disabled={busy}
+                        onClick={() => void live.service.linkProject(duplicate.uri).then(() => live.refresh(), (error: unknown) =>
+                          setProblem(error instanceof Error ? error.message : "That project could not be linked. Try again."))}>
+                        Use This Project
+                      </button>
+                    )}
+                    {duplicate.path && <ButtonLink href={duplicate.path} variant="quiet">Open It</ButtonLink>}
+                  </div>
+                  <label className="rc-choice">
+                    <input className="rc-check" type="checkbox" checked={different} onChange={(event) => setDifferent(event.target.checked)} />
+                    <span className="rc-choice-text"><span className="rc-choice-title">This is a different initiative</span></span>
+                  </label>
+                </div>
+              </section>
+            )}
+            {/* The card as its public page will read it: the mark, name and place, its words, and each listing. */}
+            <section className="rc-surface rc-stack" data-level="raised" aria-label="Your public page">
+              <div className="rc-record-head">
+                <Media thumb initials={initialsOf(card.name)} />
+                <div className="rc-record-head-text">
+                  <p className="rc-record-title">{card.name}</p>
+                  {card.locations.length > 0 && <p className="rc-card-meta">{card.locations.join(", ")}</p>}
+                </div>
+              </div>
+              {card.description && <p className="rc-prose">{card.description}</p>}
+              {(["need", "offer"] as const).map((kind) => {
+                const items = preview.listings.filter((item) => item.kind === kind);
+                return items.length ? (
+                  <section className="rc-card-list" key={kind} aria-labelledby={`publish-${kind}`}>
+                    <h3 className="rc-heading" data-size="section" id={`publish-${kind}`}>{kind === "need" ? "What They Need" : "What They Can Offer"}</h3>
+                    <AskCards kind={kind} label={kind === "need" ? "What they need" : "What they can offer"} Heading="h4"
+                      items={items.map((item) => ({ key: item.entryId, title: item.title, description: item.description ?? undefined, capitals: item.capitalForms }))} />
+                  </section>
+                ) : null;
+              })}
+            </section>
+            {preview.withoutKind.length > 0 && (
+              <p className="rc-meta">{`${preview.withoutKind.length} ${preview.withoutKind.length === 1 ? "entry is" : "entries are"} left out until ${preview.withoutKind.length === 1 ? "it has" : "they have"} a kind of support.`}</p>
+            )}
+            <p className="rc-meta">Weave keeps a private copy in your Weave account so you can update or withdraw these later. Certified asks you once to allow it.</p>
+            <div className="rc-action-bar">
+              {owner ? (
+                <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy, blocked || longName || !preview.listings.length)} onClick={confirm}>
+                  <span>Make It Public</span>
+                </button>
+              ) : (
+                // The press keeps the card's place first, so the dialog opens again when Certified brings the person back.
+                <span onClickCapture={confirm}><SignInButton>Sign In To Make It Public</SignInButton></span>
+              )}
+              {!project && (
+                <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={() => setMaEarth(true)}>
+                  Create It On Ma Earth Instead
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <p>Check your card first: Make It Public shows it as anyone would read it.</p>
         )}
         {problem && <p className="rc-notice" data-tone="warning" role="alert">{problem}</p>}
       </div>

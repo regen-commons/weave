@@ -118,6 +118,36 @@ const fixtureProjects = [
     place: { status: "named", name: "Upper valley (fixture)" },
   }),
 ];
+/**
+ * Personal projects made from a draft by `create_personal_project`, as project-commands.ts answers it: one
+ * per record key, the same answer for a retry of the same draft, a conflict for anything else at that key.
+ * Each lives in a repository named after its fixture account. Nothing reaches Certified.
+ */
+type CreatedProject = ReturnType<typeof project> & { readonly place?: { readonly status: "named"; readonly name: string } };
+const createdProjects = new Map<string, { owner: string; project: CreatedProject }>();
+/** The created projects Weave's public list has picked up, as the daily refresh would. */
+let listedCreated = new Set<string>();
+/** Development control: the daily public-list refresh, which picks up the projects created since the last one. */
+export function refreshFixturePublicList() { listedCreated = new Set(createdProjects.keys()); }
+/** The created projects in the public list, for the public fixture's list and pages. */
+export function fixtureListedProjects(): CreatedProject[] {
+  return [...createdProjects.values()].filter(({ project }) => listedCreated.has(project.uri)).map(({ project }) => project);
+}
+const ownProjects = (owner: string) => [...createdProjects.values()].filter((item) => item.owner === owner).map((item) => item.project);
+/** A did:plc for a fixture account's own repository: its ID's hex digits written as base-32 letters. */
+const accountRepository = (owner: string) => `did:plc:${[...owner.replaceAll("-", "")].slice(0, 24).map((digit) => "abcdefghijklmnop"[parseInt(digit, 16)]).join("")}`;
+function createPersonalProject(owner: string, command: { projectRkey: string; title: string; description: string; place?: { rkey: string; name: string } }) {
+  if (publishPermission === "missing") throw new AccountError(403, "project_consent_required");
+  const uri = `at://${accountRepository(owner)}/org.hypercerts.collection/${command.projectRkey}`;
+  const place = command.place?.name ?? null;
+  const existing = createdProjects.get(uri);
+  if (existing && (existing.owner !== owner || existing.project.title !== command.title
+    || existing.project.description !== command.description || (existing.project.place?.name ?? null) !== place))
+    throw new AccountError(409, "project_conflict");
+  if (!existing) createdProjects.set(uri, { owner, project: { ...project(uri, command.title), description: command.description,
+    cid: fixtureCid(), createdAt: new Date().toISOString(), ...(place ? { place: { status: "named", name: place } as const } : {}) } });
+  return { status: "created", projectUri: uri, cid: createdProjects.get(uri)!.project.cid };
+}
 const externalGroup = "did:plc:ffffffffffffffffffffffff";
 const externalProject = project(`at://${externalGroup}/org.hypercerts.collection/editor-return`, "Editor return project (fixture)", externalGroup);
 let externalPublished = false;
@@ -265,6 +295,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
   },
   async execute(request, actor, command) {
     if (actor.userId === FIXTURE_UNAVAILABLE) throw new AccountError(503, "project_workspace_unavailable");
+    if (command.action === "create_personal_project") return createPersonalProject(actor.userId, command);
     if (actor.userId === FIXTURE_PROJECT_STARTER) {
       if (command.action === "list_project_groups") return { groups: externalPublished ? [{ groupDid: externalGroup, role: "owner", displayName: "Editor return group (fixture)" }] : [] };
       if (command.action === "list_projects") return { projects: externalPublished && command.target.kind === "group" && command.target.groupDid === externalGroup ? [externalProject] : [] };
@@ -281,7 +312,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
       { groupDid, role: actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member", handle: "watershed.certified.one", displayName: "Watershed team" },
       { groupDid: memberGroup, role: "member", handle: "seed-library.certified.one", displayName: "Valley seed keepers" },
     ] };
-    if (command.action === "list_projects") return { projects: fixtureProjects.filter(p =>
+    if (command.action === "list_projects") return { projects: [...fixtureProjects, ...ownProjects(actor.userId)].filter(p =>
       command.target.kind === "personal" ? !p.groupDid : p.groupDid === command.target.groupDid),
       ...(command.target.kind === "group" ? { certifiedRole: command.target.groupDid === groupDid && actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member" } : {}) };
     // As the workspace candidate's link_result: a personal link opens only while its owner's card exists.
@@ -295,7 +326,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     if (command.action === "list_workspaces") return { workspaces: [
       ...(teamRoles.has(actor.userId) ? [{ workspaceId: FIXTURE_TEAM_ID,
         projectUri: groupUri, kind: "group", accessRole: teamRoles.get(actor.userId), project: fixtureProjects[0] }] : []),
-      ...fixtureProjects.flatMap((project) => {
+      ...[...fixtureProjects, ...ownProjects(actor.userId)].flatMap((project) => {
         const link = soloLink(project.uri);
         return link?.status === "linked" ? [{ workspaceId: link.workspaceId, projectUri: project.uri, kind: "personal", accessRole: "admin", project }] : [];
       }),
@@ -309,7 +340,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     // A personal project links to the person's saved card at its current revision, keeping the card's ID.
     // A project already linked returns that canonical link, as the workspace candidate does.
     if (command.action === "link") {
-      const project = fixtureProjects.find(({ uri }) => uri === command.projectUri);
+      const project = [...fixtureProjects, ...ownProjects(actor.userId)].find(({ uri }) => uri === command.projectUri);
       if (!project) throw new AccountError(404, "project_not_found");
       if (project.groupDid) throw new AccountError(400, "invalid_project_command");
       const existing = soloLink(project.uri);
