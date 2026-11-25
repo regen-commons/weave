@@ -23,7 +23,7 @@ import { pathTo } from "../routes.ts";
 import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { PublishInitiative } from "../initiative/PublishInitiative.tsx";
-import { readPlan } from "../initiative/publish-plan.ts";
+import { adoptPlan, readPlan } from "../initiative/publish-plan.ts";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -60,10 +60,13 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   // The public finish to the intake. A plan waiting in this tab, as after signing in or Certified's
   // permission screen, opens it again where the person left it.
   const [publishing, setPublishing] = useState(false);
+  const signedInAs = account.state?.user?.id ?? null;
   useEffect(() => {
-    if (ready && !(import.meta.env.DEV && fixture) && readPlan((() => { try { return window.sessionStorage; } catch { return undefined; } })(), draft.id))
+    if (!ready || (import.meta.env.DEV && fixture)) return;
+    // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown.
+    if (adoptPlan(readPlan((() => { try { return window.sessionStorage; } catch { return undefined; } })(), draft.id), signedInAs))
       setPublishing(true);
-  }, [ready, draft.id]);
+  }, [ready, draft.id, signedInAs]);
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
   const waiting = waitingSuggestions(draft);
