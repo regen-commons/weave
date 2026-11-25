@@ -647,6 +647,8 @@ button.rc-chip {
 .rc-media > img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .rc-media[data-size="thumb"] { inline-size: var(--space-9); flex: none; aspect-ratio: 1; }
 .rc-media[data-size="wide"] { aspect-ratio: auto; block-size: var(--space-11); }
+/* A record's initials stand in for its picture until D30 allows one: a mark drawn from its name, not an image (DL-151). */
+.rc-media[data-content="initials"] { font: var(--type-headline-sm); color: var(--section-accent-text, var(--text-secondary)); }
 /* A pressed control gives a little under the press, where motion is welcome (DL-087). Its colours
    change at once; only the give is eased. */
 @media (prefers-reduced-motion: no-preference) {

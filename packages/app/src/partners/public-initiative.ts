@@ -50,3 +50,10 @@ export function publicAsk(listing: PublicSupportListing): PublicAsk {
       : `Listed on ${day(listing.createdAt)}.`,
   };
 }
+
+/** Up to two letters from a name, for the mark that stands in for a record's picture until D30 (DL-151). */
+export function initialsOf(name: string): string {
+  const words = name.replace(/\([^)]*\)/gu, " ").split(/[\s\-_/]+/u).filter((word) => /\p{L}|\p{N}/u.test(word));
+  const letters = (words.length > 1 ? [words[0]!, words[1]!] : words.slice(0, 1)).map((word) => [...word.replace(/^[^\p{L}\p{N}]+/u, "")][0] ?? "");
+  return letters.join("").toLocaleUpperCase() || "?";
+}

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Dialog } from "./Dialog.tsx";
 import { Heading } from "./Heading.tsx";
-import { NarrowLayout } from "./layouts.tsx";
+import { ListLayout, NarrowLayout } from "./layouts.tsx";
 import { keepFocusOnPage } from "./focus.ts";
 import { SectionLevelContext, type SectionLevel } from "./section-level.ts";
 import { RECORD_META_HOLD } from "../record-first-view.ts";
@@ -30,22 +30,27 @@ export function DetailSheet({
   title,
   state,
   presentation = "sheet",
+  wide = false,
   children,
 }: {
   title: string;
   state: SheetState;
   presentation?: Presentation;
+  /** As a page, take the page's width, for a record whose parts sit beside each other (DL-151). */
+  wide?: boolean;
   children: ReactNode;
 }) {
-  if (presentation === "page")
-    return (
-      <NarrowLayout>
+  if (presentation === "page") {
+    const body = (
+      <>
         <Heading level={1} size="page">
           {title}
         </Heading>
         <SectionLevelContext value={2}>{children}</SectionLevelContext>
-      </NarrowLayout>
+      </>
     );
+    return wide ? <ListLayout>{body}</ListLayout> : <NarrowLayout>{body}</NarrowLayout>;
+  }
   return (
     <Dialog
       presentation="detail"
