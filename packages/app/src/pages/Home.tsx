@@ -5,9 +5,9 @@ import { useDraft } from "../describe/use-draft.ts";
 import { fundingFixture, type FixtureContext } from "../fixtures.ts";
 import { useClosingSoon } from "../funding/use-catalog.ts";
 import {
-  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, homeDoors, homePreviews, openLabel, resumeLabel,
+  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, homePreviews, openLabel, resumeLabel,
 } from "../home.ts";
-import { cardName, cardRoute } from "../initiative/status.ts";
+import { cardRoute } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { currentRoute, Link, navigate } from "../router.tsx";
 import { pathTo, routeWith } from "../routes.ts";
@@ -31,9 +31,8 @@ import { PublicProjectCard, usePublicProjects } from "../partners/PublicProjects
 import { sharedLabel } from "../partners/public-projects.ts";
 
 /**
- * Home says what Weave is and where to start. Its hero has two doors: start an initiative, or
- * open one the person already has. A person with a card to come back to gets one action instead,
- * to resume it, so the page keeps one solid primary.
+ * Home keeps its two actions in place while the draft and account load. The second action opens
+ * Your Initiatives until there is a draft or a confirmed team workspace to resume directly.
  */
 export function Home({ fixture }: { fixture?: FixtureContext }) {
   const { draft } = useDraft();
@@ -65,17 +64,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
   let resumeId: string | null = null;
   try { if (account.state?.user) resumeId = readWorkspaceResume(account.state.user.id, window.localStorage); } catch { /* Optional navigation hint. */ }
   const resume = social?.mode === "live" ? social.state.workspaces?.find(item => item.workspaceId === resumeId && item.group) : null;
-  const signedIn = example ? !!example.identity : !!account.state?.user;
-  // Initiatives a signed-in person keeps somewhere other than this device.
-  const elsewhere = !signedIn
-    ? 0
-    : example
-      ? example.cards.length + example.records.length
-      : (account.state?.items.length ?? 0) + (social?.state.workspaces?.length ?? 0);
-  const route = cardRoute(draft);
   // Another account's card on this device is not one to resume here (DL-055).
   const setAside = useSetAside();
-  const doors = homeDoors((status.state !== "none" && !setAside) || !!resume, elsewhere);
+  const deviceRoute = status.state !== "none" && !setAside ? cardRoute(draft) : null;
+  const openHref = resume?.workspaceId ? teamWorkspacePath(resume.workspaceId) : pathTo(deviceRoute ?? "your-initiatives");
+  const openText = resume ? "Continue Your Initiative" : deviceRoute ? resumeLabel(deviceRoute)
+    : openLabel(example && { signedIn: !!example.identity, projects: example.records.length });
   function retry() {
     if (catalog.failed) catalog.retry();
     if (failed) navigate(routeWith(currentRoute(), "state", "ready"));
@@ -94,22 +88,12 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
       <HomeHero
         actions={
           <>
-            {doors.resume && (
-              <ButtonLink href={resume?.workspaceId ? teamWorkspacePath(resume.workspaceId) : pathTo(route)} variant="primary" size="lg">
-                {resume ? "Continue Your Initiative" : resumeLabel(route)}
-              </ButtonLink>
-            )}
-            {doors.start && (
-              <ButtonLink href={pathTo("new-initiative")} variant={doors.start} size="lg">
-                Start An Initiative
-              </ButtonLink>
-            )}
-            {/* Choosing a Certified project exists only in the example world, so only its door names Certified. */}
-            {doors.open && (
-              <ButtonLink href={pathTo("your-initiatives")} variant={doors.open} size="lg">
-                {openLabel(example && { signedIn, projects: example.records.length })}
-              </ButtonLink>
-            )}
+            <ButtonLink href={pathTo("new-initiative")} variant="primary" size="lg">
+              Start An Initiative
+            </ButtonLink>
+            <ButtonLink href={openHref} variant="secondary" size="lg">
+              {openText}
+            </ButtonLink>
           </>
         }
         live={
@@ -150,13 +134,7 @@ export function Home({ fixture }: { fixture?: FixtureContext }) {
             </>
           )}
         </Heading>
-        {doors.resume ? (
-          <p className="rc-prose">
-            <strong>{resume?.name ?? cardName(draft)}</strong>. {resume ? "Saved in your team workspace." : status.line}
-          </p>
-        ) : (
-          <p className="rc-prose">Describe your initiative once to find support.</p>
-        )}
+        <p className="rc-prose">Describe your initiative once to find support.</p>
       </HomeHero>
       {fixture?.state === "offline" && (
         <p className="rc-notice" data-tone="info">
